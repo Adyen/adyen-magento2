@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Magento/Store/etc/config.xsd">
+    <default>
+        <payment>
+            <adyen_cc>
+                <active>1</active>
+                <model>Adyen\Payment\Model\Method\Cc</model>
+                <order_status>pending</order_status>
+                <title>Adyen</title>
+                <recurring_type>ONECLICK</recurring_type>
+                <allowspecific>0</allowspecific>
+                <sort_order>1</sort_order>
+                <cctypes>AE,VI,MC,DI</cctypes>
+                <useccv>1</useccv>
+                <group>adyen</group>
+            </adyen_cc>
+            <adyen_hpp>
+                <active>0</active>
+                <model>Adyen\Payment\Model\Method\Hpp</model>
+                <order_status>pending</order_status>
+                <title>Adyen HPP</title>
+                <recurring_type>ONECLICK</recurring_type>
+                <allowspecific>0</allowspecific>
+                <sort_order>10</sort_order>
+                <place_order_url>authorizenet/directpost_payment/place</place_order_url>
+                <order_place_redirect_url>adyen/process/redirect</order_place_redirect_url>
+                <payment_action>Authorization</payment_action>
+                <group>adyen</group>
+            </adyen_hpp>
+            <test>
+                <active>1</active>
+                <model>Adyen\Payment\Model\Method\Test</model>
+                <order_status>pending</order_status>
+                <title>Test method</title>
+                <allowspecific>0</allowspecific>
+                <group>adyen</group>
+            </test>
+        </payment>
+    </default>
+</config>
