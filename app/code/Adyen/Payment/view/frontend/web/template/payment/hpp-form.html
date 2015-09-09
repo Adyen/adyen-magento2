@@ -12,48 +12,26 @@
                data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
         <label data-bind="attr: {'for': getCode()}" class="label"><span data-bind="text: getTitle()"></span></label>
     </div>
-
     <div class="payment-method-content">
-        <div class="payment-method-billing-address">
-            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+        <fieldset class="fieldset" data-bind='attr: {id: "payment_form_" + getCode()}'>
+            <div class="payment-method-note">
+                <!-- ko text: $t('You will be redirected to the Adyen website.') --><!-- /ko -->
+            </div>
+        </fieldset>
+        <div class="checkout-agreements-block">
+            <!-- ko foreach: $parent.getRegion('before-place-order') -->
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
-
-
-
-        <form class="form" id="co-transparent-form" action="#" method="post" data-bind="mageInit: {
-            'transparent':{
-                'context': context(),
-                'controller': getControllerName(),
-                'gateway': getCode(),
-                'orderSaveUrl':getPlaceOrderUrl(),
-                'cgiUrl': getCgiUrl(),
-                'dateDelim': getDateDelim(),
-                'cardFieldsMap': getCardFieldsMap(),
-                'nativeAction': getSaveOrderUrl()
-            }, 'validation':[]}">
-
-            <div class="checkout-agreements-block">
-                <!-- ko foreach: $parent.getRegion('before-place-order') -->
-                <!-- ko template: getTemplate() --><!-- /ko -->
-                <!--/ko-->
+        <div class="actions-toolbar">
+            <div class="primary">
+                <button class="action primary checkout"
+                        type="submit"
+                        data-bind="click: continueToAdyen, enable: (getCode() == isChecked())"
+                        disabled>
+                    <span data-bind="text: $t('Continue to Adyen')"></span>
+                </button>
             </div>
-            <div class="actions-toolbar">
-                <div class="primary">
-                    <button class="action primary checkout"
-                            type="submit"
-                            data-bind="
-                            click: placeOrder,
-                            attr: {title: $t('Place Order')},
-                            enable: (getCode() == isChecked()),
-                            css: {disabled: !isPlaceOrderActionAllowed()}
-                            "
-                            disabled>
-                        <span data-bind="text: $t('Place Order')"></span>
-                    </button>
-                </div>
-            </div>
-        </form>
+        </div>
     </div>
 </div>

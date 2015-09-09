@@ -6,13 +6,22 @@
 /*global define*/
 define(
     [
-        'Magento_Checkout/js/view/payment/default'
+        'jquery',
+        'Magento_Checkout/js/view/payment/default',
+        'Adyen_Payment/js/action/set-payment-method'
     ],
-    function (Component) {
+    function ($, Component, setPaymentMethodAction) {
         'use strict';
         return Component.extend({
             defaults: {
                 template: 'Adyen_Payment/payment/hpp-form'
+            },
+            /** Redirect to adyen */
+            continueToAdyen: function () {
+                //update payment method information if additional data was changed
+                this.selectPaymentMethod();
+                setPaymentMethodAction();
+                return false;
             }
         });
     }

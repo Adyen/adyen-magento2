@@ -17,6 +17,7 @@
         <arguments>
             <argument name="configProviders" xsi:type="array">
                 <item name="adyen_cc_config_provider" xsi:type="object">AdyenCcConfigProvider</item>
+                <item name="adyen_hpp_config_provider" xsi:type="object">Adyen\Payment\Model\AdyenHppConfigProvider</item>
             </argument>
         </arguments>
     </type>

@@ -3,5 +3,8 @@
         <route id="hello" frontName="hello">
             <module name="Adyen_Payment" />
         </route>
+        <route id="adyen" frontName="adyen">
+            <module name="Adyen_Payment" />
+        </route>
     </router>
 </config>

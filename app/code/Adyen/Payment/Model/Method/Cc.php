@@ -97,7 +97,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
 
     public function isAvailable($quote = null)
     {
-        $this->_logger->critical("IS AVAILABLE!! IS TRUE");
+        $this->_logger->critical("CC IS AVAILABLE!! IS TRUE");
         return true;
     }
 
@@ -110,7 +110,10 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      */
     public function assignData($data)
     {
-        print_r($data);die();
+        $this->_logger->critical("Assign data!!:" . print_r($data, true));
+        return parent::assignData($data);
+////        print_r($data);die();
+//        $this->_logger->critical("TEST in validate FUNTION !!:");
     }
 
     public function validate()
@@ -160,10 +163,19 @@ class Cc extends \Magento\Payment\Model\Method\Cc
                 break;
         }
 
+
+        $this->_logger->critical("HIERRR result is " . print_r($response,true));
+
         if (!empty($response)) {
-            print_r($response);die();
+            $this->_logger->critical("NOT EMPTY ");
+
+
+
+//            print_r($response);die();
 //            $this->_processResponse($payment, $response, $request);
         } else {
+            $this->_logger->critical(" EMPTY response");
+
             throw new \Magento\Framework\Exception\LocalizedException(__('Empty result.'));
         }
 

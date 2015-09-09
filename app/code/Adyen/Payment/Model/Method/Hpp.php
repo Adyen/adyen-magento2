@@ -33,7 +33,52 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     protected $_canAuthorize = true;
     protected $_isInitializeNeeded = true;
 
+    /**
+     * @param \Magento\Framework\Model\Context $context
+     * @param \Magento\Framework\Registry $registry
+     * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
+     * @param \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory
+     * @param \Magento\Payment\Helper\Data $paymentData
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param Logger $logger
+     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
+     * @param array $data
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     */
+    public function __construct(
+        \Magento\Framework\UrlInterface $urlBuilder,
+        \Magento\Framework\Model\Context $context,
+        \Magento\Framework\Registry $registry,
+        \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
+        \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory,
+        \Magento\Payment\Helper\Data $paymentData,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Payment\Model\Method\Logger $logger,
+        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        array $data = []
+    ) {
+        parent::__construct(
+            $context,
+            $registry,
+            $extensionFactory,
+            $customAttributeFactory,
+            $paymentData,
+            $scopeConfig,
+            $logger,
+            $resource,
+            $resourceCollection,
+            $data
+        );
+        $this->_urlBuilder = $urlBuilder;
+    }
 
+    public function isAvailable($quote = null)
+    {
+        $this->_logger->critical("HPP IS AVAILABLE!! IS TRUE");
+        return true;
+    }
 
     public function initialize($paymentAction, $stateObject)
     {
@@ -79,24 +124,17 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
 //        return \Magento\Payment\Model\Method\AbstractMethod::ACTION_AUTHORIZE_CAPTURE;
 //    }
 
-
     /**
-     * Checkout order place redirect URL getter
+     * Checkout redirect URL getter for onepage checkout (hardcode)
      *
+     * @see \Magento\Checkout\Controller\Onepage::savePaymentAction()
+     * @see \Magento\Quote\Model\Quote\Payment::getCheckoutRedirectUrl()
      * @return string
      */
-    public function getOrderPlaceRedirectUrl()
+    public function getCheckoutRedirectUrl()
     {
-        $this->_logger->critical("getOrderPlaceRedirectUrl");
-        $method = $this->getMethodInstance();
-        if ($method) {
-            $this->_logger->critical("getOrderPlaceRedirectUrl url is:" . $method->getConfigData('order_place_redirect_url'));
-            return $method->getConfigData('order_place_redirect_url');
-        } else {
-            $this->_logger->critical("ELSE:");
-            return "http://www.google.com/";
-        }
-        return '';
+//        return $this->_urlBuilder->getUrl('paypal/payflowexpress/start');
+        return $this->_urlBuilder->getUrl('adyen/process/redirect');
     }
 
 

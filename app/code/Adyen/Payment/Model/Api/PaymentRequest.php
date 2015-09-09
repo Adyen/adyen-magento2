@@ -58,7 +58,7 @@ class PaymentRequest extends \Magento\Framework\Object
             "paymentRequest.merchantAccount" => $merchantAccount,
             "paymentRequest.amount.currency" => "EUR",
             "paymentRequest.amount.value" => "199",
-            "paymentRequest.reference" => "TEST-PAYMENT-" . date("Y-m-d-H:i:s"),
+            "paymentRequest.reference" => $order->getIncrementId(),
             "paymentRequest.shopperIP" => "ShopperIPAddress",
             "paymentRequest.shopperEmail" => "TheShopperEmailAddress",
             "paymentRequest.shopperReference" => "YourReference",
@@ -110,9 +110,13 @@ class PaymentRequest extends \Magento\Framework\Object
             throw new \Magento\Framework\Exception\LocalizedException(__('HTTP Status code' . $results));
         }
 
-        throw new \Magento\Framework\Exception\LocalizedException(__('HTTP Status code' . print_r($results, true)));
 
-        parse_str($results,$results);
+
+//        throw new \Magento\Framework\Exception\LocalizedException(__('HTTP Status code' . print_r($results, true)));
+
+        parse_str($results, $results);
+
+        $this->_logger->critical("result is" . print_r($results,true));
 
         curl_close($ch);
 
