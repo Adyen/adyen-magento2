@@ -1,18 +1,10 @@
 <?php
 
 
-namespace Adyen\Payment\Controller\Index;
+namespace Adyen\Payment\Controller\Process;
 
 class Index extends \Magento\Framework\App\Action\Action
 {
-
-
-    public function __construct(\Magento\Framework\ObjectManagerInterface $objectManager)
-    {
-        $this->_objectManager = $objectManager;
-
-    }
-
     public function execute()
     {
         echo 'test';die();

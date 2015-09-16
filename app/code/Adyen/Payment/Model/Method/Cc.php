@@ -43,6 +43,8 @@ class Cc extends \Magento\Payment\Model\Method\Cc
 
     protected $_paymentRequest;
 
+    protected $_adyenLogger;
+
     /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
@@ -59,6 +61,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      */
     public function __construct(
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
@@ -87,6 +90,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
             $data
         );
         $this->_paymentRequest = $paymentRequest;
+        $this->_adyenLogger = $adyenLogger;
     }
 
 
@@ -98,6 +102,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     public function isAvailable($quote = null)
     {
         $this->_logger->critical("CC IS AVAILABLE!! IS TRUE");
+//        $this->_adyenLogger->critical("TESTTT");
         return true;
     }
 
@@ -110,10 +115,25 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      */
     public function assignData($data)
     {
+        parent::assignData($data);
+        $infoInstance = $this->getInfoInstance();
+
+
         $this->_logger->critical("Assign data!!:" . print_r($data, true));
-        return parent::assignData($data);
-////        print_r($data);die();
+
+
+//        throw new \Magento\Framework\Exception\LocalizedException(__('The authorize action is not available.' . print_r($data, true)));
+
+        ////        print_r($data);die();
 //        $this->_logger->critical("TEST in validate FUNTION !!:");
+
+
+        $infoInstance->setAdditionalInformation('encrypted_data', $data['encrypted_data']);
+
+        $this->_logger->critical("encrypted dat:" . $data['encrypted_data']);
+
+
+        return $this;
     }
 
     public function validate()
@@ -125,6 +145,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         $this->_logger->critical("TEST in authorize FUNTION !!:");
+
         if (!$this->canAuthorize()) {
             throw new \Magento\Framework\Exception\LocalizedException(__('The authorize action is not available.'));
         }
@@ -150,16 +171,13 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     }
 
 
-    protected function _processRequest(\Magento\Framework\Object $payment, $amount, $request) {
-
-        $merchantAccount = $this->getConfigData('merchant_account');
-        $recurringType = $this->getConfigData('recurring_type');
-        $enableMoto = $this->getConfigData('enable_moto');
+    protected function _processRequest(\Magento\Framework\Object $payment, $amount, $request)
+    {
 
 
         switch ($request) {
             case "authorise":
-                $response = $this->_paymentRequest->fullApiRequest($merchantAccount, $payment);
+                $response = $this->_paymentRequest->fullApiRequest($payment);
                 break;
         }
 
@@ -167,7 +185,13 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         $this->_logger->critical("HIERRR result is " . print_r($response,true));
 
         if (!empty($response)) {
+
+
+
             $this->_logger->critical("NOT EMPTY ");
+
+
+            $this->_processResponse($payment, $response);
 
 
 
@@ -178,6 +202,60 @@ class Cc extends \Magento\Payment\Model\Method\Cc
 
             throw new \Magento\Framework\Exception\LocalizedException(__('Empty result.'));
         }
+
+    }
+
+    protected function _processResponse(\Magento\Payment\Model\InfoInterface $payment, $response)
+    {
+
+
+        switch ($response['paymentResult_resultCode']) {
+            case "Authorised":
+                //$this->_addStatusHistory($payment, $responseCode, $pspReference, $this->_getConfigData('order_status'));
+                break;
+            case "Refused":
+                // paymentResult_refusalReason
+                if($response['paymentResult_refusalReason']) {
+
+                    $refusalReason = $response['paymentResult_refusalReason'];
+                    switch($refusalReason) {
+                        case "Transaction Not Permitted":
+                            $errorMsg = __('The transaction is not permitted.');
+                            break;
+                        case "CVC Declined":
+                            $errorMsg = __('Declined due to the Card Security Code(CVC) being incorrect. Please check your CVC code!');
+                            break;
+                        case "Restricted Card":
+                            $errorMsg = __('The card is restricted.');
+                            break;
+                        case "803 PaymentDetail not found":
+                            $errorMsg = __('The payment is REFUSED because the saved card is removed. Please try an other payment method.');
+                            break;
+                        case "Expiry month not set":
+                            $errorMsg = __('The expiry month is not set. Please check your expiry month!');
+                            break;
+                        default:
+                            $errorMsg = __('The payment is REFUSED by Adyen.');
+                            break;
+                    }
+                } else {
+                    $errorMsg = Mage::helper('adyen')->__('The payment is REFUSED by Adyen.');
+                }
+
+                if ($errorMsg) {
+                    $this->_logger->critical($errorMsg);
+                    throw new \Magento\Framework\Exception\LocalizedException($errorMsg);
+                }
+                break;
+        }
+
+
+        if($response['paymentResult_resultCode'] == 'Refused') {
+
+        }
+
+
+//        print_R($response);die();
 
     }
 

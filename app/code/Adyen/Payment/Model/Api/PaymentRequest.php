@@ -12,17 +12,20 @@ class PaymentRequest extends \Magento\Framework\Object
     protected $_code;
     protected $_logger;
     protected $_encryptor;
+    protected $_adyenHelper;
 
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
+        \Adyen\Payment\Helper\Data $adyenHelper,
         array $data = []
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_logger = $logger;
         $this->_encryptor = $encryptor;
         $this->_code = "adyen_cc";
+        $this->_adyenHelper = $adyenHelper;
     }
 
     /**
@@ -33,50 +36,84 @@ class PaymentRequest extends \Magento\Framework\Object
      *
      * @return mixed
      */
-    public function getConfigData($field, $storeId = null)
+    public function getConfigData($field, $paymentMethodCode = "adyen_abstract", $storeId = null)
     {
         if (null === $storeId) {
             $storeId = $this->getStore();
         }
-        $path = 'payment/' . $this->_code . '/' . $field;
+
+        // $this->_code to get current methodcode
+        $path = 'payment/' . $paymentMethodCode . '/' . $field;
         return $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
     }
 
-    public function fullApiRequest($merchantAccount, $payment)
+    public function fullApiRequest($payment)
     {
         $order = $payment->getOrder();
+        $amount = $order->getGrandTotal();
+        $customerEmail = $order->getCustomerEmail();
+        $shopperIp = $order->getRemoteIp();
+        $orderCurrencyCode = $order->getOrderCurrencyCode();
+        $merchantAccount = $this->getConfigData("merchant_account");
 
-        if($order) {
-            $this->_logger->critical("TEST5!!:" . print_r($order->getIncrementId(), true));
-        }
-
-
-        $this->_logger->critical("CLASS OBJECT:" . get_class($payment));
+        $this->_logger->critical("fullApiRequest1 ");
 
         $request = array(
             "action" => "Payment.authorise",
             "paymentRequest.merchantAccount" => $merchantAccount,
-            "paymentRequest.amount.currency" => "EUR",
-            "paymentRequest.amount.value" => "199",
+            "paymentRequest.amount.currency" => $orderCurrencyCode,
+            "paymentRequest.amount.value" => $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode),
             "paymentRequest.reference" => $order->getIncrementId(),
-            "paymentRequest.shopperIP" => "ShopperIPAddress",
-            "paymentRequest.shopperEmail" => "TheShopperEmailAddress",
-            "paymentRequest.shopperReference" => "YourReference",
-            "paymentRequest.fraudOffset" => "0",
-
-            "paymentRequest.card.billingAddress.street" => "Simon Carmiggeltstraat",
-            "paymentRequest.card.billingAddress.postalCode" => "1011 DJ",
-            "paymentRequest.card.billingAddress.city" => "Amsterdam",
-            "paymentRequest.card.billingAddress.houseNumberOrName" => "6-50",
-            "paymentRequest.card.billingAddress.stateOrProvince" => "",
-            "paymentRequest.card.billingAddress.country" => "NL",
-
-            "paymentRequest.card.expiryMonth" => $payment->getCcExpMonth(),
-            "paymentRequest.card.expiryYear" => $payment->getCcExpYear(),
-            "paymentRequest.card.holderName" => $payment->getCcOwner(),
-            "paymentRequest.card.number" => $payment->getCcNumber(),
-            "paymentRequest.card.cvc" => $payment->getCcCid(),
+            "paymentRequest.shopperIP" => $shopperIp,
+            "paymentRequest.shopperEmail" => $customerEmail,
+            "paymentRequest.shopperReference" => $order->getIncrementId(),
+            "paymentRequest.fraudOffset" => "0"
         );
+
+        $billingAddress = $order->getBillingAddress();
+
+        if($billingAddress)
+        {
+            $addressArray = $this->_adyenHelper->getStreet($billingAddress);
+            $requestBilling = array("paymentRequest.card.billingAddress.street" => $addressArray['name'],
+                "paymentRequest.card.billingAddress.postalCode" => $billingAddress->getPostcode(),
+                "paymentRequest.card.billingAddress.city" => $billingAddress->getCity(),
+                "paymentRequest.card.billingAddress.houseNumberOrName" => $addressArray['house_number'],
+                "paymentRequest.card.billingAddress.stateOrProvince" => $billingAddress->getRegionCode(),
+                "paymentRequest.card.billingAddress.country" => $billingAddress->getCountryId()
+            );
+            $request = array_merge($request, $requestBilling);
+        }
+
+        $deliveryAddress = $order->getDeliveryAddress();
+        if($deliveryAddress)
+        {
+            $addressArray = $this->_adyenHelper->getStreet($deliveryAddress);
+
+            $requestDelivery = array("paymentRequest.card.billingAddress.street" => $addressArray['name'],
+                "paymentRequest.card.billingAddress.postalCode" => $deliveryAddress->getPostcode(),
+                "paymentRequest.card.billingAddress.city" => $deliveryAddress->getCity(),
+                "paymentRequest.card.billingAddress.houseNumberOrName" => $addressArray['house_number'],
+                "paymentRequest.card.billingAddress.stateOrProvince" => $deliveryAddress->getRegionCode(),
+                "paymentRequest.card.billingAddress.country" => $deliveryAddress->getCountryId()
+            );
+            $request = array_merge($request, $requestDelivery);
+        }
+
+
+        // TODO get CSE setting
+        $cseEnabled = true;
+        if($cseEnabled) {
+            $request['paymentRequest.additionalData.card.encrypted.json'] = $payment->getAdditionalInformation("encrypted_data");
+        } else {
+            $requestCreditCardDetails = array("paymentRequest.card.expiryMonth" => $payment->getCcExpMonth(),
+                "paymentRequest.card.expiryYear" => $payment->getCcExpYear(),
+                "paymentRequest.card.holderName" => $payment->getCcOwner(),
+                "paymentRequest.card.number" => $payment->getCcNumber(),
+                "paymentRequest.card.cvc" => $payment->getCcCid(),
+            );
+            $request = array_merge($request, $requestCreditCardDetails);
+        }
 
         $this->_logger->critical("fullApiRequest");
         $this->_logger->critical(print_r($request, true));
@@ -87,7 +124,8 @@ class PaymentRequest extends \Magento\Framework\Object
 
     protected function _apiRequest($request) {
 
-        $webserviceUsername = $this->getConfigData("webservice_username");
+        // TODO make differents between test and live
+        $webserviceUsername = $this->getConfigData("ws_username_test");
         $webservicePassword = $this->decryptPassword($this->getConfigData("webservice_password")); // DECODE!!
 
         $ch = curl_init();

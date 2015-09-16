@@ -36,11 +36,11 @@ class Redirect extends \Magento\Framework\App\Action\Action
      * @param \Magento\Customer\Model\Session $customerSession
      */
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Magento\Customer\Model\Session $customerSession
+        \Magento\Framework\App\Action\Context $context
+//        \Magento\Customer\Model\Session $customerSession
     ) {
         parent::__construct($context);
-        $this->_customerSession = $customerSession;
+//        $this->_customerSession = $customerSession;
     }
 
 

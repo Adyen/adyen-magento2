@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../../../lib/internal/Magento/Framework/ObjectManager/etc/config.xsd">
+    <type name="Adyen\Payment\Logger\Handler\AdyenDebug">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Logger\AdyenLogger">
+        <arguments>
+            <argument name="name" xsi:type="string">AdyenLoggerTest</argument>
+            <argument name="handlers"  xsi:type="array">
+                <item name="adyenDebug" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenDebug</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

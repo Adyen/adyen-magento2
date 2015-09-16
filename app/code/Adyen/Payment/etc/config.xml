@@ -8,16 +8,21 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Magento/Store/etc/config.xsd">
     <default>
         <payment>
+            <adyen_abstract>
+                <active>0</active>
+                <recurring_type>ONECLICK</recurring_type>
+                <order_status>pending</order_status>
+                <demo_mode>1</demo_mode>
+            </adyen_abstract>
             <adyen_cc>
                 <active>1</active>
                 <model>Adyen\Payment\Model\Method\Cc</model>
-                <order_status>pending</order_status>
-                <title>Adyen</title>
-                <recurring_type>ONECLICK</recurring_type>
+                <title>Adyen CC</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>1</sort_order>
                 <cctypes>AE,VI,MC,DI</cctypes>
                 <useccv>1</useccv>
+                <cse_enabled>1</cse_enabled>
                 <group>adyen</group>
             </adyen_cc>
             <adyen_hpp>

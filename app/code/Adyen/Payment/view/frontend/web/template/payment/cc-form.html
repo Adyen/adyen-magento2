@@ -22,7 +22,7 @@
 
 
 
-        <form class="form" id="co-transparent-form" action="#" method="post" data-bind="mageInit: {
+        <form class="form" id="adyen-cc-form" action="#" method="post" data-bind="mageInit: {
             'transparent':{
                 'context': context(),
                 'controller': getControllerName(),
@@ -37,6 +37,7 @@
                     <span><!-- ko i18n: 'Credit Card Information'--><!-- /ko --></span>
                 </legend><br />
                 <!-- /ko -->
+
                 <div class="field type required">
                     <label data-bind="attr: {for: getCode() + '_cc_type'}" class="label">
                         <span><!-- ko i18n: 'Credit Card Type'--><!-- /ko --></span>
@@ -71,6 +72,7 @@
                     </label>
                     <div class="control">
                         <input type="number" name="payment[cc_number]" class="input-text" value=""
+                               data-encrypted-name="number"
                                data-bind="attr: {
                                             autocomplete: off,
                                             id: getCode() + '_cc_number',
@@ -91,6 +93,7 @@
                                name="payment[cc_owner]"
                                class="input-text"
                                value=""
+                               data-encrypted-name="holderName"
                                data-bind="attr: {id: getCode() + '_cc_owner', 'data-container': getCode() + '-cc-owner'},
                            enable: isActive($parents),
                            value: creditCardOwner">
@@ -106,6 +109,7 @@
                                 <div class="control">
                                     <select  name="payment[cc_exp_month]"
                                              class="select select-month"
+                                             data-encrypted-name="expiryMonth"
                                              data-bind="attr: {id: getCode() + '_expiration', 'data-container': getCode() + '-cc-month', 'data-validate': JSON.stringify({required:true, 'validate-cc-exp':'#' + getCode() + '_expiration_yr'})},
                                                     enable: isActive($parents),
                                                     options: getCcMonthsValues(),
@@ -120,6 +124,7 @@
                                 <div class="control">
                                     <select name="payment[cc_exp_year]"
                                             class="select select-year"
+                                            data-encrypted-name="expiryYear"
                                             data-bind="attr: {id: getCode() + '_expiration_yr', 'data-container': getCode() + '-cc-year', 'data-validate': JSON.stringify({required:true})},
                                                    enable: isActive($parents),
                                                    options: getCcYearsValues(),
@@ -142,6 +147,7 @@
                         <input type="number"
                                autocomplete="off"
                                class="input-text cvv"
+                               data-encrypted-name="cvc"
                                name="payment[cc_cid]"
                                value=""
                                data-bind="attr: {id: getCode() + '_cc_cid',
@@ -226,6 +232,14 @@
                     </div>
                 </div>
                 <!-- /ko -->
+
+
+                <!-- ko if: (isCseEnabled())-->
+
+                    <input type="hidden" id="adyen_encrypted_form_expiry_generationtime" data-bind="value: getGenerationTime()" data-encrypted-name="generationtime" />
+
+
+                <!-- /ko -->
             </fieldset>
 
             <div class="checkout-agreements-block">
@@ -251,6 +265,4 @@
         </form>
     </div>
 </div>
-
-
 
