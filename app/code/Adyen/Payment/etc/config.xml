@@ -10,9 +10,10 @@
         <payment>
             <adyen_abstract>
                 <active>0</active>
+                <model>Adyen\Payment\Model\Method\AdyenAbstract</model>
                 <recurring_type>ONECLICK</recurring_type>
                 <order_status>pending</order_status>
-                <demo_mode>1</demo_mode>
+                <demo_mode>0</demo_mode>
             </adyen_abstract>
             <adyen_cc>
                 <active>1</active>

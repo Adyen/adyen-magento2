@@ -224,7 +224,7 @@ class Cron
 
         }
 
-        echo 'end';
+        echo 'end1';
         // get currenttime
 //        $date = new date();
 
@@ -375,7 +375,6 @@ class Cron
     {
         $orderStatus = $this->_getConfigData('payment_cancelled', 'adyen_abstract', $this->_order->getStoreId());
 
-        $helper = Mage::helper('adyen');
 
         // check if order has in invoice only cancel/hold if this is not the case
         if ($ignoreHasInvoice || !$this->_order->hasInvoices()) {
@@ -448,14 +447,14 @@ class Cron
             case Notification::MANUAL_REVIEW_ACCEPT:
                 // only process this if you are on auto capture. On manual capture you will always get Capture or CancelOrRefund notification
                 if ($this->_isAutoCapture()) {
-                    $this->_setPaymentAuthorized($this->_order, false);
+                    $this->_setPaymentAuthorized(false);
                 }
                 break;
             case Notification::CAPTURE:
                 if($_paymentCode != "adyen_pos") {
                     // ignore capture if you are on auto capture (this could be called if manual review is enabled and you have a capture delay)
                     if (!$this->_isAutoCapture()) {
-                        $this->_setPaymentAuthorized($this->_order, false, true);
+                        $this->_setPaymentAuthorized(false, true);
                     }
                 } else {
 
@@ -494,88 +493,6 @@ class Cron
                         $this->_setRefundAuthorized($this->_order);
                     }
                 }
-                break;
-            case Notification::RECURRING_CONTRACT:
-
-                // get payment object
-                $payment = $this->_order->getPayment();
-
-                // storedReferenceCode
-                $recurringDetailReference = $this->_pspReference;
-
-                // check if there is already a BillingAgreement
-                $agreement = Mage::getModel('adyen/billing_agreement')->load($recurringDetailReference, 'reference_id');
-
-                if ($agreement && $agreement->getAgreementId() > 0 && $agreement->isValid()) {
-
-                    $agreement->addOrderRelation($this->_order);
-                    $agreement->setStatus($agreement::STATUS_ACTIVE);
-                    $agreement->setIsObjectChanged(true);
-                    $this->_order->addRelatedObject($agreement);
-                    $message = $this->_adyenHelper->__('Used existing billing agreement #%s.', $agreement->getReferenceId());
-
-                } else {
-                    // set billing agreement data
-                    $payment->setBillingAgreementData(array(
-                        'billing_agreement_id'  => $recurringDetailReference,
-                        'method_code'           => $payment->getMethodCode()
-                    ));
-
-                    // create billing agreement for this order
-                    $agreement = Mage::getModel('adyen/billing_agreement');
-                    $agreement->setStoreId($this->_order->getStoreId());
-                    $agreement->importOrderPayment($payment);
-
-                    $listRecurringContracts = Mage::getSingleton('adyen/api')->listRecurringContracts($agreement->getCustomerReference(), $agreement->getStoreId());
-
-                    $contractDetail = null;
-                    // get currenct Contract details and get list of all current ones
-                    $recurringReferencesList = array();
-                    foreach ($listRecurringContracts as $rc) {
-                        $recurringReferencesList[] = $rc['recurringDetailReference'];
-                        if (isset($rc['recurringDetailReference']) && $rc['recurringDetailReference'] == $recurringDetailReference) {
-                            $contractDetail = $rc;
-                        }
-                    }
-
-                    if($contractDetail != null) {
-                        // update status of the agreements in magento
-                        $billingAgreements = Mage::getResourceModel('adyen/billing_agreement_collection')
-                            ->addFieldToFilter('customer_id', $agreement->getCustomerReference());
-
-                        foreach($billingAgreements as $billingAgreement) {
-                            if(!in_array($billingAgreement->getReferenceId(), $recurringReferencesList)) {
-                                $billingAgreement->setStatus(Adyen_Payment_Model_Billing_Agreement::STATUS_CANCELED);
-                                $billingAgreement->save();
-                            } else {
-                                $billingAgreement->setStatus(Adyen_Payment_Model_Billing_Agreement::STATUS_ACTIVE);
-                                $billingAgreement->save();
-                            }
-                        }
-
-                        $agreement->parseRecurringContractData($contractDetail);
-
-                        if ($agreement->isValid()) {
-                            $message = __('Created billing agreement #%s.', $agreement->getReferenceId());
-
-                            // save into sales_billing_agreement_order
-                            $agreement->addOrderRelation($this->_order);
-
-                            // add to order to save agreement
-                            $this->_order->addRelatedObject($agreement);
-                        } else {
-                            $message = __('Failed to create billing agreement for this order.');
-                        }
-                    } else {
-                        $this->_debugData['_processNotification error'] = 'Failed to create billing agreement for this order (listRecurringCall did not contain contract)';
-                        $this->_debugData['_processNotification ref'] = printf('recurringDetailReference in notification is %s', $recurringDetailReference) ;
-                        $this->_debugData['_processNotification customer ref'] = printf('CustomerReference is: %s and storeId is %s', $agreement->getCustomerReference(), $agreement->getStoreId());
-                        $this->_debugData['_processNotification customer result'] = $listRecurringContracts;
-                        $message = __('Failed to create billing agreement for this order (listRecurringCall did not contain contract)');
-                    }
-                }
-                $comment = $this->_order->addStatusHistoryComment($message);
-                $this->_order->addRelatedObject($comment);
                 break;
             default:
                 $this->_order->getPayment()->getMethodInstance()->writeLog('notification event not supported!');
@@ -674,7 +591,7 @@ class Cron
         $orderAmount = (int) $this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $orderCurrencyCode);
 
         if($this->_isTotalAmount($orderAmount)) {
-            $this->_createInvoice($this->_order);
+            $this->_createInvoice();
         } else {
             $this->_debugData['_prepareInvoice partial authorisation step1'] = 'This is a partial AUTHORISATION';
 
@@ -692,7 +609,7 @@ class Cron
 
                 if($totalAuthorisationAmount == $orderAmount) {
                     $this->_debugData['_prepareInvoice partial authorisation step3'] = 'The full amount is paid. This is the latest AUTHORISATION notification. Create the invoice';
-                    $this->_createInvoice($this->_order);
+                    $this->_createInvoice();
                 } else {
                     // this can be multiple times so use envenData as unique key
                     $this->_debugData['_prepareInvoice partial authorisation step3'] = 'The full amount is not reached. Wait for the next AUTHORISATION notification. The current amount that is authorized is:' . $totalAuthorisationAmount;
@@ -787,6 +704,138 @@ class Cron
             return false;
         }
 
+    }
+
+    protected function _createInvoice()
+    {
+        $this->_debugData['_createInvoice'] = 'Creating invoice for order';
+
+        if ($this->_order->canInvoice()) {
+
+            /* We do not use this inside a transaction because order->save() is always done on the end of the notification
+             * and it could result in a deadlock see https://github.com/Adyen/magento/issues/334
+             */
+            try {
+                $invoice = $this->_order->prepareInvoice();
+                $invoice->getOrder()->setIsInProcess(true);
+
+                // set transaction id so you can do a online refund from credit memo
+                $invoice->setTransactionId(1);
+
+                $autoCapture = $this->_isAutoCapture($this->_order);
+                $createPendingInvoice = (bool) $this->_getConfigData('create_pending_invoice', 'adyen_abstract', $this->_order->getStoreId());
+
+                if((!$autoCapture) && ($createPendingInvoice)) {
+
+                    // if amount is zero create a offline invoice
+                    $value = (int)$this->_value;
+                    if($value == 0) {
+                        $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_OFFLINE);
+                    } else {
+                        $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::NOT_CAPTURE);
+                    }
+
+                    $invoice->register();
+                } else {
+                    $invoice->register()->pay();
+                }
+
+                $invoice->save();
+
+                $this->_debugData['_createInvoice done'] = 'Created invoice';
+            } catch (Exception $e) {
+                $this->_debugData['_createInvoice error'] = 'Error saving invoice. The error message is: ' . $e->getMessage();
+                throw new Exception(sprintf('Error saving invoice. The error message is:', $e->getMessage()));
+            }
+
+            $this->_setPaymentAuthorized();
+
+            $invoiceAutoMail = (bool) $this->_getConfigData('send_invoice_update_mail', 'adyen_abstract', $this->_order->getStoreId());
+            if ($invoiceAutoMail) {
+                $invoice->sendEmail();
+            }
+        } else {
+            $this->_debugData['_createInvoice error'] = 'It is not possible to create invoice for this order';
+        }
+    }
+
+    /**
+     *
+     */
+    protected function _setPaymentAuthorized($manualReviewComment = true, $createInvoice = false)
+    {
+        $this->_debugData['_setPaymentAuthorized start'] = 'Set order to authorised';
+
+        // if full amount is captured create invoice
+        $currency = $this->_order->getOrderCurrencyCode();
+        $amount = $this->_value;
+        $orderAmount = (int) $this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $currency);
+
+        // create invoice for the capture notification if you are on manual capture
+        if($createInvoice == true && $amount == $orderAmount) {
+            $this->_debugData['_setPaymentAuthorized amount'] = 'amount notification:'.$amount . ' amount order:'.$orderAmount;
+            $this->_createInvoice($this->_order);
+        }
+
+        // if you have capture on shipment enabled don't set update the status of the payment
+        $captureOnShipment = $this->_getConfigData('capture_on_shipment', 'adyen_abstract', $this->_order->getStoreId());
+        if(!$captureOnShipment) {
+            $status = $this->_getConfigData('payment_authorized', 'adyen_abstract', $this->_order->getStoreId());
+        }
+
+        // virtual order can have different status
+        if($this->_order->getIsVirtual()) {
+            $this->_debugData['_setPaymentAuthorized virtual'] = 'Product is a virtual product';
+            $virtual_status = $this->_getConfigData('payment_authorized_virtual');
+            if($virtual_status != "") {
+                $status = $virtual_status;
+            }
+        }
+
+        // check for boleto if payment is totally paid
+        if($this->_paymentMethodCode($this->_order) == "adyen_boleto") {
+
+            // check if paid amount is the same as orginal amount
+            $orginalAmount = $this->_boletoOriginalAmount;
+            $paidAmount = $this->_boletoPaidAmount;
+
+            if($orginalAmount != $paidAmount) {
+
+                // not the full amount is paid. Check if it is underpaid or overpaid
+                // strip the  BRL of the string
+                $orginalAmount = str_replace("BRL", "",  $orginalAmount);
+                $orginalAmount = floatval(trim($orginalAmount));
+
+                $paidAmount = str_replace("BRL", "",  $paidAmount);
+                $paidAmount = floatval(trim($paidAmount));
+
+                if($paidAmount > $orginalAmount) {
+                    $overpaidStatus =  $this->_getConfigData('order_overpaid_status', 'adyen_boleto');
+                    // check if there is selected a status if not fall back to the default
+                    $status = (!empty($overpaidStatus)) ? $overpaidStatus : $status;
+                } else {
+                    $underpaidStatus = $this->_getConfigData('order_underpaid_status', 'adyen_boleto');
+                    // check if there is selected a status if not fall back to the default
+                    $status = (!empty($underpaidStatus)) ? $underpaidStatus : $status;
+                }
+            }
+        }
+
+        $comment = "Adyen Payment Successfully completed";
+
+        // if manual review is true use the manual review status if this is set
+        if($manualReviewComment == true && $this->_fraudManualReview) {
+            // check if different status is selected
+            $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
+            if($fraudManualReviewStatus != "") {
+                $status = $fraudManualReviewStatus;
+                $comment = "Adyen Payment is in Manual Review check the Adyen platform";
+            }
+        }
+
+        $status = (!empty($status)) ? $status : $this->_order->getStatus();
+        $this->_order->addStatusHistoryComment(__($comment), $status);
+        $this->_debugData['_setPaymentAuthorized end'] = 'Order status is changed to authorised status, status is ' . $status;
     }
 
 
