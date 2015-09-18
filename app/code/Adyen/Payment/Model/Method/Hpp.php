@@ -92,6 +92,11 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $this->storeManager = $storeManager;
     }
 
+    protected $_paymentMethodType = 'hpp';
+    public function getPaymentMethodType() {
+        return $this->_paymentMethodType;
+    }
+
     public function isAvailable($quote = null)
     {
         $this->_logger->critical("HPP IS AVAILABLE!! IS TRUE");
@@ -120,10 +125,6 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
             default:
                 break;
         }
-//        magento 1.x code from our plugin
-//        $state = Mage_Sales_Model_Order::STATE_NEW;
-//        $stateObject->setState($state);
-//        $stateObject->setStatus($this->_getConfigData('order_status'));
     }
 
 

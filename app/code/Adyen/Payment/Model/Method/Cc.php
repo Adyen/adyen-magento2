@@ -93,6 +93,11 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         $this->_adyenLogger = $adyenLogger;
     }
 
+    protected $_paymentMethodType = 'api';
+    public function getPaymentMethodType() {
+        return $this->_paymentMethodType;
+    }
+
 
     public function isActive($storeId = null)
     {

@@ -14,7 +14,7 @@ use Magento\Payment\Model\Method\Online\GatewayInterface;
  */
 class AdyenAbstract extends \Magento\Payment\Model\Method\AbstractMethod implements GatewayInterface
 {
-    const METHOD_CODE = 'adyen_hpp';
+    const METHOD_CODE = 'adyen_abstract';
 
     /**
      * @var string

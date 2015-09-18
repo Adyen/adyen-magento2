@@ -148,7 +148,7 @@ class Cron
                     $this->_debugData['_updateOrder info'] = 'Going to cancel the order';
 
                     // if payment is API check, check if API result pspreference is the same as reference
-                    if($this->_eventCode == Adyen_Payment_Model_Event::ADYEN_EVENT_AUTHORISATION && $this->_getPaymentMethodType($this->_order) == 'api') {
+                    if($this->_eventCode == Adyen_Payment_Model_Event::ADYEN_EVENT_AUTHORISATION && $this->_getPaymentMethodType() == 'api') {
                         if($this->_pspReference == $this->_order->getPayment()->getAdyenPspReference()) {
                             // don't cancel the order if previous state is authorisation with success=true
                             if($previousAdyenEventCode != "AUTHORISATION : TRUE") {
@@ -300,6 +300,10 @@ class Cron
         return $this->_order->getPayment()->getMethod();
     }
 
+    protected function _getPaymentMethodType() {
+        return $this->_order->getPayment()->getPaymentMethodType();
+    }
+
     /**
      * @desc order comments or history
      * @param type $order
@@ -386,7 +390,7 @@ class Cron
         if ($ignoreHasInvoice || !$this->_order->hasInvoices()) {
             $this->_order->setActionFlag($orderStatus, true);
 
-            if($orderStatus == Mage_Sales_Model_Order::STATE_HOLDED) {
+            if($orderStatus == \Magento\Sales\Model\Order::STATE_HOLDED) {
                 if ($this->_order->canHold()) {
                     $this->_order->hold();
                 } else {
@@ -421,9 +425,9 @@ class Cron
             case Notification::REFUND:
                 $ignoreRefundNotification = $this->_getConfigData('ignore_refund_notification', 'adyen_abstract', $this->_order->getStoreId());
                 if($ignoreRefundNotification != true) {
-                    $this->_refundOrder($this->_order);
+                    $this->_refundOrder();
                     //refund completed
-                    $this->_setRefundAuthorized($this->_order);
+                    $this->_setRefundAuthorized();
                 } else {
                     $this->_debugData['_processNotification info'] = 'Setting to ignore refund notification is enabled so ignore this notification';
                 }
@@ -465,7 +469,7 @@ class Cron
                 } else {
 
                     // uncancel the order just to be sure that order is going trough
-                    $this->_uncancelOrder($this->_order);
+//                    $this->_uncancelOrder($this->_order);
 
                     // FOR POS authorize the payment on the CAPTURE notification
                     $this->_authorizePayment($this->_order, $this->_paymentMethod);
@@ -481,22 +485,22 @@ class Cron
                     if($this->_modificationResult == "cancel") {
                         $this->_holdCancelOrder(true);
                     } elseif($this->_modificationResult == "refund") {
-                        $this->_refundOrder($this->_order);
+                        $this->_refundOrder();
                         //refund completed
-                        $this->_setRefundAuthorized($this->_order);
+                        $this->_setRefundAuthorized();
                     }
                 } else {
-                    $orderStatus = $this->_getConfigData('order_status', 'adyen_abstract', $this->_order->getStoreId());
-                    if(($orderStatus != Mage_Sales_Model_Order::STATE_HOLDED && $this->_order->canCancel()) || ($orderStatus == Mage_Sales_Model_Order::STATE_HOLDED && $this->_order->canHold())) {
-                        // cancel order
+                    if ($this->_order->isCanceled() || $this->_order->getState() === \Magento\Sales\Model\Order::STATE_HOLDED) {
+                        $this->_debugData['_processNotification info'] = 'Order is already cancelled or holded so do nothing';
+                    } else if ($this->_order->canCancel() || $this->_order->canHold()) {
                         $this->_debugData['_processNotification info'] = 'try to cancel the order';
-                        $this->_holdCancelOrder(true);
+                        $this->_holdCancelOrder($this->_order, true);
                     } else {
                         $this->_debugData['_processNotification info'] = 'try to refund the order';
                         // refund
-                        $this->_refundOrder($this->_order);
+                        $this->_refundOrder();
                         //refund completed
-                        $this->_setRefundAuthorized($this->_order);
+                        $this->_setRefundAuthorized();
                     }
                 }
                 break;
@@ -504,6 +508,74 @@ class Cron
                 $this->_order->getPayment()->getMethodInstance()->writeLog('notification event not supported!');
                 break;
         }
+    }
+
+    /**
+     * Not implemented
+     * @return bool
+     */
+    protected function _refundOrder()
+    {
+        $this->_debugData['_refundOrder'] = 'Refunding the order';
+
+//        // Don't create a credit memo if refund is initialize in Magento because in this case the credit memo already exits
+//        $result = Mage::getModel('adyen/event')
+//            ->getEvent($this->_pspReference, '[refund-received]');
+//        if (!empty($result)) {
+//            $this->_debugData['_refundOrder ignore'] = 'Skip refund process because credit memo is already created';
+//            return false;
+//        }
+//
+//        $_mail = (bool) $this->_getConfigData('send_update_mail', 'adyen_abstract', $order->getStoreId());
+//
+//        $currency = $order->getOrderCurrencyCode(); // use orderCurrency because adyen respond in the same currency as in the request
+//        $amount = Mage::helper('adyen')->originalAmount($this->_value, $currency);
+//
+//        if ($order->canCreditmemo()) {
+//            $service = Mage::getModel('sales/service_order', $order);
+//            $creditmemo = $service->prepareCreditmemo();
+//            $creditmemo->getOrder()->setIsInProcess(true);
+//
+//            //set refund data on the order
+//            $creditmemo->setGrandTotal($amount);
+//            $creditmemo->setBaseGrandTotal($amount);
+//            $creditmemo->save();
+//
+//            try {
+//                Mage::getModel('core/resource_transaction')
+//                    ->addObject($creditmemo)
+//                    ->addObject($creditmemo->getOrder())
+//                    ->save();
+//                //refund
+//                $creditmemo->refund();
+//                $transactionSave = Mage::getModel('core/resource_transaction')
+//                    ->addObject($creditmemo)
+//                    ->addObject($creditmemo->getOrder());
+//                if ($creditmemo->getInvoice()) {
+//                    $transactionSave->addObject($creditmemo->getInvoice());
+//                }
+//                $transactionSave->save();
+//                if ($_mail) {
+//                    $creditmemo->getOrder()->setCustomerNoteNotify(true);
+//                    $creditmemo->sendEmail();
+//                }
+//                $this->_debugData['_refundOrder done'] = 'Credit memo is created';
+//            } catch (Exception $e) {
+//                $this->_debugData['_refundOrder error'] = 'Error creating credit memo error message is: ' . $e->getMessage();
+//                Mage::logException($e);
+//            }
+//        } else {
+//            $this->_debugData['_refundOrder error'] = 'Order can not be refunded';
+//        }
+    }
+
+    /**
+     * @param $order
+     */
+    protected function _setRefundAuthorized()
+    {
+        $this->_debugData['_setRefundAuthorized'] = 'Status update to default status or refund_authorized status if this is set';
+        $this->_order->addStatusHistoryComment(__('Adyen Refund Successfully completed'));
     }
 
     /**
@@ -538,7 +610,7 @@ class Cron
 
         if(($this->_paymentMethod == "c_cash" && $this->_getConfigData('create_shipment', 'adyen_cash', $this->_order->getStoreId())) || ($this->_getConfigData('create_shipment', 'adyen_pos', $this->_order->getStoreId()) && $_paymentCode == "adyen_pos"))
         {
-            $this->_createShipment($this->_order);
+            $this->_createShipment();
         }
     }
 
@@ -736,9 +808,9 @@ class Cron
                     // if amount is zero create a offline invoice
                     $value = (int)$this->_value;
                     if($value == 0) {
-                        $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_OFFLINE);
+                        $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE);
                     } else {
-                        $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::NOT_CAPTURE);
+                        $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::NOT_CAPTURE);
                     }
 
                     $invoice->register();
@@ -842,6 +914,33 @@ class Cron
         $status = (!empty($status)) ? $status : $this->_order->getStatus();
         $this->_order->addStatusHistoryComment(__($comment), $status);
         $this->_debugData['_setPaymentAuthorized end'] = 'Order status is changed to authorised status, status is ' . $status;
+    }
+
+    /**
+     *
+     */
+    protected function _createShipment() {
+        $this->_debugData['_createShipment'] = 'Creating shipment for order';
+        // create shipment for cash payment
+        $payment = $this->_order->getPayment()->getMethodInstance();
+        if($this->_order->canShip())
+        {
+            $itemQty = array();
+            $shipment = $this->_order->prepareShipment($itemQty);
+            if($shipment) {
+                $shipment->register();
+                $shipment->getOrder()->setIsInProcess(true);
+                $comment = __('Shipment created by Adyen');
+                $shipment->addComment($comment);
+                Mage::getModel('core/resource_transaction')
+                    ->addObject($shipment)
+                    ->addObject($shipment->getOrder())
+                    ->save();
+                $this->_debugData['_createShipment done'] = 'Order is shipped';
+            }
+        } else {
+            $this->_debugData['_createShipment error'] = 'Order can\'t be shipped';
+        }
     }
 
 

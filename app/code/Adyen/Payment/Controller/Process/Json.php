@@ -49,6 +49,8 @@ class Json extends \Magento\Framework\App\Action\Action
 
         // check duplicates
 
+        // _isDuplicate
+
         try {
             $notificationItems = json_decode(file_get_contents('php://input'), true);
 //            $notificationItems = json_decode('{"live":"false","notificationItems":[{"NotificationRequestItem":{"additionalData":{"expiryDate":"12\/2012"," NAME1 ":"VALUE1","authCode":"1234","cardSummary":"7777","totalFraudScore":"10","hmacSignature":"yGnVWLP+UcpqjHTJbO5IUkG4ZdIk3uHCu62QAJvbbyg=","NAME2":"  VALUE2  ","fraudCheck-6-ShopperIpUsage":"10"},"amount":{"currency":"EUR","value":10500},"eventCode":"AUTHORISATION","eventDate":"2015-09-11T13:53:21+02:00","merchantAccountCode":"MagentoMerchantByteShop1","merchantReference":"000000023","operations":["CANCEL","CAPTURE","REFUND"],"paymentMethod":"visa","pspReference":"test_AUTHORISATION_1","reason":"1234:7777:12\/2012","success":"true"}}]}', true);
