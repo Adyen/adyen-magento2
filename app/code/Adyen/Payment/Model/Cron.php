@@ -275,9 +275,15 @@ class Cron
                 $this->_fraudManualReview = false;
             }
 
+            // modification.action is it for JSON
+            $modificationActionJson = isset($additionalData['modification.action']) ? $additionalData['modification.action'] : null;
+            if($modificationActionJson != "") {
+                $this->_modificationResult = $modificationActionJson;
+            }
+
             $modification = isset($additionalData['modification']) ? $additionalData['modification'] : null;
             if($modification && is_array($modification)) {
-                $this->_modificationResult = isset($valueArray['action']) ? trim($modification['action']) : "";
+                $this->_modificationResult = isset($modification['action']) ? trim($modification['action']) : "";
             }
             $additionalData2 = isset($additionalData['additionalData']) ? $additionalData['additionalData'] : null;
             if($additionalData2 && is_array($additionalData2)) {

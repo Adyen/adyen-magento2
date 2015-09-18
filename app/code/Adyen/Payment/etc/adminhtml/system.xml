@@ -16,6 +16,9 @@
 
                 <include path="Adyen_Payment::system/adyen_getting_started.xml"/>
                 <include path="Adyen_Payment::system/adyen_required_settings.xml"/>
+                <include path="Adyen_Payment::system/adyen_advanced_order_processing.xml"/>
+                <include path="Adyen_Payment::system/adyen_advanced_notifications.xml"/>
+                <include path="Adyen_Payment::system/adyen_billing_agreements.xml"/>
                 <include path="Adyen_Payment::system/adyen_cc.xml"/>
                 <include path="Adyen_Payment::system/adyen_hpp.xml"/>
 

@@ -14,30 +14,68 @@ define(
     function ($, quote, urlBuilder, storage, errorProcessor, customer) {
         'use strict';
 
-        return function () {
-            var serviceUrl,
-                payload,
-                paymentData = quote.paymentMethod();
+        //return function () {
+        //    var serviceUrl,
+        //        payload,
+        //        paymentData = quote.paymentMethod();
+        //
+        //    /**
+        //     * Checkout for guest and registered customer.
+        //     */
+        //    if (!customer.isLoggedIn()) {
+        //        serviceUrl = urlBuilder.createUrl('/guest-carts/:cartId/selected-payment-method', {
+        //            cartId: quote.getQuoteId()
+        //        });
+        //        payload = {
+        //            cartId: quote.getQuoteId(),
+        //            method: paymentData
+        //        };
+        //    } else {
+        //        serviceUrl = urlBuilder.createUrl('/carts/mine/selected-payment-method', {});
+        //        payload = {
+        //            cartId: quote.getQuoteId(),
+        //            method: paymentData
+        //        };
+        //    }
+        //    return storage.put(
+        //        serviceUrl, JSON.stringify(payload)
+        //    ).done(
+        //        function () {
+        //            $.mage.redirect(window.checkoutConfig.payment.adyenHpp.redirectUrl[quote.paymentMethod().method]);
+        //        }
+        //    ).fail(
+        //        function (response) {
+        //            errorProcessor.process(response);
+        //        }
+        //    );
+        //};
 
-            /**
-             * Checkout for guest and registered customer.
-             */
+        return function () {
+
+            var serviceUrl,
+                    payload,
+                    paymentData = quote.paymentMethod();
+
+            /** Checkout for guest and registered customer. */
             if (!customer.isLoggedIn()) {
-                serviceUrl = urlBuilder.createUrl('/guest-carts/:cartId/selected-payment-method', {
-                    cartId: quote.getQuoteId()
+                serviceUrl = urlBuilder.createUrl('/guest-carts/:quoteId/payment-information', {
+                    quoteId: quote.getQuoteId()
                 });
                 payload = {
                     cartId: quote.getQuoteId(),
-                    method: paymentData
+                    email: quote.guestEmail,
+                    paymentMethod: paymentData,
+                    billingAddress: quote.billingAddress()
                 };
             } else {
-                serviceUrl = urlBuilder.createUrl('/carts/mine/selected-payment-method', {});
+                serviceUrl = urlBuilder.createUrl('/carts/mine/payment-information', {});
                 payload = {
                     cartId: quote.getQuoteId(),
-                    method: paymentData
+                    paymentMethod: paymentData,
+                    billingAddress: quote.billingAddress()
                 };
             }
-            return storage.put(
+            return storage.post(
                 serviceUrl, JSON.stringify(payload)
             ).done(
                 function () {

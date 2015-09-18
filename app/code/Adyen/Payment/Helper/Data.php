@@ -20,17 +20,21 @@ class Data extends AbstractHelper
      */
     protected $_scopeConfig;
 
+    protected $_encryptor;
+
 
     /**
      * @param Context $context
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor
     )
     {
         parent::__construct($context);
         $this->_scopeConfig = $scopeConfig;
+        $this->_encryptor = $encryptor;
     }
 
 
@@ -54,6 +58,13 @@ class Data extends AbstractHelper
         return [
             'auto' => 'immediate',
             'manual' => 'manual'
+        ];
+    }
+
+    public function getPaymentRoutines() {
+        return [
+            'single' => 'Single Page Payment Routine',
+            'multi' => 'Multi-page Payment Routine'
         ];
     }
 
@@ -172,6 +183,30 @@ class Data extends AbstractHelper
     {
         return $this->getConfigData($field, 'adyen_hpp', $storeId, true);
     }
+
+    public function getHmac()
+    {
+        switch ($this->isDemoMode()) {
+            case true:
+                $secretWord =  $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_test')));
+                break;
+            default:
+                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_live')));
+                break;
+        }
+        return $secretWord;
+    }
+
+    public function isDemoMode()
+    {
+        return $this->getAdyenAbstractConfigDataFlag('demo_mode');
+    }
+
+    public function getNotificationPassword()
+    {
+        return $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('notification_password')));
+    }
+
 
     /**
      * Retrieve information from payment configuration
