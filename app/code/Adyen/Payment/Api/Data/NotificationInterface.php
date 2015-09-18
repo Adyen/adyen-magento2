@@ -49,6 +49,10 @@ interface NotificationInterface
      */
     const LIVE = 'live';
     /*
+     * Live
+     */
+    const DONE = 'done';
+    /*
      * Additional data
      */
     const ADDITIONAL_DATA = 'additional_data';

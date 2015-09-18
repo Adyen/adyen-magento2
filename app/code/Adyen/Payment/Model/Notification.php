@@ -55,6 +55,18 @@ class Notification extends \Magento\Framework\Model\AbstractModel
     }
 
     /**
+     * Check if the Adyen Notification is already stored in the system
+     * @param $pspReference
+     * @param $event
+     * @param $success
+     * @return bool true if the notification is a duplicate
+     */
+    public function isDuplicate($pspReference, $eventCode, $success) {
+        $result = $this->getResource()->getNotification($pspReference, $eventCode, $success);
+        return (empty($result)) ? false : true;
+    }
+
+    /**
      * Gets the Pspreference for the notification.
      *
      * @return int|null Pspreference.
@@ -222,6 +234,28 @@ class Notification extends \Magento\Framework\Model\AbstractModel
     {
         return $this->setData(self::REASON, $reason);
     }
+
+    /**
+     * Gets the Reason for the notification.
+     *
+     * @return int|null Reason.
+     */
+    public function getLive()
+    {
+        return $this->getData(self::LIVE);
+    }
+
+    /**
+     * Sets Reason.
+     *
+     * @param string $reason
+     * @return $this
+     */
+    public function setLive($live)
+    {
+        return $this->setData(self::LIVE, $live);
+    }
+
 
     /**
      * Gets the AdditionalData for the notification.

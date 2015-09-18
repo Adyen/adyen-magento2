@@ -44,24 +44,15 @@ class Json extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-
-        //TODO validate the notification with authentication!!
-
-        // check duplicates
-
-        // _isDuplicate
-
         try {
             $notificationItems = json_decode(file_get_contents('php://input'), true);
-//            $notificationItems = json_decode('{"live":"false","notificationItems":[{"NotificationRequestItem":{"additionalData":{"expiryDate":"12\/2012"," NAME1 ":"VALUE1","authCode":"1234","cardSummary":"7777","totalFraudScore":"10","hmacSignature":"yGnVWLP+UcpqjHTJbO5IUkG4ZdIk3uHCu62QAJvbbyg=","NAME2":"  VALUE2  ","fraudCheck-6-ShopperIpUsage":"10"},"amount":{"currency":"EUR","value":10500},"eventCode":"AUTHORISATION","eventDate":"2015-09-11T13:53:21+02:00","merchantAccountCode":"MagentoMerchantByteShop1","merchantReference":"000000023","operations":["CANCEL","CAPTURE","REFUND"],"paymentMethod":"visa","pspReference":"test_AUTHORISATION_1","reason":"1234:7777:12\/2012","success":"true"}}]}', true);
-
             $notificationMode = isset($notificationItems['live']) ? $notificationItems['live'] : "";
 
             if($notificationMode != "" && $this->_validateNotificationMode($notificationMode))
             {
                 foreach($notificationItems['notificationItems'] as $notificationItem)
                 {
-                    $status = $this->_processNotification($notificationItem['NotificationRequestItem']);
+                    $status = $this->_processNotification($notificationItem['NotificationRequestItem'], $notificationMode);
                     if($status == "401"){
                         $this->_return401();
                         return;
@@ -78,11 +69,8 @@ class Json extends \Magento\Framework\App\Action\Action
                     $this->_return401();
                     return;
                 }
-
                 throw new \Magento\Framework\Exception\LocalizedException(__('Mismatch between Live/Test modes of Magento store and the Adyen platform'));
             }
-
-
         } catch (Exception $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__($e->getMessage()));
         }
@@ -95,7 +83,7 @@ class Json extends \Magento\Framework\App\Action\Action
     protected function _validateNotificationMode($notificationMode)
     {
         $mode = $this->_adyenHelper->getAdyenAbstractConfigData('demo_mode');
-        if ($mode=='Y' &&  $notificationMode == "false" || $mode=='N' &&  $notificationMode == 'true') {
+        if ($mode=='1' &&  $notificationMode == "false" || $mode=='0' &&  $notificationMode == 'true') {
             return true;
         }
         return false;
@@ -107,52 +95,62 @@ class Json extends \Magento\Framework\App\Action\Action
      * @param $response
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function _processNotification($response)
+    protected function _processNotification($response, $notificationMode)
     {
-
         // validate the notification
         if($this->authorised($response))
         {
-            try {
+            // check if notificaiton already exists
+            if(!$this->_isDuplicate($response)) {
 
-                $notification = $this->_objectManager->create('Adyen\Payment\Model\Notification');
+                try {
 
-                if(isset($response['pspReference'])) {
-                    $notification->setPspreference($response['pspReference']);
-                }
-                if(isset($response['merchantReference'])) {
-                    $notification->setMerchantReference($response['merchantReference']);
-                }
-                if(isset($response['eventCode'])) {
-                    $notification->setEventCode($response['eventCode']);
-                }
-                if(isset($response['success'])) {
-                    $notification->setSuccess($response['success']);
-                }
-                if(isset($response['paymentMethod'])) {
-                    $notification->setPaymentMethod($response['paymentMethod']);
-                }
-                if(isset($response['amount'])) {
-                    $notification->setAmountValue($response['amount']['value']);
-                    $notification->setAmountCurrency($response['amount']['currency']);
-                }
-                if(isset($response['reason'])) {
-                    $notification->setReason($response['reason']);
-                }
-                if(isset($response['additionalData'])) {
-                    $notification->setAddtionalData(serialize($response['additionalData']));
-                }
-                if(isset($response['done'])) {
-                    $notification->setDone($response['done']);
-                }
+                    $notification = $this->_objectManager->create('Adyen\Payment\Model\Notification');
 
-                $notification->save();
+                    if (isset($response['pspReference'])) {
+                        $notification->setPspreference($response['pspReference']);
+                    }
+                    if (isset($response['merchantReference'])) {
+                        $notification->setMerchantReference($response['merchantReference']);
+                    }
+                    if (isset($response['eventCode'])) {
+                        $notification->setEventCode($response['eventCode']);
+                    }
+                    if (isset($response['success'])) {
+                        $notification->setSuccess($response['success']);
+                    }
+                    if (isset($response['paymentMethod'])) {
+                        $notification->setPaymentMethod($response['paymentMethod']);
+                    }
+                    if (isset($response['amount'])) {
+                        $notification->setAmountValue($response['amount']['value']);
+                        $notification->setAmountCurrency($response['amount']['currency']);
+                    }
+                    if (isset($response['reason'])) {
+                        $notification->setReason($response['reason']);
+                    }
 
-            } catch(Exception $e) {
-                throw new \Magento\Framework\Exception\LocalizedException(__($e->getMessage()));
+                    $notification->setLive($notificationMode);
+
+                    if (isset($response['additionalData'])) {
+                        $notification->setAddtionalData(serialize($response['additionalData']));
+                    }
+                    if (isset($response['done'])) {
+                        $notification->setDone($response['done']);
+                    }
+
+                    // do this to set both fields in the correct timezone
+                    $date = new \DateTime();
+                    $notification->setCreatedAt($date);
+                    $notification->setUpdatedAt($date);
+
+                    $notification->save();
+
+                } catch (Exception $e) {
+                    throw new \Magento\Framework\Exception\LocalizedException(__($e->getMessage()));
+                }
             }
         }
-
     }
 
 
@@ -165,7 +163,7 @@ class Json extends \Magento\Framework\App\Action\Action
         // Add CGI support
         $this->_fixCgiHttpAuthentication();
 
-        $internalMerchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData('merchantAccount');
+        $internalMerchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData('merchant_account');
         $username = $this->_adyenHelper->getAdyenAbstractConfigData('notification_username');
         $password = $this->_adyenHelper->getNotificationPassword();
 
@@ -206,6 +204,22 @@ class Json extends \Magento\Framework\App\Action\Action
         }
 
         return false;
+    }
+
+
+    /**
+     * $desc if notification is already saved ignore it
+     * @param $response
+     * @return bool
+     */
+    protected function _isDuplicate($response)
+    {
+        $pspReference = trim($response['pspReference']);
+        $eventCode = trim($response['eventCode']);
+        $success = trim($response['success']);
+
+        $notification = $this->_objectManager->create('Adyen\Payment\Model\Notification');
+        return $notification->isDuplicate($pspReference, $eventCode, $success);
     }
 
     /**

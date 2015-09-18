@@ -102,19 +102,16 @@ class Cron
         //fixme somehow the created_at is saved in my timzone
 
 
-        // loop over notifications that are not processed and from 1 minute ago
+        $dateStart = new \DateTime();
 
+        // loop over notifications that are not processed and from 1 minute ago
         $dateStart = new \DateTime();
         $dateStart->modify('-1 day');
 
         // excecute notifications from 2 minute or earlier because order could not yet been created by mangento
         $dateEnd = new \DateTime();
         $dateEnd->modify('-2 minute');
-
-        // TODO: format to right timezones db is now having my local time
-
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
-
 
         $notifications = $this->_notificationFactory->create();
         $notifications->addFieldToFilter('done', 0);
@@ -179,65 +176,19 @@ class Cron
                 $this->_processNotification();
             }
 
-
-            $id = $notification->getId();
-//            echo $id;
-
-
-
-//            $comment = "THIS IS A TEST";
-//            $status = \Magento\Sales\Model\Order::STATE_PROCESSING;
-
-//            $this->_order->setState($status);
-//            $this->_order->addStatusHistoryComment($comment, $status);
-//
             $this->_order->save();
-
-
 
             foreach($this->_debugData as $debug) {
                 $this->_logger->info($debug);
             }
 
-
-
-            print_R($this->_debugData);
-
-
-            echo $this->_order->getId();die();
-
-
-
-
-
-            $eventCode = $notification->getEventCode();
-
-
-
-            // TODO: set done to true!!
-
-
-
-
-
-
-
+            // set done to true
+            $dateEnd = new \DateTime();
+            $notification->setDone(true);
+            $notification->setUpdatedAt($dateEnd);
+            $notification->save();
         }
-
-        echo 'end1';
-        // get currenttime
-//        $date = new date();
-
-
-
-
-
-
         $this->_logger->info("END OF THE CRONJOB");
-
-
-
-
     }
 
     protected function _declareVariables($notification)
