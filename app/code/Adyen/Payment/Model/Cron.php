@@ -137,6 +137,9 @@ class Cron
 //            $previousAdyenEventCode = $this->order->getAdyenNotificationEventCode();
             $previousAdyenEventCode = $this->_order->getData('adyen_notification_event_code');
 
+            // set pspReference on payment object
+            $this->_order->getPayment()->setAdditionalInformation('pspReference', $this->_pspReference);
+
 
             // check if success is true of false
             if (strcmp($this->_success, 'false') == 0 || strcmp($this->_success, '0') == 0) {
@@ -146,7 +149,7 @@ class Cron
 
                     // if payment is API check, check if API result pspreference is the same as reference
                     if($this->_eventCode == Adyen_Payment_Model_Event::ADYEN_EVENT_AUTHORISATION && $this->_getPaymentMethodType() == 'api') {
-                        if($this->_pspReference == $this->_order->getPayment()->getAdyenPspReference()) {
+                        if($this->_pspReference == $this->_order->getPayment()->getAdditionalInformation('pspReference')) {
                             // don't cancel the order if previous state is authorisation with success=true
                             if($previousAdyenEventCode != "AUTHORISATION : TRUE") {
                                 $this->_holdCancelOrder(false);

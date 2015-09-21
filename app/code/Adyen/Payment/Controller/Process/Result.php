@@ -65,21 +65,8 @@ class Result extends \Magento\Framework\App\Action\Action
         $session->restoreQuote();
 
         $order = $this->_order;
-        $orderStatus = $this->_adyenHelper->getAdyenAbstractConfigData('payment_cancelled');
-        $order->setActionFlag($orderStatus, true);
 
-        switch ($orderStatus) {
-            case \Magento\Sales\Model\Order::STATE_HOLDED:
-                if ($order->canHold()) {
-                    $order->hold()->save();
-                }
-                break;
-            default:
-                if($order->canCancel()) {
-                    $order->cancel()->save();
-                }
-                break;
-        }
+        $this->_adyenHelper->cancelOrder($order);
 
         if(isset($response['authResult']) && $response['authResult'] == \Adyen\Payment\Model\Notification::CANCELLED) {
             $this->messageManager->addError(__('You have cancelled the order. Please try again'));
@@ -161,7 +148,7 @@ class Result extends \Magento\Framework\App\Action\Action
         $paymentMethod = isset($response['paymentMethod']) ? trim($response['paymentMethod']) : '';
         $pspReference = isset($response['pspReference']) ? trim($response['pspReference']) : '';
 
-        $type = 'Adyen Result URL Notification(s):';
+        $type = 'Adyen Result URL response:';
         $comment = __('%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> paymentMethod: %4', $type, $authResult, $pspReference, $paymentMethod);
 
         $history = $this->_orderHistoryFactory->create()
@@ -172,6 +159,9 @@ class Result extends \Magento\Framework\App\Action\Action
         ;
 
         $history->save();
+
+        // needed  becuase then we need to save $order objects
+        $order->setAdyenResulturlEventCode($authResult);
 
 
         switch ($authResult) {

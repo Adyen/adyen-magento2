@@ -28,6 +28,9 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      */
     const GUEST_ID = 'customer_';
 
+//    protected $_formBlockType = 'Adyen\Payment\Block\Form\Hpp';
+    protected $_infoBlockType = 'Adyen\Payment\Block\Info\Hpp';
+
 
     /**
      * Payment Method feature
@@ -45,6 +48,13 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $storeManager;
+
+    protected $_urlBuilder;
+
+    /**
+     * @var ResolverInterface
+     */
+    protected $resolver;
 
 
     /**
@@ -64,6 +74,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         \Magento\Framework\UrlInterface $urlBuilder,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Framework\Locale\ResolverInterface $resolver,
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
@@ -90,6 +101,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $this->_urlBuilder = $urlBuilder;
         $this->_adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
+        $this->resolver = $resolver;
     }
 
     protected $_paymentMethodType = 'hpp';
@@ -229,14 +241,13 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $customerId        = $order->getCustomerId();
         $shopperIP         = $order->getRemoteIp();
         $browserInfo       = $_SERVER['HTTP_USER_AGENT'];
-        $deliveryDays      = 5;
-//        $shopperLocale     = trim($this->_getConfigData('shopperlocale'));
-//        $shopperLocale     = (!empty($shopperLocale)) ? $shopperLocale : Mage::app()->getLocale()->getLocaleCode();
-//        $countryCode       = trim($this->_getConfigData('countryCode'));
-//        $countryCode       = (!empty($countryCode)) ? $countryCode : false;
+        $deliveryDays      = $this->getConfigData('delivery_days');
+        $shopperLocale     = trim($this->getConfigData('shopper_locale'));
+        $shopperLocale     = (!empty($shopperLocale)) ? $shopperLocale : $this->resolver->getLocale();
+        $countryCode       = trim($this->getConfigData('country_code'));
+        $countryCode       = (!empty($countryCode)) ? $countryCode : false;
 
 
-        $countryCode = false;
         // if directory lookup is enabled use the billingadress as countrycode
         if ($countryCode == false) {
             if ($order->getBillingAddress() && $order->getBillingAddress()->getCountryId() != "") {

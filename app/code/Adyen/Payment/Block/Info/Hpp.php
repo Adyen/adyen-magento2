@@ -5,13 +5,13 @@
  */
 namespace Adyen\Payment\Block\Info;
 
-class Cc extends \Magento\Payment\Block\Info
+class Hpp extends \Magento\Payment\Block\Info
 {
 
     /**
      * @var string
      */
-    protected $_template = 'Adyen_Payment::info/adyen_cc.phtml';
+    protected $_template = 'Adyen_Payment::info/adyen_hpp.phtml';
 
     /**
      * @return string

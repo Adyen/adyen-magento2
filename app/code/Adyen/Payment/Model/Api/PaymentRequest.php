@@ -67,8 +67,12 @@ class PaymentRequest extends \Magento\Framework\Object
             "paymentRequest.shopperIP" => $shopperIp,
             "paymentRequest.shopperEmail" => $customerEmail,
             "paymentRequest.shopperReference" => $order->getIncrementId(),
-            "paymentRequest.fraudOffset" => "0"
+            "paymentRequest.fraudOffset" => "0",
+            "paymentRequest.browserInfo.userAgent" => $_SERVER['HTTP_USER_AGENT'],
+            "paymentRequest.browserInfo.acceptHeader" => $_SERVER['HTTP_ACCEPT']
         );
+
+
 
         $billingAddress = $order->getBillingAddress();
 
@@ -122,14 +126,22 @@ class PaymentRequest extends \Magento\Framework\Object
     }
 
 
-    protected function _apiRequest($request) {
+    protected function _apiRequest($request)
+    {
 
-        // TODO make differents between test and live
-        $webserviceUsername = $this->getConfigData("ws_username_test");
-        $webservicePassword = $this->decryptPassword($this->getConfigData("webservice_password")); // DECODE!!
+        // Use test or live credentials depends on demo mode
+        if($this->_adyenHelper->isDemoMode()) {
+            $webserviceUsername = $this->getConfigData("ws_username_test");
+            $webservicePassword = $this->decryptPassword($this->getConfigData("ws_password_test"));
+            $url = "https://pal-test.adyen.com/pal/adapter/httppost";
+        } else {
+            $webserviceUsername = $this->getConfigData("ws_username_live");
+            $webservicePassword = $this->decryptPassword($this->getConfigData("ws_password_live"));
+            $url = "https://pal-live.adyen.com/pal/adapter/httppost";
+        }
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://pal-test.adyen.com/pal/adapter/httppost");
+        curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC  );
         curl_setopt($ch, CURLOPT_USERPWD, $webserviceUsername.":".$webservicePassword);
@@ -148,10 +160,6 @@ class PaymentRequest extends \Magento\Framework\Object
             throw new \Magento\Framework\Exception\LocalizedException(__('HTTP Status code' . $results));
         }
 
-
-
-//        throw new \Magento\Framework\Exception\LocalizedException(__('HTTP Status code' . print_r($results, true)));
-
         parse_str($results, $results);
 
         $this->_logger->critical("result is" . print_r($results,true));
@@ -159,6 +167,28 @@ class PaymentRequest extends \Magento\Framework\Object
         curl_close($ch);
 
         return $results;
+    }
+
+    public function authorise3d($payment)
+    {
+        $order = $payment->getOrder();
+        $merchantAccount = $this->getConfigData("merchant_account");
+        $shopperIp = $order->getRemoteIp();
+
+        $md = $payment->getAdditionalInformation('md');
+        $paResponse = $payment->getAdditionalInformation('paResponse');
+
+        $request = array(
+            "action" => "Payment.authorise3d",
+            "paymentRequest3d.merchantAccount" => $merchantAccount,
+            "paymentRequest3d.browserInfo.userAgent" => $_SERVER['HTTP_USER_AGENT'],
+            "paymentRequest3d.browserInfo.acceptHeader" => $_SERVER['HTTP_ACCEPT'],
+            "paymentRequest3d.md" => $md,
+            "paymentRequest3d.paResponse" => $paResponse,
+            "paymentRequest3d.shopperIP" => $shopperIp
+        );
+
+        return $this->_apiRequest($request);
     }
 
     /**

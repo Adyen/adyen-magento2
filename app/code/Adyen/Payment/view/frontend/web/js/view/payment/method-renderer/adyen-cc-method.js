@@ -10,7 +10,7 @@ define(
         'jquery',
         'Magento_Payment/js/view/payment/cc-form',
         'Magento_Checkout/js/action/set-payment-information',
-        'Magento_Checkout/js/action/place-order',
+        'Adyen_Payment/js/action/place-order',
         'mage/translate',
         'Adyen_Payment/js/view/payment/adyen-encrypt'
     ],
@@ -138,9 +138,6 @@ define(
                 //        self.isPlaceOrderActionAllowed(true);
                 //    });
                 //}
-            },
-            getTitle: function() {
-                return 'Adyen cc';
             },
             getControllerName: function() {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];

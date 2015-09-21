@@ -33,10 +33,10 @@
                 <title>Adyen HPP</title>
                 <payment_selection_on_adyen>1</payment_selection_on_adyen>
                 <payment_routine>single</payment_routine>
-                <recurring_type>ONECLICK</recurring_type>
+                <delivery_days>5</delivery_days>
                 <allowspecific>0</allowspecific>
                 <sort_order>10</sort_order>
-                <place_order_url>authorizenet/directpost_payment/place</place_order_url>
+                <place_order_url>adyen/process/redirect</place_order_url>
                 <order_place_redirect_url>adyen/process/redirect</order_place_redirect_url>
                 <payment_action>Authorization</payment_action>
                 <group>adyen</group>

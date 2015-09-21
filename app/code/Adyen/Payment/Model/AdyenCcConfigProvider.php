@@ -68,6 +68,23 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
         $config['payment'] ['adyenCc']['cseEnabled'] = $cseEnabled;
         $config['payment']['adyenCc']['generationTime'] = date("c");
 
+        foreach ($this->methodCodes as $code) {
+            if ($this->methods[$code]->isAvailable()) {
+                $config['payment']['adyenCc']['redirectUrl'][$code] = $this->getMethodRedirectUrl($code);
+            }
+        }
+
         return $config;
+    }
+
+    /**
+     * Return redirect URL for method
+     *
+     * @param string $code
+     * @return mixed
+     */
+    protected function getMethodRedirectUrl($code)
+    {
+        return $this->methods[$code]->getCheckoutRedirectUrl();
     }
 }

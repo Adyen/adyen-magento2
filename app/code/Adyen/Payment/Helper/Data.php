@@ -207,6 +207,25 @@ class Data extends AbstractHelper
         return $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('notification_password')));
     }
 
+    public function cancelOrder($order)
+    {
+        $orderStatus = $this->getAdyenAbstractConfigData('payment_cancelled');
+        $order->setActionFlag($orderStatus, true);
+
+        switch ($orderStatus) {
+            case \Magento\Sales\Model\Order::STATE_HOLDED:
+                if ($order->canHold()) {
+                    $order->hold()->save();
+                }
+                break;
+            default:
+                if($order->canCancel()) {
+                    $order->cancel()->save();
+                }
+                break;
+        }
+    }
+
 
     /**
      * Retrieve information from payment configuration

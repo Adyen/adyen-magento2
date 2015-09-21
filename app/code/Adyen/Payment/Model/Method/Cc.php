@@ -35,6 +35,8 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      * @var string
      */
     protected $_formBlockType = 'Adyen\Payment\Block\Form\Cc';
+
+    protected $_infoBlockType = 'Adyen\Payment\Block\Info\Cc';
 //
 //    /**
 //     * @var string
@@ -44,6 +46,14 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     protected $_paymentRequest;
 
     protected $_adyenLogger;
+
+    /**
+     * @var \Magento\Checkout\Model\Session
+     */
+    protected $_checkoutSession;
+
+    protected $_urlBuilder;
+
 
     /**
      * @param \Magento\Framework\Model\Context $context
@@ -62,6 +72,8 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     public function __construct(
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
@@ -91,26 +103,14 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         );
         $this->_paymentRequest = $paymentRequest;
         $this->_adyenLogger = $adyenLogger;
+        $this->_checkoutSession = $checkoutSession;
+        $this->_urlBuilder = $urlBuilder;
     }
 
     protected $_paymentMethodType = 'api';
     public function getPaymentMethodType() {
         return $this->_paymentMethodType;
     }
-
-
-    public function isActive($storeId = null)
-    {
-        return true;
-    }
-
-    public function isAvailable($quote = null)
-    {
-        $this->_logger->critical("CC IS AVAILABLE!! IS TRUE");
-//        $this->_adyenLogger->critical("TESTTT");
-        return true;
-    }
-
 
     /**
      * Assign data to info model instance
@@ -123,15 +123,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         parent::assignData($data);
         $infoInstance = $this->getInfoInstance();
 
-
         $this->_logger->critical("Assign data!!:" . print_r($data, true));
-
-
-//        throw new \Magento\Framework\Exception\LocalizedException(__('The authorize action is not available.' . print_r($data, true)));
-
-        ////        print_r($data);die();
-//        $this->_logger->critical("TEST in validate FUNTION !!:");
-
 
         $infoInstance->setAdditionalInformation('encrypted_data', $data['encrypted_data']);
 
@@ -141,12 +133,6 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         return $this;
     }
 
-    public function validate()
-    {
-        $this->_logger->critical("TEST in validate FUNTION !!:");
-        return true;
-    }
-
     public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         $this->_logger->critical("TEST in authorize FUNTION !!:");
@@ -154,6 +140,9 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         if (!$this->canAuthorize()) {
             throw new \Magento\Framework\Exception\LocalizedException(__('The authorize action is not available.'));
         }
+
+        // do not let magento set status to processing
+        $payment->setLastTransId($this->getTransactionId())->setIsTransactionPending(true);
 
         // DO authorisation
         $this->_processRequest($payment, $amount, "authorise");
@@ -213,10 +202,27 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     protected function _processResponse(\Magento\Payment\Model\InfoInterface $payment, $response)
     {
 
+        $payment->setAdditionalInformation('3dActive', false);
 
         switch ($response['paymentResult_resultCode']) {
             case "Authorised":
                 //$this->_addStatusHistory($payment, $responseCode, $pspReference, $this->_getConfigData('order_status'));
+                $this->_addStatusHistory($payment, $response['paymentResult_resultCode'], $response['paymentResult_pspReference']);
+                $payment->setAdditionalInformation('pspReference', $response['paymentResult_pspReference']);
+                break;
+            case "RedirectShopper":
+
+                $payment->setAdditionalInformation('3dActive', true);
+                $IssuerUrl = $response['paymentResult_issuerUrl'];
+                $PaReq = $response['paymentResult_paRequest'];
+                $MD = $response['paymentResult_md'];
+
+                $payment->setAdditionalInformation('issuerUrl', $response['paymentResult_issuerUrl']);
+                $payment->setAdditionalInformation('paRequest', $response['paymentResult_paRequest']);
+                $payment->setAdditionalInformation('md', $response['paymentResult_md']);
+
+                $result = $this->getResponse();
+
                 break;
             case "Refused":
                 // paymentResult_refusalReason
@@ -253,20 +259,40 @@ class Cc extends \Magento\Payment\Model\Method\Cc
                 }
                 break;
         }
-
-
-        if($response['paymentResult_resultCode'] == 'Refused') {
-
-        }
-
-
-//        print_R($response);die();
-
     }
 
-    // does not seem to work.
-    public function hasVerification() {
-        return true;
+    protected function _addStatusHistory($payment, $responseCode, $pspReference)
+    {
+
+        $type = 'Adyen Result URL response:';
+        $comment = __('%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> paymentMethod: %4', $type, $responseCode, $pspReference, "");
+        $payment->getOrder()->setAdyenResulturlEventCode($responseCode);
+        $payment->getOrder()->addStatusHistoryComment($comment);
+        return $this;
+    }
+
+    /*
+     * Called by validate3d controller when cc payment has 3D secure
+     */
+    public function authorise3d($payment)
+    {
+
+        $response = $this->_paymentRequest->authorise3d($payment);
+        $responseCode = $response['paymentResult_resultCode'];
+        return $responseCode;
+    }
+
+    /**
+     * Checkout redirect URL getter for onepage checkout (hardcode)
+     *
+     * @see \Magento\Checkout\Controller\Onepage::savePaymentAction()
+     * @see \Magento\Quote\Model\Quote\Payment::getCheckoutRedirectUrl()
+     * @return string
+     */
+    public function getCheckoutRedirectUrl()
+    {
+        $this->_logger->critical("CHECKOUT URL" . $this->_urlBuilder->getUrl('adyen/process/validate3d/'));
+        return $this->_urlBuilder->getUrl('adyen/process/validate3d/');
     }
 
 }

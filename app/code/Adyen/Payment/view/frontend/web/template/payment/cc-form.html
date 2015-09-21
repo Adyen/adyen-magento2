@@ -70,7 +70,7 @@
                         <span><!-- ko text: $t('Credit Card Number')--><!-- /ko --></span>
                     </label>
                     <div class="control">
-                        <input type="number" name="payment[cc_number]" class="input-text" value=""
+                        <input type="number" class="input-text" value=""
                                data-encrypted-name="number"
                                data-bind="attr: {
                                             autocomplete: off,
@@ -89,7 +89,6 @@
                     </label>
                     <div class="control">
                         <input type="text"
-                               name="payment[cc_owner]"
                                class="input-text"
                                value=""
                                data-encrypted-name="holderName"
@@ -106,8 +105,7 @@
                         <div class="fields group group-2">
                             <div class="field no-label month">
                                 <div class="control">
-                                    <select  name="payment[cc_exp_month]"
-                                             class="select select-month"
+                                    <select  class="select select-month"
                                              data-encrypted-name="expiryMonth"
                                              data-bind="attr: {id: getCode() + '_expiration', 'data-container': getCode() + '-cc-month', 'data-validate': JSON.stringify({required:true, 'validate-cc-exp':'#' + getCode() + '_expiration_yr'})},
                                                     enable: isActive($parents),
@@ -121,8 +119,7 @@
                             </div>
                             <div class="field no-label year">
                                 <div class="control">
-                                    <select name="payment[cc_exp_year]"
-                                            class="select select-year"
+                                    <select class="select select-year"
                                             data-encrypted-name="expiryYear"
                                             data-bind="attr: {id: getCode() + '_expiration_yr', 'data-container': getCode() + '-cc-year', 'data-validate': JSON.stringify({required:true})},
                                                    enable: isActive($parents),
@@ -147,7 +144,6 @@
                                autocomplete="off"
                                class="input-text cvv"
                                data-encrypted-name="cvc"
-                               name="payment[cc_cid]"
                                value=""
                                data-bind="attr: {id: getCode() + '_cc_cid',
                                 title: $t('Card Verification Number'),
@@ -182,7 +178,7 @@
                                 <span><!-- ko text: $t('Issue Number')--><!-- /ko --></span>
                             </label>
                             <div class="control">
-                                <input type="number" name="payment[cc_ss_issue]"
+                                <input type="number"
                                        value=""
                                        class="input-text cvv"
                                        data-bind="attr: {id: getCode() + '_cc_issue', title: $t('Issue Number'), 'data-container': getCode() + '-cc-issue', 'data-validate': JSON.stringify({'validate-cc-ukss':true})}, enable: isActive($parents)"/>
@@ -197,8 +193,7 @@
                                 <div class="fields group group-2">
                                     <div class="field no-label month">
                                         <div class="control">
-                                            <select name="payment[cc_ss_start_month]"
-                                                    class="select select-month"
+                                            <select class="select select-month"
                                                     data-bind="attr: {id: getCode() + '_start_month', 'data-container': getCode() + '-cc-start-month', 'data-validate': JSON.stringify({'validate-cc-ukss':true})},
                                                           enable: isActive($parents),
                                                           options: getCcMonthsValues(),
@@ -211,8 +206,7 @@
                                     </div>
                                     <div class="field no-label year">
                                         <div class="control">
-                                            <select name="payment[cc_ss_start_year]"
-                                                    class="select select-year"
+                                            <select class="select select-year"
                                                     data-bind="attr: {id: getCode() + '_start_year', 'data-container': getCode() + '-cc-start-year',
                                                 'data-validate': JSON.stringify({'validate-cc-ukss':true})},
                                                 enable: isActive($parents),
