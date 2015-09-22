@@ -68,6 +68,8 @@ class Cc extends \Magento\Payment\Model\Method\Cc
 
     protected $_urlBuilder;
 
+    protected $_adyenHelper;
+
 
     /**
      * @param \Magento\Framework\Model\Context $context
@@ -88,6 +90,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Framework\UrlInterface $urlBuilder,
+        \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
@@ -119,6 +122,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         $this->_adyenLogger = $adyenLogger;
         $this->_checkoutSession = $checkoutSession;
         $this->_urlBuilder = $urlBuilder;
+        $this->_adyenHelper = $adyenHelper;
     }
 
     protected $_paymentMethodType = 'api';
@@ -137,13 +141,13 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         parent::assignData($data);
         $infoInstance = $this->getInfoInstance();
 
-        $this->_adyenLogger
-
-        if(isset($data['encrypted_data'])) {
-            $infoInstance->setAdditionalInformation('encrypted_data', $data['encrypted_data']);
+        if($this->_adyenHelper->getAdyenAbstractConfigDataFlag('cse_enabled')) {
+            if(isset($data['encrypted_data'])) {
+                $infoInstance->setAdditionalInformation('encrypted_data', $data['encrypted_data']);
+            } else {
+                throw new \Magento\Framework\Exception\LocalizedException(__('Card encryption failed'));
+            }
         }
-
-        $this->_adyenLogger->info("CSE key is set");
         return $this;
     }
 
@@ -162,20 +166,6 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         return $this;
     }
 
-    /**
-     * Get config payment action url
-     * Used to universalize payment actions when processing payment place
-     *
-     * @return string
-     * @api
-     */
-    public function getConfigPaymentAction()
-    {
-//        return $this->getConfigData('payment_action');
-        return \Magento\Payment\Model\Method\AbstractMethod::ACTION_AUTHORIZE;
-    }
-
-
     protected function _processRequest(\Magento\Framework\Object $payment, $amount, $request)
     {
         switch ($request) {
@@ -189,7 +179,6 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         } else {
             throw new \Magento\Framework\Exception\LocalizedException(__('Empty result.'));
         }
-
     }
 
     protected function _processResponse(\Magento\Payment\Model\InfoInterface $payment, $response)
