@@ -73,8 +73,6 @@ class PaymentRequest extends \Magento\Framework\Object
         $orderCurrencyCode = $order->getOrderCurrencyCode();
         $merchantAccount = $this->getConfigData("merchant_account");
 
-        $this->_logger->critical("fullApiRequest1 ");
-
         $request = array(
             "action" => "Payment.authorise",
             "paymentRequest.merchantAccount" => $merchantAccount,
@@ -88,8 +86,6 @@ class PaymentRequest extends \Magento\Framework\Object
             "paymentRequest.browserInfo.userAgent" => $_SERVER['HTTP_USER_AGENT'],
             "paymentRequest.browserInfo.acceptHeader" => $_SERVER['HTTP_ACCEPT']
         );
-
-
 
         $billingAddress = $order->getBillingAddress();
 
@@ -135,10 +131,6 @@ class PaymentRequest extends \Magento\Framework\Object
             );
             $request = array_merge($request, $requestCreditCardDetails);
         }
-
-        $this->_logger->critical("fullApiRequest");
-        $this->_logger->critical(print_r($request, true));
-
         return $this->_apiRequest($request);
     }
 
@@ -178,9 +170,6 @@ class PaymentRequest extends \Magento\Framework\Object
         }
 
         parse_str($results, $results);
-
-        $this->_logger->critical("result is" . print_r($results,true));
-
         curl_close($ch);
 
         return $results;

@@ -52,8 +52,6 @@ class Cc extends \Magento\Payment\Block\Form
         parent::__construct($context, $data);
         $this->_paymentConfig = $paymentConfig;
         $this->logger = $logger;
-
-        $this->logger->critical("IN FORM PHP FILE");
     }
 
     /**
@@ -64,7 +62,6 @@ class Cc extends \Magento\Payment\Block\Form
      */
     public function getCcAvailableTypes()
     {
-        $this->logger->critical("TEST");
         $types = $this->_paymentConfig->getCcTypes();
         if ($method = $this->getMethod()) {
             $availableTypes = $method->getConfigData('cctypes');

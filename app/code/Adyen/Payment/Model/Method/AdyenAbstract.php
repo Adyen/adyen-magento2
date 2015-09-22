@@ -54,7 +54,7 @@ class AdyenAbstract extends \Magento\Payment\Model\Method\AbstractMethod impleme
      */
     public function postRequest(Object $request, ConfigInterface $config)
     {
-        // TODO: Implement postRequest() method.
+        // Not needed only used for global configuration settings
     }
 
 

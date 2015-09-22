@@ -136,21 +136,12 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     {
         parent::assignData($data);
         $infoInstance = $this->getInfoInstance();
-
-        $this->_logger->critical("Assign data!!:" . print_r($data, true));
-
         $infoInstance->setAdditionalInformation('encrypted_data', $data['encrypted_data']);
-
-        $this->_logger->critical("encrypted dat:" . $data['encrypted_data']);
-
-
         return $this;
     }
 
     public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
-        $this->_logger->critical("TEST in authorize FUNTION !!:");
-
         if (!$this->canAuthorize()) {
             throw new \Magento\Framework\Exception\LocalizedException(__('The authorize action is not available.'));
         }
@@ -174,40 +165,21 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     public function getConfigPaymentAction()
     {
 //        return $this->getConfigData('payment_action');
-        $this->_logger->critical("TEST getConfigPaymentAction !!:");
         return \Magento\Payment\Model\Method\AbstractMethod::ACTION_AUTHORIZE;
     }
 
 
     protected function _processRequest(\Magento\Framework\Object $payment, $amount, $request)
     {
-
-
         switch ($request) {
             case "authorise":
                 $response = $this->_paymentRequest->fullApiRequest($payment);
                 break;
         }
 
-
-        $this->_logger->critical("HIERRR result is " . print_r($response,true));
-
         if (!empty($response)) {
-
-
-
-            $this->_logger->critical("NOT EMPTY ");
-
-
             $this->_processResponse($payment, $response);
-
-
-
-//            print_r($response);die();
-//            $this->_processResponse($payment, $response, $request);
         } else {
-            $this->_logger->critical(" EMPTY response");
-
             throw new \Magento\Framework\Exception\LocalizedException(__('Empty result.'));
         }
 
@@ -305,7 +277,6 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      */
     public function getCheckoutRedirectUrl()
     {
-        $this->_logger->critical("CHECKOUT URL" . $this->_urlBuilder->getUrl('adyen/process/validate3d/'));
         return $this->_urlBuilder->getUrl('adyen/process/validate3d/');
     }
 

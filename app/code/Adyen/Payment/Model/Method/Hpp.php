@@ -127,51 +127,12 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         return $this->_paymentMethodType;
     }
 
-    public function isAvailable($quote = null)
-    {
-        $this->_logger->critical("HPP IS AVAILABLE!! IS TRUE");
-        return true;
-    }
-
     public function initialize($paymentAction, $stateObject)
     {
-
-        $this->_logger->critical("initialize FROPM HPP Payment action is:". $paymentAction);
-
-        $requestType = null;
-        switch ($paymentAction) {
-            case self::ACTION_AUTHORIZE:
-                $requestType = self::REQUEST_TYPE_AUTH_ONLY;
-            //intentional
-            case self::ACTION_AUTHORIZE_CAPTURE:
-//                $requestType = $requestType ?: self::REQUEST_TYPE_AUTH_CAPTURE;
-                $payment = $this->getInfoInstance();
-                $order = $payment->getOrder();
-                $order->setCanSendNewEmailFlag(false);
-                $payment->setBaseAmountAuthorized($order->getBaseTotalDue());
-                $payment->setAmountAuthorized($order->getTotalDue());
-//                $payment->setAnetTransType($requestType);
-                break;
-            default:
-                break;
-        }
+        $state = \Magento\Sales\Model\Order::STATE_NEW;
+        $stateObject->setState($state);
+        $stateObject->setStatus($this->_adyenHelper->getAdyenAbstractConfigData('order_status'));
     }
-
-
-
-    /**
-     * Get config payment action url
-     * Used to universalize payment actions when processing payment place
-     *
-     * @return string
-     * @api
-     */
-//    public function getConfigPaymentAction()
-//    {
-//        // IMPORTANT need to set authorize_capture in config as well
-//        $this->_logger->critical("TEST getConfigPaymentAction FROM HPP!!:");
-//        return \Magento\Payment\Model\Method\AbstractMethod::ACTION_AUTHORIZE_CAPTURE;
-//    }
 
     /**
      * Checkout redirect URL getter for onepage checkout (hardcode)
@@ -182,7 +143,6 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      */
     public function getCheckoutRedirectUrl()
     {
-//        return $this->_urlBuilder->getUrl('paypal/payflowexpress/start');
         return $this->_urlBuilder->getUrl('adyen/process/redirect');
     }
 
@@ -199,8 +159,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      */
     public function postRequest(Object $request, ConfigInterface $config)
     {
-        $this->_logger->critical("postRequest");
-        // TODO: Implement postRequest() method.
+        // Implement postRequest() method.
     }
 
     /**
@@ -285,7 +244,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
             mktime(date("H"), date("i"), date("s"), date("m"), date("j") + $deliveryDays, date("Y"))
         );
         $formFields['skinCode']          = $skinCode;
-//        $formFields['shopperLocale']     = $shopperLocale;
+        $formFields['shopperLocale']     = $shopperLocale;
         $formFields['countryCode']       = $countryCode;
         $formFields['shopperIP']         = $shopperIP;
         $formFields['browserInfo']       = $browserInfo;
@@ -301,21 +260,16 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         //blocked methods
         $formFields['blockedMethods'] = "";
 
-
         $baseUrl = $this->storeManager->getStore($this->getStore())
             ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK);
         $formFields['resURL'] = $baseUrl . 'adyen/process/result';
 
-//        echo $adyFields['resURL'];die();
-
-        // $password = Mage::helper('core')->decrypt($this->_getConfigData('notification_password'));
         $hmacKey = $this->_adyenHelper->getHmac();
 
         $brandCode        = $this->getInfoInstance()->getCcType();
         if($brandCode) {
             $formFields['brandCode'] = $brandCode;
         }
-
 
         // Sort the array by key using SORT_STRING order
         ksort($formFields, SORT_STRING);
