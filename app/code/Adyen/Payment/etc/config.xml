@@ -58,14 +58,6 @@
                 <payment_action>Authorization</payment_action>
                 <group>adyen</group>
             </adyen_hpp>
-            <test>
-                <active>1</active>
-                <model>Adyen\Payment\Model\Method\Test</model>
-                <order_status>pending</order_status>
-                <title>Test method</title>
-                <allowspecific>0</allowspecific>
-                <group>adyen</group>
-            </test>
         </payment>
     </default>
 </config>
