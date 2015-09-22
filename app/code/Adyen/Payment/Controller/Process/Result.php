@@ -54,29 +54,39 @@ class Result extends \Magento\Framework\App\Action\Action
     protected $_session;
 
     /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    protected $_adyenLogger;
+
+    /**
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Sales\Model\OrderFactory $orderFactory
      * @param \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory
      * @param \Magento\Checkout\Model\Session $session
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory,
-        \Magento\Checkout\Model\Session $session
+        \Magento\Checkout\Model\Session $session,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
         $this->_orderHistoryFactory = $orderHistoryFactory;
         $this->_session = $session;
+        $this->_adyenLogger = $adyenLogger;
         parent::__construct($context);
     }
 
     public function execute()
     {
         $response = $this->getRequest()->getParams();
+        $this->_adyenLogger->info(print_r($response, true));
+
         $result = $this->validateResponse($response);
 
         if ($result) {

@@ -81,10 +81,16 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     protected $resolver;
 
     /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    protected $_adyenLogger;
+
+    /**
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\Locale\ResolverInterface $resolver
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
@@ -102,6 +108,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\Locale\ResolverInterface $resolver,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
@@ -129,6 +136,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $this->_adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
         $this->resolver = $resolver;
+        $this->_adyenLogger = $adyenLogger;
     }
 
     protected $_paymentMethodType = 'hpp';
@@ -289,6 +297,8 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $merchantSig = base64_encode(hash_hmac('sha256',$signData,pack("H*" , $hmacKey),true));
 
         $formFields['merchantSig'] = $merchantSig;
+
+        $this->_adyenLogger->info(print_r($formFields, true));
 
         return $formFields;
     }

@@ -80,13 +80,6 @@ class Redirect extends \Magento\Payment\Block\Form
         return $result;
     }
 
-    public function test() {
-        $orderId = $this->_checkoutSession->getId();
-        $orderId = $this->_checkoutSession->getLastOrderId();
-        return "incrementIdd: " . $orderId;
-//        return "sdf";
-    }
-
     public function getFormFields()
     {
         $result = array();
@@ -101,7 +94,6 @@ class Redirect extends \Magento\Payment\Block\Form
         }
         return $result;
     }
-
 
     /**
      * Get order object
