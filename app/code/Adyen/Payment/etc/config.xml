@@ -31,11 +31,13 @@
                 <recurring_type>ONECLICK</recurring_type>
                 <order_status>pending</order_status>
                 <demo_mode>0</demo_mode>
+                <debug>1</debug>
+                <group>adyen</group>
             </adyen_abstract>
             <adyen_cc>
                 <active>1</active>
                 <model>Adyen\Payment\Model\Method\Cc</model>
-                <title>Adyen CC</title>
+                <title>Adyen CreditCard</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>1</sort_order>
                 <cctypes>AE,VI,MC,DI</cctypes>

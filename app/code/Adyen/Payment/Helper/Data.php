@@ -244,7 +244,6 @@ class Data extends AbstractHelper
         }
     }
 
-
     /**
      * Retrieve information from payment configuration
      *
