@@ -147,9 +147,7 @@ class Result extends \Magento\Framework\App\Action\Action
                 throw new \Magento\Framework\Exception\LocalizedException(__('Order does not exists with increment_id: %s1', $incrementId));
             }
         } else {
-            Mage::throwException(
-                Mage::helper('adyen')->__('Empty merchantReference')
-            );
+            throw new \Magento\Framework\Exception\LocalizedException(__('Empty merchantReference'));
         }
         return $result;
     }

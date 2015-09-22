@@ -64,6 +64,11 @@ class Cron
      */
     protected $_orderSender;
 
+    /**
+     * @var \Magento\Framework\DB\TransactionFactory
+     */
+    protected $_transactionFactory;
+
 
     // notification attributes
     protected $_pspReference;
@@ -99,7 +104,8 @@ class Cron
         \Magento\Framework\Stdlib\DateTime $dateTime,
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        OrderSender $orderSender
+        OrderSender $orderSender,
+        \Magento\Framework\DB\TransactionFactory $transactionFactory
     )
     {
         $this->_scopeConfig = $scopeConfig;
@@ -110,6 +116,7 @@ class Cron
         $this->_localeDate = $localeDate;
         $this->_adyenHelper = $adyenHelper;
         $this->_orderSender = $orderSender;
+        $this->_transactionFactory = $transactionFactory;
     }
 
 
@@ -907,10 +914,13 @@ class Cron
                 $shipment->getOrder()->setIsInProcess(true);
                 $comment = __('Shipment created by Adyen');
                 $shipment->addComment($comment);
-                Mage::getModel('core/resource_transaction')
-                    ->addObject($shipment)
+
+                /** @var \Magento\Framework\DB\Transaction $transaction */
+                $transaction = $this->_transactionFactory->create();
+                $transaction->addObject($shipment)
                     ->addObject($shipment->getOrder())
                     ->save();
+
                 $this->_debugData['_createShipment done'] = 'Order is shipped';
             }
         } else {

@@ -136,7 +136,14 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     {
         parent::assignData($data);
         $infoInstance = $this->getInfoInstance();
-        $infoInstance->setAdditionalInformation('encrypted_data', $data['encrypted_data']);
+
+        $this->_adyenLogger
+
+        if(isset($data['encrypted_data'])) {
+            $infoInstance->setAdditionalInformation('encrypted_data', $data['encrypted_data']);
+        }
+
+        $this->_adyenLogger->info("CSE key is set");
         return $this;
     }
 
@@ -236,7 +243,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
                             break;
                     }
                 } else {
-                    $errorMsg = Mage::helper('adyen')->__('The payment is REFUSED by Adyen.');
+                    $errorMsg = __('The payment is REFUSED by Adyen.');
                 }
 
                 if ($errorMsg) {
