@@ -45,8 +45,10 @@ class Json extends \Magento\Framework\App\Action\Action
      * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;
+
     /**
      * @param \Magento\Framework\App\Action\Context $context
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,

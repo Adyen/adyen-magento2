@@ -32,12 +32,14 @@ class RecurringType implements \Magento\Framework\Option\ArrayInterface
      */
     protected $_orderConfig;
 
-
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
     protected $_adyenHelper;
-
 
     /**
      * @param \Magento\Sales\Model\Order\Config $orderConfig
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         \Magento\Sales\Model\Order\Config $orderConfig,

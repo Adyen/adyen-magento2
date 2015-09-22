@@ -41,6 +41,7 @@ class Cc extends \Magento\Payment\Block\Form
     /**
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
+     * @param \Psr\Log\LoggerInterface $logger
      * @param array $data
      */
     public function __construct(

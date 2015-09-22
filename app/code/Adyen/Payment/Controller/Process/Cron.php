@@ -32,7 +32,6 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 class Cron extends \Magento\Framework\App\Action\Action
 {
 
-
     /**
      * @var \Magento\Framework\ObjectManagerInterface
      */
@@ -42,7 +41,6 @@ class Cron extends \Magento\Framework\App\Action\Action
      * @var \Magento\Framework\Controller\Result\RawFactory
      */
     protected $_resultFactory;
-
 
     /**
      * @param \Magento\Framework\App\Action\Context $context

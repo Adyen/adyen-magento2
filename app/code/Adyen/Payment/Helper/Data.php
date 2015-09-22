@@ -38,6 +38,9 @@ class Data extends AbstractHelper
      */
     protected $_scopeConfig;
 
+    /**
+     * @var \Magento\Framework\Encryption\EncryptorInterface
+     */
     protected $_encryptor;
 
 
@@ -56,6 +59,10 @@ class Data extends AbstractHelper
     }
 
 
+    /**
+     * @desc return recurring types for configuration setting
+     * @return array
+     */
     public function getRecurringTypes() {
 
         return [
@@ -65,6 +72,10 @@ class Data extends AbstractHelper
         ];
     }
 
+    /**
+     * @desc return recurring types for configuration setting
+     * @return array
+     */
     public function getModes() {
         return [
             '1' => 'Test Mode',
@@ -72,6 +83,10 @@ class Data extends AbstractHelper
         ];
     }
 
+    /**
+     * @desc return recurring types for configuration setting
+     * @return array
+     */
     public function getCaptureModes() {
         return [
             'auto' => 'immediate',
@@ -79,12 +94,17 @@ class Data extends AbstractHelper
         ];
     }
 
+    /**
+     * @desc return recurring types for configuration setting
+     * @return array
+     */
     public function getPaymentRoutines() {
         return [
             'single' => 'Single Page Payment Routine',
             'multi' => 'Multi-page Payment Routine'
         ];
     }
+
 
     /**
      * Return the formatted currency. Adyen accepts the currency in multiple formats.
@@ -172,36 +192,76 @@ class Data extends AbstractHelper
     }
 
 
+    /**
+     * @desc gives back global configuration values
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
     public function getAdyenAbstractConfigData($field, $storeId = null)
     {
         return $this->getConfigData($field, 'adyen_abstract', $storeId);
     }
 
+    /**
+     * @desc gives back global configuration values as boolean
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
     public function getAdyenAbstractConfigDataFlag($field, $storeId = null)
     {
         return $this->getConfigData($field, 'adyen_abstract', $storeId, true);
     }
 
+    /**
+     * @desc Gives back adyen_cc configuration values
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
     public function getAdyenCcConfigData($field, $storeId = null)
     {
         return $this->getConfigData($field, 'adyen_cc', $storeId);
     }
 
+    /**
+     * @desc Gives back adyen_cc configuration values as flag
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
     public function getAdyenCcConfigDataFlag($field, $storeId = null)
     {
         return $this->getConfigData($field, 'adyen_cc', $storeId, true);
     }
 
+    /**
+     * @desc Gives back adyen_hpp configuration values
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
     public function getAdyenHppConfigData($field, $storeId = null)
     {
         return $this->getConfigData($field, 'adyen_hpp', $storeId);
     }
 
+    /**
+     * @desc Gives back adyen_hpp configuration values as flag
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
     public function getAdyenHppConfigDataFlag($field, $storeId = null)
     {
         return $this->getConfigData($field, 'adyen_hpp', $storeId, true);
     }
 
+    /**
+     * @desc Retrieve decrypted hmac key
+     * @return string
+     */
     public function getHmac()
     {
         switch ($this->isDemoMode()) {
@@ -215,16 +275,70 @@ class Data extends AbstractHelper
         return $secretWord;
     }
 
+    /**
+     * @desc Check if configuration is set to demo mode
+     * @return mixed
+     */
     public function isDemoMode()
     {
         return $this->getAdyenAbstractConfigDataFlag('demo_mode');
     }
 
+    /**
+     * @desc Retrieve the decrypted notification password
+     * @return string
+     */
     public function getNotificationPassword()
     {
         return $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('notification_password')));
     }
 
+    /**
+     * @desc Retrieve the webserver username
+     * @return string
+     */
+    public function getWsUsername()
+    {
+        if($this->isDemoMode()) {
+            $wsUsername =  trim($this->getAdyenAbstractConfigData('ws_username_test'));
+        } else {
+            $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_live'));
+        }
+        return $wsUsername;
+    }
+
+    /**
+     * @desc Retrieve the webserver password
+     * @return string
+     */
+    public function getWsPassword()
+    {
+        if($this->isDemoMode()) {
+            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_test')));
+        } else {
+            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_live')));
+        }
+        return $wsPassword;
+    }
+
+    /**
+     * @desc Retrieve the webserver url defined in the config.xlm only
+     * @return string
+     */
+    public function getWsUrl()
+    {
+        if($this->isDemoMode()) {
+            $url = $this->getAdyenAbstractConfigData('ws_url_test');
+        } else {
+            $url =  $this->getAdyenAbstractConfigData('ws_url_live');
+        }
+        return $url;
+    }
+
+    /**
+     * @desc Cancels the order
+     * @param $order
+     */
     public function cancelOrder($order)
     {
         $orderStatus = $this->getAdyenAbstractConfigData('payment_cancelled');
@@ -245,12 +359,12 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Retrieve information from payment configuration
-     *
-     * @param string $field
-     * @param int|string|null|\Magento\Store\Model\Store $storeId
-     *
-     * @return mixed
+     * @desc Retrieve information from payment configuration
+     * @param $field
+     * @param $paymentMethodCode
+     * @param $storeId
+     * @param bool|false $flag
+     * @return bool|mixed
      */
     public function getConfigData($field, $paymentMethodCode, $storeId, $flag = false)
     {

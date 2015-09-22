@@ -34,10 +34,19 @@ class Cron
      */
     protected $_logger;
 
+    /**
+     * @var Resource\Notification\CollectionFactory
+     */
     protected $_notificationFactory;
 
+    /**
+     * @var \Magento\Framework\Stdlib\DateTime
+     */
     protected $_datetime;
 
+    /**
+     * @var \Magento\Framework\Stdlib\DateTime\TimezoneInterface
+     */
     protected $_localeDate;
 
     /**
@@ -57,6 +66,9 @@ class Cron
      */
     protected $_scopeConfig;
 
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
     protected $_adyenHelper;
 
     /**
@@ -69,8 +81,9 @@ class Cron
      */
     protected $_transactionFactory;
 
-
-    // notification attributes
+    /**
+     * notification attributes
+     */
     protected $_pspReference;
     protected $_merchantReference;
     protected $_eventCode;
@@ -91,10 +104,16 @@ class Cron
      */
     protected $_debugData = array();
 
-
     /**
-     * Constructor
-     * @param \Adyen\Payment\Logger\Logger $logger
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param Resource\Notification\CollectionFactory $notificationFactory
+     * @param \Magento\Sales\Model\OrderFactory $orderFactory
+     * @param \Magento\Framework\Stdlib\DateTime $dateTime
+     * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param OrderSender $orderSender
+     * @param \Magento\Framework\DB\TransactionFactory $transactionFactory
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,

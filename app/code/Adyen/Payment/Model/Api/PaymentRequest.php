@@ -25,43 +25,52 @@ namespace Adyen\Payment\Model\Api;
 
 class PaymentRequest extends \Magento\Framework\Object
 {
+    /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
     protected $_scopeConfig;
-    protected $_code;
+
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
     protected $_logger;
+
+    /**
+     * @var \Magento\Framework\Encryption\EncryptorInterface
+     */
     protected $_encryptor;
+
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
     protected $_adyenHelper;
 
+    /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    protected $_adyenLogger;
+
+    /**
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Psr\Log\LoggerInterface $logger
+     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param array $data
+     */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         array $data = []
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_logger = $logger;
         $this->_encryptor = $encryptor;
-        $this->_code = "adyen_cc";
         $this->_adyenHelper = $adyenHelper;
-    }
-
-    /**
-     * Retrieve information from payment configuration
-     *
-     * @param string $field
-     * @param int|string|null|\Magento\Store\Model\Store $storeId
-     *
-     * @return mixed
-     */
-    public function getConfigData($field, $paymentMethodCode = "adyen_abstract", $storeId = null)
-    {
-        if (null === $storeId) {
-            $storeId = $this->getStore();
-        }
-
-        // $this->_code to get current methodcode
-        $path = 'payment/' . $paymentMethodCode . '/' . $field;
-        return $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+        $this->_adyenLogger = $adyenLogger;
     }
 
     public function fullApiRequest($payment)
@@ -71,7 +80,7 @@ class PaymentRequest extends \Magento\Framework\Object
         $customerEmail = $order->getCustomerEmail();
         $shopperIp = $order->getRemoteIp();
         $orderCurrencyCode = $order->getOrderCurrencyCode();
-        $merchantAccount = $this->getConfigData("merchant_account");
+        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
 
         $request = array(
             "action" => "Payment.authorise",
@@ -118,9 +127,8 @@ class PaymentRequest extends \Magento\Framework\Object
         }
 
 
-        // TODO get CSE setting
-        $cseEnabled = true;
-        if($cseEnabled) {
+        // If cse is enabled add encrypted card date into request
+        if($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
             $request['paymentRequest.additionalData.card.encrypted.json'] = $payment->getAdditionalInformation("encrypted_data");
         } else {
             $requestCreditCardDetails = array("paymentRequest.card.expiryMonth" => $payment->getCcExpMonth(),
@@ -137,17 +145,13 @@ class PaymentRequest extends \Magento\Framework\Object
 
     protected function _apiRequest($request)
     {
+        // log the request
+        $this->_adyenLogger->info('The request to adyen: ' . print_r($request, true));
 
-        // Use test or live credentials depends on demo mode
-        if($this->_adyenHelper->isDemoMode()) {
-            $webserviceUsername = $this->getConfigData("ws_username_test");
-            $webservicePassword = $this->decryptPassword($this->getConfigData("ws_password_test"));
-            $url = "https://pal-test.adyen.com/pal/adapter/httppost";
-        } else {
-            $webserviceUsername = $this->getConfigData("ws_username_live");
-            $webservicePassword = $this->decryptPassword($this->getConfigData("ws_password_live"));
-            $url = "https://pal-live.adyen.com/pal/adapter/httppost";
-        }
+
+        $webserviceUsername = $this->_adyenHelper->getWsUsername();
+        $webservicePassword = $this->_adyenHelper->getWsPassword();
+        $url = $this->_adyenHelper->getWsUrl();
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -169,16 +173,20 @@ class PaymentRequest extends \Magento\Framework\Object
             throw new \Magento\Framework\Exception\LocalizedException(__('HTTP Status code' . $results));
         }
 
-        parse_str($results, $results);
+        parse_str($results, $resultArr);
+
         curl_close($ch);
 
-        return $results;
+        // log the result
+        $this->_adyenLogger->info('The response to adyen: ' . print_r($resultArr, true));
+
+        return $resultArr;
     }
 
     public function authorise3d($payment)
     {
         $order = $payment->getOrder();
-        $merchantAccount = $this->getConfigData("merchant_account");
+        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
         $shopperIp = $order->getRemoteIp();
 
         $md = $payment->getAdditionalInformation('md');

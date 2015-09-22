@@ -31,25 +31,15 @@ class Redirect extends \Magento\Framework\App\Action\Action
      */
     protected $_quote = false;
 
-
-
-
     /**
      * @var \Magento\Checkout\Model\Session
      */
     protected $_checkoutSession;
 
 
-
-
-    protected $checkoutFactory;
-
-
     /**
-     * @var \Magento\Customer\Model\Session
+     * @var \Magento\Sales\Model\Order
      */
-    protected $_customerSession;
-
     protected $_order;
 
     /**
@@ -60,14 +50,11 @@ class Redirect extends \Magento\Framework\App\Action\Action
 
     /**
      * @param \Magento\Framework\App\Action\Context $context
-     * @param \Magento\Customer\Model\Session $customerSession
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context
-//        \Magento\Customer\Model\Session $customerSession
     ) {
         parent::__construct($context);
-//        $this->_customerSession = $customerSession;
     }
 
 
@@ -83,69 +70,9 @@ class Redirect extends \Magento\Framework\App\Action\Action
 
     public function execute()
     {
-
-//        $session->clearQuote();
         $this->_view->loadLayout();
         $this->_view->getLayout()->initMessages();
         $this->_view->renderLayout();
-
-        // \Magento\Quote\Model\QuoteManagement $quoteManagement
-        //$this->_checkout->place($this->_initToken());
-//        $order = $this->quoteManagement->submit($this->_quote);
-
-
-//        $orderId = $this->_getCheckout()->getLastOrderId();
-//
-//        $order = $this->_getOrder();
-//
-//        $payment = $order->getPayment()->getMethodInstance();
-//
-//        echo $payment->getCode();die();
-//
-//
-//echo $order->getId();
-//        die();
-//
-//        $quote->collectTotals();
-//
-////        print_r($quote->getPayment());die();
-//
-//        //$this->_quote->collectTotals();
-////        $order = $this->quoteManagement->submit($this->_quote);
-////\Magento\Quote\Model\QuoteManagement $quoteManagement
-//
-////        $this->_getQuoteManagement()->submit($quote);
-//
-//
-////echo 'test';
-////        print_r($this->_getQuote()->getBillingAddress()->getFirstname());die();
-//
-////        echo $quote->getBillingAddress()->getFirstname();
-//////        echo $quote->getShippingAddress()->getFirstname();
-////        die();
-//
-//        $this->_getQuoteManagement()->placeOrder($quote->getId());
-//
-//        // $this->cartManagement->placeOrder($this->_getCheckout()->getQuote()->getId());
-//
-//
-////        $this->getOrder();
-//
-////        echo $quote->getId();
-////        echo 'hier;';die();
-////        $this->_quote->collectTotals();
-////
-////echo 'hier';die();
-//        $url = "http://www.google.com";
-//        $this->getResponse()->setRedirect($url);
-//        return;
-
-
-
-
-//        $this->_view->loadLayout();
-//        $this->_view->getLayout()->initMessages();
-//        $this->_view->renderLayout();
     }
 
     /**

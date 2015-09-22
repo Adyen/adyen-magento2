@@ -51,12 +51,15 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
      */
     protected $paymentHelper;
 
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
     protected $adyenHelper;
 
     /**
-     * @param CcConfig $ccConfig
+     * @param \Magento\Payment\Model\CcConfig $ccConfig
      * @param PaymentHelper $paymentHelper
-     * @param array $methodCodes
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         \Magento\Payment\Model\CcConfig $ccConfig,

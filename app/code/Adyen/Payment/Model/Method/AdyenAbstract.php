@@ -38,6 +38,10 @@ class AdyenAbstract extends \Magento\Payment\Model\Method\AbstractMethod impleme
      * @var string
      */
     protected $_code = self::METHOD_CODE;
+
+    /**
+     * @var bool
+     */
     protected $_isGateway = false;
     protected $_canAuthorize = false;
     protected $_isInitializeNeeded = false;

@@ -33,6 +33,8 @@
                 <demo_mode>0</demo_mode>
                 <debug>1</debug>
                 <group>adyen</group>
+                <ws_url_test>https://pal-test.adyen.com/pal/adapter/httppost</ws_url_test>
+                <ws_url_live>https://pal-live.adyen.com/pal/adapter/httppost</ws_url_live>
             </adyen_abstract>
             <adyen_cc>
                 <active>1</active>
@@ -43,6 +45,7 @@
                 <cctypes>AE,VI,MC,DI</cctypes>
                 <useccv>1</useccv>
                 <cse_enabled>1</cse_enabled>
+                <payment_action>authorize</payment_action>
                 <group>adyen</group>
             </adyen_cc>
             <adyen_hpp>
@@ -57,7 +60,6 @@
                 <sort_order>10</sort_order>
                 <place_order_url>adyen/process/redirect</place_order_url>
                 <order_place_redirect_url>adyen/process/redirect</order_place_redirect_url>
-                <payment_action>authorize</payment_action>
                 <group>adyen</group>
             </adyen_hpp>
         </payment>

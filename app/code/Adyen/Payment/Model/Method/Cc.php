@@ -49,16 +49,16 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      * @var string
      */
     protected $_formBlockType = 'Adyen\Payment\Block\Form\Cc';
-
     protected $_infoBlockType = 'Adyen\Payment\Block\Info\Cc';
-//
-//    /**
-//     * @var string
-//     */
-//    protected $_infoBlockType = 'Adyen\Payment\Block\Info\Cc';
 
+    /**
+     * @var \Adyen\Payment\Model\Api\PaymentRequest
+     */
     protected $_paymentRequest;
 
+    /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
     protected $_adyenLogger;
 
     /**
@@ -66,22 +66,33 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      */
     protected $_checkoutSession;
 
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
     protected $_urlBuilder;
 
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
     protected $_adyenHelper;
 
-
     /**
+     * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
      * @param \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory
      * @param \Magento\Payment\Helper\Data $paymentData
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Magento\Payment\Model\Method\Logger $logger
      * @param \Magento\Framework\Module\ModuleListInterface $moduleList
      * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
-     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
+     * @param \Magento\Framework\Model\Resource\AbstractResource|null $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
@@ -141,7 +152,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         parent::assignData($data);
         $infoInstance = $this->getInfoInstance();
 
-        if($this->_adyenHelper->getAdyenAbstractConfigDataFlag('cse_enabled')) {
+        if($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
             if(isset($data['encrypted_data'])) {
                 $infoInstance->setAdditionalInformation('encrypted_data', $data['encrypted_data']);
             } else {
@@ -183,7 +194,6 @@ class Cc extends \Magento\Payment\Model\Method\Cc
 
     protected function _processResponse(\Magento\Payment\Model\InfoInterface $payment, $response)
     {
-
         $payment->setAdditionalInformation('3dActive', false);
 
         switch ($response['paymentResult_resultCode']) {
@@ -193,18 +203,19 @@ class Cc extends \Magento\Payment\Model\Method\Cc
                 $payment->setAdditionalInformation('pspReference', $response['paymentResult_pspReference']);
                 break;
             case "RedirectShopper":
-
+                // 3d is active so set the param to true checked in Controller/Validate3d
                 $payment->setAdditionalInformation('3dActive', true);
-                $IssuerUrl = $response['paymentResult_issuerUrl'];
+                $issuerUrl = $response['paymentResult_issuerUrl'];
                 $PaReq = $response['paymentResult_paRequest'];
-                $MD = $response['paymentResult_md'];
+                $md = $response['paymentResult_md'];
 
-                $payment->setAdditionalInformation('issuerUrl', $response['paymentResult_issuerUrl']);
-                $payment->setAdditionalInformation('paRequest', $response['paymentResult_paRequest']);
-                $payment->setAdditionalInformation('md', $response['paymentResult_md']);
-
-                $result = $this->getResponse();
-
+                if(!empty($PaReq) && !empty($md) && !empty($issuerUrl)) {
+                    $payment->setAdditionalInformation('issuerUrl', $response['paymentResult_issuerUrl']);
+                    $payment->setAdditionalInformation('paRequest', $response['paymentResult_paRequest']);
+                    $payment->setAdditionalInformation('md', $response['paymentResult_md']);
+                } else {
+                    throw new \Magento\Framework\Exception\LocalizedException(__('3D secure is not valid'));
+                }
                 break;
             case "Refused":
                 // paymentResult_refusalReason

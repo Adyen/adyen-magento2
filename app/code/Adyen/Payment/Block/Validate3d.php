@@ -34,13 +34,16 @@ class Validate3d extends \Magento\Payment\Block\Form
      */
     protected $_checkoutSession;
 
+    /**
+     * @var \Magento\Checkout\Model\Order
+     */
     protected $_order;
 
     /**
-     * Constructor
-     *
-     * @param \\Magento\Framework\View\Element\Template\Context $context
+     * @param \Magento\Framework\View\Element\Template\Context $context
      * @param array $data
+     * @param \Magento\Sales\Model\OrderFactory $orderFactory
+     * @param \Magento\Checkout\Model\Session $checkoutSession
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,

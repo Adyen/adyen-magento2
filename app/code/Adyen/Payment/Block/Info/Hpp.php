@@ -31,12 +31,4 @@ class Hpp extends \Magento\Payment\Block\Info
      */
     protected $_template = 'Adyen_Payment::info/adyen_hpp.phtml';
 
-    /**
-     * @return string
-     */
-//    public function toPdf()
-//    {
-//        $this->setTemplate('Magento_OfflinePayments::info/pdf/checkmo.phtml');
-//        return $this->toHtml();
-//    }
 }

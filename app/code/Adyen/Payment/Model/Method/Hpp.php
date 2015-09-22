@@ -59,6 +59,9 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     protected $_canAuthorize = true;
     protected $_isInitializeNeeded = true;
 
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
     protected $_adyenHelper;
 
 
@@ -67,6 +70,9 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      */
     protected $storeManager;
 
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
     protected $_urlBuilder;
 
     /**
@@ -74,17 +80,20 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      */
     protected $resolver;
 
-
     /**
+     * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\Locale\ResolverInterface $resolver
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
      * @param \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory
      * @param \Magento\Payment\Helper\Data $paymentData
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     * @param Logger $logger
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
-     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
+     * @param \Magento\Payment\Model\Method\Logger $logger
+     * @param \Magento\Framework\Model\Resource\AbstractResource|null $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */

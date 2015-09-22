@@ -28,11 +28,19 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 
 class Result extends \Magento\Framework\App\Action\Action
 {
-
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
     protected $_adyenHelper;
 
+    /**
+     * @var \Magento\Sales\Model\OrderFactory
+     */
     protected $_orderFactory;
 
+    /**
+     * @var \Magento\Sales\Model\Order
+     */
     protected $_order;
 
     /**
@@ -40,13 +48,17 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     protected $_orderHistoryFactory;
 
+    /**
+     * @var \Magento\Checkout\Model\Session
+     */
     protected $_session;
 
     /**
      * @param \Magento\Framework\App\Action\Context $context
-     * @param \Magento\Customer\Model\Session $customerSession
-     * @param CustomerRepositoryInterface $customerRepository
-     * @param AccountManagementInterface $accountManagement
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Sales\Model\OrderFactory $orderFactory
+     * @param \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory
+     * @param \Magento\Checkout\Model\Session $session
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
