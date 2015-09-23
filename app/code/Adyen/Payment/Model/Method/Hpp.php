@@ -146,6 +146,14 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
 
     public function initialize($paymentAction, $stateObject)
     {
+        /*
+         * do not send order confirmation mail after order creation wait for
+         * Adyen AUTHORIISATION notification
+         */
+        $payment = $this->getInfoInstance();
+        $order = $payment->getOrder();
+        $order->setCanSendNewEmailFlag(false);
+
         $state = \Magento\Sales\Model\Order::STATE_NEW;
         $stateObject->setState($state);
         $stateObject->setStatus($this->_adyenHelper->getAdyenAbstractConfigData('order_status'));

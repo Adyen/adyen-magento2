@@ -168,6 +168,13 @@ class Cc extends \Magento\Payment\Model\Method\Cc
             throw new \Magento\Framework\Exception\LocalizedException(__('The authorize action is not available.'));
         }
 
+        /*
+         * do not send order confirmation mail after order creation wait for
+         * Adyen AUTHORIISATION notification
+         */
+        $order = $payment->getOrder();
+        $order->setCanSendNewEmailFlag(false);
+
         // do not let magento set status to processing
         $payment->setLastTransId($this->getTransactionId())->setIsTransactionPending(true);
 
