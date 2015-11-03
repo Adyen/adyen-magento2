@@ -116,12 +116,12 @@ class PaymentRequest extends \Magento\Framework\Object
         {
             $addressArray = $this->_adyenHelper->getStreet($deliveryAddress);
 
-            $requestDelivery = array("paymentRequest.card.billingAddress.street" => $addressArray['name'],
-                "paymentRequest.card.billingAddress.postalCode" => $deliveryAddress->getPostcode(),
-                "paymentRequest.card.billingAddress.city" => $deliveryAddress->getCity(),
-                "paymentRequest.card.billingAddress.houseNumberOrName" => $addressArray['house_number'],
-                "paymentRequest.card.billingAddress.stateOrProvince" => $deliveryAddress->getRegionCode(),
-                "paymentRequest.card.billingAddress.country" => $deliveryAddress->getCountryId()
+            $requestDelivery = array("paymentRequest.card.deliveryAddress.street" => $addressArray['name'],
+                "paymentRequest.card.deliveryAddress.postalCode" => $deliveryAddress->getPostcode(),
+                "paymentRequest.card.deliveryAddress.city" => $deliveryAddress->getCity(),
+                "paymentRequest.card.deliveryAddress.houseNumberOrName" => $addressArray['house_number'],
+                "paymentRequest.card.deliveryAddress.stateOrProvince" => $deliveryAddress->getRegionCode(),
+                "paymentRequest.card.deliveryAddress.country" => $deliveryAddress->getCountryId()
             );
             $request = array_merge($request, $requestDelivery);
         }
