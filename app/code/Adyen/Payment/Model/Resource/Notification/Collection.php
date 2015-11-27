@@ -23,7 +23,7 @@
 
 namespace Adyen\Payment\Model\Resource\Notification;
 
-class Collection extends \Magento\Framework\Model\Resource\Db\Collection\AbstractCollection
+class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
     public function _construct()
     {

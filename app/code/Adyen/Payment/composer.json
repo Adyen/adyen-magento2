@@ -1,0 +1,17 @@
+{
+  "name": "adyen/payment",
+  "description": "Official Magento2 Plugin to connect to Payment Service Provider Adyen.",
+  "type": "magento2-module",
+  "version": "1.0.0.1",
+  "license": [
+    "OSL-3.0",
+    "AFL-3.0"
+  ],
+  "require": {
+    "php": "~5.5.0|~5.6.0"
+  },
+  "autoload": {
+    "psr-4": { "Adyen\\Payment\\": "" },
+    "files": [ "registration.php" ]
+	}
+}

@@ -23,7 +23,7 @@
 
 namespace Adyen\Payment\Model\Resource;
 
-class Notification extends \Magento\Framework\Model\Resource\Db\AbstractDb
+class Notification extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
 
     public function _construct()
@@ -40,13 +40,12 @@ class Notification extends \Magento\Framework\Model\Resource\Db\AbstractDb
      */
     public function getNotification($pspReference, $eventCode, $success)
     {
-        $adapter = $this->getReadConnection();
-        $select = $adapter->select()
+        $select = $this->getConnection()->select()
             ->from(['notification' => $this->getTable('adyen_notification')])
             ->where('notification.pspreference=?', $pspReference)
             ->where('notification.event_code=?', $eventCode)
             ->where('notification.success=?', $success);
-        return $adapter->fetchPairs($select);
+        return $this->getConnection()->fetchAll($select);
     }
 
 }

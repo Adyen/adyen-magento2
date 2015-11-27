@@ -25,7 +25,6 @@ namespace Adyen\Payment\Block\Form;
 
 class Cc extends \Magento\Payment\Block\Form
 {
-    private $logger;
     /**
      * @var string
      */
@@ -41,18 +40,15 @@ class Cc extends \Magento\Payment\Block\Form
     /**
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
-     * @param \Psr\Log\LoggerInterface $logger
      * @param array $data
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Payment\Model\Config $paymentConfig,
-        \Psr\Log\LoggerInterface $logger,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->_paymentConfig = $paymentConfig;
-        $this->logger = $logger;
     }
 
     /**

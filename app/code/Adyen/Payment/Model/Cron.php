@@ -139,16 +139,19 @@ class Cron
     }
 
 
+    public function test()
+    {
+        echo 'hier';
+        return;
+    }
+
     public function processNotification()
     {
-
         $this->_order = null;
 
         $this->_logger->info("START OF THE CRONJOB");
 
         //fixme somehow the created_at is saved in my timzone
-
-
         $dateStart = new \DateTime();
 
         // loop over notifications that are not processed and from 1 minute ago
@@ -157,8 +160,9 @@ class Cron
 
         // excecute notifications from 2 minute or earlier because order could not yet been created by mangento
         $dateEnd = new \DateTime();
-        $dateEnd->modify('-2 minute');
+        $dateEnd->modify('-1 minute');
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
+
 
         $notifications = $this->_notificationFactory->create();
         $notifications->addFieldToFilter('done', 0);
@@ -166,13 +170,15 @@ class Cron
 
         foreach($notifications as $notification) {
 
-
             // get order
             $incrementId = $notification->getMerchantReference();
 
             $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
             if (!$this->_order->getId()) {
-                throw new Exception(sprintf('Wrong order ID: "%1".', $incrementId));
+
+                // order does not exists remove from queue
+                $notification->delete();
+                continue;
             }
 
             // declare all variables that are needed
@@ -186,6 +192,7 @@ class Cron
 
             // set pspReference on payment object
             $this->_order->getPayment()->setAdditionalInformation('pspReference', $this->_pspReference);
+            $this->_order->getPayment()->setAdyenPspReference($this->_pspReference);
 
 
             // check if success is true of false
@@ -196,24 +203,13 @@ class Cron
 
                     // if payment is API check, check if API result pspreference is the same as reference
                     if($this->_eventCode == Adyen_Payment_Model_Event::ADYEN_EVENT_AUTHORISATION && $this->_getPaymentMethodType() == 'api') {
-                        if($this->_pspReference == $this->_order->getPayment()->getAdditionalInformation('pspReference')) {
-                            // don't cancel the order if previous state is authorisation with success=true
-                            if($previousAdyenEventCode != "AUTHORISATION : TRUE") {
-                                $this->_holdCancelOrder(false);
-                            } else {
-                                //$this->_order->setAdyenEventCode($previousAdyenEventCode); // do not update the adyenEventCode
-                                $this->_order->setData('adyen_notification_event_code', $previousAdyenEventCode);
-                                $this->_debugData['_updateOrder warning'] = 'order is not cancelled because previous notification was a authorisation that succeeded';
-                            }
-                        } else {
-                            $this->_debugData['_updateOrder warning'] = 'order is not cancelled because pspReference does not match with the order';
-                        }
+                        // don't cancel the order becasue order was successfull through api
+                        $this->_debugData['_updateOrder warning'] = 'order is not cancelled because api result was succesfull';
                     } else {
                         // don't cancel the order if previous state is authorisation with success=true
                         if($previousAdyenEventCode != "AUTHORISATION : TRUE") {
                             $this->_holdCancelOrder(false);
                         } else {
-//                            $this->_order->setAdyenEventCode($previousAdyenEventCode); // do not update the adyenEventCode
                             $this->_order->setData('adyen_notification_event_code', $previousAdyenEventCode);
                             $this->_debugData['_updateOrder warning'] = 'order is not cancelled because previous notification was a authorisation that succeeded';
                         }

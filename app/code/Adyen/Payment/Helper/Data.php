@@ -32,13 +32,6 @@ class Data extends AbstractHelper
 {
 
     /**
-     * Core store config
-     *
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    protected $_scopeConfig;
-
-    /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
      */
     protected $_encryptor;
@@ -49,12 +42,10 @@ class Data extends AbstractHelper
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor
     )
     {
         parent::__construct($context);
-        $this->_scopeConfig = $scopeConfig;
         $this->_encryptor = $encryptor;
     }
 
@@ -371,9 +362,9 @@ class Data extends AbstractHelper
         $path = 'payment/' . $paymentMethodCode . '/' . $field;
 
         if(!$flag) {
-            return $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+            return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
         } else {
-            return $this->_scopeConfig->isSetFlag($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+            return $this->scopeConfig->isSetFlag($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
         }
 
     }

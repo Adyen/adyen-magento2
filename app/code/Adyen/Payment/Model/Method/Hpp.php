@@ -23,7 +23,7 @@
 
 namespace Adyen\Payment\Model\Method;
 
-use Magento\Framework\Object;
+use Magento\Framework\DataObject;
 use Magento\Payment\Model\Method\ConfigInterface;
 use Magento\Payment\Model\Method\Online\GatewayInterface;
 
@@ -98,7 +98,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      * @param \Magento\Payment\Helper\Data $paymentData
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Payment\Model\Method\Logger $logger
-     * @param \Magento\Framework\Model\Resource\AbstractResource|null $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -116,7 +116,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         \Magento\Payment\Helper\Data $paymentData,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Payment\Model\Method\Logger $logger,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
@@ -182,7 +182,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      *
      * @throws \Exception
      */
-    public function postRequest(Object $request, ConfigInterface $config)
+    public function postRequest(DataObject $request, ConfigInterface $config)
     {
         // Implement postRequest() method.
     }

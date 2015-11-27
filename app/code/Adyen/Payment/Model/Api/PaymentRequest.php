@@ -23,7 +23,9 @@
 
 namespace Adyen\Payment\Model\Api;
 
-class PaymentRequest extends \Magento\Framework\Object
+use Magento\Framework\DataObject;
+
+class PaymentRequest extends DataObject
 {
     /**
      * @var \Magento\Framework\App\Config\ScopeConfigInterface

@@ -21,17 +21,48 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Config\Source;
+namespace Adyen\Payment\Block\Info;
 
-/**
- * Order Statuses source model
- */
-class Complete extends \Magento\Sales\Model\Config\Source\Order\Status
+use Magento\Framework\View\Element\Template;
+
+class AbstractInfo extends \Magento\Payment\Block\Info
 {
+
     /**
-     * @var string[]
+     * @var \Adyen\Payment\Helper\Data
      */
-    protected $_stateStatuses = [
-        \Magento\Sales\Model\Order::STATE_COMPLETE
-    ];
+    protected $_adyenHelper;
+
+    /**
+     * Constructor
+     *
+     * @param Template\Context $context
+     * @param array $data
+     */
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        Template\Context $context,
+        array $data = []
+    )
+    {
+        parent::__construct($context, $data);
+        $this->_adyenHelper = $adyenHelper;
+    }
+
+
+    public function getAdyenPspReference()
+    {
+        return $this->getMethod()->getInfoInstance()->getAdyenPspReference();
+    }
+
+    public function isDemoMode()
+    {
+        $storeId = $this->getMethod()->getInfoInstance()->getOrder()->getStoreId();
+        return $this->_adyenHelper->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
+    }
+
+
+
+
+
 }

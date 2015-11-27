@@ -58,12 +58,8 @@ class Cron extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-
         $cron = $this->_objectManager->create('Adyen\Payment\Model\Cron');
         $cron->processNotification();
-        die();
-
-
     }
 
 }

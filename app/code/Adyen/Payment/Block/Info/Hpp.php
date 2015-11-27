@@ -23,7 +23,7 @@
 
 namespace Adyen\Payment\Block\Info;
 
-class Hpp extends \Magento\Payment\Block\Info
+class Hpp extends AbstractInfo
 {
 
     /**

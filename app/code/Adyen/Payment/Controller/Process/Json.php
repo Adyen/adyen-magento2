@@ -118,6 +118,8 @@ class Json extends \Magento\Framework\App\Action\Action
      */
     protected function _processNotification($response, $notificationMode)
     {
+        // TODO: log the response
+
         // validate the notification
         if($this->authorised($response))
         {
@@ -171,6 +173,8 @@ class Json extends \Magento\Framework\App\Action\Action
                     throw new \Magento\Framework\Exception\LocalizedException(__($e->getMessage()));
                 }
             }
+        } else {
+            return "401";
         }
     }
 

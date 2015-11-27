@@ -56,10 +56,9 @@ define(
                 return this;
             },
             initialize: function() {
+
                 var self = this;
                 this._super();
-
-
 
                 // when creditCarNumber change call encrypt function
                 this.creditCardNumber.subscribe(function(value) {
@@ -93,12 +92,12 @@ define(
             getData: function() {
                 return {
                     'method': this.item.method,
-                    'cc_type': this.creditCardType(),
-                    'cc_exp_year': this.creditCardExpYear(),
-                    'cc_exp_month': this.creditCardExpMonth(),
-                    'cc_number': this.creditCardNumber(),
-                    'cc_owner' : this.creditCardOwner(),
                     additional_data: {
+                        'cc_type': this.creditCardType(),
+                        'cc_exp_year': this.creditCardExpYear(),
+                        'cc_exp_month': this.creditCardExpMonth(),
+                        'cc_number': this.creditCardNumber(),
+                        'cc_owner' : this.creditCardOwner(),
                         'cc_cid': this.creditCardVerificationNumber(),
                         'cc_ss_start_month': this.creditCardSsStartMonth(),
                         'cc_ss_start_year': this.creditCardSsStartYear(),
@@ -123,7 +122,7 @@ define(
 
                 var cseInstance = adyen.encrypt.createEncryptedForm(cse_form, cse_key, cse_options);
 
-                // TODO needs to be done through php
+                // TODO genreation time needs to be set through PHP in hidden field
                 var generation = new Date().toISOString();
 
                 var cardData = {
@@ -138,7 +137,6 @@ define(
                 var data = cseInstance.encrypt(cardData);
 
                 self.encryptedData(data);
-
 
                 var placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder);
 

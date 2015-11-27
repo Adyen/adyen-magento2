@@ -91,7 +91,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      * @param \Magento\Payment\Model\Method\Logger $logger
      * @param \Magento\Framework\Module\ModuleListInterface $moduleList
      * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate
-     * @param \Magento\Framework\Model\Resource\AbstractResource|null $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -111,7 +111,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         \Magento\Payment\Model\Method\Logger $logger,
         \Magento\Framework\Module\ModuleListInterface $moduleList,
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
@@ -144,10 +144,11 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     /**
      * Assign data to info model instance
      *
-     * @param \Magento\Framework\Object|mixed $data
+     * @param \Magento\Framework\DataObject|mixed $data
      * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function assignData($data)
+    public function assignData(\Magento\Framework\DataObject $data)
     {
         parent::assignData($data);
         $infoInstance = $this->getInfoInstance();
@@ -184,7 +185,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         return $this;
     }
 
-    protected function _processRequest(\Magento\Framework\Object $payment, $amount, $request)
+    protected function _processRequest(\Magento\Sales\Model\Order\Payment $payment, $amount, $request)
     {
         switch ($request) {
             case "authorise":

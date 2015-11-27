@@ -23,7 +23,7 @@
 
 namespace Adyen\Payment\Model\Method;
 
-use Magento\Framework\Object;
+use Magento\Framework\DataObject;
 use Magento\Payment\Model\Method\ConfigInterface;
 use Magento\Payment\Model\Method\Online\GatewayInterface;
 /**
@@ -52,14 +52,13 @@ class AdyenAbstract extends \Magento\Payment\Model\Method\AbstractMethod impleme
      * @param Object $request
      * @param ConfigInterface $config
      *
-     * @return Object
+     * @return DataObject
      *
      * @throws \Exception
      */
-    public function postRequest(Object $request, ConfigInterface $config)
+    public function postRequest(DataObject $request, ConfigInterface $config)
     {
         // Not needed only used for global configuration settings
     }
-
 
 }

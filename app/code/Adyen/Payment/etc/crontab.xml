@@ -27,5 +27,8 @@
         <job name="adyen_payment_process_notification" instance="Adyen\Payment\Model\Cron" method="processNotification">
             <schedule>* * * * *</schedule>
         </job>
+        <job name="adyen_test" instance="Adyen\Payment\Model\Cron" method="test">
+            <schedule>* * * * *</schedule>
+        </job>
     </group>
 </config>
