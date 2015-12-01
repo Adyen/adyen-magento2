@@ -22,12 +22,9 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Magento/Cron/etc/crontab.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="index">
         <job name="adyen_payment_process_notification" instance="Adyen\Payment\Model\Cron" method="processNotification">
-            <schedule>* * * * *</schedule>
-        </job>
-        <job name="adyen_test" instance="Adyen\Payment\Model\Cron" method="test">
             <schedule>* * * * *</schedule>
         </job>
     </group>

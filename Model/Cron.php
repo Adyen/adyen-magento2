@@ -138,13 +138,6 @@ class Cron
         $this->_transactionFactory = $transactionFactory;
     }
 
-
-    public function test()
-    {
-        echo 'hier';
-        return;
-    }
-
     public function processNotification()
     {
         $this->_order = null;
@@ -154,20 +147,19 @@ class Cron
         //fixme somehow the created_at is saved in my timzone
         $dateStart = new \DateTime();
 
-        // loop over notifications that are not processed and from 1 minute ago
+        // execute notifications from 5 minute or earlier because order could not yet been created by magento
         $dateStart = new \DateTime();
         $dateStart->modify('-1 day');
-
-        // excecute notifications from 2 minute or earlier because order could not yet been created by mangento
         $dateEnd = new \DateTime();
-        $dateEnd->modify('-1 minute');
+        $dateEnd->modify('-5 minute');
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
 
-
+        // create collection
         $notifications = $this->_notificationFactory->create();
         $notifications->addFieldToFilter('done', 0);
         $notifications->addFieldToFilter('created_at', $dateRange);
 
+        // loop over the notifications
         foreach($notifications as $notification) {
 
             // get order
@@ -187,7 +179,6 @@ class Cron
             // add notification to comment history status is current status
             $this->_addStatusHistoryComment();
 
-//            $previousAdyenEventCode = $this->order->getAdyenNotificationEventCode();
             $previousAdyenEventCode = $this->_order->getData('adyen_notification_event_code');
 
             // set pspReference on payment object

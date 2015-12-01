@@ -7,8 +7,25 @@
     "OSL-3.0",
     "AFL-3.0"
   ],
+  "repositories": [
+    {
+      "type": "package",
+      "package": {
+        "name": "adyen/adyen-php-api-library",
+        "version": "0.1.0",
+        "type": "package",
+        "source": {
+          "url": "https://github.com/Adyen/adyen-php-api-library",
+          "type": "git",
+          "reference": "master"
+        }
+      }
+    }
+  ],
   "require": {
-    "php": "~5.5.0|~5.6.0"
+    "php": "~5.5.0|~5.6.0",
+    "magento/magento-composer-installer": "*",
+    "adyen/adyen-php-api-library": "*"
   },
   "autoload": {
     "psr-4": { "Adyen\\Payment\\": "" },

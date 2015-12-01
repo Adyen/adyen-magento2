@@ -22,7 +22,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../../../lib/internal/Magento/Framework/View/Layout/etc/layout_generic.xsd">
+<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
     <container name="root">
         <block class="Adyen\Payment\Block\Validate3d" name="adyen-form-validate3d" template="3dform.phtml" cacheable="false"/>
     </container>
