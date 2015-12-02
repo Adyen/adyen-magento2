@@ -40,11 +40,19 @@
     "adyen/adyen-php-api-library": "*"
   },
   "autoload": {
-      "files": [
-        "registration.php"
-      ],
-      "psr-4": {
-        "Adyen\\Payment\\": ""
-      }
-	}
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "Adyen\\Payment\\": ""
+    }
+  },
+  "extra": {
+    "map": [
+      [
+        "*",
+        "Adyen/Payment"
+      ]
+    ]
+  }
 }
