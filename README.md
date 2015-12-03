@@ -2,7 +2,7 @@
 Adyen Payment plugin for Magento2
 
 
-## Install through composer
+## Install with Composer
 
 Make sure you have "minimum-stability": "dev" in your magento composer.json set.
 Because the repositories are private you need to do the folowing:
