@@ -9,16 +9,9 @@
   ],
   "repositories": [
     {
-      "type": "package",
-      "package": {
-        "name": "adyen/adyen-php-api-library",
-        "version": "0.1.0",
-        "type": "package",
-        "source": {
-          "url": "https://github.com/Adyen/adyen-php-api-library",
-          "type": "git",
-          "reference": "master"
-        }
+      "adyen": {
+        "type": "vcs",
+        "url": "git@github.com:Adyen/adyen-php-api-library.git"
       }
     }
   ],
@@ -37,7 +30,7 @@
     "magento/module-theme": "100.0.*",
     "magento/framework": "100.0.*",
     "magento/magento-composer-installer": "*",
-    "adyen/adyen-php-api-library": "*"
+    "adyen/php-api-library": "*"
   },
   "autoload": {
     "files": [
