@@ -39,13 +39,5 @@
     "psr-4": {
       "Adyen\\Payment\\": ""
     }
-  },
-  "extra": {
-    "map": [
-      [
-        "*",
-        "Adyen/Payment"
-      ]
-    ]
   }
 }
