@@ -246,7 +246,14 @@
 
                 <!-- ko if: (isCseEnabled())-->
 
-                    <input type="hidden" id="adyen_encrypted_form_expiry_generationtime" data-bind="value: getGenerationTime()" data-encrypted-name="generationtime" />
+                    <input type="hidden"
+                           name="payment[generationtime]"
+                           class="input-text"
+                           value=""
+                           data-encrypted-name="generationtime"
+                           data-bind="attr: {id: getCode() + '_generationtime', 'data-container': getCode() + '-generationtime'},
+                               value: getGenerationTime()
+                               ">
 
 
                 <!-- /ko -->
@@ -275,23 +282,4 @@
         </form>
     </div>
 </div>
-
-<script type="text/javascript">
-    alert("DF");
-</script>
-
-<script>
-require([
-    "jquery",
-    "mage/mage"
-], function($){
-
-    alert("DF");
-   $(document).ready(function () {
-        'use strict';
-       var form = $( "#adyen-cc-form").attr('class');
-       alert(form);
-   });
-});
-</script>
 

@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Model\Api;
 
 use Magento\Framework\DataObject;
+//use \Adyen\Client;
 
 class PaymentRequest extends DataObject
 {
@@ -53,6 +54,11 @@ class PaymentRequest extends DataObject
     protected $_adyenLogger;
 
     /**
+     * @var \Adyen\Client
+     */
+    protected $_client;
+
+    /**
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
@@ -66,6 +72,7 @@ class PaymentRequest extends DataObject
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Adyen\Client $client,
         array $data = []
     ) {
         $this->_scopeConfig = $scopeConfig;
@@ -73,6 +80,26 @@ class PaymentRequest extends DataObject
         $this->_encryptor = $encryptor;
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
+
+        // initialize client
+        $webserviceUsername = $this->_adyenHelper->getWsUsername();
+        $webservicePassword = $this->_adyenHelper->getWsPassword();
+
+        $client->setApplicationName("Magento 2 plugin");
+        $client->setUsername($webserviceUsername);
+        $client->setPassword($webservicePassword);
+
+        if($this->_adyenHelper->isDemoMode()) {
+            $client->setModus("test");
+        } else {
+            $client->setModus("live");
+        }
+
+        // assign magento log
+        $client->setLogger($adyenLogger);
+
+        $this->_client = $client;
+
     }
 
     public function fullApiRequest($payment)
@@ -84,18 +111,21 @@ class PaymentRequest extends DataObject
         $orderCurrencyCode = $order->getOrderCurrencyCode();
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
 
+        // call lib
+        $service = new \Adyen\Service\Payment($this->_client);
+
+        $amount = ['currency' => $orderCurrencyCode, 'value' => $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode)];
+        $browserInfo = ['userAgent' => $_SERVER['HTTP_USER_AGENT'], 'acceptHeader' => $_SERVER['HTTP_ACCEPT']];
+
         $request = array(
-            "action" => "Payment.authorise",
-            "paymentRequest.merchantAccount" => $merchantAccount,
-            "paymentRequest.amount.currency" => $orderCurrencyCode,
-            "paymentRequest.amount.value" => $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode),
-            "paymentRequest.reference" => $order->getIncrementId(),
-            "paymentRequest.shopperIP" => $shopperIp,
-            "paymentRequest.shopperEmail" => $customerEmail,
-            "paymentRequest.shopperReference" => $order->getIncrementId(),
-            "paymentRequest.fraudOffset" => "0",
-            "paymentRequest.browserInfo.userAgent" => $_SERVER['HTTP_USER_AGENT'],
-            "paymentRequest.browserInfo.acceptHeader" => $_SERVER['HTTP_ACCEPT']
+            "merchantAccount" => $merchantAccount,
+            "amount" => $amount,
+            "reference" => $order->getIncrementId(),
+            "shopperIP" => $shopperIp,
+            "shopperEmail" => $customerEmail,
+            "shopperReference" => $order->getIncrementId(),
+            "fraudOffset" => "0",
+            "browserInfo" => $browserInfo
         );
 
         $billingAddress = $order->getBillingAddress();
@@ -103,13 +133,23 @@ class PaymentRequest extends DataObject
         if($billingAddress)
         {
             $addressArray = $this->_adyenHelper->getStreet($billingAddress);
-            $requestBilling = array("paymentRequest.card.billingAddress.street" => $addressArray['name'],
-                "paymentRequest.card.billingAddress.postalCode" => $billingAddress->getPostcode(),
-                "paymentRequest.card.billingAddress.city" => $billingAddress->getCity(),
-                "paymentRequest.card.billingAddress.houseNumberOrName" => $addressArray['house_number'],
-                "paymentRequest.card.billingAddress.stateOrProvince" => $billingAddress->getRegionCode(),
-                "paymentRequest.card.billingAddress.country" => $billingAddress->getCountryId()
+
+            $requestBilling = array("street" => $addressArray['name'],
+                "postalCode" => $billingAddress->getPostcode(),
+                "city" => $billingAddress->getCity(),
+                "houseNumberOrName" => $addressArray['house_number'],
+                "stateOrProvince" => $billingAddress->getRegionCode(),
+                "country" => $billingAddress->getCountryId()
             );
+
+            // houseNumberOrName is mandatory
+            if($requestBilling['houseNumberOrName'] == "") {
+                $requestBilling['houseNumberOrName'] = "NA";
+            }
+
+            $requestBilling['billingAddress'] = $requestBilling;
+
+
             $request = array_merge($request, $requestBilling);
         }
 
@@ -118,71 +158,42 @@ class PaymentRequest extends DataObject
         {
             $addressArray = $this->_adyenHelper->getStreet($deliveryAddress);
 
-            $requestDelivery = array("paymentRequest.card.deliveryAddress.street" => $addressArray['name'],
-                "paymentRequest.card.deliveryAddress.postalCode" => $deliveryAddress->getPostcode(),
-                "paymentRequest.card.deliveryAddress.city" => $deliveryAddress->getCity(),
-                "paymentRequest.card.deliveryAddress.houseNumberOrName" => $addressArray['house_number'],
-                "paymentRequest.card.deliveryAddress.stateOrProvince" => $deliveryAddress->getRegionCode(),
-                "paymentRequest.card.deliveryAddress.country" => $deliveryAddress->getCountryId()
+            $requestDelivery = array("street" => $addressArray['name'],
+                "postalCode" => $deliveryAddress->getPostcode(),
+                "city" => $deliveryAddress->getCity(),
+                "houseNumberOrName" => $addressArray['house_number'],
+                "stateOrProvince" => $deliveryAddress->getRegionCode(),
+                "country" => $deliveryAddress->getCountryId()
             );
+
+            // houseNumberOrName is mandatory
+            if($requestDelivery['houseNumberOrName'] == "") {
+                $requestDelivery['houseNumberOrName'] = "NA";
+            }
+
+            $requestDelivery['deliveryAddress'] = $requestDelivery;
             $request = array_merge($request, $requestDelivery);
         }
 
 
         // If cse is enabled add encrypted card date into request
         if($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
-            $request['paymentRequest.additionalData.card.encrypted.json'] = $payment->getAdditionalInformation("encrypted_data");
+            $request['additionalData']['card.encrypted.json'] = $payment->getAdditionalInformation("encrypted_data");
         } else {
-            $requestCreditCardDetails = array("paymentRequest.card.expiryMonth" => $payment->getCcExpMonth(),
-                "paymentRequest.card.expiryYear" => $payment->getCcExpYear(),
-                "paymentRequest.card.holderName" => $payment->getCcOwner(),
-                "paymentRequest.card.number" => $payment->getCcNumber(),
-                "paymentRequest.card.cvc" => $payment->getCcCid(),
+            $requestCreditCardDetails = array(
+                "expiryMonth" => $payment->getCcExpMonth(),
+                "expiryYear" => $payment->getCcExpYear(),
+                "holderName" => $payment->getCcOwner(),
+                "number" => $payment->getCcNumber(),
+                "cvc" => $payment->getCcCid(),
             );
-            $request = array_merge($request, $requestCreditCardDetails);
-        }
-        return $this->_apiRequest($request);
-    }
-
-
-    protected function _apiRequest($request)
-    {
-        // log the request
-        $this->_adyenLogger->info('The request to adyen: ' . print_r($request, true));
-
-
-        $webserviceUsername = $this->_adyenHelper->getWsUsername();
-        $webservicePassword = $this->_adyenHelper->getWsPassword();
-        $url = $this->_adyenHelper->getWsUrl();
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC  );
-        curl_setopt($ch, CURLOPT_USERPWD, $webserviceUsername.":".$webservicePassword);
-        curl_setopt($ch, CURLOPT_POST,count($request));
-        curl_setopt($ch, CURLOPT_POSTFIELDS,http_build_query($request));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $results = curl_exec($ch);
-        $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        if ($httpStatus != 200) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('HTTP Status code' . $httpStatus . " " . $webserviceUsername . ":" . $webservicePassword));
+            $cardDetails['card'] = $requestCreditCardDetails;
+            $request = array_merge($request, $cardDetails);
         }
 
-        if ($results === false) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('HTTP Status code' . $results));
-        }
+        $result = $service->authorise($request);
 
-        parse_str($results, $resultArr);
-
-        curl_close($ch);
-
-        // log the result
-        $this->_adyenLogger->info('The response to adyen: ' . print_r($resultArr, true));
-
-        return $resultArr;
+        return $result;
     }
 
     public function authorise3d($payment)
@@ -194,17 +205,23 @@ class PaymentRequest extends DataObject
         $md = $payment->getAdditionalInformation('md');
         $paResponse = $payment->getAdditionalInformation('paResponse');
 
+        $browserInfo = ['userAgent' => $_SERVER['HTTP_USER_AGENT'], 'acceptHeader' => $_SERVER['HTTP_ACCEPT']];
         $request = array(
-            "action" => "Payment.authorise3d",
-            "paymentRequest3d.merchantAccount" => $merchantAccount,
-            "paymentRequest3d.browserInfo.userAgent" => $_SERVER['HTTP_USER_AGENT'],
-            "paymentRequest3d.browserInfo.acceptHeader" => $_SERVER['HTTP_ACCEPT'],
-            "paymentRequest3d.md" => $md,
-            "paymentRequest3d.paResponse" => $paResponse,
-            "paymentRequest3d.shopperIP" => $shopperIp
+            "merchantAccount" => $merchantAccount,
+            "browserInfo" => $browserInfo,
+            "md" => $md,
+            "paResponse" => $paResponse,
+            "shopperIP" => $shopperIp
         );
 
-        return $this->_apiRequest($request);
+        try {
+            $service = new \Adyen\Service\Payment($this->_client);
+            $result = $service->authorise3D($request);
+        } catch(Exception $e) {
+            print_r($e);
+        }
+
+        return $result;
     }
 
     /**

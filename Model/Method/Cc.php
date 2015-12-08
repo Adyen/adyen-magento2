@@ -204,32 +204,32 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     {
         $payment->setAdditionalInformation('3dActive', false);
 
-        switch ($response['paymentResult_resultCode']) {
+        switch ($response['resultCode']) {
             case "Authorised":
                 //$this->_addStatusHistory($payment, $responseCode, $pspReference, $this->_getConfigData('order_status'));
-                $this->_addStatusHistory($payment, $response['paymentResult_resultCode'], $response['paymentResult_pspReference']);
-                $payment->setAdditionalInformation('pspReference', $response['paymentResult_pspReference']);
+                $this->_addStatusHistory($payment, $response['resultCode'], $response['pspReference']);
+                $payment->setAdditionalInformation('pspReference', $response['pspReference']);
                 break;
             case "RedirectShopper":
                 // 3d is active so set the param to true checked in Controller/Validate3d
                 $payment->setAdditionalInformation('3dActive', true);
-                $issuerUrl = $response['paymentResult_issuerUrl'];
-                $PaReq = $response['paymentResult_paRequest'];
-                $md = $response['paymentResult_md'];
+                $issuerUrl = $response['issuerUrl'];
+                $PaReq = $response['paRequest'];
+                $md = $response['md'];
 
                 if(!empty($PaReq) && !empty($md) && !empty($issuerUrl)) {
-                    $payment->setAdditionalInformation('issuerUrl', $response['paymentResult_issuerUrl']);
-                    $payment->setAdditionalInformation('paRequest', $response['paymentResult_paRequest']);
-                    $payment->setAdditionalInformation('md', $response['paymentResult_md']);
+                    $payment->setAdditionalInformation('issuerUrl', $response['issuerUrl']);
+                    $payment->setAdditionalInformation('paRequest', $response['paRequest']);
+                    $payment->setAdditionalInformation('md', $response['md']);
                 } else {
                     throw new \Magento\Framework\Exception\LocalizedException(__('3D secure is not valid'));
                 }
                 break;
             case "Refused":
-                // paymentResult_refusalReason
-                if($response['paymentResult_refusalReason']) {
+                // refusalReason
+                if($response['refusalReason']) {
 
-                    $refusalReason = $response['paymentResult_refusalReason'];
+                    $refusalReason = $response['refusalReason'];
                     switch($refusalReason) {
                         case "Transaction Not Permitted":
                             $errorMsg = __('The transaction is not permitted.');
@@ -279,7 +279,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     {
 
         $response = $this->_paymentRequest->authorise3d($payment);
-        $responseCode = $response['paymentResult_resultCode'];
+        $responseCode = $response['resultCode'];
         return $responseCode;
     }
 

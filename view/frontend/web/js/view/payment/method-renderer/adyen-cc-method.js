@@ -29,9 +29,11 @@ define(
         'Magento_Checkout/js/action/set-payment-information',
         'Adyen_Payment/js/action/place-order',
         'mage/translate',
-        'Adyen_Payment/js/view/payment/adyen-encrypt'
+        'Magento_Checkout/js/model/payment/additional-validators',
+        'Magento_Checkout/js/model/full-screen-loader',
+        'Adyen_Payment/js/view/payment/adyen-encrypt',
     ],
-    function (_, $, Component, setPaymentInformationAction, placeOrderAction, $t) {
+    function (_, $, Component, setPaymentInformationAction, placeOrderAction, $t, additionalValidators, fullScreenLoader) {
         'use strict';
         return Component.extend({
             defaults: {
@@ -52,6 +54,7 @@ define(
                         'selectedCardType',
                         'creditCardOwner',
                         'encryptedData',
+                        'generationtime'
                     ]);
                 return this;
             },
@@ -101,47 +104,54 @@ define(
                         'cc_cid': this.creditCardVerificationNumber(),
                         'cc_ss_start_month': this.creditCardSsStartMonth(),
                         'cc_ss_start_year': this.creditCardSsStartYear(),
-                        'encrypted_data': this.encryptedData()
+                        'encrypted_data': this.encryptedData(),
+                        'generationtime': this.generationtime()
                     }
                 };
             },
             isActive: function() {
                 return true;
             },
+            /**
+             * @override
+             */
             placeOrder: function() {
                 var self = this;
 
                 //var cse_form = $("adyen-cc-form");
                 var cse_form = document.getElementById('adyen-cc-form');
                 var cse_key = this.getCSEKey();
-                var cse_options = {
-                    name:  'payment[encrypted_data]',
-                    enableValidations: true,
-                    //submitButtonAlwaysEnabled: true
-                };
+                //var cse_options = {
+                //    name:  'payment[encrypted_data]',
+                //    enableValidations: true,
+                //    submitButtonAlwaysEnabled: true
+                //};
+                var options = {};
 
-                var cseInstance = adyen.encrypt.createEncryptedForm(cse_form, cse_key, cse_options);
-
-                // TODO genreation time needs to be set through PHP in hidden field
-                var generation = new Date().toISOString();
+                var cseInstance = adyen.encrypt.createEncryption(cse_key, options);
+                var generationtime = self.getGenerationTime();
 
                 var cardData = {
-                    number : self.creditCardNumber,
-                    cvc : self.creditCardVerificationNumber,
-                    holderName : self.creditCardOwner,
-                    expiryMonth : self.creditCardExpMonth,
-                    expiryYear : self.creditCardExpYear,
-                    generationtime : generation
+                    number : self.creditCardNumber(),
+                    cvc : self.creditCardVerificationNumber(),
+                    holderName : self.creditCardOwner(),
+                    expiryMonth : self.creditCardExpMonth(),
+                    expiryYear : self.creditCardExpYear(),
+                    generationtime : generationtime
                 };
 
                 var data = cseInstance.encrypt(cardData);
-
                 self.encryptedData(data);
+
+                // loading icon
+                fullScreenLoader.startLoader();
+
 
                 var placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder);
 
                 $.when(placeOrder).fail(function(){
                     self.isPlaceOrderActionAllowed(true);
+                    fullScreenLoader.stopLoader();
                 });
                 //return true;
                 //
