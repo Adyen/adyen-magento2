@@ -27,7 +27,6 @@ use Magento\Framework\DataObject;
 use Magento\Payment\Model\Method\ConfigInterface;
 use Magento\Payment\Model\Method\Online\GatewayInterface;
 /**
- * @method \Magento\Quote\Api\Data\PaymentMethodExtensionInterface getExtensionAttributes()
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class AdyenAbstract extends \Magento\Payment\Model\Method\AbstractMethod implements GatewayInterface

@@ -39,7 +39,7 @@
 
 
 
-        <form class="form" id="adyen-cc-form" action="#" method="post" data-bind="mageInit: {
+        <form class="form" id="adyen-cc-form" data-role="adyen-cc-form" action="#" method="post" data-bind="mageInit: {
             'transparent':{
                 'context': context(),
                 'controller': getControllerName(),
@@ -94,7 +94,7 @@
                                             id: getCode() + '_cc_number',
                                             title: $t('Credit Card Number'),
                                             'data-container': getCode() + '-cc-number',
-                                            'data-validate': JSON.stringify({'required-number':true, 'validate-card-number':'#' + getCode() + '_cc_type', 'validate-cc-type':'#' + getCode() + '_cc_type'})},
+                                            'data-validate': JSON.stringify({'required-number':true, 'validate-card-type':getCcAvailableTypesValues(), 'validate-card-number':'#' + getCode() + '_cc_type', 'validate-cc-type':'#' + getCode() + '_cc_type'})},
                                       enable: isActive($parents),
                                       value: creditCardNumber,
                                       valueUpdate: 'keyup' "/>
@@ -106,12 +106,19 @@
                     </label>
                     <div class="control">
                         <input type="text"
-                               class="input-text"
-                               value=""
+                               class="input-text required-entry"
                                data-encrypted-name="holderName"
-                               data-bind="attr: {id: getCode() + '_cc_owner', 'data-container': getCode() + '-cc-owner'},
-                           enable: isActive($parents),
-                           value: creditCardOwner">
+                               value=""
+                               data-bind="attr: {
+                                                id: getCode() + '_cc_owner',
+                                                title: $t('Credit Card Owner'),
+                                                'data-container': getCode() + '-cc-owner'
+                                                },
+                                            enable: isActive($parents),
+                                            value: creditCardOwner,
+                                            valueUpdate: 'keyup' "
+                               data-validate="{required:true}"
+                                />
                     </div>
                 </div>
                 <div class="field date required" data-bind="attr: {id: getCode() + '_cc_type_exp_div'}">
@@ -130,7 +137,8 @@
                                                     optionsValue: 'value',
                                                     optionsText: 'month',
                                                     optionsCaption: $t('Month'),
-                                                    value: creditCardExpMonth">
+                                                    value: creditCardExpMonth"
+                                            data-validate="{required:true}">
                                     </select>
                                 </div>
                             </div>
@@ -144,7 +152,8 @@
                                                    optionsValue: 'value',
                                                    optionsText: 'year',
                                                    optionsCaption: $t('Year'),
-                                                   value: creditCardExpYear">
+                                                   value: creditCardExpYear"
+                                            data-validate="{required:true}">
                                     </select>
                                 </div>
                             </div>
@@ -167,7 +176,8 @@
                                 'data-container': getCode() + '-cc-cvv',
                                 'data-validate': JSON.stringify({'required-number':true, 'validate-card-cvv':'#' + getCode() + '_cc_type'})},
                                 enable: isActive($parents),
-                                value: creditCardVerificationNumber" />
+                                value: creditCardVerificationNumber"
+                               data-validate="{required:true}"/>
                         <div class="field-tooltip toggle">
                         <span class="field-tooltip-action action-cvv"
                               tabindex="0"

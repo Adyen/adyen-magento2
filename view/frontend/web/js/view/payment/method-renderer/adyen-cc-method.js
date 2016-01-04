@@ -26,15 +26,18 @@ define(
         'underscore',
         'jquery',
         'Magento_Payment/js/view/payment/cc-form',
-        'Magento_Checkout/js/action/set-payment-information',
         'Adyen_Payment/js/action/place-order',
         'mage/translate',
         'Magento_Checkout/js/model/payment/additional-validators',
-        'Magento_Checkout/js/model/full-screen-loader',
-        'Adyen_Payment/js/view/payment/adyen-encrypt',
+        'Adyen_Payment/js/view/payment/adyen-encrypt'
     ],
-    function (_, $, Component, setPaymentInformationAction, placeOrderAction, $t, additionalValidators, fullScreenLoader) {
+    function (_, $, Component, placeOrderAction, $t, additionalValidators) {
         'use strict';
+        $.validator.addMethod(
+            'validate-custom-required', function (value) {
+                return (value === 'test'); // Validation logic here
+            }, $.mage.__('Enter This is a required field custom.')
+        );
         return Component.extend({
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
@@ -57,29 +60,6 @@ define(
                         'generationtime'
                     ]);
                 return this;
-            },
-            initialize: function() {
-
-                var self = this;
-                this._super();
-
-                // when creditCarNumber change call encrypt function
-                this.creditCardNumber.subscribe(function(value) {
-                    self.calculateCseKey();
-                });
-                this.creditCardOwner.subscribe(function(value) {
-                    self.calculateCseKey();
-                });
-                //this.creditCardExpMonth.subscribe(function(value) {
-                //    self.calculateCseKey();
-                //});
-                //this.creditCardExpYear.subscribe(function(value) {
-                //    self.calculateCseKey();
-                //});
-                this.creditCardVerificationNumber.subscribe(function(value) {
-                    self.calculateCseKey();
-                });
-
             },
             placeOrderHandler: null,
             validateHandler: null,
@@ -115,17 +95,17 @@ define(
             /**
              * @override
              */
-            placeOrder: function() {
-                var self = this;
+            placeOrder: function(data, event) {
+                var self = this,
+                    placeOrder;
+
+                if (event) {
+                    event.preventDefault();
+                }
 
                 //var cse_form = $("adyen-cc-form");
                 var cse_form = document.getElementById('adyen-cc-form');
                 var cse_key = this.getCSEKey();
-                //var cse_options = {
-                //    name:  'payment[encrypted_data]',
-                //    enableValidations: true,
-                //    submitButtonAlwaysEnabled: true
-                //};
                 var options = {};
 
                 var cseInstance = adyen.encrypt.createEncryption(cse_key, options);
@@ -143,26 +123,16 @@ define(
                 var data = cseInstance.encrypt(cardData);
                 self.encryptedData(data);
 
-                // loading icon
-                fullScreenLoader.startLoader();
+                if (this.validate() && additionalValidators.validate()) {
+                    this.isPlaceOrderActionAllowed(false);
+                    placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder);
 
-
-                var placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder);
-
-                $.when(placeOrder).fail(function(){
-                    self.isPlaceOrderActionAllowed(true);
-                    fullScreenLoader.stopLoader();
-                });
-                //return true;
-                //
-                //if (this.validateHandler()) {
-                //    this.isPlaceOrderActionAllowed(false);
-                //    $.when(setPaymentInformationAction()).done(function() {
-                //        self.placeOrderHandler();
-                //    }).fail(function() {
-                //        self.isPlaceOrderActionAllowed(true);
-                //    });
-                //}
+                    $.when(placeOrder).fail(function(response) {
+                        self.isPlaceOrderActionAllowed(true);
+                    });
+                    return true;
+                }
+                return false;
             },
             getControllerName: function() {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
@@ -185,22 +155,22 @@ define(
             isShowLegend: function() {
                 return true;
             },
-            calculateCseKey: function() {
+            validate: function () {
+                var form = 'form[data-role=adyen-cc-form]';
 
-                //
-                ////var cse_form = $("adyen-cc-form");
-                //var cse_form = document.getElementById('adyen-cc-form');
-                //var cse_key = this.getCSEKey();
-                //var cse_options = {
-                //    name:  'payment[encrypted_data]',
-                //    enableValidations: true, // disable because month needs to be 01 isntead of 1
-                //    //submitButtonAlwaysEnabled: true
-                //};
-                //
-                //var result = adyen.encrypt.createEncryptedForm(cse_form, cse_key, cse_options);
+                var validate =  $(form).validation() && $(form).validation('isValid');
+                // add extra validation because jqeury validation will not work on non name attributes
+                var ccNumber = Boolean($(form + ' #adyen_cc_cc_number').valid());
+                var owner = Boolean($(form + ' #adyen_cc_cc_owner').valid());
+                var expiration = Boolean($(form + ' #adyen_cc_expiration').valid());
+                var expiration_yr = Boolean($(form + ' #adyen_cc_expiration_yr').valid());
+                var $cid = Boolean($(form + ' #adyen_cc_cc_cid').valid());
 
+                if(!validate || !ccNumber || !owner || !expiration || !expiration_yr || !$cid) {
+                    return false;
+                }
 
-
+                return true;
             }
         });
     }

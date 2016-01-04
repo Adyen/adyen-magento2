@@ -21,39 +21,105 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-<div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
-    <div class="payment-method-title field choice">
-        <input type="radio"
-               name="payment[method]"
-               class="radio"
-               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
-        <label data-bind="attr: {'for': getCode()}" class="label"><span data-bind="text: getTitle()"></span></label>
-    </div>
-    <div class="payment-method-content">
-        <div class="payment-method-billing-address">
-            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
-            <!-- ko template: getTemplate() --><!-- /ko -->
-            <!--/ko-->
-        </div>
-        <fieldset class="fieldset" data-bind='attr: {id: "payment_form_" + getCode()}'>
-            <div class="payment-method-note">
-                <!-- ko text: $t('You will be redirected to the Adyen website.') --><!-- /ko -->
+
+<!-- ko ifnot: (isPaymentMethodSelectionOnAdyen())-->
+
+    <!-- ko foreach: getAdyenHppPaymentMethods() -->
+
+        <div class="payment-method" data-bind="css: {'_active': (value == $parent.isBrandCodeChecked())}">
+            <div class="payment-method-title field choice">
+                <input type="radio"
+                       name="payment[method]"
+                       class="radio"
+                       data-bind="attr: {'id': value}, value: value, checked: $parent.isBrandCodeChecked, click: $parent.selectPaymentMethodBrandCode"/>
+                <label data-bind="attr: {'for': value}" class="label"><span data-bind="text: name.title"></span></label>
             </div>
-        </fieldset>
-        <div class="checkout-agreements-block">
-            <!-- ko foreach: $parent.getRegion('before-place-order') -->
-            <!-- ko template: getTemplate() --><!-- /ko -->
-            <!--/ko-->
+            <div class="payment-method-content">
+
+                <div class="payment-method-billing-address">
+                    <!-- ko foreach: $parents[1].getRegion($parent.getBillingAddressFormName()) -->
+                    <!-- ko template: getTemplate() --><!-- /ko -->
+                    <!--/ko-->
+                </div>
+
+                <fieldset class="fieldset" data-bind='attr: {id: "payment_form_" + $parent.getCode() + "_" + value}'>
+                    <div class="payment-method-note">
+
+                        <!-- ko if: value == 'ideal' -->
+
+                            <label data-bind="attr: {'for': 'issuerId'}" class="label">
+                                <span><!-- ko text: $t('Select Your Bank') --><!-- /ko --></span>
+                            </label>
+
+                        <select name="payment[issuer_id]" data-bind="
+                                options: name.issuers,
+                                optionsText: 'name',
+                                optionsValue: 'issuerId',
+                                value: issuerId,
+                                optionsCaption: $t('Choose Your Bank')">
+                        </select>
+
+                        <!--/ko-->
+
+
+                    </div>
+                </fieldset>
+                <div class="checkout-agreements-block">
+                    <!-- ko foreach: $parents[1].getRegion('before-place-order') -->
+                    <!-- ko template: getTemplate() --><!-- /ko -->
+                    <!--/ko-->
+                </div>
+                <div class="actions-toolbar">
+                    <div class="primary">
+                        <button class="action primary checkout"
+                                type="submit"
+                                data-bind="click: $parent.continueToAdyenBrandCode, enable: (value == $parent.isBrandCodeChecked())"
+                                disabled>
+                            <span data-bind="text: $t('Place order')"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="actions-toolbar">
-            <div class="primary">
-                <button class="action primary checkout"
-                        type="submit"
-                        data-bind="click: continueToAdyen, enable: (getCode() == isChecked())"
-                        disabled>
-                    <span data-bind="text: $t('Continue to Adyen')"></span>
-                </button>
+    <!--/ko-->
+<!--/ko-->
+
+<!-- ko if: (isPaymentMethodSelectionOnAdyen()) -->
+
+    <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+        <div class="payment-method-title field choice">
+            <input type="radio"
+                   name="payment[method]"
+                   class="radio"
+                   data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+            <label data-bind="attr: {'for': getCode()}" class="label"><span data-bind="text: getTitle()"></span></label>
+        </div>
+        <div class="payment-method-content">
+            <div class="payment-method-billing-address">
+                <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+                <!-- ko template: getTemplate() --><!-- /ko -->
+                <!--/ko-->
+            </div>
+            <fieldset class="fieldset" data-bind='attr: {id: "payment_form_" + getCode()}'>
+                <div class="payment-method-note">
+                    <!-- ko text: $t('You will be redirected to the Adyen website.') --><!-- /ko -->
+                </div>
+            </fieldset>
+            <div class="checkout-agreements-block">
+                <!-- ko foreach: $parent.getRegion('before-place-order') -->
+                <!-- ko template: getTemplate() --><!-- /ko -->
+                <!--/ko-->
+            </div>
+            <div class="actions-toolbar">
+                <div class="primary">
+                    <button class="action primary checkout"
+                            type="submit"
+                            data-bind="click: continueToAdyen, enable: (getCode() == isChecked())"
+                            disabled>
+                        <span data-bind="text: $t('Continue to Adyen')"></span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+<!--/ko-->

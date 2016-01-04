@@ -32,7 +32,7 @@
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment>Process alternative payments methods</comment>
 
-        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Enabled</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_hpp/active</config_path>
@@ -68,7 +68,7 @@
         <label>Advanced Settings</label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
             <field id="payment_selection_on_adyen" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
-                <label>Payment method selection in Adyen</label>
+                <label>Payment method selection on Adyen Hosted Payment Page (HPP)</label>
                 <tooltip>If you set this to 'Yes', payment methods in the checkout won't be displayed and you will be redirected to the Adyen HPP to make the selection.</tooltip>
                 <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 <config_path>payment/adyen_hpp/payment_selection_on_adyen</config_path>

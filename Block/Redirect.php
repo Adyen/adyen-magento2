@@ -75,6 +75,7 @@ class Redirect extends \Magento\Payment\Block\Form
             }
         } catch(Exception $e) {
             // do nothing for now
+            throw($e);
         }
 
         return $result;

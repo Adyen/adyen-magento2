@@ -28,7 +28,8 @@ use Magento\Payment\Model\Method\ConfigInterface;
 use Magento\Payment\Model\Method\Online\GatewayInterface;
 
 /**
- * @method \Magento\Quote\Api\Data\PaymentMethodExtensionInterface getExtensionAttributes()
+ * @SuppressWarnings(PHPMD.ExcessivePublicCount)
+ * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements GatewayInterface
@@ -160,6 +161,31 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     }
 
     /**
+     * Assign data to info model instance
+     *
+     * @param \Magento\Framework\DataObject|mixed $data
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function assignData(\Magento\Framework\DataObject $data)
+    {
+        parent::assignData($data);
+        $infoInstance = $this->getInfoInstance();
+
+        if(isset($data['brand_code'])) {
+            $infoInstance->setAdditionalInformation('brand_code', $data['brand_code']);
+        }
+
+        if(isset($data['issuer_id'])) {
+            $infoInstance->setAdditionalInformation('issuer_id', $data['issuer_id']);
+        }
+
+        $this->_adyenLogger->info(print_r($data,1));
+
+        return $this;
+    }
+
+    /**
      * Checkout redirect URL getter for onepage checkout (hardcode)
      *
      * @see \Magento\Checkout\Controller\Onepage::savePaymentAction()
@@ -190,11 +216,9 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     /**
      * @desc Get url of Adyen payment
      * @return string
-     * @todo add brandCode here
      */
     public function getFormUrl()
     {
-//        $brandCode        = $this->getInfoInstance()->getCcType();
         $paymentRoutine   = $this->getConfigData('payment_routine');
 
         switch ($this->_adyenHelper->isDemoMode()) {
@@ -217,15 +241,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
                 }
                 break;
         }
-        //IDEAL
-//        $idealBankUrl = false;
-//        $bankData     = $this->getInfoInstance()->getPoNumber();
-//        if ($brandCode == 'ideal' && !empty($bankData)) {
-//            $idealBankUrl = ($isConfigDemoMode == true)
-//                ? 'https://test.adyen.com/hpp/redirectIdeal.shtml'
-//                : 'https://live.adyen.com/hpp/redirectIdeal.shtml';
-//        }
-//        return (!empty($idealBankUrl)) ? $idealBankUrl : $url;
+
         return $url;
     }
 
@@ -256,7 +272,6 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
                 $countryCode = $order->getBillingAddress()->getCountryId();
             }
         }
-
 
         $formFields = array();
 
@@ -291,9 +306,14 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
 
         $hmacKey = $this->_adyenHelper->getHmac();
 
-        $brandCode        = $this->getInfoInstance()->getCcType();
+        $brandCode = $order->getPayment()->getAdditionalInformation("brand_code");
         if($brandCode) {
             $formFields['brandCode'] = $brandCode;
+        }
+
+        $issuerId = $order->getPayment()->getAdditionalInformation("issuer_id");
+        if($issuerId) {
+            $formFields['issuerId'] = $issuerId;
         }
 
         // Sort the array by key using SORT_STRING order

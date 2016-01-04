@@ -52,12 +52,12 @@ class AbstractInfo extends \Magento\Payment\Block\Info
 
     public function getAdyenPspReference()
     {
-        return $this->getMethod()->getInfoInstance()->getAdyenPspReference();
+        return $this->getInfo()->getAdyenPspReference();
     }
 
     public function isDemoMode()
     {
-        $storeId = $this->getMethod()->getInfoInstance()->getOrder()->getStoreId();
+        $storeId = $this->getInfo()->getOrder()->getStoreId();
         return $this->_adyenHelper->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
     }
 

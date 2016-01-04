@@ -23,6 +23,12 @@
 
 namespace Adyen\Payment\Model\Method;
 
+/**
+ * Adyen CreditCard payment method
+ * @SuppressWarnings(PHPMD.ExcessivePublicCount)
+ * @SuppressWarnings(PHPMD.TooManyFields)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class Cc extends \Magento\Payment\Model\Method\Cc
 {
 
@@ -256,7 +262,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
 
                 if ($errorMsg) {
                     $this->_logger->critical($errorMsg);
-                    throw new \Magento\Framework\Exception\LocalizedException($errorMsg);
+                    throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
                 }
                 break;
         }

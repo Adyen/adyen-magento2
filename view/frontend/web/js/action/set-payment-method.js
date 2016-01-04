@@ -26,52 +26,33 @@ define(
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
         'Magento_Checkout/js/model/error-processor',
-        'Magento_Customer/js/model/customer'
+        'Magento_Customer/js/model/customer',
+        'Magento_Checkout/js/model/full-screen-loader'
     ],
-    function ($, quote, urlBuilder, storage, errorProcessor, customer) {
+    function ($, quote, urlBuilder, storage, errorProcessor, customer, fullScreenLoader) {
         'use strict';
-
-        //return function () {
-        //    var serviceUrl,
-        //        payload,
-        //        paymentData = quote.paymentMethod();
-        //
-        //    /**
-        //     * Checkout for guest and registered customer.
-        //     */
-        //    if (!customer.isLoggedIn()) {
-        //        serviceUrl = urlBuilder.createUrl('/guest-carts/:cartId/selected-payment-method', {
-        //            cartId: quote.getQuoteId()
-        //        });
-        //        payload = {
-        //            cartId: quote.getQuoteId(),
-        //            method: paymentData
-        //        };
-        //    } else {
-        //        serviceUrl = urlBuilder.createUrl('/carts/mine/selected-payment-method', {});
-        //        payload = {
-        //            cartId: quote.getQuoteId(),
-        //            method: paymentData
-        //        };
-        //    }
-        //    return storage.put(
-        //        serviceUrl, JSON.stringify(payload)
-        //    ).done(
-        //        function () {
-        //            $.mage.redirect(window.checkoutConfig.payment.adyenHpp.redirectUrl[quote.paymentMethod().method]);
-        //        }
-        //    ).fail(
-        //        function (response) {
-        //            errorProcessor.process(response);
-        //        }
-        //    );
-        //};
+        var agreementsConfig = window.checkoutConfig.checkoutAgreements;
 
         return function () {
 
             var serviceUrl,
-                    payload,
-                    paymentData = quote.paymentMethod();
+                payload,
+                paymentData = quote.paymentMethod();
+
+
+            // check if agreement is enabled if so add it to payload
+            if (agreementsConfig.isEnabled) {
+                var agreementForm = $('.payment-method._active form[data-role=checkout-agreements]'),
+                    agreementData = agreementForm.serializeArray(),
+                    agreementIds = [];
+
+                agreementData.forEach(function(item) {
+                    agreementIds.push(item.value);
+                });
+
+                paymentData.extension_attributes = {agreement_ids: agreementIds};
+            }
+
 
             /** Checkout for guest and registered customer. */
             if (!customer.isLoggedIn()) {
@@ -92,6 +73,10 @@ define(
                     billingAddress: quote.billingAddress()
                 };
             }
+
+
+            fullScreenLoader.startLoader();
+
             return storage.post(
                 serviceUrl, JSON.stringify(payload)
             ).done(
@@ -101,6 +86,7 @@ define(
             ).fail(
                 function (response) {
                     errorProcessor.process(response);
+                    fullScreenLoader.stopLoader();
                 }
             );
         };

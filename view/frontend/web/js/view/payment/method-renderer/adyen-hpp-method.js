@@ -23,15 +23,33 @@
 /*global define*/
 define(
     [
+        'ko',
         'jquery',
         'Magento_Checkout/js/view/payment/default',
-        'Adyen_Payment/js/action/set-payment-method'
+        'Adyen_Payment/js/action/set-payment-method',
+        'Magento_Checkout/js/action/select-payment-method',
+        'Magento_Checkout/js/model/quote',
+        'Magento_Checkout/js/checkout-data',
+        'Magento_Checkout/js/model/full-screen-loader',
     ],
-    function ($, Component, setPaymentMethodAction) {
+    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction,quote, checkoutData, fullScreenLoader) {
         'use strict';
+        var brandCode = ko.observable(null);
+        var paymentMethod = ko.observable(null);
+
         return Component.extend({
+            self: this,
             defaults: {
-                template: 'Adyen_Payment/payment/hpp-form'
+                template: 'Adyen_Payment/payment/hpp-form',
+                brandCode: ''
+            },
+            initObservable: function () {
+                this._super()
+                    .observe([
+                        'brandCode',
+                        'issuerId'
+                    ]);
+                return this;
             },
             /** Redirect to adyen */
             continueToAdyen: function () {
@@ -39,6 +57,102 @@ define(
                 this.selectPaymentMethod();
                 setPaymentMethodAction();
                 return false;
+            },
+            continueToAdyenBrandCode: function() {
+                // set payment method to adyen_hpp
+                var self = this;
+
+                // for ideal add brand_code in request
+                if(brandCode() == "ideal") {
+                    var  data = {
+                        "method": self.method,
+                        "po_number": null,
+                        "additional_data": {
+                            issuer_id: this.issuerId(),
+                            brand_code: self.value
+                        }
+                    };
+                } else {
+                    var  data = {
+                        "method": self.method,
+                        "po_number": null,
+                        "additional_data": {
+                            brand_code: self.value
+                        }
+                    };
+                }
+
+                selectPaymentMethodAction(data);
+                setPaymentMethodAction();
+                return false;
+            },
+            getAdyenHppPaymentMethods: function() {
+                var self = this;
+                // convert to list so you can iterate
+                var paymentList = _.map(window.checkoutConfig.payment.adyenHpp.paymentMethods, function(value, key) {
+
+                        if(key == "ideal") {
+                            return {
+                                'value': key,
+                                'name': value,
+                                'method': self.item.method,
+                                'issuerIds':  value.issuers,
+                                'issuerId': ko.observable(null),
+                                getCode: function() {
+                                    return self.item.method;
+                                }
+                            }
+                        } else {
+                            return {
+                                'value': key,
+                                'name': value,
+                                'method': self.item.method,
+                                getCode: function() {
+                                    return self.item.method;
+                                }
+                            }
+                        }
+                    }
+                );
+                return paymentList;
+            },
+            selectPaymentMethodBrandCode: function() {
+                var self = this;
+
+                // set payment method to adyen_hpp
+                var  data = {
+                    "method": self.method,
+                    "po_number": null,
+                    "additional_data": {
+                        //brand_code: this.brandCode()
+                        brand_code: self.value,
+                    }
+                };
+
+                // set the brandCode
+                brandCode(self.value);
+
+                // set payment method
+                paymentMethod(self.method);
+
+                selectPaymentMethodAction(data);
+                checkoutData.setSelectedPaymentMethod(self.method);
+
+                return true;
+            },
+            isBrandCodeChecked: ko.computed(function () {
+
+                if(!quote.paymentMethod()) {
+                  return null;
+                }
+
+                if(quote.paymentMethod().method == paymentMethod()) {
+                    return brandCode();
+                }
+                return null;
+            }),
+            isPaymentMethodSelectionOnAdyen: function() {
+                return window.checkoutConfig.payment.adyenHpp.isPaymentMethodSelectionOnAdyen;
             }
         });
     }
