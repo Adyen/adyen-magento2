@@ -15,7 +15,7 @@ Because the repositories are private you need to do the folowing:
 Not yet used but communication through the API will go through this library. If you not have access to this repo please let us know.
 
 ## Setting up cronjob
-The notifications of Adyen (this will give you the indication of the payment status) is processed by a cronjob. You need to setup your cronjob. <a href="http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html" target="_blank">This is described</a>
+The notifications of Adyen (this will give you the indication of the payment status) is processed by a cronjob. You need to setup your cronjob. <a href="http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html" target="_blank">This is described here</a>
 
 We have defined this:
 
