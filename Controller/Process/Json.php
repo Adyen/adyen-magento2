@@ -47,17 +47,25 @@ class Json extends \Magento\Framework\App\Action\Action
     protected $_adyenHelper;
 
     /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    protected $_adyenLogger;
+
+    /**
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
     ) {
         parent::__construct($context);
         $this->_objectManager = $context->getObjectManager();
         $this->_resultFactory = $context->getResultFactory();
         $this->_adyenHelper = $adyenHelper;
+        $this->_adyenLogger = $adyenLogger;
     }
 
     /**
@@ -67,6 +75,10 @@ class Json extends \Magento\Framework\App\Action\Action
     {
         try {
             $notificationItems = json_decode(file_get_contents('php://input'), true);
+
+            // log the notification
+            $this->_adyenLogger->info("The content of the notification is: " . print_r($notificationItems,1));
+
             $notificationMode = isset($notificationItems['live']) ? $notificationItems['live'] : "";
 
             if($notificationMode != "" && $this->_validateNotificationMode($notificationMode))
@@ -79,6 +91,9 @@ class Json extends \Magento\Framework\App\Action\Action
                         return;
                     }
                 }
+
+                $this->_adyenLogger->info("The result is accepted");
+
                 $this->getResponse()
                     ->clearHeader('Content-Type')
                     ->setHeader('Content-Type', 'text/html')

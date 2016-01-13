@@ -180,11 +180,15 @@ class Cron
             $this->_addStatusHistoryComment();
 
             $previousAdyenEventCode = $this->_order->getData('adyen_notification_event_code');
+            $_paymentCode = $this->_paymentMethodCode();
 
-            // set pspReference on payment object
-            $this->_order->getPayment()->setAdditionalInformation('pspReference', $this->_pspReference);
-            $this->_order->getPayment()->setAdyenPspReference($this->_pspReference);
-
+            // set pspReference on payment object only on authorisation and handled_externally(c_cash)
+            if ($this->_eventCode == Notification::AUTHORISATION
+                || $this->_eventCode == Notification::HANDLED_EXTERNALLY)
+            {
+                $this->_order->getPayment()->setAdditionalInformation('pspReference', $this->_pspReference);
+                $this->_order->getPayment()->setAdyenPspReference($this->_pspReference);
+            }
 
             // check if success is true of false
             if (strcmp($this->_success, 'false') == 0 || strcmp($this->_success, '0') == 0) {
@@ -628,7 +632,6 @@ class Cron
         if (strcmp($this->_order->getState(), \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW) == 0) {
             $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
         }
-
         //capture mode
         if (!$this->_isAutoCapture()) {
             $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'));
@@ -788,7 +791,7 @@ class Cron
                 // set transaction id so you can do a online refund from credit memo
                 $invoice->setTransactionId(1);
 
-                $autoCapture = $this->_isAutoCapture($this->_order);
+                $autoCapture = $this->_isAutoCapture();
                 $createPendingInvoice = (bool) $this->_getConfigData('create_pending_invoice', 'adyen_abstract', $this->_order->getStoreId());
 
                 if((!$autoCapture) && ($createPendingInvoice)) {
@@ -945,10 +948,6 @@ class Cron
      */
     protected function _getConfigData($field, $paymentMethodCode = 'adyen_cc', $storeId)
     {
-        // replace for now settings should moved from adyen_cc to adyen_abstract
-        if($paymentMethodCode == 'adyen_abstract') {
-            $paymentMethodCode = "adyen_cc";
-        }
         $path = 'payment/' . $paymentMethodCode . '/' . $field;
         return $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
     }

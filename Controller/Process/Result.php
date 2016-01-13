@@ -85,7 +85,11 @@ class Result extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         $response = $this->getRequest()->getParams();
-        $this->_adyenLogger->info(print_r($response, true));
+        $this->_adyenLogger->notification(print_r($response, true));
+
+        // testing
+        $this->_adyenLogger->notification("WAAR KOMT DEZE REGEL 1");
+        $this->_adyenLogger->notificationtest("WAAR KOMT DEZE REGEL 2");
 
         $result = $this->validateResponse($response);
 

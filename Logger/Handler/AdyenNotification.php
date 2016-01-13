@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -21,11 +20,26 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
-    <group id="index">
-        <job name="adyen_payment_process_notification" instance="Adyen\Payment\Model\Cron" method="processNotification">
-            <schedule>*/1 * * * *</schedule>
-        </job>
-    </group>
-</config>
+
+namespace Adyen\Payment\Logger\Handler;
+
+use Monolog\Logger;
+use Adyen\Payment\Logger\AdyenLogger;
+
+class AdyenNotification extends AdyenBase
+{
+    /**
+     * @var string
+     */
+    protected $fileName = '/var/log/adyen/notification.log';
+
+    /**
+     * @var int
+     */
+    protected $loggerType = Logger::INFO;
+
+    protected $level = Logger::INFO;
+
+
+
+}

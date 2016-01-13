@@ -59,6 +59,14 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     protected $_isGateway = true;
     protected $_canAuthorize = true;
     protected $_isInitializeNeeded = true;
+    protected $_canRefund = true;
+    protected $_canRefundInvoicePartial = true;
+
+
+    /**
+     * @var \Adyen\Payment\Model\Api\PaymentRequest
+     */
+    protected $_paymentRequest;
 
     /**
      * @var \Adyen\Payment\Helper\Data
@@ -87,6 +95,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     protected $_adyenLogger;
 
     /**
+     * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
@@ -105,6 +114,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
+        \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
         \Magento\Framework\UrlInterface $urlBuilder,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
@@ -133,6 +143,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
             $resourceCollection,
             $data
         );
+        $this->_paymentRequest = $paymentRequest;
         $this->_urlBuilder = $urlBuilder;
         $this->_adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
@@ -345,5 +356,47 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         return $this->getConfigData('payment_selection_on_adyen');
     }
 
+    /**
+     * Capture on Adyen
+     *
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param float $amount
+     */
+    public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    {
+        parent::capture($payment, $amount);
+        $this->_paymentRequest->capture($payment, $amount);
+        return $this;
+    }
+
+    /**
+     * Refund specified amount for payment
+     *
+     * @param \Magento\Framework\DataObject|InfoInterface $payment
+     * @param float $amount
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @api
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    {
+        parent::refund($payment, $amount);
+
+        // get pspReference
+        $pspReference = $payment->getAdyenPspReference();
+
+        $order = $payment->getOrder();
+        // if amount is a full refund send a refund/cancelled request so if it is not captured yet it will cancel the order
+        $grandTotal = $order->getGrandTotal();
+
+        if($grandTotal == $amount) {
+            $this->_paymentRequest->cancelOrRefund($payment);
+        } else {
+            $this->_paymentRequest->refund($payment, $amount);
+        }
+
+        return $this;
+    }
 
 }

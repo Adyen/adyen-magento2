@@ -27,6 +27,29 @@ use Monolog\Logger;
 
 class AdyenLogger extends Logger
 {
+
+
+    /**
+     * Adds a log record at the INFO level.
+     *
+     * This method allows for compatibility with common interfaces.
+     *
+     * @param  string  $message The log message
+     * @param  array   $context The log context
+     * @return Boolean Whether the record has been processed
+     */
+    public function notification($message, array $context = array())
+    {
+        return $this->addRecord(static::INFO, $message, $context);
+    }
+
+    public function notificationtest($message, array $context = array())
+    {
+        return $this->addRecord(static::DEBUG, $message, $context);
+    }
+
+
+
     /**
      * Adds a log record.
      *
@@ -39,5 +62,19 @@ class AdyenLogger extends Logger
     {
         $context['is_exception'] = $message instanceof \Exception;
         return parent::addRecord($level, $message, $context);
+    }
+
+    /**
+     * Adds a log record at the INFO level.
+     *
+     * This method allows for compatibility with common interfaces.
+     *
+     * @param  string  $message The log message
+     * @param  array   $context The log context
+     * @return Boolean Whether the record has been processed
+     */
+    public function addNotificationLog($message, array $context = array())
+    {
+        return $this->addRecord(static::INFO, $message, $context);
     }
 }

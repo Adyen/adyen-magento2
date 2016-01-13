@@ -301,4 +301,44 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         return $this->_urlBuilder->getUrl('adyen/process/validate3d/');
     }
 
+    /**
+     * Capture on Adyen
+     *
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param float $amount
+     */
+    public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    {
+        parent::capture($payment, $amount);
+        $this->_paymentRequest->capture($payment, $amount);
+        return $this;
+    }
+
+    /**
+     * Refund specified amount for payment
+     *
+     * @param \Magento\Framework\DataObject|InfoInterface $payment
+     * @param float $amount
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @api
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    {
+        parent::refund($payment, $amount);
+
+        $order = $payment->getOrder();
+        // if amount is a full refund send a refund/cancelled request so if it is not captured yet it will cancel the order
+        $grandTotal = $order->getGrandTotal();
+
+        if($grandTotal == $amount) {
+            $this->_paymentRequest->cancelOrRefund($payment);
+        } else {
+            $this->_paymentRequest->refund($payment, $amount);
+        }
+
+        return $this;
+    }
+
 }

@@ -72,7 +72,6 @@ class PaymentRequest extends DataObject
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Client $client,
         array $data = []
     ) {
         $this->_scopeConfig = $scopeConfig;
@@ -85,6 +84,7 @@ class PaymentRequest extends DataObject
         $webserviceUsername = $this->_adyenHelper->getWsUsername();
         $webservicePassword = $this->_adyenHelper->getWsPassword();
 
+        $client = new \Adyen\Client();
         $client->setApplicationName("Magento 2 plugin");
         $client->setUsername($webserviceUsername);
         $client->setPassword($webservicePassword);
@@ -218,11 +218,123 @@ class PaymentRequest extends DataObject
             $service = new \Adyen\Service\Payment($this->_client);
             $result = $service->authorise3D($request);
         } catch(Exception $e) {
-            print_r($e);
+            throw new \Magento\Framework\Exception\LocalizedException(__('3D secure failed'));
         }
 
         return $result;
     }
+
+    /**
+     * Capture payment on Adyen
+     *
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param $amount
+     * @return mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    {
+        $pspReference = $this->_getPspReference($payment);
+        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
+        $currency = $payment->getOrder()->getBaseCurrencyCode();
+
+        $modificationAmount = array('currency' => $currency, 'value' => $amount);
+
+        $request = array(
+            "merchantAccount" => $merchantAccount,
+            "modificationAmount" => $modificationAmount,
+            "reference" => $payment->getOrder()->getIncrementId(),
+            "originalReference" => $pspReference
+        );
+
+        // call lib
+        $service = new \Adyen\Service\Modification($this->_client);
+        $result = $service->capture($request);
+
+        if($result['response'] != '[capture-received]') {
+            // something went wrong
+            throw new \Magento\Framework\Exception\LocalizedException(__('The capture action failed'));
+        }
+
+        return $result;
+    }
+
+    /**
+     * Cancel or Refund payment on Adyen
+     *
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @return mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function cancelOrRefund(\Magento\Payment\Model\InfoInterface $payment)
+    {
+        $pspReference = $this->_getPspReference($payment);
+        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
+
+        $request = array(
+            "merchantAccount" => $merchantAccount,
+            "reference" => $payment->getOrder()->getIncrementId(),
+            "originalReference" => $pspReference
+        );
+
+        // call lib
+        $service = new \Adyen\Service\Modification($this->_client);
+        $result = $service->cancelOrRefund($request);
+
+        if($result['response'] != '[cancelOrRefund-received]') {
+            // something went wrong
+            throw new \Magento\Framework\Exception\LocalizedException(__('The refund action failed'));
+        }
+
+        return $result;
+    }
+
+    /**
+     * (partial)Refund payment on Adyen
+     *
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param $amount
+     * @return mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    {
+        $pspReference = $this->_getPspReference($payment);
+        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
+        $currency = $payment->getOrder()->getBaseCurrencyCode();
+
+        $modificationAmount = array('currency' => $currency, 'value' => $amount);
+
+        $request = array(
+            "merchantAccount" => $merchantAccount,
+            "modificationAmount" => $modificationAmount,
+            "reference" => $payment->getOrder()->getIncrementId(),
+            "originalReference" => $pspReference
+        );
+
+        // call lib
+        $service = new \Adyen\Service\Modification($this->_client);
+        $result = $service->refund($request);
+
+        if($result['response'] != '[refund-received]') {
+            // something went wrong
+            throw new \Magento\Framework\Exception\LocalizedException(__('The refund action failed'));
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Retrieve pspReference from payment object
+     *
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     */
+    protected function _getPspReference(\Magento\Payment\Model\InfoInterface $payment)
+    {
+        return $payment->getAdyenPspReference();
+    }
+
 
     /**
      * Decrypt password
