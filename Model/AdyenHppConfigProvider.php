@@ -328,9 +328,9 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $client = new \Adyen\Client();
 
         if($this->_adyenHelper->isDemoMode()) {
-            $client->setModus("test");
+            $client->setEnvironment(\Adyen\Environment::TEST);
         } else {
-            $client->setModus("live");
+            $client->setEnvironment(\Adyen\Environment::LIVE);
         }
 
         // connect to magento log

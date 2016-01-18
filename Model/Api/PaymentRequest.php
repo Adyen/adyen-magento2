@@ -90,9 +90,9 @@ class PaymentRequest extends DataObject
         $client->setPassword($webservicePassword);
 
         if($this->_adyenHelper->isDemoMode()) {
-            $client->setModus("test");
+            $client->setEnvironment(\Adyen\Environment::TEST);
         } else {
-            $client->setModus("live");
+            $client->setEnvironment(\Adyen\Environment::LIVE);
         }
 
         // assign magento log
