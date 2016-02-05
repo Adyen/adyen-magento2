@@ -23,6 +23,9 @@
  */
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
+    <head>
+        <css src="Adyen_Payment::css/styles.css"/>
+    </head>
     <body>
         <referenceBlock name="checkout.root">
             <arguments>
@@ -43,6 +46,9 @@
                                                                 <item name="adyen_payment" xsi:type="array">
                                                                     <item name="component" xsi:type="string">Adyen_Payment/js/view/payment/cc-method</item>
                                                                     <item name="methods" xsi:type="array">
+                                                                        <item name="adyen_oneclick" xsi:type="array">
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
+                                                                        </item>
                                                                         <item name="adyen_cc" xsi:type="array">
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>

@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -21,25 +20,31 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
-    <groups>
-        <group id="adyen">
-            <label>Adyen Payment Methods</label>
-        </group>
-    </groups>
-    <methods>
-        <method name="adyen_cc">
-            <allow_multiple_address>1</allow_multiple_address>
-        </method>
-        <method name="adyen_hpp">
-            <allow_multiple_address>1</allow_multiple_address>
-        </method>
-        <method name="test">
-            <allow_multiple_address>1</allow_multiple_address>
-        </method>
-    </methods>
-</payment>
 
+namespace Adyen\Payment\Model\Resource\Billing\Agreement;
 
+/**
+ * Billing agreements resource collection
+ */
+class Collection extends \Magento\Paypal\Model\ResourceModel\Billing\Agreement\Collection
+{
+
+    /**
+     * Collection initialization
+     *
+     * @return void
+     */
+    protected function _construct()
+    {
+        $this->_init('Adyen\Payment\Model\Billing\Agreement', 'Magento\Paypal\Model\ResourceModel\Billing\Agreement');
+    }
+
+    /**
+     * @return $this
+     */
+    public function addActiveFilter()
+    {
+        $this->addFieldToFilter('status', \Magento\Paypal\Model\Billing\Agreement::STATUS_ACTIVE);
+        return $this;
+    }
+}

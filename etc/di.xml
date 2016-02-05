@@ -34,13 +34,66 @@
             <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
         </arguments>
     </type>
+    <type name="Adyen\Payment\Logger\Handler\AdyenResult">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Logger\Handler\AdyenCronjob">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
     <type name="Adyen\Payment\Logger\AdyenLogger">
         <arguments>
             <argument name="name" xsi:type="string">AdyenLoggerTest</argument>
             <argument name="handlers"  xsi:type="array">
                 <item name="adyenDebug" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenDebug</item>
                 <item name="adyenNotification" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenNotification</item>
+                <item name="adyenResult" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenResult</item>
+                <item name="adyenCronjob" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenCronjob</item>
             </argument>
         </arguments>
     </type>
+
+
+    <type name="Adyen\Payment\Model\Config\Reader">
+        <arguments>
+            <argument name="fileName" xsi:type="string">adyen_payment.xml</argument>
+            <argument name="converter" xsi:type="object">Adyen\Payment\Model\Config\Converter</argument>
+            <argument name="schemaLocator" xsi:type="object">Adyen\Payment\Model\Config\SchemaLocator</argument>
+        </arguments>
+    </type>
+
+    <virtualType name="adyenPaymentConfigDataStorage" type="Magento\Framework\Config\Data">
+        <arguments>
+            <argument name="reader" xsi:type="object">Adyen\Payment\Model\Config\Reader</argument>
+            <argument name="cacheId" xsi:type="string">adyen_payment_config</argument>
+        </arguments>
+    </virtualType>
+
+
+    <!--<type name="Adyen\Payment\Helper\Data">-->
+        <!--<arguments>-->
+            <!--<argument name="dataStorage" xsi:type="object">Magento\Payment\Model\Config\Data</argument>-->
+        <!--</arguments>-->
+    <!--</type>-->
+
+    <type name="Adyen\Payment\Helper\Data">
+        <arguments>
+            <argument name="dataStorage" xsi:type="object">adyenPaymentConfigDataStorage</argument>
+        </arguments>
+    </type>
+
+    <!--<virtualType name="adyenPaymentConfigDataStorage" type="Magento\Framework\Config\Data">-->
+        <!--<arguments>-->
+            <!--<argument name="reader" xsi:type="object">Adyen\Payment\Model\Config\Reader</argument>-->
+            <!--<argument name="cacheId" xsi:type="string">adyen_payment_config</argument>-->
+        <!--</arguments>-->
+    <!--</virtualType>-->
+    <!--<type name="Adyen\Payment\Helper\Data">-->
+        <!--<arguments>-->
+            <!--<argument name="dataStorage" xsi:type="object">adyenPaymentConfigDataStorage</argument>-->
+        <!--</arguments>-->
+    <!--</type>-->
 </config>

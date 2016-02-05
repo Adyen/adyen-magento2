@@ -84,10 +84,19 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
 
         $cseEnabled = $this->adyenHelper->getAdyenCcConfigDataFlag('cse_enabled');
 
+        $recurringType = $this->adyenHelper->getAdyenAbstractConfigData('recurring_type');
+        $canCreateBillingAgreement = false;
+        if($recurringType == "ONECLICK" || $recurringType == "ONECLICK,RECURRING") {
+            $canCreateBillingAgreement = true;
+        }
+
+
         $config['payment'] ['adyenCc']['cseKey'] = $cseKey;
         $config['payment'] ['adyenCc']['cseEnabled'] = $cseEnabled;
         $config['payment'] ['adyenCc']['cseEnabled'] = $cseEnabled;
         $config['payment']['adyenCc']['generationTime'] = date("c");
+        $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
+
 
         foreach ($this->methodCodes as $code) {
             if ($this->methods[$code]->isAvailable()) {

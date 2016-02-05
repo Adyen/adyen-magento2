@@ -24,7 +24,6 @@
 namespace Adyen\Payment\Model\Api;
 
 use Magento\Framework\DataObject;
-//use \Adyen\Client;
 
 class PaymentRequest extends DataObject
 {
@@ -59,11 +58,19 @@ class PaymentRequest extends DataObject
     protected $_client;
 
     /**
+     * @var \Adyen\Payment\Model\RecurringType
+     */
+    protected $_recurringType;
+
+    const GUEST_ID = 'customer_';
+
+    /**
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param \Adyen\Payment\Model\RecurringType $recurringType
      * @param array $data
      */
     public function __construct(
@@ -72,6 +79,7 @@ class PaymentRequest extends DataObject
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Adyen\Payment\Model\RecurringType $recurringType,
         array $data = []
     ) {
         $this->_scopeConfig = $scopeConfig;
@@ -79,6 +87,7 @@ class PaymentRequest extends DataObject
         $this->_encryptor = $encryptor;
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
+        $this->_recurringType = $recurringType;
 
         // initialize client
         $webserviceUsername = $this->_adyenHelper->getWsUsername();
@@ -102,7 +111,7 @@ class PaymentRequest extends DataObject
 
     }
 
-    public function fullApiRequest($payment)
+    public function fullApiRequest($payment, $paymentMethodCode)
     {
         $order = $payment->getOrder();
         $amount = $order->getGrandTotal();
@@ -110,8 +119,13 @@ class PaymentRequest extends DataObject
         $shopperIp = $order->getRemoteIp();
         $orderCurrencyCode = $order->getOrderCurrencyCode();
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
+        $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type');
+        $realOrderId = $order->getRealOrderId();
 
-        // call lib
+        $customerId = $order->getCustomerId();
+        $shopperReference = (!empty($customerId)) ? $customerId : self::GUEST_ID . $realOrderId;
+
+            // call lib
         $service = new \Adyen\Service\Payment($this->_client);
 
         $amount = ['currency' => $orderCurrencyCode, 'value' => $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode)];
@@ -123,10 +137,38 @@ class PaymentRequest extends DataObject
             "reference" => $order->getIncrementId(),
             "shopperIP" => $shopperIp,
             "shopperEmail" => $customerEmail,
-            "shopperReference" => $order->getIncrementId(),
+            "shopperReference" => $shopperReference,
             "fraudOffset" => "0",
             "browserInfo" => $browserInfo
         );
+
+
+        // set the recurring type
+        $recurringContractType = null;
+        if($recurringType) {
+            if($paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
+                // For ONECLICK look at the recurringPaymentType that the merchant has selected in Adyen ONECLICK settings
+                if($payment->getAdditionalInformation('customer_interaction')) {
+                    $recurringContractType = \Adyen\Payment\Model\RecurringType::ONECLICK;
+                } else {
+                    $recurringContractType =  \Adyen\Payment\Model\RecurringType::RECURRING;
+                }
+            } else if($paymentMethodCode == \Adyen\Payment\Model\Method\Cc::METHOD_CODE) {
+                if($payment->getAdditionalInformation("store_cc") == "" && ($recurringType == "ONECLICK,RECURRING" || $recurringType == "RECURRING")) {
+                    $recurringContractType = \Adyen\Payment\Model\RecurringType::RECURRING;
+                } elseif($payment->getAdditionalInformation("store_cc") == "1") {
+                    $recurringContractType = $recurringType;
+                }
+            } else {
+                $recurringContractType = $recurringType;
+            }
+        }
+
+        if($recurringContractType)
+        {
+            $recurring = array('contract' => $recurringContractType);
+            $request['recurring'] = $recurring;
+        }
 
         $billingAddress = $order->getBillingAddress();
 
@@ -175,6 +217,33 @@ class PaymentRequest extends DataObject
             $request = array_merge($request, $requestDelivery);
         }
 
+        // define the shopper interaction
+        if($paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
+            $recurringDetailReference = $payment->getAdditionalInformation("recurring_detail_reference");
+            if($payment->getAdditionalInformation('customer_interaction')) {
+                $shopperInteraction = "Ecommerce";
+            } else {
+                $shopperInteraction = "ContAuth";
+            }
+
+            // For recurring Ideal and Sofort needs to be converted to SEPA for this it is mandatory to set selectBrand to sepadirectdebit
+            if(!$payment->getAdditionalInformation('customer_interaction')) {
+                if($payment->getCcType() == "directEbanking" || $payment->getCcType() == "ideal") {
+                    $this->selectedBrand = "sepadirectdebit";
+                }
+            }
+        } else {
+            $recurringDetailReference = null;
+            $shopperInteraction = "Ecommerce";
+        }
+
+        if($shopperInteraction) {
+            $request['shopperInteraction'] = $shopperInteraction;
+        }
+
+        if($recurringDetailReference && $recurringDetailReference != "") {
+            $request['selectedRecurringDetailReference'] = $recurringDetailReference;
+        }
 
         // If cse is enabled add encrypted card date into request
         if($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
@@ -324,6 +393,59 @@ class PaymentRequest extends DataObject
         return $result;
     }
 
+    public function getRecurringContractsForShopper($shopperReference, $storeId)
+    {
+        $recurringContracts = array();
+        $recurringTypes = $this->_recurringType->getAllowedRecurringTypesForListRecurringCall();
+
+        foreach ($recurringTypes as $recurringType) {
+
+            try {
+                // merge ONECLICK and RECURRING into one record with recurringType ONECLICK,RECURRING
+                $listRecurringContractByType = $this->listRecurringContractByType($shopperReference, $storeId, $recurringType);
+                if(isset($listRecurringContractByType['details'] ))
+                {
+                    foreach($listRecurringContractByType['details'] as $recurringContractDetails) {
+                        if(isset($recurringContractDetails['RecurringDetail'])) {
+                            $recurringContract = $recurringContractDetails['RecurringDetail'];
+
+                            if(isset($recurringContract['recurringDetailReference'])) {
+                                $recurringDetailReference = $recurringContract['recurringDetailReference'];
+                                // check if recurring reference is already in array
+                                if(isset($recurringContracts[$recurringDetailReference])) {
+                                    // recurring reference already exists so recurringType is possible for ONECLICK and RECURRING
+                                    $recurringContracts[$recurringDetailReference]['recurring_type']= "ONECLICK,RECURRING";
+                                } else {
+                                    $recurringContracts[$recurringDetailReference] = $recurringContract;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (\Exception $exception) {
+                print_r($exception);
+            }
+        }
+        return $recurringContracts;
+    }
+
+
+    public function listRecurringContractByType($shopperReference, $storeId, $recurringType)
+    {
+        // rest call to get list of recurring details
+        $contract = ['contract' => $recurringType];
+        $request = array(
+            "merchantAccount"    => $this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId),
+            "shopperReference"   => $shopperReference,
+            "recurring" => $contract,
+        );
+
+        // call lib
+        $service = new \Adyen\Service\Recurring($this->_client);
+        $result = $service->listRecurringDetails($request);
+
+        return $result;
+    }
 
     /**
      * Retrieve pspReference from payment object

@@ -28,6 +28,34 @@ use Monolog\Logger;
 class AdyenLogger extends Logger
 {
 
+    /**
+     * Detailed debug information
+     */
+    const ADYEN_DEBUG = 101;
+    const ADYEN_NOTIFICATION = 201;
+    const ADYEN_RESULT = 202;
+    const ADYEN_NOTIFICATION_CRONJOB = 203;
+
+    /**
+     * Logging levels from syslog protocol defined in RFC 5424
+     * Overrule the default to add Adyen specific loggers to log into seperate files
+     *
+     * @var array $levels Logging levels
+     */
+    protected static $levels = array(
+        100 => 'DEBUG',
+        101 => 'ADYEN_DEBUG',
+        200 => 'INFO',
+        201 => 'ADYEN_NOTIFICATION',
+        202 => 'ADYEN_RESULT',
+        203 => 'ADYEN_NOTIFICATION_CRONJOB',
+        250 => 'NOTICE',
+        300 => 'WARNING',
+        400 => 'ERROR',
+        500 => 'CRITICAL',
+        550 => 'ALERT',
+        600 => 'EMERGENCY',
+    );
 
     /**
      * Adds a log record at the INFO level.
@@ -38,16 +66,25 @@ class AdyenLogger extends Logger
      * @param  array   $context The log context
      * @return Boolean Whether the record has been processed
      */
-    public function notification($message, array $context = array())
+    public function addAdyenNotification($message, array $context = array())
     {
-        return $this->addRecord(static::INFO, $message, $context);
+        return $this->addRecord(static::ADYEN_NOTIFICATION, $message, $context);
     }
 
-    public function notificationtest($message, array $context = array())
+    public function addAdyenDebug($message, array $context = array())
     {
-        return $this->addRecord(static::DEBUG, $message, $context);
+        return $this->addRecord(static::ADYEN_DEBUG, $message, $context);
     }
 
+    public function addAdyenResult($message, array $context = array())
+    {
+        return $this->addRecord(static::ADYEN_RESULT, $message, $context);
+    }
+
+    public function addAdyenNotificationCronjob($message, array $context = array())
+    {
+        return $this->addRecord(static::ADYEN_NOTIFICATION_CRONJOB, $message, $context);
+    }
 
 
     /**

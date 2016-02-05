@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -21,25 +20,23 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
-    <groups>
-        <group id="adyen">
-            <label>Adyen Payment Methods</label>
-        </group>
-    </groups>
-    <methods>
-        <method name="adyen_cc">
-            <allow_multiple_address>1</allow_multiple_address>
-        </method>
-        <method name="adyen_hpp">
-            <allow_multiple_address>1</allow_multiple_address>
-        </method>
-        <method name="test">
-            <allow_multiple_address>1</allow_multiple_address>
-        </method>
-    </methods>
-</payment>
 
+namespace Adyen\Payment\Block\Info;
 
+class Oneclick extends AbstractInfo
+{
+
+    /**
+     * @var string
+     */
+    protected $_template = 'Adyen_Payment::info/adyen_oneclick.phtml';
+
+    /**
+     * @return string
+     */
+//    public function toPdf()
+//    {
+//        $this->setTemplate('Magento_OfflinePayments::info/pdf/checkmo.phtml');
+//        return $this->toHtml();
+//    }
+}

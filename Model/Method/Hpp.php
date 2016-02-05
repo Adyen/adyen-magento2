@@ -191,7 +191,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
             $infoInstance->setAdditionalInformation('issuer_id', $data['issuer_id']);
         }
 
-        $this->_adyenLogger->info(print_r($data,1));
+        $this->_adyenLogger->debug(print_r($data,1));
 
         return $this;
     }
@@ -337,7 +337,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
 
         $formFields['merchantSig'] = $merchantSig;
 
-        $this->_adyenLogger->info(print_r($formFields, true));
+        $this->_adyenLogger->debug(print_r($formFields, true));
 
         return $formFields;
     }

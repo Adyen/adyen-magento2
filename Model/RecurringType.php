@@ -30,4 +30,14 @@ class RecurringType {
     const ONECLICK_RECURRING = 'ONECLICK_RECURRING';
     const RECURRING = 'RECURRING';
 
+    protected $_allowedRecurringTypesForListRecurringCall = [
+        self::ONECLICK,
+        self::RECURRING
+    ];
+
+    public function getAllowedRecurringTypesForListRecurringCall()
+    {
+        return $this->_allowedRecurringTypesForListRecurringCall;
+    }
+
 }

@@ -46,6 +46,11 @@
             <frontend_class>validate-number</frontend_class>
             <config_path>payment/adyen_cc/sort_order</config_path>
         </field>
+        <field id="cctypes" translate="label" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Credit Card Types</label>
+            <source_model>Adyen\Payment\Model\Config\Source\CcType</source_model>
+            <config_path>payment/adyen_cc/cctypes</config_path>
+        </field>
         <!--<field id="cse_enabled" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">-->
             <!--<label>Enable CSE</label>-->
             <!--<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->

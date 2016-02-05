@@ -66,7 +66,11 @@ define(
             ).done(
                 function () {
                     if (redirectOnSuccess) {
-                        window.location.replace(url.build(window.checkoutConfig.payment.adyenCc.redirectUrl[quote.paymentMethod().method]));
+                        if(quote.paymentMethod().method == 'adyen_oneclick') {
+                            window.location.replace(url.build(window.checkoutConfig.payment.adyenOneclick.redirectUrl[quote.paymentMethod().method]));
+                        } else {
+                            window.location.replace(url.build(window.checkoutConfig.payment.adyenCc.redirectUrl[quote.paymentMethod().method]));
+                        }
                     }
                 }
             ).fail(

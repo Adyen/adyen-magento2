@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -21,25 +20,24 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
-    <groups>
-        <group id="adyen">
-            <label>Adyen Payment Methods</label>
-        </group>
-    </groups>
-    <methods>
-        <method name="adyen_cc">
-            <allow_multiple_address>1</allow_multiple_address>
-        </method>
-        <method name="adyen_hpp">
-            <allow_multiple_address>1</allow_multiple_address>
-        </method>
-        <method name="test">
-            <allow_multiple_address>1</allow_multiple_address>
-        </method>
-    </methods>
-</payment>
 
+namespace Adyen\Payment\Logger\Handler;
 
+use Monolog\Logger;
+use Adyen\Payment\Logger\AdyenLogger;
+
+class AdyenCronjob extends AdyenBase
+{
+    /**
+     * @var string
+     */
+    protected $fileName = '/var/log/adyen/cronjob.log';
+
+    /**
+     * @var int
+     */
+    protected $loggerType = AdyenLogger::ADYEN_NOTIFICATION_CRONJOB;
+
+    protected $level = AdyenLogger::ADYEN_NOTIFICATION_CRONJOB;
+
+}

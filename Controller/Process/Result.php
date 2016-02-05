@@ -85,11 +85,7 @@ class Result extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         $response = $this->getRequest()->getParams();
-        $this->_adyenLogger->notification(print_r($response, true));
-
-        // testing
-        $this->_adyenLogger->notification("WAAR KOMT DEZE REGEL 1");
-        $this->_adyenLogger->notificationtest("WAAR KOMT DEZE REGEL 2");
+        $this->_adyenLogger->addAdyenResult(print_r($response, true));
 
         $result = $this->validateResponse($response);
 
@@ -170,7 +166,7 @@ class Result extends \Magento\Framework\App\Action\Action
                 ]);
 
             } else {
-                throw new \Magento\Framework\Exception\LocalizedException(__('Order does not exists with increment_id: %s1', $incrementId));
+                throw new \Magento\Framework\Exception\LocalizedException(__('Order does not exists with increment_id: %1', $incrementId));
             }
         } else {
             throw new \Magento\Framework\Exception\LocalizedException(__('Empty merchantReference'));

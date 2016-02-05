@@ -82,9 +82,9 @@ class AdyenBase extends StreamHandler
      *
      * {@inheritdoc}
      */
-//    public function isHandling(array $record)
-//    {
-//        return $record['level'] == $this->level;
-//    }
+    public function isHandling(array $record)
+    {
+        return $record['level'] == $this->level;
+    }
 
 }

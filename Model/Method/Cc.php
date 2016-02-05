@@ -166,6 +166,24 @@ class Cc extends \Magento\Payment\Model\Method\Cc
                 throw new \Magento\Framework\Exception\LocalizedException(__('Card encryption failed'));
             }
         }
+
+        // save value remember details checkbox
+        $infoInstance->setAdditionalInformation('store_cc', $data['store_cc']);
+
+        return $this;
+    }
+
+    /**
+     * Validate payment method information object
+     *
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
+    public function validate()
+    {
+        // validation only possible on front-end for CSE script
         return $this;
     }
 
@@ -195,7 +213,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     {
         switch ($request) {
             case "authorise":
-                $response = $this->_paymentRequest->fullApiRequest($payment);
+                $response = $this->_paymentRequest->fullApiRequest($payment, $this->_code);
                 break;
         }
 

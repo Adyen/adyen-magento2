@@ -36,9 +36,8 @@ class AdyenDebug extends AdyenBase
     /**
      * @var int
      */
-    protected $loggerType = Logger::DEBUG;
+    protected $loggerType = AdyenLogger::ADYEN_DEBUG;
 
-    protected $level = Logger::DEBUG;
-
+    protected $level = AdyenLogger::ADYEN_DEBUG;
 
 }

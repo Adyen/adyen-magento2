@@ -36,17 +36,30 @@ class Data extends AbstractHelper
      */
     protected $_encryptor;
 
+    /**
+     * @var \Magento\Payment\Model\Config
+     */
+    protected $_config;
+
+    /**
+     * @var \Magento\Framework\Config\DataInterface
+     */
+    protected $_dataStorage;
 
     /**
      * @param Context $context
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
+        \Magento\Payment\Model\Config $config,
+        \Magento\Framework\Config\DataInterface $dataStorage
     )
     {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
+        $this->_config = $config;
+        $this->_dataStorage = $dataStorage;
     }
 
 
@@ -250,6 +263,28 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @desc Gives back adyen_hpp configuration values
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenOneclickConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_oneclick', $storeId);
+    }
+
+    /**
+     * @desc Gives back adyen_hpp configuration values as flag
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenOneclickConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_oneclick', $storeId, true);
+    }
+
+    /**
      * @desc Retrieve decrypted hmac key
      * @return string
      */
@@ -347,6 +382,21 @@ class Data extends AbstractHelper
                 }
                 break;
         }
+    }
+
+    public function getCcTypesAltData()
+    {
+        $adyenCcTypes =  $this->getAdyenCcTypes();
+        $types = array();
+        foreach ($adyenCcTypes as $key => $data) {
+            $types[$data['code_alt']] = $data;
+        }
+        return $types;
+    }
+
+    public function getAdyenCcTypes()
+    {
+        return $this->_dataStorage->get('adyen_credit_cards');
     }
 
     /**

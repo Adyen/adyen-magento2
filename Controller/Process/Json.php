@@ -77,7 +77,7 @@ class Json extends \Magento\Framework\App\Action\Action
             $notificationItems = json_decode(file_get_contents('php://input'), true);
 
             // log the notification
-            $this->_adyenLogger->info("The content of the notification is: " . print_r($notificationItems,1));
+            $this->_adyenLogger->addAdyenNotification("The content of the notification is: " . print_r($notificationItems,1));
 
             $notificationMode = isset($notificationItems['live']) ? $notificationItems['live'] : "";
 
@@ -92,7 +92,7 @@ class Json extends \Magento\Framework\App\Action\Action
                     }
                 }
 
-                $this->_adyenLogger->info("The result is accepted");
+                $this->_adyenLogger->addAdyenNotification("The result is accepted");
 
                 $this->getResponse()
                     ->clearHeader('Content-Type')

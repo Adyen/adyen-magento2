@@ -62,23 +62,27 @@ class Validate3d extends \Magento\Framework\App\Action\Action
 
     public function execute()
     {
+        $active = null;
+
         // check if 3d is active
         $order = $this->_getOrder();
 
-        $active = $order->getPayment()->getAdditionalInformation('3dActive');
-
-        $md = $order->getPayment()->getAdditionalInformation('md');
+        if($order->getPayment()) {
+            $active = $order->getPayment()->getAdditionalInformation('3dActive');
+        }
 
         // check if 3D secure is active. If not just go to success page
         if($active) {
-            $this->_adyenLogger->info("3D secure is active");
+
+            $this->_adyenLogger->addAdyenResult("3D secure is active");
             // check if it is already processed
             if ($this->getRequest()->isPost()) {
 
-                $this->_adyenLogger->info("Process 3D secure payment");
+                $this->_adyenLogger->addAdyenResult("Process 3D secure payment");
 
                 $requestMD = $this->getRequest()->getPost('MD');
                 $requestPaRes = $this->getRequest()->getPost('PaRes');
+                $md = $order->getPayment()->getAdditionalInformation('md');
 
                 if ($requestMD == $md) {
 
@@ -101,7 +105,7 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                     }
                 }
             } else {
-                $this->_adyenLogger->info("Customer was redirected to bank for 3D-secure validation.");
+                $this->_adyenLogger->addAdyenResult("Customer was redirected to bank for 3D-secure validation.");
                 $order->addStatusHistoryComment(__('Customer was redirected to bank for 3D-secure validation.'))->save();
 
                 $this->_view->loadLayout();

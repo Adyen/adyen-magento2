@@ -127,7 +127,6 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
                 $config['payment']['adyenHpp']['redirectUrl'][$code] = $this->getMethodRedirectUrl($code);
 
                 // get payment methods
-//                print_r($this->getAdyenHppPaymentMethods());die();
                 $config['payment'] ['adyenHpp']['paymentMethods'] = $this->getAdyenHppPaymentMethods();
             }
         }

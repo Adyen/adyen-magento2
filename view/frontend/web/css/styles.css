@@ -1,0 +1,4 @@
+.checkout-payment-method .ccard .changable-card-expiry { display:none; }
+.checkout-payment-method .ccard  .changable-card-expiry._active { display:block; }
+.checkout-payment-method .ccard  .expire-update._disable { display:none; }
+

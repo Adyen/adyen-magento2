@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Model;
 
+use Magento\Framework\Webapi\Exception;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 
 class Cron
@@ -82,6 +83,21 @@ class Cron
     protected $_transactionFactory;
 
     /**
+     * @var \Adyen\Payment\Model\Billing\AgreementFactory
+     */
+    protected $_billingAgreementFactory;
+
+    /**
+     * @var Resource\Billing\Agreement\CollectionFactory
+     */
+    protected $_billingAgreementCollectionFactory;
+
+    /**
+     * @var Api\PaymentRequest
+     */
+    protected $_adyenPaymentRequest;
+
+    /**
      * notification attributes
      */
     protected $_pspReference;
@@ -114,6 +130,8 @@ class Cron
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param OrderSender $orderSender
      * @param \Magento\Framework\DB\TransactionFactory $transactionFactory
+     * @param Billing\AgreementFactory $billingAgreementFactory
+     * @param Api\PaymentRequest $paymentRequest
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -124,11 +142,14 @@ class Cron
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
         \Adyen\Payment\Helper\Data $adyenHelper,
         OrderSender $orderSender,
-        \Magento\Framework\DB\TransactionFactory $transactionFactory
+        \Magento\Framework\DB\TransactionFactory $transactionFactory,
+        \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory,
+        \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
+        \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
     )
     {
         $this->_scopeConfig = $scopeConfig;
-        $this->_logger = $adyenLogger;
+        $this->_adyenLogger = $adyenLogger;
         $this->_notificationFactory = $notificationFactory;
         $this->_orderFactory = $orderFactory;
         $this->_datetime = $dateTime;
@@ -136,22 +157,25 @@ class Cron
         $this->_adyenHelper = $adyenHelper;
         $this->_orderSender = $orderSender;
         $this->_transactionFactory = $transactionFactory;
+        $this->_billingAgreementFactory = $billingAgreementFactory;
+        $this->_billingAgreementCollectionFactory = $billingAgreementCollectionFactory;
+        $this->_adyenPaymentRequest = $paymentRequest;
     }
 
     public function processNotification()
     {
         $this->_order = null;
 
-        $this->_logger->info("START OF THE CRONJOB");
+        $this->_adyenLogger->addAdyenNotificationCronjob("START OF THE CRONJOB");
 
         //fixme somehow the created_at is saved in my timzone
         $dateStart = new \DateTime();
 
         // execute notifications from 5 minute or earlier because order could not yet been created by magento
         $dateStart = new \DateTime();
-        $dateStart->modify('-1 day');
+        $dateStart->modify('-10 day'); // TODO: KEEP THIS ON -1 day
         $dateEnd = new \DateTime();
-        $dateEnd->modify('-5 minute');
+        $dateEnd->modify('-1 minute'); // TODO: DO NOT COMMIT KEEP ON -5
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
 
         // create collection
@@ -161,6 +185,9 @@ class Cron
 
         // loop over the notifications
         foreach($notifications as $notification) {
+
+            // log the executed notification
+            $this->_debugData['notification'] = print_r($notification->debug(), 1);
 
             // get order
             $incrementId = $notification->getMerchantReference();
@@ -182,27 +209,23 @@ class Cron
             $previousAdyenEventCode = $this->_order->getData('adyen_notification_event_code');
             $_paymentCode = $this->_paymentMethodCode();
 
-            // set pspReference on payment object only on authorisation and handled_externally(c_cash)
-            if ($this->_eventCode == Notification::AUTHORISATION
-                || $this->_eventCode == Notification::HANDLED_EXTERNALLY)
-            {
-                $this->_order->getPayment()->setAdditionalInformation('pspReference', $this->_pspReference);
-                $this->_order->getPayment()->setAdyenPspReference($this->_pspReference);
-            }
+            // update order details
+            $this->_updateAdyenAttributes($notification);
 
             // check if success is true of false
             if (strcmp($this->_success, 'false') == 0 || strcmp($this->_success, '0') == 0) {
                 // Only cancel the order when it is in state pending, payment review or if the ORDER_CLOSED is failed (means split payment has not be successful)
-                if($this->_order->getState() === \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT || $this->_order->getState() === \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW || $this->_eventCode == \Magento\Sales\Model\Order::ADYEN_EVENT_ORDER_CLOSED) {
+                if($this->_order->getState() === \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT || $this->_order->getState() === \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW || $this->_eventCode == Notification::ORDER_CLOSED) {
                     $this->_debugData['_updateOrder info'] = 'Going to cancel the order';
 
                     // if payment is API check, check if API result pspreference is the same as reference
-                    if($this->_eventCode == Adyen_Payment_Model_Event::ADYEN_EVENT_AUTHORISATION && $this->_getPaymentMethodType() == 'api') {
+                    if($this->_eventCode == NOTIFICATION::AUTHORISATION && $this->_getPaymentMethodType() == 'api') {
                         // don't cancel the order becasue order was successfull through api
                         $this->_debugData['_updateOrder warning'] = 'order is not cancelled because api result was succesfull';
                     } else {
                         // don't cancel the order if previous state is authorisation with success=true
-                        if($previousAdyenEventCode != "AUTHORISATION : TRUE") {
+                        // Split payments can fail if the second payment has failed the first payment is refund/cancelled as well so if it is a split payment that failed cancel the order as well
+                        if($previousAdyenEventCode != "AUTHORISATION : TRUE" || $this->_eventCode == Notification::ORDER_CLOSED) {
                             $this->_holdCancelOrder(false);
                         } else {
                             $this->_order->setData('adyen_notification_event_code', $previousAdyenEventCode);
@@ -220,7 +243,7 @@ class Cron
             $this->_order->save();
 
             foreach($this->_debugData as $debug) {
-                $this->_logger->info($debug);
+                $this->_adyenLogger->addAdyenNotificationCronjob($debug);
             }
 
             // set done to true
@@ -229,7 +252,7 @@ class Cron
             $notification->setUpdatedAt($dateEnd);
             $notification->save();
         }
-        $this->_logger->info("END OF THE CRONJOB");
+        $this->_adyenLogger->addAdyenNotificationCronjob("END OF THE CRONJOB");
     }
 
     protected function _declareVariables($notification)
@@ -368,6 +391,100 @@ class Cron
         $this->_debugData['_addStatusHistoryComment'] = 'Created comment history for this notification';
     }
 
+    protected function _updateAdyenAttributes($notification)
+    {
+        $this->_debugData['_updateAdyenAttributes'] = 'Updating the Adyen attributes of the order';
+
+        $additionalData = unserialize($notification->getAdditionalData());
+        $_paymentCode = $this->_paymentMethodCode();
+
+        if ($this->_eventCode == Notification::AUTHORISATION
+            || $this->_eventCode == Notification::HANDLED_EXTERNALLY
+            || ($this->_eventCode == Notification::CAPTURE && $_paymentCode == "adyen_pos"))
+        {
+
+            // if current notification is authorisation : false and the  previous notification was authorisation : true do not update pspreference
+            if (strcmp($this->_success, 'false') == 0 || strcmp($this->_success, '0') == 0 || strcmp($this->_success, '') == 0) {
+                $previousAdyenEventCode = $this->_order->getData('adyen_notification_event_code');
+                if ($previousAdyenEventCode != "AUTHORISATION : TRUE") {
+                    $this->_updateOrderPaymentWithAdyenAttributes($additionalData);
+                }
+            } else {
+                $this->_updateOrderPaymentWithAdyenAttributes($additionalData);
+            }
+        }
+    }
+
+    protected function _updateOrderPaymentWithAdyenAttributes($additionalData)
+    {
+        if ($additionalData && is_array($additionalData)) {
+            $avsResult = (isset($additionalData['avsResult'])) ? $additionalData['avsResult'] : "";
+            $cvcResult = (isset($additionalData['cvcResult'])) ? $additionalData['cvcResult'] : "";
+            $totalFraudScore = (isset($additionalData['totalFraudScore'])) ? $additionalData['totalFraudScore'] : "";
+            $ccLast4 = (isset($additionalData['cardSummary'])) ? $additionalData['cardSummary'] : "";
+            $refusalReasonRaw = (isset($additionalData['refusalReasonRaw'])) ? $additionalData['refusalReasonRaw'] : "";
+            $acquirerReference = (isset($additionalData['acquirerReference'])) ? $additionalData['acquirerReference'] : "";
+            $authCode = (isset($additionalData['authCode'])) ? $additionalData['authCode'] : "";
+        }
+
+        // if there is no server communication setup try to get last4 digits from reason field
+        if (!isset($ccLast4) || $ccLast4 == "") {
+            $ccLast4 = $this->_retrieveLast4DigitsFromReason($this->_reason);
+        }
+
+        $this->_order->getPayment()->setAdyenPspReference($this->_pspReference);
+        $this->_order->getPayment()->setAdditionalInformation('pspReference', $this->_pspReference);
+
+        if ($this->_klarnaReservationNumber != "") {
+            $this->_order->getPayment()->setAdditionalInformation('adyen_klarna_number', $this->_klarnaReservationNumber);
+        }
+        if (isset($ccLast4) && $ccLast4 != "") {
+            // this field is column in db by core
+            $this->_order->getPayment()->setccLast4($ccLast4);
+        }
+        if (isset($avsResult) && $avsResult != "") {
+            $this->_order->getPayment()->setAdditionalInformation('adyen_avs_result', $avsResult);
+        }
+        if (isset($cvcResult) && $cvcResult != "") {
+            $this->_order->getPayment()->setAdditionalInformation('adyen_cvc_result', $cvcResult);
+        }
+        if ($this->_boletoPaidAmount != "") {
+            $this->_order->getPayment()->setAdditionalInformation('adyen_boleto_paid_amount', $this->_boletoPaidAmount);
+        }
+        if (isset($totalFraudScore) && $totalFraudScore != "") {
+            $this->_order->getPayment()->setAdditionalInformation('adyen_total_fraud_score', $totalFraudScore);
+        }
+        if (isset($refusalReasonRaw) && $refusalReasonRaw != "") {
+            $this->_order->getPayment()->setAdditionalInformation('adyen_refusal_reason_raw', $refusalReasonRaw);
+        }
+        if (isset($acquirerReference) && $acquirerReference != "") {
+            $this->_order->getPayment()->setAdditionalInformation('adyen_acquirer_reference', $acquirerReference);
+        }
+        if (isset($authCode) && $authCode != "") {
+            $this->_order->getPayment()->setAdditionalInformation('adyen_auth_code', $authCode);
+        }
+    }
+
+    /**
+     * retrieve last 4 digits of card from the reason field
+     * @param $reason
+     * @return string
+     */
+    protected function _retrieveLast4DigitsFromReason($reason)
+    {
+        $result = "";
+
+        if($reason != "") {
+            $reasonArray = explode(":", $reason);
+            if($reasonArray != null && is_array($reasonArray)) {
+                if(isset($reasonArray[1])) {
+                    $result = $reasonArray[1];
+                }
+            }
+        }
+        return $result;
+    }
+
     /**
      * @param $order
      * @return bool
@@ -496,8 +613,108 @@ class Cron
                     }
                 }
                 break;
+            case Notification::RECURRING_CONTRACT:
+
+                // storedReferenceCode
+                $recurringDetailReference = $this->_pspReference;
+
+                // check if there is already a BillingAgreement
+                $billingAgreement = $this->_billingAgreementFactory->create();
+                $billingAgreement->load($recurringDetailReference, 'reference_id');
+
+
+                if ($billingAgreement && $billingAgreement->getAgreementId() > 0 && $billingAgreement->isValid()) {
+
+                    try {
+                        $billingAgreement->addOrderRelation($this->_order);
+                        $billingAgreement->setStatus($billingAgreement::STATUS_ACTIVE);
+                        $billingAgreement->setIsObjectChanged(true);
+                        $this->_order->addRelatedObject($billingAgreement);
+                        $message = __('Used existing billing agreement #%s.', $billingAgreement->getReferenceId());
+                    } catch (Exception $e) {
+                        // could be that it is already linked to this order
+                        $message = __('Used existing billing agreement #%s.', $billingAgreement->getReferenceId());
+                    }
+                } else {
+
+
+                    $this->_order->getPayment()->setBillingAgreementData(
+                        [
+                            'billing_agreement_id' => $recurringDetailReference,
+                            'method_code' => $this->_order->getPayment()->getMethodCode(),
+                        ]
+                    );
+
+                    // create new object
+                    $billingAgreement = $this->_billingAgreementFactory->create();
+                    $billingAgreement->setStoreId($this->_order->getStoreId());
+                    $billingAgreement->importOrderPayment($this->_order->getPayment());
+
+                    // get all data for this contract by doing a listRecurringCall
+                    $customerReference = $billingAgreement->getCustomerReference();
+                    $storeId = $billingAgreement->getStoreId();
+
+                    $listRecurringContracts = $this->_adyenPaymentRequest->getRecurringContractsForShopper($customerReference, $storeId);
+
+                    $contractDetail = null;
+                    // get currenct Contract details and get list of all current ones
+                    $recurringReferencesList = array();
+                    foreach ($listRecurringContracts as $rc) {
+                        $recurringReferencesList[] = $rc['recurringDetailReference'];
+                        if (isset($rc['recurringDetailReference']) && $rc['recurringDetailReference'] == $recurringDetailReference) {
+                            $contractDetail = $rc;
+                        }
+                    }
+
+
+                    if($contractDetail != null) {
+
+                        // update status of all the current saved agreements in magento
+                        $billingAgreements = $this->_billingAgreementCollectionFactory->create();
+                        $billingAgreements->addFieldToFilter('customer_id', $customerReference);
+
+                        // get collection
+
+                        foreach($billingAgreements as $updateBillingAgreement) {
+                            if(!in_array($updateBillingAgreement->getReferenceId(), $recurringReferencesList)) {
+                                $updateBillingAgreement->setStatus(\Adyen\Payment\Model\Billing\Agreement::STATUS_CANCELED);
+                                $updateBillingAgreement->save();
+                            } else {
+                                $updateBillingAgreement->setStatus(\Adyen\Payment\Model\Billing\Agreement::STATUS_ACTIVE);
+                                $updateBillingAgreement->save();
+                            }
+                        }
+
+                        // add this billing agreement
+                        $billingAgreement->parseRecurringContractData($contractDetail);
+                        if ($billingAgreement->isValid()) {
+                            $message = __('Created billing agreement #%1.', $billingAgreement->getReferenceId());
+
+                            // save into sales_billing_agreement_order
+                            $billingAgreement->addOrderRelation($this->_order);
+
+                            // add to order to save agreement
+                            $this->_order->addRelatedObject($billingAgreement);
+                        } else {
+                            $message = __('Failed to create billing agreement for this order.');
+                        }
+
+
+                    }else {
+                        $this->_debugData[$this->_count]['_processNotification error'] = 'Failed to create billing agreement for this order (listRecurringCall did not contain contract)';
+                        $this->_debugData[$this->_count]['_processNotification ref'] = printf('recurringDetailReference in notification is %1', $recurringDetailReference) ;
+                        $this->_debugData[$this->_count]['_processNotification customer ref'] = printf('CustomerReference is: %1 and storeId is %2', $customerReference, $storeId);
+                        $this->_debugData[$this->_count]['_processNotification customer result'] = $listRecurringContracts;
+                        $message = __('Failed to create billing agreement for this order (listRecurringCall did not contain contract)');
+                    }
+
+
+                    $comment = $this->_order->addStatusHistoryComment($message);
+                    $this->_order->addRelatedObject($comment);
+                }
+                break;
             default:
-                $this->_order->getPayment()->getMethodInstance()->writeLog('notification event not supported!');
+                $this->_debugData[$this->_count]['_processNotification info'] = sprintf('This notification event: %s is not supported so will be ignored', $this->_eventCode);
                 break;
         }
     }
@@ -696,44 +913,90 @@ class Cron
      */
     protected function _isAutoCapture()
     {
-        $captureMode = trim($this->_getConfigData('capture_mode', 'adyen_abstract', $this->_order->getStoreId()));
-        $sepaFlow = trim($this->_getConfigData('flow', 'adyen_sepa', $this->_order->getStoreId()));
-        $_paymentCode = $this->_paymentMethodCode();
-        $captureModeOpenInvoice = $this->_getConfigData('auto_capture_openinvoice', 'adyen_abstract', $this->_order->getStoreId());
-        $captureModePayPal = trim($this->_getConfigData('paypal_capture_mode', 'adyen_abstract', $this->_order->getStoreId()));
+        // validate if payment methods allowes manual capture
+        if($this->_manualCaptureAllowed())
+        {
+            $captureMode = trim($this->_getConfigData('capture_mode', 'adyen_abstract', $this->_order->getStoreId()));
+            $sepaFlow = trim($this->_getConfigData('flow', 'adyen_sepa', $this->_order->getStoreId()));
+            $_paymentCode = $this->_paymentMethodCode();
+            $captureModeOpenInvoice = $this->_getConfigData('auto_capture_openinvoice', 'adyen_abstract', $this->_order->getStoreId());
+            $captureModePayPal = trim($this->_getConfigData('paypal_capture_mode', 'adyen_abstract', $this->_order->getStoreId()));
 
-        //check if it is a banktransfer. Banktransfer only a Authorize notification is send.
-        $isBankTransfer = $this->_isBankTransfer();
-
-        // if you are using authcap the payment method is manual. There will be a capture send to indicate if payment is succesfull
-        if($_paymentCode == "adyen_sepa" && $sepaFlow == "authcap") {
-            return false;
-        }
-
-        // payment method ideal, cash adyen_boleto or adyen_pos has direct capture
-        if (strcmp($this->_paymentMethod, 'ideal') === 0 || strcmp($this->_paymentMethod, 'c_cash' ) === 0 || $_paymentCode == "adyen_pos" || $isBankTransfer == true || ($_paymentCode == "adyen_sepa" && $sepaFlow != "authcap") || $_paymentCode == "adyen_boleto") {
-            return true;
-        }
-        // if auto capture mode for openinvoice is turned on then use auto capture
-        if ($captureModeOpenInvoice == true && (strcmp($this->_paymentMethod, 'openinvoice') === 0 || strcmp($this->_paymentMethod, 'afterpay_default') === 0 || strcmp($this->_paymentMethod, 'klarna') === 0)) {
-            return true;
-        }
-        // if PayPal capture modues is different from the default use this one
-        if(strcmp($this->_paymentMethod, 'paypal' ) === 0 && $captureModePayPal != "") {
-            if(strcmp($captureModePayPal, 'auto') === 0 ) {
-                return true;
-            } elseif(strcmp($captureModePayPal, 'manual') === 0 ) {
+            // if you are using authcap the payment method is manual. There will be a capture send to indicate if payment is succesfull
+            if($_paymentCode == "adyen_sepa" && $sepaFlow == "authcap") {
                 return false;
             }
+
+            // payment method ideal, cash adyen_boleto or adyen_pos has direct capture
+            if ($_paymentCode == "adyen_pos" || ($_paymentCode == "adyen_sepa" && $sepaFlow != "authcap")) {
+                return true;
+            }
+
+            // if auto capture mode for openinvoice is turned on then use auto capture
+            if ($captureModeOpenInvoice == true && (strcmp($this->_paymentMethod, 'openinvoice') === 0 || strcmp($this->_paymentMethod, 'afterpay_default') === 0 || strcmp($this->_paymentMethod, 'klarna') === 0)) {
+                return true;
+            }
+            // if PayPal capture modues is different from the default use this one
+            if(strcmp($this->_paymentMethod, 'paypal' ) === 0 && $captureModePayPal != "") {
+                if(strcmp($captureModePayPal, 'auto') === 0 ) {
+                    return true;
+                } elseif(strcmp($captureModePayPal, 'manual') === 0 ) {
+                    return false;
+                }
+            }
+            if (strcmp($captureMode, 'manual') === 0) {
+                return false;
+            }
+            //online capture after delivery, use Magento backend to online invoice (if the option auto capture mode for openinvoice is not set)
+            if (strcmp($this->_paymentMethod, 'openinvoice') === 0 || strcmp($this->_paymentMethod, 'afterpay_default') === 0 || strcmp($this->_paymentMethod, 'klarna') === 0) {
+                return false;
+            }
+            return true;
+
+        } else {
+            // does not allow manual capture so is always immediate capture
+            return true;
         }
-        if (strcmp($captureMode, 'manual') === 0) {
-            return false;
+
+    }
+
+    /**
+     * Validate if this payment methods allows manual capture
+     * This is a default can be forced differently to overrule on acquirer level
+     */
+    protected function _manualCaptureAllowed()
+    {
+        $manualCaptureAllowed = null;
+        $paymentMethod = $this->_paymentMethod;
+
+        switch($paymentMethod) {
+            case 'cup':
+            case 'cartebancaire':
+            case 'visa':
+            case 'mc':
+            case 'uatp':
+            case 'amex':
+            case 'bcmc':
+            case 'maestro':
+            case 'diners':
+            case 'discover':
+            case 'jcb':
+            case 'laser':
+            case 'paypal':
+            case 'klarna':
+            case 'afterpay_default':
+            case 'sepadirectdebit':
+                $manualCaptureAllowed = true;
+                break;
+            default:
+                // To be sure check if it payment method starts with afterpay_ then manualCapture is allowed
+                if(strlen($this->_paymentMethod) >= 9 &&  substr($this->_paymentMethod, 0, 9) == "afterpay_") {
+                    $manualCaptureAllowed = true;
+                }
+                $manualCaptureAllowed = false;
         }
-        //online capture after delivery, use Magento backend to online invoice (if the option auto capture mode for openinvoice is not set)
-        if (strcmp($this->_paymentMethod, 'openinvoice') === 0 || strcmp($this->_paymentMethod, 'afterpay_default') === 0 || strcmp($this->_paymentMethod, 'klarna') === 0) {
-            return false;
-        }
-        return true;
+
+        return $manualCaptureAllowed;
     }
 
     /**

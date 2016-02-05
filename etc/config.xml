@@ -48,6 +48,17 @@
                 <payment_action>authorize</payment_action>
                 <group>adyen</group>
             </adyen_cc>
+            <adyen_oneclick>
+                <active>1</active>
+                <model>Adyen\Payment\Model\Method\Oneclick</model>
+                <title>Adyen OneClick</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>1</sort_order>
+                <cctypes>AE,VI,MC,DI</cctypes> <!-- important to show the payment method isAvailabe()-->
+                <recurring_payment_type>ONECLICK</recurring_payment_type>
+                <payment_action>authorize</payment_action>
+                <group>adyen</group>
+            </adyen_oneclick>
             <adyen_hpp>
                 <active>0</active>
                 <model>Adyen\Payment\Model\Method\Hpp</model>
