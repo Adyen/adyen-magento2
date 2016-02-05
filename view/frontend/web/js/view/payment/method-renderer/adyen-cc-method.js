@@ -158,7 +158,7 @@ define(
                 var owner = Boolean($(form + ' #adyen_cc_cc_owner').valid());
                 var expiration = Boolean($(form + ' #adyen_cc_expiration').valid());
                 var expiration_yr = Boolean($(form + ' #adyen_cc_expiration_yr').valid());
-                var $cid = Boolean($(form + ' #adyen_cc_cc_cid').valid());
+                var cid = Boolean($(form + ' #adyen_cc_cc_cid').valid());
 
                 if(!validate || !ccNumber || !owner || !expiration || !expiration_yr || !cid) {
                     return false;
