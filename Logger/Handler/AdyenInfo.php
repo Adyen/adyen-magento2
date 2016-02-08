@@ -21,9 +21,23 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-// @codingStandardsIgnoreFile
+namespace Adyen\Payment\Logger\Handler;
 
-?>
-<dl class="payment-method checkmemo">
-    <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
-</dl>
+use Adyen\Payment\Logger\AdyenLogger;
+use Monolog\Logger;
+
+class AdyenInfo extends AdyenBase
+{
+    /**
+     * @var string
+     */
+    protected $fileName = '/var/log/adyen/info.log';
+
+    /**
+     * @var int
+     */
+    protected $loggerType = AdyenLogger::INFO;
+
+    protected $level = AdyenLogger::INFO;
+
+}

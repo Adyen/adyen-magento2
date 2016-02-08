@@ -38,6 +38,16 @@ class Cc extends \Magento\Payment\Block\Form
     protected $_paymentConfig;
 
     /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    protected $_adyenHelper;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $_storeManager;
+
+    /**
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
      * @param array $data
@@ -45,11 +55,38 @@ class Cc extends \Magento\Payment\Block\Form
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Payment\Model\Config $paymentConfig,
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->_paymentConfig = $paymentConfig;
+        $this->_adyenHelper = $adyenHelper;
+        $this->_storeManager = $storeManager;
     }
+
+
+    public function getCsePublicKey()
+    {
+        // get storeId for admin
+        if (!$this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
+            $storeId = $this->_storeManager->getStore()->getId();
+        } else {
+            $storeId = null;
+        }
+
+        $demoMode = $this->_adyenHelper->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
+
+        if($demoMode) {
+            $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_test', $storeId);
+        } else {
+            $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_live', $storeId);
+        }
+
+        return $cseKey;
+
+    }
+
 
     /**
      * Retrieve availables credit card types

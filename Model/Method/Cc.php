@@ -159,6 +159,8 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         parent::assignData($data);
         $infoInstance = $this->getInfoInstance();
 
+        $infoInstance->setCcType($data['cc_type']);
+
         if($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
             if(isset($data['encrypted_data'])) {
                 $infoInstance->setAdditionalInformation('encrypted_data', $data['encrypted_data']);

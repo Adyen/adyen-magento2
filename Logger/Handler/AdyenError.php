@@ -21,45 +21,23 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Controller\Process;
+namespace Adyen\Payment\Logger\Handler;
 
-use Symfony\Component\Config\Definition\Exception\Exception;
+use Adyen\Payment\Logger\AdyenLogger;
+use Monolog\Logger;
 
-/**
- * Class Json
- * @package Adyen\Payment\Controller\Process
- */
-class Cron extends \Magento\Framework\App\Action\Action
+class AdyenError extends AdyenBase
 {
+    /**
+     * @var string
+     */
+    protected $fileName = '/var/log/adyen/error.log';
 
     /**
-     * @var \Magento\Framework\ObjectManagerInterface
+     * @var int
      */
-    protected $_objectManager;
+    protected $loggerType = AdyenLogger::ERROR;
 
-    /**
-     * @var \Magento\Framework\Controller\Result\RawFactory
-     */
-    protected $_resultFactory;
-
-    /**
-     * @param \Magento\Framework\App\Action\Context $context
-     */
-    public function __construct(
-        \Magento\Framework\App\Action\Context $context
-    ) {
-        parent::__construct($context);
-        $this->_objectManager = $context->getObjectManager();
-        $this->_resultFactory = $context->getResultFactory();
-    }
-
-    /**
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function execute()
-    {
-        $cron = $this->_objectManager->create('Adyen\Payment\Model\Cron');
-        $cron->processNotification();
-    }
+    protected $level = AdyenLogger::ERROR;
 
 }

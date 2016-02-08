@@ -384,12 +384,31 @@ class Data extends AbstractHelper
         }
     }
 
+    /**
+     * Creditcard type that is selected is different from creditcard type that we get back from the request this
+     * function get the magento creditcard type this is needed for getting settings like installments
+     * @param $ccType
+     * @return mixed
+     */
+    public function getMagentoCreditCartType($ccType)
+    {
+
+        $ccTypesMapper = $this->getCcTypesAltData();
+
+        if(isset($ccTypesMapper[$ccType])) {
+            $ccType = $ccTypesMapper[$ccType]['code'];
+        }
+
+        return $ccType;
+    }
+
     public function getCcTypesAltData()
     {
         $adyenCcTypes =  $this->getAdyenCcTypes();
         $types = array();
         foreach ($adyenCcTypes as $key => $data) {
             $types[$data['code_alt']] = $data;
+            $types[$data['code_alt']]['code'] = $key;
         }
         return $types;
     }

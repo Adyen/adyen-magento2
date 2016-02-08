@@ -22,6 +22,7 @@
  */
 
 namespace Adyen\Payment\Model\Method;
+use Magento\Framework\Webapi\Exception;
 
 /**
  * Adyen CreditCard payment method
@@ -44,9 +45,13 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
     protected $_formBlockType = 'Adyen\Payment\Block\Form\Oneclick';
     protected $_infoBlockType = 'Adyen\Payment\Block\Info\Oneclick';
 
-//    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null) {
-//      return true;
-//    }
+
+    /**
+     * Payment Method not ready for internal use
+     *
+     * @var bool
+     */
+    protected $_canUseInternal = false;
 
     /**
      * Assign data to info model instance
@@ -60,6 +65,10 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
         parent::assignData($data);
         $infoInstance = $this->getInfoInstance();
 
+        // get from variant magento code for creditcard type and set this in ccType
+        $variant = $data['variant'];
+        $ccType = $this->_adyenHelper->getMagentoCreditCartType($variant);
+        $infoInstance->setCcType($ccType);
 
         // save value remember details checkbox
         $infoInstance->setAdditionalInformation('recurring_detail_reference', $data['recurring_detail_reference']);
@@ -73,6 +82,24 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
 
         $infoInstance->setAdditionalInformation('customer_interaction', $customerInteraction);
 
+        return $this;
+    }
+
+    public function updateBillingAgreementStatus(\Adyen\Payment\Model\Billing\Agreement $agreement)
+    {
+        $targetStatus = $agreement->getStatus();
+
+        if($targetStatus == \Magento\Paypal\Model\Billing\Agreement::STATUS_CANCELED) {
+
+            try {
+                $this->_paymentRequest->disableRecurringContract(
+                    $agreement->getReferenceId(),
+                    $agreement->getCustomerReference()
+                );
+            } catch(Exception $e) {
+                throw new \Magento\Framework\Exception\LocalizedException(__('Failed to disable this contract'));
+            }
+        }
         return $this;
     }
 

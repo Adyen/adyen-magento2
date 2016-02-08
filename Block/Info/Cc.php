@@ -39,4 +39,21 @@ class Cc extends AbstractInfo
 //        $this->setTemplate('Magento_OfflinePayments::info/pdf/checkmo.phtml');
 //        return $this->toHtml();
 //    }
+
+    /**
+     * Return credit cart type
+     *
+     * @return string
+     */
+    public function getCcTypeName()
+    {
+        $types = $this->_adyenHelper->getAdyenCcTypes();
+        $ccType = $this->getInfo()->getCcType();
+
+        if (isset($types[$ccType])) {
+            return $types[$ccType]['name'];
+        } else {
+            return __('Unknown');
+        }
+    }
 }

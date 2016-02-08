@@ -125,7 +125,7 @@ class PaymentRequest extends DataObject
         $customerId = $order->getCustomerId();
         $shopperReference = (!empty($customerId)) ? $customerId : self::GUEST_ID . $realOrderId;
 
-            // call lib
+        // call lib
         $service = new \Adyen\Service\Payment($this->_client);
 
         $amount = ['currency' => $orderCurrencyCode, 'value' => $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode)];
@@ -169,6 +169,11 @@ class PaymentRequest extends DataObject
             $recurring = array('contract' => $recurringContractType);
             $request['recurring'] = $recurring;
         }
+
+        $this->_adyenLogger->error('storeCC?:' . $payment->getAdditionalInformation("store_cc"));
+        $this->_adyenLogger->error('recuringtype' . $recurringType);
+        $this->_adyenLogger->error('recurringcontractType' . $recurringContractType);
+
 
         $billingAddress = $order->getBillingAddress();
 
@@ -445,6 +450,43 @@ class PaymentRequest extends DataObject
         $result = $service->listRecurringDetails($request);
 
         return $result;
+    }
+
+    /**
+     * Disable a recurring contract
+     *
+     * @param string                         $recurringDetailReference
+     * @param string                         $shopperReference
+     * @param int|Mage_Core_model_Store|null $store
+     *
+     * @throws Adyen_Payment_Exception
+     * @return bool
+     */
+    public function disableRecurringContract($recurringDetailReference, $shopperReference)
+    {
+        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
+
+        $request = array(
+            "merchantAccount" => $merchantAccount,
+            "shopperReference" => $shopperReference,
+            "recurringDetailReference" => $recurringDetailReference
+        );
+
+        // call lib
+        $service = new \Adyen\Service\Recurring($this->_client);
+
+        try {
+            $result = $service->disable($request);
+        } catch(\Exception $e) {
+            $this->_adyenLogger->info($e->getMessage());
+        }
+
+        if(isset($result['response']) && $result['response'] == '[detail-successfully-disabled]') {
+            return true;
+        } else {
+            echo 'hier';die();
+            throw new \Magento\Framework\Exception\LocalizedException(__('Failed to disable this contract'));
+        }
     }
 
     /**

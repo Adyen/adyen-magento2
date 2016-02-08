@@ -171,11 +171,11 @@ class Cron
         //fixme somehow the created_at is saved in my timzone
         $dateStart = new \DateTime();
 
-        // execute notifications from 5 minute or earlier because order could not yet been created by magento
+        // execute notifications from 2 minute or earlier because order could not yet been created by magento
         $dateStart = new \DateTime();
-        $dateStart->modify('-10 day'); // TODO: KEEP THIS ON -1 day
+        $dateStart->modify('-1 day');
         $dateEnd = new \DateTime();
-        $dateEnd->modify('-1 minute'); // TODO: DO NOT COMMIT KEEP ON -5
+        $dateEnd->modify('-2 minute');
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
 
         // create collection

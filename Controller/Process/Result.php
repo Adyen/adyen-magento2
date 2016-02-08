@@ -122,16 +122,16 @@ class Result extends \Magento\Framework\App\Action\Action
     {
         $result = true;
 
-        $this->_debugData['Step1'] = 'Processing ResultUrl';
+        $this->_adyenLogger->addAdyenResult('Processing ResultUrl');
         $storeId = null;
 
         if (empty($response)) {
-            $this->_debugData['error'] = 'Response is empty, please check your webserver that the result url accepts parameters';
+            $this->_adyenLogger->addAdyenResult('Response is empty, please check your webserver that the result url accepts parameters');
             throw new \Magento\Framework\Exception\LocalizedException(__('Response is empty, please check your webserver that the result url accepts parameters'));
         }
 
         // Log the results in log file and adyen_debug table
-        $this->_debugData['response'] = $response;
+        $this->_adyenLogger->addAdyenResult($response);
 
 
         // authenticate result url
@@ -182,7 +182,7 @@ class Result extends \Magento\Framework\App\Action\Action
     {
         $result = false;
 
-        $this->_debugData['Step2'] = 'Updating the order';
+        $this->_adyenLogger->addAdyenResult('Updating the order');
 
         $authResult = $response['authResult'];
         $paymentMethod = isset($response['paymentMethod']) ? trim($response['paymentMethod']) : '';
@@ -210,24 +210,24 @@ class Result extends \Magento\Framework\App\Action\Action
             case \Adyen\Payment\Model\Notification::PENDING:
                 // do nothing wait for the notification
                 $result = true;
-                $this->_debugData['Step4'] = 'Do nothing wait for the notification';
+                $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
             case \Adyen\Payment\Model\Notification::CANCELLED:
-                $this->_debugData['Step4'] = 'Cancel or Hold the order';
+                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order');
                 $result = false;
                 break;
             case \Adyen\Payment\Model\Notification::REFUSED:
-                // if refused there will be a AUTHORIZATION : FALSE notification send only exception is ideal
-                $this->_debugData['Step4'] = 'Cancel or Hold the order';
+                // if refused there will be a AUTHORIZATION : FALSE notification send only exception is idea
+                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order');
                 $result = false;
                 break;
             case \Adyen\Payment\Model\Notification::ERROR:
                 //attempt to hold/cancel
-                $this->_debugData['Step4'] = 'Cancel or Hold the order';
+                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order');
                 $result = false;
                 break;
             default:
-                $this->_debugData['error'] = 'This event is not supported: ' . $authResult;
+                $this->_adyenLogger->addAdyenResult('This event is not supported: ' . $authResult);
                 $result = false;
                 break;
         }

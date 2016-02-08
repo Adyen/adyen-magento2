@@ -45,6 +45,34 @@ $_isDemoMode = $block->isDemoMode();
     </div>
 <?php endif;?>
 
+<?php if($block->getCcTypeName() != ""):?>
+    <?php echo __('Credit Card Type: %1', $block->getCcTypeName()) ?><br/>
+<?php endif; ?>
+<?php if($_info->getCcLast4() != ""):?>
+    <?php echo __('Credit Card Number: xxxx-%1', $this->getInfo()->getCcLast4()) ?><br/>
+<?php endif;?>
+
+
+<?php if($_info->getAdditionalInformation('adyen_avs_result') != ""): ?>
+    <?php echo __('Avs result: %1', $_info->getAdditionalInformation('adyen_avs_result')) ?><br/>
+<?php endif; ?>
+<?php if($_info->getAdditionalInformation('adyen_cvc_result') != ""): ?>
+    <?php echo __('Cvc result: %1', $_info->getAdditionalInformation('adyen_cvc_result')) ?><br/>
+<?php endif; ?>
+<?php if($_info->getAdditionalInformation('adyen_total_fraud_score') != ""): ?>
+    <?php echo __('Total fraud score: %1', $_info->getAdditionalInformation('adyen_total_fraud_score')) ?><br/>
+<?php endif; ?>
+<?php if($_info->getAdditionalInformation('adyen_refusal_reason_raw') != ""): ?>
+    <?php echo __('Raw acquirer response: %1', $_info->getAdditionalInformation('adyen_refusal_reason_raw')) ?><br/>
+<?php endif; ?>
+
+<?php if($_info->getAdditionalInformation('adyen_auth_code') != ""): ?>
+    <?php echo __('Authorisation code: %1', $_info->getAdditionalInformation('adyen_auth_code')) ?><br/>
+<?php endif; ?>
+<?php if($_info->getAdditionalInformation('adyen_acquirer_reference') != ""): ?>
+    <?php echo __('Acquirer reference: %1', $_info->getAdditionalInformation('adyen_acquirer_reference')) ?><br/>
+<?php endif; ?>
+
 <?php if ($_specificInfo = $block->getSpecificInformation()):?>
 <table class="data-table admin__table-secondary">
 <?php foreach ($_specificInfo as $_label => $_value):?>

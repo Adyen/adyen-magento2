@@ -21,19 +21,26 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Block\Info;
+// @codingStandardsIgnoreFile
 
-class Hpp extends AbstractInfo
-{
+?>
+<?php
+$_info = $this->getInfo();
+?>
 
-    /**
-     * @var string
-     */
-    protected $_template = 'Adyen_Payment::info/adyen_hpp.phtml';
+<?php $paymentSelectionOnAdyen = $block->isPaymentSelectionOnAdyen();?>
 
-    public function isPaymentSelectionOnAdyen()
-    {
-        return $this->_adyenHelper->getAdyenHppConfigDataFlag('payment_selection_on_adyen');
-    }
+<dl class="payment-method adyen_hpp">
 
-}
+<?php if($paymentSelectionOnAdyen): ?>
+    <?php echo $this->htmlEscape($this->getMethod()->getTitle()) ?><br/>
+        <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
+    <?php else: ?>
+
+    <?php if ($_brandCode = $_info->getAdditionalInformation('brand_code')):?>
+        <dt class="title"><?php echo $_brandCode; ?></dt>
+    <?php endif;?>
+
+<?php endif; ?>
+
+</dl>

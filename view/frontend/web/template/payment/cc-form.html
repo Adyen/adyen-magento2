@@ -200,10 +200,8 @@
                            name="payment[store_cc]"
                            autocomplete="off"
                            class="checkbox"
-                           value="1"
-                           checked
-                           data-bind="attr: {title: $t('Remember Me')}"
-                           data-validate="{required:true}"/>
+                           data-bind="attr: {title: $t('Remember Me')}, checked: setStoreCc"
+                           />
                     <label data-bind="attr: {for: getCode() + '_remember_details'}" class="label">
                         <span><!-- ko text: $t('Remember these details')--><!-- /ko --></span>
                     </label>

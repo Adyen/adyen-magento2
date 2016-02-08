@@ -42,7 +42,8 @@ define(
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
                 creditCardOwner: '',
-                encryptedData: ''
+                encryptedData: '',
+                setStoreCc: true
             },
             initObservable: function () {
                 this._super()
@@ -57,7 +58,8 @@ define(
                         'selectedCardType',
                         'creditCardOwner',
                         'encryptedData',
-                        'generationtime'
+                        'generationtime',
+                        'setStoreCc'
                     ]);
                 return this;
             },
@@ -78,7 +80,8 @@ define(
                     additional_data: {
                         'cc_type': this.creditCardType(),
                         'encrypted_data': this.encryptedData(),
-                        'generationtime': this.generationtime()
+                        'generationtime': this.generationtime(),
+                        'store_cc': this.setStoreCc()
                     }
                 };
             },

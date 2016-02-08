@@ -21,19 +21,9 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Block\Info;
+// @codingStandardsIgnoreFile
 
-class Hpp extends AbstractInfo
-{
-
-    /**
-     * @var string
-     */
-    protected $_template = 'Adyen_Payment::info/adyen_hpp.phtml';
-
-    public function isPaymentSelectionOnAdyen()
-    {
-        return $this->_adyenHelper->getAdyenHppConfigDataFlag('payment_selection_on_adyen');
-    }
-
-}
+?>
+<dl class="payment-method adyen_oneclick">
+    <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
+</dl>

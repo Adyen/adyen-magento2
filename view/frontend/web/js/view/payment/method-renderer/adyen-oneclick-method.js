@@ -113,7 +113,8 @@ define(
                     "po_number": null,
                     "additional_data": {
                         encrypted_data: encryptedData,
-                        recurring_detail_reference: self.value
+                        recurring_detail_reference: self.value,
+                        variant: self.agreement_data.variant
                     }
                 };
 

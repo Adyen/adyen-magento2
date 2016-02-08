@@ -62,6 +62,13 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     protected $_canRefund = true;
     protected $_canRefundInvoicePartial = true;
 
+    /**
+     * Payment Method feature
+     *
+     * @var bool
+     */
+    protected $_canUseInternal = false;
+
 
     /**
      * @var \Adyen\Payment\Model\Api\PaymentRequest
