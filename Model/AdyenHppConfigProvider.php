@@ -222,16 +222,9 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         if(isset($responseData['paymentMethods'])) {
             foreach ($responseData['paymentMethods'] as $paymentMethod) {
 
-                // TODO: validate if brancode and title exists
                 $paymentMethod = $this->_fieldMapPaymentMethod($paymentMethod);
                 $paymentMethodCode = $paymentMethod['brandCode'];
-
-
                 $paymentMethod = $this->_fieldMapPaymentMethod($paymentMethod);
-
-
-                // TODO: IMPLEMENT SKIP CARDS if adyen cc is enabled
-
                 $paymentMethods[$paymentMethodCode] = $paymentMethod;
             }
         }
@@ -329,10 +322,6 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
     protected function _getDirectoryLookupResponse($requestParams, $store)
     {
         $cacheKey = $this->_getCacheKeyForRequest($requestParams, $store);
-
-        if (! $hmacKey = $this->_adyenHelper->getHmac()) {
-            // TODO THROW ADYEN EXEPTION
-        }
 
         // initialize the adyen client
         $client = new \Adyen\Client();
