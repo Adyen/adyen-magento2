@@ -1,20 +1,25 @@
 # Adyen_Magento2
 Adyen Payment plugin for Magento2
 
+## Install with Composer ##
+composer require adyen/module-payment
 
-## Install with Composer
+## Manual ##
+<a href="https://docs.adyen.com/manuals/magento2-integration" target="_blank">https://docs.adyen.com/manuals/magento2-integration</a>
 
-Make sure you have "minimum-stability": "dev" in your magento composer.json set.
-Because the repositories are private you need to do the folowing:
+## Setup Cron ##
+Make sure that your magento cron is running every minute. We are using a cronjob to process the notifications. The cronjob will be executed every minute. It only executes the notifications that have been received at least 2 minutes ago. We have built in this 2 minutes so we are sure Magento has created the order and all save after events are executed. A handy tool to get inside into your cronjobs is AOE scheduler. You can download this tool through Magento Connect or GitHub
 
-1. composer config repositories.adyen-adyen-magento2 vcs git@github.com:Adyen/adyen-magento2.git 
-2. composer config repositories.adyen-php-api-library vcs git@github.com:Adyen/adyen-php-api-library.git
-3. composer require adyen/module-payment
+## Support ##
+You can create issues on our Magento Repository or if you have some specific problems for your account you can contact magento@adyen.com as well.
 
-## API Library
+## API Library ##
+This module is using the Adyen APIs Library for PHP for all (API) connections to Adyen.
+<a href="https://github.com/Adyen/adyen-php-api-library" target="_blank">This library can be found here</a>
+
 Not yet used but communication through the API will go through this library. If you not have access to this repo please let us know.
 
-## Setting up cronjob
+## Setting up cronjob ##
 The notifications of Adyen (this will give you the indication of the payment status) is processed by a cronjob. You need to setup your cronjob. <a href="http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html" target="_blank">This is described here</a>
 
 We have defined this:
