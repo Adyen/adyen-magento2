@@ -87,7 +87,6 @@ class Cc extends \Magento\Payment\Block\Form
 
     }
 
-
     /**
      * Retrieve availables credit card types
      *
@@ -151,14 +150,6 @@ class Cc extends \Magento\Payment\Block\Form
     public function hasVerification()
     {
         return true;
-//        if ($this->getMethod()) {
-//            $configData = $this->getMethod()->getConfigData('useccv');
-//            if ($configData === null) {
-//                return true;
-//            }
-//            return (bool)$configData;
-//        }
-//        return true;
     }
 
     /**

@@ -29,7 +29,4 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
      * @var string
      */
     protected $_template = 'Adyen_Payment::form/oneclick.phtml';
-
-
-
 }

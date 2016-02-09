@@ -32,15 +32,6 @@ class Cc extends AbstractInfo
     protected $_template = 'Adyen_Payment::info/adyen_cc.phtml';
 
     /**
-     * @return string
-     */
-//    public function toPdf()
-//    {
-//        $this->setTemplate('Magento_OfflinePayments::info/pdf/checkmo.phtml');
-//        return $this->toHtml();
-//    }
-
-    /**
      * Return credit cart type
      *
      * @return string

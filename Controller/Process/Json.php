@@ -133,8 +133,6 @@ class Json extends \Magento\Framework\App\Action\Action
      */
     protected function _processNotification($response, $notificationMode)
     {
-        // TODO: log the response
-
         // validate the notification
         if($this->authorised($response))
         {

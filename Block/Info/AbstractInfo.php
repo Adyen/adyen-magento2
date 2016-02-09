@@ -60,9 +60,4 @@ class AbstractInfo extends \Magento\Payment\Block\Info
         $storeId = $this->getInfo()->getOrder()->getStoreId();
         return $this->_adyenHelper->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
     }
-
-
-
-
-
 }

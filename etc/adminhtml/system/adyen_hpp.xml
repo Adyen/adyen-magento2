@@ -23,23 +23,15 @@
  */
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
-
-
-
     <group id="adyen_hpp" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
         <label><![CDATA[Hosted Payment Page (HPP) integration]]></label>
         <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment>Process alternative payments methods</comment>
-
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Enabled</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_hpp/active</config_path>
-        </field>
-        <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Title</label>
-            <config_path>payment/adyen_hpp/title</config_path>
         </field>
         <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Sort Order</label>
@@ -63,10 +55,19 @@
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_hpp/hmac_live</config_path>
         </field>
-
     <group id="adyen_hpp_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" sortOrder="200">
         <label>Advanced Settings</label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+            <field id="title" translate="label" type="text" sortOrder="65" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Title</label>
+                <config_path>payment/adyen_hpp/title</config_path>
+            </field>
+        <field id="delivery_days" translate="label" type="text" sortOrder="68" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Days to Delivery</label>
+            <tooltip>How many days to be added to the current date for delivery. ONLY whole numbers allowed.</tooltip>
+            <frontend_class>validate-number</frontend_class>
+            <config_path>payment/adyen_hpp/delivery_days</config_path>
+        </field>
             <field id="payment_selection_on_adyen" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Payment method selection on Adyen Hosted Payment Page (HPP)</label>
                 <tooltip>If you set this to 'Yes', payment methods in the checkout won't be displayed and you will be redirected to the Adyen HPP to make the selection.</tooltip>
@@ -80,12 +81,6 @@
                 <depends><field id="payment_selection_on_adyen">1</field></depends>
                 <config_path>payment/adyen_hpp/payment_routine</config_path>
             </field>
-            <field id="delivery_days" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Days to Delivery</label>
-                <tooltip>How many days to be added to the current date for delivery. ONLY whole numbers allowed.</tooltip>
-                <frontend_class>validate-number</frontend_class>
-                <config_path>payment/adyen_hpp/delivery_days</config_path>
-            </field>
             <field id="shopper_locale" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Language locale (optional)</label>
                 <tooltip>This will override the default shopper locale of the Magento store (e.g. nl_NL). Leave empty to let Magento decide.</tooltip>
@@ -97,7 +92,6 @@
                 <config_path>payment/adyen_hpp/country_code</config_path>
             </field>
         </group>
-
         <group id="adyen_hpp_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="210">
             <label>Country Specific Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
@@ -113,7 +107,5 @@
                 <config_path>payment/adyen_hpp/specificcountry</config_path>
             </field>
         </group>
-
     </group>
-
 </include>

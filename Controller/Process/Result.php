@@ -130,10 +130,6 @@ class Result extends \Magento\Framework\App\Action\Action
             throw new \Magento\Framework\Exception\LocalizedException(__('Response is empty, please check your webserver that the result url accepts parameters'));
         }
 
-        // Log the results in log file and adyen_debug table
-        $this->_adyenLogger->addAdyenResult($response);
-
-
         // authenticate result url
         $authStatus = $this->_authenticate($response);
         if (!$authStatus) {

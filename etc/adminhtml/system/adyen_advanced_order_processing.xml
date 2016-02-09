@@ -26,8 +26,6 @@
     <group id="adyen_advanced_order_processing" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
         <label><![CDATA[Advanced: Magento Order Processing]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-
-
         <field id="paypal_capture_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Use manual capture for PayPal</label>
             <tooltip>Should be on 'No' by default. If you have requested with Adyen Support for your PayPal integration to be on manual capture, set this to 'Yes'.</tooltip>

@@ -29,6 +29,8 @@
         <field id="merchant_account" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Merchant Account</label>
             <config_path>payment/adyen_abstract/merchant_account</config_path>
+            <tooltip><![CDATA[The merchant account identifier you want to process the (transaction) request with. Find this at the top of the screen in the Adyen Customer Area, where you will see [YourCompanyAccount] > [YourMerchantAccount] . Please note that the merchant account is different from the company account; a company account can have one or more merchant accounts.]]></tooltip>
+            <comment><![CDATA[<a target="_blank" href="https://docs.adyen.com/display/TD/Prepare+the+settings+in+the+Adyen+Customer+Area">Click here for explanation.</a>]]></comment>
         </field>
         <field id="demo_mode" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Test/Production Mode</label>

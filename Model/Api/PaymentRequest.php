@@ -484,7 +484,6 @@ class PaymentRequest extends DataObject
         if(isset($result['response']) && $result['response'] == '[detail-successfully-disabled]') {
             return true;
         } else {
-            echo 'hier';die();
             throw new \Magento\Framework\Exception\LocalizedException(__('Failed to disable this contract'));
         }
     }
@@ -498,7 +497,6 @@ class PaymentRequest extends DataObject
     {
         return $payment->getAdyenPspReference();
     }
-
 
     /**
      * Decrypt password

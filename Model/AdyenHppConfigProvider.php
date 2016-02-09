@@ -176,7 +176,17 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
     {
         $paymentMethods = [];
 
+        $ccEnabled = $this->_config->getValue('payment/'.\Adyen\Payment\Model\Method\Cc::METHOD_CODE.'/active');
+        $ccTypes = array_keys($this->_adyenHelper->getCcTypesAltData());
+
         foreach ($this->_fetchHppMethods($store) as $methodCode => $methodData) {
+
+            // skip payment methods if it is a creditcard that is enabled in adyen_cc
+            if ($ccEnabled
+                && in_array($methodCode, $ccTypes)) {
+                continue;
+            }
+
             $paymentMethods[$methodCode] = $methodData;
         }
 
@@ -339,8 +349,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         // create and add signature
         $requestParams["merchantSig"] = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $requestParams);
 
-//        print_R($requestParams);die();
-        // intialize service
+        // initialize service
         $service = new \Adyen\Service\DirectoryLookup($client);
 
         try {

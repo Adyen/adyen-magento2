@@ -47,7 +47,6 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      */
     const GUEST_ID = 'customer_';
 
-//    protected $_formBlockType = 'Adyen\Payment\Block\Form\Hpp';
     protected $_infoBlockType = 'Adyen\Payment\Block\Info\Hpp';
 
 

@@ -24,19 +24,13 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-
-
-
         <section id="payment" translate="label" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
-
-
             <group id="adyen_group_all_in_one" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Adyen All-in-One Payment Solutions</label>
                 <comment><![CDATA[Adyen All-in-One Payment Solutions]]></comment>
                 <attribute type="expanded">1</attribute>
                 <fieldset_css>complex</fieldset_css>
                 <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
-
                 <include path="Adyen_Payment::system/adyen_getting_started.xml"/>
                 <include path="Adyen_Payment::system/adyen_required_settings.xml"/>
                 <include path="Adyen_Payment::system/adyen_advanced_order_processing.xml"/>
@@ -45,12 +39,7 @@
                 <include path="Adyen_Payment::system/adyen_cc.xml"/>
                 <include path="Adyen_Payment::system/adyen_oneclick.xml"/>
                 <include path="Adyen_Payment::system/adyen_hpp.xml"/>
-
             </group>
-
-
-
-
             <group id="test" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Test</label>
                 <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">

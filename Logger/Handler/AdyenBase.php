@@ -86,5 +86,4 @@ class AdyenBase extends StreamHandler
     {
         return $record['level'] == $this->level;
     }
-
 }

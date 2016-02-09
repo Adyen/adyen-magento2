@@ -25,7 +25,6 @@ namespace Adyen\Payment\Block\Info;
 
 class Hpp extends AbstractInfo
 {
-
     /**
      * @var string
      */
@@ -35,5 +34,4 @@ class Hpp extends AbstractInfo
     {
         return $this->_adyenHelper->getAdyenHppConfigDataFlag('payment_selection_on_adyen');
     }
-
 }

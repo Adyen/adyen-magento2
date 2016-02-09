@@ -50,7 +50,5 @@
             <source_model>Adyen\Payment\Model\Config\Source\RecurringType</source_model>
             <config_path>payment/adyen_abstract/recurring_type</config_path>
         </field>
-
-
     </group>
 </include>

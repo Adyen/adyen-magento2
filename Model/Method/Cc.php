@@ -273,11 +273,11 @@ class Cc extends \Magento\Payment\Model\Method\Cc
                             $errorMsg = __('The expiry month is not set. Please check your expiry month!');
                             break;
                         default:
-                            $errorMsg = __('The payment is REFUSED by Adyen.');
+                            $errorMsg = __('The payment is REFUSED.');
                             break;
                     }
                 } else {
-                    $errorMsg = __('The payment is REFUSED by Adyen.');
+                    $errorMsg = __('The payment is REFUSED.');
                 }
 
                 if ($errorMsg) {
