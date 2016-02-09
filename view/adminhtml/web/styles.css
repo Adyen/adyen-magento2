@@ -21,3 +21,4 @@
  */
 
 .adyen-method-adyen-cc > .entry-edit-head > .config-heading .heading strong { padding-left:90px;background:url(images/adyen-logo.png) no-repeat 0 0;  background-size: 83px 24px;line-height: 23px;}
+ul.adyen-list { margin:0 20px 10px;}
