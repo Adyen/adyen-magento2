@@ -1,0 +1,176 @@
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+
+
+<!-- ko foreach: getAdyenBillingAgreements() -->
+
+<div class="payment-method" data-bind="css: {'_active': (value == $parent.isBillingAgreementChecked())}">
+    <div class="payment-method-title field choice">
+        <input type="radio"
+               name="payment[method]"
+               class="radio"
+               data-bind="attr: {'id': value}, value: value, checked: $parent.isBillingAgreementChecked, click: $parent.selectBillingAgreement"/>
+        <label data-bind="attr: {'for': value}" class="label"><span data-bind="text: label"></span></label>
+    </div>
+    <div class="payment-method-content">
+
+        <div class="payment-method-billing-address">
+            <!-- ko foreach: $parents[1].getRegion($parent.getBillingAddressFormName()) -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+
+        <form class="form" action="#" method="post" data-bind="
+            attr: {'id': 'adyen_oneclick_' + value, 'data-role': 'adyen_oneclick_' + value },
+            mageInit: {
+                'transparent':{
+                    'context': $parent.context(),
+                    'controller': $parent.getControllerName(),
+                    'orderSaveUrl':$parent.getPlaceOrderUrl(),
+                }, 'validation':[]}">
+
+            <fieldset data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + $parent.getCode() + '_' + value}">
+
+                <!-- ko if: agreement_data.card.number -->
+
+                <div class="field number">
+                    <label class="label">
+                        <span><!-- ko text: $t('Credit Card Number')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <span data-bind="text: '**** **** ****' + agreement_data.card.number"></span>
+                    </div>
+                </div>
+
+
+                <div class="field number expire-update" data-bind="css: {'_disable': (true == expiry())}">
+                    <label class="label">
+                        <span><!-- ko text: $t('Expiration Date')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <span data-bind="text: agreement_data.card.expiryMonth + '/' + agreement_data.card.expiryYear"></span>
+                        <a class="" data-bind="click: selectExpiry"
+                                ><!-- ko text: $t('Update') --><!-- /ko --></a>
+                    </div>
+                </div>
+
+                <div class="field date required changable-card-expiry" data-bind="attr: {id: getCode() + '_' + value + '_cc_type_exp_div'}, css: {'_active': (true == expiry())}">
+                    <label data-bind="attr: {for: getCode() + '_' + value + '_expiration'}" class="label">
+                        <span><!-- ko text: $t('Expiration Date')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <div class="fields group group-2">
+                            <div class="field no-label month">
+                                <div class="control">
+                                    <select  class="select select-month"
+                                             data-encrypted-name="expiryMonth"
+                                             data-bind="attr: {id: getCode() + '_' + value + '_expiration', 'data-container': getCode() + '-' + value + '-cc-month', 'data-validate': JSON.stringify({required:true, 'validate-cc-exp':'#' + getCode() + '_expiration_yr'})},
+                                                enable: $parent.isActive($parents),
+                                                options: $parent.getCcMonthsValues(),
+                                                optionsValue: 'value',
+                                                optionsText: 'month',
+                                                optionsCaption: $t('Month'),
+                                                value: creditCardExpMonth"
+                                             data-validate="{required:true}">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="field no-label year">
+                                <div class="control">
+                                    <select class="select select-year"
+                                            data-encrypted-name="expiryYear"
+                                            data-bind="attr: {id: getCode() + '_' + value + '_expiration_yr', 'data-container': getCode() + '-' + value + '-cc-year', 'data-validate': JSON.stringify({required:true})},
+                                               enable: $parent.isActive($parents),
+                                               options: $parent.getCcYearsValues(),
+                                               optionsValue: 'value',
+                                               optionsText: 'year',
+                                               optionsCaption: $t('Year'),
+                                               value: creditCardExpYear"
+                                            data-validate="{required:true}">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ko if: ($parent.hasVerification())-->
+                <div class="field cvv required" data-bind="attr: {id: getCode() + '_' + value + '_cc_type_cvv_div'}">
+                    <label data-bind="attr: {for: getCode() + '_' + value + '_cc_cid'}" class="label">
+                        <span><!-- ko text: $t('Card Verification Number')--><!-- /ko --></span>
+                    </label>
+                    <div class="control _with-tooltip">
+                        <input type="number"
+                               autocomplete="off"
+                               class="input-text cvv"
+                               data-encrypted-name="cvc"
+                               value=""
+                               data-bind="attr: {id: getCode() + '_' + value + '_cc_cid',
+                                title: $t('Card Verification Number'),
+                                'data-container': getCode() + '-' + value + '-cc-cvv',
+                                'data-validate': JSON.stringify({'required-number':true, 'validate-card-cvv':'#' + getCode() + '_' + value + '_cc_type'})},
+                                enable: $parent.isActive($parents),
+                                value: creditCardVerificationNumber"
+                               data-validate="{required:true}"/>
+                        <div class="field-tooltip toggle">
+                        <span class="field-tooltip-action action-cvv"
+                              tabindex="0"
+                              data-toggle="dropdown"
+                              data-bind="attr: {title: $t('What is this?')}, mageInit: {'dropdown':{'activeClass': '_active'}}">
+                            <span><!-- ko text: $t('What is this?')--><!-- /ko --></span>
+                        </span>
+                            <div class="field-tooltip-content"
+                                 data-target="dropdown"
+                                 data-bind="html: $parent.getCvvImageHtml()"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /ko -->
+            <!--/ko-->
+            </fieldset>
+            <div class="checkout-agreements-block">
+                <!-- ko foreach: $parents[1].getRegion('before-place-order') -->
+                <!-- ko template: getTemplate() --><!-- /ko -->
+                <!--/ko-->
+            </div>
+            <div class="actions-toolbar">
+                <div class="primary">
+                    <button class="action primary checkout"
+                            type="submit"
+                            data-bind="
+                                click: $parent.placeOrder,
+                                attr: {title: $t('Place Order')},
+                                enable: (value == $parent.isBillingAgreementChecked())
+                                "
+                            disabled>
+                        <span data-bind="text: $t('Place Order')"></span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--/ko-->

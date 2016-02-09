@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_billing_agreements" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Advanced: Billing Agreements]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <comment>
+            <![CDATA[
+                <p>
+                <strong>ONECLICK</strong>: The shopper opts in to storing their card details for future use.
+                The shopper is present for the subsequent transaction, for cards the security code (CVC/CVV) is required.
+                </p>
+                <p>
+                <strong>RECURRING*</strong>: Payment details are stored for future use. For cards, the security
+                code (CVC/CVV) is not required for subsequent payments.
+                </p>
+                <p>
+                <strong>ONECLICK, RECURRING*</strong>: Payment details are stored for future use. This allows the use of
+                the stored payment details regardless of whether the shopper is on your site or not.
+                </p>
+                <p>* keep in mind you need the recurring permission enabled. You can contact magento@adyen.com to enable this for your account.
+            ]]>
+        </comment>
+
+        <field id="recurring_type" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Agreement Type</label>
+            <tooltip>When enabled, users can save their Credit Cards and their SEPA authorizations. ONECLICK will require the input of the CVC for subsequent payments, while RECURRING does not.</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\RecurringType</source_model>
+            <config_path>payment/adyen_abstract/recurring_type</config_path>
+        </field>
+    </group>
+</include>

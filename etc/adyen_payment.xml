@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Adyen_Payment:etc/adyen_payment.xsd">
+    <adyen_credit_cards>
+        <type id="AE" order="0">
+            <label>American Express</label>
+            <code_alt>amex</code_alt>
+        </type>
+        <type id="VI" order="10">
+            <label>Visa</label>
+            <code_alt>visa</code_alt>
+        </type>
+        <type id="MC" order="20">
+            <label>MasterCard</label>
+            <code_alt>mc</code_alt>
+        </type>
+        <type id="DI" order="30">
+            <label>Discover</label>
+            <code_alt>discover</code_alt>
+        </type>
+        <type id="SM" order="40">
+            <label>Maestro/Switch</label>
+            <code_alt>maestro</code_alt>
+        </type>
+        <type id="JCB" order="50">
+            <label>JCB</label>
+            <code_alt>jcb</code_alt>
+        </type>
+        <type id="DN" order="60">
+            <label>Diners</label>
+            <code_alt>diners</code_alt>
+        </type>
+    </adyen_credit_cards>
+</payment>

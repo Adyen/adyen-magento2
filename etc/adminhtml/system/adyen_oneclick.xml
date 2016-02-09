@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_oneclick" translate="label" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[OneClick - Requires Adyen Credit Card]]></label>
+        <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
+        <fieldset_css>adyen-method-adyen-cc</fieldset_css>
+        <comment><![CDATA[During checkout shoppers can choose to have their payment details remembered and stored for trusted websites in Adyen’s highly secure platform. Adyen takes care of this process for its customers. Shoppers can then select in the Magento checkout the saved card and checkout with ‘OneClick’.]]></comment>
+
+        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Enabled</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_oneclick/active</config_path>
+        </field>
+        <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Title</label>
+            <config_path>payment/adyen_oneclick/title</config_path>
+        </field>
+        <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Sort Order</label>
+            <frontend_class>validate-number</frontend_class>
+            <config_path>payment/adyen_oneclick/sort_order</config_path>
+        </field>
+        <field id="recurring_payment_type" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Agreement Type</label>
+            <tooltip>With ONECLICK the shopper needs to fill in their security code for credit cards. For RECURRING, this is not needed. If you want to use RECURRING make sure you have Agreement Type set to RECURRING or ONECLICK,RECURRING</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\RecurringPaymentType</source_model>
+            <config_path>payment/adyen_oneclick/recurring_payment_type</config_path>
+        </field>
+    </group>
+</include>

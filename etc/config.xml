@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <adyen_abstract>
+                <active>0</active>
+                <model>Adyen\Payment\Model\Method\AdyenAbstract</model>
+                <recurring_type>ONECLICK</recurring_type>
+                <order_status>pending</order_status>
+                <demo_mode>0</demo_mode>
+                <debug>1</debug>
+                <group>adyen</group>
+                <ws_url_test>https://pal-test.adyen.com/pal/adapter/httppost</ws_url_test>
+                <ws_url_live>https://pal-live.adyen.com/pal/adapter/httppost</ws_url_live>
+            </adyen_abstract>
+            <adyen_cc>
+                <active>1</active>
+                <model>Adyen\Payment\Model\Method\Cc</model>
+                <title>Adyen CreditCard</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>1</sort_order>
+                <cctypes>AE,VI,MC,DI</cctypes>
+                <useccv>1</useccv>
+                <cse_enabled>1</cse_enabled>
+                <payment_action>authorize</payment_action>
+                <group>adyen</group>
+            </adyen_cc>
+            <adyen_oneclick>
+                <active>1</active>
+                <model>Adyen\Payment\Model\Method\Oneclick</model>
+                <title>Adyen OneClick</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>1</sort_order>
+                <cctypes>AE,VI,MC,DI</cctypes> <!-- important to show the payment method isAvailabe()-->
+                <recurring_payment_type>ONECLICK</recurring_payment_type>
+                <payment_action>authorize</payment_action>
+                <group>adyen</group>
+            </adyen_oneclick>
+            <adyen_hpp>
+                <active>0</active>
+                <model>Adyen\Payment\Model\Method\Hpp</model>
+                <order_status>pending</order_status>
+                <title>Adyen HPP</title>
+                <payment_selection_on_adyen>1</payment_selection_on_adyen>
+                <payment_routine>single</payment_routine>
+                <delivery_days>5</delivery_days>
+                <allowspecific>0</allowspecific>
+                <sort_order>10</sort_order>
+                <place_order_url>adyen/process/redirect</place_order_url>
+                <order_place_redirect_url>adyen/process/redirect</order_place_redirect_url>
+                <group>adyen</group>
+            </adyen_hpp>
+        </payment>
+    </default>
+</config>

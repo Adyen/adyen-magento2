@@ -1,0 +1,46 @@
+<?php
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+// @codingStandardsIgnoreFile
+
+?>
+<?php
+$_info = $this->getInfo();
+?>
+
+<?php $paymentSelectionOnAdyen = $block->isPaymentSelectionOnAdyen();?>
+
+<dl class="payment-method adyen_hpp">
+
+<?php if($paymentSelectionOnAdyen): ?>
+    <?php echo $this->htmlEscape($this->getMethod()->getTitle()) ?><br/>
+        <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
+    <?php else: ?>
+
+    <?php if ($_brandCode = $_info->getAdditionalInformation('brand_code')):?>
+        <dt class="title"><?php echo $_brandCode; ?></dt>
+    <?php endif;?>
+
+<?php endif; ?>
+
+</dl>

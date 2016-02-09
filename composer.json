@@ -1,0 +1,43 @@
+{
+  "name": "adyen/module-payment",
+  "description": "Official Magento2 Plugin to connect to Payment Service Provider Adyen.",
+  "type": "magento2-module",
+  "version": "1.0.0.1",
+  "license": [
+    "OSL-3.0",
+    "AFL-3.0"
+  ],
+  "repositories": [
+    {
+      "adyen": {
+        "type": "vcs",
+        "url": "git@github.com:Adyen/adyen-php-api-library.git"
+      }
+    }
+  ],
+  "require": {
+    "php": "~5.5.0|~5.6.0|~7.0.0",
+    "magento/module-config": "100.0.*",
+    "magento/module-store": "100.0.*",
+    "magento/module-checkout": "100.0.*",
+    "magento/module-catalog": "100.0.*",
+    "magento/module-sales": "100.0.*",
+    "magento/module-customer": "100.0.*",
+    "magento/module-payment": "100.0.*",
+    "magento/module-quote": "100.0.*",
+    "magento/module-backend": "100.0.*",
+    "magento/module-directory": "100.0.*",
+    "magento/module-theme": "100.0.*",
+    "magento/framework": "100.0.*",
+    "magento/magento-composer-installer": "*",
+    "adyen/php-api-library": "*"
+  },
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "Adyen\\Payment\\": ""
+    }
+  }
+}

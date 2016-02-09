@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<xs:schema elementFormDefault="qualified"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="payment">
+        <xs:annotation>
+            <xs:documentation>
+                The root node for payment configuration
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:all>
+                <xs:element name="adyen_credit_cards" type="adyen_credit_cardsType" minOccurs="0" />
+            </xs:all>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="adyen_credit_cardsType">
+        <xs:annotation>
+            <xs:documentation>
+                The containing node for a list of credit card types.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence maxOccurs="unbounded">
+            <xs:element name="type" type="AdyenTypeType" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="AdyenTypeType">
+        <xs:annotation>
+            <xs:documentation>
+                The definition of a credit card type.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="label" type="xs:string" minOccurs="0" />
+            <xs:element name="code_alt" type="xs:string" minOccurs="0" />
+        </xs:all>
+        <xs:attribute name="id" type="xs:ID" use="required" />
+        <xs:attribute name="order" type="xs:integer" />
+    </xs:complexType>
+
+</xs:schema>
