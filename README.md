@@ -17,8 +17,6 @@ You can create issues on our Magento Repository or if you have some specific pro
 This module is using the Adyen APIs Library for PHP for all (API) connections to Adyen.
 <a href="https://github.com/Adyen/adyen-php-api-library" target="_blank">This library can be found here</a>
 
-Not yet used but communication through the API will go through this library. If you not have access to this repo please let us know.
-
 ## Setting up cronjob ##
 The notifications of Adyen (this will give you the indication of the payment status) is processed by a cronjob. You need to setup your cronjob. <a href="http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html" target="_blank">This is described here</a>
 
