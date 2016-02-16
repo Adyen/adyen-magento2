@@ -43,11 +43,6 @@ class Cc extends \Magento\Payment\Block\Form
     protected $_adyenHelper;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
-     */
-    protected $_storeManager;
-
-    /**
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
      * @param array $data
@@ -56,13 +51,11 @@ class Cc extends \Magento\Payment\Block\Form
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Payment\Model\Config $paymentConfig,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->_paymentConfig = $paymentConfig;
         $this->_adyenHelper = $adyenHelper;
-        $this->_storeManager = $storeManager;
     }
 
 

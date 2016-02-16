@@ -544,7 +544,7 @@ class Cron
             case Notification::PENDING:
                 if($this->_getConfigData('send_email_bank_sepa_on_pending', 'adyen_abstract', $this->_order->getStoreId())) {
                     // Check if payment is banktransfer or sepa if true then send out order confirmation email
-                    $isBankTransfer = $this->_isBankTransfer($this->_paymentMethod);
+                    $isBankTransfer = $this->_isBankTransfer();
                     if($isBankTransfer || $this->_paymentMethod == 'sepadirectdebit') {
 //                        $this->_order->sendNewOrderEmail(); // send order email
                         $this->_orderSender->send($this->_order);
@@ -581,7 +581,7 @@ class Cron
 //                    $this->_uncancelOrder($this->_order);
 
                     // FOR POS authorize the payment on the CAPTURE notification
-                    $this->_authorizePayment($this->_order, $this->_paymentMethod);
+                    $this->_authorizePayment();
                 }
                 break;
             case Notification::CAPTURE_FAILED:
@@ -603,7 +603,7 @@ class Cron
                         $this->_debugData['_processNotification info'] = 'Order is already cancelled or holded so do nothing';
                     } else if ($this->_order->canCancel() || $this->_order->canHold()) {
                         $this->_debugData['_processNotification info'] = 'try to cancel the order';
-                        $this->_holdCancelOrder($this->_order, true);
+                        $this->_holdCancelOrder(true);
                     } else {
                         $this->_debugData['_processNotification info'] = 'try to refund the order';
                         // refund
@@ -701,10 +701,10 @@ class Cron
 
 
                     }else {
-                        $this->_debugData[$this->_count]['_processNotification error'] = 'Failed to create billing agreement for this order (listRecurringCall did not contain contract)';
-                        $this->_debugData[$this->_count]['_processNotification ref'] = printf('recurringDetailReference in notification is %1', $recurringDetailReference) ;
-                        $this->_debugData[$this->_count]['_processNotification customer ref'] = printf('CustomerReference is: %1 and storeId is %2', $customerReference, $storeId);
-                        $this->_debugData[$this->_count]['_processNotification customer result'] = $listRecurringContracts;
+                        $this->_debugData['_processNotification error'] = 'Failed to create billing agreement for this order (listRecurringCall did not contain contract)';
+                        $this->_debugData['_processNotification ref'] = printf('recurringDetailReference in notification is %1', $recurringDetailReference) ;
+                        $this->_debugData['_processNotification customer ref'] = printf('CustomerReference is: %1 and storeId is %2', $customerReference, $storeId);
+                        $this->_debugData['_processNotification customer result'] = $listRecurringContracts;
                         $message = __('Failed to create billing agreement for this order (listRecurringCall did not contain contract)');
                     }
 
@@ -714,7 +714,7 @@ class Cron
                 }
                 break;
             default:
-                $this->_debugData[$this->_count]['_processNotification info'] = sprintf('This notification event: %s is not supported so will be ignored', $this->_eventCode);
+                $this->_debugData['_processNotification info'] = sprintf('This notification event: %s is not supported so will be ignored', $this->_eventCode);
                 break;
         }
     }
@@ -978,6 +978,7 @@ class Cron
             case 'amex':
             case 'bcmc':
             case 'maestro':
+            case 'maestrouk':
             case 'diners':
             case 'discover':
             case 'jcb':
@@ -1106,7 +1107,7 @@ class Cron
         // create invoice for the capture notification if you are on manual capture
         if($createInvoice == true && $amount == $orderAmount) {
             $this->_debugData['_setPaymentAuthorized amount'] = 'amount notification:'.$amount . ' amount order:'.$orderAmount;
-            $this->_createInvoice($this->_order);
+            $this->_createInvoice();
         }
 
         // if you have capture on shipment enabled don't set update the status of the payment
@@ -1125,7 +1126,7 @@ class Cron
         }
 
         // check for boleto if payment is totally paid
-        if($this->_paymentMethodCode($this->_order) == "adyen_boleto") {
+        if($this->_paymentMethodCode() == "adyen_boleto") {
 
             // check if paid amount is the same as orginal amount
             $orginalAmount = $this->_boletoOriginalAmount;

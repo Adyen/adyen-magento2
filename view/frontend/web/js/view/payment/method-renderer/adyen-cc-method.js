@@ -29,9 +29,10 @@ define(
         'Adyen_Payment/js/action/place-order',
         'mage/translate',
         'Magento_Checkout/js/model/payment/additional-validators',
-        'Adyen_Payment/js/view/payment/adyen-encrypt'
+        'adyen/encrypt',
     ],
-    function (_, $, Component, placeOrderAction, $t, additionalValidators) {
+    function (_, $, Component, placeOrderAction, $t, additionalValidators, adyenEncrypt) {
+
         'use strict';
         $.validator.addMethod(
             'validate-custom-required', function (value) {
@@ -102,7 +103,7 @@ define(
                 var cse_key = this.getCSEKey();
                 var options = {};
 
-                var cseInstance = adyen.encrypt.createEncryption(cse_key, options);
+                var cseInstance = adyenEncrypt.createEncryption(cse_key, options);
                 var generationtime = self.getGenerationTime();
 
                 var cardData = {

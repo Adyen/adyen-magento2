@@ -5,6 +5,9 @@
 /*jshint browser:true jquery:true*/
 /*global alert*/
 var config = {
+    paths: {
+        'adyen/encrypt' : 'Adyen_Payment/js/view/payment/adyen.encrypt.min'
+    },
     config: {
         mixins: {
             'Adyen_Payment/js/action/place-order': {

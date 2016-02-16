@@ -83,6 +83,13 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     protected $_adyenHelper;
 
     /**
+     * Request object
+     *
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    protected $_request;
+
+    /**
      * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Checkout\Model\Session $checkoutSession
@@ -103,6 +110,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
+        \Magento\Framework\App\RequestInterface $request,
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Checkout\Model\Session $checkoutSession,
@@ -140,6 +148,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         $this->_checkoutSession = $checkoutSession;
         $this->_urlBuilder = $urlBuilder;
         $this->_adyenHelper = $adyenHelper;
+        $this->_request = $request;
     }
 
     protected $_paymentMethodType = 'api';
@@ -318,7 +327,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      */
     public function getCheckoutRedirectUrl()
     {
-        return $this->_urlBuilder->getUrl('adyen/process/validate3d/');
+        return $this->_urlBuilder->getUrl('adyen/process/validate3d/',['_secure' => $this->_getRequest()->isSecure()]);
     }
 
     /**
@@ -359,6 +368,16 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         }
 
         return $this;
+    }
+
+    /**
+     * Retrieve request object
+     *
+     * @return \Magento\Framework\App\RequestInterface
+     */
+    protected function _getRequest()
+    {
+        return $this->_request;
     }
 
 }

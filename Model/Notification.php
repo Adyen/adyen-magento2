@@ -24,12 +24,11 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\NotificationInterface;
-use Magento\Framework\Object\IdentityInterface;
+use Magento\Framework\DataObject\IdentityInterface;
 
 class Notification extends \Magento\Framework\Model\AbstractModel
     implements NotificationInterface
 {
-
 
     const AUTHORISATION = 'AUTHORISATION';
     const PENDING = 'PENDING';

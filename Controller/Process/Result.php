@@ -147,7 +147,7 @@ class Result extends \Magento\Framework\App\Action\Action
                     'adyen_response' => $response
                 ]);
                 if (isset($response['handled'])) {
-                    return;
+                    return $response['handled_response'];
                 }
 
                 // set StoreId for retrieving debug log setting

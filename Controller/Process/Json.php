@@ -189,6 +189,7 @@ class Json extends \Magento\Framework\App\Action\Action
         } else {
             return "401";
         }
+        return true;
     }
 
 
