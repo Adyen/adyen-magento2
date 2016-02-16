@@ -335,6 +335,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         // connect to magento log
         $client->setLogger($this->_adyenLogger);
 
+        $hmacKey = $this->_adyenHelper->getHmac();
+
         // create and add signature
         $requestParams["merchantSig"] = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $requestParams);
 

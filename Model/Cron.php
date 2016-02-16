@@ -701,10 +701,10 @@ class Cron
 
 
                     }else {
-                        $this->_debugData[$this->_count]['_processNotification error'] = 'Failed to create billing agreement for this order (listRecurringCall did not contain contract)';
-                        $this->_debugData[$this->_count]['_processNotification ref'] = printf('recurringDetailReference in notification is %1', $recurringDetailReference) ;
-                        $this->_debugData[$this->_count]['_processNotification customer ref'] = printf('CustomerReference is: %1 and storeId is %2', $customerReference, $storeId);
-                        $this->_debugData[$this->_count]['_processNotification customer result'] = $listRecurringContracts;
+                        $this->_debugData['_processNotification error'] = 'Failed to create billing agreement for this order (listRecurringCall did not contain contract)';
+                        $this->_debugData['_processNotification ref'] = printf('recurringDetailReference in notification is %1', $recurringDetailReference) ;
+                        $this->_debugData['_processNotification customer ref'] = printf('CustomerReference is: %1 and storeId is %2', $customerReference, $storeId);
+                        $this->_debugData['_processNotification customer result'] = $listRecurringContracts;
                         $message = __('Failed to create billing agreement for this order (listRecurringCall did not contain contract)');
                     }
 
@@ -714,7 +714,7 @@ class Cron
                 }
                 break;
             default:
-                $this->_debugData[$this->_count]['_processNotification info'] = sprintf('This notification event: %s is not supported so will be ignored', $this->_eventCode);
+                $this->_debugData['_processNotification info'] = sprintf('This notification event: %s is not supported so will be ignored', $this->_eventCode);
                 break;
         }
     }
@@ -978,6 +978,7 @@ class Cron
             case 'amex':
             case 'bcmc':
             case 'maestro':
+            case 'maestrouk':
             case 'diners':
             case 'discover':
             case 'jcb':
