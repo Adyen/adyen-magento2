@@ -277,6 +277,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         if($defaultCountry) {
             return $defaultCountry;
         }
+
+        return "";
     }
 
     /**
