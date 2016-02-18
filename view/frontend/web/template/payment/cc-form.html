@@ -27,7 +27,21 @@
                name="payment[method]"
                class="radio"
                data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
-        <label data-bind="attr: {'for': getCode()}" class="label"><span data-bind="text: getTitle()"></span></label>
+        <label data-bind="attr: {'for': getCode()}" class="label">
+
+            <!-- ko if: getCreditCardPaymentMethodIcon() -->
+
+            <img data-bind="attr: {
+                                'class': getCode(),
+                                'src': getCreditCardPaymentMethodIcon().url,
+                                'width': '65',
+                                'height': '42',
+                                'border': '0'
+                                }">
+            <!--/ko-->
+
+            <span data-bind="text: getTitle()"></span>
+        </label>
     </div>
 
     <div class="payment-method-content">

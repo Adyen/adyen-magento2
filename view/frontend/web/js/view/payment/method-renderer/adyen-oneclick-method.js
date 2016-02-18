@@ -158,6 +158,7 @@ define(
                             'label': value.agreement_label,
                             'value': value.reference_id,
                             'agreement_data': value.agreement_data,
+                            'logo': value.logo,
                             'method': self.item.method,
                             getCode: function() {
                                 return self.item.method;

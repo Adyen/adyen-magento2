@@ -66,6 +66,11 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
     protected $_adyenLogger;
 
     /**
+     * @var AdyenGenericConfig
+     */
+    protected $_genericConfig;
+
+    /**
      * @var \Magento\Framework\App\Config\ScopeConfigInterface $config
      */
     protected $_config;
@@ -87,7 +92,11 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
      * @param \Magento\Checkout\Model\Session $session
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param PaymentHelper $paymentHelper
+     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param AdyenGenericConfig $genericConfig
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -97,7 +106,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Adyen\Payment\Model\AdyenGenericConfig $genericConfig
     ) {
         $this->_appState = $context->getAppState();
         $this->_session = $session;
@@ -107,6 +117,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $this->_config = $config;
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
+        $this->_genericConfig = $genericConfig;
 
         foreach ($this->methodCodes as $code) {
             $this->methods[$code] = $this->_paymentHelper->getMethodInstance($code);
@@ -222,9 +233,28 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         if(isset($responseData['paymentMethods'])) {
             foreach ($responseData['paymentMethods'] as $paymentMethod) {
 
-                $paymentMethod = $this->_fieldMapPaymentMethod($paymentMethod);
                 $paymentMethodCode = $paymentMethod['brandCode'];
                 $paymentMethod = $this->_fieldMapPaymentMethod($paymentMethod);
+
+                // add icon location in result
+                if($this->_genericConfig->showLogos()) {
+                    $asset = $this->_genericConfig->createAsset('Adyen_Payment::images/logos/' . $paymentMethodCode . '.png');
+
+                    $placeholder = $this->_genericConfig->findRelativeSourceFilePath($asset);
+
+                    $icon = null;
+                    if ($placeholder) {
+                        list($width, $height) = getimagesize($asset->getSourceFile());
+                        $icon = [
+                            'url' => $asset->getUrl(),
+                            'width' => $width,
+                            'height' => $height
+                        ];
+                    }
+
+                    $paymentMethod['icon'] = $icon;
+                }
+
                 $paymentMethods[$paymentMethodCode] = $paymentMethod;
             }
         }
@@ -389,6 +419,20 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
     protected function _getQuote()
     {
         return $this->_session->getQuote();
+    }
+
+
+    /**
+     * Create a file asset that's subject of fallback system
+     *
+     * @param string $fileId
+     * @param array $params
+     * @return \Magento\Framework\View\Asset\File
+     */
+    protected function _createAsset($fileId, array $params = [])
+    {
+        $params = array_merge(['_secure' => $this->request->isSecure()], $params);
+        return $this->assetRepo->createAsset($fileId, $params);
     }
 
 }
