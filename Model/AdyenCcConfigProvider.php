@@ -57,6 +57,11 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
     protected $adyenHelper;
 
     /**
+     * @var AdyenGenericConfig
+     */
+    protected $_genericConfig;
+
+    /**
      * @param \Magento\Payment\Model\CcConfig $ccConfig
      * @param PaymentHelper $paymentHelper
      * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -64,10 +69,12 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
     public function __construct(
         \Magento\Payment\Model\CcConfig $ccConfig,
         PaymentHelper $paymentHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Model\AdyenGenericConfig $genericConfig
     ) {
         parent::__construct($ccConfig, $paymentHelper, $this->methodCodes);
         $this->adyenHelper = $adyenHelper;
+        $this->_genericConfig = $genericConfig;
     }
 
     public function getConfig()
@@ -97,6 +104,10 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
         $config['payment']['adyenCc']['generationTime'] = date("c");
         $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
 
+        // show logos turned on by default
+        if($this->_genericConfig->showLogos()) {
+            $config['payment']['adyenCc']['creditCardPaymentMethodIcon'] = $this->_getCreditCardPaymentMethodIcon();
+        }
 
         foreach ($this->methodCodes as $code) {
             if ($this->methods[$code]->isAvailable()) {
@@ -116,5 +127,24 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
     protected function getMethodRedirectUrl($code)
     {
         return $this->methods[$code]->getCheckoutRedirectUrl();
+    }
+
+    protected function _getCreditCardPaymentMethodIcon()
+    {
+        $asset = $this->_genericConfig->createAsset('Adyen_Payment::images/logos/img_trans.gif');
+
+        $placeholder = $this->_genericConfig->findRelativeSourceFilePath($asset);
+
+        $icon = null;
+        if ($placeholder) {
+            list($width, $height) = getimagesize($asset->getSourceFile());
+            $icon = [
+                'url' => $asset->getUrl(),
+                'width' => $width,
+                'height' => $height
+            ];
+        }
+
+        return $icon;
     }
 }

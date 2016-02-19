@@ -169,6 +169,9 @@ define(
                 }
 
                 return true;
+            },
+            getCreditCardPaymentMethodIcon: function() {
+                return window.checkoutConfig.payment.adyenCc.creditCardPaymentMethodIcon;
             }
         });
     }

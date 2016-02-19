@@ -31,7 +31,22 @@
                name="payment[method]"
                class="radio"
                data-bind="attr: {'id': value}, value: value, checked: $parent.isBillingAgreementChecked, click: $parent.selectBillingAgreement"/>
-        <label data-bind="attr: {'for': value}" class="label"><span data-bind="text: label"></span></label>
+        <label data-bind="attr: {'for': value}" class="label">
+
+
+            <!-- ko if: logo -->
+
+            <img data-bind="attr: {
+                                'class': getCode(),
+                                'src': logo.url,
+                                'width': logo.width,
+                                'height': logo.height
+                                }">
+
+            <!--/ko-->
+
+            <span data-bind="text: label"></span>
+        </label>
     </div>
     <div class="payment-method-content">
 

@@ -28,7 +28,7 @@
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <comment><![CDATA[
                             <ul class="adyen-list">
-                                <li><a target="_blank" href="https://docs.adyen.com/manuals/magento2-integration">Manual for setting up the module</a></li>
+                                <li><a target="_blank" href="https://docs.adyen.com/manuals/magento/magento2-integration">Manual for setting up the module</a></li>
                                 <li><a target="_blank" href="https://www.adyen.com/home/payment-services/plug-ins/magento#form"><strong>Sign</strong> up for a test account</a></li>
                                 <li>The latest version of the <a target="_blank" href="https://github.com/adyen/adyen-magento2/releases">Adyen Magento module is also available through GitHub</a>.</li>
                             </ul>

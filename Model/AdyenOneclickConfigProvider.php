@@ -82,6 +82,12 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
     protected $_storeManager;
 
     /**
+     * @var AdyenGenericConfig
+     */
+    protected $_genericConfig;
+
+
+    /**
      * @param \Magento\Payment\Model\CcConfig $ccConfig
      * @param PaymentHelper $paymentHelper
      * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -94,7 +100,8 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
         \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Checkout\Model\Session $session,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Adyen\Payment\Model\AdyenGenericConfig $genericConfig
     ) {
         parent::__construct($ccConfig, $paymentHelper, $this->methodCodes);
         $this->_paymentHelper = $paymentHelper;
@@ -104,6 +111,7 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
         $this->_session = $session;
         $this->_appState = $context->getAppState();
         $this->_storeManager = $storeManager;
+        $this->_genericConfig = $genericConfig;
     }
 
     public function getConfig()
@@ -200,6 +208,24 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
                         'agreement_label' => $billingAgreement->getAgreementLabel(),
                         'agreement_data' => $agreementData
                     ];
+
+                    if($this->_genericConfig->showLogos()) {
+                        $asset = $this->_genericConfig->createAsset('Adyen_Payment::images/logos/' . $agreementData['variant'] . '.png');
+                        $placeholder = $this->_genericConfig->findRelativeSourceFilePath($asset);
+
+                        $icon = null;
+                        if ($placeholder) {
+                            list($width, $height) = getimagesize($asset->getSourceFile());
+                            $icon = [
+                                'url' => $asset->getUrl(),
+                                'width' => $width,
+                                'height' => $height
+                            ];
+                        }
+                        $data['logo'] = $icon;
+
+                    }
+
                     $billingAgreements[] = $data;
                 }
             }

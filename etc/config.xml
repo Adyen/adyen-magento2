@@ -32,9 +32,8 @@
                 <order_status>pending</order_status>
                 <demo_mode>0</demo_mode>
                 <debug>1</debug>
+                <title_renderer>title_image</title_renderer>
                 <group>adyen</group>
-                <ws_url_test>https://pal-test.adyen.com/pal/adapter/httppost</ws_url_test>
-                <ws_url_live>https://pal-live.adyen.com/pal/adapter/httppost</ws_url_live>
             </adyen_abstract>
             <adyen_cc>
                 <active>1</active>
