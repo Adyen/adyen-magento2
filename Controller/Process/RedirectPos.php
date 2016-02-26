@@ -21,43 +21,59 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Block;
+namespace Adyen\Payment\Controller\Process;
 
-use Symfony\Component\Config\Definition\Exception\Exception;
-
-class Validate3d extends \Magento\Payment\Block\Form
+class RedirectPos extends \Magento\Framework\App\Action\Action
 {
 
-    protected $_orderFactory;
+    /**
+     * @var \Magento\Quote\Model\Quote
+     */
+    protected $_quote = false;
+
     /**
      * @var \Magento\Checkout\Model\Session
      */
     protected $_checkoutSession;
 
+
     /**
-     * @var \Magento\Checkout\Model\Order
+     * @var \Magento\Sales\Model\Order
      */
     protected $_order;
 
     /**
-     * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param array $data
-     * @param \Magento\Sales\Model\OrderFactory $orderFactory
-     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @var \Magento\Sales\Model\OrderFactory
+     */
+    protected $_orderFactory;
+
+
+    /**
+     * @param \Magento\Framework\App\Action\Context $context
      */
     public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
-        array $data = [],
-        \Magento\Sales\Model\OrderFactory $orderFactory,
-        \Magento\Checkout\Model\Session $checkoutSession
-    )
-    {
-        $this->_orderFactory = $orderFactory;
-        $this->_checkoutSession = $checkoutSession;
-        parent::__construct($context, $data);
-        $this->_getOrder();
+        \Magento\Framework\App\Action\Context $context
+    ) {
+        parent::__construct($context);
     }
 
+
+    /**
+     * Return checkout session object
+     *
+     * @return \Magento\Checkout\Model\Session
+     */
+    protected function _getCheckoutSession()
+    {
+        return $this->_checkoutSession;
+    }
+
+    public function execute()
+    {
+        $this->_view->loadLayout();
+        $this->_view->getLayout()->initMessages();
+        $this->_view->renderLayout();
+    }
 
     /**
      * Get order object
@@ -68,40 +84,28 @@ class Validate3d extends \Magento\Payment\Block\Form
     {
         if (!$this->_order) {
             $incrementId = $this->_getCheckout()->getLastRealOrderId();
+            $this->_orderFactory = $this->_objectManager->get('Magento\Sales\Model\OrderFactory');
             $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
         }
         return $this->_order;
     }
 
     /**
-     * Get frontend checkout session object
-     *
      * @return \Magento\Checkout\Model\Session
      */
     protected function _getCheckout()
     {
-        return $this->_checkoutSession;
+        return $this->_objectManager->get('Magento\Checkout\Model\Session');
     }
 
-    public function getIssuerUrl()
+    protected function _getQuote()
     {
-        return $this->_order->getPayment()->getAdditionalInformation('issuerUrl');
+        return $this->_objectManager->get('Magento\Quote\Model\Quote');
     }
 
-    public function getPaReq()
+    protected function _getQuoteManagement()
     {
-        return $this->_order->getPayment()->getAdditionalInformation('paRequest');
+        return $this->_objectManager->get('\Magento\Quote\Model\QuoteManagement');
     }
-
-    public function getMd()
-    {
-        return $this->_order->getPayment()->getAdditionalInformation('md');
-    }
-
-    public function getTermUrl()
-    {
-        return  $this->getUrl('adyen/process/validate3d');
-    }
-
 
 }

@@ -263,7 +263,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @desc Gives back adyen_hpp configuration values
+     * @desc Gives back adyen_oneclick configuration values
      * @param $field
      * @param null $storeId
      * @return mixed
@@ -274,7 +274,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @desc Gives back adyen_hpp configuration values as flag
+     * @desc Gives back adyen_oneclick configuration values as flag
      * @param $field
      * @param null $storeId
      * @return mixed
@@ -282,6 +282,28 @@ class Data extends AbstractHelper
     public function getAdyenOneclickConfigDataFlag($field, $storeId = null)
     {
         return $this->getConfigData($field, 'adyen_oneclick', $storeId, true);
+    }
+
+    /**
+     * @desc Gives back adyen_pos configuration values
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenPosConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_pos', $storeId);
+    }
+
+    /**
+     * @desc Gives back adyen_pos configuration values as flag
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenPosConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_pos', $storeId, true);
     }
 
     /**

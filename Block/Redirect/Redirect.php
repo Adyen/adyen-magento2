@@ -21,7 +21,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Block;
+namespace Adyen\Payment\Block\Redirect;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
 

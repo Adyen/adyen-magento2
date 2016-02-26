@@ -24,6 +24,6 @@
 -->
 <layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
     <container name="root">
-        <block class="Adyen\Payment\Block\Redirect\Validate3d" name="adyen-cc-form-validate3d" template="redirect/cc/3dform.phtml" cacheable="false"/>
+        <block class="Adyen\Payment\Block\Redirect\Pos" name="adyen-pos-redirect-form" template="redirect/pos/form.phtml" cacheable="false"/>
     </container>
 </layout>

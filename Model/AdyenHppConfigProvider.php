@@ -135,10 +135,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         ];
         foreach ($this->methodCodes as $code) {
             if ($this->methods[$code]->isAvailable()) {
-                $config['payment']['adyenHpp']['redirectUrl'][$code] = $this->getMethodRedirectUrl($code);
-
                 // get payment methods
-
                 $config['payment'] ['adyenHpp']['paymentMethods'] = $this->getAdyenHppPaymentMethods();
             }
         }
@@ -147,17 +144,6 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $config['payment'] ['adyenHpp']['isPaymentMethodSelectionOnAdyen'] = $paymentMethodSelectionOnAdyen;
 
         return $config;
-    }
-
-    /**
-     * Return redirect URL for method
-     *
-     * @param string $code
-     * @return mixed
-     */
-    protected function getMethodRedirectUrl($code)
-    {
-        return $this->methods[$code]->getCheckoutRedirectUrl();
     }
 
 

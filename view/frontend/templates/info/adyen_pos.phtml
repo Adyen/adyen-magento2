@@ -1,3 +1,4 @@
+<?php
 /**
  *                       ######
  *                       ######
@@ -19,33 +20,15 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-/*browser:true*/
-/*global define*/
-define(
-    [
-        'uiComponent',
-        'Magento_Checkout/js/model/payment/renderer-list'
-    ],
-    function (
-        Component,
-        rendererList
-    ) {
-        'use strict';
-        rendererList.push(
-            {
-                type: 'adyen_oneclick',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-oneclick-method'
-            },
-            {
-                type: 'adyen_cc',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-cc-method'
-            },
-            {
-                type: 'adyen_hpp',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-hpp-method'
-            }
-        );
-        /** Add view logic here if needed */
-        return Component.extend({});
-    }
-);
+
+// @codingStandardsIgnoreFile
+
+?>
+<?php
+$_info = $this->getInfo();
+?>
+
+<dl class="payment-method adyen_pos">
+    <?php echo $this->escapeHtml($this->getMethod()->getTitle()) ?><br/>
+    <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
+</dl>

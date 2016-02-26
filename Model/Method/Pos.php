@@ -32,10 +32,10 @@ use Magento\Payment\Model\Method\Online\GatewayInterface;
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements GatewayInterface
+class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements GatewayInterface
 {
 
-    const METHOD_CODE = 'adyen_hpp';
+    const METHOD_CODE = 'adyen_pos';
 
     /**
      * @var string
@@ -47,7 +47,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      */
     const GUEST_ID = 'customer_';
 
-    protected $_infoBlockType = 'Adyen\Payment\Block\Info\Hpp';
+    protected $_infoBlockType = 'Adyen\Payment\Block\Info\Pos';
 
 
     /**
@@ -101,6 +101,13 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     protected $_adyenLogger;
 
     /**
+     * Currency factory
+     *
+     * @var CurrencyFactory
+     */
+    protected $_currencyFactory;
+
+    /**
      * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -120,6 +127,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
+        \Magento\Directory\Model\CurrencyFactory $currencyFactory,
         \Magento\Framework\App\RequestInterface $request,
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
         \Magento\Framework\UrlInterface $urlBuilder,
@@ -157,6 +165,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $this->resolver = $resolver;
         $this->_adyenLogger = $adyenLogger;
         $this->_request = $request;
+        $this->_currencyFactory = $currencyFactory;
     }
 
     protected $_paymentMethodType = 'hpp';
@@ -190,17 +199,6 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     {
         parent::assignData($data);
         $infoInstance = $this->getInfoInstance();
-
-        if(isset($data['brand_code'])) {
-            $infoInstance->setAdditionalInformation('brand_code', $data['brand_code']);
-        }
-
-        if(isset($data['issuer_id'])) {
-            $infoInstance->setAdditionalInformation('issuer_id', $data['issuer_id']);
-        }
-
-        $this->_adyenLogger->debug(print_r($data,1));
-
         return $this;
     }
 
@@ -213,7 +211,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      */
     public function getCheckoutRedirectUrl()
     {
-        return $this->_urlBuilder->getUrl('adyen/process/redirect',['_secure' => $this->_getRequest()->isSecure()]);
+        return $this->_urlBuilder->getUrl('adyen/process/redirectPos',['_secure' => $this->_getRequest()->isSecure()]);
     }
 
     /**
@@ -242,137 +240,140 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         // Implement postRequest() method.
     }
 
-    /**
-     * @desc Get url of Adyen payment
-     * @return string
-     */
-    public function getFormUrl()
-    {
-        $paymentRoutine   = $this->getConfigData('payment_routine');
 
-        switch ($this->_adyenHelper->isDemoMode()) {
-            case true:
-                if ($paymentRoutine == 'single' && $this->getPaymentMethodSelectionOnAdyen()) {
-                    $url = 'https://test.adyen.com/hpp/pay.shtml';
-                } else {
-                    $url = ($this->getPaymentMethodSelectionOnAdyen())
-                        ? 'https://test.adyen.com/hpp/select.shtml'
-                        : "https://test.adyen.com/hpp/details.shtml";
-                }
-                break;
-            default:
-                if ($paymentRoutine == 'single' && $this->getPaymentMethodSelectionOnAdyen()) {
-                    $url = 'https://live.adyen.com/hpp/pay.shtml';
-                } else {
-                    $url = ($this->getPaymentMethodSelectionOnAdyen())
-                        ? 'https://live.adyen.com/hpp/select.shtml'
-                        : "https://live.adyen.com/hpp/details.shtml";
-                }
-                break;
-        }
-
-        return $url;
-    }
-
-    public function getFormFields()
+    public function getLaunchLink()
     {
         $paymentInfo = $this->getInfoInstance();
         $order = $paymentInfo->getOrder();
 
-        $realOrderId       = $order->getRealOrderId();
-        $orderCurrencyCode = $order->getOrderCurrencyCode();
-        $skinCode          = trim($this->getConfigData('skin_code'));
-        $amount            = $this->_adyenHelper->formatAmount($order->getGrandTotal(), $orderCurrencyCode);
-        $merchantAccount   = trim($this->_adyenHelper->getAdyenAbstractConfigData('merchant_account'));
-        $shopperEmail      = $order->getCustomerEmail();
-        $customerId        = $order->getCustomerId();
-        $shopperIP         = $order->getRemoteIp();
-        $browserInfo       = $_SERVER['HTTP_USER_AGENT'];
-        $deliveryDays      = $this->getConfigData('delivery_days');
-        $shopperLocale     = trim($this->getConfigData('shopper_locale'));
-        $shopperLocale     = (!empty($shopperLocale)) ? $shopperLocale : $this->resolver->getLocale();
-        $countryCode       = trim($this->getConfigData('country_code'));
-        $countryCode       = (!empty($countryCode)) ? $countryCode : false;
+        $realOrderId            = $order->getRealOrderId();
+        $orderCurrencyCode      = $order->getOrderCurrencyCode();
+        $amount                 = $this->_adyenHelper->formatAmount($order->getGrandTotal(), $orderCurrencyCode);
+        $shopperEmail           = $order->getCustomerEmail();
+        $customerId             = $order->getCustomerId();
+        $callbackUrl            = $this->_urlBuilder->getUrl('adyen/process/resultpos',['_secure' => $this->_getRequest()->isSecure()]);
+        $addReceiptOrderLines   = $this->_adyenHelper->getAdyenPosConfigData("add_receipt_order_lines");
+        $recurringContract      = $this->_adyenHelper->getAdyenPosConfigData('recurring_type');
+        $currencyCode           = $orderCurrencyCode;
+        $paymentAmount          = $amount;
+        $merchantReference      = $realOrderId;
+        $shopperReference       = (!empty($customerId)) ? $customerId : self::GUEST_ID . $realOrderId;
+        $shopperEmail           = $shopperEmail;
 
-
-        // if directory lookup is enabled use the billingadress as countrycode
-        if ($countryCode == false) {
-            if ($order->getBillingAddress() && $order->getBillingAddress()->getCountryId() != "") {
-                $countryCode = $order->getBillingAddress()->getCountryId();
-            }
+        $recurringParams = "";
+        if($order->getPayment()->getAdditionalInformation("store_cc") != "") {
+            $recurringParams = "&recurringContract=".urlencode($recurringContract)."&shopperReference=".urlencode($shopperReference). "&shopperEmail=".urlencode($shopperEmail);
         }
 
-        $formFields = array();
+        $receiptOrderLines = "";
+        if($addReceiptOrderLines) {
+            $orderLines = base64_encode($this->getReceiptOrderLines($order));
+            $receiptOrderLines = "&receiptOrderLines=" . urlencode($orderLines);
+        }
 
-        $formFields['merchantAccount']   = $merchantAccount;
-        $formFields['merchantReference'] = $realOrderId;
-        $formFields['paymentAmount']     = (int)$amount;
-        $formFields['currencyCode']      = $orderCurrencyCode;
-        $formFields['shipBeforeDate']    = date(
-            "Y-m-d",
-            mktime(date("H"), date("i"), date("s"), date("m"), date("j") + $deliveryDays, date("Y"))
+        // extra parameters so that you alway's return these paramters from the application
+        $extra_paramaters   = urlencode("/?originalCustomCurrency=".$currencyCode."&originalCustomAmount=".$paymentAmount. "&originalCustomMerchantReference=".$merchantReference . "&originalCustomSessionId=".session_id());
+        $launchlink         = "adyen://payment?sessionId=".session_id()."&amount=".$paymentAmount."&currency=".$currencyCode."&merchantReference=".$merchantReference. $recurringParams . $receiptOrderLines .  "&callback=".$callbackUrl . $extra_paramaters;
+
+        $this->_adyenLogger->debug(print_r($launchlink, true));
+
+        return $launchlink;
+    }
+
+    private function getReceiptOrderLines($order) {
+
+        $myReceiptOrderLines = "";
+
+        // temp
+        $currency = $order->getOrderCurrencyCode();
+
+        $formattedAmountValue = $this->_currencyFactory->create()->format(
+            $order->getGrandTotal(),
+            array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+            false
         );
-        $formFields['skinCode']          = $skinCode;
-        $formFields['shopperLocale']     = $shopperLocale;
-        $formFields['countryCode']       = $countryCode;
-        $formFields['shopperIP']         = $shopperIP;
-        $formFields['browserInfo']       = $browserInfo;
-        $formFields['sessionValidity'] = date(
-            DATE_ATOM,
-            mktime(date("H") + 1, date("i"), date("s"), date("m"), date("j"), date("Y"))
+
+        $taxAmount = $order->getTaxAmount();
+        $formattedTaxAmount = $this->_currencyFactory->create()->format(
+            $taxAmount,
+            array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+            false
         );
-        $formFields['shopperEmail']    = $shopperEmail;
-        // recurring
-        $recurringType                  = trim($this->_adyenHelper->getAdyenAbstractConfigData('recurring_type'));
-        $formFields['recurringContract'] = $recurringType;
-        $formFields['shopperReference']  = (!empty($customerId)) ? $customerId : self::GUEST_ID . $realOrderId;
-        //blocked methods
-        $formFields['blockedMethods'] = "";
 
-        $baseUrl = $this->storeManager->getStore($this->getStore())
-            ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK);
-        $formFields['resURL'] = $baseUrl . 'adyen/process/result';
+        $paymentAmount = "1000";
 
-        $hmacKey = $this->_adyenHelper->getHmac();
+        $myReceiptOrderLines .= "---||C\n".
+            "====== YOUR ORDER DETAILS ======||CB\n".
+            "---||C\n".
+            " No. Description |Piece  Subtotal|\n";
 
-        $brandCode = $order->getPayment()->getAdditionalInformation("brand_code");
-        if($brandCode) {
-            $formFields['brandCode'] = $brandCode;
+        foreach ($order->getItemsCollection() as $item) {
+            //skip dummies
+            if ($item->isDummy()) continue;
+            $singlePriceFormat = $this->_currencyFactory->create()->format(
+                $item->getPriceInclTax(),
+                array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+                false
+            );
+
+            $itemAmount = $item->getPriceInclTax() * (int) $item->getQtyOrdered();
+            $itemAmountFormat = $this->_currencyFactory->create()->format(
+                $itemAmount,
+                array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+                false
+            );
+
+            $myReceiptOrderLines .= "  " . (int) $item->getQtyOrdered() . "  " . trim(substr($item->getName(),0, 25)) . "| " . $currency . " " . $singlePriceFormat . "  " . $currency . " " . $itemAmountFormat . "|\n";
         }
 
-        $issuerId = $order->getPayment()->getAdditionalInformation("issuer_id");
-        if($issuerId) {
-            $formFields['issuerId'] = $issuerId;
+        //discount cost
+        if($order->getDiscountAmount() > 0 || $order->getDiscountAmount() < 0)
+        {
+            $discountAmountFormat = $this->_currencyFactory->create()->format(
+                $order->getDiscountAmount(),
+                array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+                false
+            );
+            $myReceiptOrderLines .= "  " . 1 . " " . $this->__('Total Discount') . "| " . $currency . " " . $discountAmountFormat ."|\n";
         }
 
-        // Sort the array by key using SORT_STRING order
-        ksort($formFields, SORT_STRING);
+        //shipping cost
+        if($order->getShippingAmount() > 0 || $order->getShippingTaxAmount() > 0)
+        {
+            $shippingAmountFormat = $this->_currencyFactory->create()->format(
+                $order->getShippingAmount(),
+                array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+                false
+            );
+            $myReceiptOrderLines .= "  " . 1 . " " . $order->getShippingDescription() . "| " . $currency . " " . $shippingAmountFormat ."|\n";
 
-        // Generate the signing data string
-        $signData = implode(":",array_map(array($this, 'escapeString'),array_merge(array_keys($formFields), array_values($formFields))));
+        }
 
-        $merchantSig = base64_encode(hash_hmac('sha256',$signData,pack("H*" , $hmacKey),true));
+        if($order->getPaymentFeeAmount() > 0) {
+            $paymentFeeAmount = $this->_currencyFactory->create()->format(
+                $order->getPaymentFeeAmount(),
+                array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+                false
+            );
+            $myReceiptOrderLines .= "  " . 1 . " " . $this->__('Payment Fee') . "| " . $currency . " " . $paymentFeeAmount ."|\n";
 
-        $formFields['merchantSig'] = $merchantSig;
+        }
 
-        $this->_adyenLogger->debug(print_r($formFields, true));
+        $myReceiptOrderLines .=    "|--------|\n".
+            "|Order Total:  ".$currency." ".$formattedAmountValue."|B\n".
+            "|Tax:  ".$currency." ".$formattedTaxAmount."|B\n".
+            "||C\n";
 
-        return $formFields;
+        //Cool new header for card details section! Default location is After Header so simply add to Order Details as separator
+        $myReceiptOrderLines .= "---||C\n".
+            "====== YOUR PAYMENT DETAILS ======||CB\n".
+            "---||C\n";
+
+
+        return $myReceiptOrderLines;
+
     }
 
-    /*
-    * @desc The character escape function is called from the array_map function in _signRequestParams
-    * $param $val
-    * return string
-    */
-    protected function escapeString($val)
-    {
-        return str_replace(':','\\:',str_replace('\\','\\\\',$val));
-    }
-
-    public function getPaymentMethodSelectionOnAdyen() {
-        return $this->getConfigData('payment_selection_on_adyen');
-    }
 
     /**
      * Capture on Adyen

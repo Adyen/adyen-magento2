@@ -40,7 +40,7 @@
                 <model>Adyen\Payment\Model\Method\Cc</model>
                 <title>Adyen CreditCard</title>
                 <allowspecific>0</allowspecific>
-                <sort_order>1</sort_order>
+                <sort_order>2</sort_order>
                 <cctypes>AE,VI,MC,DI</cctypes>
                 <useccv>1</useccv>
                 <cse_enabled>1</cse_enabled>
@@ -67,11 +67,22 @@
                 <payment_routine>single</payment_routine>
                 <delivery_days>5</delivery_days>
                 <allowspecific>0</allowspecific>
-                <sort_order>10</sort_order>
+                <sort_order>3</sort_order>
                 <place_order_url>adyen/process/redirect</place_order_url>
                 <order_place_redirect_url>adyen/process/redirect</order_place_redirect_url>
                 <group>adyen</group>
             </adyen_hpp>
+            <adyen_pos>
+                <active>0</active>
+                <model>Adyen\Payment\Model\Method\Pos</model>
+                <order_status>pending</order_status>
+                <title>Adyen POS</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>4</sort_order>
+                <place_order_url>adyen/process/redirect</place_order_url>
+                <order_place_redirect_url>adyen/process/redirect</order_place_redirect_url>
+                <group>adyen</group>
+            </adyen_pos>
         </payment>
     </default>
 </config>
