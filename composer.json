@@ -1,3 +1,6 @@
+
+
+
 {
   "name": "adyen/module-payment",
   "description": "Official Magento2 Plugin to connect to Payment Service Provider Adyen.",

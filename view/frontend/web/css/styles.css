@@ -26,17 +26,31 @@
 .checkout-payment-method .ccard .holdername .input-text { width: 225px; }
 
 .checkout-payment-method .payment-method-title, .checkout-payment-method .payment-method-title label {
+    display: -webkit-flex;
     display: flex;
     align-items: center;
+    -webkit-align-items: center;
 }
 
-.checkout-payment-method .payment-method-title label img { margin-right:10px;}
+.checkout-payment-method .payment-method-title label img,
+.checkout-payment-method .payment-method-title label div { padding-right:10px;}
 
-.checkout-payment-method .payment-method-title label img.adyen_cc {
+
+
+.checkout-payment-method .payment-method-title label div.adyen-sprite {
     background:url(../images/logos/pm_gloss.png) no-repeat;
     background-position: 0 -272px;
     width:65px;
     height:42px;
+    display: inline-block;
+}
+
+.checkout-payment-method .payment-method-title label div.adyen-sprite.adyen_cc {
+    background-position: 0 -272px;
+}
+
+.checkout-payment-method .payment-method-title label div.adyen-sprite.adyen_pos {
+    background-position: 0 -1819px;
 }
 
 

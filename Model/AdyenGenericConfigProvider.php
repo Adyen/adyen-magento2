@@ -46,10 +46,10 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
      * @var string[]
      */
     protected $methodCodes = [
-        'adyen_cc',
-        'adyen_hpp',
-        'adyen_oneclick',
-        'adyen_pos'
+        \Adyen\Payment\Model\Method\Cc::METHOD_CODE,
+        \Adyen\Payment\Model\Method\Hpp::METHOD_CODE,
+        \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE,
+        \Adyen\Payment\Model\Method\Pos::METHOD_CODE
     ];
 
     /**
@@ -109,6 +109,14 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
                 ];
             }
         }
+
+        // show logos turned on by default
+        if($this->_genericConfig->showLogos()) {
+            $config['payment']['adyen']['showLogo'] = true;
+        } else {
+            $config['payment']['adyen']['showLogo'] = false;
+        }
+
 
         return $config;
     }

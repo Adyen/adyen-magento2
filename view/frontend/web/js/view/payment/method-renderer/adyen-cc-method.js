@@ -170,8 +170,8 @@ define(
 
                 return true;
             },
-            getCreditCardPaymentMethodIcon: function() {
-                return window.checkoutConfig.payment.adyenCc.creditCardPaymentMethodIcon;
+            showLogo: function() {
+                return window.checkoutConfig.payment.adyen.showLogo;
             }
         });
     }

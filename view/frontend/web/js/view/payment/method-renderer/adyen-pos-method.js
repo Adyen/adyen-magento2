@@ -50,6 +50,9 @@ define(
                 this.selectPaymentMethod();
                 setPaymentMethodAction();
                 return false;
+            },
+            showLogo: function() {
+                return window.checkoutConfig.payment.adyen.showLogo;
             }
         });
     }
