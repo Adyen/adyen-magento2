@@ -312,6 +312,9 @@ class PaymentRequest extends DataObject
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
         $currency = $payment->getOrder()->getBaseCurrencyCode();
 
+        //format the amount to minor units
+        $amount = $this->_adyenHelper->formatAmount($amount, $currency);
+
         $modificationAmount = array('currency' => $currency, 'value' => $amount);
 
         $request = array(
@@ -376,6 +379,9 @@ class PaymentRequest extends DataObject
         $pspReference = $this->_getPspReference($payment);
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
         $currency = $payment->getOrder()->getBaseCurrencyCode();
+
+        //format the amount to minor units
+        $amount = $this->_adyenHelper->formatAmount($amount, $currency);
 
         $modificationAmount = array('currency' => $currency, 'value' => $amount);
 
