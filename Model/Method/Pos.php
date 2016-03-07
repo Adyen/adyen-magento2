@@ -49,23 +49,19 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
 
     protected $_infoBlockType = 'Adyen\Payment\Block\Info\Pos';
 
-
     /**
      * Payment Method feature
      *
      * @var bool
      */
-    protected $_isGateway = true;
     protected $_canAuthorize = true;
-    protected $_isInitializeNeeded = true;
+    protected $_canCapture = true;
+    protected $_canCapturePartial = true;
+    protected $_canCaptureOnce = true;
     protected $_canRefund = true;
     protected $_canRefundInvoicePartial = true;
-
-    /**
-     * Payment Method feature
-     *
-     * @var bool
-     */
+    protected $_isGateway = true;
+    protected $_isInitializeNeeded = true;
     protected $_canUseInternal = false;
 
 
