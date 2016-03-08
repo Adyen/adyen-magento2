@@ -380,11 +380,6 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         parent::capture($payment, $amount);
-
-        // set TransactionId so you can do an online refund
-        $payment->setTransactionId(1)
-            ->setIsTransactionClosed(false);
-
         $this->_paymentRequest->capture($payment, $amount);
         return $this;
     }

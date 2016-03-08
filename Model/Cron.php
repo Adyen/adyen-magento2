@@ -174,7 +174,7 @@ class Cron
         $dateStart = new \DateTime();
         $dateStart->modify('-1 day');
         $dateEnd = new \DateTime();
-        $dateEnd->modify('-2 minute');
+        $dateEnd->modify('-0 minute');
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
 
         // create collection
@@ -1051,7 +1051,7 @@ class Cron
                 $invoice->getOrder()->setIsInProcess(true);
 
                 // set transaction id so you can do a online refund from credit memo
-                $invoice->setTransactionId(1);
+                $invoice->setTransactionId($this->_pspReference);
 
                 $autoCapture = $this->_isAutoCapture();
                 $createPendingInvoice = (bool) $this->_getConfigData('create_pending_invoice', 'adyen_abstract', $this->_order->getStoreId());

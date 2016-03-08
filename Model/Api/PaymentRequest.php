@@ -333,6 +333,12 @@ class PaymentRequest extends DataObject
             throw new \Magento\Framework\Exception\LocalizedException(__('The capture action failed'));
         }
 
+        // set pspReference as TransactionId so you can do an online refund
+        if(isset($result['pspReference'])) {
+            $payment->setTransactionId($result['pspReference'])
+                ->setIsTransactionClosed(false);
+        }
+
         return $result;
     }
 
