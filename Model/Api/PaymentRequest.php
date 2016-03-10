@@ -312,6 +312,9 @@ class PaymentRequest extends DataObject
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
         $currency = $payment->getOrder()->getBaseCurrencyCode();
 
+        //format the amount to minor units
+        $amount = $this->_adyenHelper->formatAmount($amount, $currency);
+
         $modificationAmount = array('currency' => $currency, 'value' => $amount);
 
         $request = array(
@@ -328,6 +331,12 @@ class PaymentRequest extends DataObject
         if($result['response'] != '[capture-received]') {
             // something went wrong
             throw new \Magento\Framework\Exception\LocalizedException(__('The capture action failed'));
+        }
+
+        // set pspReference as TransactionId so you can do an online refund
+        if(isset($result['pspReference'])) {
+            $payment->setTransactionId($result['pspReference'])
+                ->setIsTransactionClosed(false);
         }
 
         return $result;
@@ -376,6 +385,9 @@ class PaymentRequest extends DataObject
         $pspReference = $this->_getPspReference($payment);
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
         $currency = $payment->getOrder()->getBaseCurrencyCode();
+
+        //format the amount to minor units
+        $amount = $this->_adyenHelper->formatAmount($amount, $currency);
 
         $modificationAmount = array('currency' => $currency, 'value' => $amount);
 

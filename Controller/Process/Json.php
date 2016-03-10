@@ -86,11 +86,11 @@ class Json extends \Magento\Framework\App\Action\Action
                 foreach($notificationItems['notificationItems'] as $notificationItem)
                 {
                     $status = $this->_processNotification($notificationItem['NotificationRequestItem'], $notificationMode);
-                    if($status == "401"){
+                    if($status != true) {
                         $this->_return401();
                         return;
                     }
-                }
+                  }
 
                 $this->_adyenLogger->addAdyenNotification("The result is accepted");
 
@@ -138,9 +138,7 @@ class Json extends \Magento\Framework\App\Action\Action
         {
             // check if notificaiton already exists
             if(!$this->_isDuplicate($response)) {
-
                 try {
-
                     $notification = $this->_objectManager->create('Adyen\Payment\Model\Notification');
 
                     if (isset($response['pspReference'])) {
@@ -182,14 +180,16 @@ class Json extends \Magento\Framework\App\Action\Action
 
                     $notification->save();
 
+                    return true;
                 } catch (Exception $e) {
                     throw new \Magento\Framework\Exception\LocalizedException(__($e->getMessage()));
                 }
+            } else {
+                // duplicated so do nothing but return accepted to Adyen
+                return true;
             }
-        } else {
-            return "401";
         }
-        return true;
+        return false;
     }
 
 

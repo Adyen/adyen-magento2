@@ -144,7 +144,6 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
 
         foreach ($this->methodCodes as $code) {
             if ($this->methods[$code]->isAvailable()) {
-                $config['payment']['adyenOneclick']['redirectUrl'][$code] = $this->getMethodRedirectUrl($code);
                 $config['payment'] ['adyenOneclick']['billingAgreements'] = $this->getAdyenOneclickPaymentMethods();
 
                 $recurringContractType = $this->_getRecurringContractType();
@@ -154,22 +153,10 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
                 } else {
                     $config['payment'] ['adyenOneclick']['hasCustomerInteraction'] = false;
                 }
-                $config['payment']['adyenOneclick']['redirectUrl'][$code] = $this->getMethodRedirectUrl($code);
             }
         }
 
         return $config;
-    }
-
-    /**
-     * Return redirect URL for method
-     *
-     * @param string $code
-     * @return mixed
-     */
-    protected function getMethodRedirectUrl($code)
-    {
-        return $this->methods[$code]->getCheckoutRedirectUrl();
     }
 
     public function getAdyenOneclickPaymentMethods()
@@ -231,34 +218,6 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
             }
         }
         return $billingAgreements;
-    }
-
-
-
-    /**
-     * @param Adyen_Payment_Model_Billing_Agreement $billingAgreement
-     * @param Mage_Core_Model_Store                 $store
-     *
-     * @return bool
-     */
-    protected function _createPaymentMethodFromBA($billingAgreement, $store)
-    {
-        $methodInstance = $billingAgreement->getPaymentMethodInstance();
-        if (! $methodInstance || ! $methodInstance->getConfigData('active', $store)) {
-            return false;
-        }
-
-        $methodNewCode = 'adyen_oneclick_'.$billingAgreement->getReferenceId();
-
-        $methodData = array('model' => 'adyen/adyen_oneclick')
-            + $billingAgreement->getOneClickData()
-            + Mage::getStoreConfig('payment/adyen_oneclick', $store);
-
-        foreach ($methodData as $key => $value) {
-            $store->setConfig('payment/'.$methodNewCode.'/'.$key, $value);
-        }
-
-        return true;
     }
 
     protected function _getRecurringContractType()

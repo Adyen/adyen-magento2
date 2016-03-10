@@ -81,7 +81,7 @@ define(
                 serviceUrl, JSON.stringify(payload)
             ).done(
                 function () {
-                    $.mage.redirect(window.checkoutConfig.payment.adyenHpp.redirectUrl[quote.paymentMethod().method]);
+                    $.mage.redirect(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl);
                 }
             ).fail(
                 function (response) {

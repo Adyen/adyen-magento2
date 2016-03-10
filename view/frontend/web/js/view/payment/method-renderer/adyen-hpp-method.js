@@ -29,10 +29,9 @@ define(
         'Adyen_Payment/js/action/set-payment-method',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/model/quote',
-        'Magento_Checkout/js/checkout-data',
-        'Magento_Checkout/js/model/full-screen-loader',
+        'Magento_Checkout/js/checkout-data'
     ],
-    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction,quote, checkoutData, fullScreenLoader) {
+    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction,quote, checkoutData) {
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
@@ -50,6 +49,36 @@ define(
                         'issuerId'
                     ]);
                 return this;
+            },
+            getAdyenHppPaymentMethods: function() {
+                var self = this;
+                // convert to list so you can iterate
+                var paymentList = _.map(window.checkoutConfig.payment.adyenHpp.paymentMethods, function(value, key) {
+
+                        if(key == "ideal") {
+                            return {
+                                'value': key,
+                                'name': value,
+                                'method': self.item.method,
+                                'issuerIds':  value.issuers,
+                                'issuerId': ko.observable(null),
+                                getCode: function() {
+                                    return self.item.method;
+                                }
+                            }
+                        } else {
+                            return {
+                                'value': key,
+                                'name': value,
+                                'method': self.item.method,
+                                getCode: function() {
+                                    return self.item.method;
+                                }
+                            }
+                        }
+                    }
+                );
+                return paymentList;
             },
             /** Redirect to adyen */
             continueToAdyen: function () {
@@ -86,36 +115,6 @@ define(
                 setPaymentMethodAction();
                 return false;
             },
-            getAdyenHppPaymentMethods: function() {
-                var self = this;
-                // convert to list so you can iterate
-                var paymentList = _.map(window.checkoutConfig.payment.adyenHpp.paymentMethods, function(value, key) {
-
-                        if(key == "ideal") {
-                            return {
-                                'value': key,
-                                'name': value,
-                                'method': self.item.method,
-                                'issuerIds':  value.issuers,
-                                'issuerId': ko.observable(null),
-                                getCode: function() {
-                                    return self.item.method;
-                                }
-                            }
-                        } else {
-                            return {
-                                'value': key,
-                                'name': value,
-                                'method': self.item.method,
-                                getCode: function() {
-                                    return self.item.method;
-                                }
-                            }
-                        }
-                    }
-                );
-                return paymentList;
-            },
             selectPaymentMethodBrandCode: function() {
                 var self = this;
 
@@ -124,7 +123,6 @@ define(
                     "method": self.method,
                     "po_number": null,
                     "additional_data": {
-                        //brand_code: this.brandCode()
                         brand_code: self.value,
                     }
                 };

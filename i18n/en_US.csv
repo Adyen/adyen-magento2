@@ -49,3 +49,5 @@
 "The expiry month is not set. Please check your expiry month!","The expiry month is not set. Please check your expiry month!"
 "The payment is REFUSED","The payment is REFUSED"
 "Failed to disable this contract","Failed to disable this contract"
+"You will be redirected to the Adyen App", "You will be redirected to the Adyen App"
+"Continue to Adyen App", "Continue to Adyen App"

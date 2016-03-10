@@ -45,6 +45,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     protected $_canCaptureOnce = true;
     protected $_canRefund = true;
     protected $_canRefundInvoicePartial = true;
+    protected $_isGateway = true;
 
     /**
      * @var string

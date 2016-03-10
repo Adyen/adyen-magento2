@@ -168,14 +168,13 @@ class Cron
 
         $this->_adyenLogger->addAdyenNotificationCronjob("START OF THE CRONJOB");
 
-        //fixme somehow the created_at is saved in my timzone
         $dateStart = new \DateTime();
 
         // execute notifications from 2 minute or earlier because order could not yet been created by magento
         $dateStart = new \DateTime();
         $dateStart->modify('-1 day');
         $dateEnd = new \DateTime();
-        $dateEnd->modify('-2 minute');
+        $dateEnd->modify('-0 minute');
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
 
         // create collection
@@ -666,7 +665,6 @@ class Cron
                         }
                     }
 
-
                     if($contractDetail != null) {
 
                         // update status of all the current saved agreements in magento
@@ -829,7 +827,7 @@ class Cron
 
         // only do this if status in configuration is set
         if(!empty($status)) {
-            $this->_order->addStatusHistoryComment(__('Payment is pre authorised waiting for capture'), $status);
+            $this->_order->addStatusHistoryComment(__('Payment is authorised waiting for capture'), $status);
             $this->_debugData['_setPrePaymentAuthorized'] = 'Order status is changed to Pre-authorised status, status is ' . $status;
         } else {
             $this->_debugData['_setPrePaymentAuthorized'] = 'No pre-authorised status is used so ignore';
@@ -1053,7 +1051,7 @@ class Cron
                 $invoice->getOrder()->setIsInProcess(true);
 
                 // set transaction id so you can do a online refund from credit memo
-                $invoice->setTransactionId(1);
+                $invoice->setTransactionId($this->_pspReference);
 
                 $autoCapture = $this->_isAutoCapture();
                 $createPendingInvoice = (bool) $this->_getConfigData('create_pending_invoice', 'adyen_abstract', $this->_order->getStoreId());

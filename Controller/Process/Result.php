@@ -87,14 +87,19 @@ class Result extends \Magento\Framework\App\Action\Action
         $response = $this->getRequest()->getParams();
         $this->_adyenLogger->addAdyenResult(print_r($response, true));
 
-        $result = $this->validateResponse($response);
+        if($response) {
+            $result = $this->validateResponse($response);
 
-        if ($result) {
-            $session = $this->_session;
-            $session->getQuote()->setIsActive(false)->save();
-            $this->_redirect('checkout/onepage/success');
+            if ($result) {
+                $session = $this->_session;
+                $session->getQuote()->setIsActive(false)->save();
+                $this->_redirect('checkout/onepage/success');
+            } else {
+                $this->_cancel($response);
+                $this->_redirect('checkout/cart');
+            }
         } else {
-            $this->_cancel($response);
+            // redirect to checkout page
             $this->_redirect('checkout/cart');
         }
     }

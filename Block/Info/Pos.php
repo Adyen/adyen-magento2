@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -21,9 +20,14 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
-    <container name="root">
-        <block class="Adyen\Payment\Block\Redirect\Validate3d" name="adyen-cc-form-validate3d" template="redirect/cc/3dform.phtml" cacheable="false"/>
-    </container>
-</layout>
+
+namespace Adyen\Payment\Block\Info;
+
+class Pos extends AbstractInfo
+{
+    /**
+     * @var string
+     */
+    protected $_template = 'Adyen_Payment::info/adyen_pos.phtml';
+
+}
