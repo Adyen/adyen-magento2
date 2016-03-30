@@ -545,10 +545,10 @@ class Cron
                     // Check if payment is banktransfer or sepa if true then send out order confirmation email
                     $isBankTransfer = $this->_isBankTransfer();
                     if($isBankTransfer || $this->_paymentMethod == 'sepadirectdebit') {
-//                        $this->_order->sendNewOrderEmail(); // send order email
-                        $this->_orderSender->send($this->_order);
-
-                        $this->_debugData['_processNotification send email'] = 'Send orderconfirmation email to shopper';
+                        if(!$this->_order->getEmailSent()) {
+                            $this->_orderSender->send($this->_order);
+                            $this->_debugData['_processNotification send email'] = 'Send orderconfirmation email to shopper';
+                        }
                     }
                 }
                 break;
@@ -811,8 +811,10 @@ class Cron
         // for boleto confirmation mail is send on order creation
         if($this->_paymentMethod != "adyen_boleto") {
             // send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
-//            $this->_order->sendNewOrderEmail(); // send order email
-            $this->_orderSender->send($this->_order);
+            if(!$this->_order->getEmailSent()) {
+                $this->_orderSender->send($this->_order);
+                $this->_debugData['_authorizePayment send email'] = 'Send orderconfirmation email to shopper';
+            }
         }
 
         if(($this->_paymentMethod == "c_cash" && $this->_getConfigData('create_shipment', 'adyen_cash', $this->_order->getStoreId())) || ($this->_getConfigData('create_shipment', 'adyen_pos', $this->_order->getStoreId()) && $_paymentCode == "adyen_pos"))
