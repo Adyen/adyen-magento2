@@ -27,7 +27,7 @@ class RecurringType {
 
     CONST NONE = '';
     const ONECLICK = 'ONECLICK';
-    const ONECLICK_RECURRING = 'ONECLICK_RECURRING';
+    const ONECLICK_RECURRING = 'ONECLICK,RECURRING';
     const RECURRING = 'RECURRING';
 
     protected $_allowedRecurringTypesForListRecurringCall = [
