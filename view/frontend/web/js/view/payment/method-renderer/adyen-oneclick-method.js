@@ -50,8 +50,6 @@ define(
                     .observe([
                         'recurringDetailReference',
                         'creditCardType',
-                        'creditCardExpYear',
-                        'creditCardExpMonth',
                         'creditCardVerificationNumber',
                         'encryptedData'
                     ]);
@@ -100,8 +98,8 @@ define(
 
                 var cardData = {
                     cvc : self.creditCardVerificationNumber,
-                    expiryMonth : self.creditCardExpMonth,
-                    expiryYear : self.creditCardExpYear,
+                    expiryMonth : self.creditCardExpMonth(),
+                    expiryYear : self.creditCardExpYear(),
                     generationtime : generationtime
                 };
 
@@ -117,7 +115,6 @@ define(
                         variant: self.agreement_data.variant
                     }
                 };
-
 
                 if (this.validate() && additionalValidators.validate()) {
                     //this.isPlaceOrderActionAllowed(false);
@@ -150,6 +147,11 @@ define(
                 // convert to list so you can iterate
                 var paymentList = _.map(window.checkoutConfig.payment.adyenOneclick.billingAgreements, function(value) {
 
+                        var creditCardExpMonth, creditCardExpYear = false;
+                        if(value.agreement_data.card) {
+                            creditCardExpMonth = value.agreement_data.card.expiryMonth
+                            creditCardExpYear =  value.agreement_data.card.expiryYear;
+                        }
 
                         return {
                             'expiry': ko.observable(false),
@@ -164,8 +166,8 @@ define(
                                 return self.item.method;
                             },
                             creditCardVerificationNumber: '',
-                            creditCardExpMonth: value.agreement_data.card.expiryMonth,
-                            creditCardExpYear: value.agreement_data.card.expiryYear,
+                            creditCardExpMonth: ko.observable(creditCardExpMonth),
+                            creditCardExpYear: ko.observable(creditCardExpYear),
                             getCSEKey: function() {
                                 return window.checkoutConfig.payment.adyenCc.cseKey;
                             },
@@ -183,10 +185,15 @@ define(
 
                                 var validate =  $(form).validation() && $(form).validation('isValid');
 
-                                // add extra validation because jqeury validation will not work on non name attributes
-                                var expiration = Boolean($(form + ' #' + codeValue + '_expiration').valid());
-                                var expiration_yr = Boolean($(form + ' #' + codeValue + '_expiration_yr').valid());
-
+                                // if oneclick or recurring is a card do validation on expiration date
+                                if(this.agreement_data.card) {
+                                    // add extra validation because jqeury validation will not work on non name attributes
+                                    var expiration = Boolean($(form + ' #' + codeValue + '_expiration').valid());
+                                    var expiration_yr = Boolean($(form + ' #' + codeValue + '_expiration_yr').valid());
+                                } else {
+                                    var expiration = true;
+                                    var expiration_yr = true;
+                                }
 
                                 // only check if recurring type is set to oneclick
                                 var cid = true;

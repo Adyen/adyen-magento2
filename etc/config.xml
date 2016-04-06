@@ -33,6 +33,7 @@
                 <demo_mode>0</demo_mode>
                 <debug>1</debug>
                 <title_renderer>title_image</title_renderer>
+                <sepa_flow>sale</sepa_flow>
                 <group>adyen</group>
             </adyen_abstract>
             <adyen_cc>

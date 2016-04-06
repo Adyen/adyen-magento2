@@ -80,10 +80,10 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         $this->setCreatedAt($creationDate);
 
         //Billing agreement SEPA
-        if (isset($data['bank_iban'])) {
+        if (isset($data['bank']['iban'])) {
             $this->setAgreementLabel(__('%1, %2',
-                $data['bank_iban'],
-                $data['bank_ownerName']
+                $data['bank']['iban'],
+                $data['bank']['ownerName']
             ));
         }
 

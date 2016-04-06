@@ -170,11 +170,6 @@ class PaymentRequest extends DataObject
             $request['recurring'] = $recurring;
         }
 
-        $this->_adyenLogger->error('storeCC?:' . $payment->getAdditionalInformation("store_cc"));
-        $this->_adyenLogger->error('recuringtype' . $recurringType);
-        $this->_adyenLogger->error('recurringcontractType' . $recurringContractType);
-
-
         $billingAddress = $order->getBillingAddress();
 
         if($billingAddress)
@@ -234,7 +229,7 @@ class PaymentRequest extends DataObject
             // For recurring Ideal and Sofort needs to be converted to SEPA for this it is mandatory to set selectBrand to sepadirectdebit
             if(!$payment->getAdditionalInformation('customer_interaction')) {
                 if($payment->getCcType() == "directEbanking" || $payment->getCcType() == "ideal") {
-                    $this->selectedBrand = "sepadirectdebit";
+                    $request['selectedBrand'] = "sepadirectdebit";
                 }
             }
         } else {
@@ -333,10 +328,14 @@ class PaymentRequest extends DataObject
             throw new \Magento\Framework\Exception\LocalizedException(__('The capture action failed'));
         }
 
+        // save pspreference in additional Data to check for notification if refund is triggerd from inside Magento
+        $payment->setAdditionalInformation('capture_pspreference', $result['pspReference']);
+
         // set pspReference as TransactionId so you can do an online refund
         if(isset($result['pspReference'])) {
             $payment->setTransactionId($result['pspReference'])
-                ->setIsTransactionClosed(false);
+                ->setIsTransactionClosed(false)
+                ->setParentTransactionId($payment->getAdditionalInformation('pspReference'));
         }
 
         return $result;
@@ -368,6 +367,14 @@ class PaymentRequest extends DataObject
             // something went wrong
             throw new \Magento\Framework\Exception\LocalizedException(__('The refund action failed'));
         }
+
+        // set pspReference as TransactionId so you can do an online refund
+        if(isset($result['pspReference'])) {
+            $payment->setTransactionId($result['pspReference'])
+                ->setIsTransactionClosed(false)
+                ->setParentTransactionId($payment->getAdditionalInformation('pspReference'));
+        }
+
 
         return $result;
     }
@@ -407,6 +414,13 @@ class PaymentRequest extends DataObject
             throw new \Magento\Framework\Exception\LocalizedException(__('The refund action failed'));
         }
 
+        // set pspReference as TransactionId so you can do an online refund
+        if(isset($result['pspReference'])) {
+            $payment->setTransactionId($result['pspReference'])
+                ->setIsTransactionClosed(false)
+                ->setParentTransactionId($payment->getAdditionalInformation('pspReference'));
+        }
+
         return $result;
     }
 
@@ -440,7 +454,9 @@ class PaymentRequest extends DataObject
                     }
                 }
             } catch (\Exception $exception) {
-                print_r($exception);
+                // log exception
+                $this->_adyenLogger->addError($exception);
+                throw($exception);
             }
         }
         return $recurringContracts;
