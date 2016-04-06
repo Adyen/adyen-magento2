@@ -8,7 +8,7 @@ composer require adyen/module-payment
 <a href="https://docs.adyen.com/manuals/magento/magento2-integration" target="_blank">https://docs.adyen.com/manuals/magento/magento2-integration</a>
 
 ## Setup Cron ##
-Make sure that your magento cron is running every minute. We are using a cronjob to process the notifications. The cronjob will be executed every minute. It only executes the notifications that have been received at least 2 minutes ago. We have built in this 2 minutes so we are sure Magento has created the order and all save after events are executed. A handy tool to get inside into your cronjobs is AOE scheduler. You can download this tool through Magento Connect or GitHub
+Make sure that your magento cron is running every minute. We are using a cronjob to process the notifications. The cronjob will be executed every minute. It only executes the notifications that have been received at least 2 minutes ago. We have built in this 2 minutes so we are sure Magento has created the order and all save after events are executed. A handy tool to get insight into your cronjobs is AOE scheduler. You can download this tool through Magento Connect or GitHub
 
 ## Support ##
 You can create issues on our Magento Repository or if you have some specific problems for your account you can contact magento@adyen.com as well.

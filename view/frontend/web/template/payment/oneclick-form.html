@@ -67,14 +67,14 @@
 
             <fieldset data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + $parent.getCode() + '_' + value}">
 
-                <!-- ko if: agreement_data.card.number -->
+                <!-- ko if: agreement_data.card -->
 
                 <div class="field number">
                     <label class="label">
                         <span><!-- ko text: $t('Credit Card Number')--><!-- /ko --></span>
                     </label>
                     <div class="control">
-                        <span data-bind="text: '**** **** ****' + agreement_data.card.number"></span>
+                        <span data-bind="text: '**** **** **** ' + agreement_data.card.number"></span>
                     </div>
                 </div>
 
@@ -163,7 +163,43 @@
                     </div>
                 </div>
                 <!-- /ko -->
-            <!--/ko-->
+                <!--/ko-->
+
+                <!-- ko if: agreement_data.bank -->
+
+                <div class="field number">
+                    <label class="label">
+                        <span><!-- ko text: $t('Bank account holder name')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <span data-bind="text: agreement_data.bank.ownerName"></span>
+                    </div>
+                </div>
+
+                <div class="field number">
+                    <label class="label">
+                        <span><!-- ko text: $t('Iban')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <span data-bind="text: agreement_data.bank.iban"></span>
+                    </div>
+                </div>
+
+                <div class="field number">
+                    <label class="label">
+                        <span><!-- ko text: $t('Country')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <span data-bind="text: agreement_data.bank.countryCode"></span>
+                    </div>
+                </div>
+
+                <!--/ko-->
+
+
+
+
+
             </fieldset>
             <div class="checkout-agreements-block">
                 <!-- ko foreach: $parents[1].getRegion('before-place-order') -->

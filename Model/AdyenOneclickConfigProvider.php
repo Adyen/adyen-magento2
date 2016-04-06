@@ -144,9 +144,10 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
 
         foreach ($this->methodCodes as $code) {
             if ($this->methods[$code]->isAvailable()) {
-                $config['payment'] ['adyenOneclick']['billingAgreements'] = $this->getAdyenOneclickPaymentMethods();
 
                 $recurringContractType = $this->_getRecurringContractType();
+
+                $config['payment'] ['adyenOneclick']['billingAgreements'] = $this->getAdyenOneclickPaymentMethods();
                 $config['payment'] ['adyenOneclick']['recurringContractType'] = $recurringContractType;
                 if($recurringContractType == \Adyen\Payment\Model\RecurringType::ONECLICK) {
                     $config['payment'] ['adyenOneclick']['hasCustomerInteraction'] = true;
@@ -155,7 +156,6 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
                 }
             }
         }
-
         return $config;
     }
 
@@ -188,32 +188,48 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
             foreach ($baCollection as $billingAgreement) {
 
                 $agreementData = $billingAgreement->getAgreementData();
-                // check if AgreementLabel is set and if contract has an recurringType
 
-                if($billingAgreement->getAgreementLabel()) {
-                    $data = ['reference_id' => $billingAgreement->getReferenceId(),
-                        'agreement_label' => $billingAgreement->getAgreementLabel(),
-                        'agreement_data' => $agreementData
-                    ];
+                // no agreementData and contractType then ignore
+                if((!is_array($agreementData)) || (!isset($agreementData['contractTypes']))) {
+                    continue;
+                }
 
-                    if($this->_genericConfig->showLogos()) {
-                        $asset = $this->_genericConfig->createAsset('Adyen_Payment::images/logos/' . $agreementData['variant'] . '.png');
-                        $placeholder = $this->_genericConfig->findRelativeSourceFilePath($asset);
+                // check if contractType is supporting the selected contractType for OneClick payments
+                $allowedContractTypes = $agreementData['contractTypes'];
+                if(in_array($recurringPaymentType, $allowedContractTypes)) {
+                    // check if AgreementLabel is set and if contract has an recurringType
+                    if($billingAgreement->getAgreementLabel()) {
+                        $data = ['reference_id' => $billingAgreement->getReferenceId(),
+                            'agreement_label' => $billingAgreement->getAgreementLabel(),
+                            'agreement_data' => $agreementData
+                        ];
 
-                        $icon = null;
-                        if ($placeholder) {
-                            list($width, $height) = getimagesize($asset->getSourceFile());
-                            $icon = [
-                                'url' => $asset->getUrl(),
-                                'width' => $width,
-                                'height' => $height
-                            ];
+                        if($this->_genericConfig->showLogos()) {
+
+                            $logoName = $agreementData['variant'];
+                            // for Ideal use sepadirectdebit because it is
+                            if($agreementData['variant'] == 'ideal') {
+                                $logoName = "sepadirectdebit";
+                            }
+
+                            $asset = $this->_genericConfig->createAsset('Adyen_Payment::images/logos/' . $logoName . '.png');
+                            $placeholder = $this->_genericConfig->findRelativeSourceFilePath($asset);
+
+                            $icon = null;
+                            if ($placeholder) {
+                                list($width, $height) = getimagesize($asset->getSourceFile());
+                                $icon = [
+                                    'url' => $asset->getUrl(),
+                                    'width' => $width,
+                                    'height' => $height
+                                ];
+                            }
+                            $data['logo'] = $icon;
+
                         }
-                        $data['logo'] = $icon;
 
+                        $billingAgreements[] = $data;
                     }
-
-                    $billingAgreements[] = $data;
                 }
             }
         }

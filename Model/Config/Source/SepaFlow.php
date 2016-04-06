@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -21,15 +20,23 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
 
-    <module name="Adyen_Payment" setup_version="1.2.1">
-        <sequence>
-            <module name="Magento_Sales"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Checkout"/>
-            <module name="Magento_Paypal"/>
-        </sequence>
-    </module>
-</config>
+namespace Adyen\Payment\Model\Config\Source;
+
+class SepaFlow implements \Magento\Framework\Option\ArrayInterface
+{
+    const SEPA_FLOW_SALE = 'sale';
+    const SEPA_FLOW_AUTHCAP = 'authcap';
+
+    /**
+     * @return array
+     */
+    public function toOptionArray()
+    {
+        return array(
+            array('value' => self::SEPA_FLOW_SALE, 'label' => __('Sale')),
+            array('value' => self::SEPA_FLOW_AUTHCAP, 'label' => __('Auth/Cap')),
+        );
+    }
+
+}
