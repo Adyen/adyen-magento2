@@ -167,7 +167,7 @@ class Cron
         $dateStart = new \DateTime();
         $dateStart->modify('-1 day');
         $dateEnd = new \DateTime();
-        $dateEnd->modify('-0 minute');
+        $dateEnd->modify('-2 minute');
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
 
         // create collection
@@ -880,38 +880,48 @@ class Cron
             $captureModePayPal = trim($this->_getConfigData('paypal_capture_mode', 'adyen_abstract', $this->_order->getStoreId()));
 
             // if you are using authcap the payment method is manual. There will be a capture send to indicate if payment is succesfull
-            if(($_paymentCode == "adyen_sepa" || $this->_paymentMethod = "sepadirectdebit") && $sepaFlow == "authcap") {
+            if(($_paymentCode == "adyen_sepa" || $this->_paymentMethod == "sepadirectdebit") && $sepaFlow == "authcap") {
+                $this->_adyenLogger->addAdyenNotificationCronjob('Manual Capture is applied for sepa because it is in authcap flow');
                 return false;
             }
 
             // payment method ideal, cash adyen_boleto or adyen_pos has direct capture
-            if ($_paymentCode == "adyen_pos" || (($_paymentCode == "adyen_sepa" || $this->_paymentMethod = "sepadirectdebit") && $sepaFlow != "authcap")) {
+            if ($_paymentCode == "adyen_pos" || (($_paymentCode == "adyen_sepa" || $this->_paymentMethod == "sepadirectdebit") && $sepaFlow != "authcap")) {
+                $this->_adyenLogger->addAdyenNotificationCronjob('This payment method does not allow manual capture.(2) paymentCode:' . $_paymentCode . ' paymentMethod:' . $this->_paymentMethod);
                 return true;
             }
 
             // if auto capture mode for openinvoice is turned on then use auto capture
             if ($captureModeOpenInvoice == true && (strcmp($this->_paymentMethod, 'openinvoice') === 0 || strcmp($this->_paymentMethod, 'afterpay_default') === 0 || strcmp($this->_paymentMethod, 'klarna') === 0)) {
+                $this->_adyenLogger->addAdyenNotificationCronjob('This payment method is configured to be working as auto capture ');
                 return true;
             }
             // if PayPal capture modues is different from the default use this one
             if(strcmp($this->_paymentMethod, 'paypal' ) === 0 && $captureModePayPal != "") {
                 if(strcmp($captureModePayPal, 'auto') === 0 ) {
+                    $this->_adyenLogger->addAdyenNotificationCronjob('This payment method is paypal and configured to work as auto capture');
                     return true;
                 } elseif(strcmp($captureModePayPal, 'manual') === 0 ) {
+                    $this->_adyenLogger->addAdyenNotificationCronjob('This payment method is paypal and configured to work as manual capture');
                     return false;
                 }
             }
             if (strcmp($captureMode, 'manual') === 0) {
+                $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode for this payment is set to manual');
                 return false;
             }
             //online capture after delivery, use Magento backend to online invoice (if the option auto capture mode for openinvoice is not set)
             if (strcmp($this->_paymentMethod, 'openinvoice') === 0 || strcmp($this->_paymentMethod, 'afterpay_default') === 0 || strcmp($this->_paymentMethod, 'klarna') === 0) {
+                $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode for klarna is by default set to manual');
                 return false;
             }
+
+            $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode is set to auto capture');
             return true;
 
         } else {
             // does not allow manual capture so is always immediate capture
+            $this->_adyenLogger->addAdyenNotificationCronjob('This payment method does not allow manual capture');
             return true;
         }
 
