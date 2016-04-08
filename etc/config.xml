@@ -45,6 +45,7 @@
                 <cctypes>AE,VI,MC,DI</cctypes>
                 <useccv>1</useccv>
                 <cse_enabled>1</cse_enabled>
+                <enable_moto>0</enable_moto>
                 <payment_action>authorize</payment_action>
                 <group>adyen</group>
             </adyen_cc>

@@ -62,6 +62,18 @@
             <depends><field id="cse_enabled">1</field></depends>
             <config_path>payment/adyen_cc/cse_publickey_live</config_path>
         </field>
+
+        <group id="adyen_cc_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" sortOrder="150">
+            <label>Advanced Settings</label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+            <field id="enable_moto" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Enable MOTO</label>
+                <tooltip><![CDATA[Important you have to activate MOTO for your account contact magento@adyen.com.]]></tooltip>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>payment/adyen_cc/enable_moto</config_path>
+            </field>
+        </group>
+
         <group id="adyen_cc_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="200">
             <label>Country Specific Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>

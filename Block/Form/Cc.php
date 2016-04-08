@@ -43,6 +43,16 @@ class Cc extends \Magento\Payment\Block\Form
     protected $_adyenHelper;
 
     /**
+     * @var \Magento\Framework\App\State
+     */
+    protected $_appState;
+
+    /**
+     * @var \Magento\Checkout\Model\Session
+     */
+    protected $_checkoutSession;
+
+    /**
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
      * @param array $data
@@ -51,11 +61,14 @@ class Cc extends \Magento\Payment\Block\Form
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Payment\Model\Config $paymentConfig,
         \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Checkout\Model\Session $checkoutSession,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->_paymentConfig = $paymentConfig;
         $this->_adyenHelper = $adyenHelper;
+        $this->_appState = $context->getAppState();
+        $this->_checkoutSession = $checkoutSession;
     }
 
 
@@ -142,6 +155,16 @@ class Cc extends \Magento\Payment\Block\Form
      */
     public function hasVerification()
     {
+        // if backend order and moto payments is turned on don't show cvc
+        if ($this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
+
+            $this->getCheckoutSession();
+            $store = $this->_checkoutSession->getQuote()->getStore();
+            $enableMoto = $this->_adyenHelper->getAdyenCcConfigDataFlag('enable_moto', $store->getId());
+            if($enableMoto) {
+                return false;
+            }
+        }
         return true;
     }
 

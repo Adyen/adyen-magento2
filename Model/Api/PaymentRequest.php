@@ -62,6 +62,11 @@ class PaymentRequest extends DataObject
      */
     protected $_recurringType;
 
+    /**
+     * @var \Magento\Framework\App\State
+     */
+    protected $_appState;
+
     const GUEST_ID = 'customer_';
 
     /**
@@ -74,6 +79,7 @@ class PaymentRequest extends DataObject
      * @param array $data
      */
     public function __construct(
+        \Magento\Framework\Model\Context $context,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
@@ -88,6 +94,7 @@ class PaymentRequest extends DataObject
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
         $this->_recurringType = $recurringType;
+        $this->_appState = $context->getAppState();
 
         // initialize client
         $webserviceUsername = $this->_adyenHelper->getWsUsername();
@@ -113,13 +120,18 @@ class PaymentRequest extends DataObject
 
     public function fullApiRequest($payment, $paymentMethodCode)
     {
+        $storeId = null;
+        if( $this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
+            $storeId = $payment->getOrder()->getStoreId();
+        }
+
         $order = $payment->getOrder();
         $amount = $order->getGrandTotal();
         $customerEmail = $order->getCustomerEmail();
         $shopperIp = $order->getRemoteIp();
         $orderCurrencyCode = $order->getOrderCurrencyCode();
-        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
-        $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type');
+        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
+        $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type', $storeId);
         $realOrderId = $order->getRealOrderId();
 
         $customerId = $order->getCustomerId();
@@ -217,8 +229,18 @@ class PaymentRequest extends DataObject
             $request = array_merge($request, $requestDelivery);
         }
 
+
+        $enableMoto = $this->_adyenHelper->getAdyenCcConfigDataFlag('enable_moto', $storeId);
+        $recurringDetailReference = null;
+
         // define the shopper interaction
-        if($paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
+        if( $this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE &&
+            $paymentMethodCode == \Adyen\Payment\Model\Method\Cc::METHOD_CODE &&
+            $enableMoto)
+        {
+            // if MOTO for backend is enabled use MOTO as shopper interaction type
+            $shopperInteraction = "Moto";
+        } else if($paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
             $recurringDetailReference = $payment->getAdditionalInformation("recurring_detail_reference");
             if($payment->getAdditionalInformation('customer_interaction')) {
                 $shopperInteraction = "Ecommerce";
@@ -233,7 +255,6 @@ class PaymentRequest extends DataObject
                 }
             }
         } else {
-            $recurringDetailReference = null;
             $shopperInteraction = "Ecommerce";
         }
 
