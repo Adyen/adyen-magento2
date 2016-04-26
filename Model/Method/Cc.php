@@ -191,7 +191,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.NPathComplexity)authorize
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function validate()
     {
