@@ -36,9 +36,6 @@
         <method name="adyen_hpp">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
-        <method name="test">
-            <allow_multiple_address>1</allow_multiple_address>
-        </method>
     </methods>
 </payment>
 

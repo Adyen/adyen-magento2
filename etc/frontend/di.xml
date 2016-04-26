@@ -31,6 +31,7 @@
                 <item name="adyen_cc_config_provider" xsi:type="object">Adyen\Payment\Model\AdyenCcConfigProvider</item>
                 <item name="adyen_oneclick_config_provider" xsi:type="object">Adyen\Payment\Model\AdyenOneclickConfigProvider</item>
                 <item name="adyen_hpp_config_provider" xsi:type="object">Adyen\Payment\Model\AdyenHppConfigProvider</item>
+                <item name="adyen_sepa_config_provider" xsi:type="object">Adyen\Payment\Model\AdyenSepaConfigProvider</item>
             </argument>
         </arguments>
     </type>

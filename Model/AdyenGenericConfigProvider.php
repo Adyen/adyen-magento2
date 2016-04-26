@@ -49,7 +49,8 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         \Adyen\Payment\Model\Method\Cc::METHOD_CODE,
         \Adyen\Payment\Model\Method\Hpp::METHOD_CODE,
         \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE,
-        \Adyen\Payment\Model\Method\Pos::METHOD_CODE
+        \Adyen\Payment\Model\Method\Pos::METHOD_CODE,
+        \Adyen\Payment\Model\Method\Sepa::METHOD_CODE
     ];
 
     /**

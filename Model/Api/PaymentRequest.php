@@ -266,20 +266,37 @@ class PaymentRequest extends DataObject
             $request['selectedRecurringDetailReference'] = $recurringDetailReference;
         }
 
-        // If cse is enabled add encrypted card date into request
-        if($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
-            $request['additionalData']['card.encrypted.json'] = $payment->getAdditionalInformation("encrypted_data");
-        } else {
-            $requestCreditCardDetails = array(
-                "expiryMonth" => $payment->getCcExpMonth(),
-                "expiryYear" => $payment->getCcExpYear(),
-                "holderName" => $payment->getCcOwner(),
-                "number" => $payment->getCcNumber(),
-                "cvc" => $payment->getCcCid(),
-            );
-            $cardDetails['card'] = $requestCreditCardDetails;
-            $request = array_merge($request, $cardDetails);
+        
+        if($paymentMethodCode == \Adyen\Payment\Model\Method\Cc::METHOD_CODE || $paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
+            // If cse is enabled add encrypted card date into request
+            if($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
+                $request['additionalData']['card.encrypted.json'] = $payment->getAdditionalInformation("encrypted_data");
+            } else {
+                $requestCreditCardDetails = array(
+                    "expiryMonth" => $payment->getCcExpMonth(),
+                    "expiryYear" => $payment->getCcExpYear(),
+                    "holderName" => $payment->getCcOwner(),
+                    "number" => $payment->getCcNumber(),
+                    "cvc" => $payment->getCcCid(),
+                );
+                $cardDetails['card'] = $requestCreditCardDetails;
+                $request = array_merge($request, $cardDetails);
+            }
+        } elseif($paymentMethodCode == \Adyen\Payment\Model\Method\Sepa::METHOD_CODE) {
+
+            // set brand to sepa
+            $request['selectedBrand'] = "sepadirectdebit";
+
+            // add bankDetails into request
+            $bankAccount = [
+                'iban' => $payment->getAdditionalInformation("iban"),
+                'ownerName' => $payment->getAdditionalInformation("account_name"),
+                'countryCode' => $payment->getAdditionalInformation("country")
+            ];
+
+            $request['bankAccount'] = $bankAccount;
         }
+
 
         $result = $service->authorise($request);
 

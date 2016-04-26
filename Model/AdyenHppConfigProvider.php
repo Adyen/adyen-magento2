@@ -175,12 +175,14 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
 
         $ccEnabled = $this->_config->getValue('payment/'.\Adyen\Payment\Model\Method\Cc::METHOD_CODE.'/active');
         $ccTypes = array_keys($this->_adyenHelper->getCcTypesAltData());
+        $sepaEnabled = $this->_config->getValue('payment/'.\Adyen\Payment\Model\Method\Sepa::METHOD_CODE.'/active');
 
         foreach ($this->_fetchHppMethods($store) as $methodCode => $methodData) {
 
-            // skip payment methods if it is a creditcard that is enabled in adyen_cc
-            if ($ccEnabled
-                && in_array($methodCode, $ccTypes)) {
+            // skip payment methods if it is a creditcard that is enabled in adyen_cc or if payment is sepadirectdebit and SEPA api is enabled
+            if ($ccEnabled && in_array($methodCode, $ccTypes)) {
+                continue;
+            } elseif($methodCode == 'sepadirectdebit' && $sepaEnabled) {
                 continue;
             }
 

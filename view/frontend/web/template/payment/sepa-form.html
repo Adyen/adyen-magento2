@@ -1,0 +1,164 @@
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+
+<div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+    <div class="payment-method-title field choice">
+        <input type="radio"
+               name="payment[method]"
+               class="radio"
+               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+        <label data-bind="attr: {'for': getCode()}" class="label">
+
+            <!-- ko if: showLogo() -->
+
+            <div data-bind="attr: { 'class': 'adyen-sprite ' + getCode() }"></div>
+
+            <!--/ko-->
+
+            <span data-bind="text: getTitle()"></span>
+        </label>
+    </div>
+    <div class="payment-method-content">
+        <div class="payment-method-billing-address">
+            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+
+
+
+        <form class="form" id="adyen-sepa-form" data-role="adyen-sepa-form" action="#" method="post" data-bind="mageInit: {
+            'transparent':{
+                'context': context(),
+                'controller': getControllerName(),
+                'orderSaveUrl':getPlaceOrderUrl(),
+            }, 'validation':[]}">
+
+
+            <fieldset data-bind="attr: {class: 'fieldset payment items adyen_sepa ' + getCode(), id: 'payment_form_' + getCode()}">
+                <!-- ko if: (isShowLegend())-->
+                <legend class="legend">
+                    <span><!-- ko text: $t('Sepa Information')--><!-- /ko --></span>
+                </legend><br />
+                <!-- /ko -->
+
+                <div class="field accountname type required">
+                    <label data-bind="attr: {for: getCode() + '_account_name'}" class="label">
+                        <span><!-- ko text: $t('Bank account holder name')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <input  type="text"
+                                class="input-text"
+                                name="payment[account_name]"
+                                autocomplete="off"
+                                data-bind="attr: {id: getCode() + '_account_name', 'data-container': getCode() + '-account-name', 'data-validate': JSON.stringify({required:true})},
+                                            enable: isActive($parents),
+                                            value: accountName"
+                                data-validate="{required:true}">
+                        </input>
+                    </div>
+                </div>
+
+
+                <div class="field iban type required">
+                    <label data-bind="attr: {for: getCode() + '_iban'}" class="label">
+                        <span><!-- ko text: $t('IBAN')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <input  type="text"
+                                class="input-text"
+                                name="payment[iban]"
+                                autocomplete="off"
+                                data-bind="attr: {id: getCode() + '_iban', 'data-container': getCode() + '-iban', 'data-validate': JSON.stringify({required:true})},
+                                            enable: isActive($parents),
+                                            value: iban"
+                                data-validate="{required:true}">
+                        </input>
+                    </div>
+                </div>
+
+                <div class="field country type required">
+
+                    <label data-bind="attr: {for: getCode() + '_country'}" class="label">
+                        <span><!-- ko text: $t('Country')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <select class="select select-country"
+                                name="payment[country]"
+                                data-bind="attr: {id: getCode() + '_country', 'data-container': getCode() + '-country', 'data-validate': JSON.stringify({required:true})},
+                                            enable: isActive($parents),
+                                            options: getCountries(),
+                                            optionsValue: 'key',
+                                            optionsText: 'value',
+                                            optionsCaption: $t('Select your country'),
+                                            value: country"
+                                 data-validate="{required:true}">
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="field choice required">
+                    <input type="checkbox"
+                           name="payment[accept_sepa]"
+                           autocomplete="off"
+                           class="checkbox"
+                           data-bind="attr: {id: getCode() + '_accept_sepa', title: $t('I agree that the above amount will be debited from my bank account.')}, checked: setAcceptSepa"
+                           data-validate="{required:true}"
+                    />
+                    <label data-bind="attr: {for: getCode() + '_accept_sepa'}" class="label">
+                        <span><!-- ko text: $t('I agree that the above amount will be debited from my bank account.')--><!-- /ko --></span>
+                    </label>
+                </div>
+
+
+
+
+
+            </fieldset>
+
+
+        <div class="checkout-agreements-block">
+            <!-- ko foreach: $parent.getRegion('before-place-order') -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+        <div class="actions-toolbar">
+            <div class="primary">
+                <button class="action primary checkout"
+                        type="submit"
+                        data-bind="
+                            click: placeOrder,
+                            attr: {title: $t('Place Order')},
+                            enable: (getCode() == isChecked()),
+                            css: {disabled: !isPlaceOrderActionAllowed()}
+                            "
+                        disabled>
+                    <span data-bind="text: $t('Place Order')"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
