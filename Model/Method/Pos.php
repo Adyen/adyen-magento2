@@ -186,9 +186,9 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $order = $payment->getOrder();
         $order->setCanSendNewEmailFlag(false);
 
-        $state = \Magento\Sales\Model\Order::STATE_NEW;
-        $stateObject->setState($state);
+        $stateObject->setState(\Magento\Sales\Model\Order::STATE_NEW);
         $stateObject->setStatus($this->_adyenHelper->getAdyenAbstractConfigData('order_status'));
+        $stateObject->setIsNotified(false);
     }
 
     /**
