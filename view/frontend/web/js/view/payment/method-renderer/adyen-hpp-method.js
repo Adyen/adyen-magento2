@@ -29,9 +29,10 @@ define(
         'Adyen_Payment/js/action/set-payment-method',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/model/quote',
-        'Magento_Checkout/js/checkout-data'
+        'Magento_Checkout/js/checkout-data',
+        'Magento_Checkout/js/model/payment/additional-validators'
     ],
-    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction,quote, checkoutData) {
+    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction,quote, checkoutData, additionalValidators) {
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
@@ -64,6 +65,9 @@ define(
                                 'issuerId': ko.observable(null),
                                 getCode: function() {
                                     return self.item.method;
+                                },
+                                validate: function () {
+                                    return self.validate();
                                 }
                             }
                         } else {
@@ -73,6 +77,9 @@ define(
                                 'method': self.item.method,
                                 getCode: function() {
                                     return self.item.method;
+                                },
+                                validate: function () {
+                                    return self.validate();
                                 }
                             }
                         }
@@ -82,37 +89,43 @@ define(
             },
             /** Redirect to adyen */
             continueToAdyen: function () {
-                //update payment method information if additional data was changed
-                this.selectPaymentMethod();
-                setPaymentMethodAction();
-                return false;
+                if (this.validate() && additionalValidators.validate()) {
+                    //update payment method information if additional data was changed
+                    this.selectPaymentMethod();
+                    setPaymentMethodAction();
+                    return false;
+                }
             },
             continueToAdyenBrandCode: function() {
                 // set payment method to adyen_hpp
                 var self = this;
 
-                // for ideal add brand_code in request
-                if(brandCode() == "ideal") {
-                    var  data = {
-                        "method": self.method,
-                        "po_number": null,
-                        "additional_data": {
-                            issuer_id: this.issuerId(),
-                            brand_code: self.value
-                        }
-                    };
-                } else {
-                    var  data = {
-                        "method": self.method,
-                        "po_number": null,
-                        "additional_data": {
-                            brand_code: self.value
-                        }
-                    };
+                if (this.validate() && additionalValidators.validate()) {
+
+                    // for ideal add brand_code in request
+                    if(brandCode() == "ideal") {
+                        var  data = {
+                            "method": self.method,
+                            "po_number": null,
+                            "additional_data": {
+                                issuer_id: this.issuerId(),
+                                brand_code: self.value
+                            }
+                        };
+                    } else {
+                        var  data = {
+                            "method": self.method,
+                            "po_number": null,
+                            "additional_data": {
+                                brand_code: self.value
+                            }
+                        };
+                    }
+
+                    selectPaymentMethodAction(data);
+                    setPaymentMethodAction();
                 }
 
-                selectPaymentMethodAction(data);
-                setPaymentMethodAction();
                 return false;
             },
             selectPaymentMethodBrandCode: function() {
@@ -151,6 +164,9 @@ define(
             }),
             isPaymentMethodSelectionOnAdyen: function() {
                 return window.checkoutConfig.payment.adyenHpp.isPaymentMethodSelectionOnAdyen;
+            },
+            validate: function () {
+                return true;
             }
         });
     }
