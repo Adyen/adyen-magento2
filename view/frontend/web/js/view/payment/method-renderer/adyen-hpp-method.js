@@ -32,7 +32,7 @@ define(
         'Magento_Checkout/js/checkout-data',
         'Magento_Checkout/js/model/payment/additional-validators'
     ],
-    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction,quote, checkoutData, additionalValidators) {
+    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction, quote, checkoutData, additionalValidators) {
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);

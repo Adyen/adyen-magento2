@@ -59,8 +59,6 @@ define(
                     ]);
                 return this;
             },
-            placeOrderHandler: null,
-            validateHandler: null,
             setPlaceOrderHandler: function(handler) {
                 this.placeOrderHandler = handler;
             },
