@@ -27,15 +27,6 @@ use Magento\Framework\DataObject;
 
 class PaymentRequest extends DataObject
 {
-    /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    protected $_scopeConfig;
-
-    /**
-     * @var \Psr\Log\LoggerInterface
-     */
-    protected $_logger;
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -80,16 +71,12 @@ class PaymentRequest extends DataObject
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Model\RecurringType $recurringType,
         array $data = []
     ) {
-        $this->_scopeConfig = $scopeConfig;
-        $this->_logger = $logger;
         $this->_encryptor = $encryptor;
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
@@ -115,7 +102,6 @@ class PaymentRequest extends DataObject
         $client->setLogger($adyenLogger);
 
         $this->_client = $client;
-
     }
 
     public function fullApiRequest($payment, $paymentMethodCode)
