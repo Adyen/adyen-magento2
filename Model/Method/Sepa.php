@@ -130,12 +130,16 @@ class Sepa extends \Magento\Payment\Model\Method\AbstractMethod
     {
         parent::assignData($data);
 
-        // set data to additionalInformation
+        if (!$data instanceof \Magento\Framework\DataObject) {
+            $data = new \Magento\Framework\DataObject($data);
+        }
+
+        $additionalData = $data->getAdditionalData();
         $infoInstance = $this->getInfoInstance();
-        $infoInstance->setAdditionalInformation('account_name', $data['account_name']);
-        $infoInstance->setAdditionalInformation('iban', $data['iban']);
-        $infoInstance->setAdditionalInformation('country', $data['country']);
-        $infoInstance->setAdditionalInformation('accept_sepa', $data['accept_sepa']);
+        $infoInstance->setAdditionalInformation('account_name', $additionalData['account_name']);
+        $infoInstance->setAdditionalInformation('iban', $additionalData['iban']);
+        $infoInstance->setAdditionalInformation('country', $additionalData['country']);
+        $infoInstance->setAdditionalInformation('accept_sepa', $additionalData['accept_sepa']);
     }
 
     /**

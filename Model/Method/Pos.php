@@ -201,7 +201,6 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     public function assignData(\Magento\Framework\DataObject $data)
     {
         parent::assignData($data);
-        $infoInstance = $this->getInfoInstance();
         return $this;
     }
 

@@ -186,14 +186,20 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     public function assignData(\Magento\Framework\DataObject $data)
     {
         parent::assignData($data);
-        $infoInstance = $this->getInfoInstance();
 
-        if(isset($data['brand_code'])) {
-            $infoInstance->setAdditionalInformation('brand_code', $data['brand_code']);
+        if (!$data instanceof \Magento\Framework\DataObject) {
+            $data = new \Magento\Framework\DataObject($data);
         }
 
-        if(isset($data['issuer_id'])) {
-            $infoInstance->setAdditionalInformation('issuer_id', $data['issuer_id']);
+        $additionalData = $data->getAdditionalData();
+        $infoInstance = $this->getInfoInstance();
+
+        if(isset($additionalData['brand_code'])) {
+            $infoInstance->setAdditionalInformation('brand_code', $additionalData['brand_code']);
+        }
+
+        if(isset($additionalData['issuer_id'])) {
+            $infoInstance->setAdditionalInformation('issuer_id', $additionalData['issuer_id']);
         }
 
         $this->_adyenLogger->debug(print_r($data,1));

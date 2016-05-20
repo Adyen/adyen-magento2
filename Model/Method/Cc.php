@@ -167,20 +167,29 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     public function assignData(\Magento\Framework\DataObject $data)
     {
         parent::assignData($data);
+
+        if (!$data instanceof \Magento\Framework\DataObject) {
+            $data = new \Magento\Framework\DataObject($data);
+        }
+
+        $additionalData = $data->getAdditionalData();
         $infoInstance = $this->getInfoInstance();
 
-        $infoInstance->setCcType($data['cc_type']);
-
+        if(isset($additionalData['cc_type'])) {
+            $infoInstance->setCcType($additionalData['cc_type']);
+        }
         if($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
-            if(isset($data['encrypted_data'])) {
-                $infoInstance->setAdditionalInformation('encrypted_data', $data['encrypted_data']);
+            if(isset($additionalData['encrypted_data'])) {
+                $infoInstance->setAdditionalInformation('encrypted_data', $additionalData['encrypted_data']);
             } else {
                 throw new \Magento\Framework\Exception\LocalizedException(__('Card encryption failed'));
             }
         }
 
         // save value remember details checkbox
-        $infoInstance->setAdditionalInformation('store_cc', $data['store_cc']);
+        if(isset($additionalData['store_cc'])) {
+            $infoInstance->setAdditionalInformation('store_cc', $additionalData['store_cc']);
+        }
 
         return $this;
     }
@@ -191,7 +200,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)authorize
      */
     public function validate()
     {
