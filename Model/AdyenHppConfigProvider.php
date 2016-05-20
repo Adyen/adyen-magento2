@@ -358,14 +358,20 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $hmacKey = $this->_adyenHelper->getHmac();
 
         // create and add signature
-        $requestParams["merchantSig"] = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $requestParams);
+        try {
+            $requestParams["merchantSig"] = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $requestParams);
+        } catch (\Adyen\AdyenException $e) {
+            $this->_adyenLogger->error($e->getMessage());
+            // return empty result
+            return array();
+        }
 
         // initialize service
         $service = new \Adyen\Service\DirectoryLookup($client);
 
         try {
             $responseData =  $service->directoryLookup($requestParams);
-        }catch (Exception $e) {
+        }catch (\Adyen\AdyenException $e) {
             $this->_adyenLogger->error("The Directory Lookup response is empty check your Adyen configuration in Magento.");
             // return empty result
             return array();

@@ -23,60 +23,10 @@
 
 namespace Adyen\Payment\Logger\Handler;
 
-use Magento\Framework\Filesystem\DriverInterface;
-use Monolog\Formatter\LineFormatter;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
+use Magento\Framework\Logger\Handler\Base;
 
-class AdyenBase extends StreamHandler
+class AdyenBase extends Base
 {
-    /**
-     * @var string
-     */
-    protected $fileName;
-
-    /**
-     * @var int
-     */
-    protected $loggerType = Logger::DEBUG;
-
-    /**
-     * @var DriverInterface
-     */
-    protected $filesystem;
-
-    /**
-     * @param DriverInterface $filesystem
-     * @param string $filePath
-     */
-    public function __construct(
-        DriverInterface $filesystem,
-        $filePath = null
-    ) {
-        $this->filesystem = $filesystem;
-        parent::__construct(
-            $filePath ? $filePath . $this->fileName : BP . $this->fileName,
-            $this->loggerType
-        );
-        $this->setFormatter(new LineFormatter(null, null, true));
-    }
-
-    /**
-     * @{inheritDoc}
-     *
-     * @param $record array
-     * @return void
-     */
-    public function write(array $record)
-    {
-        $logDir = $this->filesystem->getParentDirectory($this->url);
-        if (!$this->filesystem->isDirectory($logDir)) {
-            $this->filesystem->createDirectory($logDir, 0777);
-        }
-
-        parent::write($record);
-    }
-
     /**
      * overwrite core it needs to be the exact level otherwise use different handler
      *

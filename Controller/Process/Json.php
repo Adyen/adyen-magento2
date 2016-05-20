@@ -124,18 +124,18 @@ class Json extends \Magento\Framework\App\Action\Action
         }
         return false;
     }
-
-
     /**
-     * $desc save notification into the database for cronjob to execute notificaiton
+     * @desc  save notification into the database for cronjob to execute notification
      * @param $response
+     * @param $notificationMode
+     * @return bool
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function _processNotification($response, $notificationMode)
     {
         // validate the notification
-        if($this->authorised($response))
-        {
+        if ($this->authorised($response)) {
+
             // check if notificaiton already exists
             if(!$this->_isDuplicate($response)) {
                 try {

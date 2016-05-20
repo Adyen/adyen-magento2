@@ -34,6 +34,12 @@ class Version extends \Magento\Config\Block\System\Config\Form\Field
      */
     protected $_moduleList;
 
+    /**
+     * Version constructor.
+     * @param \Magento\Framework\Module\ModuleListInterface $moduleList
+     * @param \Magento\Backend\Block\Template\Context $context
+     * @param array $data
+     */
     public function __construct(
         \Magento\Framework\Module\ModuleListInterface $moduleList,
         \Magento\Backend\Block\Template\Context $context,
@@ -44,6 +50,10 @@ class Version extends \Magento\Config\Block\System\Config\Form\Field
         $this->_moduleList = $moduleList;
     }
 
+    /**
+     * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
+     * @return string
+     */
     protected function _getElementHtml(\Magento\Framework\Data\Form\Element\AbstractElement $element)
     {
         return (string) $this->_moduleList->getOne("Adyen_Payment")['setup_version'];
