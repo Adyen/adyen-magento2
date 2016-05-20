@@ -65,7 +65,7 @@
                 <model>Adyen\Payment\Model\Method\Hpp</model>
                 <order_status>pending</order_status>
                 <title>Adyen HPP</title>
-                <payment_selection_on_adyen>1</payment_selection_on_adyen>
+                <payment_selection_on_adyen>0</payment_selection_on_adyen>
                 <payment_routine>single</payment_routine>
                 <delivery_days>5</delivery_days>
                 <allowspecific>0</allowspecific>
