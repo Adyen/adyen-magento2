@@ -45,6 +45,10 @@ define(
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-hpp-method'
             },
             {
+                type: 'adyen_sepa',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-sepa-method'
+            },
+            {
                 type: 'adyen_pos',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-pos-method'
             }

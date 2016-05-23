@@ -47,7 +47,6 @@ class RedirectPos extends \Magento\Framework\App\Action\Action
      */
     protected $_orderFactory;
 
-
     /**
      * @param \Magento\Framework\App\Action\Context $context
      */
@@ -56,7 +55,6 @@ class RedirectPos extends \Magento\Framework\App\Action\Action
     ) {
         parent::__construct($context);
     }
-
 
     /**
      * Return checkout session object
@@ -98,14 +96,19 @@ class RedirectPos extends \Magento\Framework\App\Action\Action
         return $this->_objectManager->get('Magento\Checkout\Model\Session');
     }
 
+    /**
+     * @return mixed
+     */
     protected function _getQuote()
     {
         return $this->_objectManager->get('Magento\Quote\Model\Quote');
     }
 
+    /**
+     * @return mixed
+     */
     protected function _getQuoteManagement()
     {
         return $this->_objectManager->get('\Magento\Quote\Model\QuoteManagement');
     }
-
 }

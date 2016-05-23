@@ -55,15 +55,46 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      * @var bool
      */
     protected $_canAuthorize = true;
-    protected $_canCapture = true;
-    protected $_canCapturePartial = true;
-    protected $_canCaptureOnce = true;
-    protected $_canRefund = true;
-    protected $_canRefundInvoicePartial = true;
-    protected $_isGateway = true;
-    protected $_isInitializeNeeded = true;
-    protected $_canUseInternal = false;
 
+    /**
+     * @var bool
+     */
+    protected $_canCapture = true;
+
+    /**
+     * @var bool
+     */
+    protected $_canCapturePartial = true;
+
+    /**
+     * @var bool
+     */
+    protected $_canCaptureOnce = true;
+
+    /**
+     * @var bool
+     */
+    protected $_canRefund = true;
+
+    /**
+     * @var bool
+     */
+    protected $_canRefundInvoicePartial = true;
+
+    /**
+     * @var bool
+     */
+    protected $_isGateway = true;
+
+    /**
+     * @var bool
+     */
+    protected $_isInitializeNeeded = true;
+
+    /**
+     * @var bool
+     */
+    protected $_canUseInternal = false;
 
     /**
      * @var \Adyen\Payment\Model\Api\PaymentRequest
@@ -74,7 +105,6 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;
-
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
@@ -104,6 +134,17 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     protected $_currencyFactory;
 
     /**
+     * Request object
+     *
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    protected $_request;
+
+    /**
+     * Pos constructor.
+     *
+     * @param \Magento\Directory\Model\CurrencyFactory $currencyFactory
+     * @param \Magento\Framework\App\RequestInterface $request
      * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -120,7 +161,6 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
-     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         \Magento\Directory\Model\CurrencyFactory $currencyFactory,
@@ -164,11 +204,24 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $this->_currencyFactory = $currencyFactory;
     }
 
+    /**
+     * @var string
+     */
     protected $_paymentMethodType = 'hpp';
-    public function getPaymentMethodType() {
+
+    /**
+     * @return string
+     */
+    public function getPaymentMethodType()
+    {
         return $this->_paymentMethodType;
     }
 
+    /**
+     * @param string $paymentAction
+     * @param object $stateObject
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function initialize($paymentAction, $stateObject)
     {
         /*
@@ -179,9 +232,9 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $order = $payment->getOrder();
         $order->setCanSendNewEmailFlag(false);
 
-        $state = \Magento\Sales\Model\Order::STATE_NEW;
-        $stateObject->setState($state);
+        $stateObject->setState(\Magento\Sales\Model\Order::STATE_NEW);
         $stateObject->setStatus($this->_adyenHelper->getAdyenAbstractConfigData('order_status'));
+        $stateObject->setIsNotified(false);
     }
 
     /**
@@ -194,7 +247,6 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     public function assignData(\Magento\Framework\DataObject $data)
     {
         parent::assignData($data);
-        $infoInstance = $this->getInfoInstance();
         return $this;
     }
 
@@ -207,7 +259,7 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      */
     public function getCheckoutRedirectUrl()
     {
-        return $this->_urlBuilder->getUrl('adyen/process/redirectPos',['_secure' => $this->_getRequest()->isSecure()]);
+        return $this->_urlBuilder->getUrl('adyen/process/redirectPos', ['_secure' => $this->_getRequest()->isSecure()]);
     }
 
     /**
@@ -220,23 +272,21 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         return $this->_request;
     }
 
-
     /**
      * Post request to gateway and return response
      *
-     * @param Object $request
+     * @param DataObject $request
      * @param ConfigInterface $config
-     *
-     * @return Object
-     *
-     * @throws \Exception
      */
     public function postRequest(DataObject $request, ConfigInterface $config)
     {
         // Implement postRequest() method.
     }
 
-
+    /**
+     * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function getLaunchLink()
     {
         $paymentInfo = $this->getInfoInstance();
@@ -247,7 +297,8 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $amount                 = $this->_adyenHelper->formatAmount($order->getGrandTotal(), $orderCurrencyCode);
         $shopperEmail           = $order->getCustomerEmail();
         $customerId             = $order->getCustomerId();
-        $callbackUrl            = $this->_urlBuilder->getUrl('adyen/process/resultpos',['_secure' => $this->_getRequest()->isSecure()]);
+        $callbackUrl            = $this->_urlBuilder->getUrl('adyen/process/resultpos',
+                                  ['_secure' => $this->_getRequest()->isSecure()]);
         $addReceiptOrderLines   = $this->_adyenHelper->getAdyenPosConfigData("add_receipt_order_lines");
         $recurringContract      = $this->_adyenHelper->getAdyenPosConfigData('recurring_type');
         $currencyCode           = $orderCurrencyCode;
@@ -257,46 +308,53 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $shopperEmail           = $shopperEmail;
 
         $recurringParams = "";
-        if($order->getPayment()->getAdditionalInformation("store_cc") != "") {
-            $recurringParams = "&recurringContract=".urlencode($recurringContract)."&shopperReference=".urlencode($shopperReference). "&shopperEmail=".urlencode($shopperEmail);
+        if ($order->getPayment()->getAdditionalInformation("store_cc") != "") {
+            $recurringParams = "&recurringContract=" . urlencode($recurringContract) . "&shopperReference=" .
+                                urlencode($shopperReference) . "&shopperEmail=" . urlencode($shopperEmail);
         }
 
         $receiptOrderLines = "";
-        if($addReceiptOrderLines) {
+        if ($addReceiptOrderLines) {
             $orderLines = base64_encode($this->getReceiptOrderLines($order));
             $receiptOrderLines = "&receiptOrderLines=" . urlencode($orderLines);
         }
 
         // extra parameters so that you alway's return these paramters from the application
-        $extra_paramaters   = urlencode("/?originalCustomCurrency=".$currencyCode."&originalCustomAmount=".$paymentAmount. "&originalCustomMerchantReference=".$merchantReference . "&originalCustomSessionId=".session_id());
-        $launchlink         = "adyen://payment?sessionId=".session_id()."&amount=".$paymentAmount."&currency=".$currencyCode."&merchantReference=".$merchantReference. $recurringParams . $receiptOrderLines .  "&callback=".$callbackUrl . $extra_paramaters;
+        $extraParamaters = urlencode("/?originalCustomCurrency=".$currencyCode."&originalCustomAmount=".
+            $paymentAmount. "&originalCustomMerchantReference=".
+            $merchantReference . "&originalCustomSessionId=".session_id());
+
+        $launchlink = "adyen://payment?sessionId=".session_id()."&amount=".$paymentAmount.
+            "&currency=".$currencyCode."&merchantReference=".$merchantReference. $recurringParams .
+            $receiptOrderLines .  "&callback=".$callbackUrl . $extraParamaters;
 
         $this->_adyenLogger->debug(print_r($launchlink, true));
 
         return $launchlink;
     }
 
-    private function getReceiptOrderLines($order) {
+    /**
+     * @param $order
+     * @return string
+     */
+    private function getReceiptOrderLines(\Magento\Sales\Model\Order $order) {
 
         $myReceiptOrderLines = "";
 
-        // temp
         $currency = $order->getOrderCurrencyCode();
 
         $formattedAmountValue = $this->_currencyFactory->create()->format(
             $order->getGrandTotal(),
-            array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+            ['display'=>\Magento\Framework\Currency::NO_SYMBOL],
             false
         );
 
         $taxAmount = $order->getTaxAmount();
         $formattedTaxAmount = $this->_currencyFactory->create()->format(
             $taxAmount,
-            array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+            ['display'=>\Magento\Framework\Currency::NO_SYMBOL],
             false
         );
-
-        $paymentAmount = "1000";
 
         $myReceiptOrderLines .= "---||C\n".
             "====== YOUR ORDER DETAILS ======||CB\n".
@@ -305,53 +363,57 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
 
         foreach ($order->getItemsCollection() as $item) {
             //skip dummies
-            if ($item->isDummy()) continue;
+            if ($item->isDummy()) {
+                continue;
+            };
             $singlePriceFormat = $this->_currencyFactory->create()->format(
                 $item->getPriceInclTax(),
-                array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+                ['display'=>\Magento\Framework\Currency::NO_SYMBOL],
                 false
             );
 
             $itemAmount = $item->getPriceInclTax() * (int) $item->getQtyOrdered();
             $itemAmountFormat = $this->_currencyFactory->create()->format(
                 $itemAmount,
-                array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+                ['display'=>\Magento\Framework\Currency::NO_SYMBOL],
                 false
             );
 
-            $myReceiptOrderLines .= "  " . (int) $item->getQtyOrdered() . "  " . trim(substr($item->getName(),0, 25)) . "| " . $currency . " " . $singlePriceFormat . "  " . $currency . " " . $itemAmountFormat . "|\n";
+            $myReceiptOrderLines .= "  " . (int) $item->getQtyOrdered() . "  " . trim(substr($item->getName(), 0, 25)) .
+                "| " . $currency . " " . $singlePriceFormat . "  " . $currency . " " . $itemAmountFormat . "|\n";
         }
 
         //discount cost
-        if($order->getDiscountAmount() > 0 || $order->getDiscountAmount() < 0)
-        {
+        if ($order->getDiscountAmount() > 0 || $order->getDiscountAmount() < 0) {
             $discountAmountFormat = $this->_currencyFactory->create()->format(
                 $order->getDiscountAmount(),
-                array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+                ['display'=>\Magento\Framework\Currency::NO_SYMBOL],
                 false
             );
-            $myReceiptOrderLines .= "  " . 1 . " " . $this->__('Total Discount') . "| " . $currency . " " . $discountAmountFormat ."|\n";
+            $myReceiptOrderLines .= "  " . 1 . " " . $this->__('Total Discount') . "| " .
+                $currency . " " . $discountAmountFormat ."|\n";
         }
 
         //shipping cost
-        if($order->getShippingAmount() > 0 || $order->getShippingTaxAmount() > 0)
-        {
+        if ($order->getShippingAmount() > 0 || $order->getShippingTaxAmount() > 0) {
             $shippingAmountFormat = $this->_currencyFactory->create()->format(
                 $order->getShippingAmount(),
-                array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+                ['display'=>\Magento\Framework\Currency::NO_SYMBOL],
                 false
             );
-            $myReceiptOrderLines .= "  " . 1 . " " . $order->getShippingDescription() . "| " . $currency . " " . $shippingAmountFormat ."|\n";
+            $myReceiptOrderLines .= "  " . 1 . " " . $order->getShippingDescription() . "| " .
+                $currency . " " . $shippingAmountFormat ."|\n";
 
         }
 
-        if($order->getPaymentFeeAmount() > 0) {
+        if ($order->getPaymentFeeAmount() > 0) {
             $paymentFeeAmount = $this->_currencyFactory->create()->format(
                 $order->getPaymentFeeAmount(),
-                array('display'=>\Magento\Framework\Currency::NO_SYMBOL),
+                ['display'=>\Magento\Framework\Currency::NO_SYMBOL],
                 false
             );
-            $myReceiptOrderLines .= "  " . 1 . " " . $this->__('Payment Fee') . "| " . $currency . " " . $paymentFeeAmount ."|\n";
+            $myReceiptOrderLines .= "  " . 1 . " " . $this->__('Payment Fee') . "| " .
+                $currency . " " . $paymentFeeAmount ."|\n";
 
         }
 
@@ -360,22 +422,24 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
             "|Tax:  ".$currency." ".$formattedTaxAmount."|B\n".
             "||C\n";
 
-        //Cool new header for card details section! Default location is After Header so simply add to Order Details as separator
+        /*
+         * New header for card details section!
+         * Default location is After Header so simply add to Order Details as separator
+         */
         $myReceiptOrderLines .= "---||C\n".
             "====== YOUR PAYMENT DETAILS ======||CB\n".
             "---||C\n";
 
-
         return $myReceiptOrderLines;
-
     }
-
 
     /**
      * Capture on Adyen
      *
      * @param \Magento\Payment\Model\InfoInterface $payment
      * @param float $amount
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -383,29 +447,28 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $this->_paymentRequest->capture($payment, $amount);
         return $this;
     }
-
+    
     /**
      * Refund specified amount for payment
      *
-     * @param \Magento\Framework\DataObject|InfoInterface $payment
+     * @param \Magento\Payment\Model\InfoInterface $payment
      * @param float $amount
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @api
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         parent::refund($payment, $amount);
 
-        // get pspReference
-        $pspReference = $payment->getAdyenPspReference();
-
         $order = $payment->getOrder();
-        // if amount is a full refund send a refund/cancelled request so if it is not captured yet it will cancel the order
+
+        /*
+         * if amount is a full refund send a refund/cancelled request
+         * so if it is not captured yet it will cancel the order
+         */
         $grandTotal = $order->getGrandTotal();
 
-        if($grandTotal == $amount) {
+        if ($grandTotal == $amount) {
             $this->_paymentRequest->cancelOrRefund($payment);
         } else {
             $this->_paymentRequest->refund($payment, $amount);
@@ -413,5 +476,4 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
 
         return $this;
     }
-
 }

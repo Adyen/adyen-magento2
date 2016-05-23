@@ -40,6 +40,7 @@
                 <include path="Adyen_Payment::system/adyen_cc.xml"/>
                 <include path="Adyen_Payment::system/adyen_oneclick.xml"/>
                 <include path="Adyen_Payment::system/adyen_hpp.xml"/>
+                <include path="Adyen_Payment::system/adyen_sepa.xml"/>
                 <include path="Adyen_Payment::system/adyen_pos.xml"/>
             </group>
             <group id="test" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">

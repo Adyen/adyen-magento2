@@ -28,7 +28,8 @@ namespace Adyen\Payment\Model\Config;
 class Converter implements \Magento\Framework\Config\ConverterInterface
 {
     /**
-     * {@inheritdoc}
+     * @param \DOMDocument $source
+     * @return array
      */
     public function convert($source)
     {
@@ -90,8 +91,6 @@ class Converter implements \Magento\Framework\Config\ConverterInterface
     {
         return $left['order'] - $right['order'];
     }
-
-
 
     /**
      * Convert methods xml tree to array

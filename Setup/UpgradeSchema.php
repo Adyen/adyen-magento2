@@ -48,12 +48,13 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion1002($setup);
         }
 
-
         $setup->endSetup();
     }
 
-
-    public function updateSchemaVersion1001($setup)
+    /**
+     * @param SchemaSetupInterface $setup
+     */
+    public function updateSchemaVersion1001(SchemaSetupInterface $setup)
     {
         $connection = $setup->getConnection();
 
@@ -64,7 +65,12 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'nullable' => true,
             'comment' => 'Adyen Notification event code success flag'
         ];
-        $connection->addColumn($setup->getTable('sales_order'), 'adyen_notification_event_code_success', $adyenNotificationEventCodeSuccessColumn);
+
+        $connection->addColumn(
+            $setup->getTable('sales_order'),
+            'adyen_notification_event_code_success',
+            $adyenNotificationEventCodeSuccessColumn
+        );
 
         // add column to order_payment to save Adyen PspReference
         $pspReferenceColumn = [
@@ -76,8 +82,11 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         $connection->addColumn($setup->getTable('sales_order_payment'), 'adyen_psp_reference', $pspReferenceColumn);
     }
-
-    public function updateSchemaVersion1002($setup)
+    
+    /**
+     * @param SchemaSetupInterface $setup
+     */
+    public function updateSchemaVersion1002(SchemaSetupInterface $setup)
     {
         $connection = $setup->getConnection();
 
@@ -87,7 +96,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'nullable' => true,
             'comment' => 'Agreement Data'
         ];
-        $connection->addColumn($setup->getTable('paypal_billing_agreement'), 'agreement_data', $adyenAgreementDataColumn);
-
+        $connection->addColumn(
+            $setup->getTable('paypal_billing_agreement'), 'agreement_data', $adyenAgreementDataColumn
+        );
     }
 }

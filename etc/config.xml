@@ -45,6 +45,7 @@
                 <cctypes>AE,VI,MC,DI</cctypes>
                 <useccv>1</useccv>
                 <cse_enabled>1</cse_enabled>
+                <enable_moto>0</enable_moto>
                 <payment_action>authorize</payment_action>
                 <group>adyen</group>
             </adyen_cc>
@@ -64,24 +65,35 @@
                 <model>Adyen\Payment\Model\Method\Hpp</model>
                 <order_status>pending</order_status>
                 <title>Adyen HPP</title>
-                <payment_selection_on_adyen>1</payment_selection_on_adyen>
+                <payment_selection_on_adyen>0</payment_selection_on_adyen>
                 <payment_routine>single</payment_routine>
                 <delivery_days>5</delivery_days>
                 <allowspecific>0</allowspecific>
                 <sort_order>3</sort_order>
                 <place_order_url>adyen/process/redirect</place_order_url>
                 <order_place_redirect_url>adyen/process/redirect</order_place_redirect_url>
+                <payment_action>order</payment_action>
                 <group>adyen</group>
             </adyen_hpp>
+            <adyen_sepa>
+                <active>0</active>
+                <model>Adyen\Payment\Model\Method\Sepa</model>
+                <title>Sepa Direct Debit</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>4</sort_order>
+                <payment_action>authorize</payment_action>
+                <group>adyen</group>
+            </adyen_sepa>
             <adyen_pos>
                 <active>0</active>
                 <model>Adyen\Payment\Model\Method\Pos</model>
                 <order_status>pending</order_status>
                 <title>Adyen POS</title>
                 <allowspecific>0</allowspecific>
-                <sort_order>4</sort_order>
+                <sort_order>5</sort_order>
                 <place_order_url>adyen/process/redirect</place_order_url>
                 <order_place_redirect_url>adyen/process/redirect</order_place_redirect_url>
+                <payment_action>order</payment_action>
                 <group>adyen</group>
             </adyen_pos>
         </payment>

@@ -37,38 +37,33 @@ class Data extends AbstractHelper
     protected $_encryptor;
 
     /**
-     * @var \Magento\Payment\Model\Config
-     */
-    protected $_config;
-
-    /**
      * @var \Magento\Framework\Config\DataInterface
      */
     protected $_dataStorage;
 
     /**
-     * @param Context $context
+     * Data constructor.
+     *
+     * @param \Magento\Framework\App\Helper\Context $context
+     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     * @param \Magento\Framework\Config\DataInterface $dataStorage
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
-        \Magento\Payment\Model\Config $config,
         \Magento\Framework\Config\DataInterface $dataStorage
-    )
-    {
+    ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
-        $this->_config = $config;
         $this->_dataStorage = $dataStorage;
     }
-
 
     /**
      * @desc return recurring types for configuration setting
      * @return array
      */
-    public function getRecurringTypes() {
-
+    public function getRecurringTypes()
+    {
         return [
             \Adyen\Payment\Model\RecurringType::ONECLICK => 'ONECLICK',
             \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING => 'ONECLICK,RECURRING',
@@ -80,7 +75,8 @@ class Data extends AbstractHelper
      * @desc return recurring types for configuration setting
      * @return array
      */
-    public function getModes() {
+    public function getModes()
+    {
         return [
             '1' => 'Test Mode',
             '0' => 'Production Mode'
@@ -157,6 +153,11 @@ class Data extends AbstractHelper
         return number_format($amount, $format, '', '');
     }
 
+    /**
+     * @param $amount
+     * @param $currency
+     * @return float
+     */
     public function originalAmount($amount, $currency)
     {
         // check the format
@@ -206,14 +207,15 @@ class Data extends AbstractHelper
      */
     public function getStreet($address)
     {
-        if (empty($address)) return false;
+        if (empty($address)) {
+            return false;
+        }
+
         $street = self::formatStreet($address->getStreet());
         $streetName = $street['0'];
         unset($street['0']);
-//        $streetNr = implode('',$street);
-        $streetNr = implode(' ',$street);
-
-        return (array('name' => $streetName, 'house_number' => $streetNr));
+        $streetNr = implode(' ', $street);
+        return (['name' => $streetName, 'house_number' => $streetNr]);
     }
 
     /**
@@ -228,11 +230,11 @@ class Data extends AbstractHelper
             return $street;
         }
         preg_match('/((\s\d{0,10})|(\s\d{0,10}\w{1,3}))$/i', $street['0'], $houseNumber, PREG_OFFSET_CAPTURE);
-        if(!empty($houseNumber['0'])) {
+        if (!empty($houseNumber['0'])) {
             $_houseNumber = trim($houseNumber['0']['0']);
             $position = $houseNumber['0']['1'];
-            $streeName = trim(substr($street['0'], 0, $position));
-            $street = array($streeName,$_houseNumber);
+            $streetName = trim(substr($street['0'], 0, $position));
+            $street = [$streetName, $_houseNumber];
         }
         return $street;
     }
@@ -389,7 +391,7 @@ class Data extends AbstractHelper
      */
     public function getWsUsername()
     {
-        if($this->isDemoMode()) {
+        if ($this->isDemoMode()) {
             $wsUsername =  trim($this->getAdyenAbstractConfigData('ws_username_test'));
         } else {
             $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_live'));
@@ -403,7 +405,7 @@ class Data extends AbstractHelper
      */
     public function getWsPassword()
     {
-        if($this->isDemoMode()) {
+        if ($this->isDemoMode()) {
             $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_test')));
         } else {
             $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_live')));
@@ -417,7 +419,7 @@ class Data extends AbstractHelper
      */
     public function getWsUrl()
     {
-        if($this->isDemoMode()) {
+        if ($this->isDemoMode()) {
             $url = $this->getAdyenAbstractConfigData('ws_url_test');
         } else {
             $url =  $this->getAdyenAbstractConfigData('ws_url_live');
@@ -441,7 +443,7 @@ class Data extends AbstractHelper
                 }
                 break;
             default:
-                if($order->canCancel()) {
+                if ($order->canCancel()) {
                     $order->cancel()->save();
                 }
                 break;
@@ -456,20 +458,22 @@ class Data extends AbstractHelper
      */
     public function getMagentoCreditCartType($ccType)
     {
-
         $ccTypesMapper = $this->getCcTypesAltData();
 
-        if(isset($ccTypesMapper[$ccType])) {
+        if (isset($ccTypesMapper[$ccType])) {
             $ccType = $ccTypesMapper[$ccType]['code'];
         }
 
         return $ccType;
     }
 
+    /**
+     * @return array
+     */
     public function getCcTypesAltData()
     {
         $adyenCcTypes =  $this->getAdyenCcTypes();
-        $types = array();
+        $types = [];
         foreach ($adyenCcTypes as $key => $data) {
             $types[$data['code_alt']] = $data;
             $types[$data['code_alt']]['code'] = $key;
@@ -477,6 +481,9 @@ class Data extends AbstractHelper
         return $types;
     }
 
+    /**
+     * @return mixed
+     */
     public function getAdyenCcTypes()
     {
         return $this->_dataStorage->get('adyen_credit_cards');
@@ -499,6 +506,5 @@ class Data extends AbstractHelper
         } else {
             return $this->scopeConfig->isSetFlag($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
         }
-
     }
 }

@@ -42,18 +42,23 @@ class AdyenAbstract extends \Magento\Payment\Model\Method\AbstractMethod impleme
      * @var bool
      */
     protected $_isGateway = false;
+
+    /**
+     * @var bool
+     */
     protected $_canAuthorize = false;
+
+    /**
+     * @var bool
+     */
     protected $_isInitializeNeeded = false;
+
 
     /**
      * Post request to gateway and return response
      *
-     * @param Object $request
+     * @param DataObject $request
      * @param ConfigInterface $config
-     *
-     * @return DataObject
-     *
-     * @throws \Exception
      */
     public function postRequest(DataObject $request, ConfigInterface $config)
     {

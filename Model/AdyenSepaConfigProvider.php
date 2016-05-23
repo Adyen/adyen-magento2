@@ -20,13 +20,22 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Model;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Payment\Helper\Data as PaymentHelper;
+use Magento\Directory\Helper\Data;
 
-class AdyenGenericConfigProvider implements ConfigProviderInterface
+class AdyenSepaConfigProvider implements ConfigProviderInterface
 {
+
+    /**
+     * @var string[]
+     */
+    protected $_methodCodes = [
+        'adyen_sepa'
+    ];
 
     /**
      * @var \Magento\Payment\Model\Method\AbstractMethod[]
@@ -39,33 +48,22 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
     protected $_paymentHelper;
 
     /**
-     * @var AdyenGenericConfig
+     * @var \Magento\Directory\Model\Config\Source\Country
      */
-    protected $_genericConfig;
+    protected $_country;
 
     /**
-     * @var string[]
-     */
-    protected $_methodCodes = [
-        \Adyen\Payment\Model\Method\Cc::METHOD_CODE,
-        \Adyen\Payment\Model\Method\Hpp::METHOD_CODE,
-        \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE,
-        \Adyen\Payment\Model\Method\Pos::METHOD_CODE,
-        \Adyen\Payment\Model\Method\Sepa::METHOD_CODE
-    ];
-
-    /**
-     * AdyenGenericConfigProvider constructor.
+     * AdyenSepaConfigProvider constructor.
      *
      * @param PaymentHelper $paymentHelper
-     * @param AdyenGenericConfig $genericConfig
+     * @param \Magento\Directory\Model\Config\Source\Country $country
      */
     public function __construct(
         PaymentHelper $paymentHelper,
-        \Adyen\Payment\Model\AdyenGenericConfig $genericConfig
+        \Magento\Directory\Model\Config\Source\Country $country
     ) {
         $this->_paymentHelper = $paymentHelper;
-        $this->_genericConfig = $genericConfig;
+        $this->_country = $country;
 
         foreach ($this->_methodCodes as $code) {
             $this->_methods[$code] = $this->_paymentHelper->getMethodInstance($code);
@@ -73,42 +71,41 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Define foreach payment methods the RedirectUrl
-     *
      * @return array
      */
     public function getConfig()
     {
         $config = [
-            'payment' => []
+            'payment' => [
+                'adyenSepa' => [
+                    'countries' => $this->getCountries()
+                ]
+            ]
         ];
 
-        foreach ($this->_methodCodes as $code) {
-            if ($this->_methods[$code]->isAvailable()) {
-
-                $config['payment'][$code] = [
-                    'redirectUrl' => $this->getMethodRedirectUrl($code)
-                ];
-            }
-        }
-
-        // show logos turned on by default
-        if ($this->_genericConfig->showLogos()) {
-            $config['payment']['adyen']['showLogo'] = true;
-        } else {
-            $config['payment']['adyen']['showLogo'] = false;
-        }
         return $config;
     }
 
     /**
-     * Return redirect URL for method
-     *
-     * @param string $code
-     * @return mixed
+     * @return array
      */
-    protected function getMethodRedirectUrl($code)
+    public function getCountries()
     {
-        return $this->_methods[$code]->getCheckoutRedirectUrl();
+        $sepaCountriesAllowed = [
+            "AT", "BE", "BG", "CH", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GB", "GF", "GI", "GP", "GR", "HR",
+            "HU", "IE", "IS", "IT", "LI", "LT", "LU", "LV", "MC", "MQ", "MT", "NL", "NO", "PL", "PT", "RE", "RO", "SE",
+            "SI", "SK"
+        ];
+
+        $countryList = $this->_country->toOptionArray();
+        $sepaCountries = [];
+
+        foreach ($countryList as $key => $country) {
+            $value = $country['value'];
+            if (in_array($value, $sepaCountriesAllowed)) {
+                $sepaCountries[$value] = $country['label'];
+            }
+        }
+        return $sepaCountries;
     }
 }

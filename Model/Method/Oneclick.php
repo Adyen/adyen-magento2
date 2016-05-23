@@ -43,8 +43,11 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
      * @var string
      */
     protected $_formBlockType = 'Adyen\Payment\Block\Form\Oneclick';
-    protected $_infoBlockType = 'Adyen\Payment\Block\Info\Oneclick';
 
+    /**
+     * @var string
+     */
+    protected $_infoBlockType = 'Adyen\Payment\Block\Info\Oneclick';
 
     /**
      * Payment Method not ready for internal use
@@ -63,18 +66,25 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
     public function assignData(\Magento\Framework\DataObject $data)
     {
         parent::assignData($data);
+
+        if (!$data instanceof \Magento\Framework\DataObject) {
+            $data = new \Magento\Framework\DataObject($data);
+        }
+
+        $additionalData = $data->getAdditionalData();
         $infoInstance = $this->getInfoInstance();
 
         // get from variant magento code for creditcard type and set this in ccType
-        $variant = $data['variant'];
+        $variant = $additionalData['variant'];
         $ccType = $this->_adyenHelper->getMagentoCreditCartType($variant);
         $infoInstance->setCcType($ccType);
 
         // save value remember details checkbox
-        $infoInstance->setAdditionalInformation('recurring_detail_reference', $data['recurring_detail_reference']);
+        $infoInstance->setAdditionalInformation('recurring_detail_reference',
+            $additionalData['recurring_detail_reference']);
 
         $recurringPaymentType = $this->_adyenHelper->getAdyenOneclickConfigData('recurring_payment_type');
-        if($recurringPaymentType == \Adyen\Payment\Model\RecurringType::ONECLICK) {
+        if ($recurringPaymentType == \Adyen\Payment\Model\RecurringType::ONECLICK) {
             $customerInteraction = true;
         } else {
             $customerInteraction = false;
@@ -85,12 +95,16 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
         return $this;
     }
 
+    /**
+     * @param \Adyen\Payment\Model\Billing\Agreement $agreement
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function updateBillingAgreementStatus(\Adyen\Payment\Model\Billing\Agreement $agreement)
     {
         $targetStatus = $agreement->getStatus();
 
-        if($targetStatus == \Magento\Paypal\Model\Billing\Agreement::STATUS_CANCELED) {
-
+        if ($targetStatus == \Magento\Paypal\Model\Billing\Agreement::STATUS_CANCELED) {
             try {
                 $this->_paymentRequest->disableRecurringContract(
                     $agreement->getReferenceId(),
@@ -102,5 +116,4 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
         }
         return $this;
     }
-
 }

@@ -36,7 +36,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
      */
     protected $_checkoutSession;
 
-
     /**
      * @var \Magento\Sales\Model\Order
      */
@@ -47,7 +46,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
      */
     protected $_orderFactory;
 
-
     /**
      * @param \Magento\Framework\App\Action\Context $context
      */
@@ -56,7 +54,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
     ) {
         parent::__construct($context);
     }
-
 
     /**
      * Return checkout session object
@@ -68,6 +65,9 @@ class Redirect extends \Magento\Framework\App\Action\Action
         return $this->_checkoutSession;
     }
 
+    /**
+     * Set redirect
+     */
     public function execute()
     {
         $this->_view->loadLayout();
@@ -98,14 +98,19 @@ class Redirect extends \Magento\Framework\App\Action\Action
         return $this->_objectManager->get('Magento\Checkout\Model\Session');
     }
 
+    /**
+     * @return mixed
+     */
     protected function _getQuote()
     {
         return $this->_objectManager->get('Magento\Quote\Model\Quote');
     }
 
+    /**
+     * @return mixed
+     */
     protected function _getQuoteManagement()
     {
         return $this->_objectManager->get('\Magento\Quote\Model\QuoteManagement');
     }
-
 }

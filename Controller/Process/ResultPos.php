@@ -57,6 +57,8 @@ class ResultPos extends \Magento\Framework\App\Action\Action
     protected $_adyenLogger;
 
     /**
+     * ResultPos constructor.
+     *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Sales\Model\OrderFactory $orderFactory
@@ -80,6 +82,9 @@ class ResultPos extends \Magento\Framework\App\Action\Action
         parent::__construct($context);
     }
 
+    /**
+     * Return result
+     */
     public function execute()
     {
         $response = $this->getRequest()->getParams();
@@ -97,23 +102,27 @@ class ResultPos extends \Magento\Framework\App\Action\Action
         }
     }
 
+    /**
+     * @param $response
+     * @return bool
+     */
     private function _validateResponse($response)
     {
-
         $result = false;
 
-        if($response != null && $response['result'] != "" && $this->_validateChecksum($response)) {
+        if ($response != null && $response['result'] != "" && $this->_validateChecksum($response)) {
 
             $incrementId = $response['merchantReference'];
             $responseResult = $response['result'];
 
-            if($incrementId) {
+            if ($incrementId) {
                 $order = $this->_getOrder($incrementId);
                 if ($order->getId()) {
 
-                    $comment = __('%1 <br /> Result: %2 <br /> paymentMethod: %3', 'Adyen App Result URL Notification:', $responseResult, 'POS');
+                    $comment = __('%1 <br /> Result: %2 <br /> paymentMethod: %3',
+                        'Adyen App Result URL Notification:', $responseResult, 'POS');
 
-                    if($responseResult == 'APPROVED') {
+                    if ($responseResult == 'APPROVED') {
 
                         $this->_adyenLogger->addAdyenResult('Result is approved');
 
@@ -163,6 +172,12 @@ class ResultPos extends \Magento\Framework\App\Action\Action
         return $result;
     }
 
+    /**
+     * Validate checksum from result parameters
+     *
+     * @param $response
+     * @return bool
+     */
     protected function _validateChecksum($response)
     {
         $checksum = $response['cs'];
@@ -171,51 +186,46 @@ class ResultPos extends \Magento\Framework\App\Action\Action
         $currency = $response['originalCustomCurrency'];
         $sessionId = $response['sessionId'];
 
-
         // for android sessionis is with low i
-        if($sessionId == "") {
+        if ($sessionId == "") {
             $sessionId = $response['sessionid'];
         }
 
         // calculate amount checksum
-        $amount_checksum = 0;
+        $amountChecksum = 0;
 
         $amountLength = strlen($amount);
-        for($i=0;$i<$amountLength;$i++)
-        {
+        for ($i=0; $i<$amountLength; $i++) {
             // ASCII value use ord
             $checksumCalc = ord($amount[$i]) - 48;
-            $amount_checksum += $checksumCalc;
+            $amountChecksum += $checksumCalc;
         }
 
-        $currency_checksum = 0;
+        $currencyChecksum = 0;
         $currencyLength = strlen($currency);
-        for($i=0;$i<$currencyLength;$i++)
-        {
+        for ($i=0; $i<$currencyLength; $i++) {
             $checksumCalc = ord($currency[$i]) - 64;
-            $currency_checksum += $checksumCalc;
+            $currencyChecksum += $checksumCalc;
         }
 
-        $result_checksum = 0;
+        $resultChecksum = 0;
         $resultLength = strlen($result);
-        for($i=0;$i<$resultLength;$i++)
-        {
+        for ($i=0; $i<$resultLength; $i++) {
             $checksumCalc = ord($result[$i]) - 64;
-            $result_checksum += $checksumCalc;
+            $resultChecksum += $checksumCalc;
         }
 
-        $sessionId_checksum = 0;
+        $sessionIdChecksum = 0;
         $sessionIdLength = strlen($sessionId);
-        for($i=0;$i<$sessionIdLength;$i++)
-        {
+        for ($i=0; $i<$sessionIdLength; $i++) {
             $checksumCalc = $this->_getAscii2Int($sessionId[$i]);
-            $sessionId_checksum += $checksumCalc;
+            $sessionIdChecksum += $checksumCalc;
         }
 
-        $total_result_checksum = (($amount_checksum + $currency_checksum + $result_checksum) * $sessionId_checksum) % 100;
+        $totalResultChecksum = (($amountChecksum + $currencyChecksum + $resultChecksum) * $sessionIdChecksum) % 100;
 
         // check if request is valid
-        if($total_result_checksum == $checksum) {
+        if ($totalResultChecksum == $checksum) {
             $this->_adyenLogger->addAdyenResult('Checksum is valid');
             return true;
         }
@@ -223,9 +233,13 @@ class ResultPos extends \Magento\Framework\App\Action\Action
         return false;
     }
 
+    /**
+     * @param $ascii
+     * @return int
+     */
     protected function _getAscii2Int($ascii)
     {
-        if (is_numeric($ascii)){
+        if (is_numeric($ascii)) {
             $int = ord($ascii) - 48;
         } else {
             $int = ord($ascii) - 64;
@@ -233,6 +247,10 @@ class ResultPos extends \Magento\Framework\App\Action\Action
         return $int;
     }
 
+    /**
+     * @param $incrementId
+     * @return \Magento\Sales\Model\Order
+     */
     protected function _getOrder($incrementId)
     {
         if (!$this->_order) {
@@ -241,6 +259,9 @@ class ResultPos extends \Magento\Framework\App\Action\Action
         return $this->_order;
     }
 
+    /**
+     * @param $response
+     */
     protected function _cancel($response)
     {
         $session = $this->_session;
@@ -250,15 +271,15 @@ class ResultPos extends \Magento\Framework\App\Action\Action
 
         $order = $this->_order;
 
-        if($order) {
+        if ($order) {
             $this->_adyenHelper->cancelOrder($order);
 
-            if(isset($response['authResult']) && $response['authResult'] == \Adyen\Payment\Model\Notification::CANCELLED) {
+            if (isset($response['authResult']) &&
+                $response['authResult'] == \Adyen\Payment\Model\Notification::CANCELLED) {
                 $this->messageManager->addError(__('You have cancelled the order. Please try again'));
             } else {
                 $this->messageManager->addError(__('Your payment failed, Please try again later'));
             }
         }
     }
-
 }

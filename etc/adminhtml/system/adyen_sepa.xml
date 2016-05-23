@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_sepa" translate="label" type="text" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[SEPA integration]]></label>
+        <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
+        <fieldset_css>adyen-method-adyen-cc</fieldset_css>
+        <comment>Process SEPA transactions</comment>
+        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Enabled</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_sepa/active</config_path>
+        </field>
+        <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Title</label>
+            <config_path>payment/adyen_sepa/title</config_path>
+        </field>
+        <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Sort Order</label>
+            <frontend_class>validate-number</frontend_class>
+            <config_path>payment/adyen_sepa/sort_order</config_path>
+        </field>
+
+        <group id="adyen_sepa_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="210">
+            <label>Country Specific Settings</label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+            <field id="allowspecific" translate="label" type="allowspecific" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Payment from Applicable Countries</label>
+                <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                <config_path>payment/adyen_sepa/allowspecific</config_path>
+            </field>
+            <field id="specificcountry" translate="label" type="multiselect" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Payment from Specific Countries</label>
+                <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                <can_be_empty>1</can_be_empty>
+                <config_path>payment/adyen_sepa/specificcountry</config_path>
+            </field>
+        </group>
+    </group>
+</include>

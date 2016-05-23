@@ -31,14 +31,17 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
      */
     private $_adyenHelper;
 
-
     /**
+     * Agreement constructor.
+     * 
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Payment\Helper\Data $paymentData
+     * @param \Magento\Paypal\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementFactory
+     * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateFactory
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param array $data
      */
     public function __construct(
@@ -51,10 +54,16 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
+    ) {
+        parent::__construct($context,
+                            $registry,
+                            $paymentData,
+                            $billingAgreementFactory,
+                            $dateFactory,
+                            $resource,
+                            $resourceCollection,
+                            $data);
 
-       )
-    {
-        parent::__construct($context, $registry, $paymentData, $billingAgreementFactory, $dateFactory, $resource, $resourceCollection, $data);
         $this->_adyenHelper = $adyenHelper;
     }
 
@@ -68,7 +77,10 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         return $this->getCustomerId();
     }
 
-
+    /**
+     * @param $data
+     * @return $this
+     */
     public function parseRecurringContractData($data)
     {
         $this
@@ -118,6 +130,10 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         return $this;
     }
 
+    /**
+     * @param $data
+     * @return $this
+     */
     public function setAgreementData($data)
     {
         if (is_array($data)) {
@@ -130,6 +146,9 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         return $this;
     }
 
+    /**
+     * @return mixed
+     */
     public function getAgreementData()
     {
         return json_decode($this->getData('agreement_data'), true);

@@ -46,7 +46,8 @@ class InstallSchema implements InstallSchemaInterface
 
         $table = $installer->getConnection()
             ->newTable($installer->getTable('adyen_notification'))
-            ->addColumn('entity_id', Table::TYPE_SMALLINT, null,['identity' => true, 'nullable' => false, 'primary' => true],'Entity ID')
+            ->addColumn('entity_id', Table::TYPE_SMALLINT, null, ['identity' => true,
+                'nullable' => false, 'primary' => true], 'Entity ID')
             ->addColumn('pspreference', Table::TYPE_TEXT, 255, ['nullable' => true], 'Pspreference')
             ->addColumn('merchant_reference', Table::TYPE_TEXT, 255, ['nullable' => true], 'Merchant Reference')
             ->addColumn('event_code', Table::TYPE_TEXT, 255, ['nullable' => true], 'Event Code')
@@ -58,8 +59,10 @@ class InstallSchema implements InstallSchemaInterface
             ->addColumn('live', Table::TYPE_TEXT, 255, ['nullable' => true], 'Send from Live platform of adyen?')
             ->addColumn('additional_data', Table::TYPE_TEXT, null, ['nullable' => true], 'AdditionalData')
             ->addColumn('done', Table::TYPE_BOOLEAN, null, ['nullable' => false, 'default' => 0], 'done')
-            ->addColumn('created_at', Table::TYPE_TIMESTAMP, null, ['nullable' => false, 'default' => Table::TIMESTAMP_INIT], 'Created At')
-            ->addColumn('updated_at', Table::TYPE_TIMESTAMP, null, ['nullable' => false, 'default' => Table::TIMESTAMP_INIT_UPDATE],'Updated At')
+            ->addColumn('created_at', Table::TYPE_TIMESTAMP, null, ['nullable' => false,
+                'default' => Table::TIMESTAMP_INIT], 'Created At')
+            ->addColumn('updated_at', Table::TYPE_TIMESTAMP, null, ['nullable' => false,
+                'default' => Table::TIMESTAMP_INIT_UPDATE], 'Updated At')
             ->addIndex($installer->getIdxName('adyen_notification', ['pspreference']), ['pspreference'])
             ->addIndex($installer->getIdxName('adyen_notification', ['event_code']), ['event_code'])
             ->addIndex(
@@ -106,7 +109,6 @@ class InstallSchema implements InstallSchemaInterface
         foreach ($columns as $name => $definition) {
             $connection->addColumn($orderTable, $name, $definition);
         }
-
 
         $installer->endSetup();
     }

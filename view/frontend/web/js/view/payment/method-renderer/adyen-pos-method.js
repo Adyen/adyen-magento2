@@ -25,9 +25,10 @@ define(
     [
         'ko',
         'Magento_Checkout/js/view/payment/default',
-        'Adyen_Payment/js/action/set-payment-method'
+        'Adyen_Payment/js/action/set-payment-method',
+        'Magento_Checkout/js/model/payment/additional-validators'
     ],
-    function (ko, Component, setPaymentMethodAction) {
+    function (ko, Component, setPaymentMethodAction, additionalValidators) {
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
@@ -46,13 +47,18 @@ define(
             },
             /** Redirect to adyen */
             continueToAdyen: function () {
-                //update payment method information if additional data was changed
-                this.selectPaymentMethod();
-                setPaymentMethodAction();
-                return false;
+                if (this.validate() && additionalValidators.validate()) {
+                    //update payment method information if additional data was changed
+                    this.selectPaymentMethod();
+                    setPaymentMethodAction();
+                    return false;
+                }
             },
             showLogo: function() {
                 return window.checkoutConfig.payment.adyen.showLogo;
+            },
+            validate: function () {
+                return true;
             }
         });
     }

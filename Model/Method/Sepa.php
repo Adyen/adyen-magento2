@@ -24,15 +24,35 @@
 namespace Adyen\Payment\Model\Method;
 
 /**
- * Adyen CreditCard payment method
- * @SuppressWarnings(PHPMD.ExcessivePublicCount)
- * @SuppressWarnings(PHPMD.TooManyFields)
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * Class Sepa
+ * @package Adyen\Payment\Model\Method
  */
-class Cc extends \Magento\Payment\Model\Method\Cc
+class Sepa extends \Magento\Payment\Model\Method\AbstractMethod
 {
 
-    const METHOD_CODE               = 'adyen_cc';
+    const METHOD_CODE = 'adyen_sepa';
+
+    /**
+     * @var string
+     */
+    protected $_code = self::METHOD_CODE;
+
+    /**
+     * @var \Adyen\Payment\Model\Api\PaymentRequest
+     */
+    protected $_paymentRequest;
+
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
+    protected $_urlBuilder;
+
+    /**
+     * Request object
+     *
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    protected $_request;
 
     /**
      * Payment Method feature
@@ -72,49 +92,15 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     protected $_isGateway = true;
 
     /**
-     * @var string
+     * @var bool
      */
-    protected $_code = self::METHOD_CODE;
+    protected $_canUseInternal = true;
 
     /**
-     * @var string
-     */
-    protected $_formBlockType = 'Adyen\Payment\Block\Form\Cc';
-
-    /**
-     * @var string
-     */
-    protected $_infoBlockType = 'Adyen\Payment\Block\Info\Cc';
-
-    /**
-     * @var \Adyen\Payment\Model\Api\PaymentRequest
-     */
-    protected $_paymentRequest;
-
-    /**
-     * @var \Magento\Framework\UrlInterface
-     */
-    protected $_urlBuilder;
-
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $_adyenHelper;
-
-    /**
-     * Request object
-     *
-     * @var \Magento\Framework\App\RequestInterface
-     */
-    protected $_request;
-
-    /**
-     * Cc constructor.
-     *
+     * Sepa constructor.
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
      * @param \Magento\Framework\UrlInterface $urlBuilder
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
@@ -122,8 +108,6 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      * @param \Magento\Payment\Helper\Data $paymentData
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Payment\Model\Method\Logger $logger
-     * @param \Magento\Framework\Module\ModuleListInterface $moduleList
-     * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
@@ -132,7 +116,6 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         \Magento\Framework\App\RequestInterface $request,
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
@@ -140,8 +123,6 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         \Magento\Payment\Helper\Data $paymentData,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Payment\Model\Method\Logger $logger,
-        \Magento\Framework\Module\ModuleListInterface $moduleList,
-        \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
@@ -154,29 +135,13 @@ class Cc extends \Magento\Payment\Model\Method\Cc
             $paymentData,
             $scopeConfig,
             $logger,
-            $moduleList,
-            $localeDate,
             $resource,
             $resourceCollection,
             $data
         );
         $this->_paymentRequest = $paymentRequest;
         $this->_urlBuilder = $urlBuilder;
-        $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
-    }
-
-    /**
-     * @var string
-     */
-    protected $_paymentMethodType = 'api';
-
-    /**
-     * @return string
-     */
-    public function getPaymentMethodType()
-    {
-        return $this->_paymentMethodType;
     }
 
     /**
@@ -196,24 +161,10 @@ class Cc extends \Magento\Payment\Model\Method\Cc
 
         $additionalData = $data->getAdditionalData();
         $infoInstance = $this->getInfoInstance();
-
-        if (isset($additionalData['cc_type'])) {
-            $infoInstance->setCcType($additionalData['cc_type']);
-        }
-        if ($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
-            if (isset($additionalData['encrypted_data'])) {
-                $infoInstance->setAdditionalInformation('encrypted_data', $additionalData['encrypted_data']);
-            } else {
-                throw new \Magento\Framework\Exception\LocalizedException(__('Card encryption failed'));
-            }
-        }
-
-        // save value remember details checkbox
-        if (isset($additionalData['store_cc'])) {
-            $infoInstance->setAdditionalInformation('store_cc', $additionalData['store_cc']);
-        }
-
-        return $this;
+        $infoInstance->setAdditionalInformation('account_name', $additionalData['account_name']);
+        $infoInstance->setAdditionalInformation('iban', $additionalData['iban']);
+        $infoInstance->setAdditionalInformation('country', $additionalData['country']);
+        $infoInstance->setAdditionalInformation('accept_sepa', $additionalData['accept_sepa']);
     }
 
     /**
@@ -226,8 +177,55 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      */
     public function validate()
     {
-        // validation only possible on front-end for CSE script
+        $infoInstance = $this->getInfoInstance();
+        $iban = $infoInstance->getAdditionalInformation('iban');
+        if (empty($iban) || !$this->validateIban($iban)) {
+            throw new \Magento\Framework\Exception\LocalizedException(__('Invalid Iban number.'));
+        }
         return $this;
+    }
+
+    /**
+     * Validate IBAN
+     *
+     * @param $iban
+     * @return bool
+     */
+    public function validateIban($iban)
+    {
+        $iban = strtolower(str_replace(' ', '', $iban));
+        $countries =    ['al'=>28,'ad'=>24,'at'=>20,'az'=>28,'bh'=>22,'be'=>16,'ba'=>20,'br'=>29,'bg'=>22,'cr'=>21,
+                         'hr'=>21,'cy'=>28,'cz'=>24,'dk'=>18,'do'=>28,'ee'=>20,'fo'=>18,'fi'=>18,'fr'=>27,'ge'=>22,
+                         'de'=>22,'gi'=>23,'gr'=>27,'gl'=>18,'gt'=>28,'hu'=>28,'is'=>26,'ie'=>22,'il'=>23,'it'=>27,
+                         'jo'=>30,'kz'=>20,'kw'=>30,'lv'=>21,'lb'=>28,'li'=>21,'lt'=>20,'lu'=>20,'mk'=>19,'mt'=>31,
+                         'mr'=>27,'mu'=>30,'mc'=>27,'md'=>24, 'me'=>22,'nl'=>18,'no'=>15,'pk'=>24,'ps'=>29,'pl'=>28,
+                         'pt'=>25,'qa'=>29,'ro'=>24, 'sm'=>27,'sa'=>24,'rs'=>22,'sk'=>24,'si'=>19,'es'=>24,'se'=>24,
+                         'ch'=>21,'tn'=>24,'tr'=>26,'ae'=>23,'gb'=>22,'vg'=>24];
+
+        $chars =    ['a'=>10,'b'=>11,'c'=>12,'d'=>13,'e'=>14,'f'=>15,'g'=>16,'h'=>17,'i'=>18,'j'=>19,'k'=>20,'l'=>21,
+                     'm'=>22,'n'=>23,'o'=>24,'p'=>25,'q'=>26,'r'=>27,'s'=>28,'t'=>29,'u'=>30,'v'=>31,'w'=>32,'x'=>33,
+                     'y'=>34,'z'=>35];
+
+        if (isset($countries[substr($iban, 0, 2)]) && strlen($iban) == $countries[substr($iban, 0, 2)]) {
+            $movedChar = substr($iban, 4).substr($iban, 0, 4);
+            $movedCharArray = str_split($movedChar);
+            $newString = "";
+
+            foreach ($movedChar AS $key => $value) {
+                if (!is_numeric($movedCharArray[$key])) {
+                    $movedChar[$key] = $chars[$movedChar[$key]];
+                }
+                $newString .= $movedCharArray[$key];
+            }
+
+            if (bcmod($newString, '97') == 1) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -293,54 +291,10 @@ class Cc extends \Magento\Payment\Model\Method\Cc
                 $this->_addStatusHistory($payment, $response['resultCode'], $response['pspReference']);
                 $payment->setAdditionalInformation('pspReference', $response['pspReference']);
                 break;
-            case "RedirectShopper":
-                // 3d is active so set the param to true checked in Controller/Validate3d
-                $payment->setAdditionalInformation('3dActive', true);
-                $issuerUrl = $response['issuerUrl'];
-                $paReq = $response['paRequest'];
-                $md = $response['md'];
-
-                if (!empty($paReq) && !empty($md) && !empty($issuerUrl)) {
-                    $payment->setAdditionalInformation('issuerUrl', $response['issuerUrl']);
-                    $payment->setAdditionalInformation('paRequest', $response['paRequest']);
-                    $payment->setAdditionalInformation('md', $response['md']);
-                } else {
-                    throw new \Magento\Framework\Exception\LocalizedException(__('3D secure is not valid'));
-                }
-                break;
             case "Refused":
-                // refusalReason
-                if ($response['refusalReason']) {
-
-                    $refusalReason = $response['refusalReason'];
-                    switch($refusalReason) {
-                        case "Transaction Not Permitted":
-                            $errorMsg = __('The transaction is not permitted.');
-                            break;
-                        case "CVC Declined":
-                            $errorMsg = __('Declined due to the Card Security Code(CVC) being incorrect. Please check your CVC code!');
-                            break;
-                        case "Restricted Card":
-                            $errorMsg = __('The card is restricted.');
-                            break;
-                        case "803 PaymentDetail not found":
-                            $errorMsg = __('The payment is REFUSED because the saved card is removed. Please try an other payment method.');
-                            break;
-                        case "Expiry month not set":
-                            $errorMsg = __('The expiry month is not set. Please check your expiry month!');
-                            break;
-                        default:
-                            $errorMsg = __('The payment is REFUSED.');
-                            break;
-                    }
-                } else {
-                    $errorMsg = __('The payment is REFUSED.');
-                }
-
-                if ($errorMsg) {
-                    $this->_logger->critical($errorMsg);
-                    throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
-                }
+                $errorMsg = __('The payment is REFUSED.');
+                $this->_logger->critical($errorMsg);
+                throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
                 break;
         }
     }
@@ -353,27 +307,12 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      */
     protected function _addStatusHistory($payment, $responseCode, $pspReference)
     {
-
         $type = 'Adyen Result URL response:';
         $comment = __('%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> paymentMethod: %4',
             $type, $responseCode, $pspReference, "");
         $payment->getOrder()->setAdyenResulturlEventCode($responseCode);
         $payment->getOrder()->addStatusHistoryComment($comment);
         return $this;
-    }
-
-    /**
-     * Called by validate3d controller when cc payment has 3D secure
-     *
-     * @param $payment
-     * @return mixed
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function authorise3d($payment)
-    {
-        $response = $this->_paymentRequest->authorise3d($payment);
-        $responseCode = $response['resultCode'];
-        return $responseCode;
     }
 
     /**
@@ -385,50 +324,8 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      */
     public function getCheckoutRedirectUrl()
     {
-        return $this->_urlBuilder->getUrl('adyen/process/validate3d/', ['_secure' => $this->_getRequest()->isSecure()]);
-    }
-
-    /**
-     * Capture on Adyen
-     *
-     * @param \Magento\Payment\Model\InfoInterface $payment
-     * @param float $amount
-     * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
-    {
-        parent::capture($payment, $amount);
-        $this->_paymentRequest->capture($payment, $amount);
-        return $this;
-    }
-    
-    /**
-     * Refund specified amount for payment
-     *
-     * @param \Magento\Payment\Model\InfoInterface $payment
-     * @param float $amount
-     * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
-    {
-        parent::refund($payment, $amount);
-
-        $order = $payment->getOrder();
-        /*
-         * if amount is a full refund send a refund/cancelled request so
-         * if it is not captured yet it will cancel the order
-         */
-        $grandTotal = $order->getGrandTotal();
-
-        if ($grandTotal == $amount) {
-            $this->_paymentRequest->cancelOrRefund($payment);
-        } else {
-            $this->_paymentRequest->refund($payment, $amount);
-        }
-
-        return $this;
+        return $this->_urlBuilder->getUrl('checkout/onepage/success/',
+            ['_secure' => $this->_getRequest()->isSecure()]);
     }
 
     /**
@@ -440,5 +337,4 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     {
         return $this->_request;
     }
-
 }

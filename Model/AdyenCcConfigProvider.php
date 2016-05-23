@@ -30,31 +30,21 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
 {
 
     /**
-     * @var Config
-     */
-    protected $config;
-
-    /**
      * @var string[]
      */
-    protected $methodCodes = [
+    protected $_methodCodes = [
         \Adyen\Payment\Model\Method\Cc::METHOD_CODE
     ];
 
     /**
-     * @var \Magento\Payment\Model\Method\AbstractMethod[]
-     */
-    protected $methods = [];
-
-    /**
      * @var PaymentHelper
      */
-    protected $paymentHelper;
+    protected $_paymentHelper;
 
     /**
      * @var \Adyen\Payment\Helper\Data
      */
-    protected $adyenHelper;
+    protected $_adyenHelper;
 
     /**
      * @var AdyenGenericConfig
@@ -62,9 +52,12 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
     protected $_genericConfig;
 
     /**
+     * AdyenCcConfigProvider constructor.
+     *
      * @param \Magento\Payment\Model\CcConfig $ccConfig
      * @param PaymentHelper $paymentHelper
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param AdyenGenericConfig $genericConfig
      */
     public function __construct(
         \Magento\Payment\Model\CcConfig $ccConfig,
@@ -72,31 +65,34 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Model\AdyenGenericConfig $genericConfig
     ) {
-        parent::__construct($ccConfig, $paymentHelper, $this->methodCodes);
-        $this->adyenHelper = $adyenHelper;
+        parent::__construct($ccConfig, $paymentHelper, $this->_methodCodes);
+        $this->_paymentHelper = $paymentHelper;
+        $this->_adyenHelper = $adyenHelper;
         $this->_genericConfig = $genericConfig;
     }
 
+    /**
+     * @return array
+     */
     public function getConfig()
     {
         $config = parent::getConfig();
 
-        $demoMode = $this->adyenHelper->getAdyenAbstractConfigDataFlag('demo_mode');
+        $demoMode = $this->_adyenHelper->getAdyenAbstractConfigDataFlag('demo_mode');
 
-        if($demoMode) {
-            $cseKey = $this->adyenHelper->getAdyenCcConfigData('cse_publickey_test');
+        if ($demoMode) {
+            $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_test');
         } else {
-            $cseKey = $this->adyenHelper->getAdyenCcConfigData('cse_publickey_live');
+            $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_live');
         }
 
-        $cseEnabled = $this->adyenHelper->getAdyenCcConfigDataFlag('cse_enabled');
+        $cseEnabled = $this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled');
 
-        $recurringType = $this->adyenHelper->getAdyenAbstractConfigData('recurring_type');
+        $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type');
         $canCreateBillingAgreement = false;
-        if($recurringType == "ONECLICK" || $recurringType == "ONECLICK,RECURRING") {
+        if ($recurringType == "ONECLICK" || $recurringType == "ONECLICK,RECURRING") {
             $canCreateBillingAgreement = true;
         }
-
 
         $config['payment'] ['adyenCc']['cseKey'] = $cseKey;
         $config['payment'] ['adyenCc']['cseEnabled'] = $cseEnabled;
@@ -105,20 +101,21 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
         $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
 
         // show logos turned on by default
-        if($this->_genericConfig->showLogos()) {
+        if ($this->_genericConfig->showLogos()) {
             $config['payment']['adyenCc']['creditCardPaymentMethodIcon'] = $this->_getCreditCardPaymentMethodIcon();
         }
-
         return $config;
     }
 
+    /**
+     * @return array|null
+     */
     protected function _getCreditCardPaymentMethodIcon()
     {
         $asset = $this->_genericConfig->createAsset('Adyen_Payment::images/logos/img_trans.gif');
-
         $placeholder = $this->_genericConfig->findRelativeSourceFilePath($asset);
-
         $icon = null;
+
         if ($placeholder) {
             list($width, $height) = getimagesize($asset->getSourceFile());
             $icon = [
@@ -127,7 +124,6 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
                 'height' => $height
             ];
         }
-
         return $icon;
     }
 }

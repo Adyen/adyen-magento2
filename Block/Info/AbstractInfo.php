@@ -32,10 +32,12 @@ class AbstractInfo extends \Magento\Payment\Block\Info
      * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;
-
+    
     /**
      * Constructor
      *
+     * AbstractInfo constructor.
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param Template\Context $context
      * @param array $data
      */
@@ -49,12 +51,19 @@ class AbstractInfo extends \Magento\Payment\Block\Info
         $this->_adyenHelper = $adyenHelper;
     }
 
-
+    /**
+     * @return mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function getAdyenPspReference()
     {
         return $this->getInfo()->getAdyenPspReference();
     }
 
+    /**
+     * @return mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function isDemoMode()
     {
         $storeId = $this->getInfo()->getOrder()->getStoreId();
