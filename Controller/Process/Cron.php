@@ -36,7 +36,10 @@ class Cron extends \Magento\Framework\App\Action\Action
      * @var \Magento\Framework\Controller\Result\RawFactory
      */
     protected $_resultFactory;
+
     /**
+     * Cron constructor.
+     *
      * @param \Magento\Framework\App\Action\Context $context
      */
     public function __construct(
@@ -46,8 +49,9 @@ class Cron extends \Magento\Framework\App\Action\Action
         $this->_objectManager = $context->getObjectManager();
         $this->_resultFactory = $context->getResultFactory();
     }
+
     /**
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * Process Notification from Cron
      */
     public function execute()
     {

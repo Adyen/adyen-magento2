@@ -78,7 +78,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
     /**
      * @var string[]
      */
-    protected $methodCodes = [
+    protected $_methodCodes = [
         'adyen_hpp'
     ];
 
@@ -88,6 +88,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
     protected $methods = [];
 
     /**
+     * AdyenHppConfigProvider constructor.
+     *
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Checkout\Model\Session $session
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
@@ -119,12 +121,14 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $this->_adyenLogger = $adyenLogger;
         $this->_genericConfig = $genericConfig;
 
-        foreach ($this->methodCodes as $code) {
+        foreach ($this->_methodCodes as $code) {
             $this->methods[$code] = $this->_paymentHelper->getMethodInstance($code);
         }
     }
 
-
+    /**
+     * @return array
+     */
     public function getConfig()
     {
         $config = [
@@ -133,7 +137,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
                 ]
             ]
         ];
-        foreach ($this->methodCodes as $code) {
+
+        foreach ($this->_methodCodes as $code) {
             if ($this->methods[$code]->isAvailable()) {
                 // get payment methods
                 $config['payment'] ['adyenHpp']['paymentMethods'] = $this->getAdyenHppPaymentMethods();
@@ -146,7 +151,10 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         return $config;
     }
 
-
+    /**
+     * @return array|null
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function getAdyenHppPaymentMethods()
     {
         $paymentMethods = null;
@@ -162,13 +170,17 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         // is adyen HPP enabled ?
         $hppActive = $this->methods['adyen_hpp']->isAvailable();
 
-        if($hppActive) {
+        if ($hppActive) {
             $paymentMethods = $this->_addHppMethodsToConfig($store);
         }
 
         return $paymentMethods;
     }
 
+    /**
+     * @param $store
+     * @return array
+     */
     protected function _addHppMethodsToConfig($store)
     {
         $paymentMethods = [];
@@ -178,11 +190,13 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $sepaEnabled = $this->_config->getValue('payment/'.\Adyen\Payment\Model\Method\Sepa::METHOD_CODE.'/active');
 
         foreach ($this->_fetchHppMethods($store) as $methodCode => $methodData) {
-
-            // skip payment methods if it is a creditcard that is enabled in adyen_cc or if payment is sepadirectdebit and SEPA api is enabled
+            /*
+             * skip payment methods if it is a creditcard that is enabled in adyen_cc
+             * or if payment is sepadirectdebit and SEPA api is enabled
+             */
             if ($ccEnabled && in_array($methodCode, $ccTypes)) {
                 continue;
-            } elseif($methodCode == 'sepadirectdebit' && $sepaEnabled) {
+            } elseif ($methodCode == 'sepadirectdebit' && $sepaEnabled) {
                 continue;
             }
 
@@ -192,16 +206,20 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         return $paymentMethods;
     }
 
+    /**
+     * @param $store
+     * @return array
+     */
     protected function _fetchHppMethods($store)
     {
         $skinCode = $this->_adyenHelper->getAdyenHppConfigData('skin_code');
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData('merchant_account');
 
         if (!$skinCode || !$merchantAccount) {
-            return array();
+            return [];
         }
 
-        $adyFields = array(
+        $adyFields = [
             "paymentAmount"     => (int) $this->_adyenHelper->formatAmount($this->_getCurrentPaymentAmount(), $this->_getCurrentCurrencyCode($store)),
             "currencyCode"      => $this->_getCurrentCurrencyCode($store),
             "merchantReference" => "Get Payment methods",
@@ -213,20 +231,20 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
             ),
             "countryCode"       => $this->_getCurrentCountryCode($store),
             "shopperLocale"     => $this->_getCurrentLocaleCode($store)
-        );
+        ];
 
         $responseData = $this->_getDirectoryLookupResponse($adyFields, $store);
 
-        $paymentMethods = array();
-        if(isset($responseData['paymentMethods'])) {
+        $paymentMethods = [];
+        if (isset($responseData['paymentMethods'])) {
             foreach ($responseData['paymentMethods'] as $paymentMethod) {
-
                 $paymentMethodCode = $paymentMethod['brandCode'];
                 $paymentMethod = $this->_fieldMapPaymentMethod($paymentMethod);
 
                 // add icon location in result
-                if($this->_genericConfig->showLogos()) {
-                    $asset = $this->_genericConfig->createAsset('Adyen_Payment::images/logos/' . $paymentMethodCode . '.png');
+                if ($this->_genericConfig->showLogos()) {
+                    $asset = $this->_genericConfig->createAsset('Adyen_Payment::images/logos/' .
+                        $paymentMethodCode . '.png');
 
                     $placeholder = $this->_genericConfig->findRelativeSourceFilePath($asset);
 
@@ -242,7 +260,6 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
 
                     $paymentMethod['icon'] = $icon;
                 }
-
                 $paymentMethods[$paymentMethodCode] = $paymentMethod;
             }
         }
@@ -262,7 +279,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * @return string
+     * @param $store
+     * @return mixed
      */
     protected function _getCurrentCurrencyCode($store)
     {
@@ -270,15 +288,15 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * @return string
+     * @param $store
+     * @return int|mixed|string
      */
     protected function _getCurrentCountryCode($store)
     {
-
         // if fixed countryCode is setup in config use this
         $countryCode = $this->_adyenHelper->getAdyenHppConfigData('country_code', $store->getId());
 
-        if($countryCode != "") {
+        if ($countryCode != "") {
             return $countryCode;
         }
 
@@ -292,7 +310,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
             $store->getCode()
         );
 
-        if($defaultCountry) {
+        if ($defaultCountry) {
             return $defaultCountry;
         }
 
@@ -300,17 +318,18 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * @return string
+     * @param $store
+     * @return mixed|string
      */
     protected function _getCurrentLocaleCode($store)
     {
         $localeCode = $this->_adyenHelper->getAdyenAbstractConfigData('shopper_locale', $store->getId());
-        if($localeCode != "") {
+        if ($localeCode != "") {
             return $localeCode;
         }
 
         $locale = $this->_localeResolver->getLocale();
-        if($locale) {
+        if ($locale) {
             return $locale;
         }
 
@@ -324,10 +343,17 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         return $localeCode;
     }
 
-    protected $_fieldMapPaymentMethod = array(
+    /**
+     * @var array
+     */
+    protected $_fieldMapPaymentMethod = [
         'name' => 'title'
-    );
+    ];
 
+    /**
+     * @param $paymentMethod
+     * @return mixed
+     */
     protected function _fieldMapPaymentMethod($paymentMethod)
     {
         foreach ($this->_fieldMapPaymentMethod as $field => $newField) {
@@ -339,6 +365,12 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         return $paymentMethod;
     }
 
+    /**
+     * @param $requestParams
+     * @param $store
+     * @return array
+     * @throws \Adyen\AdyenException
+     */
     protected function _getDirectoryLookupResponse($requestParams, $store)
     {
         $cacheKey = $this->_getCacheKeyForRequest($requestParams, $store);
@@ -346,7 +378,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         // initialize the adyen client
         $client = new \Adyen\Client();
 
-        if($this->_adyenHelper->isDemoMode()) {
+        if ($this->_adyenHelper->isDemoMode()) {
             $client->setEnvironment(\Adyen\Environment::TEST);
         } else {
             $client->setEnvironment(\Adyen\Environment::LIVE);
@@ -363,7 +395,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         } catch (\Adyen\AdyenException $e) {
             $this->_adyenLogger->error($e->getMessage());
             // return empty result
-            return array();
+            return [];
         }
 
         // initialize service
@@ -371,23 +403,20 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
 
         try {
             $responseData =  $service->directoryLookup($requestParams);
-        }catch (\Adyen\AdyenException $e) {
-            $this->_adyenLogger->error("The Directory Lookup response is empty check your Adyen configuration in Magento.");
+        } catch (\Adyen\AdyenException $e) {
+            $this->_adyenLogger->error(
+                "The Directory Lookup response is empty check your Adyen configuration in Magento."
+            );
             // return empty result
-            return array();
+            return [];
         }
-
-        // save result in cache
-//        Mage::app()->getCache()->save(
-//            serialize($responseData),
-//            $cacheKey,
-//            array(Mage_Core_Model_Config::CACHE_TAG),
-//            60 * 60 * 6
-//        );
 
         return $responseData;
     }
 
+    /**
+     * @var array
+     */
     protected $_cacheParams = array(
         'currencyCode',
         'merchantReference',
@@ -397,9 +426,14 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         'shopperLocale',
     );
 
+    /**
+     * @param $requestParams
+     * @param $store
+     * @return string
+     */
     protected function _getCacheKeyForRequest($requestParams, $store)
     {
-        $cacheParams = array();
+        $cacheParams = [];
         $cacheParams['store'] = $store->getId();
         foreach ($this->_cacheParams as $paramKey) {
             if (isset($requestParams[$paramKey])) {
@@ -410,11 +444,13 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         return md5(implode('|', $cacheParams));
     }
 
+    /**
+     * @return \Magento\Quote\Model\Quote
+     */
     protected function _getQuote()
     {
         return $this->_session->getQuote();
     }
-
 
     /**
      * Create a file asset that's subject of fallback system
@@ -428,5 +464,4 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $params = array_merge(['_secure' => $this->request->isSecure()], $params);
         return $this->assetRepo->createAsset($fileId, $params);
     }
-
 }

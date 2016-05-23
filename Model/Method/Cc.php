@@ -40,11 +40,35 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      * @var bool
      */
     protected $_canAuthorize = true;
+
+    /**
+     * @var bool
+     */
     protected $_canCapture = true;
+
+    /**
+     * @var bool
+     */
     protected $_canCapturePartial = true;
+
+    /**
+     * @var bool
+     */
     protected $_canCaptureOnce = true;
+
+    /**
+     * @var bool
+     */
     protected $_canRefund = true;
+
+    /**
+     * @var bool
+     */
     protected $_canRefundInvoicePartial = true;
+
+    /**
+     * @var bool
+     */
     protected $_isGateway = true;
 
     /**
@@ -56,22 +80,16 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      * @var string
      */
     protected $_formBlockType = 'Adyen\Payment\Block\Form\Cc';
+
+    /**
+     * @var string
+     */
     protected $_infoBlockType = 'Adyen\Payment\Block\Info\Cc';
 
     /**
      * @var \Adyen\Payment\Model\Api\PaymentRequest
      */
     protected $_paymentRequest;
-
-    /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
-     */
-    protected $_adyenLogger;
-
-    /**
-     * @var \Magento\Checkout\Model\Session
-     */
-    protected $_checkoutSession;
 
     /**
      * @var \Magento\Framework\UrlInterface
@@ -91,9 +109,10 @@ class Cc extends \Magento\Payment\Model\Method\Cc
     protected $_request;
 
     /**
+     * Cc constructor.
+     *
+     * @param \Magento\Framework\App\RequestInterface $request
      * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Framework\Model\Context $context
@@ -108,13 +127,10 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
-     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         \Magento\Framework\App\RequestInterface $request,
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Framework\UrlInterface $urlBuilder,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\Model\Context $context,
@@ -145,15 +161,21 @@ class Cc extends \Magento\Payment\Model\Method\Cc
             $data
         );
         $this->_paymentRequest = $paymentRequest;
-        $this->_adyenLogger = $adyenLogger;
-        $this->_checkoutSession = $checkoutSession;
         $this->_urlBuilder = $urlBuilder;
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
     }
 
+    /**
+     * @var string
+     */
     protected $_paymentMethodType = 'api';
-    public function getPaymentMethodType() {
+
+    /**
+     * @return string
+     */
+    public function getPaymentMethodType()
+    {
         return $this->_paymentMethodType;
     }
 
@@ -175,11 +197,11 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         $additionalData = $data->getAdditionalData();
         $infoInstance = $this->getInfoInstance();
 
-        if(isset($additionalData['cc_type'])) {
+        if (isset($additionalData['cc_type'])) {
             $infoInstance->setCcType($additionalData['cc_type']);
         }
-        if($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
-            if(isset($additionalData['encrypted_data'])) {
+        if ($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
+            if (isset($additionalData['encrypted_data'])) {
                 $infoInstance->setAdditionalInformation('encrypted_data', $additionalData['encrypted_data']);
             } else {
                 throw new \Magento\Framework\Exception\LocalizedException(__('Card encryption failed'));
@@ -187,7 +209,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         }
 
         // save value remember details checkbox
-        if(isset($additionalData['store_cc'])) {
+        if (isset($additionalData['store_cc'])) {
             $infoInstance->setAdditionalInformation('store_cc', $additionalData['store_cc']);
         }
 
@@ -208,6 +230,12 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         return $this;
     }
 
+    /**
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param float $amount
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         if (!$this->canAuthorize()) {
@@ -230,6 +258,12 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         return $this;
     }
 
+    /**
+     * @param \Magento\Sales\Model\Order\Payment $payment
+     * @param $amount
+     * @param $request
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     protected function _processRequest(\Magento\Sales\Model\Order\Payment $payment, $amount, $request)
     {
         switch ($request) {
@@ -245,13 +279,17 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         }
     }
 
+    /**
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param $response
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     protected function _processResponse(\Magento\Payment\Model\InfoInterface $payment, $response)
     {
         $payment->setAdditionalInformation('3dActive', false);
 
         switch ($response['resultCode']) {
             case "Authorised":
-                //$this->_addStatusHistory($payment, $responseCode, $pspReference, $this->_getConfigData('order_status'));
                 $this->_addStatusHistory($payment, $response['resultCode'], $response['pspReference']);
                 $payment->setAdditionalInformation('pspReference', $response['pspReference']);
                 break;
@@ -259,10 +297,10 @@ class Cc extends \Magento\Payment\Model\Method\Cc
                 // 3d is active so set the param to true checked in Controller/Validate3d
                 $payment->setAdditionalInformation('3dActive', true);
                 $issuerUrl = $response['issuerUrl'];
-                $PaReq = $response['paRequest'];
+                $paReq = $response['paRequest'];
                 $md = $response['md'];
 
-                if(!empty($PaReq) && !empty($md) && !empty($issuerUrl)) {
+                if (!empty($paReq) && !empty($md) && !empty($issuerUrl)) {
                     $payment->setAdditionalInformation('issuerUrl', $response['issuerUrl']);
                     $payment->setAdditionalInformation('paRequest', $response['paRequest']);
                     $payment->setAdditionalInformation('md', $response['md']);
@@ -272,7 +310,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
                 break;
             case "Refused":
                 // refusalReason
-                if($response['refusalReason']) {
+                if ($response['refusalReason']) {
 
                     $refusalReason = $response['refusalReason'];
                     switch($refusalReason) {
@@ -307,22 +345,32 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         }
     }
 
+    /**
+     * @param $payment
+     * @param $responseCode
+     * @param $pspReference
+     * @return $this
+     */
     protected function _addStatusHistory($payment, $responseCode, $pspReference)
     {
 
         $type = 'Adyen Result URL response:';
-        $comment = __('%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> paymentMethod: %4', $type, $responseCode, $pspReference, "");
+        $comment = __('%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> paymentMethod: %4',
+            $type, $responseCode, $pspReference, "");
         $payment->getOrder()->setAdyenResulturlEventCode($responseCode);
         $payment->getOrder()->addStatusHistoryComment($comment);
         return $this;
     }
 
-    /*
+    /**
      * Called by validate3d controller when cc payment has 3D secure
+     *
+     * @param $payment
+     * @return mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function authorise3d($payment)
     {
-
         $response = $this->_paymentRequest->authorise3d($payment);
         $responseCode = $response['resultCode'];
         return $responseCode;
@@ -337,7 +385,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      */
     public function getCheckoutRedirectUrl()
     {
-        return $this->_urlBuilder->getUrl('adyen/process/validate3d/',['_secure' => $this->_getRequest()->isSecure()]);
+        return $this->_urlBuilder->getUrl('adyen/process/validate3d/', ['_secure' => $this->_getRequest()->isSecure()]);
     }
 
     /**
@@ -345,6 +393,8 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      *
      * @param \Magento\Payment\Model\InfoInterface $payment
      * @param float $amount
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -352,26 +402,27 @@ class Cc extends \Magento\Payment\Model\Method\Cc
         $this->_paymentRequest->capture($payment, $amount);
         return $this;
     }
-
+    
     /**
      * Refund specified amount for payment
      *
-     * @param \Magento\Framework\DataObject|InfoInterface $payment
+     * @param \Magento\Payment\Model\InfoInterface $payment
      * @param float $amount
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @api
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         parent::refund($payment, $amount);
 
         $order = $payment->getOrder();
-        // if amount is a full refund send a refund/cancelled request so if it is not captured yet it will cancel the order
+        /*
+         * if amount is a full refund send a refund/cancelled request so
+         * if it is not captured yet it will cancel the order
+         */
         $grandTotal = $order->getGrandTotal();
 
-        if($grandTotal == $amount) {
+        if ($grandTotal == $amount) {
             $this->_paymentRequest->cancelOrRefund($payment);
         } else {
             $this->_paymentRequest->refund($payment, $amount);

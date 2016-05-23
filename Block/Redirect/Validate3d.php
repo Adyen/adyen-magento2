@@ -26,7 +26,11 @@ namespace Adyen\Payment\Block\Redirect;
 class Validate3d extends \Magento\Payment\Block\Form
 {
 
+    /**
+     * @var \Magento\Sales\Model\OrderFactory
+     */
     protected $_orderFactory;
+
     /**
      * @var \Magento\Checkout\Model\Session
      */
@@ -38,6 +42,8 @@ class Validate3d extends \Magento\Payment\Block\Form
     protected $_order;
 
     /**
+     * Validate3d constructor.
+     *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param array $data
      * @param \Magento\Sales\Model\OrderFactory $orderFactory
@@ -48,14 +54,12 @@ class Validate3d extends \Magento\Payment\Block\Form
         array $data = [],
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Checkout\Model\Session $checkoutSession
-    )
-    {
+    ) {
         $this->_orderFactory = $orderFactory;
         $this->_checkoutSession = $checkoutSession;
         parent::__construct($context, $data);
         $this->_getOrder();
     }
-
 
     /**
      * Get order object
@@ -81,21 +85,33 @@ class Validate3d extends \Magento\Payment\Block\Form
         return $this->_checkoutSession;
     }
 
+    /**
+     * @return mixed
+     */
     public function getIssuerUrl()
     {
         return $this->_order->getPayment()->getAdditionalInformation('issuerUrl');
     }
 
+    /**
+     * @return mixed
+     */
     public function getPaReq()
     {
         return $this->_order->getPayment()->getAdditionalInformation('paRequest');
     }
 
+    /**
+     * @return mixed
+     */
     public function getMd()
     {
         return $this->_order->getPayment()->getAdditionalInformation('md');
     }
 
+    /**
+     * @return string
+     */
     public function getTermUrl()
     {
         return  $this->getUrl('adyen/process/validate3d');

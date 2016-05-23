@@ -40,6 +40,8 @@ class Pos extends \Magento\Payment\Block\Form
     protected $_order;
 
     /**
+     * Pos constructor.
+     *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param array $data
      * @param \Magento\Sales\Model\OrderFactory $orderFactory
@@ -50,20 +52,24 @@ class Pos extends \Magento\Payment\Block\Form
         array $data = [],
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Checkout\Model\Session $checkoutSession
-    )
-    {
+    ) {
         $this->_orderFactory = $orderFactory;
         $this->_checkoutSession = $checkoutSession;
         parent::__construct($context, $data);
         $this->_getOrder();
     }
 
-
+    /**
+     * @return $this
+     */
     public function _prepareLayout()
     {
         return parent::_prepareLayout();
     }
 
+    /**
+     * @return string
+     */
     public function getLaunchLink()
     {
         $result = "";

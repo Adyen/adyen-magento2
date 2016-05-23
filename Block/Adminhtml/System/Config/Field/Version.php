@@ -30,6 +30,8 @@ class Version extends \Magento\Config\Block\System\Config\Form\Field
 {
 
     /**
+     * Contains list of modules
+     *
      * @var \Magento\Framework\Module\ModuleListInterface
      */
     protected $_moduleList;
@@ -44,13 +46,14 @@ class Version extends \Magento\Config\Block\System\Config\Form\Field
         \Magento\Framework\Module\ModuleListInterface $moduleList,
         \Magento\Backend\Block\Template\Context $context,
         array $data = []
-    )
-    {
+    ) {
         parent::__construct($context, $data);
         $this->_moduleList = $moduleList;
     }
 
     /**
+     * Retrieve the setup version of the extension
+     *
      * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
      * @return string
      */

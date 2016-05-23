@@ -46,6 +46,8 @@ class Validate3d extends \Magento\Framework\App\Action\Action
     protected $_adyenHelper;
 
     /**
+     * Validate3d constructor.
+     *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -60,6 +62,9 @@ class Validate3d extends \Magento\Framework\App\Action\Action
         $this->_adyenHelper = $adyenHelper;
     }
 
+    /**
+     * Validate 3D secure payment
+     */
     public function execute()
     {
         $active = null;
@@ -67,19 +72,18 @@ class Validate3d extends \Magento\Framework\App\Action\Action
         // check if 3d is active
         $order = $this->_getOrder();
 
-        if($order->getPayment()) {
+        if ($order->getPayment()) {
             $active = $order->getPayment()->getAdditionalInformation('3dActive');
         }
 
         // check if 3D secure is active. If not just go to success page
-        if($active) {
-
+        if ($active) {
             $this->_adyenLogger->addAdyenResult("3D secure is active");
+
             // check if it is already processed
             if ($this->getRequest()->isPost()) {
 
                 $this->_adyenLogger->addAdyenResult("Process 3D secure payment");
-
                 $requestMD = $this->getRequest()->getPost('MD');
                 $requestPaRes = $this->getRequest()->getPost('PaRes');
                 $md = $order->getPayment()->getAdditionalInformation('md');
@@ -98,15 +102,16 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                     if ($result == 'Authorised') {
                         $order->addStatusHistoryComment(__('3D-secure validation was successful'))->save();
                         $this->_redirect('checkout/onepage/success');
-                    }
-                    else {
+                    } else {
                         $order->addStatusHistoryComment(__('3D-secure validation was unsuccessful.'))->save();
                         $this->_adyenHelper->cancelOrder($order);
                     }
                 }
             } else {
                 $this->_adyenLogger->addAdyenResult("Customer was redirected to bank for 3D-secure validation.");
-                $order->addStatusHistoryComment(__('Customer was redirected to bank for 3D-secure validation.'))->save();
+                $order->addStatusHistoryComment(
+                    __('Customer was redirected to bank for 3D-secure validation.')
+                )->save();
 
                 $this->_view->loadLayout();
                 $this->_view->getLayout()->initMessages();

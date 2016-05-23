@@ -23,8 +23,7 @@
 
 namespace Adyen\Payment\Controller\Process;
 
-use Magento\Customer\Api\AccountManagementInterface;
-use Magento\Customer\Api\CustomerRepositoryInterface;
+use \Adyen\Payment\Model\Notification;
 
 class Result extends \Magento\Framework\App\Action\Action
 {
@@ -59,6 +58,8 @@ class Result extends \Magento\Framework\App\Action\Action
     protected $_adyenLogger;
 
     /**
+     * Result constructor.
+     *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Sales\Model\OrderFactory $orderFactory
@@ -82,12 +83,15 @@ class Result extends \Magento\Framework\App\Action\Action
         parent::__construct($context);
     }
 
+    /**
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function execute()
     {
         $response = $this->getRequest()->getParams();
         $this->_adyenLogger->addAdyenResult(print_r($response, true));
 
-        if($response) {
+        if ($response) {
             $result = $this->validateResponse($response);
 
             if ($result) {
@@ -104,6 +108,9 @@ class Result extends \Magento\Framework\App\Action\Action
         }
     }
 
+    /**
+     * @param $response
+     */
     protected function _cancel($response)
     {
         $session = $this->_session;
@@ -115,24 +122,32 @@ class Result extends \Magento\Framework\App\Action\Action
 
         $this->_adyenHelper->cancelOrder($order);
 
-        if(isset($response['authResult']) && $response['authResult'] == \Adyen\Payment\Model\Notification::CANCELLED) {
+        if (isset($response['authResult']) && $response['authResult'] == \Adyen\Payment\Model\Notification::CANCELLED) {
             $this->messageManager->addError(__('You have cancelled the order. Please try again'));
         } else {
             $this->messageManager->addError(__('Your payment failed, Please try again later'));
         }
-
     }
 
+    /**
+     * @param $response
+     * @return bool
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     protected function validateResponse($response)
     {
         $result = true;
 
         $this->_adyenLogger->addAdyenResult('Processing ResultUrl');
-        $storeId = null;
 
         if (empty($response)) {
-            $this->_adyenLogger->addAdyenResult('Response is empty, please check your webserver that the result url accepts parameters');
-            throw new \Magento\Framework\Exception\LocalizedException(__('Response is empty, please check your webserver that the result url accepts parameters'));
+            $this->_adyenLogger->addAdyenResult(
+                'Response is empty, please check your webserver that the result url accepts parameters'
+            );
+
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Response is empty, please check your webserver that the result url accepts parameters')
+            );
         }
 
         // authenticate result url
@@ -143,7 +158,7 @@ class Result extends \Magento\Framework\App\Action\Action
 
         $incrementId = $response['merchantReference'];
 
-        if($incrementId) {
+        if ($incrementId) {
             $order = $this->_getOrder($incrementId);
             if ($order->getId()) {
 
@@ -155,9 +170,6 @@ class Result extends \Magento\Framework\App\Action\Action
                     return $response['handled_response'];
                 }
 
-                // set StoreId for retrieving debug log setting
-                $storeId = $order->getStoreId();
-
                 // update the order
                 $result = $this->_validateUpdateOrder($order, $response);
 
@@ -167,17 +179,22 @@ class Result extends \Magento\Framework\App\Action\Action
                 ]);
 
             } else {
-                throw new \Magento\Framework\Exception\LocalizedException(__('Order does not exists with increment_id: %1', $incrementId));
+                throw new \Magento\Framework\Exception\LocalizedException(
+                    __('Order does not exists with increment_id: %1', $incrementId)
+                );
             }
         } else {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Empty merchantReference'));
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Empty merchantReference')
+            );
         }
         return $result;
     }
 
     /**
      * @param $order
-     * @param $params
+     * @param $response
+     * @return bool
      */
     protected function _validateUpdateOrder($order, $response)
     {
@@ -190,7 +207,9 @@ class Result extends \Magento\Framework\App\Action\Action
         $pspReference = isset($response['pspReference']) ? trim($response['pspReference']) : '';
 
         $type = 'Adyen Result URL response:';
-        $comment = __('%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> paymentMethod: %4', $type, $authResult, $pspReference, $paymentMethod);
+        $comment = __('%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> paymentMethod: %4',
+            $type, $authResult, $pspReference, $paymentMethod
+        );
 
         $history = $this->_orderHistoryFactory->create()
             //->setStatus($status)
@@ -201,28 +220,26 @@ class Result extends \Magento\Framework\App\Action\Action
 
         $history->save();
 
-        // needed  becuase then we need to save $order objects
+        // needed because then we need to save $order objects
         $order->setAdyenResulturlEventCode($authResult);
 
-
         switch ($authResult) {
-
-            case \Adyen\Payment\Model\Notification::AUTHORISED:
-            case \Adyen\Payment\Model\Notification::PENDING:
+            case Notification::AUTHORISED:
+            case Notification::PENDING:
                 // do nothing wait for the notification
                 $result = true;
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
-            case \Adyen\Payment\Model\Notification::CANCELLED:
+            case Notification::CANCELLED:
                 $this->_adyenLogger->addAdyenResult('Cancel or Hold the order');
                 $result = false;
                 break;
-            case \Adyen\Payment\Model\Notification::REFUSED:
+            case Notification::REFUSED:
                 // if refused there will be a AUTHORIZATION : FALSE notification send only exception is idea
                 $this->_adyenLogger->addAdyenResult('Cancel or Hold the order');
                 $result = false;
                 break;
-            case \Adyen\Payment\Model\Notification::ERROR:
+            case Notification::ERROR:
                 //attempt to hold/cancel
                 $this->_adyenLogger->addAdyenResult('Cancel or Hold the order');
                 $result = false;
@@ -235,12 +252,12 @@ class Result extends \Magento\Framework\App\Action\Action
 
         return $result;
     }
-
-
+    
     /**
-     * @desc Authenticate using sha1 Merchant signature
-     * @see success Action during checkout
-     * @param Varien_Object $response
+     * Authenticate using sha1 Merchant signature
+     *
+     * @param $response
+     * @return bool
      */
     protected function _authenticate($response) {
 
@@ -254,10 +271,10 @@ class Result extends \Magento\Framework\App\Action\Action
         ksort($response, SORT_STRING);
 
         // Generate the signing data string
-        $signData = implode(":",array_map(array($this, 'escapeString'),array_merge(array_keys($response), array_values($response))));
+        $signData = implode(":", array_map([$this, 'escapeString'],
+            array_merge(array_keys($response), array_values($response))));
 
-        $merchantSig = base64_encode(hash_hmac('sha256',$signData,pack("H*" , $hmacKey),true));
-
+        $merchantSig = base64_encode(hash_hmac('sha256', $signData, pack("H*", $hmacKey), true));
 
         if (strcmp($merchantSig, $merchantSigNotification) === 0) {
             return true;
@@ -265,16 +282,23 @@ class Result extends \Magento\Framework\App\Action\Action
         return false;
     }
 
-    /*
-   * @desc The character escape function is called from the array_map function in _signRequestParams
-   * $param $val
-   * return string
-   */
+    /**
+     * The character escape function is called from the array_map function in _signRequestParams
+     *
+     * @param $val
+     * @return mixed
+     */
     protected function escapeString($val)
     {
         return str_replace(':','\\:',str_replace('\\','\\\\',$val));
     }
 
+    /**
+     * Get order based on increment_id
+     *
+     * @param $incrementId
+     * @return \Magento\Sales\Model\Order
+     */
     protected function _getOrder($incrementId)
     {
         if (!$this->_order) {
@@ -282,5 +306,4 @@ class Result extends \Magento\Framework\App\Action\Action
         }
         return $this->_order;
     }
-
 }

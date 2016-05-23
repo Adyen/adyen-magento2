@@ -27,25 +27,18 @@ class DemoMode implements \Magento\Framework\Option\ArrayInterface
 {
 
     /**
-     * @var \Magento\Sales\Model\Order\Config
-     */
-    protected $_orderConfig;
-
-    /**
      * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;
 
     /**
-     * @param \Magento\Sales\Model\Order\Config $orderConfig
+     * DemoMode constructor.
+     * 
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
-        \Magento\Sales\Model\Order\Config $orderConfig,
         \Adyen\Payment\Helper\Data $adyenHelper
-    )
-    {
-        $this->_orderConfig = $orderConfig;
+    ) {
         $this->_adyenHelper = $adyenHelper;
     }
 

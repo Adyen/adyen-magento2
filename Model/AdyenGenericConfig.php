@@ -34,17 +34,17 @@ class AdyenGenericConfig
     /**
      * @var Repository
      */
-    protected $assetRepo;
+    protected $_assetRepo;
 
     /**
      * @var RequestInterface
      */
-    protected $request;
+    protected $_request;
 
     /**
      * @var \Magento\Framework\View\Asset\Source
      */
-    protected $assetSource;
+    protected $_assetSource;
 
     /**
      * @var \Adyen\Payment\Helper\Data
@@ -52,11 +52,12 @@ class AdyenGenericConfig
     protected $_adyenHelper;
 
     /**
-     * @param PaymentConfig $paymentConfig
+     * AdyenGenericConfig constructor.
+     * 
      * @param Repository $assetRepo
      * @param RequestInterface $request
-     * @param UrlInterface $urlBuilder
-     * @param LoggerInterface $logger
+     * @param Source $assetSource
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         Repository $assetRepo,
@@ -64,9 +65,9 @@ class AdyenGenericConfig
         Source $assetSource,
         \Adyen\Payment\Helper\Data $adyenHelper
     ) {
-        $this->assetRepo = $assetRepo;
-        $this->request = $request;
-        $this->assetSource = $assetSource;
+        $this->_assetRepo = $assetRepo;
+        $this->_request = $request;
+        $this->_assetSource = $assetSource;
         $this->_adyenHelper = $adyenHelper;
     }
 
@@ -79,21 +80,28 @@ class AdyenGenericConfig
      */
     public function createAsset($fileId, array $params = [])
     {
-        $params = array_merge(['_secure' => $this->request->isSecure()], $params);
-        return $this->assetRepo->createAsset($fileId, $params);
+        $params = array_merge(['_secure' => $this->_request->isSecure()], $params);
+        return $this->_assetRepo->createAsset($fileId, $params);
     }
 
-    public function findRelativeSourceFilePath($asset) {
-        return $this->assetSource->findRelativeSourceFilePath($asset);
+    /**
+     * @param $asset
+     * @return bool|string
+     */
+    public function findRelativeSourceFilePath($asset)
+    {
+        return $this->_assetSource->findRelativeSourceFilePath($asset);
     }
 
+    /**
+     * @return bool
+     */
     public function showLogos()
     {
         $showLogos = $this->_adyenHelper->getAdyenAbstractConfigData('title_renderer');
-        if($showLogos == \Adyen\Payment\Model\Config\Source\RenderMode::MODE_TITLE_IMAGE) {
+        if ($showLogos == \Adyen\Payment\Model\Config\Source\RenderMode::MODE_TITLE_IMAGE) {
             return true;
         }
         return false;
     }
-
 }

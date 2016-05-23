@@ -53,8 +53,12 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     protected $_checkoutSession;
 
     /**
+     * Cc constructor.
+     *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param array $data
      */
     public function __construct(

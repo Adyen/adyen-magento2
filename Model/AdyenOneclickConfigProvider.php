@@ -37,7 +37,7 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
     /**
      * @var string[]
      */
-    protected $methodCodes = [
+    protected $_methodCodes = [
         \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE
     ];
 
@@ -86,11 +86,18 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
      */
     protected $_genericConfig;
 
-
     /**
+     * AdyenOneclickConfigProvider constructor.
+     * 
+     * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Payment\Model\CcConfig $ccConfig
      * @param PaymentHelper $paymentHelper
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
+     * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Magento\Checkout\Model\Session $session
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param AdyenGenericConfig $genericConfig
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -103,7 +110,7 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Adyen\Payment\Model\AdyenGenericConfig $genericConfig
     ) {
-        parent::__construct($ccConfig, $paymentHelper, $this->methodCodes);
+        parent::__construct($ccConfig, $paymentHelper, $this->_methodCodes);
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
         $this->_billingAgreementCollectionFactory = $billingAgreementCollectionFactory;
@@ -114,13 +121,16 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
         $this->_genericConfig = $genericConfig;
     }
 
+    /**
+     * @return array
+     */
     public function getConfig()
     {
         $config = parent::getConfig();
 
         $demoMode = $this->_adyenHelper->getAdyenAbstractConfigDataFlag('demo_mode');
 
-        if($demoMode) {
+        if ($demoMode) {
             $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_test');
         } else {
             $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_live');
@@ -130,10 +140,9 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
 
         $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type');
         $canCreateBillingAgreement = false;
-        if($recurringType == "ONECLICK" || $recurringType == "ONECLICK,RECURRING") {
+        if ($recurringType == "ONECLICK" || $recurringType == "ONECLICK,RECURRING") {
             $canCreateBillingAgreement = true;
         }
-
 
         $config['payment'] ['adyenOneclick']['cseKey'] = $cseKey;
         $config['payment'] ['adyenOneclick']['cseEnabled'] = $cseEnabled;
@@ -141,15 +150,14 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
         $config['payment']['adyenOneclick']['generationTime'] = date("c");
         $config['payment']['adyenOneclick']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
 
-
-        foreach ($this->methodCodes as $code) {
+        foreach ($this->_methodCodes as $code) {
             if ($this->methods[$code]->isAvailable()) {
 
                 $recurringContractType = $this->_getRecurringContractType();
 
                 $config['payment'] ['adyenOneclick']['billingAgreements'] = $this->getAdyenOneclickPaymentMethods();
                 $config['payment'] ['adyenOneclick']['recurringContractType'] = $recurringContractType;
-                if($recurringContractType == \Adyen\Payment\Model\RecurringType::ONECLICK) {
+                if ($recurringContractType == \Adyen\Payment\Model\RecurringType::ONECLICK) {
                     $config['payment'] ['adyenOneclick']['hasCustomerInteraction'] = true;
                 } else {
                     $config['payment'] ['adyenOneclick']['hasCustomerInteraction'] = false;
@@ -159,16 +167,15 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
         return $config;
     }
 
+    /**
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function getAdyenOneclickPaymentMethods()
     {
-
         $billingAgreements = [];
-
         if ($this->_customerSession->isLoggedIn()) {
-
-
             $customerId = $this->_customerSession->getCustomerId();
-
             // is admin?
             if ($this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
                 //retrieve storeId from quote
@@ -190,29 +197,31 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
                 $agreementData = $billingAgreement->getAgreementData();
 
                 // no agreementData and contractType then ignore
-                if((!is_array($agreementData)) || (!isset($agreementData['contractTypes']))) {
+                if ((!is_array($agreementData)) || (!isset($agreementData['contractTypes']))) {
                     continue;
                 }
 
                 // check if contractType is supporting the selected contractType for OneClick payments
                 $allowedContractTypes = $agreementData['contractTypes'];
-                if(in_array($recurringPaymentType, $allowedContractTypes)) {
+                if (in_array($recurringPaymentType, $allowedContractTypes)) {
                     // check if AgreementLabel is set and if contract has an recurringType
-                    if($billingAgreement->getAgreementLabel()) {
+                    if ($billingAgreement->getAgreementLabel()) {
                         $data = ['reference_id' => $billingAgreement->getReferenceId(),
                             'agreement_label' => $billingAgreement->getAgreementLabel(),
                             'agreement_data' => $agreementData
                         ];
 
-                        if($this->_genericConfig->showLogos()) {
-
+                        if ($this->_genericConfig->showLogos()) {
                             $logoName = $agreementData['variant'];
                             // for Ideal use sepadirectdebit because it is
-                            if($agreementData['variant'] == 'ideal') {
+                            if ($agreementData['variant'] == 'ideal') {
                                 $logoName = "sepadirectdebit";
                             }
 
-                            $asset = $this->_genericConfig->createAsset('Adyen_Payment::images/logos/' . $logoName . '.png');
+                            $asset = $this->_genericConfig->createAsset(
+                                'Adyen_Payment::images/logos/' . $logoName . '.png'
+                            );
+
                             $placeholder = $this->_genericConfig->findRelativeSourceFilePath($asset);
 
                             $icon = null;
@@ -225,9 +234,7 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
                                 ];
                             }
                             $data['logo'] = $icon;
-
                         }
-
                         $billingAgreements[] = $data;
                     }
                 }
@@ -236,6 +243,9 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
         return $billingAgreements;
     }
 
+    /**
+     * @return mixed
+     */
     protected function _getRecurringContractType()
     {
         return $this->_adyenHelper->getAdyenOneclickConfigData('recurring_payment_type');

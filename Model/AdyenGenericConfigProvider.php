@@ -27,25 +27,26 @@ use Magento\Payment\Helper\Data as PaymentHelper;
 
 class AdyenGenericConfigProvider implements ConfigProviderInterface
 {
-        /**
-     * @var RequestInterface
-     */
-    protected $request;
-
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $_adyenHelper;
 
     /**
      * @var \Magento\Payment\Model\Method\AbstractMethod[]
      */
-    protected $methods = [];
+    protected $_methods = [];
+
+    /**
+     * @var PaymentHelper
+     */
+    protected $_paymentHelper;
+
+    /**
+     * @var AdyenGenericConfig
+     */
+    protected $_genericConfig;
 
     /**
      * @var string[]
      */
-    protected $methodCodes = [
+    protected $_methodCodes = [
         \Adyen\Payment\Model\Method\Cc::METHOD_CODE,
         \Adyen\Payment\Model\Method\Hpp::METHOD_CODE,
         \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE,
@@ -54,42 +55,22 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
     ];
 
     /**
-     * @param \Magento\Framework\Model\Context $context
-     * @param \Magento\Checkout\Model\Session $session
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * AdyenGenericConfigProvider constructor.
+     *
      * @param PaymentHelper $paymentHelper
-     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param AdyenGenericConfig $genericConfig
      */
     public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Magento\Checkout\Model\Session $session,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
         PaymentHelper $paymentHelper,
-        \Magento\Framework\Locale\ResolverInterface $localeResolver,
-        \Magento\Framework\App\Config\ScopeConfigInterface $config,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Model\AdyenGenericConfig $genericConfig
     ) {
-        $this->_appState = $context->getAppState();
-        $this->_session = $session;
-        $this->_storeManager = $storeManager;
         $this->_paymentHelper = $paymentHelper;
-        $this->_localeResolver = $localeResolver;
-        $this->_config = $config;
-        $this->_adyenHelper = $adyenHelper;
-        $this->_adyenLogger = $adyenLogger;
         $this->_genericConfig = $genericConfig;
 
-        foreach ($this->methodCodes as $code) {
-            $this->methods[$code] = $this->_paymentHelper->getMethodInstance($code);
+        foreach ($this->_methodCodes as $code) {
+            $this->_methods[$code] = $this->_paymentHelper->getMethodInstance($code);
         }
     }
-
 
     /**
      * Define foreach payment methods the RedirectUrl
@@ -102,8 +83,8 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
             'payment' => []
         ];
 
-        foreach ($this->methodCodes as $code) {
-            if ($this->methods[$code]->isAvailable()) {
+        foreach ($this->_methodCodes as $code) {
+            if ($this->_methods[$code]->isAvailable()) {
 
                 $config['payment'][$code] = [
                     'redirectUrl' => $this->getMethodRedirectUrl($code)
@@ -112,13 +93,11 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         }
 
         // show logos turned on by default
-        if($this->_genericConfig->showLogos()) {
+        if ($this->_genericConfig->showLogos()) {
             $config['payment']['adyen']['showLogo'] = true;
         } else {
             $config['payment']['adyen']['showLogo'] = false;
         }
-
-
         return $config;
     }
 
@@ -130,6 +109,6 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
      */
     protected function getMethodRedirectUrl($code)
     {
-        return $this->methods[$code]->getCheckoutRedirectUrl();
+        return $this->_methods[$code]->getCheckoutRedirectUrl();
     }
 }

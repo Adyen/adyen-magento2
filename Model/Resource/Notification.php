@@ -26,13 +26,17 @@ namespace Adyen\Payment\Model\Resource;
 class Notification extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
 
+    /**
+     * Construct
+     */
     public function _construct()
     {
         $this->_init('adyen_notification', 'entity_id');
     }
 
     /**
-     * @desc get Notification for duplicate check
+     * Get Notification for duplicate check
+     *
      * @param $pspReference
      * @param $eventCode
      * @param $success
@@ -47,5 +51,4 @@ class Notification extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             ->where('notification.success=?', $success);
         return $this->getConnection()->fetchAll($select);
     }
-
 }

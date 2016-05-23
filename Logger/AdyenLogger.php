@@ -42,7 +42,7 @@ class AdyenLogger extends Logger
      *
      * @var array $levels Logging levels
      */
-    protected static $levels = array(
+    protected static $levels = [
         100 => 'DEBUG',
         101 => 'ADYEN_DEBUG',
         200 => 'INFO',
@@ -55,7 +55,7 @@ class AdyenLogger extends Logger
         500 => 'CRITICAL',
         550 => 'ALERT',
         600 => 'EMERGENCY',
-    );
+    ];
 
     /**
      * Adds a log record at the INFO level.
@@ -85,7 +85,6 @@ class AdyenLogger extends Logger
     {
         return $this->addRecord(static::ADYEN_NOTIFICATION_CRONJOB, $message, $context);
     }
-
 
     /**
      * Adds a log record.

@@ -33,10 +33,10 @@ class SepaFlow implements \Magento\Framework\Option\ArrayInterface
      */
     public function toOptionArray()
     {
-        return array(
-            array('value' => self::SEPA_FLOW_SALE, 'label' => __('Sale')),
-            array('value' => self::SEPA_FLOW_AUTHCAP, 'label' => __('Auth/Cap')),
-        );
+        return [
+            ['value' => self::SEPA_FLOW_SALE, 'label' => __('Sale')],
+            ['value' => self::SEPA_FLOW_AUTHCAP, 'label' => __('Auth/Cap')],
+        ];
     }
 
 }

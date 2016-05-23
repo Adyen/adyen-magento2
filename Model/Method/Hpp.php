@@ -49,22 +49,52 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
 
     protected $_infoBlockType = 'Adyen\Payment\Block\Info\Hpp';
 
-
     /**
      * Payment Method feature
      *
      * @var bool
      */
     protected $_canAuthorize = true;
-    protected $_canCapture = true;
-    protected $_canCapturePartial = true;
-    protected $_canCaptureOnce = true;
-    protected $_canRefund = true;
-    protected $_canRefundInvoicePartial = true;
-    protected $_isGateway = true;
-    protected $_isInitializeNeeded = true;
-    protected $_canUseInternal = false;
 
+    /**
+     * @var bool
+     */
+    protected $_canCapture = true;
+
+    /**
+     * @var bool
+     */
+    protected $_canCapturePartial = true;
+
+    /**
+     * @var bool
+     */
+    protected $_canCaptureOnce = true;
+
+    /**
+     * @var bool
+     */
+    protected $_canRefund = true;
+
+    /**
+     * @var bool
+     */
+    protected $_canRefundInvoicePartial = true;
+
+    /**
+     * @var bool
+     */
+    protected $_isGateway = true;
+
+    /**
+     * @var bool
+     */
+    protected $_isInitializeNeeded = true;
+
+    /**
+     * @var bool
+     */
+    protected $_canUseInternal = false;
 
     /**
      * @var \Adyen\Payment\Model\Api\PaymentRequest
@@ -98,6 +128,8 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     protected $_adyenLogger;
 
     /**
+     * Hpp constructor.
+     * @param \Magento\Framework\App\RequestInterface $request
      * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -114,7 +146,6 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
-     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         \Magento\Framework\App\RequestInterface $request,
@@ -156,11 +187,24 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $this->_request = $request;
     }
 
+    /**
+     * @var string
+     */
     protected $_paymentMethodType = 'hpp';
-    public function getPaymentMethodType() {
+
+    /**
+     * @return string
+     */
+    public function getPaymentMethodType()
+    {
         return $this->_paymentMethodType;
     }
 
+    /**
+     * @param string $paymentAction
+     * @param object $stateObject
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function initialize($paymentAction, $stateObject)
     {
         /*
@@ -194,15 +238,15 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $additionalData = $data->getAdditionalData();
         $infoInstance = $this->getInfoInstance();
 
-        if(isset($additionalData['brand_code'])) {
+        if (isset($additionalData['brand_code'])) {
             $infoInstance->setAdditionalInformation('brand_code', $additionalData['brand_code']);
         }
 
-        if(isset($additionalData['issuer_id'])) {
+        if (isset($additionalData['issuer_id'])) {
             $infoInstance->setAdditionalInformation('issuer_id', $additionalData['issuer_id']);
         }
 
-        $this->_adyenLogger->debug(print_r($data,1));
+        $this->_adyenLogger->debug(print_r($data, 1));
 
         return $this;
     }
@@ -216,7 +260,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      */
     public function getCheckoutRedirectUrl()
     {
-        return $this->_urlBuilder->getUrl('adyen/process/redirect',['_secure' => $this->_getRequest()->isSecure()]);
+        return $this->_urlBuilder->getUrl('adyen/process/redirect', ['_secure' => $this->_getRequest()->isSecure()]);
     }
 
     /**
@@ -229,16 +273,11 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         return $this->_request;
     }
 
-
     /**
      * Post request to gateway and return response
      *
-     * @param Object $request
+     * @param DataObject $request
      * @param ConfigInterface $config
-     *
-     * @return Object
-     *
-     * @throws \Exception
      */
     public function postRequest(DataObject $request, ConfigInterface $config)
     {
@@ -277,6 +316,10 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         return $url;
     }
 
+    /**
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function getFormFields()
     {
         $paymentInfo = $this->getInfoInstance();
@@ -297,7 +340,6 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $countryCode       = trim($this->getConfigData('country_code'));
         $countryCode       = (!empty($countryCode)) ? $countryCode : false;
 
-
         // if directory lookup is enabled use the billingadress as countrycode
         if ($countryCode == false) {
             if ($order->getBillingAddress() && $order->getBillingAddress()->getCountryId() != "") {
@@ -305,8 +347,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
             }
         }
 
-        $formFields = array();
-
+        $formFields = [];
         $formFields['merchantAccount']   = $merchantAccount;
         $formFields['merchantReference'] = $realOrderId;
         $formFields['paymentAmount']     = (int)$amount;
@@ -320,60 +361,66 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $formFields['countryCode']       = $countryCode;
         $formFields['shopperIP']         = $shopperIP;
         $formFields['browserInfo']       = $browserInfo;
-        $formFields['sessionValidity'] = date(
+        $formFields['sessionValidity']   = date(
             DATE_ATOM,
             mktime(date("H") + 1, date("i"), date("s"), date("m"), date("j"), date("Y"))
         );
-        $formFields['shopperEmail']    = $shopperEmail;
+        $formFields['shopperEmail']      = $shopperEmail;
         // recurring
-        $recurringType                  = trim($this->_adyenHelper->getAdyenAbstractConfigData('recurring_type'));
+        $recurringType                   = trim($this->_adyenHelper->getAdyenAbstractConfigData('recurring_type'));
         $formFields['recurringContract'] = $recurringType;
         $formFields['shopperReference']  = (!empty($customerId)) ? $customerId : self::GUEST_ID . $realOrderId;
         //blocked methods
-        $formFields['blockedMethods'] = "";
+        $formFields['blockedMethods']    = "";
 
         $baseUrl = $this->storeManager->getStore($this->getStore())
             ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK);
-        $formFields['resURL'] = $baseUrl . 'adyen/process/result';
 
-        $hmacKey = $this->_adyenHelper->getHmac();
+        $formFields['resURL']            = $baseUrl . 'adyen/process/result';
+        $hmacKey                         = $this->_adyenHelper->getHmac();
 
         $brandCode = $order->getPayment()->getAdditionalInformation("brand_code");
-        if($brandCode) {
-            $formFields['brandCode'] = $brandCode;
+        if ($brandCode) {
+            $formFields['brandCode']     = $brandCode;
         }
 
         $issuerId = $order->getPayment()->getAdditionalInformation("issuer_id");
-        if($issuerId) {
-            $formFields['issuerId'] = $issuerId;
+        if ($issuerId) {
+            $formFields['issuerId']      = $issuerId;
         }
 
         // Sort the array by key using SORT_STRING order
         ksort($formFields, SORT_STRING);
 
         // Generate the signing data string
-        $signData = implode(":",array_map(array($this, 'escapeString'),array_merge(array_keys($formFields), array_values($formFields))));
+        $signData = implode(":", array_map([$this, 'escapeString'],
+            array_merge(array_keys($formFields), array_values($formFields))));
 
-        $merchantSig = base64_encode(hash_hmac('sha256',$signData,pack("H*" , $hmacKey),true));
+        $merchantSig = base64_encode(hash_hmac('sha256', $signData, pack("H*", $hmacKey), true));
 
-        $formFields['merchantSig'] = $merchantSig;
+        $formFields['merchantSig']      = $merchantSig;
 
         $this->_adyenLogger->debug(print_r($formFields, true));
 
         return $formFields;
     }
 
-    /*
-    * @desc The character escape function is called from the array_map function in _signRequestParams
-    * $param $val
-    * return string
-    */
+    /**
+     * The character escape function is called from the array_map function in _signRequestParams
+     *
+     * @param $val
+     * @return mixed
+     */
     protected function escapeString($val)
     {
-        return str_replace(':','\\:',str_replace('\\','\\\\',$val));
+        return str_replace(':', '\\:', str_replace('\\', '\\\\', $val));
     }
 
-    public function getPaymentMethodSelectionOnAdyen() {
+    /**
+     * @return mixed
+     */
+    public function getPaymentMethodSelectionOnAdyen()
+    {
         return $this->getConfigData('payment_selection_on_adyen');
     }
 
@@ -382,6 +429,8 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      *
      * @param \Magento\Payment\Model\InfoInterface $payment
      * @param float $amount
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -389,16 +438,14 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $this->_paymentRequest->capture($payment, $amount);
         return $this;
     }
-
+    
     /**
      * Refund specified amount for payment
      *
-     * @param \Magento\Framework\DataObject|InfoInterface $payment
+     * @param \Magento\Payment\Model\InfoInterface $payment
      * @param float $amount
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @api
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -408,16 +455,18 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $pspReference = $payment->getAdyenPspReference();
 
         $order = $payment->getOrder();
-        // if amount is a full refund send a refund/cancelled request so if it is not captured yet it will cancel the order
+
+        /*
+         * if amount is a full refund send a refund/cancelled request
+         * so if it is not captured yet it will cancel the order
+         */
         $grandTotal = $order->getGrandTotal();
 
-        if($grandTotal == $amount) {
+        if ($grandTotal == $amount) {
             $this->_paymentRequest->cancelOrRefund($payment);
         } else {
             $this->_paymentRequest->refund($payment, $amount);
         }
-
         return $this;
     }
-
 }

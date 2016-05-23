@@ -33,14 +33,14 @@ class AdyenSepaConfigProvider implements ConfigProviderInterface
     /**
      * @var string[]
      */
-    protected $methodCodes = [
+    protected $_methodCodes = [
         'adyen_sepa'
     ];
 
     /**
      * @var \Magento\Payment\Model\Method\AbstractMethod[]
      */
-    protected $methods = [];
+    protected $_methods = [];
 
     /**
      * @var PaymentHelper
@@ -52,25 +52,27 @@ class AdyenSepaConfigProvider implements ConfigProviderInterface
      */
     protected $_country;
 
-
     /**
      * AdyenSepaConfigProvider constructor.
+     *
+     * @param PaymentHelper $paymentHelper
+     * @param \Magento\Directory\Model\Config\Source\Country $country
      */
     public function __construct(
         PaymentHelper $paymentHelper,
         \Magento\Directory\Model\Config\Source\Country $country
     ) {
-
         $this->_paymentHelper = $paymentHelper;
         $this->_country = $country;
 
-
-        foreach ($this->methodCodes as $code) {
-            $this->methods[$code] = $this->_paymentHelper->getMethodInstance($code);
+        foreach ($this->_methodCodes as $code) {
+            $this->_methods[$code] = $this->_paymentHelper->getMethodInstance($code);
         }
     }
 
-
+    /**
+     * @return array
+     */
     public function getConfig()
     {
         $config = [
@@ -84,60 +86,26 @@ class AdyenSepaConfigProvider implements ConfigProviderInterface
         return $config;
     }
 
+    /**
+     * @return array
+     */
     public function getCountries()
     {
-        $sepaCountriesAllowed = array(
-            "AT",
-            "BE",
-            "BG",
-            "CH",
-            "CY",
-            "CZ",
-            "DE",
-            "DK",
-            "EE",
-            "ES",
-            "FI",
-            "FR",
-            "GB",
-            "GF",
-            "GI",
-            "GP",
-            "GR",
-            "HR",
-            "HU",
-            "IE",
-            "IS",
-            "IT",
-            "LI",
-            "LT",
-            "LU",
-            "LV",
-            "MC",
-            "MQ",
-            "MT",
-            "NL",
-            "NO",
-            "PL",
-            "PT",
-            "RE",
-            "RO",
-            "SE",
-            "SI",
-            "SK"
-        );
-
+        $sepaCountriesAllowed = [
+            "AT", "BE", "BG", "CH", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GB", "GF", "GI", "GP", "GR", "HR",
+            "HU", "IE", "IS", "IT", "LI", "LT", "LU", "LV", "MC", "MQ", "MT", "NL", "NO", "PL", "PT", "RE", "RO", "SE",
+            "SI", "SK"
+        ];
 
         $countryList = $this->_country->toOptionArray();
-
         $sepaCountries = [];
+
         foreach ($countryList as $key => $country) {
             $value = $country['value'];
-            if(in_array($value, $sepaCountriesAllowed)) {
+            if (in_array($value, $sepaCountriesAllowed)) {
                 $sepaCountries[$value] = $country['label'];
             }
         }
         return $sepaCountries;
     }
-
 }

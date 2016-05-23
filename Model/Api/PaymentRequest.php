@@ -61,8 +61,9 @@ class PaymentRequest extends DataObject
     const GUEST_ID = 'customer_';
 
     /**
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     * @param \Psr\Log\LoggerInterface $logger
+     * PaymentRequest constructor.
+     *
+     * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
@@ -92,7 +93,7 @@ class PaymentRequest extends DataObject
         $client->setUsername($webserviceUsername);
         $client->setPassword($webservicePassword);
 
-        if($this->_adyenHelper->isDemoMode()) {
+        if ($this->_adyenHelper->isDemoMode()) {
             $client->setEnvironment(\Adyen\Environment::TEST);
         } else {
             $client->setEnvironment(\Adyen\Environment::LIVE);
@@ -104,10 +105,16 @@ class PaymentRequest extends DataObject
         $this->_client = $client;
     }
 
+    /**
+     * @param $payment
+     * @param $paymentMethodCode
+     * @return mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function fullApiRequest($payment, $paymentMethodCode)
     {
         $storeId = null;
-        if( $this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
+        if ($this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
             $storeId = $payment->getOrder()->getStoreId();
         }
 
@@ -126,10 +133,11 @@ class PaymentRequest extends DataObject
         // call lib
         $service = new \Adyen\Service\Payment($this->_client);
 
-        $amount = ['currency' => $orderCurrencyCode, 'value' => $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode)];
+        $amount = ['currency' => $orderCurrencyCode,
+            'value' => $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode)];
         $browserInfo = ['userAgent' => $_SERVER['HTTP_USER_AGENT'], 'acceptHeader' => $_SERVER['HTTP_ACCEPT']];
 
-        $request = array(
+        $request = [
             "merchantAccount" => $merchantAccount,
             "amount" => $amount,
             "reference" => $order->getIncrementId(),
@@ -138,23 +146,26 @@ class PaymentRequest extends DataObject
             "shopperReference" => $shopperReference,
             "fraudOffset" => "0",
             "browserInfo" => $browserInfo
-        );
-
+        ];
 
         // set the recurring type
         $recurringContractType = null;
-        if($recurringType) {
-            if($paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
-                // For ONECLICK look at the recurringPaymentType that the merchant has selected in Adyen ONECLICK settings
-                if($payment->getAdditionalInformation('customer_interaction')) {
+        if ($recurringType) {
+            if ($paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
+                /*
+                 * For ONECLICK look at the recurringPaymentType that the merchant
+                 * has selected in Adyen ONECLICK settings
+                 */
+                if ($payment->getAdditionalInformation('customer_interaction')) {
                     $recurringContractType = \Adyen\Payment\Model\RecurringType::ONECLICK;
                 } else {
                     $recurringContractType =  \Adyen\Payment\Model\RecurringType::RECURRING;
                 }
-            } else if($paymentMethodCode == \Adyen\Payment\Model\Method\Cc::METHOD_CODE) {
-                if($payment->getAdditionalInformation("store_cc") == "" && ($recurringType == "ONECLICK,RECURRING" || $recurringType == "RECURRING")) {
+            } else if ($paymentMethodCode == \Adyen\Payment\Model\Method\Cc::METHOD_CODE) {
+                if ($payment->getAdditionalInformation("store_cc") == "" &&
+                    ($recurringType == "ONECLICK,RECURRING" || $recurringType == "RECURRING")) {
                     $recurringContractType = \Adyen\Payment\Model\RecurringType::RECURRING;
-                } elseif($payment->getAdditionalInformation("store_cc") == "1") {
+                } elseif ($payment->getAdditionalInformation("store_cc") == "1") {
                     $recurringContractType = $recurringType;
                 }
             } else {
@@ -162,52 +173,47 @@ class PaymentRequest extends DataObject
             }
         }
 
-        if($recurringContractType)
-        {
-            $recurring = array('contract' => $recurringContractType);
+        if ($recurringContractType) {
+            $recurring = ['contract' => $recurringContractType];
             $request['recurring'] = $recurring;
         }
 
         $billingAddress = $order->getBillingAddress();
 
-        if($billingAddress)
-        {
+        if ($billingAddress) {
             $addressArray = $this->_adyenHelper->getStreet($billingAddress);
 
-            $requestBilling = array("street" => $addressArray['name'],
+            $requestBilling = ["street" => $addressArray['name'],
                 "postalCode" => $billingAddress->getPostcode(),
                 "city" => $billingAddress->getCity(),
                 "houseNumberOrName" => $addressArray['house_number'],
                 "stateOrProvince" => $billingAddress->getRegionCode(),
                 "country" => $billingAddress->getCountryId()
-            );
+            ];
 
             // houseNumberOrName is mandatory
-            if($requestBilling['houseNumberOrName'] == "") {
+            if ($requestBilling['houseNumberOrName'] == "") {
                 $requestBilling['houseNumberOrName'] = "NA";
             }
 
             $requestBilling['billingAddress'] = $requestBilling;
-
-
             $request = array_merge($request, $requestBilling);
         }
 
         $deliveryAddress = $order->getDeliveryAddress();
-        if($deliveryAddress)
-        {
+        if($deliveryAddress) {
             $addressArray = $this->_adyenHelper->getStreet($deliveryAddress);
 
-            $requestDelivery = array("street" => $addressArray['name'],
+            $requestDelivery = ["street" => $addressArray['name'],
                 "postalCode" => $deliveryAddress->getPostcode(),
                 "city" => $deliveryAddress->getCity(),
                 "houseNumberOrName" => $addressArray['house_number'],
                 "stateOrProvince" => $deliveryAddress->getRegionCode(),
                 "country" => $deliveryAddress->getCountryId()
-            );
+            ];
 
             // houseNumberOrName is mandatory
-            if($requestDelivery['houseNumberOrName'] == "") {
+            if ($requestDelivery['houseNumberOrName'] == "") {
                 $requestDelivery['houseNumberOrName'] = "NA";
             }
 
@@ -215,28 +221,29 @@ class PaymentRequest extends DataObject
             $request = array_merge($request, $requestDelivery);
         }
 
-
         $enableMoto = $this->_adyenHelper->getAdyenCcConfigDataFlag('enable_moto', $storeId);
         $recurringDetailReference = null;
 
         // define the shopper interaction
-        if( $this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE &&
+        if ($this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE &&
             $paymentMethodCode == \Adyen\Payment\Model\Method\Cc::METHOD_CODE &&
-            $enableMoto)
-        {
+            $enableMoto) {
             // if MOTO for backend is enabled use MOTO as shopper interaction type
             $shopperInteraction = "Moto";
-        } else if($paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
+        } else if ($paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
             $recurringDetailReference = $payment->getAdditionalInformation("recurring_detail_reference");
-            if($payment->getAdditionalInformation('customer_interaction')) {
+            if ($payment->getAdditionalInformation('customer_interaction')) {
                 $shopperInteraction = "Ecommerce";
             } else {
                 $shopperInteraction = "ContAuth";
             }
 
-            // For recurring Ideal and Sofort needs to be converted to SEPA for this it is mandatory to set selectBrand to sepadirectdebit
-            if(!$payment->getAdditionalInformation('customer_interaction')) {
-                if($payment->getCcType() == "directEbanking" || $payment->getCcType() == "ideal") {
+            /*
+             * For recurring Ideal and Sofort needs to be converted to SEPA
+             * for this it is mandatory to set selectBrand to sepadirectdebit
+             */
+            if (!$payment->getAdditionalInformation('customer_interaction')) {
+                if ($payment->getCcType() == "directEbanking" || $payment->getCcType() == "ideal") {
                     $request['selectedBrand'] = "sepadirectdebit";
                 }
             }
@@ -244,31 +251,32 @@ class PaymentRequest extends DataObject
             $shopperInteraction = "Ecommerce";
         }
 
-        if($shopperInteraction) {
+        if ($shopperInteraction) {
             $request['shopperInteraction'] = $shopperInteraction;
         }
 
-        if($recurringDetailReference && $recurringDetailReference != "") {
+        if ($recurringDetailReference && $recurringDetailReference != "") {
             $request['selectedRecurringDetailReference'] = $recurringDetailReference;
         }
 
-        
-        if($paymentMethodCode == \Adyen\Payment\Model\Method\Cc::METHOD_CODE || $paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
+        if ($paymentMethodCode == \Adyen\Payment\Model\Method\Cc::METHOD_CODE ||
+            $paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
             // If cse is enabled add encrypted card date into request
-            if($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
-                $request['additionalData']['card.encrypted.json'] = $payment->getAdditionalInformation("encrypted_data");
+            if ($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
+                $request['additionalData']['card.encrypted.json'] =
+                    $payment->getAdditionalInformation("encrypted_data");
             } else {
-                $requestCreditCardDetails = array(
+                $requestCreditCardDetails = [
                     "expiryMonth" => $payment->getCcExpMonth(),
                     "expiryYear" => $payment->getCcExpYear(),
                     "holderName" => $payment->getCcOwner(),
                     "number" => $payment->getCcNumber(),
                     "cvc" => $payment->getCcCid(),
-                );
+                ];
                 $cardDetails['card'] = $requestCreditCardDetails;
                 $request = array_merge($request, $cardDetails);
             }
-        } elseif($paymentMethodCode == \Adyen\Payment\Model\Method\Sepa::METHOD_CODE) {
+        } elseif ($paymentMethodCode == \Adyen\Payment\Model\Method\Sepa::METHOD_CODE) {
 
             // set brand to sepa
             $request['selectedBrand'] = "sepadirectdebit";
@@ -283,12 +291,15 @@ class PaymentRequest extends DataObject
             $request['bankAccount'] = $bankAccount;
         }
 
-
         $result = $service->authorise($request);
-
         return $result;
     }
 
+    /**
+     * @param $payment
+     * @return mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function authorise3d($payment)
     {
         $order = $payment->getOrder();
@@ -299,13 +310,13 @@ class PaymentRequest extends DataObject
         $paResponse = $payment->getAdditionalInformation('paResponse');
 
         $browserInfo = ['userAgent' => $_SERVER['HTTP_USER_AGENT'], 'acceptHeader' => $_SERVER['HTTP_ACCEPT']];
-        $request = array(
+        $request = [
             "merchantAccount" => $merchantAccount,
             "browserInfo" => $browserInfo,
             "md" => $md,
             "paResponse" => $paResponse,
             "shopperIP" => $shopperIp
-        );
+        ];
 
         try {
             $service = new \Adyen\Service\Payment($this->_client);
@@ -334,20 +345,20 @@ class PaymentRequest extends DataObject
         //format the amount to minor units
         $amount = $this->_adyenHelper->formatAmount($amount, $currency);
 
-        $modificationAmount = array('currency' => $currency, 'value' => $amount);
+        $modificationAmount = ['currency' => $currency, 'value' => $amount];
 
-        $request = array(
+        $request = [
             "merchantAccount" => $merchantAccount,
             "modificationAmount" => $modificationAmount,
             "reference" => $payment->getOrder()->getIncrementId(),
             "originalReference" => $pspReference
-        );
+        ];
 
         // call lib
         $service = new \Adyen\Service\Modification($this->_client);
         $result = $service->capture($request);
 
-        if($result['response'] != '[capture-received]') {
+        if ($result['response'] != '[capture-received]') {
             // something went wrong
             throw new \Magento\Framework\Exception\LocalizedException(__('The capture action failed'));
         }
@@ -356,7 +367,7 @@ class PaymentRequest extends DataObject
         $payment->setAdditionalInformation('capture_pspreference', $result['pspReference']);
 
         // set pspReference as TransactionId so you can do an online refund
-        if(isset($result['pspReference'])) {
+        if (isset($result['pspReference'])) {
             $payment->setTransactionId($result['pspReference'])
                 ->setIsTransactionClosed(false)
                 ->setParentTransactionId($payment->getAdditionalInformation('pspReference'));
@@ -377,23 +388,23 @@ class PaymentRequest extends DataObject
         $pspReference = $this->_getPspReference($payment);
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
 
-        $request = array(
+        $request = [
             "merchantAccount" => $merchantAccount,
             "reference" => $payment->getOrder()->getIncrementId(),
             "originalReference" => $pspReference
-        );
+        ];
 
         // call lib
         $service = new \Adyen\Service\Modification($this->_client);
         $result = $service->cancelOrRefund($request);
 
-        if($result['response'] != '[cancelOrRefund-received]') {
+        if ($result['response'] != '[cancelOrRefund-received]') {
             // something went wrong
             throw new \Magento\Framework\Exception\LocalizedException(__('The refund action failed'));
         }
 
         // set pspReference as TransactionId so you can do an online refund
-        if(isset($result['pspReference'])) {
+        if (isset($result['pspReference'])) {
             $payment->setTransactionId($result['pspReference'])
                 ->setIsTransactionClosed(false)
                 ->setParentTransactionId($payment->getAdditionalInformation('pspReference'));
@@ -420,26 +431,26 @@ class PaymentRequest extends DataObject
         //format the amount to minor units
         $amount = $this->_adyenHelper->formatAmount($amount, $currency);
 
-        $modificationAmount = array('currency' => $currency, 'value' => $amount);
+        $modificationAmount = ['currency' => $currency, 'value' => $amount];
 
-        $request = array(
+        $request = [
             "merchantAccount" => $merchantAccount,
             "modificationAmount" => $modificationAmount,
             "reference" => $payment->getOrder()->getIncrementId(),
             "originalReference" => $pspReference
-        );
+        ];
 
         // call lib
         $service = new \Adyen\Service\Modification($this->_client);
         $result = $service->refund($request);
 
-        if($result['response'] != '[refund-received]') {
+        if ($result['response'] != '[refund-received]') {
             // something went wrong
             throw new \Magento\Framework\Exception\LocalizedException(__('The refund action failed'));
         }
 
         // set pspReference as TransactionId so you can do an online refund
-        if(isset($result['pspReference'])) {
+        if (isset($result['pspReference'])) {
             $payment->setTransactionId($result['pspReference'])
                 ->setIsTransactionClosed(false)
                 ->setParentTransactionId($payment->getAdditionalInformation('pspReference'));
@@ -448,28 +459,39 @@ class PaymentRequest extends DataObject
         return $result;
     }
 
+    /**
+     * @param $shopperReference
+     * @param $storeId
+     * @return array
+     * @throws \Exception
+     */
     public function getRecurringContractsForShopper($shopperReference, $storeId)
     {
-        $recurringContracts = array();
+        $recurringContracts = [];
         $recurringTypes = $this->_recurringType->getAllowedRecurringTypesForListRecurringCall();
 
         foreach ($recurringTypes as $recurringType) {
 
             try {
                 // merge ONECLICK and RECURRING into one record with recurringType ONECLICK,RECURRING
-                $listRecurringContractByType = $this->listRecurringContractByType($shopperReference, $storeId, $recurringType);
-                if(isset($listRecurringContractByType['details'] ))
-                {
-                    foreach($listRecurringContractByType['details'] as $recurringContractDetails) {
-                        if(isset($recurringContractDetails['RecurringDetail'])) {
+                $listRecurringContractByType =
+                    $this->listRecurringContractByType($shopperReference, $storeId, $recurringType);
+
+                if (isset($listRecurringContractByType['details'])) {
+                    foreach ($listRecurringContractByType['details'] as $recurringContractDetails) {
+                        if (isset($recurringContractDetails['RecurringDetail'])) {
                             $recurringContract = $recurringContractDetails['RecurringDetail'];
 
-                            if(isset($recurringContract['recurringDetailReference'])) {
+                            if (isset($recurringContract['recurringDetailReference'])) {
                                 $recurringDetailReference = $recurringContract['recurringDetailReference'];
                                 // check if recurring reference is already in array
-                                if(isset($recurringContracts[$recurringDetailReference])) {
-                                    // recurring reference already exists so recurringType is possible for ONECLICK and RECURRING
-                                    $recurringContracts[$recurringDetailReference]['recurring_type']= "ONECLICK,RECURRING";
+                                if (isset($recurringContracts[$recurringDetailReference])) {
+                                    /*
+                                     * recurring reference already exists so recurringType is possible
+                                     * for ONECLICK and RECURRING
+                                     */
+                                    $recurringContracts[$recurringDetailReference]['recurring_type'] =
+                                        "ONECLICK,RECURRING";
                                 } else {
                                     $recurringContracts[$recurringDetailReference] = $recurringContract;
                                 }
@@ -486,16 +508,21 @@ class PaymentRequest extends DataObject
         return $recurringContracts;
     }
 
-
+    /**
+     * @param $shopperReference
+     * @param $storeId
+     * @param $recurringType
+     * @return mixed
+     */
     public function listRecurringContractByType($shopperReference, $storeId, $recurringType)
     {
         // rest call to get list of recurring details
         $contract = ['contract' => $recurringType];
-        $request = array(
+        $request = [
             "merchantAccount"    => $this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId),
             "shopperReference"   => $shopperReference,
             "recurring" => $contract,
-        );
+        ];
 
         // call lib
         $service = new \Adyen\Service\Recurring($this->_client);
@@ -507,22 +534,20 @@ class PaymentRequest extends DataObject
     /**
      * Disable a recurring contract
      *
-     * @param string                         $recurringDetailReference
-     * @param string                         $shopperReference
-     * @param int|Mage_Core_model_Store|null $store
-     *
-     * @throws Adyen_Payment_Exception
+     * @param $recurringDetailReference
+     * @param $shopperReference
      * @return bool
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function disableRecurringContract($recurringDetailReference, $shopperReference)
     {
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
 
-        $request = array(
+        $request = [
             "merchantAccount" => $merchantAccount,
             "shopperReference" => $shopperReference,
             "recurringDetailReference" => $recurringDetailReference
-        );
+        ];
 
         // call lib
         $service = new \Adyen\Service\Recurring($this->_client);
@@ -533,7 +558,7 @@ class PaymentRequest extends DataObject
             $this->_adyenLogger->info($e->getMessage());
         }
 
-        if(isset($result['response']) && $result['response'] == '[detail-successfully-disabled]') {
+        if (isset($result['response']) && $result['response'] == '[detail-successfully-disabled]') {
             return true;
         } else {
             throw new \Magento\Framework\Exception\LocalizedException(__('Failed to disable this contract'));

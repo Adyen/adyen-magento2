@@ -50,6 +50,15 @@ class Notification extends \Magento\Framework\Model\AbstractModel
     const REPORT_AVAILABLE = "REPORT_AVAILABLE";
     const ORDER_CLOSED = "ORDER_CLOSED";
 
+    /**
+     * Notification constructor.
+     *
+     * @param \Magento\Framework\Model\Context $context
+     * @param \Magento\Framework\Registry $registry
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
+     * @param array $data
+     */
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
@@ -59,7 +68,6 @@ class Notification extends \Magento\Framework\Model\AbstractModel
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
     }
-
 
     /**
      * Initialize resource model
@@ -73,12 +81,14 @@ class Notification extends \Magento\Framework\Model\AbstractModel
 
     /**
      * Check if the Adyen Notification is already stored in the system
+     *
      * @param $pspReference
-     * @param $event
+     * @param $eventCode
      * @param $success
-     * @return bool true if the notification is a duplicate
+     * @return bool (true if the notification is a duplicate)
      */
-    public function isDuplicate($pspReference, $eventCode, $success) {
+    public function isDuplicate($pspReference, $eventCode, $success)
+    {
         $result = $this->getResource()->getNotification($pspReference, $eventCode, $success);
         return (empty($result)) ? false : true;
     }
@@ -263,17 +273,14 @@ class Notification extends \Magento\Framework\Model\AbstractModel
     }
 
     /**
-     * Sets Reason.
-     *
-     * @param string $reason
+     * @param $live
      * @return $this
      */
     public function setLive($live)
     {
         return $this->setData(self::LIVE, $live);
     }
-
-
+    
     /**
      * Gets the AdditionalData for the notification.
      *
@@ -357,6 +364,4 @@ class Notification extends \Magento\Framework\Model\AbstractModel
     {
         return $this->setData(self::UPDATED_AT, $timestamp);
     }
-
-
 }

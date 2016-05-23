@@ -33,9 +33,9 @@ class RenderMode implements \Magento\Framework\Option\ArrayInterface
      */
     public function toOptionArray()
     {
-        return array(
-            array('value' => self::MODE_TITLE, 'label' => __('Title')),
-            array('value' => self::MODE_TITLE_IMAGE, 'label' => __('Logo + Title')),
-        );
+        return [
+            ['value' => self::MODE_TITLE, 'label' => __('Title')],
+            ['value' => self::MODE_TITLE_IMAGE, 'label' => __('Logo + Title')]
+        ];
     }
 }
