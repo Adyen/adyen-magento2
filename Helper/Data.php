@@ -351,6 +351,28 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @desc Gives back adyen_pay_by_mail configuration values
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenPayByMailConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_pay_by_mail', $storeId);
+    }
+
+    /**
+     * @desc Gives back adyen_pay_by_mail configuration values as flag
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenPayByMailConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_pay_by_mail', $storeId, true);
+    }
+
+    /**
      * @desc Retrieve decrypted hmac key
      * @return string
      */
@@ -362,6 +384,19 @@ class Data extends AbstractHelper
                 break;
             default:
                 $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_live')));
+                break;
+        }
+        return $secretWord;
+    }
+
+    public function getHmacPayByMail()
+    {
+        switch ($this->isDemoMode()) {
+            case true:
+                $secretWord =  $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_test')));
+                break;
+            default:
+                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_live')));
                 break;
         }
         return $secretWord;
