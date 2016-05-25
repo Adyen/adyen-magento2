@@ -21,31 +21,15 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model;
+namespace Adyen\Payment\Block\Form;
 
-use Magento\Checkout\Model\ConfigProviderInterface;
-use Magento\Payment\Helper\Data as PaymentHelper;
-use Magento\Directory\Helper\Data;
-
-class AdyenSepaConfigProvider implements ConfigProviderInterface
+class Sepa extends \Magento\Payment\Block\Form
 {
 
     /**
-     * @var string[]
+     * @var string
      */
-    protected $_methodCodes = [
-        'adyen_sepa'
-    ];
-
-    /**
-     * @var \Magento\Payment\Model\Method\AbstractMethod[]
-     */
-    protected $_methods = [];
-
-    /**
-     * @var PaymentHelper
-     */
-    protected $_paymentHelper;
+    protected $_template = 'Adyen_Payment::form/sepa.phtml';
 
     /**
      * @var \Adyen\Payment\Helper\Data
@@ -53,35 +37,26 @@ class AdyenSepaConfigProvider implements ConfigProviderInterface
     protected $_adyenHelper;
 
     /**
-     * AdyenSepaConfigProvider constructor.
+     * Sepa constructor.
      *
-     * @param PaymentHelper $paymentHelper
+     * @param \Magento\Framework\View\Element\Template\Context $context
+     * @param \Magento\Payment\Model\Config $paymentConfig
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
-        PaymentHelper $paymentHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Magento\Framework\View\Element\Template\Context $context,
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        array $data = []
     ) {
-        $this->_paymentHelper = $paymentHelper;
+        parent::__construct($context, $data);
         $this->_adyenHelper = $adyenHelper;
-
-        foreach ($this->_methodCodes as $code) {
-            $this->_methods[$code] = $this->_paymentHelper->getMethodInstance($code);
-        }
     }
 
     /**
-     * @return array
+     * @return mixed
      */
-    public function getConfig()
+    public function getCountries()
     {
-        $config = [
-            'payment' => [
-                'adyenSepa' => [
-                    'countries' => $this->_adyenHelper->getSepaCountries()
-                ]
-            ]
-        ];
-        return $config;
+        return $this->_adyenHelper->getSepaCountries();
     }
 }

@@ -42,6 +42,11 @@ class Data extends AbstractHelper
     protected $_dataStorage;
 
     /**
+     * @var \Magento\Directory\Model\Config\Source\Country
+     */
+    protected $_country;
+
+    /**
      * Data constructor.
      *
      * @param \Magento\Framework\App\Helper\Context $context
@@ -51,11 +56,13 @@ class Data extends AbstractHelper
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
-        \Magento\Framework\Config\DataInterface $dataStorage
+        \Magento\Framework\Config\DataInterface $dataStorage,
+        \Magento\Directory\Model\Config\Source\Country $country
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
         $this->_dataStorage = $dataStorage;
+        $this->_country = $country;
     }
 
     /**
@@ -541,5 +548,29 @@ class Data extends AbstractHelper
         } else {
             return $this->scopeConfig->isSetFlag($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
         }
+    }
+
+
+    /**
+     * @return array
+     */
+    public function getSepaCountries()
+    {
+        $sepaCountriesAllowed = [
+            "AT", "BE", "BG", "CH", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GB", "GF", "GI", "GP", "GR", "HR",
+            "HU", "IE", "IS", "IT", "LI", "LT", "LU", "LV", "MC", "MQ", "MT", "NL", "NO", "PL", "PT", "RE", "RO", "SE",
+            "SI", "SK"
+        ];
+
+        $countryList = $this->_country->toOptionArray();
+        $sepaCountries = [];
+
+        foreach ($countryList as $key => $country) {
+            $value = $country['value'];
+            if (in_array($value, $sepaCountriesAllowed)) {
+                $sepaCountries[$value] = $country['label'];
+            }
+        }
+        return $sepaCountries;
     }
 }
