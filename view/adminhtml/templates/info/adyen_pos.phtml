@@ -1,0 +1,63 @@
+<?php
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+// @codingStandardsIgnoreFile
+
+?>
+<?php
+/**
+ * @see \Magento\Payment\Block\Info
+ */
+?>
+<?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?>
+
+<?php
+$_info = $this->getInfo();
+$_isDemoMode = $block->isDemoMode();
+?>
+<?php if ($_pspReference = $_info->getAdditionalInformation('pspReference')):?>
+    <div>
+        <?php if($_isDemoMode): ?>
+            <?php echo __('Adyen PSP Reference: <a href="https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=%1&txType=Payment" target="__blank">%1</a>', $block->escapeHtml($_pspReference), $block->escapeHtml($_pspReference)) ?>
+        <?php else: ?>
+            <?php echo __('Adyen PSP Reference: <a href="https://ca-live.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=%1&txType=Payment" target="__blank">%1</a>', $block->escapeHtml($_pspReference), $block->escapeHtml($_pspReference)) ?>
+        <?php endif; ?>
+    </div>
+<?php endif;?>
+
+<?php if($_info->getAdditionalInformation('adyen_total_fraud_score') != ""): ?>
+    <?php echo __('Total fraud score: %1', $_info->getAdditionalInformation('adyen_total_fraud_score')) ?><br/>
+<?php endif; ?>
+
+<?php if ($_specificInfo = $block->getSpecificInformation()):?>
+    <table class="data-table admin__table-secondary">
+        <?php foreach ($_specificInfo as $_label => $_value):?>
+            <tr>
+                <th><?php echo $block->escapeHtml($_label)?>:</th>
+                <td><?php echo nl2br(implode("\n", $block->getValueAsArray($_value, true)))?></td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+<?php endif;?>
+
+<?php echo $block->getChildHtml()?>
