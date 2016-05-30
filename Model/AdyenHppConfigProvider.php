@@ -127,6 +127,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Set configuration for AdyenHPP payemnt method
+     *
      * @return array
      */
     public function getConfig()

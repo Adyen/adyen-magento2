@@ -29,8 +29,9 @@
  * @see \Magento\Payment\Block\Info
  */
 ?>
-<?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?>
-
+<div>
+    <?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?>
+</div>
 <?php
 $_info = $this->getInfo();
 $_isDemoMode = $block->isDemoMode();
@@ -46,7 +47,9 @@ $_isDemoMode = $block->isDemoMode();
 <?php endif;?>
 
 <?php if($block->getCcTypeName() != ""):?>
-    <?php echo __('Credit Card Type: %1', $block->getCcTypeName()) ?><br/>
+    <div>
+        <?php echo __('Credit Card Type: %1', $block->getCcTypeName()) ?><br/>
+    </div>
 <?php endif; ?>
 <?php if($_info->getCcLast4() != ""):?>
     <?php echo __('Credit Card Number: xxxx-%1', $this->getInfo()->getCcLast4()) ?><br/>
