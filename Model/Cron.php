@@ -810,12 +810,12 @@ class Cron
                                 '(listRecurringCall did not contain contract)'
                             );
                             $this->_adyenLogger->addAdyenNotificationCronjob(
-                                printf('recurringDetailReference in notification is %1', $recurringDetailReference)
+                                sprintf('recurringDetailReference in notification is %1', $recurringDetailReference)
                             );
                             $this->_adyenLogger->addAdyenNotificationCronjob(
-                                printf('CustomerReference is: %1 and storeId is %2', $customerReference, $storeId)
+                                sprintf('CustomerReference is: %1 and storeId is %2', $customerReference, $storeId)
                             );
-                            $this->_adyenLogger->addAdyenNotificationCronjob($listRecurringContracts);
+                            $this->_adyenLogger->addAdyenNotificationCronjob(print_r($listRecurringContracts, 1));
                             $message = __(
                                 'Failed to create billing agreement for this order ' .
                                 '(listRecurringCall did not contain contract)'
@@ -855,8 +855,12 @@ class Cron
             if ($order->canCreditmemo()) {
 
                 // there is a bug in this function of Magento see #2656 magento\magento2 repo
-                // $amount = $this->_adyenHelper->originalAmount($this->_value, $currency);
-                // $order->getPayment()->registerRefundNotification($amount);
+                // Invalid method Magento\Sales\Model\Order\Creditmemo::register
+                /*
+                $currency = $this->_order->getOrderCurrencyCode();
+                $amount = $this->_adyenHelper->originalAmount($this->_value, $currency);
+                $order->getPayment()->registerRefundNotification($amount);
+                */
 
                 $this->_adyenLogger->addAdyenNotificationCronjob('Please create your credit memo inside magentos');
             } else {
