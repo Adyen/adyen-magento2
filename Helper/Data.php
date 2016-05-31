@@ -47,6 +47,11 @@ class Data extends AbstractHelper
     protected $_country;
 
     /**
+     * @var \Magento\Framework\Module\ModuleListInterface
+     */
+    protected $_moduleList;
+
+    /**
      * Data constructor.
      *
      * @param \Magento\Framework\App\Helper\Context $context
@@ -57,12 +62,14 @@ class Data extends AbstractHelper
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Magento\Framework\Config\DataInterface $dataStorage,
-        \Magento\Directory\Model\Config\Source\Country $country
+        \Magento\Directory\Model\Config\Source\Country $country,
+        \Magento\Framework\Module\ModuleListInterface $moduleList
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
         $this->_dataStorage = $dataStorage;
         $this->_country = $country;
+        $this->_moduleList = $moduleList;
     }
 
     /**
@@ -572,5 +579,10 @@ class Data extends AbstractHelper
             }
         }
         return $sepaCountries;
+    }
+
+    public function getModuleVersion()
+    {
+        return (string) $this->_moduleList->getOne("Adyen_Payment")['setup_version'];
     }
 }

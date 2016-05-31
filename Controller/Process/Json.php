@@ -75,6 +75,19 @@ class Json extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
+
+        // if version is in the notification string show the module version
+        $response = $this->getRequest()->getParams();
+        if (isset($response['version'])) {
+
+            $this->getResponse()
+                ->clearHeader('Content-Type')
+                ->setHeader('Content-Type', 'text/html')
+                ->setBody($this->_adyenHelper->getModuleVersion());
+
+            return;
+        }
+
         try {
             $notificationItems = json_decode(file_get_contents('php://input'), true);
 
