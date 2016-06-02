@@ -53,5 +53,13 @@
             <label>Diners</label>
             <code_alt>diners</code_alt>
         </type>
+        <type id="MI" order="70">
+            <label>Maestro</label>
+            <code_alt>maestro</code_alt>
+        </type>
+        <type id="UN" order="80">
+            <label>UnionPay</label>
+            <code_alt>unionpay</code_alt>
+        </type>
     </adyen_credit_cards>
 </payment>

@@ -42,6 +42,16 @@ class Data extends AbstractHelper
     protected $_dataStorage;
 
     /**
+     * @var \Magento\Directory\Model\Config\Source\Country
+     */
+    protected $_country;
+
+    /**
+     * @var \Magento\Framework\Module\ModuleListInterface
+     */
+    protected $_moduleList;
+
+    /**
      * Data constructor.
      *
      * @param \Magento\Framework\App\Helper\Context $context
@@ -51,11 +61,15 @@ class Data extends AbstractHelper
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
-        \Magento\Framework\Config\DataInterface $dataStorage
+        \Magento\Framework\Config\DataInterface $dataStorage,
+        \Magento\Directory\Model\Config\Source\Country $country,
+        \Magento\Framework\Module\ModuleListInterface $moduleList
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
         $this->_dataStorage = $dataStorage;
+        $this->_country = $country;
+        $this->_moduleList = $moduleList;
     }
 
     /**
@@ -351,6 +365,28 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @desc Gives back adyen_pay_by_mail configuration values
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenPayByMailConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_pay_by_mail', $storeId);
+    }
+
+    /**
+     * @desc Gives back adyen_pay_by_mail configuration values as flag
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenPayByMailConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_pay_by_mail', $storeId, true);
+    }
+
+    /**
      * @desc Retrieve decrypted hmac key
      * @return string
      */
@@ -362,6 +398,19 @@ class Data extends AbstractHelper
                 break;
             default:
                 $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_live')));
+                break;
+        }
+        return $secretWord;
+    }
+
+    public function getHmacPayByMail()
+    {
+        switch ($this->isDemoMode()) {
+            case true:
+                $secretWord =  $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_test')));
+                break;
+            default:
+                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_live')));
                 break;
         }
         return $secretWord;
@@ -506,5 +555,34 @@ class Data extends AbstractHelper
         } else {
             return $this->scopeConfig->isSetFlag($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
         }
+    }
+
+
+    /**
+     * @return array
+     */
+    public function getSepaCountries()
+    {
+        $sepaCountriesAllowed = [
+            "AT", "BE", "BG", "CH", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GB", "GF", "GI", "GP", "GR", "HR",
+            "HU", "IE", "IS", "IT", "LI", "LT", "LU", "LV", "MC", "MQ", "MT", "NL", "NO", "PL", "PT", "RE", "RO", "SE",
+            "SI", "SK"
+        ];
+
+        $countryList = $this->_country->toOptionArray();
+        $sepaCountries = [];
+
+        foreach ($countryList as $key => $country) {
+            $value = $country['value'];
+            if (in_array($value, $sepaCountriesAllowed)) {
+                $sepaCountries[$value] = $country['label'];
+            }
+        }
+        return $sepaCountries;
+    }
+
+    public function getModuleVersion()
+    {
+        return (string) $this->_moduleList->getOne("Adyen_Payment")['setup_version'];
     }
 }

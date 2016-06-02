@@ -96,6 +96,17 @@
                 <payment_action>order</payment_action>
                 <group>adyen</group>
             </adyen_pos>
+            <adyen_pay_by_mail>
+                <active>0</active>
+                <model>Adyen\Payment\Model\Method\PayByMail</model>
+                <order_status>pending</order_status>
+                <title>Adyen PayByMail</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>6</sort_order>
+                <session_validity>3</session_validity>
+                <payment_action>authorize</payment_action>
+                <group>adyen</group>
+            </adyen_pay_by_mail>
         </payment>
     </default>
 </config>

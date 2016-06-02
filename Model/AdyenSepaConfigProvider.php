@@ -48,22 +48,22 @@ class AdyenSepaConfigProvider implements ConfigProviderInterface
     protected $_paymentHelper;
 
     /**
-     * @var \Magento\Directory\Model\Config\Source\Country
+     * @var \Adyen\Payment\Helper\Data
      */
-    protected $_country;
+    protected $_adyenHelper;
 
     /**
      * AdyenSepaConfigProvider constructor.
      *
      * @param PaymentHelper $paymentHelper
-     * @param \Magento\Directory\Model\Config\Source\Country $country
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         PaymentHelper $paymentHelper,
-        \Magento\Directory\Model\Config\Source\Country $country
+        \Adyen\Payment\Helper\Data $adyenHelper
     ) {
         $this->_paymentHelper = $paymentHelper;
-        $this->_country = $country;
+        $this->_adyenHelper = $adyenHelper;
 
         foreach ($this->_methodCodes as $code) {
             $this->_methods[$code] = $this->_paymentHelper->getMethodInstance($code);
@@ -78,34 +78,10 @@ class AdyenSepaConfigProvider implements ConfigProviderInterface
         $config = [
             'payment' => [
                 'adyenSepa' => [
-                    'countries' => $this->getCountries()
+                    'countries' => $this->_adyenHelper->getSepaCountries()
                 ]
             ]
         ];
-
         return $config;
-    }
-
-    /**
-     * @return array
-     */
-    public function getCountries()
-    {
-        $sepaCountriesAllowed = [
-            "AT", "BE", "BG", "CH", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GB", "GF", "GI", "GP", "GR", "HR",
-            "HU", "IE", "IS", "IT", "LI", "LT", "LU", "LV", "MC", "MQ", "MT", "NL", "NO", "PL", "PT", "RE", "RO", "SE",
-            "SI", "SK"
-        ];
-
-        $countryList = $this->_country->toOptionArray();
-        $sepaCountries = [];
-
-        foreach ($countryList as $key => $country) {
-            $value = $country['value'];
-            if (in_array($value, $sepaCountriesAllowed)) {
-                $sepaCountries[$value] = $country['label'];
-            }
-        }
-        return $sepaCountries;
     }
 }

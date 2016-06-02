@@ -22,7 +22,6 @@
     "magento/module-theme": "100.0.*",
     "magento/module-paypal": "100.0.*",
     "magento/framework": "100.0.*",
-    "magento/magento-composer-installer": "*",
     "adyen/php-api-library": "*"
   },
   "autoload": {

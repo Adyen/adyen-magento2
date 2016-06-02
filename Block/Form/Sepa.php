@@ -21,27 +21,31 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-/**
- * Field renderer for PayPal merchant country selector
- */
-namespace Adyen\Payment\Block\Adminhtml\System\Config\Field;
+namespace Adyen\Payment\Block\Form;
 
-class Version extends \Magento\Config\Block\System\Config\Form\Field
+class Sepa extends \Magento\Payment\Block\Form
 {
+
+    /**
+     * @var string
+     */
+    protected $_template = 'Adyen_Payment::form/sepa.phtml';
 
     /**
      * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;
+
     /**
-     * Version constructor.
-     * @param \Magento\Framework\Module\ModuleListInterface $moduleList
-     * @param \Magento\Backend\Block\Template\Context $context
-     * @param array $data
+     * Sepa constructor.
+     *
+     * @param \Magento\Framework\View\Element\Template\Context $context
+     * @param \Magento\Payment\Model\Config $paymentConfig
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
+        \Magento\Framework\View\Element\Template\Context $context,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Backend\Block\Template\Context $context,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -49,13 +53,10 @@ class Version extends \Magento\Config\Block\System\Config\Form\Field
     }
 
     /**
-     * Retrieve the setup version of the extension
-     *
-     * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
-     * @return string
+     * @return mixed
      */
-    protected function _getElementHtml(\Magento\Framework\Data\Form\Element\AbstractElement $element)
+    public function getCountries()
     {
-        return $this->_adyenHelper->getModuleVersion();
+        return $this->_adyenHelper->getSepaCountries();
     }
 }

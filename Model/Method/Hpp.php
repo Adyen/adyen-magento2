@@ -47,6 +47,9 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      */
     const GUEST_ID = 'customer_';
 
+    /**
+     * @var string
+     */
     protected $_infoBlockType = 'Adyen\Payment\Block\Info\Hpp';
 
     /**
@@ -106,11 +109,10 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      */
     protected $_adyenHelper;
 
-
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
-    protected $storeManager;
+    protected $_storeManager;
 
     /**
      * @var \Magento\Framework\UrlInterface
@@ -120,7 +122,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
     /**
      * @var ResolverInterface
      */
-    protected $resolver;
+    protected $_resolver;
 
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
@@ -181,8 +183,8 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $this->_paymentRequest = $paymentRequest;
         $this->_urlBuilder = $urlBuilder;
         $this->_adyenHelper = $adyenHelper;
-        $this->storeManager = $storeManager;
-        $this->resolver = $resolver;
+        $this->_storeManager = $storeManager;
+        $this->_resolver = $resolver;
         $this->_adyenLogger = $adyenLogger;
         $this->_request = $request;
     }
@@ -336,7 +338,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $browserInfo       = $_SERVER['HTTP_USER_AGENT'];
         $deliveryDays      = $this->getConfigData('delivery_days');
         $shopperLocale     = trim($this->getConfigData('shopper_locale'));
-        $shopperLocale     = (!empty($shopperLocale)) ? $shopperLocale : $this->resolver->getLocale();
+        $shopperLocale     = (!empty($shopperLocale)) ? $shopperLocale : $this->_resolver->getLocale();
         $countryCode       = trim($this->getConfigData('country_code'));
         $countryCode       = (!empty($countryCode)) ? $countryCode : false;
 
@@ -368,18 +370,25 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $formFields['shopperEmail']      = $shopperEmail;
         // recurring
         $recurringType                   = trim($this->_adyenHelper->getAdyenAbstractConfigData('recurring_type'));
+        $brandCode                       = $order->getPayment()->getAdditionalInformation("brand_code");
+
+        // Paypal does not allow ONECLICK,RECURRING only RECURRING
+        if ($brandCode == "paypal" && $recurringType == 'ONECLICK,RECURRING') {
+            $recurringType = "RECURRING";
+        }
+
         $formFields['recurringContract'] = $recurringType;
         $formFields['shopperReference']  = (!empty($customerId)) ? $customerId : self::GUEST_ID . $realOrderId;
         //blocked methods
         $formFields['blockedMethods']    = "";
 
-        $baseUrl = $this->storeManager->getStore($this->getStore())
+        $baseUrl = $this->_storeManager->getStore($this->getStore())
             ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK);
 
         $formFields['resURL']            = $baseUrl . 'adyen/process/result';
         $hmacKey                         = $this->_adyenHelper->getHmac();
 
-        $brandCode = $order->getPayment()->getAdditionalInformation("brand_code");
+
         if ($brandCode) {
             $formFields['brandCode']     = $brandCode;
         }

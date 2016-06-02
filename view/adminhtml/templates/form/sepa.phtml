@@ -1,0 +1,95 @@
+<?php
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+// @codingStandardsIgnoreFile
+/**
+ * @var \Magento\Payment\Block\Adminhtml\Transparent\Form $block
+ */
+$code = $block->escapeHtml($block->getMethodCode());
+$currentCountry = $block->getInfoData('country');
+?>
+
+<fieldset class="admin__fieldset payment-method" id="payment_form_<?php /* @noEscape */ echo $code; ?>"
+          style="display:none">
+
+
+    <div class="field admin__field _required">
+        <label class="admin__field-label" for="<?php /* @noEscape */ echo $code; ?>_account_name">
+            <span><?php echo $block->escapeHtml(__('Bank account holder name')); ?></span>
+        </label>
+        <div class="admin__field-control">
+            <input type="text"
+                   id="<?php /* @noEscape */ echo $code; ?>_account_name"
+                   name="payment[account_name]"
+                   title="<?php echo $block->escapeHtml(__('Bank account holder name')); ?>" class="admin__control-text"
+                   value="<?php /* @noEscape */ echo $block->getInfoData('holder_name'); ?>"/>
+        </div>
+    </div>
+
+    <div class="field admin__field _required">
+        <label class="admin__field-label" for="<?php /* @noEscape */ echo $code; ?>_iban">
+            <span><?php echo $block->escapeHtml(__('IBAN')); ?></span>
+        </label>
+        <div class="admin__field-control">
+            <input type="text"
+                   id="<?php /* @noEscape */ echo $code; ?>_account_name"
+                   name="payment[iban]"
+                   title="<?php echo $block->escapeHtml(__('IBAN')); ?>" class="admin__control-text"
+                   value="<?php /* @noEscape */ echo $block->getInfoData('iban'); ?>"/>
+        </div>
+    </div>
+
+    <div class="field-type admin__field _required">
+        <label class="admin__field-label" for="<?php /* @noEscape */ echo $code; ?>_cc_type">
+            <span><?php echo $block->escapeHtml(__('country')); ?></span>
+        </label>
+        <div class="admin__field-control">
+            <select id="<?php /* @noEscape */ echo $code; ?>_cc_type" name="payment[country]"
+                    class="required-entry admin__control-select">
+                <option value=""></option>
+                <?php foreach ($block->getCountries() as $countryCode => $countryName): ?>
+                    <option value="<?php echo $block->escapeHtml($countryCode); ?>" <?php if ($countryCode == $currentCountry): ?>selected="selected"<?php endif ?>>
+                        <?php echo $block->escapeHtml($countryName); ?>
+                    </option>
+                <?php endforeach ?>
+            </select>
+        </div>
+    </div>
+
+    <div class="field-type admin__field _required">
+
+        <div class="admin__field-control">
+            <input id="<?php /* @noEscape */ echo $code; ?>_accept_sepa"
+                   name="payment[accept_sepa]"
+                   type="checkbox"
+                   title="<?php echo $block->escapeHtml(__('I agree that the above amount will be debited from my bank account.')); ?>"
+                   class=""
+                   value="<?php /* @noEscape */ echo $block->getInfoData('accept_sepa'); ?>"/>
+            <label class="admin__field-label" for="<?php /* @noEscape */ echo $code; ?>_accept_sepa">
+                <span><?php echo $block->escapeHtml(__('I agree that the above amount will be debited from my bank account.')); ?></span>
+            </label>
+        </div>
+    </div>
+
+
+</fieldset>

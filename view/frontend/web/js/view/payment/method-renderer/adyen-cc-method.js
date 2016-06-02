@@ -29,7 +29,7 @@ define(
         'Adyen_Payment/js/action/place-order',
         'mage/translate',
         'Magento_Checkout/js/model/payment/additional-validators',
-        'adyen/encrypt',
+        'adyen/encrypt'
     ],
     function (_, $, Component, placeOrderAction, $t, additionalValidators, adyenEncrypt) {
 
@@ -165,7 +165,12 @@ define(
             },
             showLogo: function() {
                 return window.checkoutConfig.payment.adyen.showLogo;
-            }
+            },
+            getIcons: function (type) {
+                return window.checkoutConfig.payment.adyenCc.icons.hasOwnProperty(type)
+                    ? window.checkoutConfig.payment.adyenCc.icons[type]
+                    : false
+            },
         });
     }
 );
