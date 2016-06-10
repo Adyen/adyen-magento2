@@ -87,4 +87,6 @@
             <argument name="dataStorage" xsi:type="object">adyenPaymentConfigDataStorage</argument>
         </arguments>
     </type>
+    <preference for="Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface" type="Adyen\Payment\Model\GuestAdyenPaymentMethodManagement" />
+    <preference for="Adyen\Payment\Api\AdyenPaymentMethodManagementInterface" type="Adyen\Payment\Model\AdyenPaymentMethodManagement" />
 </config>
