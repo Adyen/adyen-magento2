@@ -229,7 +229,7 @@ class Data extends AbstractHelper
         $streetName = $street['0'];
         unset($street['0']);
         $streetNr = implode(' ', $street);
-        return (['name' => $streetName, 'house_number' => $streetNr]);
+        return (['name' => trim($streetName), 'house_number' => trim($streetNr)]);
     }
 
     /**
