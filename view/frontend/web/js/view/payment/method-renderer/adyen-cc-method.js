@@ -29,9 +29,10 @@ define(
         'Adyen_Payment/js/action/place-order',
         'mage/translate',
         'Magento_Checkout/js/model/payment/additional-validators',
+        'Magento_Customer/js/model/customer',
         'adyen/encrypt'
     ],
-    function (_, $, Component, placeOrderAction, $t, additionalValidators, adyenEncrypt) {
+    function (_, $, Component, placeOrderAction, $t, additionalValidators, customer, adyenEncrypt) {
 
         'use strict';
         return Component.extend({
@@ -141,7 +142,10 @@ define(
                 return window.checkoutConfig.payment.adyenCc.generationTime;
             },
             canCreateBillingAgreement: function() {
-                return window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
+                if(customer.isLoggedIn()) {
+                    return window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
+                }
+                return false;
             },
             isShowLegend: function() {
                 return true;
