@@ -35,6 +35,7 @@ class Cron
      */
     protected $_logger;
 
+
     /**
      * @var Resource\Notification\CollectionFactory
      */
@@ -570,9 +571,12 @@ class Cron
 
         // check if order has in invoice only cancel/hold if this is not the case
         if ($ignoreHasInvoice || !$this->_order->hasInvoices()) {
-            $this->_order->setActionFlag($orderStatus, true);
 
             if ($orderStatus == \Magento\Sales\Model\Order::STATE_HOLDED) {
+
+                // Allow magento to hold order
+                $this->_order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_HOLD, true);
+
                 if ($this->_order->canHold()) {
                     $this->_order->hold();
                 } else {
@@ -580,6 +584,9 @@ class Cron
                     return;
                 }
             } else {
+                // Allow magento to cancel order
+                $this->_order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
+
                 if ($this->_order->canCancel()) {
                     $this->_order->cancel();
                 } else {
