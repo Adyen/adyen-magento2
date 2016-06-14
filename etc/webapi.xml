@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+
+    <route url="/V1/guest-carts/:cartId/retrieve-adyen-payment-methods" method="POST">
+        <service class="Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface" method="getPaymentMethods"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+
+    <route url="/V1/carts/mine/retrieve-adyen-payment-methods" method="POST">
+        <service class="Adyen\Payment\Api\AdyenPaymentMethodManagementInterface" method="getPaymentMethods"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+        <data>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
+        </data>
+    </route>
+
+</routes>

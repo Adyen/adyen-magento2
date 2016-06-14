@@ -108,7 +108,8 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
             try {
                 $this->_paymentRequest->disableRecurringContract(
                     $agreement->getReferenceId(),
-                    $agreement->getCustomerReference()
+                    $agreement->getCustomerReference(),
+                    $agreement->getStoreId()
                 );
             } catch(Exception $e) {
                 throw new \Magento\Framework\Exception\LocalizedException(__('Failed to disable this contract'));

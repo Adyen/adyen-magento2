@@ -262,7 +262,7 @@ class PaymentRequest extends DataObject
         if ($paymentMethodCode == \Adyen\Payment\Model\Method\Cc::METHOD_CODE ||
             $paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
             // If cse is enabled add encrypted card date into request
-            if ($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
+            if ($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled', $storeId)) {
                 $request['additionalData']['card.encrypted.json'] =
                     $payment->getAdditionalInformation("encrypted_data");
             } else {
@@ -303,7 +303,8 @@ class PaymentRequest extends DataObject
     public function authorise3d($payment)
     {
         $order = $payment->getOrder();
-        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
+        $storeId = $order->getStoreId();
+        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
         $shopperIp = $order->getRemoteIp();
 
         $md = $payment->getAdditionalInformation('md');
@@ -338,8 +339,9 @@ class PaymentRequest extends DataObject
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
+        $storeId = $payment->getOrder()->getStoreId();
         $pspReference = $this->_getPspReference($payment);
-        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
+        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
         $currency = $payment->getOrder()->getBaseCurrencyCode();
 
         //format the amount to minor units
@@ -385,8 +387,9 @@ class PaymentRequest extends DataObject
      */
     public function cancelOrRefund(\Magento\Payment\Model\InfoInterface $payment)
     {
+        $storeId = $payment->getOrder()->getStoreId();
         $pspReference = $this->_getPspReference($payment);
-        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
+        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
 
         $request = [
             "merchantAccount" => $merchantAccount,
@@ -424,8 +427,9 @@ class PaymentRequest extends DataObject
      */
     public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
+        $storeId = $payment->getOrder()->getStoreId();
         $pspReference = $this->_getPspReference($payment);
-        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
+        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
         $currency = $payment->getOrder()->getBaseCurrencyCode();
 
         //format the amount to minor units
@@ -536,12 +540,13 @@ class PaymentRequest extends DataObject
      *
      * @param $recurringDetailReference
      * @param $shopperReference
+     * @param $storeId
      * @return bool
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function disableRecurringContract($recurringDetailReference, $shopperReference)
+    public function disableRecurringContract($recurringDetailReference, $shopperReference, $storeId)
     {
-        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account");
+        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
 
         $request = [
             "merchantAccount" => $merchantAccount,

@@ -30,9 +30,14 @@ define(
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/checkout-data',
-        'Magento_Checkout/js/model/payment/additional-validators'
+        'Magento_Checkout/js/model/payment/additional-validators',
+        'mage/storage',
+        'Magento_Checkout/js/model/url-builder',
+        'Adyen_Payment/js/model/adyen-payment-service',
+        'Magento_Customer/js/model/customer',
+        'Magento_Checkout/js/model/full-screen-loader'
     ],
-    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction, quote, checkoutData, additionalValidators) {
+    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader) {
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
@@ -51,14 +56,53 @@ define(
                     ]);
                 return this;
             },
+            initialize: function () {
+                this._super();
+
+                fullScreenLoader.startLoader();
+
+                // reset variable:
+                adyenPaymentService.setPaymentMethods();
+
+                // retrieve payment methods
+                var serviceUrl,
+                    payload;
+
+                if(customer.isLoggedIn()) {
+                    serviceUrl = urlBuilder.createUrl('/carts/mine/retrieve-adyen-payment-methods', {});
+                } else {
+                    serviceUrl = urlBuilder.createUrl('/guest-carts/:cartId/retrieve-adyen-payment-methods', {
+                        cartId: quote.getQuoteId()
+                    });
+                }
+
+                payload = {
+                    cartId: quote.getQuoteId(),
+                    shippingAddress: quote.shippingAddress()
+                };
+
+                storage.post(
+                    serviceUrl, JSON.stringify(payload)
+                ).done(
+                    function (response) {
+                        adyenPaymentService.setPaymentMethods(response);
+                        fullScreenLoader.stopLoader();
+                    }
+                ).fail(function(error) {
+                    console.log(JSON.stringify(error));
+                    fullScreenLoader.stopLoader();
+                });
+            },
             getAdyenHppPaymentMethods: function() {
                 var self = this;
-                // convert to list so you can iterate
-                var paymentList = _.map(window.checkoutConfig.payment.adyenHpp.paymentMethods, function(value, key) {
 
-                        if(key == "ideal") {
+                var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
+
+                var paymentList = _.map(paymentMethods, function(value) {
+
+                        if(value.brandCode == "ideal") {
                             return {
-                                'value': key,
+                                'value': value.brandCode,
                                 'name': value,
                                 'method': self.item.method,
                                 'issuerIds':  value.issuers,
@@ -72,7 +116,7 @@ define(
                             }
                         } else {
                             return {
-                                'value': key,
+                                'value': value.brandCode,
                                 'name': value,
                                 'method': self.item.method,
                                 getCode: function() {
