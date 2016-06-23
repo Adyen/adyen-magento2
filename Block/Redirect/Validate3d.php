@@ -58,12 +58,11 @@ class Validate3d extends \Magento\Payment\Block\Form
         \Magento\Framework\View\Element\Template\Context $context,
         array $data = [],
         \Magento\Sales\Model\OrderFactory $orderFactory,
-        \Magento\Checkout\Model\Session $checkoutSession,
-        \Magento\Framework\App\RequestInterface $request
+        \Magento\Checkout\Model\Session $checkoutSession
     ) {
         $this->_orderFactory = $orderFactory;
         $this->_checkoutSession = $checkoutSession;
-        $this->_request = $request;
+        $this->_request = $context->getRequest();
         parent::__construct($context, $data);
         $this->_getOrder();
     }
