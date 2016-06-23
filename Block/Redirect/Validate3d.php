@@ -40,6 +40,11 @@ class Validate3d extends \Magento\Payment\Block\Form
      * @var \Magento\Checkout\Model\Order
      */
     protected $_order;
+    
+    /**
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    protected $_request;
 
     /**
      * Validate3d constructor.
@@ -53,10 +58,12 @@ class Validate3d extends \Magento\Payment\Block\Form
         \Magento\Framework\View\Element\Template\Context $context,
         array $data = [],
         \Magento\Sales\Model\OrderFactory $orderFactory,
-        \Magento\Checkout\Model\Session $checkoutSession
+        \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Framework\App\RequestInterface $request
     ) {
         $this->_orderFactory = $orderFactory;
         $this->_checkoutSession = $checkoutSession;
+        $this->_request = $request;
         parent::__construct($context, $data);
         $this->_getOrder();
     }
@@ -114,8 +121,18 @@ class Validate3d extends \Magento\Payment\Block\Form
      */
     public function getTermUrl()
     {
-        return  $this->getUrl('adyen/process/validate3d');
+        return $this->getUrl('adyen/process/validate3d',
+            ['_secure' => $this->_getRequest()->isSecure()]);
     }
 
+    /**
+     * Retrieve request object
+     *
+     * @return \Magento\Framework\App\RequestInterface
+     */
+    protected function _getRequest()
+    {
+        return $this->_request;
+    }
 
 }
