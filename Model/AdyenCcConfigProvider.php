@@ -87,35 +87,52 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
     {
         $config = parent::getConfig();
 
-        $demoMode = $this->_adyenHelper->getAdyenAbstractConfigDataFlag('demo_mode');
+        foreach ($this->_methodCodes as $code) {
+            if ($this->methods[$code]->isAvailable()) {
 
-        if ($demoMode) {
-            $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_test');
-        } else {
-            $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_live');
+                $demoMode = $this->_adyenHelper->getAdyenAbstractConfigDataFlag('demo_mode');
+
+                if ($demoMode) {
+                    $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_test');
+                } else {
+                    $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_live');
+                }
+
+                $cseEnabled = $this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled');
+
+                $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type');
+                $canCreateBillingAgreement = false;
+                if ($recurringType == "ONECLICK" || $recurringType == "ONECLICK,RECURRING") {
+                    $canCreateBillingAgreement = true;
+                }
+
+                $config['payment'] ['adyenCc']['cseKey'] = $cseKey;
+                $config['payment'] ['adyenCc']['cseEnabled'] = $cseEnabled;
+                $config['payment'] ['adyenCc']['cseEnabled'] = $cseEnabled;
+                $config['payment']['adyenCc']['generationTime'] = date("c");
+                $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
+
+                // show logos turned on by default
+                if ($this->_genericConfig->showLogos()) {
+                    $config['payment']['adyenCc']['creditCardPaymentMethodIcon'] = $this->_getCreditCardPaymentMethodIcon();
+                }
+
+                $config['payment']['adyenCc']['icons'] = $this->getIcons();
+
+                // has installments by default false
+                $config['payment']['adyenCc']['hasInstallments'] = false;
+                
+                // get Installments
+                $installments = $this->_adyenHelper->getAdyenCcConfigData('installments');
+
+                if ($installments) {
+                    $config['payment']['adyenCc']['installments'] = unserialize($installments);
+                    $config['payment']['adyenCc']['hasInstallments'] = true;
+                } else {
+                    $config['payment']['adyenCc']['installments'] = [];
+                }
+            }
         }
-
-        $cseEnabled = $this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled');
-
-        $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type');
-        $canCreateBillingAgreement = false;
-        if ($recurringType == "ONECLICK" || $recurringType == "ONECLICK,RECURRING") {
-            $canCreateBillingAgreement = true;
-        }
-
-        $config['payment'] ['adyenCc']['cseKey'] = $cseKey;
-        $config['payment'] ['adyenCc']['cseEnabled'] = $cseEnabled;
-        $config['payment'] ['adyenCc']['cseEnabled'] = $cseEnabled;
-        $config['payment']['adyenCc']['generationTime'] = date("c");
-        $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
-
-        // show logos turned on by default
-        if ($this->_genericConfig->showLogos()) {
-            $config['payment']['adyenCc']['creditCardPaymentMethodIcon'] = $this->_getCreditCardPaymentMethodIcon();
-        }
-
-        $config['payment']['adyenCc']['icons'] = $this->getIcons();
-
 
         return $config;
     }

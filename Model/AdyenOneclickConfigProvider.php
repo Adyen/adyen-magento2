@@ -179,7 +179,7 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
             // is admin?
             if ($this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
                 //retrieve storeId from quote
-                $store = $this->_session->getQuote()->getStore();
+                $store = $this->_getQuote()->getStore();
             } else {
                 $store = $this->_storeManager->getStore();
             }
@@ -206,6 +206,12 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
                 if (in_array($recurringPaymentType, $allowedContractTypes)) {
                     // check if AgreementLabel is set and if contract has an recurringType
                     if ($billingAgreement->getAgreementLabel()) {
+
+                        // for Ideal use sepadirectdebit because it is
+                        if ($agreementData['variant'] == 'ideal') {
+                            $agreementData['variant'] = 'sepadirectdebit';
+                        }
+
                         $data = ['reference_id' => $billingAgreement->getReferenceId(),
                             'agreement_label' => $billingAgreement->getAgreementLabel(),
                             'agreement_data' => $agreementData
@@ -213,10 +219,6 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
 
                         if ($this->_genericConfig->showLogos()) {
                             $logoName = $agreementData['variant'];
-                            // for Ideal use sepadirectdebit because it is
-                            if ($agreementData['variant'] == 'ideal') {
-                                $logoName = "sepadirectdebit";
-                            }
 
                             $asset = $this->_genericConfig->createAsset(
                                 'Adyen_Payment::images/logos/' . $logoName . '.png'
@@ -235,6 +237,34 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
                             }
                             $data['logo'] = $icon;
                         }
+
+                        /**
+                         * Check if there are installments for this creditcard type defined
+                         */
+                        $data['number_of_installments'] = 0;
+                        $ccType = $this->_adyenHelper->getMagentoCreditCartType($agreementData['variant']);
+                        $installments = null;
+                        $installmentsValue = $this->_adyenHelper->getAdyenCcConfigData('installments');
+                        if ($installmentsValue) {
+                            $installments = unserialize($installmentsValue);
+                        }
+
+                        if ($installments) {
+                            $numberOfInstallments = null;
+                            $grandTotal = $this->_getQuote()->getGrandTotal();
+                            foreach ($installments as $ccTypeInstallment => $installment) {
+                                if ($ccTypeInstallment == $ccType) {
+                                    foreach ($installment as $amount => $installments) {
+                                        if ($grandTotal <= $amount) {
+                                            $numberOfInstallments = $installments;
+                                        }
+                                    }
+                                }
+                            }
+                            if ($numberOfInstallments) {
+                                $data['number_of_installments'] = $numberOfInstallments;
+                            }
+                        }
                         $billingAgreements[] = $data;
                     }
                 }
@@ -249,5 +279,13 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
     protected function _getRecurringContractType()
     {
         return $this->_adyenHelper->getAdyenOneclickConfigData('recurring_payment_type');
+    }
+
+    /**
+     * @return \Magento\Quote\Model\Quote
+     */
+    protected function _getQuote()
+    {
+        return $this->_session->getQuote();
     }
 }

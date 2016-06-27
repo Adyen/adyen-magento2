@@ -78,7 +78,7 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
         $variant = $additionalData['variant'];
         $ccType = $this->_adyenHelper->getMagentoCreditCartType($variant);
         $infoInstance->setCcType($ccType);
-
+        
         // save value remember details checkbox
         $infoInstance->setAdditionalInformation('recurring_detail_reference',
             $additionalData['recurring_detail_reference']);
@@ -91,6 +91,11 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
         }
 
         $infoInstance->setAdditionalInformation('customer_interaction', $customerInteraction);
+
+        // set number of installements
+        if (isset($additionalData['number_of_installments'])) {
+            $infoInstance->setAdditionalInformation('number_of_installments', $additionalData['number_of_installments']);
+        }
 
         return $this;
     }

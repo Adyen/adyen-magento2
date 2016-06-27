@@ -207,6 +207,11 @@ class Cc extends \Magento\Payment\Model\Method\Cc
                 throw new \Magento\Framework\Exception\LocalizedException(__('Card encryption failed'));
             }
         }
+        
+        // set number of installements
+        if (isset($additionalData['number_of_installments'])) {
+            $infoInstance->setAdditionalInformation('number_of_installments', $additionalData['number_of_installments']);
+        }
 
         // save value remember details checkbox
         if (isset($additionalData['store_cc'])) {

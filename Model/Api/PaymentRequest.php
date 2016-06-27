@@ -259,6 +259,11 @@ class PaymentRequest extends DataObject
             $request['selectedRecurringDetailReference'] = $recurringDetailReference;
         }
 
+        // if it is a sepadirectdebit set selectedBrand to sepadirectdebit in the case of oneclick
+        if ($payment->getCcType() == "sepadirectdebit") {
+            $request['selectedBrand'] = "sepadirectdebit";
+        }
+
         if ($paymentMethodCode == \Adyen\Payment\Model\Method\Cc::METHOD_CODE ||
             $paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
             // If cse is enabled add encrypted card date into request
@@ -289,6 +294,12 @@ class PaymentRequest extends DataObject
             ];
 
             $request['bankAccount'] = $bankAccount;
+        }
+
+        // if installments is set add it into the request
+        if ($payment->getAdditionalInformation('number_of_installments') &&
+            $payment->getAdditionalInformation('number_of_installments')  > 0) {
+            $request['installments']['value'] = $payment->getAdditionalInformation('number_of_installments');
         }
 
         $result = $service->authorise($request);
