@@ -25,7 +25,6 @@ namespace Adyen\Payment\Model;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Payment\Helper\Data as PaymentHelper;
-use Magento\Directory\Helper\Data;
 
 class AdyenSepaConfigProvider implements ConfigProviderInterface
 {

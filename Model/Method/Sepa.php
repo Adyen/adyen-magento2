@@ -263,7 +263,7 @@ class Sepa extends \Magento\Payment\Model\Method\AbstractMethod
         $payment->setLastTransId($this->getTransactionId())->setIsTransactionPending(true);
 
         // DO authorisation
-        $this->_processRequest($payment, $amount, "authorise");
+        $this->_processRequest($payment, "authorise");
 
         return $this;
     }
@@ -274,7 +274,7 @@ class Sepa extends \Magento\Payment\Model\Method\AbstractMethod
      * @param $request
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function _processRequest(\Magento\Sales\Model\Order\Payment $payment, $amount, $request)
+    protected function _processRequest(\Magento\Sales\Model\Order\Payment $payment, $request)
     {
         switch ($request) {
             case "authorise":
@@ -305,6 +305,11 @@ class Sepa extends \Magento\Payment\Model\Method\AbstractMethod
                 break;
             case "Refused":
                 $errorMsg = __('The payment is REFUSED.');
+                $this->_logger->critical($errorMsg);
+                throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
+                break;
+            default:
+                $errorMsg = __('Error with payment method please select different payment method.');
                 $this->_logger->critical($errorMsg);
                 throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
                 break;

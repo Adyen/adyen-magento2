@@ -347,6 +347,11 @@ class Cc extends \Magento\Payment\Model\Method\Cc
                     throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
                 }
                 break;
+            default:
+                $errorMsg = __('Error with payment method please select different payment method.');
+                $this->_logger->critical($errorMsg);
+                throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
+                break;
         }
     }
 
