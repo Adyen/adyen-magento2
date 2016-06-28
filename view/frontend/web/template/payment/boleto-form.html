@@ -1,0 +1,169 @@
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+
+<div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+    <div class="payment-method-title field choice">
+        <input type="radio"
+               name="payment[method]"
+               class="radio"
+               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+        <label data-bind="attr: {'for': getCode()}" class="label">
+
+            <!-- ko if: showLogo() -->
+
+            <div data-bind="attr: { 'class': 'adyen-sprite ' + getCode() }"></div>
+
+            <!--/ko-->
+
+            <span data-bind="text: getTitle()"></span>
+        </label>
+    </div>
+    <div class="payment-method-content">
+        <div class="payment-method-billing-address">
+            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+
+
+
+        <form class="form" id="adyen-boleto-form" data-role="adyen-boleto-form" action="#" method="post" data-bind="mageInit: {
+            'transparent':{
+                'context': context(),
+                'controller': getControllerName(),
+                'orderSaveUrl':getPlaceOrderUrl(),
+            }, 'validation':[]}">
+
+
+            <fieldset data-bind="attr: {class: 'fieldset payment items adyen_boleto ' + getCode(), id: 'payment_form_' + getCode()}">
+                <!-- ko if: (isShowLegend())-->
+                <legend class="legend">
+                    <span><!-- ko text: $t('Sepa Information')--><!-- /ko --></span>
+                </legend><br />
+                <!-- /ko -->
+
+                <div class="field _social_security_number type required">
+                    <label data-bind="attr: {for: getCode() + '_social_security_number'}" class="label">
+                        <span><!-- ko text: $t('Social Security Number')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <input  type="text"
+                                class="input-text"
+                                name="payment[social_security_number]"
+                                autocomplete="off"
+                                data-bind="attr: {id: getCode() + '_social_security_number', 'data-container': getCode() + '-social-security-number', 'data-validate': JSON.stringify({required:true})},
+                                            enable: isActive($parents),
+                                            value: socialSecurityNumber"
+                                data-validate="{required:true}">
+                        </input>
+                    </div>
+                </div>
+
+                <div class="field boleto_type type required">
+                    <label data-bind="attr: {for: getCode() + '_boleto_type'}" class="label">
+                        <span><!-- ko text: $t('Boleto Card Type')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <select class="select select-boleto-type"
+                                name="payment[boleto_type]"
+                                data-bind="attr: {id: getCode() + '_boleto_type', 'data-container': getCode() + '-boleto-type', 'data-validate': JSON.stringify({required:true})},
+                                            enable: isActive($parents),
+                                            options: getBoletoTypes(),
+                                            optionsValue: 'key',
+                                            optionsText: 'value',
+                                            optionsCaption: $t('-Please select-'),
+                                            value: boletoType"
+                                data-validate="{required:true}">
+                        </select>
+                    </div>
+                </div>
+
+
+
+                <div class="field firstname type required">
+                    <label data-bind="attr: {for: getCode() + 'firstname'}" class="label">
+                        <span><!-- ko text: $t('Firstname')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <input  type="text"
+                                class="input-text"
+                                name="payment[firstname]"
+                                autocomplete="off"
+                                data-bind="attr: {id: getCode() + '_firstname', 'data-container': getCode() + '-firstname', 'data-validate': JSON.stringify({required:true})},
+                                            enable: isActive($parents),
+                                            value: firstname"
+                                data-validate="{required:true}">
+                        </input>
+                    </div>
+                </div>
+
+                <div class="field _lastname type required">
+                    <label data-bind="attr: {for: getCode() + '_lastname'}" class="label">
+                        <span><!-- ko text: $t('Lastname')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <input  type="text"
+                                class="input-text"
+                                name="payment[lastname]"
+                                autocomplete="off"
+                                data-bind="attr: {id: getCode() + '_lastname', 'data-container': getCode() + '-lastname', 'data-validate': JSON.stringify({required:true})},
+                                            enable: isActive($parents),
+                                            value: lastname"
+                                data-validate="{required:true}">
+                        </input>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
+            </fieldset>
+        </form>
+        <div class="checkout-agreements-block">
+            <!-- ko foreach: $parent.getRegion('before-place-order') -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+        <div class="actions-toolbar">
+            <div class="primary">
+                <button class="action primary checkout"
+                        type="submit"
+                        data-bind="
+                            click: placeOrder,
+                            attr: {title: $t('Place Order')},
+                            enable: (getCode() == isChecked()),
+                            css: {disabled: !isPlaceOrderActionAllowed()}
+                            "
+                        disabled>
+                    <span data-bind="text: $t('Place Order')"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+

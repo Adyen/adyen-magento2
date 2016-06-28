@@ -281,6 +281,12 @@ class PaymentRequest extends DataObject
                 $cardDetails['card'] = $requestCreditCardDetails;
                 $request = array_merge($request, $cardDetails);
             }
+
+            // if installments is set add it into the request
+            if ($payment->getAdditionalInformation('number_of_installments') &&
+                $payment->getAdditionalInformation('number_of_installments')  > 0) {
+                $request['installments']['value'] = $payment->getAdditionalInformation('number_of_installments');
+            }
         } elseif ($paymentMethodCode == \Adyen\Payment\Model\Method\Sepa::METHOD_CODE) {
 
             // set brand to sepa
@@ -294,14 +300,34 @@ class PaymentRequest extends DataObject
             ];
 
             $request['bankAccount'] = $bankAccount;
-        }
+        } elseif ($paymentMethodCode == \Adyen\Payment\Model\Method\Boleto::METHOD_CODE) {
 
-        // if installments is set add it into the request
-        if ($payment->getAdditionalInformation('number_of_installments') &&
-            $payment->getAdditionalInformation('number_of_installments')  > 0) {
-            $request['installments']['value'] = $payment->getAdditionalInformation('number_of_installments');
-        }
 
+            $request['socialSecurityNumber'] = $payment->getAdditionalInformation("social_security_number");
+            $request['selectedBrand'] = $payment->getAdditionalInformation("boleto_type");
+
+            $shopperName = [
+                'firstName' => $payment->getAdditionalInformation("firstname"),
+                'lastName' => $payment->getAdditionalInformation("lastname"),
+            ];
+            $request['shopperName'] = $shopperName;
+
+
+            $deliveryDays = (int) $this->_adyenHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
+            $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
+            $deliveryDate = date(
+                "Y-m-d\TH:i:s ",
+                mktime(date("H"),
+                date("i"),
+                date("s"),
+                date("m"),
+                date("j") + $deliveryDays,
+                date("Y"))
+            );
+
+            $request['deliveryDate'] = $deliveryDate;
+        }
+        
         $result = $service->authorise($request);
         return $result;
     }

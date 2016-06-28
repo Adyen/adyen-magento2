@@ -1,0 +1,37 @@
+<?php
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+// @codingStandardsIgnoreFile
+
+?>
+<?php
+$_info = $this->getInfo();
+?>
+<dl class="payment-method adyen_cc">
+    <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
+    <dt class="title"><?php echo $_info->getAdditionalInformation('social_security_number'); ?></dt>
+    <dt class="title"><?php echo $_info->getAdditionalInformation('boleto_type'); ?></dt>
+    <dt class="title"><?php echo $_info->getAdditionalInformation('firstname'); ?></dt>
+    <dt class="title"><?php echo $_info->getAdditionalInformation('lastname'); ?></dt>
+    <dt class="title">><a target="_blank" href="<?php echo $this->getMethod()->getInfoInstance()->getAdditionalInformation('url'); ?>"><?php echo __("Click here to download Boleto PDF."); ?></a></dt>
+</dl>

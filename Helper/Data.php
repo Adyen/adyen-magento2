@@ -387,6 +387,28 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @desc Gives back adyen_boleto configuration values
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenBoletoConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_boleto', $storeId);
+    }
+
+    /**
+     * @desc Gives back adyen_boleto configuration values as flag
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenBoletoConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_boleto', $storeId, true);
+    }
+
+    /**
      * @desc Retrieve decrypted hmac key
      * @return string
      */
@@ -584,5 +606,31 @@ class Data extends AbstractHelper
     public function getModuleVersion()
     {
         return (string) $this->_moduleList->getOne("Adyen_Payment")['setup_version'];
+    }
+
+    public function getBoletoTypes()
+    {
+        return [
+            [
+                'value' => 'boletobancario_hsbc',
+                'label' => __('boletobancario_hsbc'),
+            ],
+            [
+                'value' => 'boletobancario_itau',
+                'label' => __('boletobancario_itau'),
+            ],
+            [
+                'value' => 'boletobancario_santander',
+                'label' => __('boletobancario_santander'),
+            ],
+            [
+                'value' => 'boletobancario_bradesco',
+                'label' => __('boletobancario_bradesco'),
+            ],
+            [
+                'value' => 'boletobancario_bancodobrasil',
+                'label' => __('boletobancario_bancodobrasil'),
+            ],
+        ];
     }
 }
