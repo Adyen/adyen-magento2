@@ -48,14 +48,7 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
      * @var string
      */
     protected $_infoBlockType = 'Adyen\Payment\Block\Info\Oneclick';
-
-    /**
-     * Payment Method not ready for internal use
-     *
-     * @var bool
-     */
-    protected $_canUseInternal = false;
-
+    
     /**
      * Assign data to info model instance
      *
@@ -65,7 +58,6 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
      */
     public function assignData(\Magento\Framework\DataObject $data)
     {
-        parent::assignData($data);
 
         if (!$data instanceof \Magento\Framework\DataObject) {
             $data = new \Magento\Framework\DataObject($data);
@@ -73,6 +65,7 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
 
         $additionalData = $data->getAdditionalData();
         $infoInstance = $this->getInfoInstance();
+
 
         // get from variant magento code for creditcard type and set this in ccType
         $variant = $additionalData['variant'];
@@ -83,9 +76,18 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
         $infoInstance->setAdditionalInformation('recurring_detail_reference',
             $additionalData['recurring_detail_reference']);
 
-        $recurringPaymentType = $this->_adyenHelper->getAdyenOneclickConfigData('recurring_payment_type');
+        $recurringPaymentType = $this->getRecurringPaymentType();
         if ($recurringPaymentType == \Adyen\Payment\Model\RecurringType::ONECLICK) {
             $customerInteraction = true;
+
+            // retrieve cse key
+            if ($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled')) {
+                if (isset($additionalData['encrypted_data'])) {
+                    $infoInstance->setAdditionalInformation('encrypted_data', $additionalData['encrypted_data']);
+                } else {
+                    throw new \Magento\Framework\Exception\LocalizedException(__('Card encryption failed'));
+                }
+            }
         } else {
             $customerInteraction = false;
         }
@@ -94,10 +96,27 @@ class Oneclick extends \Adyen\Payment\Model\Method\Cc
 
         // set number of installements
         if (isset($additionalData['number_of_installments'])) {
-            $infoInstance->setAdditionalInformation('number_of_installments', $additionalData['number_of_installments']);
+            $infoInstance->setAdditionalInformation('number_of_installments',
+                $additionalData['number_of_installments']);
         }
 
         return $this;
+    }
+
+    /**
+     * For admin use RECURRING contract for front-end get it from configuration
+     *
+     * @return mixed|string
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getRecurringPaymentType()
+    {
+        // For admin always use Recurring
+        if ($this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
+            return \Adyen\Payment\Model\RecurringType::RECURRING;
+        } else {
+            return $this->_adyenHelper->getAdyenOneclickConfigData('recurring_payment_type');
+        }
     }
 
     /**

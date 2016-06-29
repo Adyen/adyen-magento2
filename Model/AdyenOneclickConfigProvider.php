@@ -57,11 +57,6 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
     protected $_adyenHelper;
 
     /**
-     * @var Resource\Billing\Agreement\CollectionFactory
-     */
-    protected $_billingAgreementCollectionFactory;
-
-    /**
      * @var \Magento\Customer\Model\Session
      */
     protected $_customerSession;
@@ -82,43 +77,32 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
     protected $_storeManager;
 
     /**
-     * @var AdyenGenericConfig
-     */
-    protected $_genericConfig;
-
-    /**
      * AdyenOneclickConfigProvider constructor.
-     * 
+     *
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Payment\Model\CcConfig $ccConfig
      * @param PaymentHelper $paymentHelper
      * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Checkout\Model\Session $session
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param AdyenGenericConfig $genericConfig
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Payment\Model\CcConfig $ccConfig,
         PaymentHelper $paymentHelper,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Checkout\Model\Session $session,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Adyen\Payment\Model\AdyenGenericConfig $genericConfig
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         parent::__construct($ccConfig, $paymentHelper, $this->_methodCodes);
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
-        $this->_billingAgreementCollectionFactory = $billingAgreementCollectionFactory;
         $this->_customerSession = $customerSession;
         $this->_session = $session;
         $this->_appState = $context->getAppState();
         $this->_storeManager = $storeManager;
-        $this->_genericConfig = $genericConfig;
     }
 
     /**
@@ -156,7 +140,6 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
                 $recurringContractType = $this->_getRecurringContractType();
 
                 $config['payment'] ['adyenOneclick']['billingAgreements'] = $this->getAdyenOneclickPaymentMethods();
-                $config['payment'] ['adyenOneclick']['recurringContractType'] = $recurringContractType;
                 if ($recurringContractType == \Adyen\Payment\Model\RecurringType::ONECLICK) {
                     $config['payment'] ['adyenOneclick']['hasCustomerInteraction'] = true;
                 } else {
@@ -176,99 +159,11 @@ class AdyenOneclickConfigProvider extends CcGenericConfigProvider
         $billingAgreements = [];
         if ($this->_customerSession->isLoggedIn()) {
             $customerId = $this->_customerSession->getCustomerId();
-            // is admin?
-            if ($this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
-                //retrieve storeId from quote
-                $store = $this->_getQuote()->getStore();
-            } else {
-                $store = $this->_storeManager->getStore();
-            }
+            $storeId = $this->_storeManager->getStore()->getId();
+            $grandTotal = $this->_getQuote()->getGrandTotal();
+            $recurringType = $this->_getRecurringContractType();
 
-            $baCollection = $this->_billingAgreementCollectionFactory->create();
-            $baCollection->addFieldToFilter('customer_id', $customerId);
-            $baCollection->addFieldToFilter('store_id', $store->getId());
-            $baCollection->addFieldToFilter('method_code', 'adyen_oneclick');
-            $baCollection->addActiveFilter();
-
-            $recurringPaymentType = $this->_getRecurringContractType();
-
-            foreach ($baCollection as $billingAgreement) {
-
-                $agreementData = $billingAgreement->getAgreementData();
-
-                // no agreementData and contractType then ignore
-                if ((!is_array($agreementData)) || (!isset($agreementData['contractTypes']))) {
-                    continue;
-                }
-
-                // check if contractType is supporting the selected contractType for OneClick payments
-                $allowedContractTypes = $agreementData['contractTypes'];
-                if (in_array($recurringPaymentType, $allowedContractTypes)) {
-                    // check if AgreementLabel is set and if contract has an recurringType
-                    if ($billingAgreement->getAgreementLabel()) {
-
-                        // for Ideal use sepadirectdebit because it is
-                        if ($agreementData['variant'] == 'ideal') {
-                            $agreementData['variant'] = 'sepadirectdebit';
-                        }
-
-                        $data = ['reference_id' => $billingAgreement->getReferenceId(),
-                            'agreement_label' => $billingAgreement->getAgreementLabel(),
-                            'agreement_data' => $agreementData
-                        ];
-
-                        if ($this->_genericConfig->showLogos()) {
-                            $logoName = $agreementData['variant'];
-
-                            $asset = $this->_genericConfig->createAsset(
-                                'Adyen_Payment::images/logos/' . $logoName . '.png'
-                            );
-
-                            $placeholder = $this->_genericConfig->findRelativeSourceFilePath($asset);
-
-                            $icon = null;
-                            if ($placeholder) {
-                                list($width, $height) = getimagesize($asset->getSourceFile());
-                                $icon = [
-                                    'url' => $asset->getUrl(),
-                                    'width' => $width,
-                                    'height' => $height
-                                ];
-                            }
-                            $data['logo'] = $icon;
-                        }
-
-                        /**
-                         * Check if there are installments for this creditcard type defined
-                         */
-                        $data['number_of_installments'] = 0;
-                        $ccType = $this->_adyenHelper->getMagentoCreditCartType($agreementData['variant']);
-                        $installments = null;
-                        $installmentsValue = $this->_adyenHelper->getAdyenCcConfigData('installments');
-                        if ($installmentsValue) {
-                            $installments = unserialize($installmentsValue);
-                        }
-
-                        if ($installments) {
-                            $numberOfInstallments = null;
-                            $grandTotal = $this->_getQuote()->getGrandTotal();
-                            foreach ($installments as $ccTypeInstallment => $installment) {
-                                if ($ccTypeInstallment == $ccType) {
-                                    foreach ($installment as $amount => $installments) {
-                                        if ($grandTotal <= $amount) {
-                                            $numberOfInstallments = $installments;
-                                        }
-                                    }
-                                }
-                            }
-                            if ($numberOfInstallments) {
-                                $data['number_of_installments'] = $numberOfInstallments;
-                            }
-                        }
-                        $billingAgreements[] = $data;
-                    }
-                }
-            }
+            $billingAgreements = $this->_adyenHelper->getOneClickPaymentMethods($customerId, $storeId, $grandTotal, $recurringType);
         }
         return $billingAgreements;
     }

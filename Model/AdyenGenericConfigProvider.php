@@ -39,9 +39,9 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
     protected $_paymentHelper;
 
     /**
-     * @var AdyenGenericConfig
+     * @var \Adyen\Payment\Helper\Data
      */
-    protected $_genericConfig;
+    protected $_adyenHelper;
 
     /**
      * @var string[]
@@ -59,14 +59,14 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
      * AdyenGenericConfigProvider constructor.
      *
      * @param PaymentHelper $paymentHelper
-     * @param AdyenGenericConfig $genericConfig
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         PaymentHelper $paymentHelper,
-        \Adyen\Payment\Model\AdyenGenericConfig $genericConfig
+        \Adyen\Payment\Helper\Data $adyenHelper
     ) {
         $this->_paymentHelper = $paymentHelper;
-        $this->_genericConfig = $genericConfig;
+        $this->_adyenHelper = $adyenHelper;
 
         foreach ($this->_methodCodes as $code) {
             $this->_methods[$code] = $this->_paymentHelper->getMethodInstance($code);
@@ -94,7 +94,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         }
 
         // show logos turned on by default
-        if ($this->_genericConfig->showLogos()) {
+        if ($this->_adyenHelper->showLogos()) {
             $config['payment']['adyen']['showLogo'] = true;
         } else {
             $config['payment']['adyen']['showLogo'] = false;

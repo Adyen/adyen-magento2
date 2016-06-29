@@ -1,0 +1,55 @@
+<?php
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+// @codingStandardsIgnoreFile
+/**
+ * @var \Magento\Payment\Block\Adminhtml\Transparent\Form $block
+ */
+$code = $block->escapeHtml($block->getMethodCode());
+$currentCountry = $block->getInfoData('country');
+?>
+
+<fieldset class="admin__fieldset payment-method" id="payment_form_<?php /* @noEscape */ echo $code; ?>"
+          style="display:none">
+
+
+    <input type="hidden" id="adyen_oneclick_variant" name="payment[variant]" value="" />
+
+   <dl style="margin: 0 0 10px 10px;">
+        <?php if( !empty($block->getOneClickCards())): ?>
+            <?php foreach($block->getOneClickCards() as $card): ?>
+                <?php if($card['agreement_label'] != ""):?>
+                    <dt class="admin__field-option">
+                        <input id="p_method_adyen_oneclick_<?php echo $card['reference_id']?>" value="<?php echo $card['reference_id']; ?>" type="radio" name="payment[recurring_detail_reference]" title="Adyen OneClick" onclick="document.getElementById('adyen_oneclick_variant').value = '<?php echo $card['agreement_data']['variant']; ?>';" class="admin__control-radio">
+                        <label class="admin__field-label" for="p_method_adyen_oneclick_<?php echo $card['reference_id']?>"><?php echo $card['agreement_label']; ?></label>
+                    </dt>
+                <?php endif; ?>
+            <?php endforeach; ?>
+            <?php else: ?>
+                <dt><?php echo $block->escapeHtml(__('Customer has no saved recurring cards')); ?></dt>
+        <?php endif; ?>
+    </dl>
+
+
+
+</fieldset>

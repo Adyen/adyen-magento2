@@ -253,9 +253,6 @@ define(
                 }
                 return null;
             }),
-            getRecurringContractType: function() {
-                return window.checkoutConfig.payment.adyenOneClick.recurringContractType;
-            },
             hasVerification: function() {
                 return window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction;
             },

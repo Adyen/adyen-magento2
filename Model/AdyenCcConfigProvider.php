@@ -48,11 +48,6 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
     protected $_adyenHelper;
 
     /**
-     * @var AdyenGenericConfig
-     */
-    protected $_genericConfig;
-
-    /**
      * @var Source
      */
     protected $_assetSource;
@@ -63,20 +58,17 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
      * @param \Magento\Payment\Model\CcConfig $ccConfig
      * @param PaymentHelper $paymentHelper
      * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param AdyenGenericConfig $genericConfig
      * @param Source $assetSource
      */
     public function __construct(
         \Magento\Payment\Model\CcConfig $ccConfig,
         PaymentHelper $paymentHelper,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\AdyenGenericConfig $genericConfig,
         Source $assetSource
     ) {
         parent::__construct($ccConfig, $paymentHelper, $this->_methodCodes);
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
-        $this->_genericConfig = $genericConfig;
         $this->_assetSource = $assetSource;
     }
 
@@ -113,7 +105,7 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
                 $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
 
                 // show logos turned on by default
-                if ($this->_genericConfig->showLogos()) {
+                if ($this->_adyenHelper->showLogos()) {
                     $config['payment']['adyenCc']['creditCardPaymentMethodIcon'] = $this->_getCreditCardPaymentMethodIcon();
                 }
 
@@ -142,8 +134,8 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
      */
     protected function _getCreditCardPaymentMethodIcon()
     {
-        $asset = $this->_genericConfig->createAsset('Adyen_Payment::images/logos/img_trans.gif');
-        $placeholder = $this->_genericConfig->findRelativeSourceFilePath($asset);
+        $asset = $this->_adyenHelper->createAsset('Adyen_Payment::images/logos/img_trans.gif');
+        $placeholder = $this->_adyenHelper->findRelativeSourceFilePath($asset);
         $icon = null;
 
         if ($placeholder) {
