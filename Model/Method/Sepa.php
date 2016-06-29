@@ -278,7 +278,13 @@ class Sepa extends \Magento\Payment\Model\Method\AbstractMethod
     {
         switch ($request) {
             case "authorise":
-                $response = $this->_paymentRequest->fullApiRequest($payment, $this->_code);
+                try {
+                    $response = $this->_paymentRequest->fullApiRequest($payment, $this->_code);
+                } catch (\Adyen\AdyenException $e) {
+                    $errorMsg = __('Error with payment method please select different payment method.');
+                    $this->_logger->critical($e->getMessage());
+                    throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
+                }
                 break;
         }
 
