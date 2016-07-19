@@ -371,7 +371,11 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      */
     public function authorise3d($payment)
     {
-        $response = $this->_paymentRequest->authorise3d($payment);
+        try {
+            $response = $this->_paymentRequest->authorise3d($payment);
+        } catch(\Exception $e) {
+            throw $e;
+        }
         $responseCode = $response['resultCode'];
         return $responseCode;
     }
