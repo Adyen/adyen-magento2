@@ -94,9 +94,12 @@ class Validate3d extends \Magento\Framework\App\Action\Action
 
                     try {
                         $result = $order->getPayment()->getMethodInstance()->authorise3d($order->getPayment());
-                    } catch (Exception $e) {
+                    } catch (\Exception $e) {
+                        $this->_adyenLogger->addAdyenResult("Process 3D secure payment was refused");
                         $result = 'Refused';
                     }
+
+                    $this->_adyenLogger->addAdyenResult("Process 3D secure payment result is: " . $result);
 
                     // check if authorise3d was successful
                     if ($result == 'Authorised') {
@@ -105,6 +108,15 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                     } else {
                         $order->addStatusHistoryComment(__('3D-secure validation was unsuccessful.'))->save();
                         $this->_adyenHelper->cancelOrder($order);
+                        $this->messageManager->addErrorMessage("3D-secure validation was unsuccessful");
+                        
+                        // reactivate the quote
+                        $session = $this->_getCheckout();
+
+                        // restore the quote
+                        $session->restoreQuote();
+
+                        $this->_redirect('checkout/cart');
                     }
                 }
             } else {
