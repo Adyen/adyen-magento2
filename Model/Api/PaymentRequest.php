@@ -322,7 +322,7 @@ class PaymentRequest extends DataObject
         try {
             $service = new \Adyen\Service\Payment($this->_client);
             $result = $service->authorise3D($request);
-        } catch(Exception $e) {
+        } catch(\Adyen\AdyenException $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure failed'));
         }
 
