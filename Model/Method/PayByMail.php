@@ -293,7 +293,7 @@ class PayByMail extends \Magento\Payment\Model\Method\AbstractMethod
 
         $formFields['merchantSig']      = $merchantSig;
 
-        $this->_adyenLogger->debug(print_r($formFields, true));
+        $this->_adyenLogger->addAdyenDebug(print_r($formFields, true));
 
         return $formFields;
     }
