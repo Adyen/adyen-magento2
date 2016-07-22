@@ -103,12 +103,6 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
                 $config['payment'] ['adyenCc']['cseEnabled'] = $cseEnabled;
                 $config['payment']['adyenCc']['generationTime'] = date("c");
                 $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
-
-                // show logos turned on by default
-                if ($this->_adyenHelper->showLogos()) {
-                    $config['payment']['adyenCc']['creditCardPaymentMethodIcon'] = $this->_getCreditCardPaymentMethodIcon();
-                }
-
                 $config['payment']['adyenCc']['icons'] = $this->getIcons();
 
                 // has installments by default false
@@ -127,26 +121,6 @@ class AdyenCcConfigProvider extends CcGenericConfigProvider
         }
 
         return $config;
-    }
-
-    /**
-     * @return array|null
-     */
-    protected function _getCreditCardPaymentMethodIcon()
-    {
-        $asset = $this->_adyenHelper->createAsset('Adyen_Payment::images/logos/img_trans.gif');
-        $placeholder = $this->_adyenHelper->findRelativeSourceFilePath($asset);
-        $icon = null;
-
-        if ($placeholder) {
-            list($width, $height) = getimagesize($asset->getSourceFile());
-            $icon = [
-                'url' => $asset->getUrl(),
-                'width' => $width,
-                'height' => $height
-            ];
-        }
-        return $icon;
     }
 
     /**
