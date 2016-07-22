@@ -209,6 +209,9 @@ define(
             isPaymentMethodSelectionOnAdyen: function() {
                 return window.checkoutConfig.payment.adyenHpp.isPaymentMethodSelectionOnAdyen;
             },
+            isIconEnabled: function() {
+                return window.checkoutConfig.payment.adyen.showLogo;
+            },
             validate: function () {
                 return true;
             }
