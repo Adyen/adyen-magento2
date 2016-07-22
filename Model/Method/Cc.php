@@ -383,7 +383,7 @@ class Cc extends \Magento\Payment\Model\Method\Cc
      *
      * @param $payment
      * @return mixed
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Exception
      */
     public function authorise3d($payment)
     {
