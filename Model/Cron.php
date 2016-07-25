@@ -200,7 +200,7 @@ class Cron
         $dateStart = new \DateTime();
         $dateStart->modify('-5 day');
         $dateEnd = new \DateTime();
-        $dateEnd->modify('-1 minute');
+//        $dateEnd->modify('-1 minute');
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
 
         // create collection
@@ -761,7 +761,7 @@ class Cron
                         }
 
                         $contractDetail = null;
-                        // get currenct Contract details and get list of all current ones
+                        // get current Contract details and get list of all current ones
                         $recurringReferencesList = [];
 
                         if ($listRecurringContracts) {
@@ -1067,7 +1067,7 @@ class Cron
                         $this->_paymentMethod == "sepadirectdebit") && $sepaFlow != "authcap")) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'This payment method does not allow manual capture.(2) paymentCode:' .
-                    $_paymentCode . ' paymentMethod:' . $this->_paymentMethod
+                    $_paymentCode . ' paymentMethod:' . $this->_paymentMethod . ' sepaFLow:'.$sepaFlow
                 );
                 return true;
             }
