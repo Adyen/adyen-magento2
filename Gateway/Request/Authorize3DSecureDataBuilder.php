@@ -25,18 +25,27 @@ namespace Adyen\Payment\Gateway\Request;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 /**
- * Class CustomerDataBuilder
+ * Payment Data Builder
  */
-class CustomerDataBuilder implements BuilderInterface
+class Authorize3DSecureDataBuilder implements BuilderInterface
 {
-    /**
-     * quest prefix
-     */
-    const GUEST_ID = 'customer_';
 
     /**
-     * Add shopper data into request
-     * 
+     * @var \Adyen\Payment\Helper\Data
+     */
+    private $adyenHelper;
+
+    /**
+     * PaymentDataBuilder constructor.
+     *
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     */
+    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
+    {
+        $this->adyenHelper = $adyenHelper;
+    }
+
+    /**
      * @param array $buildSubject
      * @return array
      */
@@ -44,17 +53,12 @@ class CustomerDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-
-        $order = $paymentDataObject->getOrder();
-        $billingAddress = $order->getBillingAddress();
-        $customerEmail = $billingAddress->getEmail();
-        $realOrderId = $order->getOrderIncrementId();
-        $customerId = $order->getCustomerId();
-        $shopperReference = (!empty($customerId)) ? $customerId : self::GUEST_ID . $realOrderId;
-
+        $payment = $paymentDataObject->getPayment();
+        $md = $payment->getAdditionalInformation('md');
+        $paResponse = $payment->getAdditionalInformation('paResponse');
         return [
-            "shopperEmail" => $customerEmail,
-            "shopperReference" => $shopperReference
+            "md" => $md,
+            "paResponse" => $paResponse,
         ];
     }
 }

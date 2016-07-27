@@ -25,31 +25,55 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-class SepaAuthorizationBuilder implements BuilderInterface
+class OneclickAuthorizationBuilder implements BuilderInterface
 {
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    private $adyenHelper;
+
+    /**
+     * CaptureDataBuilder constructor.
+     *
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     */
+    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
+    {
+        $this->adyenHelper = $adyenHelper;
+    }
+
     /**
      * @param array $buildSubject
      * @return mixed
      */
     public function build(array $buildSubject)
     {
+        $request = [];
+
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        $request = [];
+        $recurringDetailReference = $payment->getAdditionalInformation("recurring_detail_reference");
 
-        // set brand to sepa
-        $request['selectedBrand'] = "sepadirectdebit";
+        if ($payment->getAdditionalInformation('customer_interaction')) {
+            $shopperInteraction = "Ecommerce";
+        } else {
+            $shopperInteraction = "ContAuth";
+        }
 
-        // add bankDetails into request
-        $bankAccount = [
-            'iban' => $payment->getAdditionalInformation("iban"),
-            'ownerName' => $payment->getAdditionalInformation("account_name"),
-            'countryCode' => $payment->getAdditionalInformation("country")
-        ];
+        $request['selectedRecurringDetailReference'] =  $recurringDetailReference;
+        $request['shopperInteraction'] = $shopperInteraction;
 
-        $request['bankAccount'] = $bankAccount;
-        
+        /*
+         * For recurring Ideal and Sofort needs to be converted to SEPA
+         * for this it is mandatory to set selectBrand to sepadirectdebit
+         */
+        if (!$payment->getAdditionalInformation('customer_interaction')) {
+            if ($payment->getCcType() == "directEbanking" || $payment->getCcType() == "ideal") {
+                $request['selectedBrand'] = "sepadirectdebit";
+            }
+        }
+
         return $request;
     }
 }

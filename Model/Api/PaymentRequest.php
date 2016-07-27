@@ -151,26 +151,7 @@ class PaymentRequest extends DataObject
         // set the recurring type
         $recurringContractType = null;
         if ($recurringType) {
-            if ($paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
-                /*
-                 * For ONECLICK look at the recurringPaymentType that the merchant
-                 * has selected in Adyen ONECLICK settings
-                 */
-                if ($payment->getAdditionalInformation('customer_interaction')) {
-                    $recurringContractType = \Adyen\Payment\Model\RecurringType::ONECLICK;
-                } else {
-                    $recurringContractType =  \Adyen\Payment\Model\RecurringType::RECURRING;
-                }
-            } else if ($paymentMethodCode == \Adyen\Payment\Model\Method\Cc::METHOD_CODE) {
-                if ($payment->getAdditionalInformation("store_cc") == "" &&
-                    ($recurringType == "ONECLICK,RECURRING" || $recurringType == "RECURRING")) {
-                    $recurringContractType = \Adyen\Payment\Model\RecurringType::RECURRING;
-                } elseif ($payment->getAdditionalInformation("store_cc") == "1") {
-                    $recurringContractType = $recurringType;
-                }
-            } else {
-                $recurringContractType = $recurringType;
-            }
+            $recurringContractType = $recurringType;
         }
 
         if ($recurringContractType) {
@@ -225,31 +206,8 @@ class PaymentRequest extends DataObject
         $recurringDetailReference = null;
 
         // define the shopper interaction
-        if ($this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE &&
-            $paymentMethodCode == \Adyen\Payment\Model\Method\Cc::METHOD_CODE &&
-            $enableMoto) {
-            // if MOTO for backend is enabled use MOTO as shopper interaction type
-            $shopperInteraction = "Moto";
-        } else if ($paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
-            $recurringDetailReference = $payment->getAdditionalInformation("recurring_detail_reference");
-            if ($payment->getAdditionalInformation('customer_interaction')) {
-                $shopperInteraction = "Ecommerce";
-            } else {
-                $shopperInteraction = "ContAuth";
-            }
+        $shopperInteraction = "Ecommerce";
 
-            /*
-             * For recurring Ideal and Sofort needs to be converted to SEPA
-             * for this it is mandatory to set selectBrand to sepadirectdebit
-             */
-            if (!$payment->getAdditionalInformation('customer_interaction')) {
-                if ($payment->getCcType() == "directEbanking" || $payment->getCcType() == "ideal") {
-                    $request['selectedBrand'] = "sepadirectdebit";
-                }
-            }
-        } else {
-            $shopperInteraction = "Ecommerce";
-        }
 
         if ($shopperInteraction) {
             $request['shopperInteraction'] = $shopperInteraction;
@@ -264,43 +222,7 @@ class PaymentRequest extends DataObject
             $request['selectedBrand'] = "sepadirectdebit";
         }
 
-        if ($paymentMethodCode == \Adyen\Payment\Model\Method\Cc::METHOD_CODE ||
-            $paymentMethodCode == \Adyen\Payment\Model\Method\Oneclick::METHOD_CODE) {
-            // If cse is enabled add encrypted card date into request
-            if ($this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled', $storeId)) {
-                $request['additionalData']['card.encrypted.json'] =
-                    $payment->getAdditionalInformation("encrypted_data");
-            } else {
-                $requestCreditCardDetails = [
-                    "expiryMonth" => $payment->getCcExpMonth(),
-                    "expiryYear" => $payment->getCcExpYear(),
-                    "holderName" => $payment->getCcOwner(),
-                    "number" => $payment->getCcNumber(),
-                    "cvc" => $payment->getCcCid(),
-                ];
-                $cardDetails['card'] = $requestCreditCardDetails;
-                $request = array_merge($request, $cardDetails);
-            }
-
-            // if installments is set add it into the request
-            if ($payment->getAdditionalInformation('number_of_installments') &&
-                $payment->getAdditionalInformation('number_of_installments')  > 0) {
-                $request['installments']['value'] = $payment->getAdditionalInformation('number_of_installments');
-            }
-        } elseif ($paymentMethodCode == \Adyen\Payment\Model\Method\Sepa::METHOD_CODE) {
-
-            // set brand to sepa
-            $request['selectedBrand'] = "sepadirectdebit";
-
-            // add bankDetails into request
-            $bankAccount = [
-                'iban' => $payment->getAdditionalInformation("iban"),
-                'ownerName' => $payment->getAdditionalInformation("account_name"),
-                'countryCode' => $payment->getAdditionalInformation("country")
-            ];
-
-            $request['bankAccount'] = $bankAccount;
-        } elseif ($paymentMethodCode == \Adyen\Payment\Model\Method\Boleto::METHOD_CODE) {
+        if ($paymentMethodCode == \Adyen\Payment\Model\Method\Boleto::METHOD_CODE) {
 
 
             $request['socialSecurityNumber'] = $payment->getAdditionalInformation("social_security_number");

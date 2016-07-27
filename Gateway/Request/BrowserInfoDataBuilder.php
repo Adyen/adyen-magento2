@@ -20,22 +20,27 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+namespace Adyen\Payment\Gateway\Request;
 
-namespace Adyen\Payment\Gateway\Config;
+use Magento\Payment\Gateway\Request\BuilderInterface;
 
 /**
- * Class Config
+ * Payment Data Builder
  */
-class SepaConfig extends \Magento\Payment\Gateway\Config\Config
+class BrowserInfoDataBuilder implements BuilderInterface
 {
-    const KEY_ACTIVE = 'active';
-
     /**
-     * Get Payment configuration status
-     * @return bool
+     * @param array $buildSubject
+     * @return array
      */
-    public function isActive()
+    public function build(array $buildSubject)
     {
-        return (bool) $this->getValue(self::KEY_ACTIVE);
+        return [
+            'browserInfo' =>
+                [
+                    'userAgent' => $_SERVER['HTTP_USER_AGENT'],
+                    'acceptHeader' => $_SERVER['HTTP_ACCEPT']
+                ]
+        ];
     }
 }

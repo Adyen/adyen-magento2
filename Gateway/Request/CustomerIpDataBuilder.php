@@ -27,16 +27,9 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 /**
  * Class CustomerDataBuilder
  */
-class CustomerDataBuilder implements BuilderInterface
+class CustomerIpDataBuilder implements BuilderInterface
 {
     /**
-     * quest prefix
-     */
-    const GUEST_ID = 'customer_';
-
-    /**
-     * Add shopper data into request
-     * 
      * @param array $buildSubject
      * @return array
      */
@@ -44,17 +37,7 @@ class CustomerDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-
         $order = $paymentDataObject->getOrder();
-        $billingAddress = $order->getBillingAddress();
-        $customerEmail = $billingAddress->getEmail();
-        $realOrderId = $order->getOrderIncrementId();
-        $customerId = $order->getCustomerId();
-        $shopperReference = (!empty($customerId)) ? $customerId : self::GUEST_ID . $realOrderId;
-
-        return [
-            "shopperEmail" => $customerEmail,
-            "shopperReference" => $shopperReference
-        ];
+        return ['shopperIP' => $order->getRemoteIp()];
     }
 }

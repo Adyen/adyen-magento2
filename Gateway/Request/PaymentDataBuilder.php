@@ -56,17 +56,14 @@ class PaymentDataBuilder implements BuilderInterface
         $order = $paymentDataObject->getOrder();
         $orderCurrencyCode = $order->getCurrencyCode();
         $amount = $order->getGrandTotalAmount();
-
-        $browserInfo = ['userAgent' => $_SERVER['HTTP_USER_AGENT'], 'acceptHeader' => $_SERVER['HTTP_ACCEPT']];
-
+        
         $amount = ['currency' => $orderCurrencyCode,
             'value' => $this->adyenHelper->formatAmount($amount, $orderCurrencyCode)];
 
         return [
             "amount" => $amount,
             "reference" => $order->getOrderIncrementId(),
-            "fraudOffset" => "0",
-            "browserInfo" => $browserInfo
+            "fraudOffset" => "0"
         ];
     }
 }

@@ -139,9 +139,11 @@ class PaymentMethods extends AbstractHelper
     {
         $paymentMethods = [];
 
-        $ccEnabled = $this->_config->getValue('payment/'.\Adyen\Payment\Model\Method\Cc::METHOD_CODE.'/active');
+        $ccEnabled = $this->_config->getValue('payment/'.\Adyen\Payment\Model\Ui\AdyenCcConfigProvider::CODE.'/active');
         $ccTypes = array_keys($this->_adyenHelper->getCcTypesAltData());
-        $sepaEnabled = $this->_config->getValue('payment/'.\Adyen\Payment\Model\Method\Sepa::METHOD_CODE.'/active');
+        $sepaEnabled = $this->_config->getValue(
+            'payment/'.\Adyen\Payment\Model\Ui\AdyenSepaConfigProvider::CODE.'/active'
+        );
 
         foreach ($this->_fetchHppMethods($store, $country) as $methodCode => $methodData) {
             /*
@@ -162,6 +164,7 @@ class PaymentMethods extends AbstractHelper
 
     /**
      * @param $store
+     * @param $country
      * @return array
      */
     protected function _fetchHppMethods($store, $country)
@@ -239,6 +242,7 @@ class PaymentMethods extends AbstractHelper
         }
         return 10;
     }
+
 
     /**
      * @param $store

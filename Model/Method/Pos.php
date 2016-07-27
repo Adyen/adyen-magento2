@@ -301,7 +301,7 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $shopperEmail           = $order->getCustomerEmail();
         $customerId             = $order->getCustomerId();
         $callbackUrl            = $this->_urlBuilder->getUrl('adyen/process/resultpos',
-                                  ['_secure' => $this->_getRequest()->isSecure()]);
+            ['_secure' => $this->_getRequest()->isSecure()]);
         $addReceiptOrderLines   = $this->_adyenHelper->getAdyenPosConfigData("add_receipt_order_lines");
         $recurringContract      = $this->_adyenHelper->getAdyenPosConfigData('recurring_type');
         $currencyCode           = $orderCurrencyCode;
@@ -313,7 +313,7 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
         $recurringParams = "";
         if ($order->getPayment()->getAdditionalInformation("store_cc") != "") {
             $recurringParams = "&recurringContract=" . urlencode($recurringContract) . "&shopperReference=" .
-                                urlencode($shopperReference) . "&shopperEmail=" . urlencode($shopperEmail);
+                urlencode($shopperReference) . "&shopperEmail=" . urlencode($shopperEmail);
         }
 
         $receiptOrderLines = "";
@@ -331,7 +331,11 @@ class Pos extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
             "&currency=".$currencyCode."&merchantReference=".$merchantReference. $recurringParams .
             $receiptOrderLines .  "&callback=".$callbackUrl . $extraParamaters;
 
-        $this->_adyenLogger->debug(print_r($launchlink, true));
+        // cash not working see ticket
+        // https://youtrack.is.adyen.com/issue/IOS-130#comment=102-20285
+        // . "&transactionType=CASH";
+
+        $this->_adyenLogger->addAdyenDebug(print_r($launchlink, true));
 
         return $launchlink;
     }

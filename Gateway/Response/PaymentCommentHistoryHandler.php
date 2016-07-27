@@ -43,7 +43,13 @@ class PaymentCommentHistoryHandler implements HandlerInterface
         if (isset($response['resultCode'])) {
             $responseCode = $response['resultCode'];
         } else {
-            $responseCode = "";
+
+            // try to get response from response key (used for modifications
+            if (isset($response['response'])) {
+                $responseCode = $response['response'];
+            } else {
+                $responseCode = "";
+            }
         }
 
         if (isset($response['pspReference'])) {

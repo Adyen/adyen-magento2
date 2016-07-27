@@ -46,20 +46,28 @@ class Validate3d extends \Magento\Framework\App\Action\Action
     protected $_adyenHelper;
 
     /**
+     * @var \Adyen\Payment\Model\Api\PaymentRequest
+     */
+    protected $_paymentRequest;
+
+    /**
      * Validate3d constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
     ) {
         parent::__construct($context);
         $this->_adyenLogger = $adyenLogger;
         $this->_adyenHelper = $adyenHelper;
+        $this->_paymentRequest = $paymentRequest;
     }
 
     /**
@@ -93,7 +101,17 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                     $order->getPayment()->setAdditionalInformation('paResponse', $requestPaRes);
 
                     try {
-                        $result = $order->getPayment()->getMethodInstance()->authorise3d($order->getPayment());
+
+                        /**
+                         * Magento should allow this.
+                         * https://github.com/magento/magento2/issues/5819
+                         */
+//                        $result = $order->getPayment()->getMethodInstance()->executeCommand(
+//                            'authorise_3d',
+//                            ['payment' => $order->getPayment(), 'amount' => $order->getGrandTotal()]
+//                        );
+                        // old fashion way:
+                        $result = $this->_authorise3d($order->getPayment());
                     } catch (\Exception $e) {
                         $this->_adyenLogger->addAdyenResult("Process 3D secure payment was refused");
                         $result = 'Refused';
@@ -132,6 +150,24 @@ class Validate3d extends \Magento\Framework\App\Action\Action
         } else {
             $this->_redirect('checkout/onepage/success/');
         }
+    }
+
+    /**
+     * Called by validate3d controller when cc payment has 3D secure
+     *
+     * @param $payment
+     * @return mixed
+     * @throws \Exception
+     */
+    protected function _authorise3d($payment)
+    {
+        try {
+            $response = $this->_paymentRequest->authorise3d($payment);
+        } catch(\Exception $e) {
+            throw $e;
+        }
+        $responseCode = $response['resultCode'];
+        return $responseCode;
     }
 
     /**

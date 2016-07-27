@@ -38,7 +38,7 @@
             </adyen_abstract>
             <adyen_cc>
                 <active>1</active>
-                <model>Adyen\Payment\Model\Method\Cc</model>
+                <model>AdyenPaymentCcFacade</model>
                 <title>Adyen CreditCard</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>2</sort_order>
@@ -47,17 +47,43 @@
                 <cse_enabled>1</cse_enabled>
                 <enable_moto>0</enable_moto>
                 <payment_action>authorize</payment_action>
+                <is_gateway>1</is_gateway>
+                <can_use_checkout>1</can_use_checkout>
+                <can_authorize>1</can_authorize>
+                <can_authorize_3d>1</can_authorize_3d>
+                <can_capture>1</can_capture>
+                <can_capture_partial>1</can_capture_partial>
+                <can_use_internal>1</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
                 <group>adyen</group>
             </adyen_cc>
             <adyen_oneclick>
                 <active>1</active>
-                <model>Adyen\Payment\Model\Method\Oneclick</model>
+                <model>AdyenPaymentOneclickFacade</model>
                 <title>Adyen OneClick</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>1</sort_order>
                 <cctypes>AE,VI,MC,DI</cctypes> <!-- important to show the payment method isAvailabe()-->
                 <recurring_payment_type>ONECLICK</recurring_payment_type>
                 <payment_action>authorize</payment_action>
+                <useccv>1</useccv>
+                <cse_enabled>1</cse_enabled>
+                <enable_moto>0</enable_moto>
+                <payment_action>authorize</payment_action>
+                <is_gateway>1</is_gateway>
+                <can_use_checkout>1</can_use_checkout>
+                <can_authorize>1</can_authorize>
+                <can_authorize_3d>1</can_authorize_3d>
+                <can_capture>1</can_capture>
+                <can_capture_partial>1</can_capture_partial>
+                <can_use_internal>1</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
                 <group>adyen</group>
             </adyen_oneclick>
             <adyen_hpp>
@@ -77,7 +103,7 @@
             </adyen_hpp>
             <adyen_sepa>
                 <active>0</active>
-                <model>AdyenSepaFacade</model>
+                <model>AdyenPaymentSepaFacade</model>
                 <title>Sepa Direct Debit</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>4</sort_order>
