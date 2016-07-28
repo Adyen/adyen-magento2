@@ -60,10 +60,38 @@ class GeneralResponseValidator extends AbstractValidator
         $errorMessages = [];
 
         // validate result
-        if ($response) {
+        if ($response && isset($response['resultCode'])) {
             switch ($response['resultCode']) {
                 case "Authorised":
                     $payment->setAdditionalInformation('pspReference', $response['pspReference']);
+                    break;
+                case "Received":
+                    $payment->setAdditionalInformation('pspReference', $response['pspReference']);
+                    // set additionalData
+                    if (isset($response['additionalData']) && is_array($response['additionalData'])) {
+
+                        $additionalData = $response['additionalData'];
+                        if (isset($additionalData['boletobancario.dueDate'])) {
+                            $payment->setAdditionalInformation(
+                                'dueDate',
+                                $additionalData['boletobancario.dueDate']
+                            );
+                        }
+
+                        if (isset($additionalData['boletobancario.expirationDate'])) {
+                            $payment->setAdditionalInformation(
+                                'expirationDate',
+                                $additionalData['boletobancario.expirationDate']
+                            );
+                        }
+
+                        if (isset($additionalData['boletobancario.url'])) {
+                            $payment->setAdditionalInformation(
+                                'url',
+                                $additionalData['boletobancario.url']
+                            );
+                        }
+                    }
                     break;
                 case "RedirectShopper":
                     $payment->setAdditionalInformation('3dActive', true);
@@ -85,10 +113,7 @@ class GeneralResponseValidator extends AbstractValidator
                     }
                     break;
                 case "Refused":
-                    $isValid = false;
-
                     if ($response['refusalReason']) {
-
                         $refusalReason = $response['refusalReason'];
                         switch($refusalReason) {
                             case "Transaction Not Permitted":
@@ -113,26 +138,17 @@ class GeneralResponseValidator extends AbstractValidator
                     } else {
                         $errorMsg = __('The payment is REFUSED.');
                     }
-
-                    // exeption is to general
-//                    $this->logger->critical($errorMsg);
-//                    $errorMessages[] = $errorMsg;
-
                     // this will result the specific error
                     throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
-
                     break;
                 default:
-                    $isValid = false;
                     $errorMsg = __('Error with payment method please select different payment method.');
-                    $this->logger->critical($errorMsg);
-                    $errorMessages[] = $errorMsg;
+                    throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
                     break;
             }
         } else {
             $errorMsg = __('Error with payment method please select different payment method.');
-            $this->logger->critical($errorMsg);
-            $errorMessages[] = $errorMsg;
+            throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
         }
         
         return $this->createResult($isValid, $errorMessages);

@@ -88,7 +88,7 @@ class Success extends \Magento\Framework\View\Element\Template
     public function isBoletoPayment()
     {
         if ($this->getOrder()->getPayment() &&
-            $this->getOrder()->getPayment()->getMethod() == \Adyen\Payment\Model\Method\Boleto::METHOD_CODE) {
+            $this->getOrder()->getPayment()->getMethod() == \Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider::CODE) {
             return true;
         }
         return false;

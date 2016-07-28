@@ -25,8 +25,9 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-class OneclickAuthorizationBuilder implements BuilderInterface
+class BoletoAuthorizationDataBuilder implements BuilderInterface
 {
+
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -41,39 +42,46 @@ class OneclickAuthorizationBuilder implements BuilderInterface
     {
         $this->adyenHelper = $adyenHelper;
     }
-
+    
     /**
      * @param array $buildSubject
      * @return mixed
      */
     public function build(array $buildSubject)
     {
-        $request = [];
-
+        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        $recurringDetailReference = $payment->getAdditionalInformation("recurring_detail_reference");
+        $order = $paymentDataObject->getOrder();
+        $storeId = $order->getStoreId();
 
-        if ($payment->getAdditionalInformation('customer_interaction')) {
-            $shopperInteraction = "Ecommerce";
-        } else {
-            $shopperInteraction = "ContAuth";
-        }
+        $request = [];
 
-        $request['selectedRecurringDetailReference'] =  $recurringDetailReference;
-        $request['shopperInteraction'] = $shopperInteraction;
+        $request['socialSecurityNumber'] = $payment->getAdditionalInformation("social_security_number");
+        $request['selectedBrand'] = $payment->getAdditionalInformation("boleto_type");
 
-        /*
-         * For recurring Ideal and Sofort needs to be converted to SEPA
-         * for this it is mandatory to set selectBrand to sepadirectdebit
-         */
-        if (!$payment->getAdditionalInformation('customer_interaction')) {
-            if ($payment->getCcType() == "directEbanking" || $payment->getCcType() == "ideal") {
-                $request['selectedBrand'] = "sepadirectdebit";
-            }
-        }
+        $shopperName = [
+            'firstName' => $payment->getAdditionalInformation("firstname"),
+            'lastName' => $payment->getAdditionalInformation("lastname"),
+        ];
+        $request['shopperName'] = $shopperName;
 
+
+        $deliveryDays = (int) $this->adyenHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
+        $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
+        $deliveryDate = date(
+            "Y-m-d\TH:i:s ",
+            mktime(date("H"),
+                date("i"),
+                date("s"),
+                date("m"),
+                date("j") + $deliveryDays,
+                date("Y"))
+        );
+
+        $request['deliveryDate'] = $deliveryDate;
+        
         return $request;
     }
 }

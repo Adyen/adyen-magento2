@@ -250,8 +250,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     {
         return $this->ccConfig->getCvvImageUrl();
     }
-
-
+    
     /**
      * Retrieve request object
      *

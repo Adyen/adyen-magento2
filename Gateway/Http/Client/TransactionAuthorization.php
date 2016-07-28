@@ -96,9 +96,8 @@ class TransactionAuthorization implements ClientInterface
         try {
             $response = $service->authorise($request);
         } catch(\Adyen\AdyenException $e) {
-            $response = null;
+            $response['error'] =  $e->getMessage();
         }
-        
         return $response;
     }
 }

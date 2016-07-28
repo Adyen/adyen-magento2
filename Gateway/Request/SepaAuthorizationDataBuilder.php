@@ -25,7 +25,7 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-class SepaAuthorizationBuilder implements BuilderInterface
+class SepaAuthorizationDataBuilder implements BuilderInterface
 {
     /**
      * @param array $buildSubject

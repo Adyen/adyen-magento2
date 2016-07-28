@@ -21,12 +21,14 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model;
+namespace Adyen\Payment\Model\Ui;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
 
 class AdyenBoletoConfigProvider implements ConfigProviderInterface
 {
+
+    const CODE = 'adyen_boleto';
 
     /**
      * @var PaymentHelper
@@ -39,34 +41,35 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
     protected $_adyenHelper;
 
     /**
-     * @var string[]
+     * @var \Magento\Framework\UrlInterface
      */
-    protected $_methodCodes = [
-        \Adyen\Payment\Model\Method\Boleto::METHOD_CODE
-    ];
+    protected $_urlBuilder;
 
     /**
-     * @var \Magento\Payment\Model\Method\AbstractMethod[]
+     * Request object
+     *
+     * @var \Magento\Framework\App\RequestInterface
      */
-    protected $_methods = [];
-
+    protected $_request;
 
     /**
      * AdyenBoletoConfigProvider constructor.
      *
      * @param \Magento\Payment\Helper\Data $paymentHelper
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param \Magento\Framework\App\RequestInterface $request
      */
     public function __construct(
         \Magento\Payment\Helper\Data $paymentHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Framework\UrlInterface $urlBuilder,
+        \Magento\Framework\App\RequestInterface $request
     ) {
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
-
-        foreach ($this->_methodCodes as $code) {
-            $this->_methods[$code] = $this->_paymentHelper->getMethodInstance($code);
-        }
+        $this->_urlBuilder = $urlBuilder;
+        $this->_request = $request;
     }
 
     /**
@@ -74,20 +77,28 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
      */
     public function getConfig()
     {
-        $config = [];
+        // set to active
+        return [
+            'payment' => [
+                self::CODE => [
+                    'isActive' => true,
+                    'redirectUrl' => $this->_urlBuilder->getUrl(
+                        'checkout/onepage/success/', ['_secure' => $this->_getRequest()->isSecure()])
+                ],
+                'adyenBoleto' => [
+                    'boletoTypes' => $this->_adyenHelper->getBoletoTypes()
+                ]
+            ]
+        ];
+    }
 
-        foreach ($this->_methodCodes as $code) {
-            if ($this->_methods[$code]->isAvailable()) {
-                $config = [
-                    'payment' => [
-                        'adyenBoleto' => [
-                            'boletoTypes' => $this->_adyenHelper->getBoletoTypes()
-                        ]
-                    ]
-                ];
-            }
-        }
-
-        return $config;
+    /**
+     * Retrieve request object
+     *
+     * @return \Magento\Framework\App\RequestInterface
+     */
+    protected function _getRequest()
+    {
+        return $this->_request;
     }
 }

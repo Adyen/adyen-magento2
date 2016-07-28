@@ -202,7 +202,6 @@ class PaymentRequest extends DataObject
             $request = array_merge($request, $requestDelivery);
         }
 
-        $enableMoto = $this->_adyenHelper->getAdyenCcConfigDataFlag('enable_moto', $storeId);
         $recurringDetailReference = null;
 
         // define the shopper interaction
@@ -221,35 +220,8 @@ class PaymentRequest extends DataObject
         if ($payment->getCcType() == "sepadirectdebit") {
             $request['selectedBrand'] = "sepadirectdebit";
         }
-
-        if ($paymentMethodCode == \Adyen\Payment\Model\Method\Boleto::METHOD_CODE) {
-
-
-            $request['socialSecurityNumber'] = $payment->getAdditionalInformation("social_security_number");
-            $request['selectedBrand'] = $payment->getAdditionalInformation("boleto_type");
-
-            $shopperName = [
-                'firstName' => $payment->getAdditionalInformation("firstname"),
-                'lastName' => $payment->getAdditionalInformation("lastname"),
-            ];
-            $request['shopperName'] = $shopperName;
-
-
-            $deliveryDays = (int) $this->_adyenHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
-            $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
-            $deliveryDate = date(
-                "Y-m-d\TH:i:s ",
-                mktime(date("H"),
-                date("i"),
-                date("s"),
-                date("m"),
-                date("j") + $deliveryDays,
-                date("Y"))
-            );
-
-            $request['deliveryDate'] = $deliveryDate;
-        }
         
+
         $result = $service->authorise($request);
         return $result;
     }

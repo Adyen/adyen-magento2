@@ -49,7 +49,6 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
     protected $_methodCodes = [
         \Adyen\Payment\Model\Method\Hpp::METHOD_CODE,
         \Adyen\Payment\Model\Method\Pos::METHOD_CODE,
-        \Adyen\Payment\Model\Method\Boleto::METHOD_CODE
     ];
 
     /**
