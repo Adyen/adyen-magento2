@@ -54,8 +54,8 @@ class PaymentDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getOrder();
-        $orderCurrencyCode = $order->getCurrencyCode();
-        $amount = $order->getGrandTotalAmount();
+        $orderCurrencyCode = $order->getOrderCurrencyCode();
+        $amount = $order->getGrandTotal();  
         
         $amount = ['currency' => $orderCurrencyCode,
             'value' => $this->adyenHelper->formatAmount($amount, $orderCurrencyCode)];
