@@ -30,7 +30,7 @@
                 <item name="adyen_generic_config_provider" xsi:type="object">Adyen\Payment\Model\AdyenGenericConfigProvider</item>
                 <item name="adyen_cc_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenCcConfigProvider</item>
                 <item name="adyen_oneclick_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider</item>
-                <item name="adyen_hpp_config_provider" xsi:type="object">Adyen\Payment\Model\AdyenHppConfigProvider</item>
+                <item name="adyen_hpp_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenHppConfigProvider</item>
                 <item name="adyen_sepa_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenSepaConfigProvider</item>
                 <item name="adyen_boleto_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider</item>
             </argument>

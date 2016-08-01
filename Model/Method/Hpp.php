@@ -292,7 +292,7 @@ class Hpp extends \Magento\Payment\Model\Method\AbstractMethod implements Gatewa
      */
     public function getFormUrl()
     {
-        $paymentRoutine   = $this->getConfigData('payment_routine');
+        $paymentRoutine = $this->getConfigData('payment_routine');
 
         switch ($this->_adyenHelper->isDemoMode()) {
             case true:
