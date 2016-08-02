@@ -190,7 +190,19 @@ class Data extends AbstractHelper
                 break;
         }
 
-        return number_format($amount, $format, '', '');
+        return (int)number_format($amount, $format, '', '');
+    }
+
+    /**
+     * Tax Percentage needs to be in minor units for Adyen
+     *
+     * @param float $taxPercent
+     * @return int
+     */
+    public function getMinorUnitTaxPercent($taxPercent)
+    {
+        $taxPercent = $taxPercent * 100;
+        return (int)$taxPercent;
     }
 
     /**
