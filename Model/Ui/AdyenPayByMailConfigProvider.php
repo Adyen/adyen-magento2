@@ -20,18 +20,17 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Model;
+
+namespace Adyen\Payment\Model\Ui;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Payment\Helper\Data as PaymentHelper;
+use Magento\Directory\Helper\Data;
 
-class AdyenGenericConfigProvider implements ConfigProviderInterface
+class AdyenPayByMailConfigProvider implements ConfigProviderInterface
 {
 
-    /**
-     * @var \Magento\Payment\Model\Method\AbstractMethod[]
-     */
-    protected $_methods = [];
+    const CODE = 'adyen_pay_by_mail';
 
     /**
      * @var PaymentHelper
@@ -44,67 +43,63 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
     protected $_adyenHelper;
 
     /**
-     * @var string[]
+     * Request object
+     *
+     * @var \Magento\Framework\App\RequestInterface
      */
-    protected $_methodCodes = [
-        \Adyen\Payment\Model\Method\Pos::METHOD_CODE,
-    ];
+    protected $_request;
 
     /**
-     * AdyenGenericConfigProvider constructor.
+     * @var \Magento\Framework\UrlInterface
+     */
+    protected $_urlBuilder;
+
+    /**
+     * AdyenHppConfigProvider constructor.
      *
      * @param PaymentHelper $paymentHelper
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         PaymentHelper $paymentHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Framework\App\RequestInterface $request,
+        \Magento\Framework\UrlInterface $urlBuilder
     ) {
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
-
-        foreach ($this->_methodCodes as $code) {
-            $this->_methods[$code] = $this->_paymentHelper->getMethodInstance($code);
-        }
+        $this->_request = $request;
+        $this->_urlBuilder = $urlBuilder;
     }
 
     /**
-     * Define foreach payment methods the RedirectUrl
+     * Set configuration for AdyenHPP payemnt method
      *
      * @return array
      */
     public function getConfig()
     {
+        // set to active
         $config = [
-            'payment' => []
+            'payment' => [
+                self::CODE => [
+                    'isActive' => true,
+                    'redirectUrl' => $this->_urlBuilder->getUrl(
+                        'adyen/process/redirect', ['_secure' => $this->_getRequest()->isSecure()])
+                ]
+            ]
         ];
 
-        foreach ($this->_methodCodes as $code) {
-            if ($this->_methods[$code]->isAvailable()) {
-
-                $config['payment'][$code] = [
-                    'redirectUrl' => $this->getMethodRedirectUrl($code)
-                ];
-            }
-        }
-
-        // show logos turned on by default
-        if ($this->_adyenHelper->showLogos()) {
-            $config['payment']['adyen']['showLogo'] = true;
-        } else {
-            $config['payment']['adyen']['showLogo'] = false;
-        }
         return $config;
     }
 
     /**
-     * Return redirect URL for method
+     * Retrieve request object
      *
-     * @param string $code
-     * @return mixed
+     * @return \Magento\Framework\App\RequestInterface
      */
-    protected function getMethodRedirectUrl($code)
+    protected function _getRequest()
     {
-        return $this->_methods[$code]->getCheckoutRedirectUrl();
+        return $this->_request;
     }
 }
