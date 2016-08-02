@@ -160,10 +160,10 @@
                 <allowspecific>0</allowspecific>
                 <sort_order>6</sort_order>
                 <session_validity>3</session_validity>
-                <payment_action>authorize</payment_action>
+                <payment_action>order</payment_action>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>0</can_use_checkout>
-                <can_authorize>1</can_authorize>
+                <can_initialize>1</can_initialize>
                 <can_capture>1</can_capture>
                 <can_capture_partial>1</can_capture_partial>
                 <can_use_internal>1</can_use_internal>

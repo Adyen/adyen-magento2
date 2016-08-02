@@ -332,7 +332,7 @@
     <virtualType name="AdyenPaymentPayByMailCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
         <arguments>
             <argument name="commands" xsi:type="array">
-                <item name="authorize" xsi:type="string">Adyen\Payment\Gateway\Command\PayByMailCommand</item>
+                <item name="initialize" xsi:type="string">Adyen\Payment\Gateway\Command\PayByMailCommand</item>
                 <item name="capture" xsi:type="string">AdyenPaymentCaptureCommand</item>
                 <item name="void" xsi:type="string">AdyenPaymentCancelCommand</item>
                 <item name="refund" xsi:type="string">AdyenPaymentRefundCommand</item>

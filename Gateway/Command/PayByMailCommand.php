@@ -66,9 +66,9 @@ class PayByMailCommand implements CommandInterface
      */
     public function execute(array $commandSubject)
     {
+        $stateObject = \Magento\Payment\Gateway\Helper\SubjectReader::readStateObject($commandSubject);
         $payment =\Magento\Payment\Gateway\Helper\SubjectReader::readPayment($commandSubject);
         $payment = $payment->getPayment();
-
 
         // do not let magento set status to processing
         $payment->setIsTransactionPending(true);
@@ -76,6 +76,10 @@ class PayByMailCommand implements CommandInterface
         // generateUrl
         $payment->setAdditionalInformation('payment_url', $this->_generatePaymentUrl($payment));
 
+        // update status and state
+        $stateObject->setState(\Magento\Sales\Model\Order::STATE_NEW);
+        $stateObject->setStatus($this->_adyenHelper->getAdyenAbstractConfigData('order_status'));
+        $stateObject->setIsNotified(false);
         
         return $this;
     }
