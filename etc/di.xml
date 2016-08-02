@@ -26,6 +26,14 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
     <!-- Payment Method Facade configuration -->
+    <virtualType name="AdyenPaymentGenericFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Cc</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Cc</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentGenericValueHandlerPool</argument>
+        </arguments>
+    </virtualType>
     <virtualType name="AdyenPaymentCcFacade" type="Magento\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenCcConfigProvider::CODE</argument>
@@ -98,6 +106,20 @@
     </virtualType>
 
     <!-- Value handlers infrastructure -->
+    <virtualType name="AdyenPaymentGenericValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentGenericConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentGenericConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentGenericConfig</argument>
+        </arguments>
+    </virtualType>
+
+
     <virtualType name="AdyenPaymentCcValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
@@ -190,6 +212,12 @@
     </virtualType>
 
     <!-- Configuration reader -->
+    <virtualType name="AdyenPaymentGenericConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider::CODE</argument>
+        </arguments>
+    </virtualType>
+
     <virtualType name="AdyenPaymentCcConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenCcConfigProvider::CODE</argument>
