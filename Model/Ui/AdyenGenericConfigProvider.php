@@ -26,6 +26,8 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 
 class AdyenGenericConfigProvider implements ConfigProviderInterface
 {
+    const CODE = 'adyen_abstract';
+
     /**
      * @var \Adyen\Payment\Helper\Data
      */
