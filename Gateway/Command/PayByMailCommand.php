@@ -132,7 +132,7 @@ class PayByMailCommand implements CommandInterface
         $orderCurrencyCode = $order->getOrderCurrencyCode();
 
         // check if paybymail has it's own skin
-        $skinCode          = trim($this->_adyenHelper->getAdyenHppConfigData('skin_code'));
+        $skinCode          = trim($this->_adyenHelper->getAdyenPayByMailConfigData('skin_code'));
         if ($skinCode == "") {
             // use HPP skin and HMAC
             $skinCode = $this->_adyenHelper->getAdyenHppConfigData('skin_code');
@@ -141,7 +141,7 @@ class PayByMailCommand implements CommandInterface
             // use pay_by_mail skin and hmac
             $hmacKey = $this->_adyenHelper->getHmacPayByMail();
         }
-        
+
         $amount            = $this->_adyenHelper->formatAmount($order->getGrandTotal(), $orderCurrencyCode);
         $merchantAccount   = trim($this->_adyenHelper->getAdyenAbstractConfigData('merchant_account'));
         $shopperEmail      = $order->getCustomerEmail();
