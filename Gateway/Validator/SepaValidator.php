@@ -43,10 +43,8 @@ class SepaValidator extends AbstractValidator
      * @param \Magento\Payment\Gateway\ConfigInterface $config
      */
     public function __construct(
-        ResultInterfaceFactory $resultFactory,
-        ConfigInterface $config
+        ResultInterfaceFactory $resultFactory
     ) {
-        $this->config = $config;
         parent::__construct($resultFactory);
     }
     

@@ -468,14 +468,6 @@
         </arguments>
     </virtualType>
 
-
-
-    <!--not used right this one below never loaded in looks like-->
-    <!--<type name="Adyen\Payment\Gateway\Request\SepaAuthorizationDataBuilder">-->
-        <!--<arguments>-->
-            <!--<argument name="config" xsi:type="object">Adyen\Payment\Gateway\Config\SepaConfig</argument>-->
-        <!--</arguments>-->
-    <!--</type>-->
     <!-- Capture Request -->
     <virtualType name="AdyenPaymentCaptureRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
@@ -555,7 +547,6 @@
     </virtualType>
 
     <!-- Value validators infrastructure -->
-    <!--TODO: country validators not working because config model does not exists-->
     <virtualType name="AdyenPaymentCcValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
         <arguments>
             <argument name="validators" xsi:type="array">
@@ -563,10 +554,9 @@
             </argument>
         </arguments>
     </virtualType>
-    <!--FIXME: Config does not exists-->
     <virtualType name="AdyenCcCountryValidator" type="Magento\Payment\Gateway\Validator\CountryValidator">
         <arguments>
-            <argument name="config" xsi:type="object">Adyen\Payment\Gateway\Config\CcConfig</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentCcConfig</argument>
         </arguments>
     </virtualType>
 
@@ -577,10 +567,9 @@
             </argument>
         </arguments>
     </virtualType>
-    <!--FIXME: Config does not exists-->
     <virtualType name="AdyenOneclickCountryValidator" type="Magento\Payment\Gateway\Validator\CountryValidator">
         <arguments>
-            <argument name="config" xsi:type="object">Adyen\Payment\Gateway\Config\OneclickConfig</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentOneClickConfig</argument>
         </arguments>
     </virtualType>
 
@@ -591,31 +580,23 @@
             </argument>
         </arguments>
     </virtualType>
-    <!--FIXME: Config does not exists-->
     <virtualType name="AdyenHppCountryValidator" type="Magento\Payment\Gateway\Validator\CountryValidator">
         <arguments>
-            <argument name="config" xsi:type="object">Adyen\Payment\Gateway\Config\HppConfig</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentHppConfig</argument>
         </arguments>
     </virtualType>
 
     <virtualType name="AdyenPaymentSepaValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
         <arguments>
             <argument name="validators" xsi:type="array">
-                <item name="global" xsi:type="string">AdyenSepaValidator</item>
+                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\SepaValidator</item>
                 <item name="country" xsi:type="string">AdyenSepaCountryValidator</item>
             </argument>
         </arguments>
     </virtualType>
-    <!--FIXME: Config does not exists-->
-    <virtualType name="AdyenSepaValidator" type="Adyen\Payment\Gateway\Validator\SepaValidator">
-        <arguments>
-            <argument name="config" xsi:type="object">Adyen\Payment\Gateway\Config\SepaConfig</argument>
-        </arguments>
-    </virtualType>
-    <!--FIXME: Config does not exists-->
     <virtualType name="AdyenSepaCountryValidator" type="Magento\Payment\Gateway\Validator\CountryValidator">
         <arguments>
-            <argument name="config" xsi:type="object">Adyen\Payment\Gateway\Config\SepaConfig</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentSepaConfig</argument>
         </arguments>
     </virtualType>
 
@@ -626,10 +607,9 @@
             </argument>
         </arguments>
     </virtualType>
-    <!--FIXME: Config does not exists-->
     <virtualType name="AdyenBoletoCountryValidator" type="Magento\Payment\Gateway\Validator\CountryValidator">
         <arguments>
-            <argument name="config" xsi:type="object">Adyen\Payment\Gateway\Config\BoletoConfig</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentBoletoConfig</argument>
         </arguments>
     </virtualType>
 
@@ -640,10 +620,9 @@
             </argument>
         </arguments>
     </virtualType>
-    <!--FIXME: Config does not exists-->
     <virtualType name="AdyenPosCountryValidator" type="Magento\Payment\Gateway\Validator\CountryValidator">
         <arguments>
-            <argument name="config" xsi:type="object">Adyen\Payment\Gateway\Config\PosConfig</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentPosConfig</argument>
         </arguments>
     </virtualType>
 
@@ -654,10 +633,9 @@
             </argument>
         </arguments>
     </virtualType>
-    <!--FIXME: Config does not exists-->
     <virtualType name="AdyenPayByMailCountryValidator" type="Magento\Payment\Gateway\Validator\CountryValidator">
         <arguments>
-            <argument name="config" xsi:type="object">Adyen\Payment\Gateway\Config\PayByMailConfig</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentPayByMailConfig</argument>
         </arguments>
     </virtualType>
 
