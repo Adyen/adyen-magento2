@@ -720,10 +720,9 @@ class Data extends AbstractHelper
                         $asset = $this->createAsset(
                             'Adyen_Payment::images/logos/' . $logoName . '.png'
                         );
-
-                        $placeholder = $this->findRelativeSourceFilePath($asset);
-
+                        
                         $icon = null;
+                        $placeholder = $this->assetSource->findSource($asset);
                         if ($placeholder) {
                             list($width, $height) = getimagesize($asset->getSourceFile());
                             $icon = [
