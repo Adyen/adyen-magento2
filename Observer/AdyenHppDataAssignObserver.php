@@ -33,13 +33,20 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
 {
     const BRAND_CODE = 'brand_code';
     const ISSUER_ID = 'issuer_id';
+    const GENDER = 'gender';
+    const DOB = 'dob';
+    const TELEPHONE = 'telephone';
+
 
     /**
      * @var array
      */
     protected $additionalInformationList = [
         self::BRAND_CODE,
-        self::ISSUER_ID
+        self::ISSUER_ID,
+        self::GENDER,
+        self::DOB,
+        self::TELEPHONE
     ];
 
     /**

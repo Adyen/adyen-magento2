@@ -55,21 +55,32 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
     protected $_urlBuilder;
 
     /**
+     * @var \Magento\Customer\Model\Session
+     */
+    protected $_customerSession;
+
+
+    /**
      * AdyenHppConfigProvider constructor.
      *
      * @param PaymentHelper $paymentHelper
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param \Magento\Customer\Model\Session $customerSession
      */
     public function __construct(
         PaymentHelper $paymentHelper,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\UrlInterface $urlBuilder
+        \Magento\Framework\UrlInterface $urlBuilder,
+        \Magento\Customer\Model\Session $customerSession
     ) {
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
         $this->_urlBuilder = $urlBuilder;
+        $this->_customerSession = $customerSession;
     }
 
     /**
@@ -90,9 +101,40 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
             ]
         ];
 
+        // get customer
+        if ($this->_customerSession->isLoggedIn()) {
+
+            $gender = \Adyen\Payment\Model\Gender::getAdyenGenderFromMagentoGender(
+                $this->_customerSession->getCustomerData()->getGender()
+            );
+
+            // format to calendar date
+            $dob = $this->_customerSession->getCustomerData()->getDob();
+            $dob = strtotime($dob);
+            $dob = date('m/d/Y', $dob);
+        } else {
+            $gender = "";
+            $dob = "";
+        }
+        
+        // add to config
+        $config['payment'] ['adyenHpp']['gender'] = $gender;
+        $config['payment'] ['adyenHpp']['dob'] = $dob;
+
+        // gender types
+        $config['payment'] ['adyenHpp']['genderTypes'] = \Adyen\Payment\Model\Gender::getGenderTypes();
+
         $paymentMethodSelectionOnAdyen =
             $this->_adyenHelper->getAdyenHppConfigDataFlag('payment_selection_on_adyen');
+
         $config['payment'] ['adyenHpp']['isPaymentMethodSelectionOnAdyen'] = $paymentMethodSelectionOnAdyen;
+        $config['payment'] ['adyenHpp']['showGender'] = $this->_adyenHelper->getAdyenHppConfigDataFlag('show_gender');
+        $config['payment'] ['adyenHpp']['showDob'] = $this->_adyenHelper->getAdyenHppConfigDataFlag('show_dob');
+        $config['payment'] ['adyenHpp']['showTelephone'] =  $this->_adyenHelper->getAdyenHppConfigDataFlag(
+            'show_telephone'
+        );
+
+
 
         return $config;
     }

@@ -29,6 +29,11 @@ class Redirect extends \Magento\Payment\Block\Form
 {
 
     /**
+     * quest prefix
+     */
+    const GUEST_ID = 'customer_';
+
+    /**
      * @var \Magento\Sales\Model\OrderFactory
      */
     protected $_orderFactory;
@@ -118,7 +123,9 @@ class Redirect extends \Magento\Payment\Block\Form
                             if ($this->getPaymentMethodSelectionOnAdyen()) {
                                 $url =  'https://test.adyen.com/hpp/select.shtml';
                             } else {
-                                if ($this->_order->getPayment()->getAdditionalInformation('brand_code') == 'klarna') {
+                                if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
+                                    $this->_order->getPayment()->getAdditionalInformation('brand_code')
+                                )) {
                                     $url = "https://test.adyen.com/hpp/skipDetails.shtml";
                                 } else {
                                     $url = "https://test.adyen.com/hpp/details.shtml";
@@ -133,7 +140,9 @@ class Redirect extends \Magento\Payment\Block\Form
                             if ($this->getPaymentMethodSelectionOnAdyen()) {
                                 $url =  'https://live.adyen.com/hpp/select.shtml';
                             } else {
-                                if ($this->_order->getPayment()->getAdditionalInformation('brand_code') == 'klarna') {
+                                if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
+                                    $this->_order->getPayment()->getAdditionalInformation('brand_code')
+                                )) {
                                     $url = "https://live.adyen.com/hpp/skipDetails.shtml";
                                 } else {
                                     $url = "https://live.adyen.com/hpp/details.shtml";
@@ -194,6 +203,7 @@ class Redirect extends \Magento\Payment\Block\Form
                 }
 
                 $formFields = [];
+
                 $formFields['merchantAccount']   = $merchantAccount;
                 $formFields['merchantReference'] = $realOrderId;
                 $formFields['paymentAmount']     = (int)$amount;
@@ -261,6 +271,10 @@ class Redirect extends \Magento\Payment\Block\Form
                 if ($this->_order->getPayment()->getAdditionalInformation(
                         \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE) == "klarna"
                 ) {
+
+                    //  // needed for DE and AT
+                    $formFields['klarna.acceptPrivacyPolicy']   = 'true';
+
                     // don't allow editable shipping/delivery address
                     $formFields['billingAddressType']  = "1";
                     $formFields['deliveryAddressType'] = "1";

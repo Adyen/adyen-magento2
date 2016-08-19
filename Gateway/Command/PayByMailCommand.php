@@ -30,6 +30,11 @@ class PayByMailCommand implements CommandInterface
 {
 
     /**
+     * quest prefix
+     */
+    const GUEST_ID = 'customer_';
+
+    /**
      * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;

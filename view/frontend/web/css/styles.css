@@ -61,6 +61,11 @@
     background-position: 0 -272px;
 }
 
+.checkout-payment-method .input-text._has-datepicker {
+    width:20%;
+    margin-right:10px;
+}
+
 
 
 

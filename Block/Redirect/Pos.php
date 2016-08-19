@@ -27,6 +27,10 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 
 class Pos extends \Magento\Payment\Block\Form
 {
+    /**
+     * quest prefix
+     */
+    const GUEST_ID = 'customer_';
 
     protected $_orderFactory;
     /**

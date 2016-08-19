@@ -54,7 +54,24 @@ class HppCommand implements CommandInterface
 
         // do not send email
         $payment = $payment->getPayment();
-        $payment->getOrder()->setCanSendNewEmailFlag(false);
+        $order = $payment->getOrder();
+        $order->setCanSendNewEmailFlag(false);
+
+
+        // update customer based on additionalFields
+        if ($payment->getAdditionalInformation("gender")) {
+            $order->setCustomerGender(\Adyen\Payment\Model\Gender::getMagentoGenderFromAdyenGender(
+                $payment->getAdditionalInformation("gender"))
+            );
+        }
+
+        if ($payment->getAdditionalInformation("dob")) {
+            $order->setCustomerDob($payment->getAdditionalInformation("dob"));
+        }
+
+        if ($payment->getAdditionalInformation("telephone")) {
+            $order->getBillingAddress()->setTelephone($payment->getAdditionalInformation("telephone"));
+        }
 
         // update status and state
         $stateObject->setState(\Magento\Sales\Model\Order::STATE_NEW);

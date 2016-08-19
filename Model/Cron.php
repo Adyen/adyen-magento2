@@ -1074,10 +1074,8 @@ class Cron
 
             // if auto capture mode for openinvoice is turned on then use auto capture
             if ($captureModeOpenInvoice == true &&
-                (strcmp($this->_paymentMethod, 'openinvoice') === 0 ||
-                    strcmp($this->_paymentMethod, 'afterpay_default') === 0 ||
-                    strcmp($this->_paymentMethod, 'klarna') === 0)) {
-
+                $this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod)
+            ) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'This payment method is configured to be working as auto capture '
                 );
@@ -1106,10 +1104,7 @@ class Cron
              * online capture after delivery, use Magento backend to online invoice
              * (if the option auto capture mode for openinvoice is not set)
              */
-            if (strcmp($this->_paymentMethod, 'openinvoice') === 0 ||
-                strcmp($this->_paymentMethod, 'afterpay_default') === 0 ||
-                strcmp($this->_paymentMethod, 'klarna') === 0) {
-
+            if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod)) {
                 $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode for klarna is by default set to manual');
                 return false;
             }

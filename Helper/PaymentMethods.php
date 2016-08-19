@@ -201,6 +201,11 @@ class PaymentMethods extends AbstractHelper
                 $paymentMethodCode = $paymentMethod['brandCode'];
                 $paymentMethod = $this->_fieldMapPaymentMethod($paymentMethod);
 
+
+                // check if payment method is an openinvoice method
+                $paymentMethod['isPaymentMethodOpenInvoiceMethod'] =
+                    $this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
+
                 // add icon location in result
                 if ($this->_adyenHelper->showLogos()) {
 

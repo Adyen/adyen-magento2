@@ -52,7 +52,10 @@ define(
                 this._super()
                     .observe([
                         'brandCode',
-                        'issuerId'
+                        'issuerId',
+                        'gender',
+                        'dob',
+                        'telephone'
                     ]);
                 return this;
             },
@@ -100,36 +103,42 @@ define(
 
                 var paymentList = _.map(paymentMethods, function(value) {
 
-                        if(value.brandCode == "ideal") {
-                            return {
-                                'value': value.brandCode,
-                                'name': value,
-                                'method': self.item.method,
-                                'issuerIds':  value.issuers,
-                                'issuerId': ko.observable(null),
-                                getCode: function() {
-                                    return self.item.method;
-                                },
-                                validate: function () {
-                                    return self.validate();
-                                }
-                            }
-                        } else {
-                            return {
-                                'value': value.brandCode,
-                                'name': value,
-                                'method': self.item.method,
-                                getCode: function() {
-                                    return self.item.method;
-                                },
-                                validate: function () {
-                                    return self.validate();
-                                }
-                            }
-                        }
+                    var result = {};
+                    result.value = value.brandCode;
+                    result.name = value;
+                    result.method = self.item.method;
+                    result.getCode = function() {
+                        return self.item.method;
+                    };
+                    result.validate = function () {
+                        return self.validate();
                     }
-                );
+
+
+                    if(value.brandCode == "ideal") {
+                        result.issuerIds = value.issuers;
+                        result.issuerId = ko.observable(null);
+                    } else if(value.isPaymentMethodOpenInvoiceMethod) {
+                        result.telephone = ko.observable(quote.shippingAddress().telephone);
+                        result.gender = ko.observable(window.checkoutConfig.payment.adyenHpp.gender);
+                        result.dob = ko.observable(window.checkoutConfig.payment.adyenHpp.dob);
+                        result.datepickerValue = ko.observable(); // needed ??
+                    }
+                    result.isPaymentMethodOpenInvoiceMethod = function() {
+                        return value.isPaymentMethodOpenInvoiceMethod;
+                    }
+                    return result;
+                });
                 return paymentList;
+            },
+            getGenderTypes: function() {
+                // return window.checkoutConfig.payment.adyenHpp.genderTypes;
+                return _.map(window.checkoutConfig.payment.adyenHpp.genderTypes, function(value, key) {
+                    return {
+                        'key': key,
+                        'value': value
+                    }
+                });
             },
             /** Redirect to adyen */
             continueToAdyen: function () {
@@ -146,25 +155,23 @@ define(
 
                 if (this.validate() && additionalValidators.validate()) {
 
-                    // for ideal add brand_code in request
+
+                    var data = {};
+                    data.method = self.method;
+                    data.po_number = null;
+
+                    var additionalData = {};
+                    additionalData.brand_code = self.value;
+
                     if(brandCode() == "ideal") {
-                        var  data = {
-                            "method": self.method,
-                            "po_number": null,
-                            "additional_data": {
-                                issuer_id: this.issuerId(),
-                                brand_code: self.value
-                            }
-                        };
-                    } else {
-                        var  data = {
-                            "method": self.method,
-                            "po_number": null,
-                            "additional_data": {
-                                brand_code: self.value
-                            }
-                        };
+                        additionalData.issuer_id = this.issuerId();
+                    } else if(brandCode() == "klarna") {
+                        additionalData.gender = this.gender();
+                        additionalData.dob = this.dob();
+                        additionalData.telephone = this.telephone();
                     }
+
+                    data.additional_data = additionalData;
 
                     selectPaymentMethodAction(data);
                     setPaymentMethodAction();
@@ -211,6 +218,15 @@ define(
             },
             isIconEnabled: function() {
                 return window.checkoutConfig.payment.adyen.showLogo;
+            },
+            showGender: function() {
+                return window.checkoutConfig.payment.adyenHpp.showGender;
+            },
+            showDob: function() {
+                return window.checkoutConfig.payment.adyenHpp.showDob;
+            },
+            showTelephone: function() {
+                return window.checkoutConfig.payment.adyenHpp.showTelephone;
             },
             validate: function () {
                 return true;

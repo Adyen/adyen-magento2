@@ -768,6 +768,22 @@ class Data extends AbstractHelper
         return $billingAgreements;
     }
 
+
+    /**
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
+    {
+        if (strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_') {
+            return true;
+        } else if($paymentMethod == 'klarna') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     /**
      * @return bool
      */
