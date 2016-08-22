@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_manual_review" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Advanced: Manual Review]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <comment>
+            <![CDATA[
+                <p>
+                Adyen's Risk analysis tool allows merchants to configure when a transaction should be rejected or accepted depending on certain characteristics of the payment.
+            This process has always had two automatic outcomes, either accept or reject the payment. Now, Adyen's risk system can tell merchants when a transaction seems to be risky but without rejecting it, and requires to be manually reviewed in order to decide if it should be accepted or rejected.
+                If you want this to be turned on please contact <a href="mailto:magento@adyen.com">magento@adyen.com</a>
+                </p>
+            ]]>
+        </comment>
+
+        <field id="fraud_manual_review_status" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Manual Review Status</label>
+            <tooltip>This status will be triggered when Adyen notifies your Magento module that the payment has come under Manual Review. If you do not have this set up or do not want a separate status, please keep it on the default (e.g.'— Please Select —').</tooltip>
+            <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
+            <config_path>payment/adyen_abstract/fraud_manual_review_status</config_path>
+        </field>
+        <field id="fraud_manual_review_accept_status" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Manual Review Accepted Status</label>
+            <tooltip>Only relevant if you do not have an action defined when you accept a manual review. This status will be triggered when a 'MANUAL_REVIEW_ACCEPT' notification is received from Adyen. If you have already asked Adyen to set an action for this (e.g. capture) or don't want a separate status for this, please keep it on the default (e.g.'— Please Select —')</tooltip>
+            <source_model>Magento\Sales\Model\Config\Source\Order\Status\Processing</source_model>
+            <config_path>payment/adyen_abstract/fraud_manual_review_accept_status</config_path>
+        </field>
+
+    </group>
+</include>
