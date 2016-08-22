@@ -722,7 +722,7 @@ class Data extends AbstractHelper
                         );
                         
                         $icon = null;
-                        $placeholder = $this->assetSource->findSource($asset);
+                        $placeholder = $this->_assetSource->findSource($asset);
                         if ($placeholder) {
                             list($width, $height) = getimagesize($asset->getSourceFile());
                             $icon = [
