@@ -82,17 +82,20 @@ class TransactionRefund implements ClientInterface
      */
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
-        $request = $transferObject->getBody();
+        $requests = $transferObject->getBody();
+        $responses = [];
 
-        // call lib
-        $service = new \Adyen\Service\Modification($this->_client);
+        foreach ($requests as $request) {
 
-        try {
-            $response = $service->refund($request);
-        } catch(\Adyen\AdyenException $e) {
-            $response = null;
+            // call lib
+            $service = new \Adyen\Service\Modification($this->_client);
+
+            try {
+                $responses[] = $service->refund($request);
+            } catch(\Adyen\AdyenException $e) {
+                $responses[] = null;
+            }
         }
-
-        return $response;
+        return $responses;
     }
 }

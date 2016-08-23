@@ -33,6 +33,10 @@ use Magento\Framework\Setup\SchemaSetupInterface;
  */
 class UpgradeSchema implements UpgradeSchemaInterface
 {
+
+
+    const ADYEN_ORDER_PAYMENT = 'adyen_order_payment';
+
     /**
      * {@inheritdoc}
      */
@@ -46,6 +50,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         if (version_compare($context->getVersion(), '1.0.0.2', '<')) {
             $this->updateSchemaVersion1002($setup);
+        }
+
+        if (version_compare($context->getVersion(), '1.4.5.1', '<')) {
+            $this->updateSchemaVersion1451($setup);
         }
 
         $setup->endSetup();
@@ -99,5 +107,108 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $connection->addColumn(
             $setup->getTable('paypal_billing_agreement'), 'agreement_data', $adyenAgreementDataColumn
         );
+    }
+
+    /**
+     * @param SchemaSetupInterface $setup
+     */
+    public function updateSchemaVersion1451(SchemaSetupInterface $setup)
+    {
+
+        /**
+         * Create table 'adyen_order_payment'
+         */
+        $table = $setup->getConnection()
+            ->newTable($setup->getTable(self::ADYEN_ORDER_PAYMENT))
+            ->addColumn(
+                'entity_id',
+                \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                null,
+                ['identity' => true, 'unsigned' => true, 'nullable' => false, 'primary' => true],
+                'Adyen Payment ID'
+            )
+            ->addColumn(
+                'pspreference',
+                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                255,
+                ['unsigned' => true, 'nullable' => false],
+                'Pspreference'
+            )
+            ->addColumn(
+                'merchant_reference',
+                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                255,
+                ['unsigned' => true, 'nullable' => false],
+                'Merchant Reference'
+            )
+            ->addColumn(
+                'payment_id',
+                \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                11,
+                ['unsigned' => true, 'nullable' => false],
+                'Order Payment Id'
+            )
+            ->addColumn(
+                'payment_method',
+                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                255,
+                ['unsigned' => true, 'nullable' => true],
+                'Payment Method'
+            )
+            ->addColumn(
+                'amount',
+                \Magento\Framework\DB\Ddl\Table::TYPE_DECIMAL,
+                '12,4',
+                ['unsigned' => true, 'nullable' => false],
+                'Amount'
+            )
+            ->addColumn(
+                'total_refunded',
+                \Magento\Framework\DB\Ddl\Table::TYPE_DECIMAL,
+                '12,4',
+                ['unsigned' => true, 'nullable' => false],
+                'Total Refunded'
+            )
+            ->addColumn(
+                'created_at',
+                Table::TYPE_DATETIME,
+                null,
+                ['nullable' => false],
+                'Created at'
+            )
+            ->addColumn(
+                'updated_at',
+                Table::TYPE_DATETIME,
+                null,
+                ['nullable' => false],
+                'Updated at'
+            )
+            ->addIndex(
+                $setup->getIdxName(
+                    self::ADYEN_ORDER_PAYMENT,
+                    ['pspreference'],
+                    \Magento\Framework\DB\Adapter\AdapterInterface::INDEX_TYPE_UNIQUE
+                ),
+                ['pspreference'],
+                ['type' => \Magento\Framework\DB\Adapter\AdapterInterface::INDEX_TYPE_UNIQUE]
+            )
+            ->addForeignKey(
+                $setup->getFkName(
+                    self::ADYEN_ORDER_PAYMENT,
+                    'payment_id',
+                    'sales_order_payment',
+                    'entity_id'
+                ),
+                'payment_id',
+                $setup->getTable('sales_order_payment'),
+                'entity_id',
+                \Magento\Framework\DB\Ddl\Table::ACTION_CASCADE
+            )
+            ->setComment('Adyen Order Payment');
+        
+        $setup->getConnection()->createTable($table);
+
+
+
     }
 }

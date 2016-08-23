@@ -33,16 +33,19 @@ class RefundResponseValidator extends AbstractValidator
      */
     public function validate(array $validationSubject)
     {
-        $response = \Magento\Payment\Gateway\Helper\SubjectReader::readResponse($validationSubject);
+        $responses = \Magento\Payment\Gateway\Helper\SubjectReader::readResponse($validationSubject);
 
         $isValid = true;
         $errorMessages = [];
 
-        if ($response['response'] != '[refund-received]') {
-            $errorMsg = __('Error with refund');
-            $this->_logger->critical($errorMsg);
-            $errorMessages[] = $errorMsg;
+        foreach ($responses as $response) {
+            if ($response['response'] != '[refund-received]') {
+                $errorMsg = __('Error with refund');
+                $this->_logger->critical($errorMsg);
+                $errorMessages[] = $errorMsg;
+            }
         }
+
         return $this->createResult($isValid, $errorMessages);
     }
 }

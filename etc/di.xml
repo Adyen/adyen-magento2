@@ -509,7 +509,7 @@
     <virtualType name="AdyenPaymentRefundRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
-                <item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantAccountDataBuilder</item>
+                <!--<item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantAccountDataBuilder</item>-->
                 <item name="refund" xsi:type="string">Adyen\Payment\Gateway\Request\RefundDataBuilder</item>
             </argument>
         </arguments>
@@ -561,7 +561,7 @@
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentRefundDetailsHandler</item>
-                <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCommentHistoryHandler</item>
+                <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\PaymentCommentHistoryRefundHandler</item>
             </argument>
         </arguments>
     </virtualType>

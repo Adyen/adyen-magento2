@@ -34,6 +34,7 @@
                 <debug>1</debug>
                 <title_renderer>title_image</title_renderer>
                 <sepa_flow>sale</sepa_flow>
+                <split_payments_refund_strategy>1</split_payments_refund_strategy>
                 <group>adyen</group>
             </adyen_abstract>
             <adyen_cc>

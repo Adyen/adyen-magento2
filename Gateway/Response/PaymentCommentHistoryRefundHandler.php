@@ -25,11 +25,13 @@ namespace Adyen\Payment\Gateway\Response;
 
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
-class PaymentRefundDetailsHandler implements HandlerInterface
+class PaymentCommentHistoryRefundHandler implements HandlerInterface
 {
+
     /**
      * @param array $handlingSubject
      * @param array $response
+     * @return $this
      */
     public function handle(array $handlingSubject, array $response)
     {
@@ -39,16 +41,36 @@ class PaymentRefundDetailsHandler implements HandlerInterface
         $payment = $payment->getPayment();
 
         foreach ($response as $singleResponse) {
-            // set pspReference as lastTransId only!
-            $payment->setLastTransId($singleResponse['pspReference']);
+            if (isset($singleResponse['resultCode'])) {
+                $responseCode = $singleResponse['resultCode'];
+            } else {
+
+                // try to get response from response key (used for modifications
+                if (isset($singleResponse['response'])) {
+                    $responseCode = $singleResponse['response'];
+                } else {
+                    $responseCode = "";
+                }
+            }
+
+            if (isset($singleResponse['pspReference'])) {
+                $pspReference = $singleResponse['pspReference'];
+            } else {
+                $pspReference = "";
+            }
+
+            $type = 'Adyen Result response:';
+            $comment = __('%1 <br /> authResult: %2 <br /> pspReference: %3 ',
+                $type, $responseCode, $pspReference);
+
+            if ($responseCode) {
+                $payment->getOrder()->setAdyenResulturlEventCode($responseCode);
+            }
+
+            $payment->getOrder()->addStatusHistoryComment($comment);
         }
 
-        /**
-         * close current transaction because you have refunded the goods
-         * but only on full refund close the authorisation
-         */
-        $payment->setIsTransactionClosed(true);
-        $closeParent = !(bool)$payment->getCreditmemo()->getInvoice()->canRefund();
-        $payment->setShouldCloseParentTransaction($closeParent);
+        return $this;
     }
 }
+

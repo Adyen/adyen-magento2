@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -21,15 +20,16 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
 
-    <module name="Adyen_Payment" setup_version="1.4.5.1">
-        <sequence>
-            <module name="Magento_Sales"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Checkout"/>
-            <module name="Magento_Paypal"/>
-        </sequence>
-    </module>
-</config>
+namespace Adyen\Payment\Model\Resource\Order;
+
+class Payment extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
+{
+    /**
+     * Construct
+     */
+    public function _construct()
+    {
+        $this->_init('adyen_order_payment', 'entity_id');
+    }
+}

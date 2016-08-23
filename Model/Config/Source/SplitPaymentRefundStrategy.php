@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -21,15 +20,33 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
 
-    <module name="Adyen_Payment" setup_version="1.4.5.1">
-        <sequence>
-            <module name="Magento_Sales"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Checkout"/>
-            <module name="Magento_Paypal"/>
-        </sequence>
-    </module>
-</config>
+namespace Adyen\Payment\Model\Config\Source;
+
+class SplitPaymentRefundStrategy implements \Magento\Framework\Option\ArrayInterface
+{
+    const REFUND_FIRST_PAYEMENT_FIRST = 1;
+    const REFUND_LAST_PAYEMENT_FIRST = 2;
+    const REFUND_ON_RATIO = 3;
+
+    /**
+     * @return array
+     */
+    public function toOptionArray()
+    {
+        return $this->getSplitPaymentRefundStrategies();
+    }
+    
+    /**
+     * @return array
+     */
+    public function getSplitPaymentRefundStrategies()
+    {
+        return [
+            self::REFUND_FIRST_PAYEMENT_FIRST => __('Refund from first payment first'),
+            self::REFUND_LAST_PAYEMENT_FIRST => 'Refund from last payment first',
+            self::REFUND_ON_RATIO => __('refund based on ratio')
+        ];
+    }
+
+}
