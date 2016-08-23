@@ -809,13 +809,4 @@ class Data extends AbstractHelper
         return $this->_assetRepo->createAsset($fileId, $params);
     }
 
-    /**
-     * @param $asset
-     * @return bool|string
-     */
-    public function findRelativeSourceFilePath($asset)
-    {
-        return $this->_assetSource->findRelativeSourceFilePath($asset);
-    }
-
 }

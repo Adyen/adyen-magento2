@@ -217,7 +217,7 @@ class PaymentMethods extends AbstractHelper
                     $asset = $this->_assetRepo->createAsset('Adyen_Payment::images/logos/' .
                         $paymentMethodCode . '.png', $params);
 
-                    $placeholder = $this->_adyenHelper->findRelativeSourceFilePath($asset);
+                    $placeholder = $this->_assetSource->findSource($asset);
 
                     $icon = null;
                     if ($placeholder) {
