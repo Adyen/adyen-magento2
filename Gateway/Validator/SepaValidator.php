@@ -25,7 +25,6 @@ namespace Adyen\Payment\Gateway\Validator;
 
 use Magento\Payment\Gateway\Validator\AbstractValidator;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
-use Magento\Payment\Gateway\ConfigInterface;
 
 /**
  * Class SepaValidator
@@ -33,21 +32,6 @@ use Magento\Payment\Gateway\ConfigInterface;
  */
 class SepaValidator extends AbstractValidator
 {
-    /**
-     * @var \Magento\Payment\Gateway\ConfigInterface
-     */
-    private $config;
-
-    /**
-     * @param ResultInterfaceFactory $resultFactory
-     * @param \Magento\Payment\Gateway\ConfigInterface $config
-     */
-    public function __construct(
-        ResultInterfaceFactory $resultFactory
-    ) {
-        parent::__construct($resultFactory);
-    }
-    
     /**
      * @param array $validationSubject
      * @return \Magento\Payment\Gateway\Validator\ResultInterface

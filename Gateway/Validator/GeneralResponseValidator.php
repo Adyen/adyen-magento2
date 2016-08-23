@@ -28,20 +28,21 @@ use Magento\Payment\Gateway\Validator\AbstractValidator;
 class GeneralResponseValidator extends AbstractValidator
 {
     /**
-     * @var Psr\Log\LoggerInterface
+     * @var \Adyen\Payment\Logger\AdyenLogger
      */
-    private $logger;
+    private $adyenLogger;
 
     /**
      * GeneralResponseValidator constructor.
-     * @param ResultInterfaceFactory $resultFactory
-     * @param \Psr\Log\LoggerInterface $loggerInterface
+     *
+     * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
     public function __construct(
         \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
-        \Psr\Log\LoggerInterface $loggerInterface
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
     ) {
-        $this->logger = $loggerInterface;
+        $this->adyenLogger = $adyenLogger;
         parent::__construct($resultFactory);
     }
 
@@ -108,7 +109,7 @@ class GeneralResponseValidator extends AbstractValidator
                     } else {
                         $isValid = false;
                         $errorMsg = __('3D secure is not valid.');
-                        $this->logger->error($errorMsg);;
+                        $this->adyenLogger->error($errorMsg);;
                         $errorMessages[] = $errorMsg;
                     }
                     break;

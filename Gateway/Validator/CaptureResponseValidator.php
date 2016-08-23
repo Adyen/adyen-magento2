@@ -27,6 +27,26 @@ use Magento\Payment\Gateway\Validator\AbstractValidator;
 
 class CaptureResponseValidator extends AbstractValidator
 {
+
+    /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
+     * GeneralResponseValidator constructor.
+     *
+     * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     */
+    public function __construct(
+        \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+    ) {
+        $this->adyenLogger = $adyenLogger;
+        parent::__construct($resultFactory);
+    }
+
     /**
      * @param array $validationSubject
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -40,7 +60,7 @@ class CaptureResponseValidator extends AbstractValidator
 
         if ($response['response'] != '[capture-received]') {
             $errorMsg = __('Error with capture');
-            $this->_logger->critical($errorMsg);
+            $this->adyenLogger->error($errorMsg);
             $errorMessages[] = $errorMsg;
         }
 

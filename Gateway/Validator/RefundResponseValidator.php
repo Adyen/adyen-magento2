@@ -27,6 +27,26 @@ use Magento\Payment\Gateway\Validator\AbstractValidator;
 
 class RefundResponseValidator extends AbstractValidator
 {
+
+    /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
+     * GeneralResponseValidator constructor.
+     *
+     * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     */
+    public function __construct(
+        \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+    ) {
+        $this->adyenLogger = $adyenLogger;
+        parent::__construct($resultFactory);
+    }
+
     /**
      * @param array $validationSubject
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -41,7 +61,7 @@ class RefundResponseValidator extends AbstractValidator
         foreach ($responses as $response) {
             if ($response['response'] != '[refund-received]') {
                 $errorMsg = __('Error with refund');
-                $this->_logger->critical($errorMsg);
+                $this->adyenLogger->error($errorMsg);
                 $errorMessages[] = $errorMsg;
             }
         }
