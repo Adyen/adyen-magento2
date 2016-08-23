@@ -112,6 +112,11 @@ class RefundDataBuilder implements BuilderInterface
                         // total authorised amount of the split payment
                         $splitPaymentAmount = $splitPayment->getAmount() - $splitPayment->getTotalRefunded();
 
+                        // if rest amount is zero go to next payment
+                        if (!$splitPaymentAmount > 0) {
+                            continue;
+                        }
+
                         // if refunded amount is greather then split payment amount do a full refund
                         if ($amount >= $splitPaymentAmount) {
                             $modificationAmount = $splitPaymentAmount;
@@ -149,6 +154,8 @@ class RefundDataBuilder implements BuilderInterface
                 ]
             ];
         }
+
+        print_R($result);die();
         return $result;
     }
 }
