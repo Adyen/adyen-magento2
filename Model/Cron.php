@@ -1013,6 +1013,15 @@ class Cron
             $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
         }
 
+        $paymentObj = $this->_order->getPayment();
+
+        // set pspReference as transactionId
+        $paymentObj->setCcTransId($this->_pspReference);
+        $paymentObj->setLastTransId($this->_pspReference);
+
+        // set transaction
+        $paymentObj->setTransactionId($this->_pspReference);
+
         //capture mode
         if (!$this->_isAutoCapture()) {
             $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'));
@@ -1043,7 +1052,6 @@ class Cron
 
         // validate if amount is total amount
         $orderCurrencyCode = $this->_order->getOrderCurrencyCode();
-        $paymentObj = $this->_order->getPayment();
         $amount = $this->_adyenHelper->originalAmount($this->_value, $orderCurrencyCode);
 
         // add to order payment

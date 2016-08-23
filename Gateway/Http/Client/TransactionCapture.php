@@ -90,9 +90,10 @@ class TransactionCapture implements ClientInterface
         try {
             $response = $service->capture($request);
         } catch(\Adyen\AdyenException $e) {
+            $this->_adyenLogger->error($e); // add this for now not in the lib yet
             $response = null;
         }
-
+        
         return $response;
     }
 }
