@@ -75,7 +75,9 @@ class RefundDataBuilder implements BuilderInterface
 
 
         // check if it contains a split payment
-        $orderPaymentCollection = $this->orderPaymentCollectionFactory->create();
+        $orderPaymentCollection = $this->orderPaymentCollectionFactory
+            ->create()
+            ->addFieldToFilter('payment_id', $payment->getId());
 
         // partial refund if multiple payments check refund strategy
         if ($orderPaymentCollection->getSize() > 1) {
@@ -154,7 +156,7 @@ class RefundDataBuilder implements BuilderInterface
                 ]
             ];
         }
-
+        
         return $result;
     }
 }
