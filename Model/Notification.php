@@ -131,6 +131,23 @@ class Notification extends \Magento\Framework\Model\AbstractModel
     }
 
     /**
+     * @return mixed
+     */
+    public function getOriginalReference()
+    {
+        return $this->getData(self::ORIGINAL_REFERENCE);
+    }
+
+    /**
+     * @param string $originalReference
+     * @return $this
+     */
+    public function setOriginalReference($originalReference)
+    {
+        return $this->setData(self::ORIGINAL_REFERENCE, $originalReference);
+    }
+    
+    /**
      * Gets the Merchantreference for the notification.
      *
      * @return int|null MerchantReference.

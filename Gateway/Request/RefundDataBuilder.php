@@ -106,11 +106,11 @@ class RefundDataBuilder implements BuilderInterface
                     if ($ratio) {
                         // refund based on ratio calculate refund amount
                         $modificationAmount = $ratio * (
-                                $splitPayment->getAmount() - $splitPayment->getRefundedAmount()
+                                $splitPayment->getAmount() - $splitPayment->getTotalRefunded()
                         );
                     } else {
                         // total authorised amount of the split payment
-                        $splitPaymentAmount = $splitPayment->getAmount() - $splitPayment->getRefundedAmount();
+                        $splitPaymentAmount = $splitPayment->getAmount() - $splitPayment->getTotalRefunded();
 
                         // if refunded amount is greather then split payment amount do a full refund
                         if ($amount >= $splitPaymentAmount) {
@@ -149,7 +149,6 @@ class RefundDataBuilder implements BuilderInterface
                 ]
             ];
         }
-        
         return $result;
     }
 }

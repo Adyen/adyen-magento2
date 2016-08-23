@@ -54,6 +54,26 @@ $_isDemoMode = $block->isDemoMode();
     <?php echo __('Total fraud score: %1', $_info->getAdditionalInformation('adyen_total_fraud_score')) ?><br/>
 <?php endif; ?>
 
+
+<?php if($block->getSplitPayments()): ?>
+    <table class="edit-order-table">
+        <tr>
+            <th>PspReference</th>
+            <th>Payment Method</th>
+            <th>Amount</th>
+            <th>Refunded</th>
+        </tr>
+        <?php foreach ($block->getSplitPayments() as $payment): ?>
+            <tr>
+                <td><?php echo $payment->getPspreference() ?></td>
+                <td><?php echo $payment->getPaymentMethod() ?></td>
+                <td><?php echo $payment->getAmount() ?></td>
+                <td><?php echo $payment->getTotalRefunded() ?></td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+<?php endif; ?>
+
 <?php if ($_specificInfo = $block->getSpecificInformation()):?>
     <table class="data-table admin__table-secondary">
         <?php foreach ($_specificInfo as $_label => $_value):?>

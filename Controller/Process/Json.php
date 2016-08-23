@@ -165,6 +165,9 @@ class Json extends \Magento\Framework\App\Action\Action
                     if (isset($response['pspReference'])) {
                         $notification->setPspreference($response['pspReference']);
                     }
+                    if (isset($response['originalReference'])) {
+                        $notification->setOriginalReference($response['originalReference']);
+                    }
                     if (isset($response['merchantReference'])) {
                         $notification->setMerchantReference($response['merchantReference']);
                     }

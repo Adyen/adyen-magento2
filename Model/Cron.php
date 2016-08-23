@@ -96,6 +96,11 @@ class Cron
     /**
      * @var
      */
+    protected $_originalReference;
+
+    /**
+     * @var
+     */
     protected $_merchantReference;
 
     /**
@@ -212,7 +217,7 @@ class Cron
         $dateStart = new \DateTime();
         $dateStart->modify('-5 day');
         $dateEnd = new \DateTime();
-        $dateEnd->modify('-1 minute');
+//        $dateEnd->modify('-1 minute');
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
 
         // create collection
@@ -326,6 +331,7 @@ class Cron
     {
         //  declare the common parameters
         $this->_pspReference = $notification->getPspreference();
+        $this->_originalReference = $notification->getOriginalReference();
         $this->_merchantReference = $notification->getMerchantReference();
         $this->_eventCode = $notification->getEventCode();
         $this->_success = $notification->getSuccess();
@@ -874,6 +880,29 @@ class Cron
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Refunding the order');
 
+        // check if it is a split payment if so save the refunded data
+        if ($this->_originalReference != "") {
+
+            $this->_adyenLogger->addAdyenNotificationCronjob('Going to update the refund to split payments table');
+
+            $orderPayment = $this->_adyenOrderPaymentCollectionFactory
+                ->create()
+                ->addFieldToFilter(\Adyen\Payment\Model\Notification::PSPREFRENCE, $this->_originalReference)
+                ->getFirstItem();
+
+            if ($orderPayment->getId() > 0) {
+                $currency = $this->_order->getOrderCurrencyCode();
+                $amountRefunded = $amountRefunded =  $orderPayment->getTotalRefunded() +
+                    $this->_adyenHelper->originalAmount($this->_value, $currency);
+                $orderPayment->setUpdatedAt(new \DateTime());
+                $orderPayment->setTotalRefunded($amountRefunded);
+                $orderPayment->save();
+                $this->_adyenLogger->addAdyenNotificationCronjob('Update the refund in the split payments table');
+            } else {
+                $this->_adyenLogger->addAdyenNotificationCronjob('Payment not found in split payment table');
+            }
+        }
+
         /*
          * Don't create a credit memo if refund is initialize in Magento
          * because in this case the credit memo already exists
@@ -893,7 +922,7 @@ class Cron
                 $order->getPayment()->registerRefundNotification($amount);
                 */
 
-                $this->_adyenLogger->addAdyenNotificationCronjob('Please create your credit memo inside magentos');
+                $this->_adyenLogger->addAdyenNotificationCronjob('Please create your credit memo inside magento');
             } else {
                 $this->_adyenLogger->addAdyenNotificationCronjob('Could not create a credit memo for order');
             }
@@ -1216,7 +1245,7 @@ class Cron
         $res = $this->_adyenOrderPaymentCollectionFactory
             ->create()
             ->getTotalAmount($paymentId);
-        
+
         if($res && isset($res[0]) && is_array($res[0])) {
             $amount = $res[0]['total_amount'];
             $orderAmount = $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode);
