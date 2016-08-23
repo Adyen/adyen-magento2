@@ -42,9 +42,9 @@ class RefundDataBuilder implements BuilderInterface
     private $orderPaymentCollectionFactory;
 
     /**
-     * CaptureDataBuilder constructor.
-     *
+     * RefundDataBuilder constructor.
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory $orderPaymentCollectionFactory
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
@@ -105,7 +105,9 @@ class RefundDataBuilder implements BuilderInterface
                 if ($amount > 0) {
                     if ($ratio) {
                         // refund based on ratio calculate refund amount
-                        $modificationAmount = $ratio * ($splitPayment->getAmount() - $splitPayment->getRefundedAmount());
+                        $modificationAmount = $ratio * (
+                                $splitPayment->getAmount() - $splitPayment->getRefundedAmount()
+                        );
                     } else {
                         // total authorised amount of the split payment
                         $splitPaymentAmount = $splitPayment->getAmount() - $splitPayment->getRefundedAmount();
@@ -147,7 +149,7 @@ class RefundDataBuilder implements BuilderInterface
                 ]
             ];
         }
-
+        
         return $result;
     }
 }
