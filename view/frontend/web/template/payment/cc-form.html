@@ -92,7 +92,7 @@
                     </div>
                 </div>
                 <div class="field number required">
-                    <label data-bind="attr: {for: getCode() + '_cc_number'}" class="label">
+                    <label data-bind="attr: {for: 'creditCardNumber'}" class="label">
                         <span><!-- ko text: $t('Credit Card Number')--><!-- /ko --></span>
                     </label>
                     <div class="control">
@@ -100,7 +100,7 @@
                                data-encrypted-name="number"
                                data-bind="attr: {
                                             autocomplete: off,
-                                            id: getCode() + '_cc_number',
+                                            id: 'creditCardNumber',
                                             title: $t('Credit Card Number'),
                                             'data-container': getCode() + '-cc-number',
                                             'data-validate': JSON.stringify({'required-number':true, 'validate-card-type':getCcAvailableTypesValues(), 'validate-card-number':'#' + getCode() + '_cc_type', 'validate-cc-type':'#' + getCode() + '_cc_type'})},
@@ -110,7 +110,7 @@
                     </div>
                 </div>
                 <div class="field holdername type required">
-                    <label data-bind="attr: {for: getCode() + '_cc_owner'}" class="label">
+                    <label data-bind="attr: {for: 'creditCardHolderName'}" class="label">
                         <span><!-- ko text: $t('Credit Card Owner')--><!-- /ko --></span>
                     </label>
                     <div class="control">
@@ -119,7 +119,7 @@
                                data-encrypted-name="holderName"
                                value=""
                                data-bind="attr: {
-                                                id: getCode() + '_cc_owner',
+                                                id: 'creditCardHolderName',
                                                 title: $t('Credit Card Owner'),
                                                 'data-container': getCode() + '-cc-owner'
                                                 },
@@ -131,7 +131,7 @@
                     </div>
                 </div>
                 <div class="field date required" data-bind="attr: {id: getCode() + '_cc_type_exp_div'}">
-                    <label data-bind="attr: {for: getCode() + '_expiration'}" class="label">
+                    <label data-bind="attr: {for: 'cardExpirationMonth'}" class="label">
                         <span><!-- ko text: $t('Expiration Date')--><!-- /ko --></span>
                     </label>
                     <div class="control">
