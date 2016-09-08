@@ -200,8 +200,8 @@ define(
 
                 var validate =  $(form).validation() && $(form).validation('isValid');
                 // add extra validation because jqeury validation will not work on non name attributes
-                var ccNumber = Boolean($(form + ' #adyen_cc_cc_number').valid());
-                var owner = Boolean($(form + ' #adyen_cc_cc_owner').valid());
+                var ccNumber = Boolean($(form + ' #creditCardNumber').valid());
+                var owner = Boolean($(form + ' #creditCardHolderName').valid());
                 var expiration = Boolean($(form + ' #adyen_cc_expiration').valid());
                 var expiration_yr = Boolean($(form + ' #adyen_cc_expiration_yr').valid());
                 var cid = Boolean($(form + ' #adyen_cc_cc_cid').valid());
