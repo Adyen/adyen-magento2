@@ -217,7 +217,7 @@ class Cron
         $dateStart = new \DateTime();
         $dateStart->modify('-5 day');
         $dateEnd = new \DateTime();
-//        $dateEnd->modify('-1 minute');
+        $dateEnd->modify('-1 minute');
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
 
         // create collection
@@ -799,7 +799,6 @@ class Cron
                                 $recurringReferencesList[] = $rc['recurringDetailReference'];
                                 if (isset($rc['recurringDetailReference']) &&
                                     $rc['recurringDetailReference'] == $recurringDetailReference) {
-
                                     $contractDetail = $rc;
                                 }
                             }
@@ -847,10 +846,10 @@ class Cron
                                 '(listRecurringCall did not contain contract)'
                             );
                             $this->_adyenLogger->addAdyenNotificationCronjob(
-                                sprintf('recurringDetailReference in notification is %1', $recurringDetailReference)
+                                __('recurringDetailReference in notification is %1', $recurringDetailReference)
                             );
                             $this->_adyenLogger->addAdyenNotificationCronjob(
-                                sprintf('CustomerReference is: %1 and storeId is %2', $customerReference, $storeId)
+                                __('CustomerReference is: %1 and storeId is %2', $customerReference, $storeId)
                             );
                             $this->_adyenLogger->addAdyenNotificationCronjob(print_r($listRecurringContracts, 1));
                             $message = __(
