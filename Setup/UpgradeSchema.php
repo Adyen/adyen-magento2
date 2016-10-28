@@ -52,12 +52,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion1002($setup);
         }
 
-        if (version_compare($context->getVersion(), '1.4.5.1', '<')) {
-            $this->updateSchemaVersion1451($setup);
-        }
-
-        if (version_compare($context->getVersion(), '1.4.5.2', '<')) {
-            $this->updateSchemaVersion1452($setup);
+        if (version_compare($context->getVersion(), '2.0.0', '<')) {
+            $this->updateSchemaVersion200($setup);
         }
 
         $setup->endSetup();
@@ -116,9 +112,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
     /**
      * @param SchemaSetupInterface $setup
      */
-    public function updateSchemaVersion1451(SchemaSetupInterface $setup)
+    public function updateSchemaVersion200(SchemaSetupInterface $setup)
     {
-
         /**
          * Create table 'adyen_order_payment'
          */
@@ -211,13 +206,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ->setComment('Adyen Order Payment');
         
         $setup->getConnection()->createTable($table);
-    }
 
-    /**
-     * @param SchemaSetupInterface $setup
-     */
-    public function updateSchemaVersion1452(SchemaSetupInterface $setup)
-    {
         // add originalReference to notification table
         $connection = $setup->getConnection();
 
@@ -234,4 +223,5 @@ class UpgradeSchema implements UpgradeSchemaInterface
             \Adyen\Payment\Model\Notification::ORIGINAL_REFERENCE, $column
         );
     }
+
 }
