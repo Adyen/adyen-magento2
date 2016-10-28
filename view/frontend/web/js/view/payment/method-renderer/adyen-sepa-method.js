@@ -25,17 +25,20 @@ define(
     [
         'underscore',
         'jquery',
+        'Magento_Checkout/js/model/quote',
         'Magento_Payment/js/view/payment/cc-form',
         'Adyen_Payment/js/action/place-order',
         'mage/translate',
         'Magento_Checkout/js/model/payment/additional-validators'
     ],
-    function (_, $, Component, placeOrderAction, $t, additionalValidators) {
+    function (_, $, quote, Component, placeOrderAction, $t, additionalValidators) {
         'use strict';
+        var billingAddress = quote.billingAddress();
         return Component.extend({
             self: this,
             defaults: {
-                template: 'Adyen_Payment/payment/sepa-form'
+                template: 'Adyen_Payment/payment/sepa-form',
+                country: billingAddress.countryId
             },
             initObservable: function () {
                 this._super()
@@ -46,6 +49,12 @@ define(
                         'setAcceptSepa'
                     ]);
                 return this;
+            },
+            /**
+             * @returns {Boolean}
+             */
+            isShowLegend: function () {
+                return true;
             },
             setPlaceOrderHandler: function(handler) {
                 this.placeOrderHandler = handler;

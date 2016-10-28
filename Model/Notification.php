@@ -24,7 +24,6 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\NotificationInterface;
-use Magento\Framework\DataObject\IdentityInterface;
 
 class Notification extends \Magento\Framework\Model\AbstractModel
     implements NotificationInterface
@@ -92,6 +91,23 @@ class Notification extends \Magento\Framework\Model\AbstractModel
         $result = $this->getResource()->getNotification($pspReference, $eventCode, $success);
         return (empty($result)) ? false : true;
     }
+    
+    /**
+     * @return mixed
+     */
+    public function getEntityId()
+    {
+        return $this->getData(self::ENTITY_ID);
+    }
+
+    /**
+     * @param int $entityId
+     * @return $this
+     */
+    public function setEntityId($entityId)
+    {
+        return $this->setData(self::ENTITY_ID, $entityId);
+    }
 
     /**
      * Gets the Pspreference for the notification.
@@ -114,6 +130,23 @@ class Notification extends \Magento\Framework\Model\AbstractModel
         return $this->setData(self::PSPREFRENCE, $pspreference);
     }
 
+    /**
+     * @return mixed
+     */
+    public function getOriginalReference()
+    {
+        return $this->getData(self::ORIGINAL_REFERENCE);
+    }
+
+    /**
+     * @param string $originalReference
+     * @return $this
+     */
+    public function setOriginalReference($originalReference)
+    {
+        return $this->setData(self::ORIGINAL_REFERENCE, $originalReference);
+    }
+    
     /**
      * Gets the Merchantreference for the notification.
      *

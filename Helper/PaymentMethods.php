@@ -51,11 +51,6 @@ class PaymentMethods extends AbstractHelper
     protected $_adyenHelper;
 
     /**
-     * @var AdyenGenericConfig
-     */
-    protected $_genericConfig;
-
-    /**
      * @var \Magento\Checkout\Model\Session
      */
     protected $_session;
@@ -87,11 +82,11 @@ class PaymentMethods extends AbstractHelper
 
     /**
      * PaymentMethods constructor.
+     *
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      * @param \Magento\Quote\Model\QuoteIdMaskFactory $quoteIdMaskFactory
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param Data $adyenHelper
-     * @param \Adyen\Payment\Model\AdyenGenericConfig $genericConfig
      * @param \Magento\Checkout\Model\Session $session
      * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
@@ -104,7 +99,6 @@ class PaymentMethods extends AbstractHelper
         \Magento\Quote\Model\QuoteIdMaskFactory $quoteIdMaskFactory,
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\AdyenGenericConfig $genericConfig,
         \Magento\Checkout\Model\Session $session,
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
@@ -116,7 +110,6 @@ class PaymentMethods extends AbstractHelper
         $this->_quoteIdMaskFactory = $quoteIdMaskFactory;
         $this->_config = $config;
         $this->_adyenHelper = $adyenHelper;
-        $this->_genericConfig = $genericConfig;
         $this->_session = $session;
         $this->_localeResolver = $localeResolver;
         $this->_adyenLogger = $adyenLogger;
@@ -146,9 +139,11 @@ class PaymentMethods extends AbstractHelper
     {
         $paymentMethods = [];
 
-        $ccEnabled = $this->_config->getValue('payment/'.\Adyen\Payment\Model\Method\Cc::METHOD_CODE.'/active');
+        $ccEnabled = $this->_config->getValue('payment/'.\Adyen\Payment\Model\Ui\AdyenCcConfigProvider::CODE.'/active');
         $ccTypes = array_keys($this->_adyenHelper->getCcTypesAltData());
-        $sepaEnabled = $this->_config->getValue('payment/'.\Adyen\Payment\Model\Method\Sepa::METHOD_CODE.'/active');
+        $sepaEnabled = $this->_config->getValue(
+            'payment/'.\Adyen\Payment\Model\Ui\AdyenSepaConfigProvider::CODE.'/active'
+        );
 
         foreach ($this->_fetchHppMethods($store, $country) as $methodCode => $methodData) {
             /*
@@ -169,6 +164,7 @@ class PaymentMethods extends AbstractHelper
 
     /**
      * @param $store
+     * @param $country
      * @return array
      */
     protected function _fetchHppMethods($store, $country)
@@ -205,8 +201,13 @@ class PaymentMethods extends AbstractHelper
                 $paymentMethodCode = $paymentMethod['brandCode'];
                 $paymentMethod = $this->_fieldMapPaymentMethod($paymentMethod);
 
+
+                // check if payment method is an openinvoice method
+                $paymentMethod['isPaymentMethodOpenInvoiceMethod'] =
+                    $this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
+
                 // add icon location in result
-                if ($this->_genericConfig->showLogos()) {
+                if ($this->_adyenHelper->showLogos()) {
 
 
                     $params = [];
@@ -216,7 +217,7 @@ class PaymentMethods extends AbstractHelper
                     $asset = $this->_assetRepo->createAsset('Adyen_Payment::images/logos/' .
                         $paymentMethodCode . '.png', $params);
 
-                    $placeholder = $this->_genericConfig->findRelativeSourceFilePath($asset);
+                    $placeholder = $this->_assetSource->findSource($asset);
 
                     $icon = null;
                     if ($placeholder) {
@@ -246,6 +247,7 @@ class PaymentMethods extends AbstractHelper
         }
         return 10;
     }
+
 
     /**
      * @param $store

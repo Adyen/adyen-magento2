@@ -53,13 +53,11 @@
                 </div>
 
                 <fieldset class="fieldset" data-bind='attr: {id: "payment_form_" + $parent.getCode() + "_" + value}'>
-                    <div class="payment-method-note">
 
-                        <!-- ko if: value == 'ideal' -->
-
-                            <label data-bind="attr: {'for': 'issuerId'}" class="label">
-                                <span><!-- ko text: $t('Select Your Bank') --><!-- /ko --></span>
-                            </label>
+                     <!-- ko if: value == 'ideal' -->
+                        <label data-bind="attr: {'for': 'issuerId'}" class="label">
+                            <span><!-- ko text: $t('Select Your Bank') --><!-- /ko --></span>
+                        </label>
 
                         <select name="payment[issuer_id]" data-bind="
                                 options: name.issuers,
@@ -68,11 +66,72 @@
                                 value: issuerId,
                                 optionsCaption: $t('Choose Your Bank')">
                         </select>
+                    <!--/ko-->
 
+
+                    <!-- ko if: isPaymentMethodOpenInvoiceMethod() -->
+                        <!-- ko if: $parent.showGender() -->
+                            <div class="field gender_type type required">
+                                    <label data-bind="attr: {for: getCode() + '_gender_type'}" class="label">
+                                        <span><!-- ko text: $t('Gender')--><!-- /ko --></span>
+                                    </label>
+                                    <div class="control">
+                                        <select class="select select-gender-type"
+                                                name="payment[gender]"
+                                                data-bind="attr: {id: getCode() + '_gender_type', 'data-container': getCode() + '-gender-type', 'data-validate': JSON.stringify({required:true})},
+                                                    options: $parent.getGenderTypes(),
+                                                    optionsValue: 'key',
+                                                    optionsText: 'value',
+                                                    optionsCaption: $t('-Please select-'),
+                                                    value: gender"
+                                                data-validate="{required:true}">
+                                        </select>
+                                    </div>
+                            </div>
                         <!--/ko-->
 
+                        <!-- ko if: $parent.showDob() -->
+                            <div class="field required">
+                                <label data-bind="attr: {for: getCode() + '_dob'}" class="label">
+                                    <span><!-- ko text: $t('Date of Birth')--><!-- /ko --></span>
+                                </label>
+                                <div class="control">
+                                    <input type="text" class="input-text"
+                                           name="payment[dob]"
+                                           data-bind="
+                                            datepicker: { storage: datepickerValue, options: { showOn: 'both' } },
+                                           attr: {
+                                                title: $t('Date of Birth'),
+                                                'data-container': getCode() + '-dob',
+                                                'data-validate': JSON.stringify({'required':true })
+                                            },
+                                            value: dob"
+                                    />
+                                </div>
+                            </div>
+                        <!--/ko-->
 
-                    </div>
+                        <!-- ko if: $parent.showTelephone() -->
+                            <div class="field required">
+                                <label data-bind="attr: {for: getCode() + '_telephone'}" class="label">
+                                    <span><!-- ko text: $t('Telephone')--><!-- /ko --></span>
+                                </label>
+                                <div class="control">
+                                    <input type="number" class="input-text"
+                                           name="payment[telephone]"
+                                           data-bind="
+                                           attr: {
+                                                id: getCode() + '_telephone',
+                                                title: $t('Telephone'),
+                                                'data-container': getCode() + '-telephone',
+                                                'data-validate': JSON.stringify({'required-number':true })
+                                            },
+                                            value: telephone"
+                                    />
+                                </div>
+                            </div>
+                        <!--/ko-->
+                    <!--/ko-->
                 </fieldset>
                 <div class="checkout-agreements-block">
                     <!-- ko foreach: $parents[1].getRegion('before-place-order') -->
@@ -102,7 +161,15 @@
                    name="payment[method]"
                    class="radio"
                    data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
-            <label data-bind="attr: {'for': getCode()}" class="label"><span data-bind="text: getTitle()"></span></label>
+            <label data-bind="attr: {'for': getCode()}" class="label">
+
+                <!-- ko if: isIconEnabled() -->
+                    <div data-bind="attr: { 'class': 'adyen-sprite ' + getCode() }"></div>
+                <!--/ko-->
+
+                <span data-bind="text: getTitle()"></span>
+            </label>
+
         </div>
         <div class="payment-method-content">
             <div class="payment-method-billing-address">

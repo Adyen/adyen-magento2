@@ -51,6 +51,10 @@ define(
             {
                 type: 'adyen_pos',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-pos-method'
+            },
+            {
+                type: 'adyen_boleto',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-boleto-method'
             }
         );
         /** Add view logic here if needed */

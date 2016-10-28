@@ -96,6 +96,11 @@ class Cron
     /**
      * @var
      */
+    protected $_originalReference;
+
+    /**
+     * @var
+     */
     protected $_merchantReference;
 
     /**
@@ -149,6 +154,16 @@ class Cron
     protected $_fraudManualReview;
 
     /**
+     * @var Order\PaymentFactory
+     */
+    protected $_adyenOrderPaymentFactory;
+
+    /**
+     * @var Resource\Order\Payment\CollectionFactory
+     */
+    protected $_adyenOrderPaymentCollectionFactory;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -172,7 +187,9 @@ class Cron
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
         \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory,
         \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
-        \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
+        \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
+        \Adyen\Payment\Model\Order\PaymentFactory $adyenOrderPaymentFactory,
+        \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -184,6 +201,8 @@ class Cron
         $this->_billingAgreementFactory = $billingAgreementFactory;
         $this->_billingAgreementCollectionFactory = $billingAgreementCollectionFactory;
         $this->_adyenPaymentRequest = $paymentRequest;
+        $this->_adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
+        $this->_adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
     }
 
     /**
@@ -193,8 +212,6 @@ class Cron
     public function processNotification()
     {
         $this->_order = null;
-
-        $this->_adyenLogger->addAdyenNotificationCronjob("START OF THE CRONJOB");
 
         // execute notifications from 2 minute or earlier because order could not yet been created by magento
         $dateStart = new \DateTime();
@@ -209,7 +226,12 @@ class Cron
         $notifications->addFieldToFilter('created_at', $dateRange);
 
         // loop over the notifications
+        $count = 0;
         foreach ($notifications as $notification) {
+
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                sprintf("Processing notification %s", $notification->getEntityId())
+            );
 
             // log the executed notification
             $this->_adyenLogger->addAdyenNotificationCronjob(print_r($notification->debug(), 1));
@@ -288,8 +310,15 @@ class Cron
             $notification->setDone(true);
             $notification->setUpdatedAt($dateEnd);
             $notification->save();
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                sprintf("Notification %s is processed", $notification->getEntityId())
+            );
+            ++$count;
         }
-        $this->_adyenLogger->addAdyenNotificationCronjob("END OF THE CRONJOB");
+
+        if ($count > 0) {
+            $this->_adyenLogger->addAdyenNotificationCronjob(sprintf("Cronjob updated %s notification(s)", $count));
+        }
     }
 
     /**
@@ -302,6 +331,7 @@ class Cron
     {
         //  declare the common parameters
         $this->_pspReference = $notification->getPspreference();
+        $this->_originalReference = $notification->getOriginalReference();
         $this->_merchantReference = $notification->getMerchantReference();
         $this->_eventCode = $notification->getEventCode();
         $this->_success = $notification->getSuccess();
@@ -761,7 +791,7 @@ class Cron
                         }
 
                         $contractDetail = null;
-                        // get currenct Contract details and get list of all current ones
+                        // get current Contract details and get list of all current ones
                         $recurringReferencesList = [];
 
                         if ($listRecurringContracts) {
@@ -769,7 +799,6 @@ class Cron
                                 $recurringReferencesList[] = $rc['recurringDetailReference'];
                                 if (isset($rc['recurringDetailReference']) &&
                                     $rc['recurringDetailReference'] == $recurringDetailReference) {
-
                                     $contractDetail = $rc;
                                 }
                             }
@@ -817,10 +846,10 @@ class Cron
                                 '(listRecurringCall did not contain contract)'
                             );
                             $this->_adyenLogger->addAdyenNotificationCronjob(
-                                sprintf('recurringDetailReference in notification is %1', $recurringDetailReference)
+                                __('recurringDetailReference in notification is %1', $recurringDetailReference)
                             );
                             $this->_adyenLogger->addAdyenNotificationCronjob(
-                                sprintf('CustomerReference is: %1 and storeId is %2', $customerReference, $storeId)
+                                __('CustomerReference is: %1 and storeId is %2', $customerReference, $storeId)
                             );
                             $this->_adyenLogger->addAdyenNotificationCronjob(print_r($listRecurringContracts, 1));
                             $message = __(
@@ -850,6 +879,29 @@ class Cron
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Refunding the order');
 
+        // check if it is a split payment if so save the refunded data
+        if ($this->_originalReference != "") {
+
+            $this->_adyenLogger->addAdyenNotificationCronjob('Going to update the refund to split payments table');
+
+            $orderPayment = $this->_adyenOrderPaymentCollectionFactory
+                ->create()
+                ->addFieldToFilter(\Adyen\Payment\Model\Notification::PSPREFRENCE, $this->_originalReference)
+                ->getFirstItem();
+
+            if ($orderPayment->getId() > 0) {
+                $currency = $this->_order->getOrderCurrencyCode();
+                $amountRefunded = $amountRefunded =  $orderPayment->getTotalRefunded() +
+                    $this->_adyenHelper->originalAmount($this->_value, $currency);
+                $orderPayment->setUpdatedAt(new \DateTime());
+                $orderPayment->setTotalRefunded($amountRefunded);
+                $orderPayment->save();
+                $this->_adyenLogger->addAdyenNotificationCronjob('Update the refund in the split payments table');
+            } else {
+                $this->_adyenLogger->addAdyenNotificationCronjob('Payment not found in split payment table');
+            }
+        }
+
         /*
          * Don't create a credit memo if refund is initialize in Magento
          * because in this case the credit memo already exists
@@ -869,7 +921,7 @@ class Cron
                 $order->getPayment()->registerRefundNotification($amount);
                 */
 
-                $this->_adyenLogger->addAdyenNotificationCronjob('Please create your credit memo inside magentos');
+                $this->_adyenLogger->addAdyenNotificationCronjob('Please create your credit memo inside magento');
             } else {
                 $this->_adyenLogger->addAdyenNotificationCronjob('Could not create a credit memo for order');
             }
@@ -960,6 +1012,15 @@ class Cron
             $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
         }
 
+        $paymentObj = $this->_order->getPayment();
+
+        // set pspReference as transactionId
+        $paymentObj->setCcTransId($this->_pspReference);
+        $paymentObj->setLastTransId($this->_pspReference);
+
+        // set transaction
+        $paymentObj->setTransactionId($this->_pspReference);
+
         //capture mode
         if (!$this->_isAutoCapture()) {
             $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'));
@@ -990,46 +1051,28 @@ class Cron
 
         // validate if amount is total amount
         $orderCurrencyCode = $this->_order->getOrderCurrencyCode();
-        $orderAmount = (int) $this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $orderCurrencyCode);
+        $amount = $this->_adyenHelper->originalAmount($this->_value, $orderCurrencyCode);
 
-        if ($this->_isTotalAmount($orderAmount)) {
+        // add to order payment
+        $date = new \DateTime();
+        $this->_adyenOrderPaymentFactory->create()
+            ->setPspreference($this->_pspReference)
+            ->setMerchantReference($this->_merchantReference)
+            ->setPaymentId($paymentObj->getId())
+            ->setPaymentMethod($this->_paymentMethod)
+            ->setAmount($amount)
+            ->setTotalRefunded(0)
+            ->setCreatedAt($date)
+            ->setUpdatedAt($date)
+            ->save();
+
+
+        if ($this->_isTotalAmount($paymentObj->getEntityId(), $orderCurrencyCode)) {
             $this->_createInvoice();
         } else {
-            $this->_adyenLogger->addAdyenNotificationCronjob('This is a partial AUTHORISATION');
-
-            // Check if this is the first partial authorisation or if there is already been an authorisation
-            $paymentObj = $this->_order->getPayment();
-            $authorisationAmount = $paymentObj->getAdyenAuthorisationAmount();
-            if ($authorisationAmount != "") {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'There is already a partial AUTHORISATION received check if this combined with the ' .
-                    'previous amounts match the total amount of the order'
-                );
-                $authorisationAmount = (int) $authorisationAmount;
-                $currentValue = (int) $this->_value;
-                $totalAuthorisationAmount = $authorisationAmount + $currentValue;
-
-                // update amount in column
-                $paymentObj->setAdyenAuthorisationAmount($totalAuthorisationAmount);
-
-                if ($totalAuthorisationAmount == $orderAmount) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        'The full amount is paid. This is the latest AUTHORISATION notification. Create the invoice'
-                    );
-                    $this->_createInvoice();
-                } else {
-                    // this can be multiple times so use envenData as unique key
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        'The full amount is not reached. Wait for the next AUTHORISATION notification. ' .
-                        'The current amount that is authorized is:' . $totalAuthorisationAmount
-                    );
-                }
-            } else {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'This is the first partial AUTHORISATION save this into the adyen_authorisation_amount field'
-                );
-                $paymentObj->setAdyenAuthorisationAmount($this->_value);
-            }
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                'This is a partial AUTHORISATION and the full amount is not reached'
+            );
         }
     }
 
@@ -1067,17 +1110,15 @@ class Cron
                         $this->_paymentMethod == "sepadirectdebit") && $sepaFlow != "authcap")) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'This payment method does not allow manual capture.(2) paymentCode:' .
-                    $_paymentCode . ' paymentMethod:' . $this->_paymentMethod
+                    $_paymentCode . ' paymentMethod:' . $this->_paymentMethod . ' sepaFLow:'.$sepaFlow
                 );
                 return true;
             }
 
             // if auto capture mode for openinvoice is turned on then use auto capture
             if ($captureModeOpenInvoice == true &&
-                (strcmp($this->_paymentMethod, 'openinvoice') === 0 ||
-                    strcmp($this->_paymentMethod, 'afterpay_default') === 0 ||
-                    strcmp($this->_paymentMethod, 'klarna') === 0)) {
-
+                $this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod)
+            ) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'This payment method is configured to be working as auto capture '
                 );
@@ -1106,10 +1147,7 @@ class Cron
              * online capture after delivery, use Magento backend to online invoice
              * (if the option auto capture mode for openinvoice is not set)
              */
-            if (strcmp($this->_paymentMethod, 'openinvoice') === 0 ||
-                strcmp($this->_paymentMethod, 'afterpay_default') === 0 ||
-                strcmp($this->_paymentMethod, 'klarna') === 0) {
-
+            if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod)) {
                 $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode for klarna is by default set to manual');
                 return false;
             }
@@ -1201,22 +1239,36 @@ class Cron
      * @param $orderAmount
      * @return bool
      */
-    protected function _isTotalAmount($orderAmount)
+    protected function _isTotalAmount($paymentId, $orderCurrencyCode)
     {
         $this->_adyenLogger->addAdyenNotificationCronjob(
             'Validate if AUTHORISATION notification has the total amount of the order'
         );
-        $value = (int)$this->_value;
 
-        if ($value == $orderAmount) {
-            $this->_adyenLogger->addAdyenNotificationCronjob('AUTHORISATION has the full amount');
-            return true;
-        } else {
-            $this->_adyenLogger->addAdyenNotificationCronjob(
-                'This is a partial AUTHORISATION, the amount is ' . $this->_value
-            );
-            return false;
+        // get total amount of the order
+        $grandTotal = (int) $this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $orderCurrencyCode);
+
+        // check if total amount of the order is authorised
+        $res = $this->_adyenOrderPaymentCollectionFactory
+            ->create()
+            ->getTotalAmount($paymentId);
+
+        if($res && isset($res[0]) && is_array($res[0])) {
+            $amount = $res[0]['total_amount'];
+            $orderAmount = $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode);
+            $this->_adyenLogger->addAdyenNotificationCronjob(sprintf('The grandtotal amount is %s and the total order amount that is authorised is: %s', $grandTotal, $orderAmount));
+
+            if ($grandTotal == $orderAmount) {
+                $this->_adyenLogger->addAdyenNotificationCronjob('AUTHORISATION has the full amount');
+                return true;
+            } else {
+                $this->_adyenLogger->addAdyenNotificationCronjob(
+                    'This is a partial AUTHORISATION, the amount is ' . $this->_value
+                );
+                return false;
+            }
         }
+        return false;
     }
 
     /**

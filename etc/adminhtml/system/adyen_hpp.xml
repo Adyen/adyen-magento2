@@ -55,19 +55,44 @@
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_hpp/hmac_live</config_path>
         </field>
-    <group id="adyen_hpp_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" sortOrder="200">
-        <label>Advanced Settings</label>
-        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <group id="adyen_hpp_openinvoice_settings" translate="label" showInDefault="1" showInWebsite="1" sortOrder="100">
+            <label>Klarna\Afterpay Settings</label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+            <field id="show_gender" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Show Gender</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>payment/adyen_hpp/show_gender</config_path>
+            </field>
+            <field id="show_dob" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Show Date of Birth</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>payment/adyen_hpp/show_dob</config_path>
+            </field>
+            <field id="show_telephone" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Show Telephone</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>payment/adyen_hpp/show_telephone</config_path>
+            </field>
+            <field id="ignore_second_address_field" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Ignore the second address line field</label>
+                <tooltip>If you do not want to send the second line address field to Klarna set this setting to 'Yes'</tooltip>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>payment/adyen_hpp/ignore_second_address_field</config_path>
+            </field>
+        </group>
+        <group id="adyen_hpp_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" sortOrder="200">
+            <label>Advanced Settings</label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
             <field id="title" translate="label" type="text" sortOrder="65" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Title</label>
                 <config_path>payment/adyen_hpp/title</config_path>
             </field>
-        <field id="delivery_days" translate="label" type="text" sortOrder="68" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Days to Delivery</label>
-            <tooltip>How many days to be added to the current date for delivery. ONLY whole numbers allowed.</tooltip>
-            <frontend_class>validate-number</frontend_class>
-            <config_path>payment/adyen_hpp/delivery_days</config_path>
-        </field>
+            <field id="delivery_days" translate="label" type="text" sortOrder="68" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Days to Delivery</label>
+                <tooltip>How many days to be added to the current date for delivery. ONLY whole numbers allowed.</tooltip>
+                <frontend_class>validate-number</frontend_class>
+                <config_path>payment/adyen_hpp/delivery_days</config_path>
+            </field>
             <field id="payment_selection_on_adyen" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Payment method selection on Adyen Hosted Payment Page (HPP)</label>
                 <tooltip>If you set this to 'Yes', payment methods in the checkout won't be displayed and you will be redirected to the Adyen HPP to make the selection.</tooltip>
