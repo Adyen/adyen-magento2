@@ -101,7 +101,6 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                     $order->getPayment()->setAdditionalInformation('paResponse', $requestPaRes);
 
                     try {
-
                         /**
                          * Magento should allow this.
                          * https://github.com/magento/magento2/issues/5819
