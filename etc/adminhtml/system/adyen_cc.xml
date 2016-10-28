@@ -72,6 +72,13 @@
                 <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 <config_path>payment/adyen_cc/enable_moto</config_path>
             </field>
+            <field id="installments" translate="label" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Installments</label>
+                <tooltip>Configure your installment foreach creditcard type.</tooltip>
+                <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Installments</frontend_model>
+                <backend_model>Adyen\Payment\Model\Config\Backend\Installments</backend_model>
+                <config_path>payment/adyen_cc/installments</config_path>
+            </field>
         </group>
 
         <group id="adyen_cc_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="200">

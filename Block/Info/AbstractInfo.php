@@ -32,23 +32,30 @@ class AbstractInfo extends \Magento\Payment\Block\Info
      * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;
+
+    /**
+     * @var \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory
+     */
+    protected $_adyenOrderPaymentCollectionFactory;
     
     /**
-     * Constructor
-     *
      * AbstractInfo constructor.
+     *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory
      * @param Template\Context $context
      * @param array $data
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
         Template\Context $context,
         array $data = []
     )
     {
         parent::__construct($context, $data);
         $this->_adyenHelper = $adyenHelper;
+        $this->_adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
     }
 
     /**

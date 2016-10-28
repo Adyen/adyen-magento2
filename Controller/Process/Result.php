@@ -262,17 +262,29 @@ class Result extends \Magento\Framework\App\Action\Action
     protected function _authenticate($response) {
 
         $hmacKey = $this->_adyenHelper->getHmac();
+        $merchantSigNotification = $response['merchantSig'];
+
+        // do it like this because $_GET is converting dot to underscore
+        $queryString = $_SERVER['QUERY_STRING'];
+        $result = [];
+        $pairs = explode("&", $queryString);
+
+        foreach ($pairs as $pair) {
+            $nv = explode("=", $pair);
+            $name = urldecode($nv[0]);
+            $value = urldecode($nv[1]);
+            $result[$name] = $value;
+        }
 
         // do not include the merchantSig in the merchantSig calculation
-        $merchantSigNotification = $response['merchantSig'];
-        unset($response['merchantSig']);
+        unset($result['merchantSig']);
 
         // Sort the array by key using SORT_STRING order
-        ksort($response, SORT_STRING);
+        ksort($result, SORT_STRING);
 
         // Generate the signing data string
         $signData = implode(":", array_map([$this, 'escapeString'],
-            array_merge(array_keys($response), array_values($response))));
+            array_merge(array_keys($result), array_values($result))));
 
         $merchantSig = base64_encode(hash_hmac('sha256', $signData, pack("H*", $hmacKey), true));
 

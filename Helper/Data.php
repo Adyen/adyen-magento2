@@ -52,24 +52,50 @@ class Data extends AbstractHelper
     protected $_moduleList;
 
     /**
+     * @var \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory
+     */
+    protected $_billingAgreementCollectionFactory;
+
+    /**
+     * @var Repository
+     */
+    protected $_assetRepo;
+
+    /**
+     * @var \Magento\Framework\View\Asset\Source
+     */
+    protected $_assetSource;
+
+    /**
      * Data constructor.
-     *
+     * 
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Magento\Framework\Config\DataInterface $dataStorage
+     * @param \Magento\Directory\Model\Config\Source\Country $country
+     * @param \Magento\Framework\Module\ModuleListInterface $moduleList
+     * @param \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
+     * @param \Magento\Framework\View\Asset\Repository $assetRepo
+     * @param \Magento\Framework\View\Asset\Source $assetSource
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Magento\Framework\Config\DataInterface $dataStorage,
         \Magento\Directory\Model\Config\Source\Country $country,
-        \Magento\Framework\Module\ModuleListInterface $moduleList
+        \Magento\Framework\Module\ModuleListInterface $moduleList,
+        \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
+        \Magento\Framework\View\Asset\Repository $assetRepo,
+        \Magento\Framework\View\Asset\Source $assetSource
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
         $this->_dataStorage = $dataStorage;
         $this->_country = $country;
         $this->_moduleList = $moduleList;
+        $this->_billingAgreementCollectionFactory = $billingAgreementCollectionFactory;
+        $this->_assetRepo = $assetRepo;
+        $this->_assetSource = $assetSource;
     }
 
     /**
@@ -164,7 +190,19 @@ class Data extends AbstractHelper
                 break;
         }
 
-        return number_format($amount, $format, '', '');
+        return (int)number_format($amount, $format, '', '');
+    }
+
+    /**
+     * Tax Percentage needs to be in minor units for Adyen
+     *
+     * @param float $taxPercent
+     * @return int
+     */
+    public function getMinorUnitTaxPercent($taxPercent)
+    {
+        $taxPercent = $taxPercent * 100;
+        return (int)$taxPercent;
     }
 
     /**
@@ -387,6 +425,28 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @desc Gives back adyen_boleto configuration values
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenBoletoConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_boleto', $storeId);
+    }
+
+    /**
+     * @desc Gives back adyen_boleto configuration values as flag
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenBoletoConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_boleto', $storeId, true);
+    }
+
+    /**
      * @desc Retrieve decrypted hmac key
      * @return string
      */
@@ -585,4 +645,168 @@ class Data extends AbstractHelper
     {
         return (string) $this->_moduleList->getOne("Adyen_Payment")['setup_version'];
     }
+
+    public function getBoletoTypes()
+    {
+        return [
+            [
+                'value' => 'boletobancario_hsbc',
+                'label' => __('boletobancario_hsbc'),
+            ],
+            [
+                'value' => 'boletobancario_itau',
+                'label' => __('boletobancario_itau'),
+            ],
+            [
+                'value' => 'boletobancario_santander',
+                'label' => __('boletobancario_santander'),
+            ],
+            [
+                'value' => 'boletobancario_bradesco',
+                'label' => __('boletobancario_bradesco'),
+            ],
+            [
+                'value' => 'boletobancario_bancodobrasil',
+                'label' => __('boletobancario_bancodobrasil'),
+            ],
+        ];
+    }
+
+    /**
+     * @param $customerId
+     * @param $storeId
+     * @param $grandTotal
+     * @param $recurringType
+     * @return array
+     */
+    public function getOneClickPaymentMethods($customerId, $storeId, $grandTotal, $recurringType)
+    {
+        $billingAgreements = [];
+
+        $baCollection = $this->_billingAgreementCollectionFactory->create();
+        $baCollection->addFieldToFilter('customer_id', $customerId);
+        $baCollection->addFieldToFilter('store_id', $storeId);
+        $baCollection->addFieldToFilter('method_code', 'adyen_oneclick');
+        $baCollection->addActiveFilter();
+
+        foreach ($baCollection as $billingAgreement) {
+
+            $agreementData = $billingAgreement->getAgreementData();
+
+            // no agreementData and contractType then ignore
+            if ((!is_array($agreementData)) || (!isset($agreementData['contractTypes']))) {
+                continue;
+            }
+
+            // check if contractType is supporting the selected contractType for OneClick payments
+            $allowedContractTypes = $agreementData['contractTypes'];
+            if (in_array($recurringType, $allowedContractTypes)) {
+                // check if AgreementLabel is set and if contract has an recurringType
+                if ($billingAgreement->getAgreementLabel()) {
+
+                    // for Ideal use sepadirectdebit because it is
+                    if ($agreementData['variant'] == 'ideal') {
+                        $agreementData['variant'] = 'sepadirectdebit';
+                    }
+
+                    $data = ['reference_id' => $billingAgreement->getReferenceId(),
+                        'agreement_label' => $billingAgreement->getAgreementLabel(),
+                        'agreement_data' => $agreementData
+                    ];
+
+                    if ($this->showLogos()) {
+                        $logoName = $agreementData['variant'];
+
+                        $asset = $this->createAsset(
+                            'Adyen_Payment::images/logos/' . $logoName . '.png'
+                        );
+                        
+                        $icon = null;
+                        $placeholder = $this->_assetSource->findSource($asset);
+                        if ($placeholder) {
+                            list($width, $height) = getimagesize($asset->getSourceFile());
+                            $icon = [
+                                'url' => $asset->getUrl(),
+                                'width' => $width,
+                                'height' => $height
+                            ];
+                        }
+                        $data['logo'] = $icon;
+                    }
+
+                    /**
+                     * Check if there are installments for this creditcard type defined
+                     */
+                    $data['number_of_installments'] = 0;
+                    $ccType = $this->getMagentoCreditCartType($agreementData['variant']);
+                    $installments = null;
+                    $installmentsValue = $this->getAdyenCcConfigData('installments');
+                    if ($installmentsValue) {
+                        $installments = unserialize($installmentsValue);
+                    }
+
+                    if ($installments) {
+                        $numberOfInstallments = null;
+
+                        foreach ($installments as $ccTypeInstallment => $installment) {
+                            if ($ccTypeInstallment == $ccType) {
+                                foreach ($installment as $amount => $installments) {
+                                    if ($grandTotal <= $amount) {
+                                        $numberOfInstallments = $installments;
+                                    }
+                                }
+                            }
+                        }
+                        if ($numberOfInstallments) {
+                            $data['number_of_installments'] = $numberOfInstallments;
+                        }
+                    }
+                    $billingAgreements[] = $data;
+                }
+            }
+        }
+        return $billingAgreements;
+    }
+
+
+    /**
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
+    {
+        if (strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_') {
+            return true;
+        } else if($paymentMethod == 'klarna') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function showLogos()
+    {
+        $showLogos = $this->getAdyenAbstractConfigData('title_renderer');
+        if ($showLogos == \Adyen\Payment\Model\Config\Source\RenderMode::MODE_TITLE_IMAGE) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Create a file asset that's subject of fallback system
+     *
+     * @param string $fileId
+     * @param array $params
+     * @return \Magento\Framework\View\Asset\File
+     */
+    public function createAsset($fileId, array $params = [])
+    {
+        $params = array_merge(['_secure' => $this->_request->isSecure()], $params);
+        return $this->_assetRepo->createAsset($fileId, $params);
+    }
+
 }

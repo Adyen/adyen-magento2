@@ -55,6 +55,10 @@ $_isDemoMode = $block->isDemoMode();
     <?php echo __('Credit Card Number: xxxx-%1', $this->getInfo()->getCcLast4()) ?><br/>
 <?php endif;?>
 
+<?php if($_info->getAdditionalInformation('number_of_installments') != ""): ?>
+    <?php echo __('Number of installments: %1', $_info->getAdditionalInformation('number_of_installments')) ?><br/>
+<?php endif; ?>
+
 
 <?php if($_info->getAdditionalInformation('adyen_avs_result') != ""): ?>
     <?php echo __('Avs result: %1', $_info->getAdditionalInformation('adyen_avs_result')) ?><br/>

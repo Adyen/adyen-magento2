@@ -38,6 +38,10 @@ interface NotificationInterface
      */
     const PSPREFRENCE = 'pspreference';
     /*
+     * Pspreference.
+     */
+    const ORIGINAL_REFERENCE = 'original_reference';
+    /*
      * Merchantreference
      */
     const MERCHANT_REFERENCE = 'merchant_reference';
@@ -116,6 +120,22 @@ interface NotificationInterface
      * @return $this
      */
     public function setPspreference($pspreference);
+
+
+    /**
+     * Sets OriginalReference.
+     *
+     * @param string $originalReference
+     * @return $this
+     */
+    public function setOriginalReference($originalReference);
+
+    /**
+     * Gets the OriginalReference for the notification.
+     *
+     * @return int|null OriginalReference.
+     */
+    public function getOriginalReference();
 
     /**
      * Gets the Merchantreference for the notification.

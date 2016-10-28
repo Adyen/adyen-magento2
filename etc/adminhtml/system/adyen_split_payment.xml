@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_split_payment" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Advanced: Split Payment]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <comment>
+            <![CDATA[
+                <p>
+                It is possible to do split payments with GiftCards please configure here what refund strategie you want to use
+                </p>
+            ]]>
+        </comment>
+
+        <field id="split_payments_refund_strategy" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Refund Strategy</label>
+            <tooltip>Only relevant if you accept giftcards on Adyen platform</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\SplitPaymentRefundStrategy</source_model>
+            <config_path>payment/adyen_abstract/split_payments_refund_strategy</config_path>
+        </field>
+
+    </group>
+</include>

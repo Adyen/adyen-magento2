@@ -1,0 +1,35 @@
+<?php
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+/**
+ * @var \Adyen\Payment\Block\Checkout\Success $block
+ */
+?>
+<?php if ($block->isBoletoPayment()):?>
+<p>
+    <?php echo $block->escapeHtml(__('Boleto PDF: ')); ?>
+    <a href="<?php echo $block->escapeUrl($block->getBoletoPdfUrl()); ?>">
+        <?php echo $block->escapeHtml(__('Click here to download the Boleto PDF')); ?>
+    </a>
+</p>
+<?php endif; ?>

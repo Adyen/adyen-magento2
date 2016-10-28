@@ -37,12 +37,15 @@
                 <include path="Adyen_Payment::system/adyen_advanced_notifications.xml"/>
                 <include path="Adyen_Payment::system/adyen_billing_agreements.xml"/>
                 <include path="Adyen_Payment::system/adyen_checkout_experience.xml"/>
+                <include path="Adyen_Payment::system/adyen_manual_review.xml"/>
+                <include path="Adyen_Payment::system/adyen_split_payment.xml"/>
                 <include path="Adyen_Payment::system/adyen_cc.xml"/>
                 <include path="Adyen_Payment::system/adyen_oneclick.xml"/>
                 <include path="Adyen_Payment::system/adyen_hpp.xml"/>
                 <include path="Adyen_Payment::system/adyen_sepa.xml"/>
                 <include path="Adyen_Payment::system/adyen_pos.xml"/>
                 <include path="Adyen_Payment::system/adyen_pay_by_mail.xml"/>
+                <include path="Adyen_Payment::system/adyen_boleto.xml"/>
             </group>
             <group id="test" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Test</label>

@@ -30,9 +30,13 @@ define(
         'mage/translate',
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Customer/js/model/customer',
+        'Magento_Payment/js/model/credit-card-validation/credit-card-data',
+        'Magento_Checkout/js/model/quote',
+        'ko',
+        'Adyen_Payment/js/model/installments',
         'adyen/encrypt'
     ],
-    function (_, $, Component, placeOrderAction, $t, additionalValidators, customer, adyenEncrypt) {
+    function (_, $, Component, placeOrderAction, $t, additionalValidators, customer, creditCardData, quote, ko, installments, adyenEncrypt) {
 
         'use strict';
         return Component.extend({
@@ -40,7 +44,8 @@ define(
                 template: 'Adyen_Payment/payment/cc-form',
                 creditCardOwner: '',
                 encryptedData: '',
-                setStoreCc: true
+                setStoreCc: true,
+                installment: ''
             },
             initObservable: function () {
                 this._super()
@@ -56,9 +61,48 @@ define(
                         'creditCardOwner',
                         'encryptedData',
                         'generationtime',
-                        'setStoreCc'
+                        'setStoreCc',
+                        'installment'
                     ]);
                 return this;
+            },
+            getInstallments: installments.getInstallments(),
+            initialize: function() {
+                var self = this;
+                this._super();
+
+                //Set credit card number to credit card data object
+                this.creditCardNumber.subscribe(function(value) {
+
+                    // installments enabled ??
+                    var allInstallments = self.getAllInstallments();
+
+                    // what card is this ??
+                    var creditcardType = creditCardData.creditCard.type;
+
+                    if(creditcardType) {
+
+                        if (creditcardType in allInstallments) {
+                            // get for the creditcard the installments
+                            var installmentCreditcard = allInstallments[creditcardType];
+                            var grandTotal = quote.totals().grand_total;
+
+                            var numberOfInstallments = 0;
+                            $.each(installmentCreditcard, function (amount, installment) {
+                                if(grandTotal <= amount) {
+                                    numberOfInstallments = installment;
+                                    return false;
+                                }
+                            });
+
+                            if(numberOfInstallments > 0) {
+                                installments.setInstallments(numberOfInstallments);
+                            }
+                        } else {
+                            installments.setInstallments(0);
+                        }
+                    }
+                });
             },
             setPlaceOrderHandler: function(handler) {
                 this.placeOrderHandler = handler;
@@ -76,7 +120,8 @@ define(
                         'cc_type': this.creditCardType(),
                         'encrypted_data': this.encryptedData(),
                         'generationtime': this.generationtime(),
-                        'store_cc': this.setStoreCc()
+                        'store_cc': this.setStoreCc(),
+                        'number_of_installments': this.installment()
                     }
                 };
             },
@@ -155,8 +200,8 @@ define(
 
                 var validate =  $(form).validation() && $(form).validation('isValid');
                 // add extra validation because jqeury validation will not work on non name attributes
-                var ccNumber = Boolean($(form + ' #adyen_cc_cc_number').valid());
-                var owner = Boolean($(form + ' #adyen_cc_cc_owner').valid());
+                var ccNumber = Boolean($(form + ' #creditCardNumber').valid());
+                var owner = Boolean($(form + ' #creditCardHolderName').valid());
                 var expiration = Boolean($(form + ' #adyen_cc_expiration').valid());
                 var expiration_yr = Boolean($(form + ' #adyen_cc_expiration_yr').valid());
                 var cid = Boolean($(form + ' #adyen_cc_cc_cid').valid());
@@ -175,6 +220,12 @@ define(
                     ? window.checkoutConfig.payment.adyenCc.icons[type]
                     : false
             },
+            hasInstallments: function() {
+                return window.checkoutConfig.payment.adyenCc.hasInstallments;
+            },
+            getAllInstallments: function() {
+                return window.checkoutConfig.payment.adyenCc.installments;
+            }
         });
     }
 );

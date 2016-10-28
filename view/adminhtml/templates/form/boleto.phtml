@@ -1,0 +1,92 @@
+<?php
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+// @codingStandardsIgnoreFile
+
+$code = $block->escapeHtml($block->getMethodCode());
+$currentBoletoType = $block->getInfoData('boleto_type');
+?>
+
+<fieldset class="admin__fieldset payment-method" id="payment_form_<?php /* @noEscape */ echo $code; ?>"
+          style="display:none">
+
+
+    <div class="field admin__field _required">
+        <label class="admin__field-label" for="<?php /* @noEscape */ echo $code; ?>_social_security_number">
+            <span><?php echo $block->escapeHtml(__('Social Security Number')); ?></span>
+        </label>
+        <div class="admin__field-control">
+            <input type="text"
+                   id="<?php /* @noEscape */ echo $code; ?>_social_security_number"
+                   name="payment[social_security_number]"
+                   title="<?php echo $block->escapeHtml(__('Social Security Number')); ?>" class="admin__control-text"
+                   value="<?php /* @noEscape */ echo $block->getInfoData('social_security_number'); ?>"/>
+        </div>
+    </div>
+
+
+    <div class="field-type admin__field _required">
+        <label class="admin__field-label" for="<?php /* @noEscape */ echo $code; ?>_boleto_type">
+            <span><?php echo $block->escapeHtml(__('Boleto Type')); ?></span>
+        </label>
+        <div class="admin__field-control">
+            <select id="<?php /* @noEscape */ echo $code; ?>_cc_type" name="payment[boleto_type]"
+                    class="required-entry admin__control-select">
+                <option value=""></option>
+                <?php foreach ($block->getBoletoTypes() as $key => $value): ?>
+                    <option value="<?php echo $block->escapeHtml($key); ?>" <?php if ($key == $currentBoletoType): ?>selected="selected"<?php endif ?>>
+                        <?php echo $block->escapeHtml($value); ?>
+                    </option>
+                <?php endforeach ?>
+            </select>
+        </div>
+    </div>
+
+
+    <div class="field admin__field _required">
+        <label class="admin__field-label" for="<?php /* @noEscape */ echo $code; ?>_firstname">
+            <span><?php echo $block->escapeHtml(__('Firstname')); ?></span>
+        </label>
+        <div class="admin__field-control">
+            <input type="text"
+                   id="<?php /* @noEscape */ echo $code; ?>_firstname"
+                   name="payment[firstname]"
+                   title="<?php echo $block->escapeHtml(__('Firstname')); ?>" class="admin__control-text"
+                   value="<?php /* @noEscape */ echo $block->getInfoData('firstname'); ?>"/>
+        </div>
+    </div>
+
+    <div class="field admin__field _required">
+        <label class="admin__field-label" for="<?php /* @noEscape */ echo $code; ?>_firstname">
+            <span><?php echo $block->escapeHtml(__('Lastname')); ?></span>
+        </label>
+        <div class="admin__field-control">
+            <input type="text"
+                   id="<?php /* @noEscape */ echo $code; ?>_lastname"
+                   name="payment[lastname]"
+                   title="<?php echo $block->escapeHtml(__('Lastname')); ?>" class="admin__control-text"
+                   value="<?php /* @noEscape */ echo $block->getInfoData('lastname'); ?>"/>
+        </div>
+    </div>
+
+</fieldset>

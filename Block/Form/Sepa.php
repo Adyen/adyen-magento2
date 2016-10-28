@@ -40,8 +40,8 @@ class Sepa extends \Magento\Payment\Block\Form
      * Sepa constructor.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param \Magento\Payment\Model\Config $paymentConfig
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param array $data
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
