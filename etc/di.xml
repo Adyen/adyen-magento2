@@ -597,7 +597,7 @@
     </virtualType>
     <virtualType name="AdyenOneclickCountryValidator" type="Magento\Payment\Gateway\Validator\CountryValidator">
         <arguments>
-            <argument name="config" xsi:type="object">AdyenPaymentOneClickConfig</argument>
+            <argument name="config" xsi:type="object">AdyenPaymentOneclickConfig</argument>
         </arguments>
     </virtualType>
 

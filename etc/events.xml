@@ -27,7 +27,7 @@
         <observer name="adyen_cc_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenCcDataAssignObserver" />
     </event>
     <event name="payment_method_assign_data_adyen_oneclick">
-        <observer name="adyen_cc_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenOneclickDataAssignObserver" />
+        <observer name="adyen_oneclick_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenOneclickDataAssignObserver" />
     </event>
     <event name="payment_method_assign_data_adyen_hpp">
         <observer name="adyen_hpp_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenHppDataAssignObserver" />
