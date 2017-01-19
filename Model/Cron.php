@@ -438,9 +438,10 @@ class Cron
             );
         }
 
-        // if payment method is klarna or openinvoice/afterpay show the reservartion number
+        // if payment method is klarna, ratepay or openinvoice/afterpay show the reservartion number
         if (($this->_paymentMethod == "klarna" || $this->_paymentMethod == "afterpay_default" ||
-                $this->_paymentMethod == "openinvoice") && ($this->_klarnaReservationNumber != null &&
+                $this->_paymentMethod == "openinvoice" || $this->_paymentMethod == "ratepay"
+            ) && ($this->_klarnaReservationNumber != null &&
                 $this->_klarnaReservationNumber != "")) {
             $klarnaReservationNumberText = "<br /> reservationNumber: " . $this->_klarnaReservationNumber;
         } else {
@@ -1191,6 +1192,7 @@ class Cron
             case 'paypal':
             case 'klarna':
             case 'afterpay_default':
+            case 'ratepay':
             case 'sepadirectdebit':
                 $manualCaptureAllowed = true;
                 break;

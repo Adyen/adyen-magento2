@@ -56,7 +56,7 @@
             <config_path>payment/adyen_hpp/hmac_live</config_path>
         </field>
         <group id="adyen_hpp_openinvoice_settings" translate="label" showInDefault="1" showInWebsite="1" sortOrder="100">
-            <label>Klarna\Afterpay Settings</label>
+            <label>Klarna\RatePay\Afterpay Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
             <field id="show_gender" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Show Gender</label>

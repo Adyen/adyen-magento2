@@ -777,7 +777,7 @@ class Data extends AbstractHelper
     {
         if (strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_') {
             return true;
-        } else if($paymentMethod == 'klarna') {
+        } else if($paymentMethod == 'klarna' || $paymentMethod == 'ratepay') {
             return true;
         } else {
             return false;
