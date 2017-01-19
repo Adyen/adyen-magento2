@@ -51,6 +51,11 @@ class Validate3d extends \Magento\Framework\App\Action\Action
     protected $_paymentRequest;
 
     /**
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     */
+    protected $_orderRepository;
+
+    /**
      * Validate3d constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -62,12 +67,14 @@ class Validate3d extends \Magento\Framework\App\Action\Action
         \Magento\Framework\App\Action\Context $context,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
+        \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
     ) {
         parent::__construct($context);
         $this->_adyenLogger = $adyenLogger;
         $this->_adyenHelper = $adyenHelper;
         $this->_paymentRequest = $paymentRequest;
+        $this->_orderRepository = $orderRepository;
     }
 
     /**
@@ -86,6 +93,7 @@ class Validate3d extends \Magento\Framework\App\Action\Action
 
         // check if 3D secure is active. If not just go to success page
         if ($active) {
+
             $this->_adyenLogger->addAdyenResult("3D secure is active");
 
             // check if it is already processed
@@ -121,6 +129,10 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                     // check if authorise3d was successful
                     if ($result == 'Authorised') {
                         $order->addStatusHistoryComment(__('3D-secure validation was successful'))->save();
+                        // set back to false so when pressed back button on the success page it will reactivate 3D secure
+                        $order->getPayment()->setAdditionalInformation('3dActive', '');
+                        $this->_orderRepository->save($order);
+
                         $this->_redirect('checkout/onepage/success');
                     } else {
                         $order->addStatusHistoryComment(__('3D-secure validation was unsuccessful.'))->save();
