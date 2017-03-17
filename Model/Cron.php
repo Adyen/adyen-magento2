@@ -1365,7 +1365,8 @@ class Cron
             'capture_on_shipment', 'adyen_abstract', $this->_order->getStoreId()
         );
 
-        if (!$captureOnShipment) {
+        $status = NULL;
+        if (!is_null($captureOnShipment) && !$captureOnShipment) {
             $status = $this->_getConfigData('payment_authorized', 'adyen_abstract', $this->_order->getStoreId());
         }
 
