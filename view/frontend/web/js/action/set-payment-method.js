@@ -39,10 +39,8 @@ define(
                 payload,
                 paymentData = quote.paymentMethod();
 
-
             // use core code to assign the agreement
             agreementsAssigner(paymentData);
-
 
             /** Checkout for guest and registered customer. */
             if (!customer.isLoggedIn()) {
