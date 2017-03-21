@@ -32,7 +32,6 @@ define(
     ],
     function ($, quote, urlBuilder, storage, errorProcessor, customer, fullScreenLoader, agreementsAssigner) {
         'use strict';
-        var agreementsConfig = window.checkoutConfig.checkoutAgreements;
 
         return function () {
 
