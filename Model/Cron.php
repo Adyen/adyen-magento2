@@ -1359,15 +1359,8 @@ class Cron
             );
             $this->_createInvoice();
         }
-
-        // if you have capture on shipment enabled don't set update the status of the payment
-        $captureOnShipment = $this->_getConfigData(
-            'capture_on_shipment', 'adyen_abstract', $this->_order->getStoreId()
-        );
-
-        if (!$captureOnShipment) {
-            $status = $this->_getConfigData('payment_authorized', 'adyen_abstract', $this->_order->getStoreId());
-        }
+        
+        $status = $this->_getConfigData('payment_authorized', 'adyen_abstract', $this->_order->getStoreId());
 
         // virtual order can have different status
         if ($this->_order->getIsVirtual()) {
