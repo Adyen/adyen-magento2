@@ -301,6 +301,9 @@ class Json extends \Magento\Framework\App\Action\Action
             $_SERVER['REDIRECT_REMOTE_AUTHORIZATION'] != '') {
             list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
                 explode(':', base64_decode($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']));
+        } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
+                explode(':', base64_decode(substr($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)));
         } elseif (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
             list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
                 explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
