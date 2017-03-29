@@ -27,11 +27,11 @@ define(
         'mage/storage',
         'Magento_Checkout/js/model/error-processor',
         'Magento_Customer/js/model/customer',
-        'Magento_Checkout/js/model/full-screen-loader'
+        'Magento_Checkout/js/model/full-screen-loader',
+        'Magento_CheckoutAgreements/js/model/agreements-assigner'
     ],
-    function ($, quote, urlBuilder, storage, errorProcessor, customer, fullScreenLoader) {
+    function ($, quote, urlBuilder, storage, errorProcessor, customer, fullScreenLoader, agreementsAssigner) {
         'use strict';
-        var agreementsConfig = window.checkoutConfig.checkoutAgreements;
 
         return function () {
 
@@ -39,20 +39,8 @@ define(
                 payload,
                 paymentData = quote.paymentMethod();
 
-
-            // check if agreement is enabled if so add it to payload
-            if (agreementsConfig.isEnabled) {
-                var agreementForm = $('.payment-method._active form[data-role=checkout-agreements]'),
-                    agreementData = agreementForm.serializeArray(),
-                    agreementIds = [];
-
-                agreementData.forEach(function(item) {
-                    agreementIds.push(item.value);
-                });
-
-                paymentData.extension_attributes = {agreement_ids: agreementIds};
-            }
-
+            // use core code to assign the agreement
+            agreementsAssigner(paymentData);
 
             /** Checkout for guest and registered customer. */
             if (!customer.isLoggedIn()) {
