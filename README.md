@@ -1,8 +1,12 @@
 # Adyen_Magento2
 Adyen Payment plugin for Magento2
 
-## Install with Composer ##
-composer require adyen/module-payment
+## Installation ##
+```
+bin/composer require adyen/module-payment
+bin/magento module:enable Adyen_Payment
+bin/magento setup:upgrade
+```
 
 ## Manual ##
 <a href="https://docs.adyen.com/developers/magento#magento2integration" target="_blank">https://docs.adyen.com/developers/magento#magento2integration</a>
