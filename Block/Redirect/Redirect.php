@@ -441,17 +441,11 @@ class Redirect extends \Magento\Payment\Block\Form
                         $item->getPrice(),
                         $currency
                     ) : $this->_adyenHelper->formatAmount($item->getTaxAmount(), $currency);
-
-
-
-            // $product = $item->getProduct();
-
+            
             // Calculate vat percentage
             $percentageMinorUnits = $this->_adyenHelper->getMinorUnitTaxPercent($item->getTaxPercent());
             $formFields['openinvoicedata.' . $linename . '.itemVatPercentage'] = $percentageMinorUnits;
             $formFields['openinvoicedata.' . $linename . '.numberOfItems'] = (int) $item->getQtyOrdered();
-
-
 
             if ($this->_order->getPayment()->getAdditionalInformation(
                     \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE) == "klarna"
@@ -460,6 +454,11 @@ class Redirect extends \Magento\Payment\Block\Form
             } else {
                 $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "None";
             }
+
+            if ($item->getSku() != "") {
+                $formFields['openinvoicedata.' . $linename . '.itemId'] = $item->getSku();
+            }
+
         }
 
         $formFields['openinvoicedata.refundDescription'] = "Refund / Correction for ".$formFields['merchantReference'];
