@@ -461,7 +461,9 @@ class Cron
 
         // If notification is pending status and pending status is set add the status change to the comment history
         if ($this->_eventCode == Notification::PENDING) {
-            $pendingStatus = $this->_getConfigData('pending_status', 'adyen_abstract', $this->_order->getStoreId());
+            $pendingStatus = $this->_getConfigData(
+                'pending_status', 'adyen_abstract', $this->_order->getStoreId()
+            );
             if ($pendingStatus != "") {
                 $this->_order->addStatusHistoryComment($comment, $pendingStatus);
                 $this->_adyenLogger->addAdyenNotificationCronjob(
@@ -598,7 +600,9 @@ class Cron
      */
     protected function _holdCancelOrder($ignoreHasInvoice)
     {
-        $orderStatus = $this->_getConfigData('payment_cancelled', 'adyen_abstract', $this->_order->getStoreId());
+        $orderStatus = $this->_getConfigData(
+            'payment_cancelled', 'adyen_abstract', $this->_order->getStoreId()
+        );
 
         // check if order has in invoice only cancel/hold if this is not the case
         if ($ignoreHasInvoice || !$this->_order->hasInvoices()) {
@@ -988,7 +992,9 @@ class Cron
      */
     private function _setPrePaymentAuthorized()
     {
-        $status = $this->_getConfigData('payment_pre_authorized', 'adyen_abstract', $this->_order->getStoreId());
+        $status = $this->_getConfigData(
+            'payment_pre_authorized', 'adyen_abstract', $this->_order->getStoreId()
+        );
 
         // only do this if status in configuration is set
         if (!empty($status)) {
@@ -1084,8 +1090,12 @@ class Cron
     {
         // validate if payment methods allowes manual capture
         if ($this->_manualCaptureAllowed()) {
-            $captureMode = trim($this->_getConfigData('capture_mode', 'adyen_abstract', $this->_order->getStoreId()));
-            $sepaFlow = trim($this->_getConfigData('sepa_flow', 'adyen_abstract', $this->_order->getStoreId()));
+            $captureMode = trim($this->_getConfigData(
+                'capture_mode', 'adyen_abstract', $this->_order->getStoreId())
+            );
+            $sepaFlow = trim($this->_getConfigData(
+                'sepa_flow', 'adyen_abstract', $this->_order->getStoreId())
+            );
             $_paymentCode = $this->_paymentMethodCode();
             $captureModeOpenInvoice = $this->_getConfigData(
                 'auto_capture_openinvoice', 'adyen_abstract', $this->_order->getStoreId()
@@ -1224,7 +1234,9 @@ class Cron
      */
     protected function _getFraudManualReviewStatus()
     {
-        return $this->_getConfigData('fraud_manual_review_status', 'adyen_abstract', $this->_order->getStoreId());
+        return $this->_getConfigData(
+            'fraud_manual_review_status', 'adyen_abstract', $this->_order->getStoreId()
+        );
     }
 
     /**
@@ -1360,12 +1372,16 @@ class Cron
             $this->_createInvoice();
         }
         
-        $status = $this->_getConfigData('payment_authorized', 'adyen_abstract', $this->_order->getStoreId());
+        $status = $this->_getConfigData(
+            'payment_authorized', 'adyen_abstract', $this->_order->getStoreId()
+        );
 
         // virtual order can have different status
         if ($this->_order->getIsVirtual()) {
             $this->_adyenLogger->addAdyenNotificationCronjob('Product is a virtual product');
-            $virtualStatus = $this->_getConfigData('payment_authorized_virtual');
+            $virtualStatus = $this->_getConfigData(
+                'payment_authorized_virtual', 'adyen_abstract', $this->_order->getStoreId()
+            );
             if ($virtualStatus != "") {
                 $status = $virtualStatus;
             }
@@ -1389,11 +1405,15 @@ class Cron
                 $paidAmount = floatval(trim($paidAmount));
 
                 if ($paidAmount > $orginalAmount) {
-                    $overpaidStatus =  $this->_getConfigData('order_overpaid_status', 'adyen_boleto');
+                    $overpaidStatus =  $this->_getConfigData(
+                        'order_overpaid_status', 'adyen_boleto', $this->_order->getStoreId()
+                    );
                     // check if there is selected a status if not fall back to the default
                     $status = (!empty($overpaidStatus)) ? $overpaidStatus : $status;
                 } else {
-                    $underpaidStatus = $this->_getConfigData('order_underpaid_status', 'adyen_boleto');
+                    $underpaidStatus = $this->_getConfigData(
+                        'order_underpaid_status', 'adyen_boleto', $this->_order->getStoreId()
+                    );
                     // check if there is selected a status if not fall back to the default
                     $status = (!empty($underpaidStatus)) ? $underpaidStatus : $status;
                 }
