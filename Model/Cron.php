@@ -35,7 +35,6 @@ class Cron
      */
     protected $_logger;
 
-
     /**
      * @var Resource\Notification\CollectionFactory
      */
@@ -176,6 +175,8 @@ class Cron
      * @param Billing\AgreementFactory $billingAgreementFactory
      * @param Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
      * @param Api\PaymentRequest $paymentRequest
+     * @param Order\PaymentFactory $adyenOrderPaymentFactory
+     * @param Resource\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -668,8 +669,7 @@ class Cron
                     $isBankTransfer = $this->_isBankTransfer();
                     if ($isBankTransfer || $this->_paymentMethod == 'sepadirectdebit') {
                         if (!$this->_order->getEmailSent()) {
-                            $this->_orderSender->send($this->_order);
-                            $this->_adyenLogger->addAdyenNotificationCronjob('Send orderconfirmation email to shopper');
+                            $this->_sendOrderMail();
                         }
                     }
                 }
@@ -973,9 +973,9 @@ class Cron
         if ($this->_paymentMethod != "adyen_boleto") {
             // send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
             if (!$this->_order->getEmailSent()) {
-                $this->_orderSender->send($this->_order);
-                $this->_adyenLogger->addAdyenNotificationCronjob('Send orderconfirmation email to shopper');
+                $this->_sendOrderMail();
             }
+
         }
 
         if (($this->_paymentMethod == "c_cash" &&
@@ -988,7 +988,27 @@ class Cron
     }
 
     /**
+     * Send order Mail
+     *
+     * @return void
+     */
+    private function _sendOrderMail()
+    {
+        try {
+            $this->_orderSender->send($this->_order);
+            $this->_adyenLogger->addAdyenNotificationCronjob('Send orderconfirmation email to shopper');
+        }  catch(\Exception $exception) {
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                "Exception in Send Mail in Magento. This is an issue in the the core of Magento" .
+                $exception->getMessage()
+            );
+        }
+    }
+
+    /**
      * Set status on authorisation
+     *
+     * @return void
      */
     private function _setPrePaymentAuthorized()
     {
@@ -1009,6 +1029,7 @@ class Cron
 
     /**
      * @throws Exception
+     * @return void
      */
     protected function _prepareInvoice()
     {
@@ -1220,7 +1241,8 @@ class Cron
     /**
      * @return bool
      */
-    protected function _isBankTransfer() {
+    protected function _isBankTransfer()
+    {
         if (strlen($this->_paymentMethod) >= 12 && substr($this->_paymentMethod, 0, 12) == "bankTransfer") {
             $isBankTransfer = true;
         } else {
@@ -1250,7 +1272,8 @@ class Cron
     }
 
     /**
-     * @param $orderAmount
+     * @param int $paymentId
+     * @param string $orderCurrencyCode
      * @return bool
      */
     protected function _isTotalAmount($paymentId, $orderCurrencyCode)
@@ -1267,10 +1290,15 @@ class Cron
             ->create()
             ->getTotalAmount($paymentId);
 
-        if($res && isset($res[0]) && is_array($res[0])) {
+        if ($res && isset($res[0]) && is_array($res[0])) {
             $amount = $res[0]['total_amount'];
             $orderAmount = $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode);
-            $this->_adyenLogger->addAdyenNotificationCronjob(sprintf('The grandtotal amount is %s and the total order amount that is authorised is: %s', $grandTotal, $orderAmount));
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                sprintf('The grandtotal amount is %s and the total order amount that is authorised is: %s',
+                    $grandTotal,
+                    $orderAmount
+                )
+            );
 
             if ($grandTotal == $orderAmount) {
                 $this->_adyenLogger->addAdyenNotificationCronjob('AUTHORISATION has the full amount');
@@ -1288,6 +1316,7 @@ class Cron
     /**
      * @throws Exception
      * @throws \Magento\Framework\Exception\LocalizedException
+     * @return void
      */
     protected function _createInvoice()
     {
