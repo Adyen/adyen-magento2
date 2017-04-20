@@ -29,11 +29,6 @@ class Redirect extends \Magento\Payment\Block\Form
 {
 
     /**
-     * quest prefix
-     */
-    const GUEST_ID = 'customer_';
-
-    /**
      * @var \Magento\Sales\Model\OrderFactory
      */
     protected $_orderFactory;
@@ -233,8 +228,11 @@ class Redirect extends \Magento\Payment\Block\Form
                     $recurringType = "RECURRING";
                 }
 
-                $formFields['recurringContract'] = $recurringType;
-                $formFields['shopperReference']  = (!empty($customerId)) ? $customerId : self::GUEST_ID . $realOrderId;
+                if ($customerId > 0) {
+                    $formFields['recurringContract'] = $recurringType;
+                    $formFields['shopperReference']  = $customerId;
+                }
+
                 //blocked methods
                 $formFields['blockedMethods']    = "";
 
