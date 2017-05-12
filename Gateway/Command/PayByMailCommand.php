@@ -30,11 +30,6 @@ class PayByMailCommand implements CommandInterface
 {
 
     /**
-     * quest prefix
-     */
-    const GUEST_ID = 'customer_';
-
-    /**
      * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;
@@ -190,10 +185,7 @@ class PayByMailCommand implements CommandInterface
         $formFields['shopperEmail']      = $shopperEmail;
         // recurring
         $recurringType                   = trim($this->_adyenHelper->getAdyenAbstractConfigData('recurring_type'));
-
-        $formFields['recurringContract'] = $recurringType;
-
-
+        
         $sessionValidity = $this->_adyenHelper->getAdyenPayByMailConfigData('session_validity');
 
         if ($sessionValidity == "") {
@@ -201,7 +193,11 @@ class PayByMailCommand implements CommandInterface
         }
 
         $formFields['sessionValidity'] = date("c", strtotime("+". $sessionValidity. " days"));
-        $formFields['shopperReference']  = (!empty($customerId)) ? $customerId : self::GUEST_ID . $realOrderId;
+
+        if ($customerId > 0) {
+            $formFields['recurringContract'] = $recurringType;
+            $formFields['shopperReference']  = $customerId;
+        }
 
         // Sort the array by key using SORT_STRING order
         ksort($formFields, SORT_STRING);

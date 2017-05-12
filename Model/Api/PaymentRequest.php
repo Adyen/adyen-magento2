@@ -58,8 +58,6 @@ class PaymentRequest extends DataObject
      */
     protected $_appState;
 
-    const GUEST_ID = 'customer_';
-
     /**
      * PaymentRequest constructor.
      *

@@ -34,7 +34,6 @@ use Magento\Framework\Setup\SchemaSetupInterface;
 class UpgradeSchema implements UpgradeSchemaInterface
 {
 
-
     const ADYEN_ORDER_PAYMENT = 'adyen_order_payment';
 
     /**
@@ -56,11 +55,18 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion200($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.0.4', '<')) {
+            $this->updateSchemaVersion204($setup);
+        }
+
         $setup->endSetup();
     }
 
     /**
+     * Upgrade to 1.0.0.1
+     *
      * @param SchemaSetupInterface $setup
+     * @return void
      */
     public function updateSchemaVersion1001(SchemaSetupInterface $setup)
     {
@@ -92,7 +98,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
     }
     
     /**
+     * Upgrade to 1.0.0.2
+     *
      * @param SchemaSetupInterface $setup
+     * @return void
      */
     public function updateSchemaVersion1002(SchemaSetupInterface $setup)
     {
@@ -110,7 +119,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
     }
 
     /**
+     * Upgrade to 2.0.0
+     *
      * @param SchemaSetupInterface $setup
+     * @return void
      */
     public function updateSchemaVersion200(SchemaSetupInterface $setup)
     {
@@ -224,4 +236,30 @@ class UpgradeSchema implements UpgradeSchemaInterface
         );
     }
 
+    /**
+     * Upgrade to 2.0.4
+     * Update entity_id in notification from smallint to integer
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     */
+    public function updateSchemaVersion204(SchemaSetupInterface $setup)
+    {
+        $connection = $setup->getConnection();
+        $tableName = $setup->getTable('adyen_notification');
+
+        $connection->changeColumn(
+            $tableName,
+            'entity_id',
+            'entity_id',
+            [
+                'type' => Table::TYPE_INTEGER,
+                'nullable' => false,
+                'primary' => true,
+                'identity' => true,
+                'unsigned' => true,
+                'comment' => 'Adyen Notification Entity ID'
+            ]
+        );
+    }
 }

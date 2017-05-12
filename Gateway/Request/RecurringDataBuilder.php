@@ -63,6 +63,7 @@ class RecurringDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         // Needs to change when oneclick,cc using facade impl.
         $paymentMethodCode = $payment->getMethodInstance()->getCode();
+        $customerId = $payment->getOrder()->getCustomerId();
 
         $storeId = null;
         if ($this->appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
@@ -95,7 +96,8 @@ class RecurringDataBuilder implements BuilderInterface
             }
         }
 
-        if ($recurringContractType) {
+        // only when recurringContractType is set and when a customer is loggedIn
+        if ($recurringContractType && $customerId > 0) {
             $recurring = ['contract' => $recurringContractType];
             $result['recurring'] = $recurring;
         }

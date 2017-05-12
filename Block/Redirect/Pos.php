@@ -27,10 +27,6 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 
 class Pos extends \Magento\Payment\Block\Form
 {
-    /**
-     * quest prefix
-     */
-    const GUEST_ID = 'customer_';
 
     protected $_orderFactory;
     /**
@@ -118,13 +114,13 @@ class Pos extends \Magento\Payment\Block\Form
                 $currencyCode           = $orderCurrencyCode;
                 $paymentAmount          = $amount;
                 $merchantReference      = $realOrderId;
-                $shopperReference       = (!empty($customerId)) ? $customerId : self::GUEST_ID . $realOrderId;
-                $shopperEmail           = $shopperEmail;
 
                 $recurringParams = "";
-                if ($this->_order->getPayment()->getAdditionalInformation("store_cc") != "") {
+                if ($this->_order->getPayment()->getAdditionalInformation("store_cc") != ""
+                    && $customerId > 0
+                ) {
                     $recurringParams = "&recurringContract=" . urlencode($recurringContract) . "&shopperReference=" .
-                        urlencode($shopperReference) . "&shopperEmail=" . urlencode($shopperEmail);
+                        urlencode($customerId) . "&shopperEmail=" . urlencode($shopperEmail);
                 }
 
                 $receiptOrderLines = "";
