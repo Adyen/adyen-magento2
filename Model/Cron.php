@@ -238,7 +238,7 @@ class Cron
              *  If the event is a RECURRING_CONTRACT wait an extra 5 minutes
              * before processing so we are sure the RECURRING_CONTRACT
              */
-            if (trim($notification->getEventCode() == Notification::RECURRING_CONTRACT) &&
+            if (trim($notification->getEventCode()) == Notification::RECURRING_CONTRACT &&
                 strtotime($notification->getCreatedAt()) >= strtotime('-5 minutes', time())) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     "This is a recurring_contract notification wait an extra 5 minutes 
