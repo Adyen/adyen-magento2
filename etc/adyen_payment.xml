@@ -59,7 +59,7 @@
         </type>
         <type id="UN" order="80">
             <label>UnionPay</label>
-            <code_alt>unionpay</code_alt>
+            <code_alt>cup</code_alt>
         </type>
     </adyen_credit_cards>
 </payment>
