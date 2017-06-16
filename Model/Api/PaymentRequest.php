@@ -44,11 +44,6 @@ class PaymentRequest extends DataObject
     protected $_adyenLogger;
 
     /**
-     * @var \Adyen\Client
-     */
-    protected $_client;
-
-    /**
      * @var \Adyen\Payment\Model\RecurringType
      */
     protected $_recurringType;
@@ -81,26 +76,28 @@ class PaymentRequest extends DataObject
         $this->_adyenLogger = $adyenLogger;
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
+    }
 
+    private function createClient($storeId) {
         // initialize client
-        $webserviceUsername = $this->_adyenHelper->getWsUsername();
-        $webservicePassword = $this->_adyenHelper->getWsPassword();
+        $webserviceUsername = $this->_adyenHelper->getWsUsername($storeId);
+        $webservicePassword = $this->_adyenHelper->getWsPassword($storeId);
 
         $client = new \Adyen\Client();
         $client->setApplicationName("Magento 2 plugin");
         $client->setUsername($webserviceUsername);
         $client->setPassword($webservicePassword);
 
-        if ($this->_adyenHelper->isDemoMode()) {
+        if ($this->_adyenHelper->isDemoMode($storeId)) {
             $client->setEnvironment(\Adyen\Environment::TEST);
         } else {
             $client->setEnvironment(\Adyen\Environment::LIVE);
         }
 
         // assign magento log
-        $client->setLogger($adyenLogger);
+        $client->setLogger($this->_adyenLogger);
 
-        $this->_client = $client;
+        return $client;
     }
 
     /**
@@ -128,7 +125,8 @@ class PaymentRequest extends DataObject
         ];
 
         try {
-            $service = new \Adyen\Service\Payment($this->_client);
+            $client = $this->createClient($storeId);
+            $service = new \Adyen\Service\Payment($client);
             $result = $service->authorise3D($request);
         } catch(\Adyen\AdyenException $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure failed'));
@@ -203,7 +201,8 @@ class PaymentRequest extends DataObject
         ];
 
         // call lib
-        $service = new \Adyen\Service\Recurring($this->_client);
+        $client = $this->createClient($storeId);
+        $service = new \Adyen\Service\Recurring($client);
         $result = $service->listRecurringDetails($request);
 
         return $result;
@@ -229,7 +228,8 @@ class PaymentRequest extends DataObject
         ];
 
         // call lib
-        $service = new \Adyen\Service\Recurring($this->_client);
+        $client = $this->createClient($storeId);
+        $service = new \Adyen\Service\Recurring($client);
 
         try {
             $result = $service->disable($request);
