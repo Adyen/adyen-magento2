@@ -136,6 +136,9 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                         $this->_redirect('checkout/onepage/success', ['utm_nooverride' => '1']);
                     } else {
                         $order->addStatusHistoryComment(__('3D-secure validation was unsuccessful.'))->save();
+
+                        // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
+                        $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
                         $this->_adyenHelper->cancelOrder($order);
                         $this->messageManager->addErrorMessage("3D-secure validation was unsuccessful");
                         

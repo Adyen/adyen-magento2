@@ -119,8 +119,17 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         }
 
         if ($data['variant'] == 'paypal') {
+
+            $email = "";
+
+            if (isset($data['tokenDetails']['tokenData']['EmailId'])) {
+                $email = $data['tokenDetails']['tokenData']['EmailId'];
+            } elseif (isset($data['lastKnownShopperEmail'])) {
+                $email = $data['lastKnownShopperEmail'];
+            }
+
             $label = __('PayPal %1',
-                $data['lastKnownShopperEmail']
+                $email
             );
             $this->setAgreementLabel($label);
         }
