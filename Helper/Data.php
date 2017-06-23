@@ -480,9 +480,9 @@ class Data extends AbstractHelper
      * @desc Check if configuration is set to demo mode
      * @return mixed
      */
-    public function isDemoMode()
+    public function isDemoMode($storeId = null)
     {
-        return $this->getAdyenAbstractConfigDataFlag('demo_mode');
+        return $this->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
     }
 
     /**
@@ -498,12 +498,12 @@ class Data extends AbstractHelper
      * @desc Retrieve the webserver username
      * @return string
      */
-    public function getWsUsername()
+    public function getWsUsername($storeId = null)
     {
-        if ($this->isDemoMode()) {
-            $wsUsername =  trim($this->getAdyenAbstractConfigData('ws_username_test'));
+        if ($this->isDemoMode($storeId)) {
+            $wsUsername =  trim($this->getAdyenAbstractConfigData('ws_username_test', $storeId));
         } else {
-            $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_live'));
+            $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_live', $storeId));
         }
         return $wsUsername;
     }
@@ -512,28 +512,14 @@ class Data extends AbstractHelper
      * @desc Retrieve the webserver password
      * @return string
      */
-    public function getWsPassword()
+    public function getWsPassword($storeId = null)
     {
-        if ($this->isDemoMode()) {
-            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_test')));
+        if ($this->isDemoMode($storeId)) {
+            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_test', $storeId)));
         } else {
-            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_live')));
+            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_live', $storeId)));
         }
         return $wsPassword;
-    }
-
-    /**
-     * @desc Retrieve the webserver url defined in the config.xlm only
-     * @return string
-     */
-    public function getWsUrl()
-    {
-        if ($this->isDemoMode()) {
-            $url = $this->getAdyenAbstractConfigData('ws_url_test');
-        } else {
-            $url =  $this->getAdyenAbstractConfigData('ws_url_live');
-        }
-        return $url;
     }
 
     /**
