@@ -97,8 +97,6 @@
                 <delivery_days>5</delivery_days>
                 <allowspecific>0</allowspecific>
                 <sort_order>3</sort_order>
-                <place_order_url>adyen/process/redirect</place_order_url>
-                <order_place_redirect_url>adyen/process/redirect</order_place_redirect_url>
                 <payment_action>order</payment_action>
                 <can_initialize>1</can_initialize>
                 <is_gateway>1</is_gateway>
@@ -138,8 +136,6 @@
                 <title>Adyen POS</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>5</sort_order>
-                <place_order_url>adyen/process/redirect</place_order_url>
-                <order_place_redirect_url>adyen/process/redirect</order_place_redirect_url>
                 <payment_action>order</payment_action>
                 <can_initialize>1</can_initialize>
                 <is_gateway>1</is_gateway>
