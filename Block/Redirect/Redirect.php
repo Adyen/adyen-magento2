@@ -231,6 +231,10 @@ class Redirect extends \Magento\Payment\Block\Form
                 if ($customerId > 0) {
                     $formFields['recurringContract'] = $recurringType;
                     $formFields['shopperReference']  = $customerId;
+                } else {
+                    // required for openinvoice payment methods use unique id
+                    $uniqueReference = "guest_" . $realOrderId .  "_" . $this->_order->getStoreId();
+                    $formFields['shopperReference']  = $uniqueReference;
                 }
 
                 //blocked methods
