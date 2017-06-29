@@ -221,7 +221,9 @@ class Redirect extends \Magento\Payment\Block\Form
                 $recurringType                   = trim($this->_adyenHelper->getAdyenAbstractConfigData(
                     'recurring_type')
                 );
-                $brandCode                       = $this->_order->getPayment()->getAdditionalInformation("brand_code");
+                $brandCode                       = $this->_order->getPayment()->getAdditionalInformation(
+                    \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
+                );
 
                 // Paypal does not allow ONECLICK,RECURRING only RECURRING
                 if ($brandCode == "paypal" && $recurringType == 'ONECLICK,RECURRING') {
@@ -269,14 +271,16 @@ class Redirect extends \Magento\Payment\Block\Form
                     $formFields['shopper.dateOfBirthMonth'] = trim($this->_getDate($dob, 'm'));
                     $formFields['shopper.dateOfBirthYear'] = trim($this->_getDate($dob, 'Y'));
                 }
-                
-                if ($this->_order->getPayment()->getAdditionalInformation(
-                        \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE) == "klarna"
-                ) {
 
+                // For klarna acceptPrivacyPolicy to skip HPP page
+                if ($brandCode == "klarna") {
                     //  // needed for DE and AT
                     $formFields['klarna.acceptPrivacyPolicy']   = 'true';
+                }
 
+                // OpenInvoice don't allow to edit billing and delivery items
+
+                if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
                     // don't allow editable shipping/delivery address
                     $formFields['billingAddressType']  = "1";
                     $formFields['deliveryAddressType'] = "1";
