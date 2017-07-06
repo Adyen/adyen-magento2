@@ -99,7 +99,7 @@
                                     <input type="text" class="input-text"
                                            name="payment[dob]"
                                            data-bind="
-                                            datepicker: { storage: datepickerValue, options: { showOn: 'both' } },
+                                            datepicker: { storage: datepickerValue, options: { showOn: 'both', changeYear: true, yearRange: '-99:-1', defaultDate: '-20y' } },
                                            attr: {
                                                 title: $t('Date of Birth'),
                                                 'data-container': getCode() + '-dob',
