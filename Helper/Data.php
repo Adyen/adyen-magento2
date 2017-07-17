@@ -771,6 +771,22 @@ class Data extends AbstractHelper
     }
 
     /**
+     * For Klarna And AfterPay use VatCategory High others use none
+     *
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isVatCategoryHigh($paymentMethod)
+    {
+        if ($paymentMethod == "klarna" ||
+            strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_'
+        ) {
+            return true;
+        }
+        return false;
+    }
+    
+    /**
      * @return bool
      */
     public function showLogos()
