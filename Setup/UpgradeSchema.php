@@ -59,8 +59,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion204($setup);
         }
 
-        if (version_compare($context->getVersion(), '2.0.6', '<')) {
-            $this->updateSchemaVersion206($setup);
+        if (version_compare($context->getVersion(), '2.0.7', '<')) {
+            $this->updateSchemaVersion207($setup);
         }
 
         $setup->endSetup();
@@ -269,12 +269,12 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
 
      /**
-     * Upgrade to 2.0.6
+     * Upgrade to 2.0.7
      * 
      * @param SchemaSetupInterface $setup
      * @return void
      */
-    public function updateSchemaVersion206(SchemaSetupInterface $setup)
+    public function updateSchemaVersion207(SchemaSetupInterface $setup)
     {
         $connection = $setup->getConnection();
         $tableName = $setup->getTable('adyen_notification');

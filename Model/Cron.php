@@ -331,6 +331,7 @@ class Cron
             // set done to true
             $dateEnd = new \DateTime();
             $notification->setDone(true);
+            $notification->setProcessing(false);
             $notification->setUpdatedAt($dateEnd);
             $notification->save();
             $this->_adyenLogger->addAdyenNotificationCronjob(
