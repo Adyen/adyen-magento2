@@ -453,9 +453,8 @@ class Redirect extends \Magento\Payment\Block\Form
             $formFields['openinvoicedata.' . $linename . '.itemVatPercentage'] = $percentageMinorUnits;
             $formFields['openinvoicedata.' . $linename . '.numberOfItems'] = (int) $item->getQtyOrdered();
 
-            if ($this->_order->getPayment()->getAdditionalInformation(
-                    \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE) == "klarna"
-            ) {
+            if ($this->_adyenHelper->isVatCategoryHigh($this->_order->getPayment()->getAdditionalInformation(
+                \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE))) {
                 $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "High";
             } else {
                 $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "None";
