@@ -59,6 +59,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion204($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.0.6', '<')) {
+            $this->updateSchemaVersion206($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -260,6 +264,34 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'unsigned' => true,
                 'comment' => 'Adyen Notification Entity ID'
             ]
+        );
+    }
+
+
+     /**
+     * Upgrade to 2.0.6
+     * 
+     * @param SchemaSetupInterface $setup
+     * @return void
+     */
+    public function updateSchemaVersion206(SchemaSetupInterface $setup)
+    {
+        $connection = $setup->getConnection();
+        $tableName = $setup->getTable('adyen_notification');
+
+        $adyenNotificationProcessingColumn = [
+            'type' => Table::TYPE_BOOLEAN,
+            'length' => 1,
+            'nullable' => true,
+            'default' => 0,
+            'comment' => 'Adyen Notification Cron Processing',
+            'after'     => \Adyen\Payment\Model\Notification::DONE
+        ];
+
+        $connection->addColumn(
+            $tableName,
+            'processing',
+            $adyenNotificationProcessingColumn
         );
     }
 }

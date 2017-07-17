@@ -224,7 +224,16 @@ class Cron
         // create collection
         $notifications = $this->_notificationFactory->create();
         $notifications->addFieldToFilter('done', 0);
+        $notifications->addFieldToFilter('processing', 0);
         $notifications->addFieldToFilter('created_at', $dateRange);
+
+        foreach ($notifications as $notification) {
+            // set Cron processing to true
+            $dateEnd = new \DateTime();
+            $notification->setProcessing(true);
+            $notification->setUpdatedAt($dateEnd);
+            $notification->save();
+        }
 
         // loop over the notifications
         $count = 0;
