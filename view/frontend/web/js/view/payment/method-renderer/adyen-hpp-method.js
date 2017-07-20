@@ -165,7 +165,7 @@ define(
 
                     if(brandCode() == "ideal") {
                         additionalData.issuer_id = this.issuerId();
-                    } else if(brandCode() == "klarna") {
+                    } else if(self.isPaymentMethodOpenInvoiceMethod()) {
                         additionalData.gender = this.gender();
                         additionalData.dob = this.dob();
                         additionalData.telephone = this.telephone();
