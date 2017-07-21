@@ -35,12 +35,14 @@ define(
         'Magento_Checkout/js/model/url-builder',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Magento_Customer/js/model/customer',
-        'Magento_Checkout/js/model/full-screen-loader'
+        'Magento_Checkout/js/model/full-screen-loader',
+        'adyen/df'
     ],
-    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader) {
+    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader, deviceFingerprint) {
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
+        var dfValue = ko.observable(null);
 
         return Component.extend({
             self: this,
@@ -55,7 +57,8 @@ define(
                         'issuerId',
                         'gender',
                         'dob',
-                        'telephone'
+                        'telephone',
+                        'dfValue'
                     ]);
                 return this;
             },
@@ -89,6 +92,12 @@ define(
                 ).done(
                     function (response) {
                         adyenPaymentService.setPaymentMethods(response);
+
+                        // set device fingerprint value
+                        dfSet('dfValue', 0);
+                        // propagate this manually to knockoutjs otherwise it would not work
+                        dfValue($('#dfValue').val());
+
                         fullScreenLoader.stopLoader();
                     }
                 ).fail(function(error) {
@@ -113,7 +122,6 @@ define(
                     result.validate = function () {
                         return self.validate();
                     }
-
 
                     if(value.brandCode == "ideal") {
                         result.issuerIds = value.issuers;
@@ -155,13 +163,12 @@ define(
 
                 if (this.validate() && additionalValidators.validate()) {
 
-
                     var data = {};
                     data.method = self.method;
-                    data.po_number = null;
 
                     var additionalData = {};
                     additionalData.brand_code = self.value;
+                    additionalData.df_value = dfValue();
 
                     if(brandCode() == "ideal") {
                         additionalData.issuer_id = this.issuerId();
@@ -187,7 +194,7 @@ define(
                     "method": self.method,
                     "po_number": null,
                     "additional_data": {
-                        brand_code: self.value,
+                        brand_code: self.value
                     }
                 };
 
@@ -205,7 +212,7 @@ define(
             isBrandCodeChecked: ko.computed(function () {
 
                 if(!quote.paymentMethod()) {
-                  return null;
+                    return null;
                 }
 
                 if(quote.paymentMethod().method == paymentMethod()) {

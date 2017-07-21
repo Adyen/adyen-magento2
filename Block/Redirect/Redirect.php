@@ -297,9 +297,13 @@ class Redirect extends \Magento\Payment\Block\Form
                     $formFields['deliveryAddressType'] = "1";
 
                     // make setting to make this optional
-                    $adyFields['shopperType'] = "1";
+                    $formFields['shopperType'] = "1";
                 }
-                
+
+                if ($this->_order->getPayment()->getAdditionalInformation("df_value") != "") {
+                    $formFields['dfValue'] = $this->_order->getPayment()->getAdditionalInformation("df_value");
+                }
+
                 // Sort the array by key using SORT_STRING order
                 ksort($formFields, SORT_STRING);
 
