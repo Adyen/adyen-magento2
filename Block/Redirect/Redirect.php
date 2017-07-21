@@ -59,6 +59,13 @@ class Redirect extends \Magento\Payment\Block\Form
     protected $_adyenLogger;
 
     /**
+     * @var \Magento\Tax\Model\Config
+     */
+    protected $_taxConfig;
+
+    protected $_taxCalculation;
+
+    /**
      * Redirect constructor.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
@@ -74,7 +81,9 @@ class Redirect extends \Magento\Payment\Block\Form
         \Magento\Checkout\Model\Session $checkoutSession,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\Locale\ResolverInterface $resolver,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Magento\Tax\Model\Config $taxConfig,
+        \Magento\Tax\Model\Calculation $taxCalculation
     ) {
         $this->_orderFactory = $orderFactory;
         $this->_checkoutSession = $checkoutSession;
@@ -88,6 +97,8 @@ class Redirect extends \Magento\Payment\Block\Form
             $incrementId = $this->_getCheckout()->getLastRealOrderId();
             $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
         }
+        $this->_taxConfig = $taxConfig;
+        $this->_taxCalculation = $taxCalculation;
     }
 
 
@@ -286,9 +297,13 @@ class Redirect extends \Magento\Payment\Block\Form
                     $formFields['deliveryAddressType'] = "1";
 
                     // make setting to make this optional
-                    $adyFields['shopperType'] = "1";
+                    $formFields['shopperType'] = "1";
                 }
-                
+
+                if ($this->_order->getPayment()->getAdditionalInformation("df_value") != "") {
+                    $formFields['dfValue'] = $this->_order->getPayment()->getAdditionalInformation("df_value");
+                }
+
                 // Sort the array by key using SORT_STRING order
                 ksort($formFields, SORT_STRING);
 
@@ -306,6 +321,10 @@ class Redirect extends \Magento\Payment\Block\Form
         } catch(Exception $e) {
             // do nothing for now
         }
+
+//        echo "GENDER" . $this->_order->getCustomerGender();
+//
+//        print_r($formFields);die();
         return $formFields;
     }
 
@@ -430,15 +449,11 @@ class Redirect extends \Magento\Payment\Block\Form
         foreach ($this->_order->getAllVisibleItems() as $item) {
 
             ++$count;
-            $linename = "line".$count;
-            $formFields['openinvoicedata.' . $linename . '.currencyCode'] = $currency;
-            $formFields['openinvoicedata.' . $linename . '.description'] =
-                str_replace("\n", '', trim($item->getName()));
 
-            $formFields['openinvoicedata.' . $linename . '.itemAmount'] =
-                $this->_adyenHelper->formatAmount($item->getPrice(), $currency);
 
-            $formFields['openinvoicedata.' . $linename . '.itemVatAmount'] =
+            $description = str_replace("\n", '', trim($item->getName()));
+            $itemAmount = $this->_adyenHelper->formatAmount($item->getPrice(), $currency);
+            $itemVatAmount =
                 ($item->getTaxAmount() > 0 && $item->getPriceInclTax() > 0) ?
                     $this->_adyenHelper->formatAmount(
                         $item->getPriceInclTax(),
@@ -447,28 +462,94 @@ class Redirect extends \Magento\Payment\Block\Form
                         $item->getPrice(),
                         $currency
                     ) : $this->_adyenHelper->formatAmount($item->getTaxAmount(), $currency);
-            
+
+
             // Calculate vat percentage
-            $percentageMinorUnits = $this->_adyenHelper->getMinorUnitTaxPercent($item->getTaxPercent());
-            $formFields['openinvoicedata.' . $linename . '.itemVatPercentage'] = $percentageMinorUnits;
-            $formFields['openinvoicedata.' . $linename . '.numberOfItems'] = (int) $item->getQtyOrdered();
+            $itemVatPercentage = $this->_adyenHelper->getMinorUnitTaxPercent($item->getTaxPercent());
 
-            if ($this->_adyenHelper->isVatCategoryHigh($this->_order->getPayment()->getAdditionalInformation(
-                \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE))) {
-                $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "High";
-            } else {
-                $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "None";
-            }
+            $numberOfItems = (int) $item->getQtyOrdered();
 
-            if ($item->getSku() != "") {
-                $formFields['openinvoicedata.' . $linename . '.itemId'] = $item->getSku();
-            }
+            $formFields = $this->setOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
+                $itemVatAmount, $itemVatPercentage, $numberOfItems);
+        }
 
+
+        // Discount cost
+        if ($this->_order->getDiscountAmount() > 0 || $this->_order->getDiscountAmount() < 0) {
+            ++$count;
+
+            $description = __('Total Discount');
+            $itemAmount = $this->_adyenHelper->formatAmount($this->_order->getDiscountAmount(), $currency);
+            $itemVatAmount = "0";
+            $itemVatPercentage = "0";
+            $numberOfItems = 1;
+
+            $formFields = $this->setOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
+                $itemVatAmount, $itemVatPercentage, $numberOfItems);
+        }
+
+        // Shipping cost
+        if ($this->_order->getShippingAmount() > 0 || $this->_order->getShippingTaxAmount() > 0) {
+
+            ++$count;
+            $description = $this->_order->getShippingDescription();
+            $itemAmount = $this->_adyenHelper->formatAmount($this->_order->getShippingAmount(), $currency);
+            $itemVatAmount = $this->_adyenHelper->formatAmount($this->_order->getShippingTaxAmount(), $currency);
+
+            // Create RateRequest to calculate the Tax class rate for the shipping method
+            $rateRequest = $this->_taxCalculation->getRateRequest(
+                $this->_order->getShippingAddress(),
+                $this->_order->getBillingAddress(),
+                null,
+                $this->_order->getStoreId(), $this->_order->getCustomerId()
+            );
+
+            $taxClassId = $this->_taxConfig->getShippingTaxClass($this->_order->getStoreId());
+            $rateRequest->setProductClassId($taxClassId);
+            $rate = $this->_taxCalculation->getRate($rateRequest);
+
+            $itemVatPercentage = $this->_adyenHelper->getMinorUnitTaxPercent($rate);
+            $numberOfItems = 1;
+
+            $formFields = $this->setOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
+                $itemVatAmount, $itemVatPercentage, $numberOfItems);
         }
 
         $formFields['openinvoicedata.refundDescription'] = "Refund / Correction for ".$formFields['merchantReference'];
         $formFields['openinvoicedata.numberOfLines'] = $count;
 
+        return $formFields;
+    }
+
+
+    /**
+     * Set the openinvoice line
+     *
+     * @param $count
+     * @param $currencyCode
+     * @param $description
+     * @param $itemAmount
+     * @param $itemVatAmount
+     * @param $itemVatPercentage
+     * @param $numberOfItems
+     */
+    protected function setOpenInvoiceLineData($formFields, $count, $currencyCode, $description, $itemAmount,
+        $itemVatAmount, $itemVatPercentage, $numberOfItems
+    ) {
+        $linename = "line".$count;
+        $formFields['openinvoicedata.' . $linename . '.currencyCode'] = $currencyCode;
+        $formFields['openinvoicedata.' . $linename . '.description'] = $description;
+        $formFields['openinvoicedata.' . $linename . '.itemAmount'] = $itemAmount;
+        $formFields['openinvoicedata.' . $linename . '.itemVatAmount'] = $itemVatAmount;
+        $formFields['openinvoicedata.' . $linename . '.itemVatPercentage'] = $itemVatPercentage;
+        $formFields['openinvoicedata.' . $linename . '.numberOfItems'] = $numberOfItems;
+
+        if ($this->_adyenHelper->isVatCategoryHigh($this->_order->getPayment()->getAdditionalInformation(
+            \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE))) {
+            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "High";
+        } else {
+            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "None";
+        }
         return $formFields;
     }
 

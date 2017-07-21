@@ -153,6 +153,20 @@
     <!--/ko-->
 <!--/ko-->
 
+
+<input type="hidden" id="dfValue" name="payment[dfValue]" />
+
+<script>
+    require([
+        "domReady!"
+    ], function(){
+        // dfDo("dfValue");
+        dfSet('dfValue', 0);
+    });
+</script>
+
+
+
 <!-- ko if: (isPaymentMethodSelectionOnAdyen()) -->
 
     <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
