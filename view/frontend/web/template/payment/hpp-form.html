@@ -154,17 +154,8 @@
 <!--/ko-->
 
 
-<input type="hidden" id="dfValue" name="payment[dfValue]" />
 
-<script>
-    require([
-        "domReady!"
-    ], function(){
-        // dfDo("dfValue");
-        dfSet('dfValue', 0);
-    });
-</script>
-
+<input type="hidden" name="payment[dfValue]" data-bind="attr: { id: 'dfValue', value: dfValue }" />
 
 
 <!-- ko if: (isPaymentMethodSelectionOnAdyen()) -->
