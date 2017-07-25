@@ -229,9 +229,8 @@ class Cron
 
         foreach ($notifications as $notification) {
             // set Cron processing to true
-            $dateEnd = new \DateTime();
             $notification->setProcessing(true);
-            $notification->setUpdatedAt($dateEnd);
+            $notification->setUpdatedAt(new \DateTime());
             $notification->save();
         }
 
@@ -253,6 +252,11 @@ class Cron
                     "This is a recurring_contract notification wait an extra 5 minutes 
                     before processing this to make sure the contract exists"
                 );
+
+                // set processing back to false
+                $notification->setProcessing(false);
+                $notification->setUpdatedAt($dateEnd);
+                $notification->save();
                 continue;
             }
 
@@ -329,10 +333,9 @@ class Cron
             $this->_order->save();
 
             // set done to true
-            $dateEnd = new \DateTime();
             $notification->setDone(true);
             $notification->setProcessing(false);
-            $notification->setUpdatedAt($dateEnd);
+            $notification->setUpdatedAt(new \DateTime());
             $notification->save();
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 sprintf("Notification %s is processed", $notification->getEntityId())
