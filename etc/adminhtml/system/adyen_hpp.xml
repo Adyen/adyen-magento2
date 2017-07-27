@@ -45,13 +45,13 @@
         </field>
         <field id="hmac_test" translate="label" type="obscure" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>HMAC Key for Test</label>
-            <tooltip>Copy and paste the HMAC key of the skin you want to use from Test Customer Area => Skins. => click on [skin code] => Edit => HMAC for Test platform. Currently, only the older SHA-1 HMAC calculation method is supported in this plugin.</tooltip>
+            <tooltip>Copy and paste the HMAC key of the skin you want to use from Test Customer Area => Skins. => click on [skin code] => Edit => HMAC for Test platform.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_hpp/hmac_test</config_path>
         </field>
         <field id="hmac_live" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>HMAC Key for Live</label>
-            <tooltip>Copy and paste the HMAC key of the skin you want to use from Test Customer Area => Skins. => click on [skin code] => Edit => HMAC for Live platform. Currently, only the older SHA-1 HMAC calculation method is supported in this plugin.</tooltip>
+            <tooltip>Copy and paste the HMAC key of the skin you want to use from Test Customer Area => Skins. => click on [skin code] => Edit => HMAC for Live platform.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_hpp/hmac_live</config_path>
         </field>
