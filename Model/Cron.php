@@ -25,6 +25,10 @@ namespace Adyen\Payment\Model;
 
 use Magento\Framework\Webapi\Exception;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
+use Magento\Framework\App\Area;
+use Magento\Framework\App\AreaList;
+use Magento\Framework\Phrase\Renderer\Placeholder;
+use Magento\Framework\Phrase;
 
 class Cron
 {
@@ -163,6 +167,11 @@ class Cron
     protected $_adyenOrderPaymentCollectionFactory;
 
     /**
+     * @var AreaList
+     */
+    protected $_areaList;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -177,6 +186,7 @@ class Cron
      * @param Api\PaymentRequest $paymentRequest
      * @param Order\PaymentFactory $adyenOrderPaymentFactory
      * @param Resource\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory
+     * @param AreaList $areaList
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -190,7 +200,8 @@ class Cron
         \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
         \Adyen\Payment\Model\Order\PaymentFactory $adyenOrderPaymentFactory,
-        \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory
+        \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
+        AreaList $areaList
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -204,6 +215,7 @@ class Cron
         $this->_adyenPaymentRequest = $paymentRequest;
         $this->_adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->_adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
+        $this->_areaList = $areaList;
     }
 
     /**
@@ -212,6 +224,12 @@ class Cron
      */
     public function processNotification()
     {
+        // needed for Magento < 2.2.0 https://github.com/magento/magento2/pull/8413
+        $renderer = Phrase::getRenderer();
+        if($renderer instanceof Placeholder) {
+            $this->_areaList->getArea(Area::AREA_CRONTAB)->load(Area::PART_TRANSLATE);
+        }
+
         $this->_order = null;
 
         // execute notifications from 2 minute or earlier because order could not yet been created by magento
