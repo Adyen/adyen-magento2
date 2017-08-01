@@ -95,7 +95,7 @@ class ResultPos extends \Magento\Framework\App\Action\Action
         if ($result) {
             $session = $this->_session;
             $session->getQuote()->setIsActive(false)->save();
-            $this->_redirect('checkout/onepage/success', ['utm_nooverride' => '1']);
+            $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
         } else {
             $this->_cancel($response);
             $this->_redirect('checkout/cart');
