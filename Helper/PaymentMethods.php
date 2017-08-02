@@ -212,7 +212,7 @@ class PaymentMethods extends AbstractHelper
 
                     $params = [];
                     // use frontend area
-                    $params = array_merge(['area' => 'frontend', '_secure' => $this->_request->isSecure()], $params);
+                    $params = array_merge(['area' => 'frontend', 'theme' => 'Magento/blank', '_secure' => $this->_request->isSecure()], $params);
 
                     $asset = $this->_assetRepo->createAsset('Adyen_Payment::images/logos/' .
                         $paymentMethodCode . '.png', $params);
