@@ -26,4 +26,8 @@ namespace Adyen\Payment\Block\Info;
 class Oneclick extends Cc
 {
 
+    /**
+     * @var string
+     */
+    protected $_template = 'Adyen_Payment::info/adyen_oneclick.phtml';
 }
