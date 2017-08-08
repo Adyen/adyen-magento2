@@ -36,9 +36,11 @@ $_info = $this->getInfo();
         <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
     <?php else: ?>
 
-    <?php if ($_brandCode = $_info->getAdditionalInformation('brand_code')):?>
-        <dt class="title"><?php echo $_brandCode; ?></dt>
-    <?php endif;?>
+        <?php if ($_methodTitle = $_info->getAdditionalInformation('method_title')):?>
+            <dt class="title"><?php echo $_methodTitle; ?></dt>
+        <?php elseif ($_brandCode = $_info->getAdditionalInformation('brand_code')):?>
+            <dt class="title"><?php echo $_brandCode; ?></dt>
+        <?php endif;?>
 
 <?php endif; ?>
 

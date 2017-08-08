@@ -6,7 +6,8 @@
 /*global alert*/
 var config = {
     paths: {
-        'adyen/encrypt' : 'Adyen_Payment/js/view/payment/adyen.encrypt.min'
+        'adyen/encrypt' : 'Adyen_Payment/js/view/payment/adyen.encrypt.min',
+        'adyen/df' : 'https://live.adyen.com/hpp/js/df'
     },
     config: {
         mixins: {

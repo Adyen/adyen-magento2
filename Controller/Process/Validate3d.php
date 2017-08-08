@@ -133,7 +133,7 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                         $order->getPayment()->setAdditionalInformation('3dActive', '');
                         $this->_orderRepository->save($order);
 
-                        $this->_redirect('checkout/onepage/success', ['utm_nooverride' => '1']);
+                        $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
                     } else {
                         $order->addStatusHistoryComment(__('3D-secure validation was unsuccessful.'))->save();
 
@@ -162,7 +162,7 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                 $this->_view->renderLayout();
             }
         } else {
-            $this->_redirect('checkout/onepage/success/', ['utm_nooverride' => '1']);
+            $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
         }
     }
 

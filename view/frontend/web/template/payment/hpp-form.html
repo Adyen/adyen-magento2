@@ -153,6 +153,11 @@
     <!--/ko-->
 <!--/ko-->
 
+
+
+<input type="hidden" name="payment[dfValue]" data-bind="attr: { id: 'dfValue', value: dfValue }" />
+
+
 <!-- ko if: (isPaymentMethodSelectionOnAdyen()) -->
 
     <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">

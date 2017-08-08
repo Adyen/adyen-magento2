@@ -86,11 +86,26 @@ class SepaValidator extends AbstractValidator
                 $newString .= $movedCharArray[$key];
             }
 
-            if (bcmod($newString, '97') == 1) {
-                return true;
-            } else {
-                return false;
+            if (function_exists("bcmod")) {
+                return bcmod($newString, '97') == 1;
             }
+
+            /**
+             * if server does not support bcmoc then do this manually:
+             * http://au2.php.net/manual/en/function.bcmod.php#38474
+             */
+            $x = $newString;
+            $y = "97";
+            $take = 5;
+            $mod = "";
+
+            do {
+                $a = (int)$mod . substr($x, 0, $take);
+                $x = substr($x, $take);
+                $mod = $a % $y;
+            } while (strlen($x));
+
+            return (int)$mod == 1;
         } else {
             return false;
         }

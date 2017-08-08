@@ -81,6 +81,16 @@ class PaymentMethods extends AbstractHelper
     protected $_assetSource;
 
     /**
+     * @var \Magento\Framework\View\DesignInterface
+     */
+    protected $_design;
+
+    /**
+     * @var \Magento\Framework\View\Design\Theme\ThemeProviderInterface
+     */
+    protected $_themeProvider;
+
+    /**
      * PaymentMethods constructor.
      *
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
@@ -93,6 +103,8 @@ class PaymentMethods extends AbstractHelper
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\View\Asset\Source $assetSource
+     * @param \Magento\Framework\View\DesignInterface $design
+     * @param \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider
      */
     public function __construct(
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
@@ -104,7 +116,9 @@ class PaymentMethods extends AbstractHelper
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\View\Asset\Source $assetSource
+        \Magento\Framework\View\Asset\Source $assetSource,
+        \Magento\Framework\View\DesignInterface $design,
+        \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider
     ) {
         $this->_quoteRepository = $quoteRepository;
         $this->_quoteIdMaskFactory = $quoteIdMaskFactory;
@@ -116,7 +130,8 @@ class PaymentMethods extends AbstractHelper
         $this->_assetRepo = $assetRepo;
         $this->_request = $request;
         $this->_assetSource = $assetSource;
-
+        $this->_design = $design;
+        $this->_themeProvider = $themeProvider;
     }
 
     /**
@@ -208,11 +223,24 @@ class PaymentMethods extends AbstractHelper
 
                 // add icon location in result
                 if ($this->_adyenHelper->showLogos()) {
+                    // Fix for MAGETWO-70402 https://github.com/magento/magento2/pull/7686
+                    // Explicitly setting theme
+                    $themeCode = "Magento/blank";
 
+                    $themeId = $this->_design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
+                    if(!empty($themeId)) {
+                        $theme = $this->_themeProvider->getThemeById($themeId);
+                        if($theme && !empty($theme->getCode())) {
+                            $themeCode = $theme->getCode();
+                        }
+                    }
 
                     $params = [];
-                    // use frontend area
-                    $params = array_merge(['area' => 'frontend', '_secure' => $this->_request->isSecure()], $params);
+                    $params = array_merge([
+                        'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                        '_secure' => $this->_request->isSecure(),
+                        'theme' => $themeCode
+                    ], $params);
 
                     $asset = $this->_assetRepo->createAsset('Adyen_Payment::images/logos/' .
                         $paymentMethodCode . '.png', $params);
