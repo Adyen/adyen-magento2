@@ -64,7 +64,7 @@
             <adyen_oneclick>
                 <active>1</active>
                 <model>AdyenPaymentOneclickFacade</model>
-                <title>Adyen Stored Methods</title>
+                <title>Adyen Stored Payment Methods</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>1</sort_order>
                 <cctypes>AE,VI,MC,DI</cctypes> <!-- important to show the payment method isAvailabe()-->
