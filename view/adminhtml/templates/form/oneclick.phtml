@@ -40,7 +40,7 @@ $currentCountry = $block->getInfoData('country');
             <?php foreach($block->getOneClickCards() as $card): ?>
                 <?php if($card['agreement_label'] != ""):?>
                     <dt class="admin__field-option">
-                        <input id="p_method_adyen_oneclick_<?php echo $card['reference_id']?>" value="<?php echo $card['reference_id']; ?>" type="radio" name="payment[recurring_detail_reference]" title="Adyen OneClick" onclick="document.getElementById('adyen_oneclick_variant').value = '<?php echo $card['agreement_data']['variant']; ?>';" class="admin__control-radio">
+                        <input id="p_method_adyen_oneclick_<?php echo $card['reference_id']?>" value="<?php echo $card['reference_id']; ?>" type="radio" name="payment[recurring_detail_reference]" title="Adyen Stored Payment Methods" onclick="document.getElementById('adyen_oneclick_variant').value = '<?php echo $card['agreement_data']['variant']; ?>';" class="admin__control-radio">
                         <label class="admin__field-label" for="p_method_adyen_oneclick_<?php echo $card['reference_id']?>"><?php echo $card['agreement_label']; ?></label>
                     </dt>
                 <?php endif; ?>
