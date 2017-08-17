@@ -80,32 +80,35 @@ define(
                     event.preventDefault();
                 }
 
-                var cse_key = this.getCSEKey();
-                var options = { enableValidations: false};
-
-                var cseInstance = adyen.encrypt.createEncryption(cse_key, options);
-                var generationtime = self.getGenerationTime();
-
-                var cardData = {
-                    cvc : self.creditCardVerificationNumber,
-                    expiryMonth : self.creditCardExpMonth(),
-                    expiryYear : self.creditCardExpYear(),
-                    generationtime : generationtime
-                };
-
-                var encryptedData = cseInstance.encrypt(cardData);
-
-                // set payment method to adyen_hpp
                 var  data = {
                     "method": self.method,
-                    "po_number": null,
                     "additional_data": {
-                        encrypted_data: encryptedData,
-                        recurring_detail_reference: self.value,
                         variant: self.agreement_data.variant,
-                        number_of_installments: self.installment
+                        recurring_detail_reference: self.value
                     }
-                };
+                }
+
+                // only use CSE and installments for cards
+                if (self.agreement_data.card) {
+                    var cse_key = this.getCSEKey();
+                    var options = { enableValidations: false};
+
+                    var cseInstance = adyen.encrypt.createEncryption(cse_key, options);
+                    var generationtime = self.getGenerationTime();
+
+                    var cardData = {
+                        cvc : self.creditCardVerificationNumber,
+                        expiryMonth : self.creditCardExpMonth(),
+                        expiryYear : self.creditCardExpYear(),
+                        generationtime : generationtime
+                    };
+
+                    var encryptedData = cseInstance.encrypt(cardData);
+
+                    // set payment method to adyen_hpp
+                    data.additional_data.encrypted_data = encryptedData;
+                    data.additional_data.number_of_installments = self.installment;
+                }
 
                 if (this.validate() && additionalValidators.validate()) {
                     //this.isPlaceOrderActionAllowed(false);
