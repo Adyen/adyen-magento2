@@ -37,6 +37,7 @@ define(
     ],
     function (ko, _, $, Component, placeOrderAction, $t, additionalValidators, selectPaymentMethodAction, quote, checkoutData) {
         'use strict';
+        var updatedExpiryDate = false;
         var recurringDetailReference = ko.observable(null);
         var paymentMethod = ko.observable(null);
         return Component.extend({
@@ -84,16 +85,14 @@ define(
                     "method": self.method,
                     "additional_data": {
                         variant: self.agreement_data.variant,
+                        // recurring_detail_reference: "8315028947219783"
                         recurring_detail_reference: self.value
                     }
                 }
 
                 // only use CSE and installments for cards
                 if (self.agreement_data.card) {
-                    var cse_key = this.getCSEKey();
-                    var options = { enableValidations: false};
 
-                    var cseInstance = adyen.encrypt.createEncryption(cse_key, options);
                     var generationtime = self.getGenerationTime();
 
                     var cardData = {
@@ -103,10 +102,17 @@ define(
                         generationtime : generationtime
                     };
 
-                    var encryptedData = cseInstance.encrypt(cardData);
+                    if(updatedExpiryDate || window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction){
+
+                        var options = { enableValidations: false};
+                        var cse_key = this.getCSEKey();
+                        var cseInstance = adyen.encrypt.createEncryption(cse_key, options);
+                        var encryptedData = cseInstance.encrypt(cardData);
+                        data.additional_data.encrypted_data = encryptedData;
+                    }
+
 
                     // set payment method to adyen_hpp
-                    data.additional_data.encrypted_data = encryptedData;
                     data.additional_data.number_of_installments = self.installment;
                 }
 
@@ -192,7 +198,7 @@ define(
 
                             // if oneclick or recurring is a card do validation on expiration date
                             if(this.agreement_data.card) {
-                                // add extra validation because jqeury validation will not work on non name attributes
+                                // add extra validation because jquery validation will not work on non name attributes
                                 var expiration = Boolean($(form + ' #' + codeValue + '_expiration').valid());
                                 var expiration_yr = Boolean($(form + ' #' + codeValue + '_expiration_yr').valid());
 
@@ -214,6 +220,7 @@ define(
                             return true;
                         },
                         selectExpiry: function() {
+                            updatedExpiryDate = true;
                             var self = this;
                             self.expiry(true);
                             return true;
