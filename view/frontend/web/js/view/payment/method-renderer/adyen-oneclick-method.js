@@ -85,7 +85,6 @@ define(
                     "method": self.method,
                     "additional_data": {
                         variant: self.agreement_data.variant,
-                        // recurring_detail_reference: "8315028947219783"
                         recurring_detail_reference: self.value
                     }
                 }
