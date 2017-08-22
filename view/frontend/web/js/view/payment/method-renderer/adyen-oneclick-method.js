@@ -143,7 +143,7 @@ define(
 
                     var creditCardExpMonth, creditCardExpYear = false;
                     if(value.agreement_data.card) {
-                        creditCardExpMonth = value.agreement_data.card.expiryMonth
+                        creditCardExpMonth = value.agreement_data.card.expiryMonth;
                         creditCardExpYear =  value.agreement_data.card.expiryYear;
                     }
 
