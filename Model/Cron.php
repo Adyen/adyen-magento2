@@ -1063,6 +1063,7 @@ class Cron
         // only do this if status in configuration is set
         if (!empty($status)) {
             $this->_order->addStatusHistoryComment(__('Payment is authorised waiting for capture'), $status);
+            $this->_order->save();
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 'Order status is changed to Pre-authorised status, status is ' . $status
             );
