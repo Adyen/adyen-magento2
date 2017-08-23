@@ -834,19 +834,17 @@ class Cron
                             $updateBillingAgreement->setStatus(
                                 \Adyen\Payment\Model\Billing\Agreement::STATUS_CANCELED
                             );
-                            $updateBillingAgreement->save();
                         } else {
                             $updateBillingAgreement->setStatus(
                                 \Adyen\Payment\Model\Billing\Agreement::STATUS_ACTIVE
                             );
-                            $updateBillingAgreement->save();
                         }
+                        $updateBillingAgreement->save();
                     }
 
                     // Get or create billing agreement
                     $billingAgreement = $this->_billingAgreementFactory->create();
                     $billingAgreement->load($recurringDetailReference, 'reference_id');
-                    $message = __('Updated billing agreement #%1.', $recurringDetailReference);
                     // check if BA exists
                     if (!($billingAgreement && $billingAgreement->getAgreementId() > 0 && $billingAgreement->isValid())) {
                         // create new
@@ -866,6 +864,7 @@ class Cron
                     else {
                         $this->_adyenLogger->addAdyenNotificationCronjob("Using existing Billing Agreement");
                         $billingAgreement->setIsObjectChanged(true);
+                        $message = __('Updated billing agreement #%1.', $recurringDetailReference);
                     }
 
                     // Populate billing agreement data

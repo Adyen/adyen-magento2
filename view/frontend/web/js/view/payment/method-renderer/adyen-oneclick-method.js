@@ -101,7 +101,7 @@ define(
                         generationtime : generationtime
                     };
 
-                    if(updatedExpiryDate || window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction){
+                    if(updatedExpiryDate || self.hasVerification()){
 
                         var options = { enableValidations: false};
                         var cse_key = this.getCSEKey();
@@ -185,6 +185,9 @@ define(
                         getGenerationTime: function() {
                             return window.checkoutConfig.payment.adyenCc.generationTime;
                         },
+                        hasVerification: function() {
+                            return window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction;
+                        },
                         validate: function () {
 
                             var code = self.item.method;
@@ -203,7 +206,7 @@ define(
 
                                 // only check if recurring type is set to oneclick
                                 var cid = true;
-                                if(self.hasVerification()) {
+                                if(this.hasVerification()) {
                                     var cid = Boolean($(form + ' #' + codeValue + '_cc_cid').valid());
                                 }
                             } else {
@@ -230,6 +233,8 @@ define(
             },
             selectBillingAgreement: function() {
                 var self = this;
+                self.expiry(false);
+                updatedExpiryDate = false;
 
                 // set payment method data
                 var  data = {
@@ -262,9 +267,6 @@ define(
                 }
                 return null;
             }),
-            hasVerification: function() {
-                return window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction;
-            },
             getPlaceOrderUrl: function() {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
             }
