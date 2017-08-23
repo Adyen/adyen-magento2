@@ -131,7 +131,7 @@
                 </div>
 
 
-                <!-- ko if: ($parent.hasVerification())-->
+                <!-- ko if: hasVerification()-->
                 <div class="field cvv required" data-bind="attr: {id: getCode() + '_' + value + '_cc_type_cvv_div'}">
                     <label data-bind="attr: {for: getCode() + '_' + value + '_cc_cid'}" class="label">
                         <span><!-- ko text: $t('Card Verification Number')--><!-- /ko --></span>
