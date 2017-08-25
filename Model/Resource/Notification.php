@@ -40,15 +40,17 @@ class Notification extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      * @param $pspReference
      * @param $eventCode
      * @param $success
+     * @param $originalReference
      * @return array
      */
-    public function getNotification($pspReference, $eventCode, $success)
+    public function getNotification($pspReference, $eventCode, $success, $originalReference)
     {
         $select = $this->getConnection()->select()
             ->from(['notification' => $this->getTable('adyen_notification')])
             ->where('notification.pspreference=?', $pspReference)
             ->where('notification.event_code=?', $eventCode)
-            ->where('notification.success=?', $success);
+            ->where('notification.success=?', $success)
+            ->where('notification.original_reference=?', $originalReference);
         return $this->getConnection()->fetchAll($select);
     }
 }

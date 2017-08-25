@@ -131,7 +131,7 @@
                 </div>
 
 
-                <!-- ko if: ($parent.hasVerification())-->
+                <!-- ko if: hasVerification()-->
                 <div class="field cvv required" data-bind="attr: {id: getCode() + '_' + value + '_cc_type_cvv_div'}">
                     <label data-bind="attr: {for: getCode() + '_' + value + '_cc_cid'}" class="label">
                         <span><!-- ko text: $t('Card Verification Number')--><!-- /ko --></span>
@@ -145,7 +145,7 @@
                                data-bind="attr: {id: getCode() + '_' + value + '_cc_cid',
                                 title: $t('Card Verification Number'),
                                 'data-container': getCode() + '-' + value + '-cc-cvv',
-                                'data-validate': JSON.stringify({'required-number':true, 'validate-card-cvv':'#' + getCode() + '_' + value + '_cc_type'})},
+                                'data-validate': JSON.stringify({'required-number':true})},
                                 enable: $parent.isActive($parents),
                                 value: creditCardVerificationNumber"
                                data-validate="{required:true}"/>

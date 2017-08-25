@@ -287,9 +287,12 @@ class Json extends \Magento\Framework\App\Action\Action
         $pspReference = trim($response['pspReference']);
         $eventCode = trim($response['eventCode']);
         $success = trim($response['success']);
-
+        $originalReference = null;
+        if(isset($response['originalReference'])) {
+            $originalReference = trim($response['originalReference']);
+        }
         $notification = $this->_objectManager->create('Adyen\Payment\Model\Notification');
-        return $notification->isDuplicate($pspReference, $eventCode, $success);
+        return $notification->isDuplicate($pspReference, $eventCode, $success, $originalReference);
     }
 
     /**
