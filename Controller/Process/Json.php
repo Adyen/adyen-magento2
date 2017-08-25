@@ -300,22 +300,25 @@ class Json extends \Magento\Framework\App\Action\Action
      */
     protected function _fixCgiHttpAuthentication()
     {
-        if (isset($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']) &&
+        // do nothing if values are already there
+        if(!empty($_SERVER['PHP_AUTH_USER']) && !empty($_SERVER['PHP_AUTH_PW'])) {
+            return;
+        } elseif (isset($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']) &&
             $_SERVER['REDIRECT_REMOTE_AUTHORIZATION'] != '') {
             list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
-                explode(':', base64_decode($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']));
+                explode(':', base64_decode($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']),2);
         } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
             list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
-                explode(':', base64_decode(substr($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)));
+                explode(':', base64_decode(substr($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)),2);
         } elseif (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
             list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
-                explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
+                explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)),2);
         } elseif (!empty($_SERVER['REMOTE_USER'])) {
             list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
-                explode(':', base64_decode(substr($_SERVER['REMOTE_USER'], 6)));
+                explode(':', base64_decode(substr($_SERVER['REMOTE_USER'], 6)),2);
         } elseif (!empty($_SERVER['REDIRECT_REMOTE_USER'])) {
             list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
-                explode(':', base64_decode(substr($_SERVER['REDIRECT_REMOTE_USER'], 6)));
+                explode(':', base64_decode(substr($_SERVER['REDIRECT_REMOTE_USER'], 6)),2);
         }
     }
 
