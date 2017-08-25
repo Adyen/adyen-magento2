@@ -1,0 +1,15 @@
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <columns name="sales_order_columns">
+        <column name="cc_type">
+            <argument name="data" xsi:type="array">
+                <item name="options" xsi:type="object">Adyen\Payment\Model\Ui\Component\Listing\Column\CcType\CcType</item>
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">select</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/select</item>
+                    <item name="dataType" xsi:type="string">select</item>
+                    <item name="label" xsi:type="string" translate="true">Payment Details</item>
+                </item>
+            </argument>
+        </column>
+    </columns>
+</listing>

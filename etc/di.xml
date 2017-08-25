@@ -743,4 +743,13 @@
     </type>
     <preference for="Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface" type="Adyen\Payment\Model\GuestAdyenPaymentMethodManagement" />
     <preference for="Adyen\Payment\Api\AdyenPaymentMethodManagementInterface" type="Adyen\Payment\Model\AdyenPaymentMethodManagement" />
+    
+    
+    <virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid">
+        <arguments>
+            <argument name="columns">
+                <item name="cc_type" xsi:type="string">sales_order_payment.cc_type</item>
+            </argument>
+        </arguments>
+    </virtualType>
 </config>
