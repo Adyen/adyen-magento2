@@ -65,6 +65,10 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         }
 
         $paymentInfo = $this->readPaymentModelArgument($observer);
+        
+        if (isset($additionalData[self::BRAND_CODE])) {
+            $paymentInfo->setCcType($additionalData[self::BRAND_CODE]);
+        }
 
         foreach ($this->additionalInformationList as $additionalInformationKey) {
             if (isset($additionalData[$additionalInformationKey])) {
@@ -72,7 +76,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
                     $additionalInformationKey,
                     $additionalData[$additionalInformationKey]
                 );
+                }
             }
         }
     }
-}

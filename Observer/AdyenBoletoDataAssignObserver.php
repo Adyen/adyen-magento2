@@ -60,6 +60,8 @@ class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
         }
 
         $paymentInfo = $this->readPaymentModelArgument($observer);
+        
+        $paymentInfo->setCcType('boleto');
 
         foreach ($this->additionalInformationList as $additionalInformationKey) {
             if (isset($additionalData[$additionalInformationKey])) {
