@@ -62,6 +62,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
         if (version_compare($context->getVersion(), '2.0.7', '<')) {
             $this->updateSchemaVersion207($setup);
         }
+        
+        if (version_compare($context->getVersion(), '2.1.2', '<')) {
+            $this->updateSchemaVersion212($setup);
+        }
 
         $setup->endSetup();
     }
@@ -293,5 +297,49 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'processing',
             $adyenNotificationProcessingColumn
         );
+    }
+    
+    /**
+     * Upgrade to 2.1.2
+     * Add extra column "cc_type" in sales_order_grid
+     * Populate "cc_type" in sales_order_grid with values in sales_order_payments
+     * 
+     * @param SchemaSetupInterface $setup
+     * @return void
+     */
+    public function updateSchemaVersion212(SchemaSetupInterface $setup)
+    {
+        /** @var $connection \Magento\Framework\DB\Adapter\Pdo\MySql */
+        $connection = $setup->getConnection();
+        $gridTableName = $setup->getTable('sales_order_grid');
+        $paymentTableName = $setup->getTable('sales_order_payment');
+
+        $cctypeColumns = [
+            'type' => Table::TYPE_TEXT,
+            'length' => 32,
+            'nullable' => true,
+            'comment' => 'CC Type',
+        ];
+
+        $connection->addColumn(
+            $gridTableName,
+            'cc_type',
+            $cctypeColumns
+        );
+        
+        
+        //Populate "cc_type" in sales_order_grid with values in sales_order_payments
+        $connection->query(
+            $connection->updateFromSelect(
+                $connection->select()
+                    ->join(
+                        $paymentTableName,
+                        sprintf('%s.entity_id = %s.parent_id', $gridTableName, $paymentTableName),
+                        'cc_type'
+                    ),
+                $gridTableName
+            )
+        );
+        
     }
 }
