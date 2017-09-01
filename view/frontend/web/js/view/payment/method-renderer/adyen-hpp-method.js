@@ -63,6 +63,7 @@ define(
                 return this;
             },
             initialize: function () {
+                var self = this;
                 this._super();
 
                 fullScreenLoader.startLoader();
@@ -73,7 +74,6 @@ define(
                 // retrieve payment methods
                 var serviceUrl,
                     payload;
-
                 if(customer.isLoggedIn()) {
                     serviceUrl = urlBuilder.createUrl('/carts/mine/retrieve-adyen-payment-methods', {});
                 } else {
@@ -92,7 +92,23 @@ define(
                 ).done(
                     function (response) {
                         adyenPaymentService.setPaymentMethods(response);
-
+                        if(JSON.stringify(response).indexOf("ratepay") > -1) {
+                            var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
+                            window.di = {t: '', v: ratePayId, l: 'Checkout'};
+                            function waitForDfValue() {
+                                var dfValueRatePay = self.getRatePayDeviceIdentToken();
+                                if (dfValueRatePay) {
+                                    window.di.t = dfValueRatePay.replace(':', '');
+                                    var scriptTag = document.createElement('script');
+                                    scriptTag.src = "//d.ratepay.com/" + ratePayId + "/di.js";
+                                    scriptTag.type = "text/javascript";
+                                    document.body.appendChild(scriptTag);
+                                } else {
+                                    setTimeout(waitForDfValue, 200);
+                                }
+                            }
+                            waitForDfValue();
+                        }
                         // set device fingerprint value
                         dfSet('dfValue', 0);
                         // propagate this manually to knockoutjs otherwise it would not work
@@ -107,7 +123,6 @@ define(
             },
             getAdyenHppPaymentMethods: function() {
                 var self = this;
-
                 var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
 
                 var paymentList = _.map(paymentMethods, function(value) {
@@ -134,6 +149,9 @@ define(
                     }
                     result.isPaymentMethodOpenInvoiceMethod = function() {
                         return value.isPaymentMethodOpenInvoiceMethod;
+                    }
+                    result.getRatePayDeviceIdentToken = function() {
+                        return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
                     }
                     return result;
                 });
@@ -176,6 +194,9 @@ define(
                         additionalData.gender = this.gender();
                         additionalData.dob = this.dob();
                         additionalData.telephone = this.telephone();
+                        if(brandCode() == "ratepay"){
+                            additionalData.df_value = this.getRatePayDeviceIdentToken();
+                        }
                     }
 
                     data.additional_data = additionalData;
@@ -237,6 +258,9 @@ define(
             },
             validate: function () {
                 return true;
+            },
+            getRatePayDeviceIdentToken: function(){
+                return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
             }
         });
     }

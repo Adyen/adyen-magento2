@@ -770,6 +770,16 @@ class Data extends AbstractHelper
         }
     }
 
+    public function getRatePayId()
+    {
+        return $this->getAdyenHppConfigData("ratepay_id");
+    }
+
+    public function calculateDeviceIdentToken($quote)
+    {
+        return md5($quote->getReservedOrderId().date('c'));
+    }
+
     /**
      * For Klarna And AfterPay use VatCategory High others use none
      *
