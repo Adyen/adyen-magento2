@@ -48,7 +48,7 @@ class Adapter extends Method\Adapter
      * @param PaymentDataObjectFactory $paymentDataObjectFactory
      * @param string $code
      * @param string $formBlockType
-     * @param CommandPoolInterface $infoBlockType
+     * @param string $infoBlockType
      * @param CommandPoolInterface|null $commandPool
      * @param ValidatorPoolInterface|null $validatorPool
      * @param CommandManagerInterface|null $commandExecutor
