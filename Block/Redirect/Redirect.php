@@ -200,7 +200,7 @@ class Redirect extends \Magento\Payment\Block\Form
                 $countryCode       = trim($this->_adyenHelper->getAdyenHppConfigData('country_code'));
                 $countryCode       = (!empty($countryCode)) ? $countryCode : false;
 
-                // if directory lookup is enabled use the billingadress as countrycode
+                // if directory lookup is enabled use the billingaddress as countrycode
                 if ($countryCode == false) {
                     if ($this->_order->getBillingAddress() &&
                         $this->_order->getBillingAddress()->getCountryId() != "") {
