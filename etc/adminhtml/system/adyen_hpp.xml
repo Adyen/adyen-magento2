@@ -79,6 +79,11 @@
                 <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 <config_path>payment/adyen_hpp/ignore_second_address_field</config_path>
             </field>
+            <field id="ratepay_id" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>RatePAY Device Ident SId</label>
+                <tooltip>Unique RatePAY Id provided by RatePAY integration consultant</tooltip>
+                <config_path>payment/adyen_hpp/ratepay_id</config_path>
+            </field>
         </group>
         <group id="adyen_hpp_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" sortOrder="200">
             <label>Advanced Settings</label>

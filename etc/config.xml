@@ -96,6 +96,7 @@
                 <payment_routine>single</payment_routine>
                 <delivery_days>5</delivery_days>
                 <allowspecific>0</allowspecific>
+                <ratepay_id>oj9GsQ</ratepay_id>
                 <sort_order>3</sort_order>
                 <payment_action>order</payment_action>
                 <can_initialize>1</can_initialize>
@@ -191,5 +192,12 @@
                 <group>adyen</group>
             </adyen_boleto>
         </payment>
+        <dev>
+            <js>
+                <minify_exclude>
+                    live.adyen.com/hpp/js/df
+                </minify_exclude>
+            </js>
+        </dev>
     </default>
 </config>

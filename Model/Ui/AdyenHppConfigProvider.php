@@ -59,6 +59,10 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
      */
     protected $_customerSession;
 
+    /**
+     * @var \Magento\Checkout\Model\Session
+     */
+    protected $_session;
 
     /**
      * AdyenHppConfigProvider constructor.
@@ -68,23 +72,26 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Magento\Checkout\Model\Session $session
      */
     public function __construct(
         PaymentHelper $paymentHelper,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Customer\Model\Session $customerSession
+        \Magento\Customer\Model\Session $customerSession,
+        \Magento\Checkout\Model\Session $session
     ) {
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
         $this->_urlBuilder = $urlBuilder;
         $this->_customerSession = $customerSession;
+        $this->_session = $session;
     }
 
     /**
-     * Set configuration for AdyenHPP payemnt method
+     * Set configuration for AdyenHPP payment method
      *
      * @return array
      */
@@ -133,7 +140,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $config['payment'] ['adyenHpp']['showTelephone'] =  $this->_adyenHelper->getAdyenHppConfigDataFlag(
             'show_telephone'
         );
-
+        $config['payment'] ['adyenHpp']['ratePayId'] = $this->_adyenHelper->getRatePayId();
+        $config['payment'] ['adyenHpp']['deviceIdentToken'] = md5($this->_session->getQuoteId().date('c'));
 
 
         return $config;
