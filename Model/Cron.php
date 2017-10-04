@@ -751,6 +751,11 @@ class Cron
                     $this->_authorizePayment();
                 }
                 break;
+            case Notification::OFFER_CLOSED:
+                $order = $this->_order;
+                $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                $this->_holdCancelOrder(true);
+                break;
             case Notification::CAPTURE_FAILED:
             case Notification::CANCELLATION:
             case Notification::CANCELLED:

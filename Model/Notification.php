@@ -48,6 +48,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel
     const RECURRING_CONTRACT = "RECURRING_CONTRACT";
     const REPORT_AVAILABLE = "REPORT_AVAILABLE";
     const ORDER_CLOSED = "ORDER_CLOSED";
+    const OFFER_CLOSED = "OFFER_CLOSED";
 
     /**
      * Notification constructor.
