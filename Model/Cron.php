@@ -753,6 +753,7 @@ class Cron
                 break;
             case Notification::OFFER_CLOSED:
                 if(!$this->_order->canCancel()) {
+                    // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
                     $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
                 }
                 $this->_holdCancelOrder(true);
