@@ -752,8 +752,9 @@ class Cron
                 }
                 break;
             case Notification::OFFER_CLOSED:
-                $order = $this->_order;
-                $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                if(!$this->_order->canCancel()) {
+                    $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                }
                 $this->_holdCancelOrder(true);
                 break;
             case Notification::CAPTURE_FAILED:
