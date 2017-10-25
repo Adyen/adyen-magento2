@@ -1,5 +1,5 @@
 # Adyen_Magento2
-Adyen Payment plugin for Magento2. The plugin supports Magento2 version 2.1 and higher. 
+Adyen Payment plugin for Magento2. This plugin supports Magento2 version 2.1 and higher. 
 For Magento2 version 2.0 support, use plugin version 1.4.6.
 ## Installation ##
 ```
