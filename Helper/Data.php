@@ -816,4 +816,9 @@ class Data extends AbstractHelper
         return $this->_assetRepo->createAsset($fileId, $params);
     }
 
+    public function getStoreLocale($storeId) {
+        $path = \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE;
+        return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+    }
+
 }

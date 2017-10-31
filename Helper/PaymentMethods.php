@@ -336,9 +336,9 @@ class PaymentMethods extends AbstractHelper
             return $locale;
         }
 
-        // should have the vulue if not fall back to default
+        // should have the value if not fall back to default
         $localeCode = $this->_config->getValue(
-            Data::XML_PATH_DEFAULT_LOCALE,
+            \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
             $store->getCode()
         );
