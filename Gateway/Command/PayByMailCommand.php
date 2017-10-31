@@ -137,6 +137,7 @@ class PayByMailCommand implements CommandInterface
             $skinCode = $this->_adyenHelper->getAdyenHppConfigData('skin_code');
             $hmacKey           = $this->_adyenHelper->getHmac();
             $shopperLocale     = trim($this->_adyenHelper->getAdyenHppConfigData('shopper_locale', $storeId));
+            $countryCode       = trim($this->_adyenHelper->getAdyenHppConfigData('country_code', $storeId));
         } else {
             // use pay_by_mail skin and hmac
             $hmacKey = $this->_adyenHelper->getHmacPayByMail();
@@ -149,7 +150,6 @@ class PayByMailCommand implements CommandInterface
 
         // get locale from store
         $shopperLocale     = (!empty($shopperLocale)) ? $shopperLocale : $this->_adyenHelper->getStoreLocale($storeId);
-        $countryCode       = trim($this->_adyenHelper->getAdyenHppConfigData('country_code', $storeId));
         $countryCode       = (!empty($countryCode)) ? $countryCode : false;
 
         // if directory lookup is enabled use the billingadress as countrycode
