@@ -254,6 +254,10 @@ class Cron
         $count = 0;
         foreach ($notifications as $notification) {
 
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                sprintf("Processing notification %s", $notification->getEntityId())
+            );
+
             // ignore duplicate notification
             if ($this->_isDuplicate($notification)) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
