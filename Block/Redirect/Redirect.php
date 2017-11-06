@@ -285,7 +285,7 @@ class Redirect extends \Magento\Payment\Block\Form
                 if ($brandCode == "klarna") {
                     $ssn = $this->_order->getPayment()->getAdditionalInformation('ssn');
                     if (!empty($ssn)) {
-                        $formFields['shopper.socialSecurityNumber'] = $this->_order->getPayment()->getAdditionalInformation('ssn');
+                        $formFields['shopper.socialSecurityNumber'] = $ssn;
                     }
                     //  // needed for DE and AT
                     $formFields['klarna.acceptPrivacyPolicy'] = 'true';

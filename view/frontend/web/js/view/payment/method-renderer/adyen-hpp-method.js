@@ -140,11 +140,13 @@ define(
                     result.isPaymentMethodOpenInvoiceMethod = function () {
                         return value.isPaymentMethodOpenInvoiceMethod;
                     }
-                    result.getSsnFormat = function(){
+                    result.getSsnLength = function(){
                         if (quote.billingAddress().countryId == "NO") {
+                            //5 digits for Norway
                             return 5;
                         }
                         else {
+                            //4 digits for other Nordic countries
                             return 4;
                         }
                     }
