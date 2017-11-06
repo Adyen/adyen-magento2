@@ -142,7 +142,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         );
         $config['payment'] ['adyenHpp']['ratePayId'] = $this->_adyenHelper->getRatePayId();
         $config['payment'] ['adyenHpp']['deviceIdentToken'] = md5($this->_session->getQuoteId().date('c'));
-
+        $config['payment'] ['adyenHpp']['nordicCountries'] = ['SE','NO','DK', 'FI'];
 
         return $config;
     }

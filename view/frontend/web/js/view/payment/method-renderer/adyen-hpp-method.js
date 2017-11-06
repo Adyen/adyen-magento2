@@ -137,7 +137,17 @@ define(
                     result.validate = function () {
                         return self.validate();
                     }
-
+                    result.isPaymentMethodOpenInvoiceMethod = function () {
+                        return value.isPaymentMethodOpenInvoiceMethod;
+                    }
+                    result.getSsnFormat = function(){
+                        if (quote.billingAddress().countryId == "NO") {
+                            return 5;
+                        }
+                        else {
+                            return 4;
+                        }
+                    }
                     if(value.brandCode == "ideal") {
                         result.issuerIds = value.issuers;
                         result.issuerId = ko.observable(null);
@@ -146,12 +156,32 @@ define(
                         result.gender = ko.observable(window.checkoutConfig.payment.adyenHpp.gender);
                         result.dob = ko.observable(window.checkoutConfig.payment.adyenHpp.dob);
                         result.datepickerValue = ko.observable(); // needed ??
-                    }
-                    result.isPaymentMethodOpenInvoiceMethod = function() {
-                        return value.isPaymentMethodOpenInvoiceMethod;
-                    }
-                    result.getRatePayDeviceIdentToken = function() {
-                        return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
+                        result.ssn = ko.observable();
+
+                        result.getRatePayDeviceIdentToken = function () {
+                            return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
+                        }
+                        result.showGender = function () {
+                            return window.checkoutConfig.payment.adyenHpp.showGender;
+                        }
+                        result.showDob = function () {
+                            return window.checkoutConfig.payment.adyenHpp.showDob;
+                        }
+                        result.showTelephone = function () {
+                            return window.checkoutConfig.payment.adyenHpp.showTelephone;
+                        }
+                        result.showSsn = function () {
+                            if (value.brandCode.indexOf("klarna") >= 0) {
+                                var ba = quote.billingAddress();
+                                if (ba != null) {
+                                    var nordicCountriesList = window.checkoutConfig.payment.adyenHpp.nordicCountries;
+                                    if (nordicCountriesList.indexOf(ba.countryId) >= 0) {
+                                        return true;
+                                    }
+                                }
+                            }
+                            return false;
+                        }
                     }
                     return result;
                 });
@@ -194,6 +224,7 @@ define(
                         additionalData.gender = this.gender();
                         additionalData.dob = this.dob();
                         additionalData.telephone = this.telephone();
+                        additionalData.ssn = this.ssn();
                         if(brandCode() == "ratepay"){
                             additionalData.df_value = this.getRatePayDeviceIdentToken();
                         }
@@ -246,15 +277,6 @@ define(
             },
             isIconEnabled: function() {
                 return window.checkoutConfig.payment.adyen.showLogo;
-            },
-            showGender: function() {
-                return window.checkoutConfig.payment.adyenHpp.showGender;
-            },
-            showDob: function() {
-                return window.checkoutConfig.payment.adyenHpp.showDob;
-            },
-            showTelephone: function() {
-                return window.checkoutConfig.payment.adyenHpp.showTelephone;
             },
             validate: function () {
                 return true;
