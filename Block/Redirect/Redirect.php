@@ -84,7 +84,8 @@ class Redirect extends \Magento\Payment\Block\Form
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Tax\Model\Config $taxConfig,
         \Magento\Tax\Model\Calculation $taxCalculation
-    ) {
+    )
+    {
         $this->_orderFactory = $orderFactory;
         $this->_checkoutSession = $checkoutSession;
         parent::__construct($context, $data);
@@ -127,11 +128,12 @@ class Redirect extends \Magento\Payment\Block\Form
                         } else {
 
                             if ($this->getPaymentMethodSelectionOnAdyen()) {
-                                $url =  'https://test.adyen.com/hpp/select.shtml';
+                                $url = 'https://test.adyen.com/hpp/select.shtml';
                             } else {
                                 if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
                                     $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                                )) {
+                                )
+                                ) {
                                     $url = "https://test.adyen.com/hpp/skipDetails.shtml";
                                 } else {
                                     $url = "https://test.adyen.com/hpp/details.shtml";
@@ -144,11 +146,12 @@ class Redirect extends \Magento\Payment\Block\Form
                             $url = 'https://live.adyen.com/hpp/pay.shtml';
                         } else {
                             if ($this->getPaymentMethodSelectionOnAdyen()) {
-                                $url =  'https://live.adyen.com/hpp/select.shtml';
+                                $url = 'https://live.adyen.com/hpp/select.shtml';
                             } else {
                                 if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
                                     $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                                )) {
+                                )
+                                ) {
                                     $url = "https://live.adyen.com/hpp/skipDetails.shtml";
                                 } else {
                                     $url = "https://live.adyen.com/hpp/details.shtml";
@@ -158,7 +161,7 @@ class Redirect extends \Magento\Payment\Block\Form
                         break;
                 }
             }
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             // do nothing for now
             throw($e);
         }
@@ -203,7 +206,8 @@ class Redirect extends \Magento\Payment\Block\Form
                 // if directory lookup is enabled use the billingaddress as countrycode
                 if ($countryCode == false) {
                     if ($this->_order->getBillingAddress() &&
-                        $this->_order->getBillingAddress()->getCountryId() != "") {
+                        $this->_order->getBillingAddress()->getCountryId() != ""
+                    ) {
                         $countryCode = $this->_order->getBillingAddress()->getCountryId();
                     }
                 }
@@ -320,13 +324,9 @@ class Redirect extends \Magento\Payment\Block\Form
                 $this->_adyenLogger->addAdyenDebug(print_r($formFields, true));
             }
 
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             // do nothing for now
         }
-
-//        echo "GENDER" . $this->_order->getCustomerGender();
-//
-        //print_r($formFields);die();
         return $formFields;
     }
 
@@ -457,7 +457,7 @@ class Redirect extends \Magento\Payment\Block\Form
                     $this->_adyenHelper->formatAmount(
                         $item->getPriceInclTax(),
                         $currency
-                    ) -  $this->_adyenHelper->formatAmount(
+                    ) - $this->_adyenHelper->formatAmount(
                         $item->getPrice(),
                         $currency
                     ) : $this->_adyenHelper->formatAmount($item->getTaxAmount(), $currency);
@@ -466,7 +466,7 @@ class Redirect extends \Magento\Payment\Block\Form
             // Calculate vat percentage
             $itemVatPercentage = $this->_adyenHelper->getMinorUnitTaxPercent($item->getTaxPercent());
 
-            $numberOfItems = (int) $item->getQtyOrdered();
+            $numberOfItems = (int)$item->getQtyOrdered();
 
             $formFields = $this->setOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
                 $itemVatAmount, $itemVatPercentage, $numberOfItems);
@@ -514,7 +514,7 @@ class Redirect extends \Magento\Payment\Block\Form
                 $itemVatAmount, $itemVatPercentage, $numberOfItems);
         }
 
-        $formFields['openinvoicedata.refundDescription'] = "Refund / Correction for ".$formFields['merchantReference'];
+        $formFields['openinvoicedata.refundDescription'] = "Refund / Correction for " . $formFields['merchantReference'];
         $formFields['openinvoicedata.numberOfLines'] = $count;
 
         return $formFields;
@@ -533,9 +533,10 @@ class Redirect extends \Magento\Payment\Block\Form
      * @param $numberOfItems
      */
     protected function setOpenInvoiceLineData($formFields, $count, $currencyCode, $description, $itemAmount,
-        $itemVatAmount, $itemVatPercentage, $numberOfItems
-    ) {
-        $linename = "line".$count;
+                                              $itemVatAmount, $itemVatPercentage, $numberOfItems
+    )
+    {
+        $linename = "line" . $count;
         $formFields['openinvoicedata.' . $linename . '.currencyCode'] = $currencyCode;
         $formFields['openinvoicedata.' . $linename . '.description'] = $description;
         $formFields['openinvoicedata.' . $linename . '.itemAmount'] = $itemAmount;
@@ -544,7 +545,8 @@ class Redirect extends \Magento\Payment\Block\Form
         $formFields['openinvoicedata.' . $linename . '.numberOfItems'] = $numberOfItems;
 
         if ($this->_adyenHelper->isVatCategoryHigh($this->_order->getPayment()->getAdditionalInformation(
-            \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE))) {
+            \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE))
+        ) {
             $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "High";
         } else {
             $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "None";

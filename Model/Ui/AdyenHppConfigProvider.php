@@ -81,7 +81,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Checkout\Model\Session $session
-    ) {
+    )
+    {
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
@@ -123,7 +124,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
             $gender = "";
             $dob = "";
         }
-        
+
         // add to config
         $config['payment'] ['adyenHpp']['gender'] = $gender;
         $config['payment'] ['adyenHpp']['dob'] = $dob;
@@ -137,12 +138,12 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $config['payment'] ['adyenHpp']['isPaymentMethodSelectionOnAdyen'] = $paymentMethodSelectionOnAdyen;
         $config['payment'] ['adyenHpp']['showGender'] = $this->_adyenHelper->getAdyenHppConfigDataFlag('show_gender');
         $config['payment'] ['adyenHpp']['showDob'] = $this->_adyenHelper->getAdyenHppConfigDataFlag('show_dob');
-        $config['payment'] ['adyenHpp']['showTelephone'] =  $this->_adyenHelper->getAdyenHppConfigDataFlag(
+        $config['payment'] ['adyenHpp']['showTelephone'] = $this->_adyenHelper->getAdyenHppConfigDataFlag(
             'show_telephone'
         );
         $config['payment'] ['adyenHpp']['ratePayId'] = $this->_adyenHelper->getRatePayId();
-        $config['payment'] ['adyenHpp']['deviceIdentToken'] = md5($this->_session->getQuoteId().date('c'));
-        $config['payment'] ['adyenHpp']['nordicCountries'] = ['SE','NO','DK', 'FI'];
+        $config['payment'] ['adyenHpp']['deviceIdentToken'] = md5($this->_session->getQuoteId() . date('c'));
+        $config['payment'] ['adyenHpp']['nordicCountries'] = ['SE', 'NO', 'DK', 'FI'];
 
         return $config;
     }
