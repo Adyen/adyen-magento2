@@ -26,6 +26,7 @@ namespace Adyen\Payment\Gateway\Command;
 use Magento\Payment\Gateway\Command;
 use Magento\Payment\Gateway\CommandInterface;
 
+
 class PayByMailCommand implements CommandInterface
 {
 
@@ -33,11 +34,6 @@ class PayByMailCommand implements CommandInterface
      * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;
-
-    /**
-     * @var ResolverInterface
-     */
-    protected $_resolver;
 
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
@@ -53,11 +49,9 @@ class PayByMailCommand implements CommandInterface
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\Locale\ResolverInterface $resolver,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger
     ) {
         $this->_adyenHelper = $adyenHelper;
-        $this->_resolver = $resolver;
         $this->_adyenLogger = $adyenLogger;
     }
     /**
@@ -134,6 +128,7 @@ class PayByMailCommand implements CommandInterface
 
         $realOrderId       = $order->getRealOrderId();
         $orderCurrencyCode = $order->getOrderCurrencyCode();
+        $storeId = $order->getStore()->getId();
 
         // check if paybymail has it's own skin
         $skinCode          = trim($this->_adyenHelper->getAdyenPayByMailConfigData('skin_code'));
@@ -141,18 +136,20 @@ class PayByMailCommand implements CommandInterface
             // use HPP skin and HMAC
             $skinCode = $this->_adyenHelper->getAdyenHppConfigData('skin_code');
             $hmacKey           = $this->_adyenHelper->getHmac();
+            $shopperLocale     = trim($this->_adyenHelper->getAdyenHppConfigData('shopper_locale', $storeId));
+            $countryCode       = trim($this->_adyenHelper->getAdyenHppConfigData('country_code', $storeId));
         } else {
             // use pay_by_mail skin and hmac
             $hmacKey = $this->_adyenHelper->getHmacPayByMail();
         }
 
         $amount            = $this->_adyenHelper->formatAmount($order->getGrandTotal(), $orderCurrencyCode);
-        $merchantAccount   = trim($this->_adyenHelper->getAdyenAbstractConfigData('merchant_account'));
+        $merchantAccount   = trim($this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId));
         $shopperEmail      = $order->getCustomerEmail();
         $customerId        = $order->getCustomerId();
-        $shopperLocale     = trim($this->_adyenHelper->getAdyenHppConfigData('shopper_locale'));
-        $shopperLocale     = (!empty($shopperLocale)) ? $shopperLocale : $this->_resolver->getLocale();
-        $countryCode       = trim($this->_adyenHelper->getAdyenHppConfigData('country_code'));
+
+        // get locale from store
+        $shopperLocale     = (!empty($shopperLocale)) ? $shopperLocale : $this->_adyenHelper->getStoreLocale($storeId);
         $countryCode       = (!empty($countryCode)) ? $countryCode : false;
 
         // if directory lookup is enabled use the billingadress as countrycode
@@ -164,7 +161,7 @@ class PayByMailCommand implements CommandInterface
             }
         }
 
-        $deliveryDays                   = $this->_adyenHelper->getAdyenHppConfigData('delivery_days');
+        $deliveryDays                   = $this->_adyenHelper->getAdyenHppConfigData('delivery_days', $storeId);
         $deliveryDays                   = (!empty($deliveryDays)) ? $deliveryDays : 5;
 
         $formFields = [];
@@ -184,9 +181,9 @@ class PayByMailCommand implements CommandInterface
 
         $formFields['shopperEmail']      = $shopperEmail;
         // recurring
-        $recurringType                   = trim($this->_adyenHelper->getAdyenAbstractConfigData('recurring_type'));
+        $recurringType                   = trim($this->_adyenHelper->getAdyenAbstractConfigData('recurring_type', $storeId));
         
-        $sessionValidity = $this->_adyenHelper->getAdyenPayByMailConfigData('session_validity');
+        $sessionValidity = $this->_adyenHelper->getAdyenPayByMailConfigData('session_validity', $storeId);
 
         if ($sessionValidity == "") {
             $sessionValidity = 3;
