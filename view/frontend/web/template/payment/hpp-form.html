@@ -70,7 +70,7 @@
 
 
                     <!-- ko if: isPaymentMethodOpenInvoiceMethod() -->
-                        <!-- ko if: $parent.showGender() -->
+                        <!-- ko if: showGender() -->
                             <div class="field gender_type type required">
                                     <label data-bind="attr: {for: getCode() + '_gender_type'}" class="label">
                                         <span><!-- ko text: $t('Gender')--><!-- /ko --></span>
@@ -90,7 +90,7 @@
                             </div>
                         <!--/ko-->
 
-                        <!-- ko if: $parent.showDob() -->
+                        <!-- ko if: showDob() -->
                             <div class="field required">
                                 <label data-bind="attr: {for: getCode() + '_dob'}" class="label">
                                     <span><!-- ko text: $t('Date of Birth')--><!-- /ko --></span>
@@ -111,7 +111,7 @@
                             </div>
                         <!--/ko-->
 
-                        <!-- ko if: $parent.showTelephone() -->
+                        <!-- ko if: showTelephone() -->
                             <div class="field required">
                                 <label data-bind="attr: {for: getCode() + '_telephone'}" class="label">
                                     <span><!-- ko text: $t('Telephone')--><!-- /ko --></span>
@@ -131,6 +131,29 @@
                                 </div>
                             </div>
                         <!--/ko-->
+
+                    <!-- ko if: showSsn() -->
+                    <div class="field required">
+                        <label data-bind="attr: {for: getCode() + '_ssn'}" class="label">
+                            <span><!-- ko text: $t('Personal number (last digits)')--><!-- /ko --></span>
+                        </label>
+                        <div class="control">
+                            <input type="text" class="input-text"
+                                   name="payment[ssn]"
+                                   data-bind="
+                                           attr: {
+                                                id: getCode() + '_ssn',
+                                                title: $t('Social Security Number'),
+                                                'data-container': getCode() + '-ssn',
+                                                'data-validate': JSON.stringify({'required-number':true }),
+                                                maxlength : getSsnLength()
+                                            },
+                                            value: ssn"
+                            />
+                        </div>
+                    </div>
+                    <!--/ko-->
+
                     <!--/ko-->
                 </fieldset>
                 <div class="checkout-agreements-block">

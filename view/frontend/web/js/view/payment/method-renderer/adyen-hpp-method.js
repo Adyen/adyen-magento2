@@ -74,7 +74,7 @@ define(
                 // retrieve payment methods
                 var serviceUrl,
                     payload;
-                if(customer.isLoggedIn()) {
+                if (customer.isLoggedIn()) {
                     serviceUrl = urlBuilder.createUrl('/carts/mine/retrieve-adyen-payment-methods', {});
                 } else {
                     serviceUrl = urlBuilder.createUrl('/guest-carts/:cartId/retrieve-adyen-payment-methods', {
@@ -92,7 +92,7 @@ define(
                 ).done(
                     function (response) {
                         adyenPaymentService.setPaymentMethods(response);
-                        if(JSON.stringify(response).indexOf("ratepay") > -1) {
+                        if (JSON.stringify(response).indexOf("ratepay") > -1) {
                             var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
                             window.di = {t: '', v: ratePayId, l: 'Checkout'};
                             function waitForDfValue() {
@@ -116,50 +116,81 @@ define(
 
                         fullScreenLoader.stopLoader();
                     }
-                ).fail(function(error) {
+                ).fail(function (error) {
                     console.log(JSON.stringify(error));
                     fullScreenLoader.stopLoader();
                 });
             },
-            getAdyenHppPaymentMethods: function() {
+            getAdyenHppPaymentMethods: function () {
                 var self = this;
                 var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
 
-                var paymentList = _.map(paymentMethods, function(value) {
+                var paymentList = _.map(paymentMethods, function (value) {
 
                     var result = {};
                     result.value = value.brandCode;
                     result.name = value;
                     result.method = self.item.method;
-                    result.getCode = function() {
+                    result.getCode = function () {
                         return self.item.method;
                     };
                     result.validate = function () {
                         return self.validate();
                     }
-
-                    if(value.brandCode == "ideal") {
+                    result.isPaymentMethodOpenInvoiceMethod = function () {
+                        return value.isPaymentMethodOpenInvoiceMethod;
+                    }
+                    result.getSsnLength = function () {
+                        if (quote.billingAddress().countryId == "NO") {
+                            //5 digits for Norway
+                            return 5;
+                        }
+                        else {
+                            //4 digits for other Nordic countries
+                            return 4;
+                        }
+                    }
+                    if (value.brandCode == "ideal") {
                         result.issuerIds = value.issuers;
                         result.issuerId = ko.observable(null);
-                    } else if(value.isPaymentMethodOpenInvoiceMethod) {
+                    } else if (value.isPaymentMethodOpenInvoiceMethod) {
                         result.telephone = ko.observable(quote.shippingAddress().telephone);
                         result.gender = ko.observable(window.checkoutConfig.payment.adyenHpp.gender);
                         result.dob = ko.observable(window.checkoutConfig.payment.adyenHpp.dob);
                         result.datepickerValue = ko.observable(); // needed ??
-                    }
-                    result.isPaymentMethodOpenInvoiceMethod = function() {
-                        return value.isPaymentMethodOpenInvoiceMethod;
-                    }
-                    result.getRatePayDeviceIdentToken = function() {
-                        return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
+                        result.ssn = ko.observable();
+
+                        result.getRatePayDeviceIdentToken = function () {
+                            return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
+                        }
+                        result.showGender = function () {
+                            return window.checkoutConfig.payment.adyenHpp.showGender;
+                        }
+                        result.showDob = function () {
+                            return window.checkoutConfig.payment.adyenHpp.showDob;
+                        }
+                        result.showTelephone = function () {
+                            return window.checkoutConfig.payment.adyenHpp.showTelephone;
+                        }
+                        result.showSsn = function () {
+                            if (value.brandCode.indexOf("klarna") >= 0) {
+                                var ba = quote.billingAddress();
+                                if (ba != null) {
+                                    var nordicCountriesList = window.checkoutConfig.payment.adyenHpp.nordicCountries;
+                                    if (nordicCountriesList.indexOf(ba.countryId) >= 0) {
+                                        return true;
+                                    }
+                                }
+                            }
+                            return false;
+                        }
                     }
                     return result;
                 });
                 return paymentList;
             },
-            getGenderTypes: function() {
-                // return window.checkoutConfig.payment.adyenHpp.genderTypes;
-                return _.map(window.checkoutConfig.payment.adyenHpp.genderTypes, function(value, key) {
+            getGenderTypes: function () {
+                return _.map(window.checkoutConfig.payment.adyenHpp.genderTypes, function (value, key) {
                     return {
                         'key': key,
                         'value': value
@@ -175,7 +206,7 @@ define(
                     return false;
                 }
             },
-            continueToAdyenBrandCode: function() {
+            continueToAdyenBrandCode: function () {
                 // set payment method to adyen_hpp
                 var self = this;
 
@@ -188,13 +219,14 @@ define(
                     additionalData.brand_code = self.value;
                     additionalData.df_value = dfValue();
 
-                    if(brandCode() == "ideal") {
+                    if (brandCode() == "ideal") {
                         additionalData.issuer_id = this.issuerId();
-                    } else if(self.isPaymentMethodOpenInvoiceMethod()) {
+                    } else if (self.isPaymentMethodOpenInvoiceMethod()) {
                         additionalData.gender = this.gender();
                         additionalData.dob = this.dob();
                         additionalData.telephone = this.telephone();
-                        if(brandCode() == "ratepay"){
+                        additionalData.ssn = this.ssn();
+                        if (brandCode() == "ratepay") {
                             additionalData.df_value = this.getRatePayDeviceIdentToken();
                         }
                     }
@@ -207,11 +239,11 @@ define(
 
                 return false;
             },
-            selectPaymentMethodBrandCode: function() {
+            selectPaymentMethodBrandCode: function () {
                 var self = this;
 
                 // set payment method to adyen_hpp
-                var  data = {
+                var data = {
                     "method": self.method,
                     "po_number": null,
                     "additional_data": {
@@ -232,34 +264,25 @@ define(
             },
             isBrandCodeChecked: ko.computed(function () {
 
-                if(!quote.paymentMethod()) {
+                if (!quote.paymentMethod()) {
                     return null;
                 }
 
-                if(quote.paymentMethod().method == paymentMethod()) {
+                if (quote.paymentMethod().method == paymentMethod()) {
                     return brandCode();
                 }
                 return null;
             }),
-            isPaymentMethodSelectionOnAdyen: function() {
+            isPaymentMethodSelectionOnAdyen: function () {
                 return window.checkoutConfig.payment.adyenHpp.isPaymentMethodSelectionOnAdyen;
             },
-            isIconEnabled: function() {
+            isIconEnabled: function () {
                 return window.checkoutConfig.payment.adyen.showLogo;
-            },
-            showGender: function() {
-                return window.checkoutConfig.payment.adyenHpp.showGender;
-            },
-            showDob: function() {
-                return window.checkoutConfig.payment.adyenHpp.showDob;
-            },
-            showTelephone: function() {
-                return window.checkoutConfig.payment.adyenHpp.showTelephone;
             },
             validate: function () {
                 return true;
             },
-            getRatePayDeviceIdentToken: function(){
+            getRatePayDeviceIdentToken: function () {
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
             }
         });
