@@ -25,6 +25,7 @@ namespace Adyen\Payment\Model;
 
 use Magento\Framework\Webapi\Exception;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
+use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
 use Magento\Framework\Phrase\Renderer\Placeholder;
@@ -70,6 +71,11 @@ class Cron
      * @var OrderSender
      */
     protected $_orderSender;
+
+    /**
+     * @var InvoiceSender
+     */
+    protected $_invoiceSender;
 
     /**
      * @var \Magento\Framework\DB\TransactionFactory
@@ -180,6 +186,7 @@ class Cron
      * @param \Magento\Sales\Model\OrderFactory $orderFactory
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param OrderSender $orderSender
+     * @param InvoiceSender $invoiceSender
      * @param \Magento\Framework\DB\TransactionFactory $transactionFactory
      * @param Billing\AgreementFactory $billingAgreementFactory
      * @param Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
@@ -195,6 +202,7 @@ class Cron
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Adyen\Payment\Helper\Data $adyenHelper,
         OrderSender $orderSender,
+        InvoiceSender $invoiceSender,
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
         \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory,
         \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
@@ -209,6 +217,7 @@ class Cron
         $this->_orderFactory = $orderFactory;
         $this->_adyenHelper = $adyenHelper;
         $this->_orderSender = $orderSender;
+        $this->_invoiceSender = $invoiceSender;
         $this->_transactionFactory = $transactionFactory;
         $this->_billingAgreementFactory = $billingAgreementFactory;
         $this->_billingAgreementCollectionFactory = $billingAgreementCollectionFactory;
@@ -1440,12 +1449,14 @@ class Cron
 
             $this->_setPaymentAuthorized();
 
-            $invoiceAutoMail = (bool)$this->_getConfigData(
-                'send_invoice_update_mail', 'adyen_abstract', $this->_order->getStoreId()
+            $invoiceAutoMail = (bool)$this->_scopeConfig->isSetFlag(
+                \Magento\Sales\Model\Order\Email\Container\InvoiceIdentity::XML_PATH_EMAIL_ENABLED,
+                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+                $this->_order->getStoreId()
             );
 
             if ($invoiceAutoMail) {
-                $invoice->sendEmail();
+                $this->_invoiceSender->send($invoice);
             }
         } else {
             $this->_adyenLogger->addAdyenNotificationCronjob('It is not possible to create invoice for this order');
