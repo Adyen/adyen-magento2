@@ -192,12 +192,5 @@
                 <group>adyen</group>
             </adyen_boleto>
         </payment>
-        <dev>
-            <js>
-                <minify_exclude>
-                    live.adyen.com/hpp/js/df
-                </minify_exclude>
-            </js>
-        </dev>
     </default>
 </config>
