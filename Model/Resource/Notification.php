@@ -52,7 +52,7 @@ class Notification extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             ->where('notification.event_code=?', $eventCode)
             ->where('notification.success=?', $success);
 
-        if ($done) {
+        if ($done !== null) {
             $select->where('notification.done=?', $done);
         }
 
