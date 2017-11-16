@@ -35,10 +35,9 @@ define(
         'Magento_Checkout/js/model/url-builder',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Magento_Customer/js/model/customer',
-        'Magento_Checkout/js/model/full-screen-loader',
-        'adyen/df'
+        'Magento_Checkout/js/model/full-screen-loader'
     ],
-    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader, deviceFingerprint) {
+    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader) {
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
@@ -91,28 +90,43 @@ define(
                     serviceUrl, JSON.stringify(payload)
                 ).done(
                     function (response) {
+                        function waitForDfSet() {
+                            // Wait for dfSet function to be loaded from df.js script
+                            if (typeof dfSet == "undefined") {
+                                setTimeout(waitForDfSet, 500);
+                                return;
+                            }
+
+                            // set device fingerprint value
+                            dfSet('dfValue', 0);
+                            // propagate this manually to knockoutjs otherwise it would not work
+                            dfValue($('#dfValue').val());
+                        }
+
                         adyenPaymentService.setPaymentMethods(response);
                         if (JSON.stringify(response).indexOf("ratepay") > -1) {
                             var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
-                            window.di = {t: '', v: ratePayId, l: 'Checkout'};
-                            function waitForDfValue() {
-                                var dfValueRatePay = self.getRatePayDeviceIdentToken();
-                                if (dfValueRatePay) {
-                                    window.di.t = dfValueRatePay.replace(':', '');
-                                    var scriptTag = document.createElement('script');
-                                    scriptTag.src = "//d.ratepay.com/" + ratePayId + "/di.js";
-                                    scriptTag.type = "text/javascript";
-                                    document.body.appendChild(scriptTag);
-                                } else {
-                                    setTimeout(waitForDfValue, 200);
-                                }
-                            }
-                            waitForDfValue();
+                            var dfValueRatePay = self.getRatePayDeviceIdentToken();
+
+                            window.di = {
+                                t: dfValueRatePay.replace(':', ''),
+                                v: ratePayId,
+                                l: 'Checkout'
+                            };
+
+                            // Load Ratepay script
+                            var ratepayScriptTag = document.createElement('script');
+                            ratepayScriptTag.src = "//d.ratepay.com/" + ratePayId + "/di.js";
+                            ratepayScriptTag.type = "text/javascript";
+                            document.body.appendChild(ratepayScriptTag);
                         }
-                        // set device fingerprint value
-                        dfSet('dfValue', 0);
-                        // propagate this manually to knockoutjs otherwise it would not work
-                        dfValue($('#dfValue').val());
+
+                        // Load Adyen df.js script
+                        var dfScriptTag = document.createElement('script');
+                        dfScriptTag.src = "//live.adyen.com/hpp/js/df.js?v=20171130";
+                        dfScriptTag.type = "text/javascript";
+                        document.body.appendChild(dfScriptTag);
+                        waitForDfSet();
 
                         fullScreenLoader.stopLoader();
                     }
@@ -126,7 +140,6 @@ define(
                 var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
 
                 var paymentList = _.map(paymentMethods, function (value) {
-
                     var result = {};
                     result.value = value.brandCode;
                     result.name = value;
@@ -136,10 +149,10 @@ define(
                     };
                     result.validate = function () {
                         return self.validate();
-                    }
+                    };
                     result.isPaymentMethodOpenInvoiceMethod = function () {
                         return value.isPaymentMethodOpenInvoiceMethod;
-                    }
+                    };
                     result.getSsnLength = function () {
                         if (quote.billingAddress().countryId == "NO") {
                             //5 digits for Norway
@@ -149,7 +162,7 @@ define(
                             //4 digits for other Nordic countries
                             return 4;
                         }
-                    }
+                    };
                     if (value.brandCode == "ideal") {
                         result.issuerIds = value.issuers;
                         result.issuerId = ko.observable(null);
@@ -162,16 +175,16 @@ define(
 
                         result.getRatePayDeviceIdentToken = function () {
                             return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
-                        }
+                        };
                         result.showGender = function () {
                             return window.checkoutConfig.payment.adyenHpp.showGender;
-                        }
+                        };
                         result.showDob = function () {
                             return window.checkoutConfig.payment.adyenHpp.showDob;
-                        }
+                        };
                         result.showTelephone = function () {
                             return window.checkoutConfig.payment.adyenHpp.showTelephone;
-                        }
+                        };
                         result.showSsn = function () {
                             if (value.brandCode.indexOf("klarna") >= 0) {
                                 var ba = quote.billingAddress();
@@ -183,7 +196,7 @@ define(
                                 }
                             }
                             return false;
-                        }
+                        };
                     }
                     return result;
                 });
