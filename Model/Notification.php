@@ -37,17 +37,18 @@ class Notification extends \Magento\Framework\Model\AbstractModel
     const ERROR = 'ERROR';
     const REFUND = 'REFUND';
     const REFUND_FAILED = 'REFUND_FAILED';
-    const CANCEL_OR_REFUND  = 'CANCEL_OR_REFUND';
+    const CANCEL_OR_REFUND = 'CANCEL_OR_REFUND';
     const CAPTURE = 'CAPTURE';
     const CAPTURE_FAILED = 'CAPTURE_FAILED';
     const CANCELLATION = 'CANCELLATION';
     const POSAPPROVED = 'POS_APPROVED';
-    const HANDLED_EXTERNALLY  = 'HANDLED_EXTERNALLY';
+    const HANDLED_EXTERNALLY = 'HANDLED_EXTERNALLY';
     const MANUAL_REVIEW_ACCEPT = 'MANUAL_REVIEW_ACCEPT';
     const MANUAL_REVIEW_REJECT = 'MANUAL_REVIEW_REJECT ';
     const RECURRING_CONTRACT = "RECURRING_CONTRACT";
     const REPORT_AVAILABLE = "REPORT_AVAILABLE";
     const ORDER_CLOSED = "ORDER_CLOSED";
+    const OFFER_CLOSED = "OFFER_CLOSED";
 
     /**
      * Notification constructor.
@@ -85,11 +86,12 @@ class Notification extends \Magento\Framework\Model\AbstractModel
      * @param $eventCode
      * @param $success
      * @param $originalReference
-     * @return bool (true if the notification is a duplicate)
+     * @param null $done
+     * @return bool
      */
-    public function isDuplicate($pspReference, $eventCode, $success, $originalReference)
+    public function isDuplicate($pspReference, $eventCode, $success, $originalReference, $done = null)
     {
-        $result = $this->getResource()->getNotification($pspReference, $eventCode, $success, $originalReference);
+        $result = $this->getResource()->getNotification($pspReference, $eventCode, $success, $originalReference, $done);
         return (empty($result)) ? false : true;
     }
     
@@ -147,7 +149,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel
     {
         return $this->setData(self::ORIGINAL_REFERENCE, $originalReference);
     }
-    
+
     /**
      * Gets the Merchantreference for the notification.
      *
@@ -314,7 +316,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel
     {
         return $this->setData(self::LIVE, $live);
     }
-    
+
     /**
      * Gets the AdditionalData for the notification.
      *

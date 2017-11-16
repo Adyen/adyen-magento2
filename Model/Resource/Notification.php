@@ -36,21 +36,30 @@ class Notification extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 
     /**
      * Get Notification for duplicate check
-     *
+     * 
      * @param $pspReference
      * @param $eventCode
      * @param $success
      * @param $originalReference
+     * @param null $done
      * @return array
      */
-    public function getNotification($pspReference, $eventCode, $success, $originalReference)
+    public function getNotification($pspReference, $eventCode, $success, $originalReference, $done = null)
     {
         $select = $this->getConnection()->select()
             ->from(['notification' => $this->getTable('adyen_notification')])
             ->where('notification.pspreference=?', $pspReference)
             ->where('notification.event_code=?', $eventCode)
-            ->where('notification.success=?', $success)
-            ->where('notification.original_reference=?', $originalReference);
+            ->where('notification.success=?', $success);
+
+        if ($done !== null) {
+            $select->where('notification.done=?', $done);
+        }
+
+        if ($originalReference) {
+            $select->where('notification.original_reference=?', $originalReference);
+        }
+        
         return $this->getConnection()->fetchAll($select);
     }
 }
