@@ -92,7 +92,7 @@ define(
                     function (response) {
                         function waitForDfSet() {
                             // Wait for dfSet function to be loaded from df.js script
-                            if(typeof dfSet == "undefined") {
+                            if (typeof dfSet == "undefined") {
                                 setTimeout(waitForDfSet, 500);
                                 return;
                             }
@@ -104,7 +104,7 @@ define(
                         }
 
                         adyenPaymentService.setPaymentMethods(response);
-                        if(JSON.stringify(response).indexOf("ratepay") > -1) {
+                        if (JSON.stringify(response).indexOf("ratepay") > -1) {
                             var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
                             var dfValueRatePay = self.getRatePayDeviceIdentToken();
 
