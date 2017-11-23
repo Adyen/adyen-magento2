@@ -1292,6 +1292,7 @@ class Cron
             case 'cup':
             case 'cartebancaire':
             case 'visa':
+            case 'visadankort':
             case 'mc':
             case 'uatp':
             case 'amex':
