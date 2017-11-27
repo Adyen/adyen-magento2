@@ -233,6 +233,16 @@ class Cron
      */
     public function processNotification()
     {
+        try {
+            $this->execute();
+        } catch(\Exception $e) {
+            $this->_adyenLogger->addAdyenNotificationCronjob($e->getMessage() . "\n" . $e->getTraceAsString());
+            throw $e;
+        }
+    }
+
+    public function execute()
+    {
         // needed for Magento < 2.2.0 https://github.com/magento/magento2/pull/8413
         $renderer = Phrase::getRenderer();
         if ($renderer instanceof Placeholder) {
