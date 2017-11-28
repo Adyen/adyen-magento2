@@ -64,7 +64,7 @@ class Installments extends \Magento\Framework\App\Config\Value
         $value = $this->getValue();
         $unserialized = @unserialize($value);
         if ($unserialized !== false) {
-            $value = $unserialized;
+            return $this;
         }
 
         $result = [];
