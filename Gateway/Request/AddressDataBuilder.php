@@ -66,15 +66,11 @@ class AddressDataBuilder implements BuilderInterface
             $requestBilling = ["street" => $billingAddress->getStreetLine1(),
                 "postalCode" => $billingAddress->getPostcode(),
                 "city" => $billingAddress->getCity(),
-                "houseNumberOrName" => 'NA',
+                "houseNumberOrName" => '',
                 "stateOrProvince" => $billingAddress->getRegionCode(),
                 "country" => $billingAddress->getCountryId()
             ];
 
-            // houseNumberOrName is mandatory
-            if ($requestBilling['houseNumberOrName'] == "") {
-                $requestBilling['houseNumberOrName'] = "NA";
-            }
 
             $result['billingAddress'] = $requestBilling;
         }
@@ -86,15 +82,11 @@ class AddressDataBuilder implements BuilderInterface
             $requestDelivery = ["street" => $shippingAddress->getStreetLine1(),
                 "postalCode" => $shippingAddress->getPostcode(),
                 "city" => $shippingAddress->getCity(),
-                "houseNumberOrName" => 'NA',
+                "houseNumberOrName" => '',
                 "stateOrProvince" => $shippingAddress->getRegionCode(),
                 "country" => $shippingAddress->getCountryId()
             ];
 
-            // houseNumberOrName is mandatory
-            if ($requestDelivery['houseNumberOrName'] == "") {
-                $requestDelivery['houseNumberOrName'] = "NA";
-            }
 
             $result['deliveryAddress'] = $requestDelivery;
         }
