@@ -88,6 +88,19 @@ class Json extends \Magento\Framework\App\Action\Action
             return;
         }
 
+        // Run the query for checking unprocessed notifications, do this only for test notifications coming from the Adyen Customer Area
+        $cronCheckTest = strpos(file_get_contents('php://input'), "test_AUTHORISATION");
+        if($cronCheckTest > -1){
+            $unprocessedNotifications = $this->_adyenHelper->getUnprocessedNotifications();
+            if($unprocessedNotifications > 0) {
+                $this->getResponse()
+                    ->clearHeader('Content-Type')
+                    ->setHeader('Content-Type', 'text/html')
+                    ->setBody("[accepted] \n You have " . $this->_adyenHelper->getUnprocessedNotifications() . " unprocessed notifications.");
+                return;
+            }
+        }
+
         try {
             $notificationItems = json_decode(file_get_contents('php://input'), true);
 
@@ -157,7 +170,7 @@ class Json extends \Magento\Framework\App\Action\Action
         // validate the notification
         if ($this->authorised($response)) {
 
-            // check if notificaiton already exists
+            // check if notification already exists
             if (!$this->_isDuplicate($response)) {
                 try {
                     $notification = $this->_objectManager->create('Adyen\Payment\Model\Notification');
