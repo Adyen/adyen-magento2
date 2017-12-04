@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
+use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 
 class CcAuthorizationDataBuilder implements BuilderInterface
 {
@@ -66,7 +67,10 @@ class CcAuthorizationDataBuilder implements BuilderInterface
 
         if ($this->adyenHelper->getAdyenCcConfigDataFlag('cse_enabled', $storeId)) {
             $request['additionalData']['card.encrypted.json'] =
-                $payment->getAdditionalInformation("encrypted_data");
+                $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_DATA);
+
+                // Remove from additional data
+                $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_DATA);
         } else {
             $requestCreditCardDetails = [
                 "expiryMonth" => $payment->getCcExpMonth(),
