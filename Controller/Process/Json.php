@@ -88,21 +88,18 @@ class Json extends \Magento\Framework\App\Action\Action
             return;
         }
 
-        // Run the query for checking unprocessed notifications, do this only for test notifications coming from the Adyen Customer Area
-        $cronCheckTest = strpos(file_get_contents('php://input'), "test_AUTHORISATION");
-        if($cronCheckTest > -1){
-            $unprocessedNotifications = $this->_adyenHelper->getUnprocessedNotifications();
-            if($unprocessedNotifications > 0) {
-                $this->getResponse()
-                    ->clearHeader('Content-Type')
-                    ->setHeader('Content-Type', 'text/html')
-                    ->setBody("[accepted] \n You have " . $this->_adyenHelper->getUnprocessedNotifications() . " unprocessed notifications.");
-                return;
-            }
-        }
-
         try {
             $notificationItems = json_decode(file_get_contents('php://input'), true);
+            $acceptedMessage = "[accepted]";
+            $cronCheckTest = $notificationItems['notificationItems'][0]['NotificationRequestItem']['pspReference'];
+
+            // Run the query for checking unprocessed notifications, do this only for test notifications coming from the Adyen Customer Area
+            if ($this->_isTestNotification($cronCheckTest)) {
+                $unprocessedNotifications = $this->_adyenHelper->getUnprocessedNotifications();
+                if ($unprocessedNotifications > 0) {
+                    $acceptedMessage .= "\nYou have " . $unprocessedNotifications . " unprocessed notifications.";
+                }
+            }
 
             // log the notification
             $this->_adyenLogger->addAdyenNotification(
@@ -128,7 +125,7 @@ class Json extends \Magento\Framework\App\Action\Action
                 $this->getResponse()
                     ->clearHeader('Content-Type')
                     ->setHeader('Content-Type', 'text/html')
-                    ->setBody("[accepted]");
+                    ->setBody($acceptedMessage);
                 return;
             } else {
                 if ($notificationMode == "") {
@@ -152,11 +149,12 @@ class Json extends \Magento\Framework\App\Action\Action
     {
         $mode = $this->_adyenHelper->getAdyenAbstractConfigData('demo_mode');
 
-        if (($mode=='1' && $notificationMode == "false") || ($mode=='0' && $notificationMode == 'true')) {
+        if (($mode == '1' && $notificationMode == "false") || ($mode == '0' && $notificationMode == 'true')) {
             return true;
         }
         return false;
     }
+
     /**
      * save notification into the database for cronjob to execute notification
      *
@@ -228,7 +226,7 @@ class Json extends \Magento\Framework\App\Action\Action
         }
         return false;
     }
-    
+
     /**
      * HTTP Authentication of the notification
      *
@@ -247,8 +245,7 @@ class Json extends \Magento\Framework\App\Action\Action
         $submitedMerchantAccount = $response['merchantAccountCode'];
 
         if (empty($submitedMerchantAccount) && empty($internalMerchantAccount)) {
-            if (strtolower(substr($response['pspReference'], 0, 17)) == "testnotification_" ||
-                strtolower(substr($response['pspReference'], 0, 5)) == "test_") {
+            if ($this->_isTestNotification($response['pspReference'])) {
                 echo 'merchantAccountCode is empty in magento settings';
                 exit();
             }
@@ -257,8 +254,7 @@ class Json extends \Magento\Framework\App\Action\Action
 
         // validate username and password
         if ((!isset($_SERVER['PHP_AUTH_USER']) && !isset($_SERVER['PHP_AUTH_PW']))) {
-            if (strtolower(substr($response['pspReference'], 0, 17)) == "testnotification_" ||
-                strtolower(substr($response['pspReference'], 0, 5)) == "test_") {
+            if ($this->_isTestNotification($response['pspReference'])) {
                 echo 'Authentication failed: PHP_AUTH_USER and PHP_AUTH_PW are empty. See Adyen Magento manual CGI mode';
                 exit();
             }
@@ -276,8 +272,7 @@ class Json extends \Magento\Framework\App\Action\Action
         }
 
         // If notification is test check if fields are correct if not return error
-        if (strtolower(substr($response['pspReference'], 0, 17)) == "testnotification_" ||
-            strtolower(substr($response['pspReference'], 0, 5)) == "test_") {
+        if ($this->_isTestNotification($response['pspReference'])) {
             if ($accountCmp != 0) {
                 echo 'MerchantAccount in notification is not the same as in Magento settings';
                 exit();
@@ -301,7 +296,7 @@ class Json extends \Magento\Framework\App\Action\Action
         $eventCode = trim($response['eventCode']);
         $success = trim($response['success']);
         $originalReference = null;
-        if(isset($response['originalReference'])) {
+        if (isset($response['originalReference'])) {
             $originalReference = trim($response['originalReference']);
         }
         $notification = $this->_objectManager->create('Adyen\Payment\Model\Notification');
@@ -314,24 +309,25 @@ class Json extends \Magento\Framework\App\Action\Action
     protected function _fixCgiHttpAuthentication()
     {
         // do nothing if values are already there
-        if(!empty($_SERVER['PHP_AUTH_USER']) && !empty($_SERVER['PHP_AUTH_PW'])) {
+        if (!empty($_SERVER['PHP_AUTH_USER']) && !empty($_SERVER['PHP_AUTH_PW'])) {
             return;
         } elseif (isset($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']) &&
-            $_SERVER['REDIRECT_REMOTE_AUTHORIZATION'] != '') {
+            $_SERVER['REDIRECT_REMOTE_AUTHORIZATION'] != ''
+        ) {
             list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
-                explode(':', base64_decode($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']),2);
+                explode(':', base64_decode($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']), 2);
         } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
             list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
-                explode(':', base64_decode(substr($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)),2);
+                explode(':', base64_decode(substr($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)), 2);
         } elseif (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
             list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
-                explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)),2);
+                explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)), 2);
         } elseif (!empty($_SERVER['REMOTE_USER'])) {
             list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
-                explode(':', base64_decode(substr($_SERVER['REMOTE_USER'], 6)),2);
+                explode(':', base64_decode(substr($_SERVER['REMOTE_USER'], 6)), 2);
         } elseif (!empty($_SERVER['REDIRECT_REMOTE_USER'])) {
             list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
-                explode(':', base64_decode(substr($_SERVER['REDIRECT_REMOTE_USER'], 6)),2);
+                explode(':', base64_decode(substr($_SERVER['REDIRECT_REMOTE_USER'], 6)), 2);
         }
     }
 
@@ -341,5 +337,22 @@ class Json extends \Magento\Framework\App\Action\Action
     protected function _return401()
     {
         $this->getResponse()->setHttpResponseCode(401);
+    }
+
+    /**
+     * If notification is a test notification from Adyen Customer Area
+     *
+     * @param $pspReference
+     * @return bool
+     */
+    protected function _isTestNotification($pspReference)
+    {
+        if (strpos(strtolower($pspReference), "test_") !== false
+            || strpos(strtolower($pspReference), "testnotification_") !== false
+        ) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

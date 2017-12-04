@@ -26,7 +26,7 @@ namespace Adyen\Payment\AdminMessage;
 
 class CronMessage implements \Magento\Framework\Notification\MessageInterface
 {
-    protected $_authsession;
+    protected $_authSession;
     protected $_cronCheck;
     protected $_dateChecked;
     protected $_adyenHelper;
@@ -36,9 +36,8 @@ class CronMessage implements \Magento\Framework\Notification\MessageInterface
         \Magento\Backend\Model\Auth\Session $authSession,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezoneInterface
-
     ) {
-        $this->_authsession = $authSession;
+        $this->_authSession = $authSession;
         $this->_cronCheck = $this->getSessionData("cronCheck");
         $this->_dateChecked = $this->getSessionData("dateChecked");
         $this->_adyenHelper = $adyenHelper;
@@ -68,7 +67,7 @@ class CronMessage implements \Magento\Framework\Notification\MessageInterface
     public function isDisplayed()
     {
         // Only execute the query the first time you access the Admin page
-        if ($this->_authsession->isFirstPageAfterLogin()) {
+        if ($this->_authSession->isFirstPageAfterLogin()) {
             $this->_dateChecked = $this->_timezoneInterface->date();
             $this->_cronCheck = $this->_adyenHelper->getUnprocessedNotifications();
             $this->setSessionData("cronCheck", $this->_cronCheck);
@@ -115,7 +114,7 @@ class CronMessage implements \Magento\Framework\Notification\MessageInterface
      */
     public function setSessionData($key, $value)
     {
-        return $this->_authsession->setData($key, $value);
+        return $this->_authSession->setData($key, $value);
     }
 
     /**
@@ -123,7 +122,7 @@ class CronMessage implements \Magento\Framework\Notification\MessageInterface
      */
     public function getSessionData($key, $remove = false)
     {
-        return $this->_authsession->getData($key, $remove);
+        return $this->_authSession->getData($key, $remove);
     }
 }
 

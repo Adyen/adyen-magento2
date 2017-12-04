@@ -868,15 +868,8 @@ class Data extends AbstractHelper
 
     public function getUnprocessedNotifications()
     {
-        $dateEnd = new \DateTime();
-        $dateEnd->modify('-10 minute');
-        $dateRange = ['to' => $dateEnd, 'datetime' => true];
-
-        // Query the notifications table to see if there are any unprocessed ones that have been created more than 5 minutes ago
         $notifications = $this->_notificationFactory->create();
-        $notifications->addFieldToFilter('done', 0);
-        $notifications->addFieldToFilter('processing', 0);
-        $notifications->addFieldToFilter('created_at', $dateRange);
+        $notifications->unprocessedNotificationsFilter();
         return count($notifications);
     }
 
