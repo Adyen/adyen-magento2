@@ -90,16 +90,6 @@ class Json extends \Magento\Framework\App\Action\Action
 
         try {
             $notificationItems = json_decode(file_get_contents('php://input'), true);
-            $acceptedMessage = "[accepted]";
-            $cronCheckTest = $notificationItems['notificationItems'][0]['NotificationRequestItem']['pspReference'];
-
-            // Run the query for checking unprocessed notifications, do this only for test notifications coming from the Adyen Customer Area
-            if ($this->_isTestNotification($cronCheckTest)) {
-                $unprocessedNotifications = $this->_adyenHelper->getUnprocessedNotifications();
-                if ($unprocessedNotifications > 0) {
-                    $acceptedMessage .= "\nYou have " . $unprocessedNotifications . " unprocessed notifications.";
-                }
-            }
 
             // log the notification
             $this->_adyenLogger->addAdyenNotification(
@@ -117,6 +107,17 @@ class Json extends \Magento\Framework\App\Action\Action
                     if ($status != true) {
                         $this->_return401();
                         return;
+                    }
+                }
+
+                $acceptedMessage = "[accepted]";
+                $cronCheckTest = $notificationItems['notificationItems'][0]['NotificationRequestItem']['pspReference'];
+
+                // Run the query for checking unprocessed notifications, do this only for test notifications coming from the Adyen Customer Area
+                if ($this->_isTestNotification($cronCheckTest)) {
+                    $unprocessedNotifications = $this->_adyenHelper->getUnprocessedNotifications();
+                    if ($unprocessedNotifications > 0) {
+                        $acceptedMessage .= "\nYou have " . $unprocessedNotifications . " unprocessed notifications.";
                     }
                 }
 
