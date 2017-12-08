@@ -39,6 +39,8 @@ define(
     function (_, $, Component, placeOrderAction, $t, additionalValidators, customer, creditCardData, quote, ko, installments, adyenEncrypt) {
 
         'use strict';
+        var cvcLength = ko.observable(4);
+
         return Component.extend({
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
@@ -79,9 +81,11 @@ define(
 
                     // what card is this ??
                     var creditcardType = creditCardData.creditCard.type;
-
                     if(creditcardType) {
-
+                        cvcLength(4);
+                        if (creditcardType != "AE"){
+                            cvcLength(3);
+                        }
                         if (creditcardType in allInstallments) {
                             // get for the creditcard the installments
                             var installmentCreditcard = allInstallments[creditcardType];
@@ -124,6 +128,9 @@ define(
                         'number_of_installments': this.installment()
                     }
                 };
+            },
+            getCvcLength: function() {
+                return cvcLength();
             },
             isActive: function() {
                 return true;
