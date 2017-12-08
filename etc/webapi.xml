@@ -44,4 +44,17 @@
         </data>
     </route>
 
+    <route url="/V1/adyen/request-merchant-session" method="POST">
+        <service class="Adyen\Payment\Api\AdyenRequestMerchantSessionInterface" method="getMerchantSession"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+    </route>
+    <route url="/V1/adyen/request-merchant-session" method="GET">
+        <service class="Adyen\Payment\Api\AdyenRequestMerchantSessionInterface" method="getMerchantSession"/>
+        <resources>
+            <resource ref="self" />
+        </resources>
+    </route>
+
 </routes>

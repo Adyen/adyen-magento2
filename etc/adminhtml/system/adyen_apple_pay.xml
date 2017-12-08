@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<!--
+  ~                       ######
+  ~                       ######
+  ~ ############    ####( ######  #####. ######  ############   ############
+  ~ #############  #####( ######  #####. ######  #############  #############
+  ~        ######  #####( ######  #####. ######  #####  ######  #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####          #####  ######
+  ~ #############  #############  #############  #############  #####  ######
+  ~  ############   ############  #############   ############  #####  ######
+  ~                                      ######
+  ~                               #############
+  ~                               ############
+  ~
+  ~ Adyen Payment Module
+  ~
+  ~ Copyright (c) 2017 Adyen B.V.
+  ~ This file is open source and available under the MIT license.
+  ~ See the LICENSE file for more info.
+  ~
+  ~ Author: Adyen <magento@adyen.com>
+  -->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_apple_pay" translate="label" type="text" sortOrder="460" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Apple Pay integration]]></label>
+        <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
+        <fieldset_css>adyen-method-adyen-cc</fieldset_css>
+        <comment>Process Apple Pay transactions</comment>
+        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Enabled</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_apple_pay/active</config_path>
+        </field>
+        <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Title</label>
+            <config_path>payment/adyen_apple_pay/title</config_path>
+        </field>
+        <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Sort Order</label>
+            <frontend_class>validate-number</frontend_class>
+            <config_path>payment/adyen_apple_pay/sort_order</config_path>
+        </field>
+        <field id="merchant_identifier_test" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Test: Apple Merchant Identifier</label>
+            <tooltip>You can retrieve this from your Apple Account.</tooltip>
+            <config_path>payment/adyen_apple_pay/merchant_identifier_test</config_path>
+        </field>
+        <field id="merchant_identifier_live" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Live: Apple Merchant Identifier</label>
+            <tooltip>You can retrieve this from your Apple Account.</tooltip>
+            <config_path>payment/adyen_apple_pay/merchant_identifier_live</config_path>
+        </field>
+        <field id="full_path_location_pem_file_test" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Test: PEM File location</label>
+            <tooltip>You need to generate a pem file from the apple certificate. You need to upload this to your webserver and define the full path location here.</tooltip>
+            <config_path>payment/adyen_apple_pay/full_path_location_pem_file_test</config_path>
+        </field>
+        <field id="full_path_location_pem_file_live" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Test: PEM File location</label>
+            <tooltip>You need to generate a pem file from the apple certificate. You need to upload this to your webserver and define the full path location here.</tooltip>
+            <config_path>payment/adyen_apple_pay/full_path_location_pem_file_live</config_path>
+        </field>
+        <!--<field id="shipping_type" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">-->
+            <!--<label>Shipping Type</label>-->
+            <!--<tooltip>Title of the shipping method selection on the payments sheet.</tooltip>-->
+            <!--<source_model>Adyen\Payment\Model\Config\Source\ApplePayShippingType</source_model>-->
+            <!--<config_path>payment/adyen_apple_pay/shipping_type</config_path>-->
+        <!--</field>-->
+        <!--<field id="allow_guest_checkout" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">-->
+            <!--<label>Allow Guest Checkout</label>-->
+            <!--<tooltip>Show Apple Pay icon if user is not logged in. The user has the option to set his own contact details and shipping\billing address.</tooltip>-->
+            <!--<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
+            <!--<config_path>payment/adyen_apple_pay/allow_guest_checkout</config_path>-->
+        <!--</field>-->
+        <!--<field id="change_address" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">-->
+            <!--<label>Option to change address details in Apple Payment Sheet</label>-->
+            <!--<tooltip>Do you want to offer the customer that is logged in to change his address in the Apple Payment Sheet?</tooltip>-->
+            <!--<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
+            <!--<config_path>payment/adyen_apple_pay/change_address</config_path>-->
+        <!--</field>-->
+        <!--<field id="show_in_payment_step_checkout" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">-->
+            <!--<label>Show payment method as well in the Payment Information step of the checkout</label>-->
+            <!--<tooltip>If you set this to NO this will not be shown as a payment method option in the checkout steps. It will be visible on the product and shopping basket page.</tooltip>-->
+            <!--<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
+            <!--<config_path>payment/adyen_apple_pay/show_in_payment_step_checkout</config_path>-->
+        <!--</field>-->
+        <!--<field id="show_outside_of_checkout" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1">-->
+            <!--<label>Show Apple buy button on product and cart page</label>-->
+            <!--<tooltip>Set this to 'no' if you have advanced options for, for example, shipping that are not supported by the Apple Pay checkout forcing the user to first go through the Magento Checkout</tooltip>-->
+            <!--<depends><field id="show_in_payment_step_checkout">1</field></depends>-->
+            <!--<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
+            <!--<config_path>payment/adyen_apple_pay/show_outside_of_checkout</config_path>-->
+        <!--</field>-->
+    </group>
+</include>

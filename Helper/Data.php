@@ -68,7 +68,7 @@ class Data extends AbstractHelper
 
     /**
      * Data constructor.
-     * 
+     *
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Magento\Framework\Config\DataInterface $dataStorage
@@ -127,7 +127,8 @@ class Data extends AbstractHelper
      * @desc return recurring types for configuration setting
      * @return array
      */
-    public function getCaptureModes() {
+    public function getCaptureModes()
+    {
         return [
             'auto' => 'immediate',
             'manual' => 'manual'
@@ -138,7 +139,8 @@ class Data extends AbstractHelper
      * @desc return recurring types for configuration setting
      * @return array
      */
-    public function getPaymentRoutines() {
+    public function getPaymentRoutines()
+    {
         return [
             'single' => 'Single Page Payment Routine',
             'multi' => 'Multi-page Payment Routine'
@@ -154,7 +156,7 @@ class Data extends AbstractHelper
      */
     public function formatAmount($amount, $currency)
     {
-        switch($currency) {
+        switch ($currency) {
             case "JPY":
             case "IDR":
             case "KRW":
@@ -213,7 +215,7 @@ class Data extends AbstractHelper
     public function originalAmount($amount, $currency)
     {
         // check the format
-        switch($currency) {
+        switch ($currency) {
             case "JPY":
             case "IDR":
             case "KRW":
@@ -447,6 +449,56 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @desc Gives back adyen_apple_pay configuration values
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenApplePayConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_apple_pay', $storeId);
+    }
+
+    /**
+     * @desc Gives back adyen_apple_pay configuration values as flag
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenApplePayConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_apple_pay', $storeId, true);
+    }
+
+    /**
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenApplePayMerchantIdentifier($storeId = null)
+    {
+        $demoMode = $this->getAdyenAbstractConfigDataFlag('demo_mode');
+        if ($demoMode) {
+            return $this->getAdyenApplePayConfigData('merchant_identifier_test', $storeId);
+        } else {
+            return $this->getAdyenApplePayConfigData('merchant_identifier_live', $storeId);
+        }
+    }
+
+    /**
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenApplePayPemFileLocation($storeId = null)
+    {
+        $demoMode = $this->getAdyenAbstractConfigDataFlag('demo_mode');
+        if ($demoMode) {
+            return $this->getAdyenApplePayConfigData('full_path_location_pem_file_test', $storeId);
+        } else {
+            return $this->getAdyenApplePayConfigData('full_path_location_pem_file_live', $storeId);
+        }
+    }
+
+    /**
      * @desc Retrieve decrypted hmac key
      * @return string
      */
@@ -454,7 +506,7 @@ class Data extends AbstractHelper
     {
         switch ($this->isDemoMode()) {
             case true:
-                $secretWord =  $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_test')));
+                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_test')));
                 break;
             default:
                 $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_live')));
@@ -467,7 +519,7 @@ class Data extends AbstractHelper
     {
         switch ($this->isDemoMode()) {
             case true:
-                $secretWord =  $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_test')));
+                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_test')));
                 break;
             default:
                 $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_live')));
@@ -501,7 +553,7 @@ class Data extends AbstractHelper
     public function getWsUsername($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $wsUsername =  trim($this->getAdyenAbstractConfigData('ws_username_test', $storeId));
+            $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_test', $storeId));
         } else {
             $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_live', $storeId));
         }
@@ -515,9 +567,11 @@ class Data extends AbstractHelper
     public function getWsPassword($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_test', $storeId)));
+            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_test',
+                $storeId)));
         } else {
-            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_live', $storeId)));
+            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_live',
+                $storeId)));
         }
         return $wsPassword;
     }
@@ -567,7 +621,7 @@ class Data extends AbstractHelper
      */
     public function getCcTypesAltData()
     {
-        $adyenCcTypes =  $this->getAdyenCcTypes();
+        $adyenCcTypes = $this->getAdyenCcTypes();
         $types = [];
         foreach ($adyenCcTypes as $key => $data) {
             $types[$data['code_alt']] = $data;
@@ -596,7 +650,7 @@ class Data extends AbstractHelper
     {
         $path = 'payment/' . $paymentMethodCode . '/' . $field;
 
-        if(!$flag) {
+        if (!$flag) {
             return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
         } else {
             return $this->scopeConfig->isSetFlag($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
@@ -610,9 +664,44 @@ class Data extends AbstractHelper
     public function getSepaCountries()
     {
         $sepaCountriesAllowed = [
-            "AT", "BE", "BG", "CH", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GB", "GF", "GI", "GP", "GR", "HR",
-            "HU", "IE", "IS", "IT", "LI", "LT", "LU", "LV", "MC", "MQ", "MT", "NL", "NO", "PL", "PT", "RE", "RO", "SE",
-            "SI", "SK"
+            "AT",
+            "BE",
+            "BG",
+            "CH",
+            "CY",
+            "CZ",
+            "DE",
+            "DK",
+            "EE",
+            "ES",
+            "FI",
+            "FR",
+            "GB",
+            "GF",
+            "GI",
+            "GP",
+            "GR",
+            "HR",
+            "HU",
+            "IE",
+            "IS",
+            "IT",
+            "LI",
+            "LT",
+            "LU",
+            "LV",
+            "MC",
+            "MQ",
+            "MT",
+            "NL",
+            "NO",
+            "PL",
+            "PT",
+            "RE",
+            "RO",
+            "SE",
+            "SI",
+            "SK"
         ];
 
         $countryList = $this->_country->toOptionArray();
@@ -629,7 +718,7 @@ class Data extends AbstractHelper
 
     public function getModuleVersion()
     {
-        return (string) $this->_moduleList->getOne("Adyen_Payment")['setup_version'];
+        return (string)$this->_moduleList->getOne("Adyen_Payment")['setup_version'];
     }
 
     public function getBoletoTypes()
@@ -695,7 +784,8 @@ class Data extends AbstractHelper
                         $agreementData['variant'] = 'sepadirectdebit';
                     }
 
-                    $data = ['reference_id' => $billingAgreement->getReferenceId(),
+                    $data = [
+                        'reference_id' => $billingAgreement->getReferenceId(),
                         'agreement_label' => $billingAgreement->getAgreementLabel(),
                         'agreement_data' => $agreementData
                     ];
@@ -706,7 +796,7 @@ class Data extends AbstractHelper
                         $asset = $this->createAsset(
                             'Adyen_Payment::images/logos/' . $logoName . '.png'
                         );
-                        
+
                         $icon = null;
                         $placeholder = $this->_assetSource->findSource($asset);
                         if ($placeholder) {
@@ -763,10 +853,12 @@ class Data extends AbstractHelper
     {
         if (strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_') {
             return true;
-        } else if($paymentMethod == 'klarna' || $paymentMethod == 'ratepay') {
-            return true;
         } else {
-            return false;
+            if ($paymentMethod == 'klarna' || $paymentMethod == 'ratepay') {
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -790,7 +882,7 @@ class Data extends AbstractHelper
         }
         return false;
     }
-    
+
     /**
      * @return bool
      */
@@ -816,9 +908,32 @@ class Data extends AbstractHelper
         return $this->_assetRepo->createAsset($fileId, $params);
     }
 
-    public function getStoreLocale($storeId) {
+    public function getStoreLocale($storeId)
+    {
         $path = \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE;
         return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+    }
+
+    public function getApplePayShippingTypes()
+    {
+        return [
+            [
+                'value' => 'shipping',
+                'label' => __('Shipping Method')
+            ],
+            [
+                'value' => 'delivery',
+                'label' => __('Delivery Method')
+            ],
+            [
+                'value' => 'storePickup',
+                'label' => __('Store Pickup Method')
+            ],
+            [
+                'value' => 'servicePickup',
+                'label' => __('Service Pickup Method')
+            ]
+        ];
     }
 
 }
