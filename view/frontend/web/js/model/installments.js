@@ -17,13 +17,13 @@ define(
             setInstallments: function (installmentData) {
                 // remove everything from the current list
                 installments.removeAll();
-
+                console.log(installmentData);
                 // populate installments
                 var i;
-                for (i = 1; i <= installmentData; i++) {
+                for (i = 0; i < installmentData.length; i++) {
                     installments.push({
-                        key: i,
-                        value: i
+                        key: installmentData[i],
+                        value: installmentData[i]
                     });
                 }
             },

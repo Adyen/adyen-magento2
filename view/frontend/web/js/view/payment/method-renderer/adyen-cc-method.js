@@ -87,15 +87,19 @@ define(
                             var installmentCreditcard = allInstallments[creditcardType];
                             var grandTotal = quote.totals().grand_total;
 
-                            var numberOfInstallments = 0;
+                            // var numberOfInstallments = 0;
+                            var numberOfInstallments = [];
                             $.each(installmentCreditcard, function (amount, installment) {
-                                if(grandTotal <= amount) {
-                                    numberOfInstallments = installment;
+                                if(grandTotal >= amount) {
+                                    console.log(installment);
+                                    numberOfInstallments.push(installment);
+                                }
+                                else{
                                     return false;
                                 }
                             });
 
-                            if(numberOfInstallments > 0) {
+                            if(numberOfInstallments.length > 0) {
                                 installments.setInstallments(numberOfInstallments);
                             }
                         } else {
