@@ -26,26 +26,38 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
+use Magento\Setup\Exception;
 
 class ApplePayAuthorizationDataBuilder implements BuilderInterface
 {
     /**
      * @var \Adyen\Payment\Helper\Data
      */
-    private $adyenHelper;
+    private $_adyenHelper;
+
+    /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    private $_adyenLogger;
 
     /**
      * CaptureDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
-    {
-        $this->adyenHelper = $adyenHelper;
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+    ) {
+        $this->_adyenHelper = $adyenHelper;
+        $this->_adyenLogger = $adyenLogger;
     }
 
     public function build(array $buildSubject)
     {
+        $request = [];
+        $parsedToken = [];
+
         // TODO: Implement build() method.
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
@@ -54,15 +66,27 @@ class ApplePayAuthorizationDataBuilder implements BuilderInterface
 
         $token = $payment->getAdditionalInformation('token');
 
+        $this->_adyenLogger->addAdyenDebug("\ntoken is " . $token);
         // could be that token is json string need to parse it to array
 
         // get payment data
-        $paymentData = $token->paymentData;
+        if ($token) {
+            $parsedToken = json_decode($token);
+//            $token = json_encode($payment->token->paymentData);
+            $this->_adyenLogger->addAdyenDebug("\n\n Parsed token is " . print_r($parsedToken, true));
+            $paymentData = $parsedToken->token->paymentData;
+            $this->_adyenLogger->addAdyenDebug("\n\n payment data is: " . print_r($paymentData, true));
+            try {
+                $paymentData = base64_encode(json_encode($paymentData));
+                $request['additionalData']['payment.token'] = $paymentData;
+            } catch (\Exception $exception) {
+                $this->_adyenLogger->addAdyenDebug("exception thrown");
+                $this->_adyenLogger->addAdyenDebug("exception: " . $exception->getMessage());
+                $this->_adyenLogger->addAdyenDebug("exception done");
+            }
 
-
-        $request = ['additionalData']['payment.token'] = base64_encode($paymentData);
-
-
+            $this->_adyenLogger->addAdyenDebug("\n\n request data is: " . print_r($request, true));
+        }
         return $request;
     }
 

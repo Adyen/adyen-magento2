@@ -27,13 +27,15 @@ define(
         'jquery',
         'Magento_Checkout/js/model/quote',
         'Magento_Payment/js/view/payment/cc-form',
-        'Adyen_Payment/js/action/place-order',
+        'Magento_Checkout/js/action/place-order',
         'mage/translate',
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
+        'mage/url',
+        'Magento_Ui/js/model/messages'
     ],
-    function (_, $, quote, Component, placeOrderAction, $t, additionalValidators, urlBuilder, storage) {
+    function (_, $, quote, Component, placeOrderAction, $t, additionalValidators, urlBuilder, storage, url, Messages) {
         'use strict';
         var billingAddress = quote.billingAddress();
         return Component.extend({
@@ -77,6 +79,7 @@ define(
             placeApplePayOrder: function (data, event) {
                 event.preventDefault();
                 var self = this;
+
                 var request = {
                     countryCode: 'US',
                     currencyCode: 'EUR',
@@ -98,10 +101,11 @@ define(
                         'method': self.item.method,
                         'additional_data': {'token': JSON.stringify(event.payment)}
                     };
-                    var redirect = this.redirectAfterPlaceOrder;
-                    var promise = self.sendPayment(event.payment, data, redirect);
+                    debugger;;
+                    var promise = self.sendPayment(event.payment, data);
 
                     promise.then(function(success) {
+                        debugger;;
                         var status;
                         if(success)
                             status = ApplePaySession.STATUS_SUCCESS;
@@ -112,7 +116,10 @@ define(
 
                         if(success) {
                             // redirect to success page
-                            window.location="/checkout/onepage/success";
+                            // window.location="/checkout/onepage/success";
+                            debugger;;
+                            window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
+
                         }
                     }, function(reason) {
                         if(reason.message == "ERROR BILLING") {
@@ -179,19 +186,43 @@ define(
                     });
                 });
             },
-            sendPayment: function(payment, data, redirect) {
+            sendPayment: function(payment, data) {
                 return new Promise(function(resolve, reject) {
 
                     debugger;;
-
-                    var placeOrder = placeOrderAction(data, redirect);
-
-                    $.when(placeOrder).fail(function(response) {
-                        // self.isPlaceOrderActionAllowed(true);
-                        reject(Error(response));
-                    }).success(function(response) {
+                    $.when(
+                        placeOrderAction(data, new Messages())
+                    ).fail(
+                        function (response) {
+                            debugger;;
+                            self.isPlaceOrderActionAllowed(true);
+                                reject(Error(response));
+                        }
+                    ).done(
+                    function () {
+                        debugger;;
                         resolve(true);
-                    });
+                        }
+                    );
+
+
+                    //
+                    // debugger;;
+                    // var placeOrder = placeOrderAction(data, false);
+                    // debugger;;
+                    // $.when(placeOrder).fail(function(response) {
+                    //     // self.isPlaceOrderActionAllowed(true);
+                    //     reject(Error(response));
+                    // }).success(function(response) {
+                    //     debugger;;
+                    //     resolve(true);
+                    // }).done(function(response) {
+                    //     debugger;;
+                    //     resolve(true);
+                    // }).always(function(response) {
+                    //     debugger;;
+                    //     resolve(true);
+                    // });
                 });
             }
         });

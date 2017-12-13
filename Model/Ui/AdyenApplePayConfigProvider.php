@@ -85,10 +85,22 @@ class AdyenApplePayConfigProvider implements ConfigProviderInterface
         return [
             'payment' => [
                 self::CODE => [
-                    'isActive' => true
-                ],
-                'merchant_identifier' => $this->_adyenHelper->getAdyenApplePayMerchantIdentifier()
+                    'isActive' => true,
+                    'redirectUrl' => $this->_urlBuilder->getUrl(
+                        'checkout/onepage/success/', ['_secure' => $this->_getRequest()->isSecure()]),
+                    'merchant_identifier' => $this->_adyenHelper->getAdyenApplePayMerchantIdentifier()
+                ]
             ]
         ];
+    }
+
+    /**
+     * Retrieve request object
+     *
+     * @return \Magento\Framework\App\RequestInterface
+     */
+    protected function _getRequest()
+    {
+        return $this->_request;
     }
 }
