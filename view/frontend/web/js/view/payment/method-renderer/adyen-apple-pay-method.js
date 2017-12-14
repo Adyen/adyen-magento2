@@ -23,32 +23,24 @@
 
 define(
     [
-        'underscore',
         'jquery',
         'Magento_Checkout/js/model/quote',
-        'Magento_Payment/js/view/payment/cc-form',
+        'Magento_Checkout/js/view/payment/default',
         'Magento_Checkout/js/action/place-order',
-        'mage/translate',
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
         'mage/url',
         'Magento_Ui/js/model/messages'
     ],
-    function (_, $, quote, Component, placeOrderAction, $t, additionalValidators, urlBuilder, storage, url, Messages) {
+    function ($, quote, Component, placeOrderAction, additionalValidators, urlBuilder, storage, url, Messages) {
         'use strict';
-        var billingAddress = quote.billingAddress();
         return Component.extend({
             self: this,
             defaults: {
-                template: 'Adyen_Payment/payment/apple-pay-form',
-                country: billingAddress.countryId
+                template: 'Adyen_Payment/payment/apple-pay-form'
             },
-            initObservable: function () {
-                this._super()
-                    .observe([]);
-                return this;
-            },
+
             /**
              * @returns {Boolean}
              */
@@ -79,7 +71,9 @@ define(
             placeApplePayOrder: function (data, event) {
                 event.preventDefault();
                 var self = this;
-
+                if (!additionalValidators.validate()){
+                    return false;
+                }
                 var request = {
                     countryCode: 'US',
                     currencyCode: 'EUR',
@@ -101,11 +95,9 @@ define(
                         'method': self.item.method,
                         'additional_data': {'token': JSON.stringify(event.payment)}
                     };
-                    debugger;;
                     var promise = self.sendPayment(event.payment, data);
 
                     promise.then(function(success) {
-                        debugger;;
                         var status;
                         if(success)
                             status = ApplePaySession.STATUS_SUCCESS;
@@ -115,11 +107,7 @@ define(
                         session.completePayment(status);
 
                         if(success) {
-                            // redirect to success page
-                            // window.location="/checkout/onepage/success";
-                            debugger;;
                             window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
-
                         }
                     }, function(reason) {
                         if(reason.message == "ERROR BILLING") {
@@ -134,16 +122,6 @@ define(
                 }
 
                 session.begin();
-                // if (this.validate() && additionalValidators.validate()) {
-                //     this.isPlaceOrderActionAllowed(false);
-                //     placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder);
-                //
-                //     $.when(placeOrder).fail(function (response) {
-                //         self.isPlaceOrderActionAllowed(true);
-                //     });
-                //     return true;
-                // }
-                // return false;
             },
             getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
@@ -188,41 +166,17 @@ define(
             },
             sendPayment: function(payment, data) {
                 return new Promise(function(resolve, reject) {
-
-                    debugger;;
                     $.when(
                         placeOrderAction(data, new Messages())
                     ).fail(
                         function (response) {
-                            debugger;;
-                            self.isPlaceOrderActionAllowed(true);
                                 reject(Error(response));
                         }
                     ).done(
                     function () {
-                        debugger;;
                         resolve(true);
                         }
                     );
-
-
-                    //
-                    // debugger;;
-                    // var placeOrder = placeOrderAction(data, false);
-                    // debugger;;
-                    // $.when(placeOrder).fail(function(response) {
-                    //     // self.isPlaceOrderActionAllowed(true);
-                    //     reject(Error(response));
-                    // }).success(function(response) {
-                    //     debugger;;
-                    //     resolve(true);
-                    // }).done(function(response) {
-                    //     debugger;;
-                    //     resolve(true);
-                    // }).always(function(response) {
-                    //     debugger;;
-                    //     resolve(true);
-                    // });
                 });
             }
         });

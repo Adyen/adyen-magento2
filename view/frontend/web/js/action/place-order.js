@@ -59,12 +59,10 @@ define(
             }
 
             fullScreenLoader.startLoader();
-            debugger;;
             return storage.post(
                 serviceUrl, JSON.stringify(payload)
             ).done(
                 function (response) {
-                    debugger;;
                     if (redirectOnSuccess) {
                         window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
                     } else{
@@ -73,7 +71,6 @@ define(
                 }
             ).fail(
                 function (response) {
-                    debugger;;
                     errorProcessor.process(response);
                     fullScreenLoader.stopLoader();
                 }

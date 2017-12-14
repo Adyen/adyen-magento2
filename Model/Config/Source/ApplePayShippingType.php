@@ -22,13 +22,6 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-/**
- * Created by PhpStorm.
- * User: alessio
- * Date: 06/12/2017
- * Time: 17:02
- */
-
 namespace Adyen\Payment\Model\Config\Source;
 
 
@@ -40,7 +33,7 @@ class ApplePayShippingType implements \Magento\Framework\Option\ArrayInterface
     protected $_adyenHelper;
 
     /**
-     * BoletoType constructor.
+     * ApplePayShippingType constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
