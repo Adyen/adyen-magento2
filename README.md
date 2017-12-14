@@ -9,7 +9,7 @@ bin/magento setup:upgrade
 ```
 
 ## Manual ##
-<a href="https://docs.adyen.com/developers/magento#magento2integration" target="_blank">https://docs.adyen.com/developers/magento#magento2integration</a>
+[Magento 2 documentation](https://docs.adyen.com/developers/plug-ins-and-partners/magento/magento-2)
 
 ## Setup Cron ##
 Make sure that your magento cron is running every minute. We are using a cronjob to process the notifications. The cronjob will be executed every minute. It only executes the notifications that have been received at least 2 minutes ago. We have built in this 2 minutes so we are sure Magento has created the order and all save after events are executed. A handy tool to get insight into your cronjobs is AOE scheduler. You can download this tool through Magento Connect or GitHub
