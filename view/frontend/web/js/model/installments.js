@@ -18,6 +18,10 @@ define(
                 // remove everything from the current list
                 installments.removeAll();
                 console.log(installmentData);
+                installments.push({
+                    key: "Do not use installments",
+                    value: 1
+                } );
                 // populate installments
                 var i;
                 for (i = 0; i < installmentData.length; i++) {
