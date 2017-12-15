@@ -124,7 +124,7 @@
     background-size: 100% 60%;
     background-repeat: no-repeat;
     background-position: 0 50%;
-    margin-left: calc(2px * var(--apple-pay-scale));
+    margin: 0;
     border: none;
     min-width: 0px; /* override magento min-width */
     min-height: 42px; /* override magento min-height */
