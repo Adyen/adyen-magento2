@@ -86,7 +86,8 @@ class Data extends AbstractHelper
         \Magento\Framework\Module\ModuleListInterface $moduleList,
         \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
         \Magento\Framework\View\Asset\Repository $assetRepo,
-        \Magento\Framework\View\Asset\Source $assetSource
+        \Magento\Framework\View\Asset\Source $assetSource,
+        \Adyen\Payment\Model\Resource\Notification\CollectionFactory $notificationFactory
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -96,6 +97,7 @@ class Data extends AbstractHelper
         $this->_billingAgreementCollectionFactory = $billingAgreementCollectionFactory;
         $this->_assetRepo = $assetRepo;
         $this->_assetSource = $assetSource;
+        $this->_notificationFactory = $notificationFactory;
     }
 
     /**
@@ -934,6 +936,13 @@ class Data extends AbstractHelper
                 'label' => __('Service Pickup Method')
             ]
         ];
+    }
+
+    public function getUnprocessedNotifications()
+    {
+        $notifications = $this->_notificationFactory->create();
+        $notifications->unprocessedNotificationsFilter();
+        return count($notifications);
     }
 
 }

@@ -62,6 +62,10 @@ class Installments extends \Magento\Framework\App\Config\Value
     public function beforeSave()
     {
         $value = $this->getValue();
+        $unserialized = @unserialize($value);
+        if ($unserialized !== false) {
+            return $this;
+        }
 
         $result = [];
         foreach ($value as $data) {
