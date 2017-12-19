@@ -178,13 +178,18 @@
                                class="input-text cvv"
                                data-encrypted-name="cvc"
                                value=""
-                               data-bind="attr: {id: getCode() + '_cc_cid',
+                               data-bind="attr: {
+                                id: getCode() + '_cc_cid',
                                 title: $t('Card Verification Number'),
                                 'data-container': getCode() + '-cc-cvv',
-                                'data-validate': JSON.stringify({'required-number':true, 'validate-card-cvv':'#' + getCode() + '_cc_type'})},
+                                'data-validate': JSON.stringify({'required-number':true, 'validate-card-cvv':'#' + getCode() + '_cc_type'}),
+                                maxLength : getCvcLength(),
+                                oninput:'javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);'
+                                },
                                 enable: isActive($parents),
-                                value: creditCardVerificationNumber"
-                               data-validate="{required:true}"/>
+                                value: creditCardVerificationNumber",
+                               data-validate="{required:true}"
+                               />
                         <div class="field-tooltip toggle">
                         <span class="field-tooltip-action action-cvv"
                               tabindex="0"
