@@ -46,6 +46,7 @@ define(
                 encryptedData: '',
                 setStoreCc: true,
                 installment: ''
+                // defaultNoInstallments: $.mage.__('No Installments')
             },
             initObservable: function () {
                 this._super()
@@ -67,57 +68,67 @@ define(
                 return this;
             },
             getInstallments: installments.getInstallments(),
-            initialize: function() {
+            initialize: function () {
                 var self = this;
                 this._super();
-
+                installments.setInstallments(0);
                 //Set credit card number to credit card data object
-                this.creditCardNumber.subscribe(function(value) {
+                this.creditCardNumber.subscribe(function (value) {
 
                     // installments enabled ??
                     var allInstallments = self.getAllInstallments();
 
                     // what card is this ??
-                    var creditcardType = creditCardData.creditCard.type;
+                    if (creditCardData.creditCard) {
+                        var creditcardType = creditCardData.creditCard.type;
+                    }
 
-                    if(creditcardType) {
-
+                    if (creditcardType) {
+                        var noInstallments = $.mage.__('No Installments');
                         if (creditcardType in allInstallments) {
+
                             // get for the creditcard the installments
                             var installmentCreditcard = allInstallments[creditcardType];
                             var grandTotal = quote.totals().grand_total;
 
                             // var numberOfInstallments = 0;
                             var numberOfInstallments = [];
+                            var dividedString = "";
+                            var dividedAmount = 0;
                             $.each(installmentCreditcard, function (amount, installment) {
-                                if(grandTotal >= amount) {
-                                    console.log(installment);
-                                    numberOfInstallments.push(installment);
+                                if (grandTotal >= amount) {
+                                    dividedAmount = (grandTotal / installment).toFixed(quote.getPriceFormat().precision);
+                                    dividedString = installment + " x " + dividedAmount + " " + quote.totals().quote_currency_code;
+                                    numberOfInstallments.push({
+                                        key: [dividedString],
+                                        value: installment
+                                    });
                                 }
-                                else{
+                                else {
                                     return false;
                                 }
                             });
-
-                            if(numberOfInstallments.length > 0) {
-                                installments.setInstallments(numberOfInstallments);
-                            }
-                        } else {
+                        }
+                        if (numberOfInstallments) {
+                            numberOfInstallments.push({key: noInstallments, value: ""});
+                            installments.setInstallments(numberOfInstallments);
+                        }
+                        else {
                             installments.setInstallments(0);
                         }
                     }
                 });
             },
-            setPlaceOrderHandler: function(handler) {
+            setPlaceOrderHandler: function (handler) {
                 this.placeOrderHandler = handler;
             },
-            setValidateHandler: function(handler) {
+            setValidateHandler: function (handler) {
                 this.validateHandler = handler;
             },
-            getCode: function() {
+            getCode: function () {
                 return 'adyen_cc';
             },
-            getData: function() {
+            getData: function () {
                 return {
                     'method': this.item.method,
                     additional_data: {
@@ -129,13 +140,13 @@ define(
                     }
                 };
             },
-            isActive: function() {
+            isActive: function () {
                 return true;
             },
             /**
              * @override
              */
-            placeOrder: function(data, event) {
+            placeOrder: function (data, event) {
                 var self = this,
                     placeOrder;
 
@@ -150,12 +161,12 @@ define(
                 var generationtime = self.getGenerationTime();
 
                 var cardData = {
-                    number : self.creditCardNumber(),
-                    cvc : self.creditCardVerificationNumber(),
-                    holderName : self.creditCardOwner(),
-                    expiryMonth : self.creditCardExpMonth(),
-                    expiryYear : self.creditCardExpYear(),
-                    generationtime : generationtime
+                    number: self.creditCardNumber(),
+                    cvc: self.creditCardVerificationNumber(),
+                    holderName: self.creditCardOwner(),
+                    expiryMonth: self.creditCardExpMonth(),
+                    expiryYear: self.creditCardExpYear(),
+                    generationtime: generationtime
                 };
 
                 var data = cseInstance.encrypt(cardData);
@@ -165,58 +176,58 @@ define(
                     this.isPlaceOrderActionAllowed(false);
                     placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder);
 
-                    $.when(placeOrder).fail(function(response) {
+                    $.when(placeOrder).fail(function (response) {
                         self.isPlaceOrderActionAllowed(true);
                     });
                     return true;
                 }
                 return false;
             },
-            getControllerName: function() {
+            getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
             },
-            getPlaceOrderUrl: function() {
+            getPlaceOrderUrl: function () {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
             },
-            context: function() {
+            context: function () {
                 return this;
             },
-            isCseEnabled: function() {
+            isCseEnabled: function () {
                 return window.checkoutConfig.payment.adyenCc.cseEnabled;
             },
-            getCSEKey: function() {
+            getCSEKey: function () {
                 return window.checkoutConfig.payment.adyenCc.cseKey;
             },
-            getGenerationTime: function() {
+            getGenerationTime: function () {
                 return window.checkoutConfig.payment.adyenCc.generationTime;
             },
-            canCreateBillingAgreement: function() {
-                if(customer.isLoggedIn()) {
+            canCreateBillingAgreement: function () {
+                if (customer.isLoggedIn()) {
                     return window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
                 }
                 return false;
             },
-            isShowLegend: function() {
+            isShowLegend: function () {
                 return true;
             },
             validate: function () {
                 var form = 'form[data-role=adyen-cc-form]';
 
-                var validate =  $(form).validation() && $(form).validation('isValid');
-                // add extra validation because jqeury validation will not work on non name attributes
+                var validate = $(form).validation() && $(form).validation('isValid');
+                // add extra validation because jquery validation will not work on non name attributes
                 var ccNumber = Boolean($(form + ' #creditCardNumber').valid());
                 var owner = Boolean($(form + ' #creditCardHolderName').valid());
                 var expiration = Boolean($(form + ' #adyen_cc_expiration').valid());
                 var expiration_yr = Boolean($(form + ' #adyen_cc_expiration_yr').valid());
                 var cid = Boolean($(form + ' #adyen_cc_cc_cid').valid());
 
-                if(!validate || !ccNumber || !owner || !expiration || !expiration_yr || !cid) {
+                if (!validate || !ccNumber || !owner || !expiration || !expiration_yr || !cid) {
                     return false;
                 }
 
                 return true;
             },
-            showLogo: function() {
+            showLogo: function () {
                 return window.checkoutConfig.payment.adyen.showLogo;
             },
             getIcons: function (type) {
@@ -224,10 +235,10 @@ define(
                     ? window.checkoutConfig.payment.adyenCc.icons[type]
                     : false
             },
-            hasInstallments: function() {
+            hasInstallments: function () {
                 return window.checkoutConfig.payment.adyenCc.hasInstallments;
             },
-            getAllInstallments: function() {
+            getAllInstallments: function () {
                 return window.checkoutConfig.payment.adyenCc.installments;
             }
         });

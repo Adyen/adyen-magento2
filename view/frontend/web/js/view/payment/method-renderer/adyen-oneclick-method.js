@@ -145,7 +145,6 @@ define(
                 var self = this;
                 // convert to list so you can iterate
                 var paymentList = _.map(window.checkoutConfig.payment.adyenOneclick.billingAgreements, function(value) {
-
                     var creditCardExpMonth, creditCardExpYear = false;
                     if(value.agreement_data.card) {
                         creditCardExpMonth = value.agreement_data.card.expiryMonth;
@@ -154,13 +153,20 @@ define(
 
                     // pre-define installments if they are set
                     var i, installments = [];
-                    if(value.number_of_installments > 0) {
-                        for (i = 1; i <= value.number_of_installments; i++) {
+                    var grandTotal = quote.totals().grand_total;
+                    var dividedString = "";
+                    var dividedAmount = 0;
+                    if(value.number_of_installments) {
+                        var noInstallments = $.mage.__('No Installments');
+                        for (i = 0; i < value.number_of_installments.length; i++) {
+                            dividedAmount = (grandTotal/value.number_of_installments[i]).toFixed(quote.getPriceFormat().precision);
+                            dividedString = value.number_of_installments[i] + " x " + dividedAmount + " " + quote.totals().quote_currency_code;
                             installments.push({
-                                key: i,
-                                value: i
+                                key: [dividedString],
+                                value: value.number_of_installments[i]
                             });
                         }
+                        installments.push({ key:noInstallments , value: ""});
                     }
 
                     return {

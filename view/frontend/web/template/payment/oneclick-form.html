@@ -196,7 +196,7 @@
 
                 <!--/ko-->
 
-                <!-- ko if: number_of_installments > 0 -->
+                <!-- ko if: number_of_installments.length > 0 -->
 
                 <div class="field required" data-bind="attr: {id: getCode() + '_installments_div'}, visible: getInstallments().length > 0">
                     <label data-bind="attr: {for: getCode() + '_installments'}" class="label">
@@ -210,7 +210,6 @@
                                         options: getInstallments,
                                         optionsValue: 'value',
                                         optionsText: 'key',
-                                        optionsCaption: $t('Installments'),
                                         value: installment"
                                  data-validate="{required:true}">
                         </select>

@@ -210,7 +210,7 @@
                     <div class="control">
                         <select  class="select"
                                  name="payment[number_of_installments]"
-                                 data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:true})},
+                                 data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
                                         enable: isActive($parents),
                                         options: getInstallments,
                                         optionsValue: 'value',

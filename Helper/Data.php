@@ -774,13 +774,13 @@ class Data extends AbstractHelper
                     }
 
                     if ($installments) {
-                        $numberOfInstallments = null;
+                        $numberOfInstallments = [];
 
                         foreach ($installments as $ccTypeInstallment => $installment) {
                             if ($ccTypeInstallment == $ccType) {
                                 foreach ($installment as $amount => $installments) {
-                                    if ($grandTotal <= $amount) {
-                                        $numberOfInstallments = $installments;
+                                    if ($grandTotal >= $amount) {
+                                        array_push($numberOfInstallments, $installments);
                                     }
                                 }
                             }
@@ -870,7 +870,7 @@ class Data extends AbstractHelper
     {
         $notifications = $this->_notificationFactory->create();
         $notifications->unprocessedNotificationsFilter();
-        return count($notifications);
+        return $notifications->getSize();;
     }
 
 }
