@@ -58,22 +58,22 @@ define(
             },
             placeOrderHandler: null,
             validateHandler: null,
-            setPlaceOrderHandler: function(handler) {
+            setPlaceOrderHandler: function (handler) {
                 this.placeOrderHandler = handler;
             },
-            setValidateHandler: function(handler) {
+            setValidateHandler: function (handler) {
                 this.validateHandler = handler;
             },
-            getCode: function() {
+            getCode: function () {
                 return 'adyen_oneclick';
             },
-            isActive: function() {
+            isActive: function () {
                 return true;
             },
             /**
              * @override
              */
-            placeOrder: function(data, event) {
+            placeOrder: function (data, event) {
                 var self = this,
                     placeOrder;
 
@@ -81,7 +81,7 @@ define(
                     event.preventDefault();
                 }
 
-                var  data = {
+                var data = {
                     "method": self.method,
                     "additional_data": {
                         variant: self.agreement_data.variant,
@@ -95,15 +95,15 @@ define(
                     var generationtime = self.getGenerationTime();
 
                     var cardData = {
-                        cvc : self.creditCardVerificationNumber,
-                        expiryMonth : self.creditCardExpMonth(),
-                        expiryYear : self.creditCardExpYear(),
-                        generationtime : generationtime
+                        cvc: self.creditCardVerificationNumber,
+                        expiryMonth: self.creditCardExpMonth(),
+                        expiryYear: self.creditCardExpYear(),
+                        generationtime: generationtime
                     };
 
-                    if(updatedExpiryDate || self.hasVerification()){
+                    if (updatedExpiryDate || self.hasVerification()) {
 
-                        var options = { enableValidations: false};
+                        var options = {enableValidations: false};
                         var cse_key = this.getCSEKey();
                         var cseInstance = adyen.encrypt.createEncryption(cse_key, options);
                         var encryptedData = cseInstance.encrypt(cardData);
@@ -119,36 +119,36 @@ define(
                     //this.isPlaceOrderActionAllowed(false);
                     placeOrder = placeOrderAction(data, this.redirectAfterPlaceOrder);
 
-                    $.when(placeOrder).fail(function(response) {
+                    $.when(placeOrder).fail(function (response) {
                         //self.isPlaceOrderActionAllowed(true);
                     });
                     return true;
                 }
                 return false;
             },
-            getControllerName: function() {
+            getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
             },
-            context: function() {
+            context: function () {
                 return this;
             },
-            isCseEnabled: function() {
+            isCseEnabled: function () {
                 return window.checkoutConfig.payment.adyenCc.cseEnabled;
             },
-            canCreateBillingAgreement: function() {
+            canCreateBillingAgreement: function () {
                 return window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
             },
-            isShowLegend: function() {
+            isShowLegend: function () {
                 return true;
             },
-            getAdyenBillingAgreements: function() {
+            getAdyenBillingAgreements: function () {
                 var self = this;
                 // convert to list so you can iterate
-                var paymentList = _.map(window.checkoutConfig.payment.adyenOneclick.billingAgreements, function(value) {
+                var paymentList = _.map(window.checkoutConfig.payment.adyenOneclick.billingAgreements, function (value) {
                     var creditCardExpMonth, creditCardExpYear = false;
-                    if(value.agreement_data.card) {
+                    if (value.agreement_data.card) {
                         creditCardExpMonth = value.agreement_data.card.expiryMonth;
-                        creditCardExpYear =  value.agreement_data.card.expiryYear;
+                        creditCardExpYear = value.agreement_data.card.expiryYear;
                     }
 
                     // pre-define installments if they are set
@@ -156,17 +156,17 @@ define(
                     var grandTotal = quote.totals().grand_total;
                     var dividedString = "";
                     var dividedAmount = 0;
-                    if(value.number_of_installments) {
+                    if (value.number_of_installments) {
                         var noInstallments = $.mage.__('No Installments');
                         for (i = 0; i < value.number_of_installments.length; i++) {
-                            dividedAmount = (grandTotal/value.number_of_installments[i]).toFixed(quote.getPriceFormat().precision);
+                            dividedAmount = (grandTotal / value.number_of_installments[i]).toFixed(quote.getPriceFormat().precision);
                             dividedString = value.number_of_installments[i] + " x " + dividedAmount + " " + quote.totals().quote_currency_code;
                             installments.push({
                                 key: [dividedString],
                                 value: value.number_of_installments[i]
                             });
                         }
-                        installments.push({ key:noInstallments , value: ""});
+                        installments.push({key: noInstallments, value: ""});
                     }
 
                     return {
@@ -179,19 +179,19 @@ define(
                         'number_of_installments': value.number_of_installments,
                         getInstallments: ko.observableArray(installments),
                         'method': self.item.method,
-                        getCode: function() {
+                        getCode: function () {
                             return self.item.method;
                         },
                         creditCardVerificationNumber: '',
                         creditCardExpMonth: ko.observable(creditCardExpMonth),
                         creditCardExpYear: ko.observable(creditCardExpYear),
-                        getCSEKey: function() {
+                        getCSEKey: function () {
                             return window.checkoutConfig.payment.adyenCc.cseKey;
                         },
-                        getGenerationTime: function() {
+                        getGenerationTime: function () {
                             return window.checkoutConfig.payment.adyenCc.generationTime;
                         },
-                        hasVerification: function() {
+                        hasVerification: function () {
                             return window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction;
                         },
                         validate: function () {
@@ -202,17 +202,17 @@ define(
 
                             var form = 'form[data-role=' + codeValue + ']';
 
-                            var validate =  $(form).validation() && $(form).validation('isValid');
+                            var validate = $(form).validation() && $(form).validation('isValid');
 
                             // if oneclick or recurring is a card do validation on expiration date
-                            if(this.agreement_data.card) {
+                            if (this.agreement_data.card) {
                                 // add extra validation because jquery validation will not work on non name attributes
                                 var expiration = Boolean($(form + ' #' + codeValue + '_expiration').valid());
                                 var expiration_yr = Boolean($(form + ' #' + codeValue + '_expiration_yr').valid());
 
                                 // only check if recurring type is set to oneclick
                                 var cid = true;
-                                if(this.hasVerification()) {
+                                if (this.hasVerification()) {
                                     var cid = Boolean($(form + ' #' + codeValue + '_cc_cid').valid());
                                 }
                             } else {
@@ -220,14 +220,14 @@ define(
                                 var expiration_yr = true;
                                 var cid = true;
                             }
-                            
-                            if(!validate || !expiration || !expiration_yr || !cid) {
+
+                            if (!validate || !expiration || !expiration_yr || !cid) {
                                 return false;
                             }
 
                             return true;
                         },
-                        selectExpiry: function() {
+                        selectExpiry: function () {
                             updatedExpiryDate = true;
                             var self = this;
                             self.expiry(true);
@@ -237,13 +237,13 @@ define(
                 });
                 return paymentList;
             },
-            selectBillingAgreement: function() {
+            selectBillingAgreement: function () {
                 var self = this;
                 self.expiry(false);
                 updatedExpiryDate = false;
 
                 // set payment method data
-                var  data = {
+                var data = {
                     "method": self.method,
                     "po_number": null,
                     "additional_data": {
@@ -264,16 +264,16 @@ define(
             },
             isBillingAgreementChecked: ko.computed(function () {
 
-                if(!quote.paymentMethod()) {
+                if (!quote.paymentMethod()) {
                     return null;
                 }
 
-                if(quote.paymentMethod().method == paymentMethod()) {
+                if (quote.paymentMethod().method == paymentMethod()) {
                     return recurringDetailReference();
                 }
                 return null;
             }),
-            getPlaceOrderUrl: function() {
+            getPlaceOrderUrl: function () {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
             }
         });

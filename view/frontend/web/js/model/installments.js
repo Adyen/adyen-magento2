@@ -8,7 +8,7 @@ define(
     ],
     function (ko) {
         'use strict';
-        var installments = ko.observableArray(['key','value']);
+        var installments = ko.observableArray(['key', 'value']);
         return {
             /**
              * Populate the list of installments
@@ -21,10 +21,10 @@ define(
                 for (i = 0; i < installmentData.length; i++) {
                     installments.push(
                         {
-                        key: installmentData[i].key,
-                        value: installmentData[i].value
+                            key: installmentData[i].key,
+                            value: installmentData[i].value
 
-                    }
+                        }
                     );
                 }
             },

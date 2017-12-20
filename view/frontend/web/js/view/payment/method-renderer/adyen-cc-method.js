@@ -46,7 +46,6 @@ define(
                 encryptedData: '',
                 setStoreCc: true,
                 installment: ''
-                // defaultNoInstallments: $.mage.__('No Installments')
             },
             initObservable: function () {
                 this._super()
@@ -91,10 +90,9 @@ define(
                             var installmentCreditcard = allInstallments[creditcardType];
                             var grandTotal = quote.totals().grand_total;
 
-                            // var numberOfInstallments = 0;
                             var numberOfInstallments = [];
-                            var dividedString = "";
                             var dividedAmount = 0;
+                            var dividedString = "";
                             $.each(installmentCreditcard, function (amount, installment) {
                                 if (grandTotal >= amount) {
                                     dividedAmount = (grandTotal / installment).toFixed(quote.getPriceFormat().precision);
