@@ -82,7 +82,6 @@ define(
                     // what card is this ??
                     if (creditCardData.creditCard) {
                         var creditcardType = creditCardData.creditCard.type;
-                        var noInstallments = $.mage.__('No Installments');
                         cvcLength(4);
                         if (creditcardType != "AE"){
                             cvcLength(3);
@@ -111,7 +110,6 @@ define(
                             });
                         }
                         if (numberOfInstallments) {
-                            numberOfInstallments.push({key: noInstallments, value: ""});
                             installments.setInstallments(numberOfInstallments);
                         }
                         else {

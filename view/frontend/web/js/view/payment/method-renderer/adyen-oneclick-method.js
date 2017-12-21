@@ -157,7 +157,6 @@ define(
                     var dividedString = "";
                     var dividedAmount = 0;
                     if (value.number_of_installments) {
-                        var noInstallments = $.mage.__('No Installments');
                         for (i = 0; i < value.number_of_installments.length; i++) {
                             dividedAmount = (grandTotal / value.number_of_installments[i]).toFixed(quote.getPriceFormat().precision);
                             dividedString = value.number_of_installments[i] + " x " + dividedAmount + " " + quote.totals().quote_currency_code;
@@ -166,7 +165,6 @@ define(
                                 value: value.number_of_installments[i]
                             });
                         }
-                        installments.push({key: noInstallments, value: ""});
                     }
 
                     return {

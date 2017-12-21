@@ -205,11 +205,12 @@
                     <div class="control">
                         <select  class="select"
                                  name="payment[number_of_installments]"
-                                 data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:true})},
+                                 data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
                                         enable: $parent.isActive($parents),
                                         options: getInstallments,
                                         optionsValue: 'value',
                                         optionsText: 'key',
+                                        optionsCaption: $t('Do not use Installments'),
                                         value: installment"
                                  data-validate="{required:true}">
                         </select>
