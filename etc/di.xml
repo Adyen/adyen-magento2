@@ -579,6 +579,7 @@
         <arguments>
             <argument name="validators" xsi:type="array">
                 <item name="country" xsi:type="string">AdyenCcCountryValidator</item>
+                <item name="global" xsi:type="string">Adyen\Payment\Gateway\Validator\InstallmentValidator</item>
             </argument>
         </arguments>
     </virtualType>
