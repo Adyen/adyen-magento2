@@ -114,31 +114,7 @@ class GeneralResponseValidator extends AbstractValidator
                     }
                     break;
                 case "Refused":
-                    if ($response['refusalReason']) {
-                        $refusalReason = $response['refusalReason'];
-                        switch($refusalReason) {
-                            case "Transaction Not Permitted":
-                                $errorMsg = __('The transaction is not permitted.');
-                                break;
-                            case "CVC Declined":
-                                $errorMsg = __('Declined due to the Card Security Code(CVC) being incorrect. Please check your CVC code!');
-                                break;
-                            case "Restricted Card":
-                                $errorMsg = __('The card is restricted.');
-                                break;
-                            case "803 PaymentDetail not found":
-                                $errorMsg = __('The payment is REFUSED because the saved card is removed. Please try an other payment method.');
-                                break;
-                            case "Expiry month not set":
-                                $errorMsg = __('The expiry month is not set. Please check your expiry month!');
-                                break;
-                            default:
-                                $errorMsg = __('The payment is REFUSED.');
-                                break;
-                        }
-                    } else {
-                        $errorMsg = __('The payment is REFUSED.');
-                    }
+                    $errorMsg = __('The payment is REFUSED.');
                     // this will result the specific error
                     throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
                     break;
