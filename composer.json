@@ -7,8 +7,18 @@
     "OSL-3.0",
     "AFL-3.0"
   ],
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://repo.magento.com/"
+    }
+  ],
   "require": {
-    "adyen/php-api-library": "*"
+    "adyen/php-api-library": "*",
+    "magento/framework": ">=100.1.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~5"
   },
   "autoload": {
     "files": [
@@ -16,6 +26,11 @@
     ],
     "psr-4": {
       "Adyen\\Payment\\": ""
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Adyen\\Payment\\Tests\\": "tests/"
     }
   }
 }
