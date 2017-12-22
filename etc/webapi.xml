@@ -30,14 +30,14 @@
     <route url="/V1/guest-carts/:cartId/retrieve-adyen-payment-methods" method="POST">
         <service class="Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface" method="getPaymentMethods"/>
         <resources>
-            <resource ref="anonymous" />
+            <resource ref="anonymous"/>
         </resources>
     </route>
 
     <route url="/V1/carts/mine/retrieve-adyen-payment-methods" method="POST">
         <service class="Adyen\Payment\Api\AdyenPaymentMethodManagementInterface" method="getPaymentMethods"/>
         <resources>
-            <resource ref="self" />
+            <resource ref="self"/>
         </resources>
         <data>
             <parameter name="cartId" force="true">%cart_id%</parameter>
@@ -47,14 +47,7 @@
     <route url="/V1/adyen/request-merchant-session" method="POST">
         <service class="Adyen\Payment\Api\AdyenRequestMerchantSessionInterface" method="getMerchantSession"/>
         <resources>
-            <resource ref="self" />
+            <resource ref="self"/>
         </resources>
     </route>
-    <route url="/V1/adyen/request-merchant-session" method="GET">
-        <service class="Adyen\Payment\Api\AdyenRequestMerchantSessionInterface" method="getMerchantSession"/>
-        <resources>
-            <resource ref="self" />
-        </resources>
-    </route>
-
 </routes>

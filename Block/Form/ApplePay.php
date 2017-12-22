@@ -27,11 +27,6 @@ namespace Adyen\Payment\Block\Form;
 class ApplePay extends \Magento\Payment\Block\Form
 {
     /**
-     * @var string
-     */
-    protected $_template = 'Adyen_Payment::form/apple_pay.phtml';
-
-    /**
      * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;
@@ -47,7 +42,8 @@ class ApplePay extends \Magento\Payment\Block\Form
         \Magento\Framework\View\Element\Template\Context $context,
         \Adyen\Payment\Helper\Data $adyenHelper,
         array $data = []
-    ) {
+    )
+    {
         parent::__construct($context, $data);
         $this->_adyenHelper = $adyenHelper;
     }

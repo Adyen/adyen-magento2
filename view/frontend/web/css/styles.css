@@ -84,6 +84,7 @@
     min-height: 32px;
     max-height: 64px;
     margin-bottom: 10px;
+    cursor: pointer;
 }
 .apple-pay-button-black-with-text {
     background-color: black;

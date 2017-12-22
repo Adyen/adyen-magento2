@@ -48,7 +48,8 @@ class ApplePayAuthorizationDataBuilder implements BuilderInterface
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-    ) {
+    )
+    {
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
     }
@@ -56,36 +57,24 @@ class ApplePayAuthorizationDataBuilder implements BuilderInterface
     public function build(array $buildSubject)
     {
         $request = [];
-        $parsedToken = [];
-
-        // TODO: Implement build() method.
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        $order = $paymentDataObject->getOrder();
-        $storeId = $order->getStoreId();
-
         $token = $payment->getAdditionalInformation('token');
-
-        $this->_adyenLogger->addAdyenDebug("\ntoken is " . $token);
-        // could be that token is json string need to parse it to array
 
         // get payment data
         if ($token) {
             $parsedToken = json_decode($token);
-            $this->_adyenLogger->addAdyenDebug("\n\n Parsed token is " . print_r($parsedToken, true));
             $paymentData = $parsedToken->token->paymentData;
-            $this->_adyenLogger->addAdyenDebug("\n\n payment data is: " . print_r($paymentData, true));
             try {
                 $paymentData = base64_encode(json_encode($paymentData));
                 $request['additionalData']['payment.token'] = $paymentData;
             } catch (\Exception $exception) {
-                $this->_adyenLogger->addAdyenDebug("exception thrown");
                 $this->_adyenLogger->addAdyenDebug("exception: " . $exception->getMessage());
-                $this->_adyenLogger->addAdyenDebug("exception done");
             }
-
-            $this->_adyenLogger->addAdyenDebug("\n\n request data is: " . print_r($request, true));
+        } else {
+            $this->_adyenLogger->addAdyenDebug("PaymentToken is empty");
         }
+
         return $request;
     }
 

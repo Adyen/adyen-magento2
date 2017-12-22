@@ -34,6 +34,11 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
     protected $_adyenHelper;
 
     /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    protected $_adyenLogger;
+
+    /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $_storeManager;
@@ -44,14 +49,19 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->_adyenHelper = $adyenHelper;
+        $this->_adyenLogger = $adyenLogger;
         $this->_storeManager = $storeManager;
     }
 
+
     /**
-     * {@inheritDoc}
+     * Get the merchant Session from Apple to start Apple Pay transaction
+     *
+     * @return mixed
      */
     public function getMerchantSession()
     {
@@ -62,8 +72,7 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
         $ch = curl_init();
 
         $merchantIdentifier = $this->_adyenHelper->getAdyenApplePayMerchantIdentifier();
-
-        $domainName = $_SERVER['SERVER_NAME'];
+        $domainName = parse_url($this->_storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))['host'];
         $displayName = $this->_storeManager->getStore()->getName();
 
         $data = '{
@@ -71,6 +80,8 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
             "domainName":"' . $domainName . '",
             "displayName":"' . $displayName . '"
         }';
+
+        $this->_adyenLogger->addAdyenDebug("JSON Requesst is: " . print_r($data,true));
 
         curl_setopt($ch, CURLOPT_URL, $validationUrl);
 
@@ -88,9 +99,22 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
         );
 
         $result = curl_exec($ch);
+        $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        // log the raw response
+        $this->_adyenLogger->addAdyenDebug("JSON Response is: " . $result);
+
+        // result not 200 throw error
+        if ($httpStatus != 200 && $result) {
+            $this->_adyenLogger->addAdyenDebug("Error Apple, API HTTP Status is: " . $httpStatus . " result is:" . $result);
+        } elseif(!$result) {
+            $errno = curl_errno($ch);
+            $message = curl_error($ch);
+            $msg = "(Network error [errno $errno]: $message)";
+            $this->_adyenLogger->addAdyenDebug($msg);
+        }
 
         curl_close($ch);
         return $result;
-
     }
 }

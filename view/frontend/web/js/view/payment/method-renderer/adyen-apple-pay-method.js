@@ -31,9 +31,10 @@ define(
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
         'mage/url',
-        'Magento_Ui/js/model/messages'
+        'Magento_Ui/js/model/messages',
+        'mage/translate',
     ],
-    function ($, quote, Component, placeOrderAction, additionalValidators, urlBuilder, storage, url, Messages) {
+    function ($, quote, Component, placeOrderAction, additionalValidators, urlBuilder, storage, url, Messages, $t) {
         'use strict';
         return Component.extend({
             self: this,
@@ -71,48 +72,47 @@ define(
             placeApplePayOrder: function (data, event) {
                 event.preventDefault();
                 var self = this;
-                if (!additionalValidators.validate()){
+                if (!additionalValidators.validate()) {
                     return false;
                 }
                 var request = {
-                    countryCode: 'US',
-                    currencyCode: 'EUR',
+                    countryCode: quote.billingAddress().countryId,
+                    currencyCode: quote.totals().quote_currency_code,
                     supportedNetworks: ['visa', 'masterCard', 'amex', 'discover'],
                     merchantCapabilities: ['supports3DS'],
-                    total: { label: 'Total', amount: quote.totals().grand_total }
+                    total: {label: $t('Grand Total'), amount: quote.totals().base_grand_total}
                 };
                 var session = new ApplePaySession(2, request);
-                session.onvalidatemerchant = function(event) {
+                session.onvalidatemerchant = function (event) {
                     var promise = self.performValidation(event.validationURL);
                     promise.then(function (merchantSession) {
                         session.completeMerchantValidation(merchantSession);
                     });
                 }
 
-                session.onpaymentauthorized = function(event)
-                {
+                session.onpaymentauthorized = function (event) {
                     var data = {
                         'method': self.item.method,
                         'additional_data': {'token': JSON.stringify(event.payment)}
                     };
                     var promise = self.sendPayment(event.payment, data);
 
-                    promise.then(function(success) {
+                    promise.then(function (success) {
                         var status;
-                        if(success)
+                        if (success)
                             status = ApplePaySession.STATUS_SUCCESS;
                         else
                             status = ApplePaySession.STATUS_FAILURE;
 
                         session.completePayment(status);
 
-                        if(success) {
+                        if (success) {
                             window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
                         }
-                    }, function(reason) {
-                        if(reason.message == "ERROR BILLING") {
+                    }, function (reason) {
+                        if (reason.message == "ERROR BILLING") {
                             var status = session.STATUS_INVALID_BILLING_POSTAL_ADDRESS;
-                        } else if(reason.message == "ERROR SHIPPING") {
+                        } else if (reason.message == "ERROR SHIPPING") {
                             var status = session.STATUS_INVALID_SHIPPING_POSTAL_ADDRESS;
                         } else {
                             var status = session.STATUS_FAILURE;
@@ -144,9 +144,9 @@ define(
                 }
                 return false;
             },
-            performValidation: function(validationURL){
-            // Return a new promise.
-                return new Promise(function(resolve, reject) {
+            performValidation: function (validationURL) {
+                // Return a new promise.
+                return new Promise(function (resolve, reject) {
 
                     // retrieve payment methods
                     var serviceUrl = urlBuilder.createUrl('/adyen/request-merchant-session', {});
@@ -154,7 +154,7 @@ define(
                     storage.post(
                         serviceUrl, JSON.stringify('{}')
                     ).done(
-                        function (response){
+                        function (response) {
                             var data = JSON.parse(response);
                             resolve(data);
                         }
@@ -164,17 +164,17 @@ define(
                     });
                 });
             },
-            sendPayment: function(payment, data) {
-                return new Promise(function(resolve, reject) {
+            sendPayment: function (payment, data) {
+                return new Promise(function (resolve, reject) {
                     $.when(
                         placeOrderAction(data, new Messages())
                     ).fail(
                         function (response) {
-                                reject(Error(response));
+                            reject(Error(response));
                         }
                     ).done(
-                    function () {
-                        resolve(true);
+                        function () {
+                            resolve(true);
                         }
                     );
                 });
