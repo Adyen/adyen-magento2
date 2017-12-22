@@ -29,6 +29,6 @@ class ApplePay extends AbstractInfo
     /**
      * @var string
      */
-    protected $_template = 'Adyen_Payment::info/apple_pay.phtml';
+    protected $_template = 'Adyen_Payment::info/adyen_cc.phtml';
 
 }
