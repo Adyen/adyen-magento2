@@ -88,7 +88,8 @@ class Data extends AbstractHelper
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\View\Asset\Source $assetSource,
         \Adyen\Payment\Model\Resource\Notification\CollectionFactory $notificationFactory
-    ) {
+    )
+    {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
         $this->_dataStorage = $dataStorage;
@@ -871,6 +872,20 @@ class Data extends AbstractHelper
         $notifications = $this->_notificationFactory->create();
         $notifications->unprocessedNotificationsFilter();
         return count($notifications);
+    }
+
+    /**
+     * @param $storeId
+     * @return mixed
+     */
+    public function getLibraryToken($storeId = null)
+    {
+        if ($this->isDemoMode($storeId)) {
+            $libraryToken = $this->getAdyenCcConfigData('cse_library_token_test', $storeId);
+        } else {
+            $libraryToken = $this->getAdyenCcConfigData('cse_library_token_live', $storeId);
+        }
+        return $libraryToken;
     }
 
 }

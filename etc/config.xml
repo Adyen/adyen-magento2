@@ -45,7 +45,6 @@
                 <sort_order>2</sort_order>
                 <cctypes>AE,VI,MC,DI</cctypes>
                 <useccv>1</useccv>
-                <cse_enabled>1</cse_enabled>
                 <enable_moto>0</enable_moto>
                 <payment_action>authorize</payment_action>
                 <is_gateway>1</is_gateway>
@@ -71,7 +70,6 @@
                 <recurring_payment_type>ONECLICK</recurring_payment_type>
                 <payment_action>authorize</payment_action>
                 <useccv>1</useccv>
-                <cse_enabled>1</cse_enabled>
                 <enable_moto>0</enable_moto>
                 <payment_action>authorize</payment_action>
                 <is_gateway>1</is_gateway>

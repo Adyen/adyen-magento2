@@ -34,9 +34,8 @@ define(
         'Magento_Checkout/js/model/quote',
         'ko',
         'Adyen_Payment/js/model/installments',
-        'adyen/encrypt'
     ],
-    function (_, $, Component, placeOrderAction, $t, additionalValidators, customer, creditCardData, quote, ko, installments, adyenEncrypt) {
+    function (_, $, Component, placeOrderAction, $t, additionalValidators, customer, creditCardData, quote, ko, installments) {
 
         'use strict';
         var cvcLength = ko.observable(4);
@@ -69,21 +68,29 @@ define(
                 return this;
             },
             getInstallments: installments.getInstallments(),
-            initialize: function() {
+            initialize: function () {
                 var self = this;
                 this._super();
 
+                debugger;
+                ;
+                // include dynamic cse javascript
+                var dfScriptTag = document.createElement('script');
+                dfScriptTag.src = "//test.adyen.com/hpp/cse/js/" + this.getLibraryToken() + ".shtml";
+                dfScriptTag.type = "text/javascript";
+                document.body.appendChild(dfScriptTag);
+
                 //Set credit card number to credit card data object
-                this.creditCardNumber.subscribe(function(value) {
+                this.creditCardNumber.subscribe(function (value) {
 
                     // installments enabled ??
                     var allInstallments = self.getAllInstallments();
 
                     // what card is this ??
                     var creditcardType = creditCardData.creditCard.type;
-                    if(creditcardType) {
+                    if (creditcardType) {
                         cvcLength(4);
-                        if (creditcardType != "AE"){
+                        if (creditcardType != "AE") {
                             cvcLength(3);
                         }
                         if (creditcardType in allInstallments) {
@@ -93,13 +100,13 @@ define(
 
                             var numberOfInstallments = 0;
                             $.each(installmentCreditcard, function (amount, installment) {
-                                if(grandTotal <= amount) {
+                                if (grandTotal <= amount) {
                                     numberOfInstallments = installment;
                                     return false;
                                 }
                             });
 
-                            if(numberOfInstallments > 0) {
+                            if (numberOfInstallments > 0) {
                                 installments.setInstallments(numberOfInstallments);
                             }
                         } else {
@@ -108,16 +115,16 @@ define(
                     }
                 });
             },
-            setPlaceOrderHandler: function(handler) {
+            setPlaceOrderHandler: function (handler) {
                 this.placeOrderHandler = handler;
             },
-            setValidateHandler: function(handler) {
+            setValidateHandler: function (handler) {
                 this.validateHandler = handler;
             },
-            getCode: function() {
+            getCode: function () {
                 return 'adyen_cc';
             },
-            getData: function() {
+            getData: function () {
                 return {
                     'method': this.item.method,
                     additional_data: {
@@ -129,16 +136,16 @@ define(
                     }
                 };
             },
-            getCvcLength: function() {
+            getCvcLength: function () {
                 return cvcLength();
             },
-            isActive: function() {
+            isActive: function () {
                 return true;
             },
             /**
              * @override
              */
-            placeOrder: function(data, event) {
+            placeOrder: function (data, event) {
                 var self = this,
                     placeOrder;
 
@@ -146,19 +153,18 @@ define(
                     event.preventDefault();
                 }
 
-                var cse_key = this.getCSEKey();
-                var options = {};
 
-                var cseInstance = adyenEncrypt.createEncryption(cse_key, options);
+                var options = {};
+                var cseInstance = adyen.createEncryption(options);
                 var generationtime = self.getGenerationTime();
 
                 var cardData = {
-                    number : self.creditCardNumber(),
-                    cvc : self.creditCardVerificationNumber(),
-                    holderName : self.creditCardOwner(),
-                    expiryMonth : self.creditCardExpMonth(),
-                    expiryYear : self.creditCardExpYear(),
-                    generationtime : generationtime
+                    number: self.creditCardNumber(),
+                    cvc: self.creditCardVerificationNumber(),
+                    holderName: self.creditCardOwner(),
+                    expiryMonth: self.creditCardExpMonth(),
+                    expiryYear: self.creditCardExpYear(),
+                    generationtime: generationtime
                 };
 
                 var data = cseInstance.encrypt(cardData);
@@ -168,44 +174,41 @@ define(
                     this.isPlaceOrderActionAllowed(false);
                     placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder);
 
-                    $.when(placeOrder).fail(function(response) {
+                    $.when(placeOrder).fail(function (response) {
                         self.isPlaceOrderActionAllowed(true);
                     });
                     return true;
                 }
                 return false;
             },
-            getControllerName: function() {
+            getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
             },
-            getPlaceOrderUrl: function() {
+            getPlaceOrderUrl: function () {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
             },
-            context: function() {
+            context: function () {
                 return this;
             },
-            isCseEnabled: function() {
-                return window.checkoutConfig.payment.adyenCc.cseEnabled;
+            getLibraryToken: function () {
+                return window.checkoutConfig.payment.adyenCc.libraryToken;
             },
-            getCSEKey: function() {
-                return window.checkoutConfig.payment.adyenCc.cseKey;
-            },
-            getGenerationTime: function() {
+            getGenerationTime: function () {
                 return window.checkoutConfig.payment.adyenCc.generationTime;
             },
-            canCreateBillingAgreement: function() {
-                if(customer.isLoggedIn()) {
+            canCreateBillingAgreement: function () {
+                if (customer.isLoggedIn()) {
                     return window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
                 }
                 return false;
             },
-            isShowLegend: function() {
+            isShowLegend: function () {
                 return true;
             },
             validate: function () {
                 var form = 'form[data-role=adyen-cc-form]';
 
-                var validate =  $(form).validation() && $(form).validation('isValid');
+                var validate = $(form).validation() && $(form).validation('isValid');
                 // add extra validation because jqeury validation will not work on non name attributes
                 var ccNumber = Boolean($(form + ' #creditCardNumber').valid());
                 var owner = Boolean($(form + ' #creditCardHolderName').valid());
@@ -213,13 +216,13 @@ define(
                 var expiration_yr = Boolean($(form + ' #adyen_cc_expiration_yr').valid());
                 var cid = Boolean($(form + ' #adyen_cc_cc_cid').valid());
 
-                if(!validate || !ccNumber || !owner || !expiration || !expiration_yr || !cid) {
+                if (!validate || !ccNumber || !owner || !expiration || !expiration_yr || !cid) {
                     return false;
                 }
 
                 return true;
             },
-            showLogo: function() {
+            showLogo: function () {
                 return window.checkoutConfig.payment.adyen.showLogo;
             },
             getIcons: function (type) {
@@ -227,10 +230,10 @@ define(
                     ? window.checkoutConfig.payment.adyenCc.icons[type]
                     : false
             },
-            hasInstallments: function() {
+            hasInstallments: function () {
                 return window.checkoutConfig.payment.adyenCc.hasInstallments;
             },
-            getAllInstallments: function() {
+            getAllInstallments: function () {
                 return window.checkoutConfig.payment.adyenCc.installments;
             }
         });
