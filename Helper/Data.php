@@ -31,6 +31,9 @@ use Magento\Framework\App\Helper\AbstractHelper;
 class Data extends AbstractHelper
 {
 
+    const TEST = 'test';
+    const LIVE = 'live';
+
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
      */
@@ -88,7 +91,8 @@ class Data extends AbstractHelper
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\View\Asset\Source $assetSource,
         \Adyen\Payment\Model\Resource\Notification\CollectionFactory $notificationFactory
-    ) {
+    )
+    {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
         $this->_dataStorage = $dataStorage;
@@ -873,4 +877,33 @@ class Data extends AbstractHelper
         return count($notifications);
     }
 
+    /**
+     * @param $storeId
+     * @return mixed
+     */
+    public function getLibraryToken($storeId = null)
+    {
+        if ($this->isDemoMode($storeId)) {
+            $libraryToken = $this->getAdyenCcConfigData('cse_library_token_test', $storeId);
+        } else {
+            $libraryToken = $this->getAdyenCcConfigData('cse_library_token_live', $storeId);
+        }
+        return $libraryToken;
+    }
+
+    /**
+     * Returns the hosted location of the client side encryption file
+     *
+     * @param null $storeId
+     * @return string
+     */
+    public function getLibrarySource($storeId = null)
+    {
+        $environment = self::LIVE;
+        if ($this->isDemoMode($storeId)) {
+            $environment = self::TEST;
+        }
+
+        return "https://" . $environment . ".adyen.com/hpp/cse/js/" . $this->getLibraryToken($storeId) . ".shtml";
+    }
 }

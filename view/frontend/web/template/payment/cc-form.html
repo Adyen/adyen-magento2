@@ -45,7 +45,6 @@
         </div>
 
 
-
         <form class="form" id="adyen-cc-form" data-role="adyen-cc-form" action="#" method="post" data-bind="mageInit: {
             'transparent':{
                 'context': context(),
@@ -54,13 +53,15 @@
             }, 'validation':[]}">
 
 
-            <fieldset data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + getCode()}">
+            <fieldset
+                    data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + getCode()}">
                 <!-- ko if: (isShowLegend())-->
                 <legend class="legend">
                     <span><!-- ko text: $t('Credit Card Information')--><!-- /ko --></span>
-                </legend><br />
+                </legend>
+                <br/>
                 <!-- /ko -->
-                
+
                 <div class="field type required">
                     <label data-bind="attr: {for: getCode() + '_cc_type'}" class="label">
                         <span><!-- ko text: $t('Credit Card Type')--><!-- /ko --></span>
@@ -125,7 +126,7 @@
                                             value: creditCardOwner,
                                             valueUpdate: 'keyup' "
                                data-validate="{required:true}"
-                                />
+                        />
                     </div>
                 </div>
                 <div class="field date required" data-bind="attr: {id: getCode() + '_cc_type_exp_div'}">
@@ -136,9 +137,9 @@
                         <div class="fields group group-2">
                             <div class="field no-label month">
                                 <div class="control">
-                                    <select  class="select select-month"
-                                             data-encrypted-name="expiryMonth"
-                                             data-bind="attr: {id: getCode() + '_expiration', 'data-container': getCode() + '-cc-month', 'data-validate': JSON.stringify({required:true, 'validate-cc-exp':'#' + getCode() + '_expiration_yr'})},
+                                    <select class="select select-month"
+                                            data-encrypted-name="expiryMonth"
+                                            data-bind="attr: {id: getCode() + '_expiration', 'data-container': getCode() + '-cc-month', 'data-validate': JSON.stringify({required:true, 'validate-cc-exp':'#' + getCode() + '_expiration_yr'})},
                                                     enable: isActive($parents),
                                                     options: getCcMonthsValues(),
                                                     optionsValue: 'value',
@@ -187,9 +188,9 @@
                                 oninput:'javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);'
                                 },
                                 enable: isActive($parents),
-                                value: creditCardVerificationNumber",
+                                value: creditCardVerificationNumber" ,
                                data-validate="{required:true}"
-                               />
+                        />
                         <div class="field-tooltip toggle">
                         <span class="field-tooltip-action action-cvv"
                               tabindex="0"
@@ -208,21 +209,22 @@
 
                 <!-- ko if: (hasInstallments())-->
 
-                <div class="field required" data-bind="attr: {id: getCode() + '_installments_div'}, visible: getInstallments().length > 0">
+                <div class="field required"
+                     data-bind="attr: {id: getCode() + '_installments_div'}, visible: getInstallments().length > 0">
                     <label data-bind="attr: {for: getCode() + '_installments'}" class="label">
                         <span><!-- ko text: $t('Installments')--><!-- /ko --></span>
                     </label>
                     <div class="control">
-                        <select  class="select"
-                                 name="payment[number_of_installments]"
-                                 data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:true})},
+                        <select class="select"
+                                name="payment[number_of_installments]"
+                                data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:true})},
                                         enable: isActive($parents),
                                         options: getInstallments,
                                         optionsValue: 'value',
                                         optionsText: 'key',
                                         optionsCaption: $t('Installments'),
                                         value: installment"
-                                 data-validate="{required:true}">
+                                data-validate="{required:true}">
                         </select>
                     </div>
                 </div>
@@ -239,7 +241,7 @@
                            autocomplete="off"
                            class="checkbox"
                            data-bind="attr: {title: $t('Remember Me')}, checked: setStoreCc"
-                           />
+                    />
                     <label data-bind="attr: {for: getCode() + '_remember_details'}" class="label">
                         <span><!-- ko text: $t('Remember these details')--><!-- /ko --></span>
                     </label>
@@ -248,19 +250,14 @@
                 <!-- /ko -->
 
 
-                <!-- ko if: (isCseEnabled())-->
-
-                    <input type="hidden"
-                           name="payment[generationtime]"
-                           class="input-text"
-                           value=""
-                           data-encrypted-name="generationtime"
-                           data-bind="attr: {id: getCode() + '_generationtime', 'data-container': getCode() + '-generationtime'},
-                               value: getGenerationTime()
-                               ">
-
-
-                <!-- /ko -->
+                <input type="hidden"
+                       name="payment[generationtime]"
+                       class="input-text"
+                       value=""
+                       data-encrypted-name="generationtime"
+                       data-bind="attr: {id: getCode() + '_generationtime', 'data-container': getCode() + '-generationtime'},
+                           value: getGenerationTime()"
+                />
             </fieldset>
         </form>
 

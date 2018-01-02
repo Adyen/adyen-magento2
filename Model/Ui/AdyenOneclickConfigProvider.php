@@ -90,7 +90,8 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Payment\Model\CcConfig $ccConfig
-    ) {
+    )
+    {
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
         $this->_customerSession = $customerSession;
@@ -130,25 +131,13 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             ]
         ]);
 
-        $demoMode = $this->_adyenHelper->getAdyenAbstractConfigDataFlag('demo_mode');
-
-        if ($demoMode) {
-            $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_test');
-        } else {
-            $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_live');
-        }
-
-        $cseEnabled = $this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled');
-
         $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type');
         $canCreateBillingAgreement = false;
         if ($recurringType == "ONECLICK" || $recurringType == "ONECLICK,RECURRING") {
             $canCreateBillingAgreement = true;
         }
 
-        $config['payment'] ['adyenOneclick']['cseKey'] = $cseKey;
-        $config['payment'] ['adyenOneclick']['cseEnabled'] = $cseEnabled;
-        $config['payment'] ['adyenOneclick']['cseEnabled'] = $cseEnabled;
+        $config['payment'] ['adyenOneclick']['librarySource'] = $this->_adyenHelper->getLibrarySource();
         $config['payment']['adyenOneclick']['generationTime'] = date("c");
         $config['payment']['adyenOneclick']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
 
@@ -178,9 +167,9 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             $recurringType = $this->_getRecurringContractType();
 
             $billingAgreements = $this->_adyenHelper->getOneClickPaymentMethods(
-                $customerId, 
-                $storeId, 
-                $grandTotal, 
+                $customerId,
+                $storeId,
+                $grandTotal,
                 $recurringType
             );
         }
@@ -225,7 +214,6 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
 
         return $types;
     }
-
 
 
     /**

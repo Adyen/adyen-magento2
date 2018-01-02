@@ -67,7 +67,8 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $checkoutSession,
         array $data = []
-    ) {
+    )
+    {
         parent::__construct($context, $paymentConfig);
         $this->_adyenHelper = $adyenHelper;
         $this->_appState = $context->getAppState();
@@ -79,7 +80,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
      * @return mixed
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getCsePublicKey()
+    public function getLibrarySource()
     {
         // get storeId for admin
         if (!$this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
@@ -88,15 +89,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
             $storeId = null;
         }
 
-        $demoMode = $this->_adyenHelper->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
-
-        if($demoMode) {
-            $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_test', $storeId);
-        } else {
-            $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_live', $storeId);
-        }
-
-        return $cseKey;
+        return $this->_adyenHelper->getLibrarySource($storeId);
     }
 
     /**
@@ -111,7 +104,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
             $this->getCheckoutSession();
             $store = $this->_checkoutSession->getQuote()->getStore();
             $enableMoto = $this->_adyenHelper->getAdyenCcConfigDataFlag('enable_moto', $store->getId());
-            if($enableMoto) {
+            if ($enableMoto) {
                 return false;
             }
         }
