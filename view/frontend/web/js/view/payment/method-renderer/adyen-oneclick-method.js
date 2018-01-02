@@ -58,12 +58,6 @@ define(
             initialize: function () {
                 var self = this;
                 this._super();
-
-                // include dynamic cse javascript
-                var dfScriptTag = document.createElement('script');
-                dfScriptTag.src = "//test.adyen.com/hpp/cse/js/" + this.getLibraryToken() + ".shtml";
-                dfScriptTag.type = "text/javascript";
-                document.body.appendChild(dfScriptTag);
             },
             placeOrderHandler: null,
             validateHandler: null,
@@ -271,10 +265,7 @@ define(
             }),
             getPlaceOrderUrl: function () {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
-            },
-            getLibraryToken: function () {
-                return window.checkoutConfig.payment.adyenCc.libraryToken;
-            },
+            }
         });
     }
 );

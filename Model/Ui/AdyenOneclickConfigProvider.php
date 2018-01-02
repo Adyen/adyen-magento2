@@ -137,7 +137,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             $canCreateBillingAgreement = true;
         }
 
-        $config['payment'] ['adyenOneclick']['libraryToken'] = $this->_adyenHelper->getLibraryToken();
+        $config['payment'] ['adyenOneclick']['librarySource'] = $this->_adyenHelper->getLibrarySource();
         $config['payment']['adyenOneclick']['generationTime'] = date("c");
         $config['payment']['adyenOneclick']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
 

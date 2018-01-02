@@ -130,7 +130,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
             $canCreateBillingAgreement = true;
         }
 
-        $config['payment'] ['adyenCc']['libraryToken'] = $this->_adyenHelper->getLibraryToken();
+        $config['payment'] ['adyenCc']['librarySource'] = $this->_adyenHelper->getLibrarySource();
         $config['payment']['adyenCc']['generationTime'] = date("c");
         $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();

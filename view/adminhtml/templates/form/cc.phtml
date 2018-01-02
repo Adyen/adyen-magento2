@@ -146,13 +146,12 @@ echo $code; ?>"
             function () {
                 //<![CDATA[
                 var dfScriptTag = document.createElement('script');
-                dfScriptTag.src = "//test.adyen.com/hpp/cse/js/" + <?php echo $block->getLibraryToken(); ?> +".shtml";
+                dfScriptTag.src = "<?php echo $block->getLibrarySource(); ?>";
                 dfScriptTag.type = "text/javascript";
                 document.body.appendChild(dfScriptTag);
 
                 var element = $('payment_form_<?php echo $code ?>');
                 var cse_form = $(element).closest('form');
-                var cse_key = <?php echo json_encode($block->getLibraryToken()); ?>;
                 var cse_options = {
                     name: 'payment[encrypted_data]'
                 };

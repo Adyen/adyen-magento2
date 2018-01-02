@@ -31,6 +31,9 @@ use Magento\Framework\App\Helper\AbstractHelper;
 class Data extends AbstractHelper
 {
 
+    const TEST = 'test';
+    const LIVE = 'live';
+
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
      */
@@ -888,4 +891,19 @@ class Data extends AbstractHelper
         return $libraryToken;
     }
 
+    /**
+     * Returns the hosted location of the client side encryption file
+     *
+     * @param null $storeId
+     * @return string
+     */
+    public function getLibrarySource($storeId = null)
+    {
+        $environment = self::LIVE;
+        if ($this->isDemoMode($storeId)) {
+            $environment = self::TEST;
+        }
+
+        return "https://" . $environment . ".adyen.com/hpp/cse/js/" . $this->getLibraryToken() . ".shtml";
+    }
 }

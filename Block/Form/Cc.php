@@ -80,7 +80,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
      * @return mixed
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getLibraryToken()
+    public function getLibrarySource()
     {
         // get storeId for admin
         if (!$this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
@@ -89,7 +89,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
             $storeId = null;
         }
 
-        return $this->_adyenHelper->getLibraryToken($storeId);
+        return $this->_adyenHelper->getLibrarySource($storeId);
     }
 
     /**

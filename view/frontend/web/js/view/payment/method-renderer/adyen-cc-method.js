@@ -71,12 +71,10 @@ define(
             initialize: function () {
                 var self = this;
                 this._super();
-
-                debugger;
-                ;
+                
                 // include dynamic cse javascript
                 var dfScriptTag = document.createElement('script');
-                dfScriptTag.src = "//test.adyen.com/hpp/cse/js/" + this.getLibraryToken() + ".shtml";
+                dfScriptTag.src = this.getLibrarySource();
                 dfScriptTag.type = "text/javascript";
                 document.body.appendChild(dfScriptTag);
 
@@ -190,8 +188,8 @@ define(
             context: function () {
                 return this;
             },
-            getLibraryToken: function () {
-                return window.checkoutConfig.payment.adyenCc.libraryToken;
+            getLibrarySource: function () {
+                return window.checkoutConfig.payment.adyenCc.librarySource;
             },
             getGenerationTime: function () {
                 return window.checkoutConfig.payment.adyenCc.generationTime;
