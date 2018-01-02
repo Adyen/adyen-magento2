@@ -904,6 +904,6 @@ class Data extends AbstractHelper
             $environment = self::TEST;
         }
 
-        return "https://" . $environment . ".adyen.com/hpp/cse/js/" . $this->getLibraryToken() . ".shtml";
+        return "https://" . $environment . ".adyen.com/hpp/cse/js/" . $this->getLibraryToken($storeId) . ".shtml";
     }
 }
