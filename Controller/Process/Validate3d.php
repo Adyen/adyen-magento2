@@ -156,9 +156,10 @@ class Validate3d extends \Magento\Framework\App\Action\Action
             } else {
                 $this->_adyenLogger->addAdyenResult("Customer was redirected to bank for 3D-secure validation.");
                 $order->addStatusHistoryComment(
-                    __('Customer was redirected to bank for 3D-secure validation.')
-                )->save();
-
+                    __('Customer was redirected to bank for 3D-secure validation. Once the shopper authenticated, the order status will be updated accordingly. 
+                        <br />Make sure that your notifications are being processed! 
+                        <br />If the order is stuck on this status, the shopper abandoned the session. The payment can be seen as unsuccessful. 
+                        <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. Please contact Adyen Support to enable this.'))->save();
                 $this->_view->loadLayout();
                 $this->_view->getLayout()->initMessages();
                 $this->_view->renderLayout();
