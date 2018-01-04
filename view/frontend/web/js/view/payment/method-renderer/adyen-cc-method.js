@@ -19,23 +19,17 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-/*browser:true*/
-/*global define*/
+
 define(
     [
-        'underscore',
         'jquery',
         'Magento_Payment/js/view/payment/cc-form',
-        'Adyen_Payment/js/action/place-order',
-        'mage/translate',
-        'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Customer/js/model/customer',
         'Magento_Payment/js/model/credit-card-validation/credit-card-data',
         'Magento_Checkout/js/model/quote',
-        'ko',
-        'Adyen_Payment/js/model/installments',
+        'Adyen_Payment/js/model/installments'
     ],
-    function (_, $, Component, placeOrderAction, $t, additionalValidators, customer, creditCardData, quote, ko, installments) {
+    function ($, Component, customer, creditCardData, quote, installments) {
 
         'use strict';
         var cvcLength = ko.observable(4);
@@ -150,8 +144,7 @@ define(
                 if (event) {
                     event.preventDefault();
                 }
-
-
+                
                 var options = {};
                 var cseInstance = adyen.createEncryption(options);
                 var generationtime = self.getGenerationTime();
@@ -168,16 +161,8 @@ define(
                 var data = cseInstance.encrypt(cardData);
                 self.encryptedData(data);
 
-                if (this.validate() && additionalValidators.validate()) {
-                    this.isPlaceOrderActionAllowed(false);
-                    placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder);
-
-                    $.when(placeOrder).fail(function (response) {
-                        self.isPlaceOrderActionAllowed(true);
-                    });
-                    return true;
-                }
-                return false;
+                // rest is default placeOrder logic
+                return self._super();
             },
             getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];

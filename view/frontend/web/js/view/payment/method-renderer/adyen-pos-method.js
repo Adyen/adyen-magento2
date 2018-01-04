@@ -19,8 +19,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-/*browser:true*/
-/*global define*/
+
 define(
     [
         'ko',
@@ -30,19 +29,14 @@ define(
     ],
     function (ko, Component, setPaymentMethodAction, additionalValidators) {
         'use strict';
-        var brandCode = ko.observable(null);
-        var paymentMethod = ko.observable(null);
-
         return Component.extend({
             self: this,
             defaults: {
-                template: 'Adyen_Payment/payment/pos-form',
-                brandCode: ''
+                template: 'Adyen_Payment/payment/pos-form'
             },
             initObservable: function () {
                 this._super()
-                    .observe([
-                    ]);
+                    .observe([]);
                 return this;
             },
             /** Redirect to adyen */
@@ -54,7 +48,7 @@ define(
                     return false;
                 }
             },
-            showLogo: function() {
+            showLogo: function () {
                 return window.checkoutConfig.payment.adyen.showLogo;
             },
             validate: function () {

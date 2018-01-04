@@ -19,22 +19,18 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-/*browser:true*/
-/*global define*/
+
 define(
     [
         'ko',
         'underscore',
         'jquery',
         'Magento_Payment/js/view/payment/cc-form',
-        'Adyen_Payment/js/action/place-order',
-        'mage/translate',
-        'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/checkout-data'
     ],
-    function (ko, _, $, Component, placeOrderAction, $t, additionalValidators, selectPaymentMethodAction, quote, checkoutData) {
+    function (ko, _, $, Component, selectPaymentMethodAction, quote, checkoutData) {
         'use strict';
         var updatedExpiryDate = false;
         var recurringDetailReference = ko.observable(null);
@@ -54,10 +50,6 @@ define(
                         'encryptedData'
                     ]);
                 return this;
-            },
-            initialize: function () {
-                var self = this;
-                this._super();
             },
             placeOrderHandler: null,
             validateHandler: null,
@@ -117,16 +109,8 @@ define(
                     data.additional_data.number_of_installments = self.installment;
                 }
 
-                if (this.validate() && additionalValidators.validate()) {
-                    //this.isPlaceOrderActionAllowed(false);
-                    placeOrder = placeOrderAction(data, this.redirectAfterPlaceOrder);
-
-                    $.when(placeOrder).fail(function (response) {
-                        //self.isPlaceOrderActionAllowed(true);
-                    });
-                    return true;
-                }
-                return false;
+                // rest is default placeOrder logic
+                return self._super();
             },
             getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
