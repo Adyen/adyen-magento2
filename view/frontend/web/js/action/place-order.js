@@ -35,7 +35,6 @@ define(
         return function (paymentData, redirectOnSuccess) {
             var serviceUrl,
                 payload;
-
             //redirectOnSuccess = redirectOnSuccess !== false;
             redirectOnSuccess = redirectOnSuccess === false ? false : true;
 
@@ -60,13 +59,14 @@ define(
             }
 
             fullScreenLoader.startLoader();
-
             return storage.post(
                 serviceUrl, JSON.stringify(payload)
             ).done(
-                function () {
+                function (response) {
                     if (redirectOnSuccess) {
                         window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
+                    } else{
+                        fullScreenLoader.stopLoader();
                     }
                 }
             ).fail(
