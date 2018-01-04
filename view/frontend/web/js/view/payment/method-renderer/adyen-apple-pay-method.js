@@ -165,19 +165,18 @@ define(
                 });
             },
             sendPayment: function (payment, data) {
-                return new Promise(function (resolve, reject) {
-                    $.when(
-                        placeOrderAction(data, new Messages())
-                    ).fail(
-                        function (response) {
-                            reject(Error(response));
-                        }
-                    ).done(
-                        function () {
-                            resolve(true);
-                        }
-                    );
-                });
+                var deferred = $.Deferred();
+                return $.when(
+                    placeOrderAction(data, new Messages())
+                ).fail(
+                    function (response) {
+                        deferred.reject(Error(response));
+                    }
+                ).done(
+                    function () {
+                        deferred.resolve(true);
+                    }
+                );
             }
         });
     }

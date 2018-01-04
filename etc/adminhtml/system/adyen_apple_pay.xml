@@ -57,7 +57,7 @@
             <config_path>payment/adyen_apple_pay/full_path_location_pem_file_test</config_path>
         </field>
         <field id="full_path_location_pem_file_live" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Test: PEM File location</label>
+            <label>Live: PEM File location</label>
             <tooltip>You need to generate a pem file from the apple certificate. You need to upload this to your webserver and define the full path location here.</tooltip>
             <config_path>payment/adyen_apple_pay/full_path_location_pem_file_live</config_path>
         </field>

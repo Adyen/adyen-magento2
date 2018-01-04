@@ -460,18 +460,7 @@ class Data extends AbstractHelper
     {
         return $this->getConfigData($field, 'adyen_apple_pay', $storeId);
     }
-
-    /**
-     * @desc Gives back adyen_apple_pay configuration values as flag
-     * @param $field
-     * @param null $storeId
-     * @return mixed
-     */
-    public function getAdyenApplePayConfigDataFlag($field, $storeId = null)
-    {
-        return $this->getConfigData($field, 'adyen_apple_pay', $storeId, true);
-    }
-
+    
     /**
      * @param null $storeId
      * @return mixed
