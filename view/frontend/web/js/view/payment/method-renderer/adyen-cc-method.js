@@ -23,13 +23,14 @@
 define(
     [
         'jquery',
+        'ko',
         'Magento_Payment/js/view/payment/cc-form',
         'Magento_Customer/js/model/customer',
         'Magento_Payment/js/model/credit-card-validation/credit-card-data',
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/model/installments'
     ],
-    function ($, Component, customer, creditCardData, quote, installments) {
+    function ($, ko, Component, customer, creditCardData, quote, installments) {
 
         'use strict';
         var cvcLength = ko.observable(4);
