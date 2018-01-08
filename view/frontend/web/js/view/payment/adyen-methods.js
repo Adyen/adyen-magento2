@@ -55,6 +55,10 @@ define(
             {
                 type: 'adyen_boleto',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-boleto-method'
+            },
+            {
+                type: 'adyen_apple_pay',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-apple-pay-method'
             }
         );
         /** Add view logic here if needed */

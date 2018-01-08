@@ -34,9 +34,8 @@ define(
         'Magento_Checkout/js/model/quote',
         'ko',
         'Adyen_Payment/js/model/installments',
-        'adyen/encrypt'
     ],
-    function (_, $, Component, placeOrderAction, $t, additionalValidators, customer, creditCardData, quote, ko, installments, adyenEncrypt) {
+    function (_, $, Component, placeOrderAction, $t, additionalValidators, customer, creditCardData, quote, ko, installments) {
 
         'use strict';
         var cvcLength = ko.observable(4);
@@ -72,7 +71,16 @@ define(
             initialize: function () {
                 var self = this;
                 this._super();
+
                 installments.setInstallments(0);
+
+                
+                // include dynamic cse javascript
+                var dfScriptTag = document.createElement('script');
+                dfScriptTag.src = this.getLibrarySource();
+                dfScriptTag.type = "text/javascript";
+                document.body.appendChild(dfScriptTag);
+
                 //Set credit card number to credit card data object
                 this.creditCardNumber.subscribe(function (value) {
 
@@ -80,10 +88,12 @@ define(
                     var allInstallments = self.getAllInstallments();
 
                     // what card is this ??
+
                     if (creditCardData.creditCard) {
                         var creditcardType = creditCardData.creditCard.type;
+                      
                         cvcLength(4);
-                        if (creditcardType != "AE"){
+                        if (creditcardType != "AE") {
                             cvcLength(3);
                             }
                         if (creditcardType in allInstallments) {
@@ -96,6 +106,7 @@ define(
                             var dividedAmount = 0;
                             var dividedString = "";
                             $.each(installmentCreditcard, function (amount, installment) {
+
                                 if (grandTotal >= amount) {
                                     dividedAmount = (grandTotal / installment).toFixed(quote.getPriceFormat().precision);
                                     dividedString = installment + " x " + dividedAmount + " " + quote.totals().quote_currency_code;
@@ -139,10 +150,10 @@ define(
                     }
                 };
             },
-            getCvcLength: function() {
+            getCvcLength: function () {
                 return cvcLength();
             },
-            isActive: function() {
+            isActive: function () {
                 return true;
             },
             /**
@@ -156,10 +167,9 @@ define(
                     event.preventDefault();
                 }
 
-                var cse_key = this.getCSEKey();
-                var options = {};
 
-                var cseInstance = adyenEncrypt.createEncryption(cse_key, options);
+                var options = {};
+                var cseInstance = adyen.createEncryption(options);
                 var generationtime = self.getGenerationTime();
 
                 var cardData = {
@@ -194,11 +204,16 @@ define(
             context: function () {
                 return this;
             },
+
             isCseEnabled: function () {
                 return window.checkoutConfig.payment.adyenCc.cseEnabled;
             },
             getCSEKey: function () {
                 return window.checkoutConfig.payment.adyenCc.cseKey;
+
+            getLibrarySource: function () {
+                return window.checkoutConfig.payment.adyenCc.librarySource;
+
             },
             getGenerationTime: function () {
                 return window.checkoutConfig.payment.adyenCc.generationTime;
@@ -216,7 +231,9 @@ define(
                 var form = 'form[data-role=adyen-cc-form]';
 
                 var validate = $(form).validation() && $(form).validation('isValid');
+
                 // add extra validation because jquery validation will not work on non name attributes
+
                 var ccNumber = Boolean($(form + ' #creditCardNumber').valid());
                 var owner = Boolean($(form + ' #creditCardHolderName').valid());
                 var expiration = Boolean($(form + ' #adyen_cc_expiration').valid());

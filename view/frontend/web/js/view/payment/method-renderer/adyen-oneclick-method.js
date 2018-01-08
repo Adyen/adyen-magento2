@@ -32,8 +32,7 @@ define(
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/model/quote',
-        'Magento_Checkout/js/checkout-data',
-        'Adyen_Payment/js/view/payment/adyen-encrypt'
+        'Magento_Checkout/js/checkout-data'
     ],
     function (ko, _, $, Component, placeOrderAction, $t, additionalValidators, selectPaymentMethodAction, quote, checkoutData) {
         'use strict';
@@ -55,6 +54,10 @@ define(
                         'encryptedData'
                     ]);
                 return this;
+            },
+            initialize: function () {
+                var self = this;
+                this._super();
             },
             placeOrderHandler: null,
             validateHandler: null,
@@ -104,8 +107,9 @@ define(
                     if (updatedExpiryDate || self.hasVerification()) {
 
                         var options = {enableValidations: false};
-                        var cse_key = this.getCSEKey();
-                        var cseInstance = adyen.encrypt.createEncryption(cse_key, options);
+
+                        var cseInstance = adyen.createEncryption(options);
+
                         var encryptedData = cseInstance.encrypt(cardData);
                         data.additional_data.encrypted_data = encryptedData;
                     }
@@ -132,9 +136,7 @@ define(
             context: function () {
                 return this;
             },
-            isCseEnabled: function () {
-                return window.checkoutConfig.payment.adyenCc.cseEnabled;
-            },
+
             canCreateBillingAgreement: function () {
                 return window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
             },
@@ -145,6 +147,7 @@ define(
                 var self = this;
                 // convert to list so you can iterate
                 var paymentList = _.map(window.checkoutConfig.payment.adyenOneclick.billingAgreements, function (value) {
+
                     var creditCardExpMonth, creditCardExpYear = false;
                     if (value.agreement_data.card) {
                         creditCardExpMonth = value.agreement_data.card.expiryMonth;
@@ -153,6 +156,7 @@ define(
 
                     // pre-define installments if they are set
                     var i, installments = [];
+
                     var grandTotal = quote.totals().grand_total;
                     var dividedString = "";
                     var dividedAmount = 0;
@@ -160,6 +164,7 @@ define(
                         for (i = 0; i < value.number_of_installments.length; i++) {
                             dividedAmount = (grandTotal / value.number_of_installments[i]).toFixed(quote.getPriceFormat().precision);
                             dividedString = value.number_of_installments[i] + " x " + dividedAmount + " " + quote.totals().quote_currency_code;
+
                             installments.push({
                                 key: [dividedString],
                                 value: value.number_of_installments[i]
@@ -183,9 +188,7 @@ define(
                         creditCardVerificationNumber: '',
                         creditCardExpMonth: ko.observable(creditCardExpMonth),
                         creditCardExpYear: ko.observable(creditCardExpYear),
-                        getCSEKey: function () {
-                            return window.checkoutConfig.payment.adyenCc.cseKey;
-                        },
+
                         getGenerationTime: function () {
                             return window.checkoutConfig.payment.adyenCc.generationTime;
                         },

@@ -31,6 +31,9 @@ use Magento\Framework\App\Helper\AbstractHelper;
 class Data extends AbstractHelper
 {
 
+    const TEST = 'test';
+    const LIVE = 'live';
+
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
      */
@@ -88,7 +91,8 @@ class Data extends AbstractHelper
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\View\Asset\Source $assetSource,
         \Adyen\Payment\Model\Resource\Notification\CollectionFactory $notificationFactory
-    ) {
+    )
+    {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
         $this->_dataStorage = $dataStorage;
@@ -448,6 +452,45 @@ class Data extends AbstractHelper
     public function getAdyenBoletoConfigDataFlag($field, $storeId = null)
     {
         return $this->getConfigData($field, 'adyen_boleto', $storeId, true);
+    }
+
+    /**
+     * @desc Gives back adyen_apple_pay configuration values
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenApplePayConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_apple_pay', $storeId);
+    }
+    
+    /**
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenApplePayMerchantIdentifier($storeId = null)
+    {
+        $demoMode = $this->getAdyenAbstractConfigDataFlag('demo_mode');
+        if ($demoMode) {
+            return $this->getAdyenApplePayConfigData('merchant_identifier_test', $storeId);
+        } else {
+            return $this->getAdyenApplePayConfigData('merchant_identifier_live', $storeId);
+        }
+    }
+
+    /**
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenApplePayPemFileLocation($storeId = null)
+    {
+        $demoMode = $this->getAdyenAbstractConfigDataFlag('demo_mode');
+        if ($demoMode) {
+            return $this->getAdyenApplePayConfigData('full_path_location_pem_file_test', $storeId);
+        } else {
+            return $this->getAdyenApplePayConfigData('full_path_location_pem_file_live', $storeId);
+        }
     }
 
     /**
@@ -866,6 +909,28 @@ class Data extends AbstractHelper
         return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
     }
 
+    public function getApplePayShippingTypes()
+    {
+        return [
+            [
+                'value' => 'shipping',
+                'label' => __('Shipping Method')
+            ],
+            [
+                'value' => 'delivery',
+                'label' => __('Delivery Method')
+            ],
+            [
+                'value' => 'storePickup',
+                'label' => __('Store Pickup Method')
+            ],
+            [
+                'value' => 'servicePickup',
+                'label' => __('Service Pickup Method')
+            ]
+        ];
+    }
+
     public function getUnprocessedNotifications()
     {
         $notifications = $this->_notificationFactory->create();
@@ -873,4 +938,33 @@ class Data extends AbstractHelper
         return $notifications->getSize();;
     }
 
+    /**
+     * @param $storeId
+     * @return mixed
+     */
+    public function getLibraryToken($storeId = null)
+    {
+        if ($this->isDemoMode($storeId)) {
+            $libraryToken = $this->getAdyenCcConfigData('cse_library_token_test', $storeId);
+        } else {
+            $libraryToken = $this->getAdyenCcConfigData('cse_library_token_live', $storeId);
+        }
+        return $libraryToken;
+    }
+
+    /**
+     * Returns the hosted location of the client side encryption file
+     *
+     * @param null $storeId
+     * @return string
+     */
+    public function getLibrarySource($storeId = null)
+    {
+        $environment = self::LIVE;
+        if ($this->isDemoMode($storeId)) {
+            $environment = self::TEST;
+        }
+
+        return "https://" . $environment . ".adyen.com/hpp/cse/js/" . $this->getLibraryToken($storeId) . ".shtml";
+    }
 }

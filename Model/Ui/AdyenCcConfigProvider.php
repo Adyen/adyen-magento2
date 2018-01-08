@@ -64,7 +64,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
      * @var \Magento\Payment\Model\CcConfig
      */
     private $ccConfig;
-    
+
 
     /**
      * AdyenCcConfigProvider constructor.
@@ -84,7 +84,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         \Magento\Framework\UrlInterface $urlBuilder,
         Source $assetSource,
         \Magento\Payment\Model\CcConfig $ccConfig
-    ) {
+    )
+    {
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
@@ -123,25 +124,13 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
             ]
         ]);
 
-        $demoMode = $this->_adyenHelper->getAdyenAbstractConfigDataFlag('demo_mode');
-
-        if ($demoMode) {
-            $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_test');
-        } else {
-            $cseKey = $this->_adyenHelper->getAdyenCcConfigData('cse_publickey_live');
-        }
-
-        $cseEnabled = $this->_adyenHelper->getAdyenCcConfigDataFlag('cse_enabled');
-
         $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type');
         $canCreateBillingAgreement = false;
         if ($recurringType == "ONECLICK" || $recurringType == "ONECLICK,RECURRING") {
             $canCreateBillingAgreement = true;
         }
 
-        $config['payment'] ['adyenCc']['cseKey'] = $cseKey;
-        $config['payment'] ['adyenCc']['cseEnabled'] = $cseEnabled;
-        $config['payment'] ['adyenCc']['cseEnabled'] = $cseEnabled;
+        $config['payment'] ['adyenCc']['librarySource'] = $this->_adyenHelper->getLibrarySource();
         $config['payment']['adyenCc']['generationTime'] = date("c");
         $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();
@@ -251,7 +240,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     {
         return $this->ccConfig->getCvvImageUrl();
     }
-    
+
     /**
      * Retrieve request object
      *

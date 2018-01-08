@@ -109,6 +109,9 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
             ]
         ];
 
+        $gender = "";
+        $dob = "";
+
         // get customer
         if ($this->_customerSession->isLoggedIn()) {
 
@@ -118,11 +121,10 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
 
             // format to calendar date
             $dob = $this->_customerSession->getCustomerData()->getDob();
-            $dob = strtotime($dob);
-            $dob = date('m/d/Y', $dob);
-        } else {
-            $gender = "";
-            $dob = "";
+            if($dob) {
+                $dob = strtotime($dob);
+                $dob = date('m/d/Y', $dob);
+            }
         }
 
         // add to config

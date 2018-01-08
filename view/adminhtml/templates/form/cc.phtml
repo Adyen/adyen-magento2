@@ -31,32 +31,39 @@ $ccExpMonth = $block->getInfoData('cc_exp_month');
 $ccExpYear = $block->getInfoData('cc_exp_year');
 ?>
 
-<fieldset class="admin__fieldset payment-method" id="payment_form_<?php /* @noEscape */ echo $code; ?>"
+<fieldset class="admin__fieldset payment-method" id="payment_form_<?php /* @noEscape */
+echo $code; ?>"
           style="display:none">
 
 
     <div class="field admin__field _required">
-        <label class="admin__field-label" for="<?php /* @noEscape */ echo $code; ?>_cc_owner">
+        <label class="admin__field-label" for="<?php /* @noEscape */
+        echo $code; ?>_cc_owner">
             <span><?php echo $block->escapeHtml(__('Name on Card')); ?></span>
         </label>
         <div class="admin__field-control">
-            <input type="text" id="<?php /* @noEscape */ echo $code; ?>_cc_owner" data-encrypted-name="holderName"
+            <input type="text" id="<?php /* @noEscape */
+            echo $code; ?>_cc_owner" data-encrypted-name="holderName"
                    title="<?php echo $block->escapeHtml(__('Name on Card')); ?>" class="admin__control-text"
-                   value="<?php /* @noEscape */ echo $block->getInfoData('cc_owner'); ?>"/>
+                   value="<?php /* @noEscape */
+                   echo $block->getInfoData('cc_owner'); ?>"/>
         </div>
     </div>
 
 
     <div class="field-type admin__field _required">
-        <label class="admin__field-label" for="<?php /* @noEscape */ echo $code; ?>_cc_type">
+        <label class="admin__field-label" for="<?php /* @noEscape */
+        echo $code; ?>_cc_type">
             <span><?php echo $block->escapeHtml(__('Credit Card Type')); ?></span>
         </label>
         <div class="admin__field-control">
-            <select id="<?php /* @noEscape */ echo $code; ?>_cc_type" name="payment[cc_type]"
+            <select id="<?php /* @noEscape */
+            echo $code; ?>_cc_type" name="payment[cc_type]"
                     class="required-entry validate-cc-type-select admin__control-select">
                 <option value=""></option>
                 <?php foreach ($block->getCcAvailableTypes() as $typeCode => $typeName): ?>
-                    <option value="<?php echo $block->escapeHtml($typeCode); ?>" <?php if ($typeCode == $ccType): ?>selected="selected"<?php endif ?>>
+                    <option value="<?php echo $block->escapeHtml($typeCode); ?>"
+                            <?php if ($typeCode == $ccType): ?>selected="selected"<?php endif ?>>
                         <?php echo $block->escapeHtml($typeName); ?>
                     </option>
                 <?php endforeach ?>
@@ -64,21 +71,27 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
         </div>
     </div>
     <div class="field-number admin__field _required">
-        <label class="admin__field-label" for="<?php /* @noEscape */ echo $code; ?>_cc_number">
+        <label class="admin__field-label" for="<?php /* @noEscape */
+        echo $code; ?>_cc_number">
             <span><?php echo $block->escapeHtml(__('Credit Card Number')); ?></span>
         </label>
         <div class="admin__field-control">
-            <input type="text" id="<?php /* @noEscape */ echo $code; ?>_cc_number" data-encrypted-name="number"
-                   title="<?php echo $block->escapeHtml(__('Credit Card Number')); ?>" class="admin__control-text validate-cc-number"
-                   value="<?php /* @noEscape */ echo $block->getInfoData('cc_number'); ?>"/>
+            <input type="text" id="<?php /* @noEscape */
+            echo $code; ?>_cc_number" data-encrypted-name="number"
+                   title="<?php echo $block->escapeHtml(__('Credit Card Number')); ?>"
+                   class="admin__control-text validate-cc-number"
+                   value="<?php /* @noEscape */
+                   echo $block->getInfoData('cc_number'); ?>"/>
         </div>
     </div>
     <div class="field-date admin__field _required">
-        <label class="admin__field-label" for="<?php /* @noEscape */ echo $code; ?>_expiration">
+        <label class="admin__field-label" for="<?php /* @noEscape */
+        echo $code; ?>_expiration">
             <span><?php echo $block->escapeHtml(__('Expiration Date')); ?></span>
         </label>
         <div class="admin__field-control">
-            <select id="<?php /* @noEscape */ echo $code ?>_expiration" data-encrypted-name="expiryMonth"
+            <select id="<?php /* @noEscape */
+            echo $code ?>_expiration" data-encrypted-name="expiryMonth"
                     class="admin__control-select admin__control-select-month validate-cc-exp required-entry">
                 <?php foreach ($block->getCcMonths() as $k => $v): ?>
                     <option value="<?php echo $block->escapeHtml($k); ?>"
@@ -87,10 +100,12 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                     </option>
                 <?php endforeach; ?>
             </select>
-            <select id="<?php /* @noEscape */ echo $code ?>_expiration_yr" data-encrypted-name="expiryYear"
+            <select id="<?php /* @noEscape */
+            echo $code ?>_expiration_yr" data-encrypted-name="expiryYear"
                     class="admin__control-select admin__control-select-year required-entry">
                 <?php foreach ($block->getCcYears() as $k => $v): ?>
-                    <option value="<?php /* @noEscape */ echo $k ? $block->escapeHtml($k) : '' ?>"
+                    <option value="<?php /* @noEscape */
+                    echo $k ? $block->escapeHtml($k) : '' ?>"
                             <?php if ($k == $ccExpYear): ?>selected="selected"<?php endif ?>>
                         <?php echo $block->escapeHtml($v); ?>
                     </option>
@@ -98,41 +113,50 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
             </select>
 
 
-            <input type="hidden" id="<?php echo $code ?>_encrypted_form_expiry_generationtime" value="<?php echo date("c"); ?>" data-encrypted-name="generationtime" />
+            <input type="hidden" id="<?php echo $code ?>_encrypted_form_expiry_generationtime"
+                   value="<?php echo date("c"); ?>" data-encrypted-name="generationtime"/>
 
         </div>
     </div>
 
     <?php if ($block->hasVerification()): ?>
         <div class="field-number required admin__field _required">
-            <label class="admin__field-label" for="<?php /* @noEscape */ echo $code; ?>_cc_cid">
+            <label class="admin__field-label" for="<?php /* @noEscape */
+            echo $code; ?>_cc_cid">
                 <span><?php echo $block->escapeHtml(__('Card Verification Number')); ?></span>
             </label>
             <div class="admin__field-control">
                 <input type="text" title="<?php echo $block->escapeHtml(__('Card Verification Number')); ?>"
                        class="required-entry validate-cc-cvn admin__control-cvn admin__control-text"
-                       id="<?php /* @noEscape */ echo $code; ?>_cc_cid"
-                       data-encrypted-name="cvc" value="<?php /* @noEscape */ echo $block->getInfoData('cc_cid') ?>"/>
+                       id="<?php /* @noEscape */
+                       echo $code; ?>_cc_cid"
+                       data-encrypted-name="cvc" value="<?php /* @noEscape */
+                echo $block->getInfoData('cc_cid') ?>"/>
             </div>
         </div>
     <?php endif; ?>
 
     <script>
-        require(['jquery',
-            'Magento_Sales/order/create/scripts',
-            "Magento_Sales/order/create/form",
-            'Adyen_Payment/js/adyen-encrypt'],
-            function(jQuery){
+        require(
+            [
+                'jquery',
+                'Magento_Sales/order/create/scripts',
+                "Magento_Sales/order/create/form"
+            ],
+            function () {
+                //<![CDATA[
+                var dfScriptTag = document.createElement('script');
+                dfScriptTag.src = "<?php echo $block->getLibrarySource(); ?>";
+                dfScriptTag.type = "text/javascript";
+                document.body.appendChild(dfScriptTag);
 
-            //<![CDATA[
                 var element = $('payment_form_<?php echo $code ?>');
                 var cse_form = $(element).closest('form');
-                var cse_key = <?php echo json_encode($block->getCsePublicKey()); ?>;
                 var cse_options = {
-                    name:  'payment[encrypted_data]'
+                    name: 'payment[encrypted_data]'
                 };
 
-                var cse = function() {
+                var cse = function () {
 
                     if (order.paymentMethod && order.paymentMethod == '<?php echo $code ?>') {
                         try {
@@ -140,7 +164,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                             // do not validate because it could be that CVC field does not exists (because MOTO this is not needed)
                             cse_options.enableValidations = false;
 
-                            var cseForm = adyen.encrypt.createEncryptedForm(cse_form, cse_key, cse_options);
+                            var cseForm = adyen.createEncryptedForm(cse_form, cse_options);
                             // encrypt data directly because submit button is not always on the page
                             var test = cseForm.encrypt();
                             cseForm.createEncryptedField(test);
@@ -154,9 +178,9 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                     }
                 }
 
-                var cse_initialize = function() {
+                var cse_initialize = function () {
 
-                    order.submit = order.submit.wrap(function(originalSaveMethod) {
+                    order.submit = order.submit.wrap(function (originalSaveMethod) {
                         cse.call(this);
                         originalSaveMethod();
                     });
@@ -169,9 +193,8 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                 else {
                     Event.observe(window, 'load', cse_initialize);
                 }
-            //]]>
-
-        });
+                //]]>
+            });
     </script>
 
 
