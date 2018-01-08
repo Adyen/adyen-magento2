@@ -56,7 +56,6 @@ class InstallmentValidator extends AbstractValidator
         $isValid = true;
         $fails = [];
         $payment = $validationSubject['payment'];
-//        $grandTotal = $payment->getQuote()->getGrandTotal(); breaks the payment!!!!!!!
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $cart = $objectManager->get('\Magento\Checkout\Model\Cart');
         $grandTotal = $cart->getQuote()->getGrandTotal();
