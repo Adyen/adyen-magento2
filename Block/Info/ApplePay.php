@@ -24,11 +24,6 @@
 
 namespace Adyen\Payment\Block\Info;
 
-class ApplePay extends AbstractInfo
+class ApplePay extends Cc
 {
-    /**
-     * @var string
-     */
-    protected $_template = 'Adyen_Payment::info/adyen_cc.phtml';
-
 }
