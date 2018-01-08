@@ -147,9 +147,6 @@ define(
                     result.getCode = function () {
                         return self.item.method;
                     };
-                    result.getBrandCode = function () {
-                        return value.brandCode;
-                    };
                     result.validate = function () {
                         return self.validate(value.brandCode);
                     };
