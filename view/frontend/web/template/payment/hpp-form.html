@@ -53,7 +53,7 @@
                 </div>
 
                 <form class="form" data-role="adyen-hpp-form" action="#" method="post" data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + $parent.getCode() + '_' + value}">
-                <fieldset class="fieldset" data-bind='attr: {id: "payment_form_" + $parent.getCode() + "_" + value}'>
+                <fieldset class="fieldset" data-bind='attr: {id: "payment_fieldset_" + $parent.getCode() + "_" + value}'>
                      <!-- ko if: value == 'ideal' -->
                         <label data-bind="attr: {'for': 'issuerId'}" class="label">
                             <span><!-- ko text: $t('Select Your Bank') --><!-- /ko --></span>
@@ -77,7 +77,7 @@
                                     <div class="control">
                                         <select class="select select-gender-type"
                                                 name="payment[gender]"
-                                                data-bind="attr: {id: getCode() + '_gender_type', 'data-container': getCode() + '-gender-type'},
+                                                data-bind="attr: {id: getCode() + '_gender_type_' + value, 'data-container': getCode() + '-gender-type'},
                                                     options: $parent.getGenderTypes(),
                                                     optionsValue: 'key',
                                                     optionsText: 'value',
