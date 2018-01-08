@@ -147,8 +147,11 @@ define(
                     result.getCode = function () {
                         return self.item.method;
                     };
+                    result.getBrandCode = function () {
+                        return value.brandCode;
+                    };
                     result.validate = function () {
-                        return self.validate();
+                        return self.validate(value.brandCode);
                     };
                     result.isPaymentMethodOpenInvoiceMethod = function () {
                         return value.isPaymentMethodOpenInvoiceMethod;
@@ -234,7 +237,8 @@ define(
 
                     if (brandCode() == "ideal") {
                         additionalData.issuer_id = this.issuerId();
-                    } else if (self.isPaymentMethodOpenInvoiceMethod()) {
+                    }
+                    else if (self.isPaymentMethodOpenInvoiceMethod()) {
                         additionalData.gender = this.gender();
                         additionalData.dob = this.dob();
                         additionalData.telephone = this.telephone();
@@ -292,7 +296,14 @@ define(
             isIconEnabled: function () {
                 return window.checkoutConfig.payment.adyen.showLogo;
             },
-            validate: function () {
+            validate: function (brandCode) {
+                var form = '#payment_form_' + this.getCode() + '_' + brandCode;
+                var validate =  $(form).validation() && $(form).validation('isValid');
+
+                if(!validate) {
+                    return false;
+                }
+
                 return true;
             },
             getRatePayDeviceIdentToken: function () {

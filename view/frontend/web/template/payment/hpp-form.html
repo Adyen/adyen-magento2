@@ -52,8 +52,8 @@
                     <!--/ko-->
                 </div>
 
+                <form class="form" data-role="adyen-hpp-form" action="#" method="post" data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + $parent.getCode() + '_' + value}">
                 <fieldset class="fieldset" data-bind='attr: {id: "payment_form_" + $parent.getCode() + "_" + value}'>
-
                      <!-- ko if: value == 'ideal' -->
                         <label data-bind="attr: {'for': 'issuerId'}" class="label">
                             <span><!-- ko text: $t('Select Your Bank') --><!-- /ko --></span>
@@ -68,7 +68,6 @@
                         </select>
                     <!--/ko-->
 
-
                     <!-- ko if: isPaymentMethodOpenInvoiceMethod() -->
                         <!-- ko if: showGender() -->
                             <div class="field gender type required">
@@ -78,7 +77,7 @@
                                     <div class="control">
                                         <select class="select select-gender-type"
                                                 name="payment[gender]"
-                                                data-bind="attr: {id: getCode() + '_gender_type', 'data-container': getCode() + '-gender-type', 'data-validate': JSON.stringify({required:true})},
+                                                data-bind="attr: {id: getCode() + '_gender_type', 'data-container': getCode() + '-gender-type'},
                                                     options: $parent.getGenderTypes(),
                                                     optionsValue: 'key',
                                                     optionsText: 'value',
@@ -98,14 +97,13 @@
                                 <div class="control">
                                     <input type="text" class="input-text"
                                            name="payment[dob]"
-                                           data-bind="
-                                            datepicker: { storage: datepickerValue, options: { showOn: 'both', changeYear: true, yearRange: '-99:-1', defaultDate: '-20y' } },
-                                           attr: {
-                                                title: $t('Date of Birth'),
-                                                'data-container': getCode() + '-dob',
-                                                'data-validate': JSON.stringify({'required':true })
-                                            },
-                                            value: dob"
+                                           data-bind="  datepicker: { storage: datepickerValue, options: { showOn: 'both', changeYear: true, yearRange: '-99:-1', defaultDate: '-20y' } },
+                                                        attr: {
+                                                             title: $t('Date of Birth'),
+                                                             'data-container': getCode() + '-dob'
+                                                         },
+                                                         value: dob"
+                                           data-validate="{required:true}"
                                     />
                                 </div>
                             </div>
@@ -124,7 +122,7 @@
                                                     id: getCode() + '_telephone',
                                                     title: $t('Telephone'),
                                                     'data-container': getCode() + '-telephone',
-                                                    'data-validate': JSON.stringify({'required-number':true })
+                                                    'data-validate': JSON.stringify({'required-number':true})
                                                 },
                                                 value: telephone"
                                            data-validate="{required:true}"
@@ -146,7 +144,7 @@
                                                 id: getCode() + '_ssn',
                                                 title: $t('Social Security Number'),
                                                 'data-container': getCode() + '-ssn',
-                                                'data-validate': JSON.stringify({'required-number':true }),
+                                                'data-validate': JSON.stringify({'required-number':true}),
                                                 maxlength : getSsnLength()
                                             },
                                             value: ssn"
@@ -158,6 +156,8 @@
 
                     <!--/ko-->
                 </fieldset>
+                </form>
+
                 <div class="checkout-agreements-block">
                     <!-- ko foreach: $parents[1].getRegion('before-place-order') -->
                     <!-- ko template: getTemplate() --><!-- /ko -->

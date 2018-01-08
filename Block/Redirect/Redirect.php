@@ -303,7 +303,7 @@ class Redirect extends \Magento\Payment\Block\Form
                     $formFields['deliveryAddressType'] = "1";
 
                     // make setting to make this optional
-                    $formFields['shopperType'] = "1";
+                    //$formFields['shopperType'] = "1";
                 }
 
                 if ($this->_order->getPayment()->getAdditionalInformation("df_value") != "") {
