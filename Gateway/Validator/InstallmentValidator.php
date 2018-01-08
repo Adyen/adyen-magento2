@@ -40,6 +40,18 @@ class InstallmentValidator extends AbstractValidator
      */
     private $adyenHelper;
 
+    /**
+     * @var \Magento\Framework\App\ObjectManager
+     */
+    private $objectManager;
+
+    /**
+     * InstallmentValidator constructor.
+     * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Framework\App\ObjectManager $objectManager
+     */
     public function __construct(
         \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
@@ -47,6 +59,7 @@ class InstallmentValidator extends AbstractValidator
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
+        $this->objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         parent::__construct($resultFactory);
     }
 
@@ -56,8 +69,7 @@ class InstallmentValidator extends AbstractValidator
         $isValid = true;
         $fails = [];
         $payment = $validationSubject['payment'];
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $cart = $objectManager->get('\Magento\Checkout\Model\Cart');
+        $cart = $this->objectManager->get('\Magento\Checkout\Model\Cart');
         $grandTotal = $cart->getQuote()->getGrandTotal();
         $installmentsAvailable = $this->adyenHelper->getAdyenCcConfigData('installments');
         $installmentSelected = $payment->getAdditionalInformation('number_of_installments');
@@ -65,7 +77,7 @@ class InstallmentValidator extends AbstractValidator
         if ($installmentsAvailable) {
             $installments = unserialize($installmentsAvailable);
         }
-        if ($installmentSelected&&$installmentsAvailable) {
+        if ($installmentSelected && $installmentsAvailable) {
             $isValid = false;
             $fails[] = __('Installments not valid.');
             if ($installments) {

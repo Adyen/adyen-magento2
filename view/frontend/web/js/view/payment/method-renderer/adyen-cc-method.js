@@ -74,7 +74,7 @@ define(
 
                 installments.setInstallments(0);
 
-                
+
                 // include dynamic cse javascript
                 var dfScriptTag = document.createElement('script');
                 dfScriptTag.src = this.getLibrarySource();
@@ -91,11 +91,11 @@ define(
 
                     if (creditCardData.creditCard) {
                         var creditcardType = creditCardData.creditCard.type;
-                      
+
                         cvcLength(4);
                         if (creditcardType != "AE") {
                             cvcLength(3);
-                            }
+                        }
                         if (creditcardType in allInstallments) {
 
                             // get for the creditcard the installments
@@ -210,7 +210,7 @@ define(
             },
             getCSEKey: function () {
                 return window.checkoutConfig.payment.adyenCc.cseKey;
-
+            },
             getLibrarySource: function () {
                 return window.checkoutConfig.payment.adyenCc.librarySource;
 
