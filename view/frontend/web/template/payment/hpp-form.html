@@ -71,7 +71,7 @@
                     <!-- ko if: isPaymentMethodOpenInvoiceMethod() -->
                         <!-- ko if: showGender() -->
                             <div class="field gender type required">
-                                    <label data-bind="attr: {for: getCode() + '_gender_type'}" class="label">
+                                    <label data-bind="attr: {for: getCode() + '_gender_type_' + value}" class="label">
                                         <span><!-- ko text: $t('Gender')--><!-- /ko --></span>
                                     </label>
                                     <div class="control">
@@ -91,7 +91,7 @@
 
                         <!-- ko if: showDob() -->
                             <div class="field dob type required">
-                                <label data-bind="attr: {for: getCode() + '_dob'}" class="label">
+                                <label data-bind="attr: {for: getCode() + '_dob_' + value}" class="label">
                                     <span><!-- ko text: $t('Date of Birth')--><!-- /ko --></span>
                                 </label>
                                 <div class="control">
@@ -99,6 +99,7 @@
                                            name="payment[dob]"
                                            data-bind="  datepicker: { storage: datepickerValue, options: { showOn: 'both', changeYear: true, yearRange: '-99:-1', defaultDate: '-20y' } },
                                                         attr: {
+                                                             id: getCode() + '_dob_' + value,
                                                              title: $t('Date of Birth'),
                                                              'data-container': getCode() + '-dob'
                                                          },
@@ -111,7 +112,7 @@
 
                         <!-- ko if: showTelephone() -->
                             <div class="field telephone type required">
-                                <label data-bind="attr: {for: getCode() + '_telephone'}" class="label">
+                                <label data-bind="attr: {for: getCode() + '_telephone_' + value}" class="label">
                                     <span><!-- ko text: $t('Telephone')--><!-- /ko --></span>
                                 </label>
                                 <div class="control">
@@ -119,9 +120,9 @@
                                            name="payment[telephone]"
                                            data-bind="
                                                attr: {
-                                                    id: getCode() + '_telephone',
+                                                    id: getCode() + '_telephone_' + value,
                                                     title: $t('Telephone'),
-                                                    'data-container': getCode() + '-telephone',
+                                                    'data-container': getCode() + '-telephone_' + value,
                                                     'data-validate': JSON.stringify({'required-number':true})
                                                 },
                                                 value: telephone"
@@ -133,7 +134,7 @@
 
                     <!-- ko if: showSsn() -->
                     <div class="field ssn type required">
-                        <label data-bind="attr: {for: getCode() + '_ssn'}" class="label">
+                        <label data-bind="attr: {for: getCode() + '_ssn_' + value}" class="label">
                             <span><!-- ko text: $t('Personal number (last digits)')--><!-- /ko --></span>
                         </label>
                         <div class="control">
@@ -141,7 +142,7 @@
                                    name="payment[ssn]"
                                    data-bind="
                                            attr: {
-                                                id: getCode() + '_ssn',
+                                                id: getCode() + '_ssn_' + value,
                                                 title: $t('Social Security Number'),
                                                 'data-container': getCode() + '-ssn',
                                                 'data-validate': JSON.stringify({'required-number':true}),
