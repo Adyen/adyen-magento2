@@ -138,31 +138,28 @@ define(
              * @override
              */
             placeOrder: function (data, event) {
-                var self = this,
-                    placeOrder;
-
                 if (event) {
                     event.preventDefault();
                 }
-                
+
                 var options = {};
                 var cseInstance = adyen.createEncryption(options);
-                var generationtime = self.getGenerationTime();
+                var generationtime = this.getGenerationTime();
 
                 var cardData = {
-                    number: self.creditCardNumber(),
-                    cvc: self.creditCardVerificationNumber(),
-                    holderName: self.creditCardOwner(),
-                    expiryMonth: self.creditCardExpMonth(),
-                    expiryYear: self.creditCardExpYear(),
+                    number: this.creditCardNumber(),
+                    cvc: this.creditCardVerificationNumber(),
+                    holderName: this.creditCardOwner(),
+                    expiryMonth: this.creditCardExpMonth(),
+                    expiryYear: this.creditCardExpYear(),
                     generationtime: generationtime
                 };
 
                 var data = cseInstance.encrypt(cardData);
-                self.encryptedData(data);
+                this.encryptedData(data);
 
                 // rest is default placeOrder logic
-                return self._super();
+                return this._super();
             },
             getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];

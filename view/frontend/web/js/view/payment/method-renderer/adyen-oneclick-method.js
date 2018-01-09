@@ -26,19 +26,23 @@ define(
         'jquery',
         'Magento_Payment/js/view/payment/cc-form',
         'Magento_Checkout/js/action/select-payment-method',
+        'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/quote',
-        'Magento_Checkout/js/checkout-data'
+        'Magento_Checkout/js/checkout-data',
+        'Magento_Checkout/js/action/redirect-on-success'
     ],
-    function (ko, _, $, Component, selectPaymentMethodAction, quote, checkoutData) {
+    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction) {
         'use strict';
         var updatedExpiryDate = false;
         var recurringDetailReference = ko.observable(null);
+        var variant =  ko.observable(null);
         var paymentMethod = ko.observable(null);
         return Component.extend({
             defaults: {
                 template: 'Adyen_Payment/payment/oneclick-form',
                 recurringDetailReference: '',
-                encryptedData: ''
+                encryptedData: '',
+                variant: ''
             },
             initObservable: function () {
                 this._super()
@@ -46,7 +50,8 @@ define(
                         'recurringDetailReference',
                         'creditCardType',
                         'creditCardVerificationNumber',
-                        'encryptedData'
+                        'encryptedData',
+                        'variant'
                     ]);
                 return this;
             },
@@ -68,8 +73,7 @@ define(
              * @override
              */
             placeOrder: function (data, event) {
-                var self = this,
-                    placeOrder;
+                var self = this;
 
                 if (event) {
                     event.preventDefault();
@@ -103,13 +107,38 @@ define(
                         data.additional_data.encrypted_data = encryptedData;
                     }
 
-
                     // set payment method to adyen_hpp
                     data.additional_data.number_of_installments = self.installment;
                 }
 
-                // rest is default placeOrder logic
-                return self._super();
+                // in different context so need custom place order logic
+                if (this.validate() && additionalValidators.validate()) {
+                    self.isPlaceOrderActionAllowed(false);
+
+                    this.getPlaceOrderDeferredObject()
+                        .fail(
+                            function () {
+                                self.isPlaceOrderActionAllowed(true);
+                            }
+                        ).done(
+                        function () {
+                            self.afterPlaceOrder();
+                            redirectOnSuccessAction.execute();
+                        }
+                    );
+                    return true;
+                }
+                return false;
+            },
+            getData: function () {
+                debugger;;
+                return {
+                    "method": this.item.method,
+                    "additional_data": {
+                        variant: variant(),
+                        recurring_detail_reference: recurringDetailReference()
+                    }
+                };
             },
             getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
@@ -166,6 +195,15 @@ define(
                         },
                         hasVerification: function () {
                             return window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction;
+                        },
+                        isPlaceOrderActionAllowed: function() {
+                          return self.isPlaceOrderActionAllowed(); // needed for placeOrder method
+                        },
+                        afterPlaceOrder: function() {
+                            return self.afterPlaceOrder(); // needed for placeOrder method
+                        },
+                        getPlaceOrderDeferredObject: function() {
+                            return self.getPlaceOrderDeferredObject();
                         },
                         validate: function () {
 
@@ -226,6 +264,7 @@ define(
 
                 // set the brandCode
                 recurringDetailReference(self.value);
+                variant(self.agreement_data.variant);
 
                 // set payment method
                 paymentMethod(self.method);
