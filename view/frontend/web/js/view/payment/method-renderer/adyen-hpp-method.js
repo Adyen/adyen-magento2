@@ -19,14 +19,11 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-/*browser:true*/
-/*global define*/
 define(
     [
         'ko',
         'jquery',
         'Magento_Checkout/js/view/payment/default',
-        'Adyen_Payment/js/action/set-payment-method',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/checkout-data',
@@ -35,9 +32,10 @@ define(
         'Magento_Checkout/js/model/url-builder',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Magento_Customer/js/model/customer',
-        'Magento_Checkout/js/model/full-screen-loader'
+        'Magento_Checkout/js/model/full-screen-loader',
+        'Magento_Checkout/js/action/place-order',
     ],
-    function (ko, $, Component, setPaymentMethodAction, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader) {
+    function (ko, $, Component, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader, placeOrderAction) {
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
@@ -150,6 +148,15 @@ define(
                     result.validate = function () {
                         return self.validate();
                     };
+                    result.placeRedirectOrder = function placeRedirectOrder(data) {
+                        return self.placeRedirectOrder(data);
+                    };
+                    result.isPlaceOrderActionAllowed = function(bool) {
+                        return self.isPlaceOrderActionAllowed(bool);
+                    };
+                    result.afterPlaceOrder = function() {
+                        return self.afterPlaceOrder();
+                    };
                     result.isPaymentMethodOpenInvoiceMethod = function () {
                         return value.isPaymentMethodOpenInvoiceMethod;
                     };
@@ -212,10 +219,12 @@ define(
             },
             /** Redirect to adyen */
             continueToAdyen: function () {
+                var self = this;
+
                 if (this.validate() && additionalValidators.validate()) {
-                    //update payment method information if additional data was changed
-                    this.selectPaymentMethod();
-                    setPaymentMethodAction();
+                     var data = {};
+                    data.method = self.method;
+                    this.placeRedirectOrder(data);
                     return false;
                 }
             },
@@ -245,9 +254,7 @@ define(
                     }
 
                     data.additional_data = additionalData;
-
-                    selectPaymentMethodAction(data);
-                    setPaymentMethodAction();
+                    this.placeRedirectOrder(data);
                 }
 
                 return false;
@@ -274,6 +281,27 @@ define(
                 checkoutData.setSelectedPaymentMethod(self.method);
 
                 return true;
+            },
+            placeRedirectOrder: function(data) {
+                // Place Order but use our own redirect url after
+                var self = this;
+                this.isPlaceOrderActionAllowed(false);
+                fullScreenLoader.startLoader();
+
+                $.when(
+                    placeOrderAction(data, this.messageContainer)
+                ).fail(
+                    function () {
+                        self.isPlaceOrderActionAllowed(true);
+                    }
+                ).done(
+                    function () {
+                        self.afterPlaceOrder();
+                        $.mage.redirect(
+                            window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
+                        );
+                    }
+                )
             },
             isBrandCodeChecked: ko.computed(function () {
 

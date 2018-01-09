@@ -19,7 +19,6 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-
 define(
     [
         'jquery',
