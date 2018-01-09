@@ -139,9 +139,10 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $config['payment']['adyenCc']['hasInstallments'] = false;
 
         // get Installments
+        $installmentsEnabled = $this->_adyenHelper->getAdyenCcConfigData('enable_installments');
         $installments = $this->_adyenHelper->getAdyenCcConfigData('installments');
 
-        if ($installments) {
+        if ($installmentsEnabled && $installments) {
             $config['payment']['adyenCc']['installments'] = unserialize($installments);
             $config['payment']['adyenCc']['hasInstallments'] = true;
         } else {
