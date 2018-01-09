@@ -41,9 +41,9 @@ class InstallmentValidator extends AbstractValidator
     private $adyenHelper;
 
     /**
-     * @var \Magento\Framework\App\ObjectManager
+     * @var \Magento\Checkout\Model\Session
      */
-    private $objectManager;
+    private $session;
 
     /**
      * InstallmentValidator constructor.
@@ -55,11 +55,12 @@ class InstallmentValidator extends AbstractValidator
     public function __construct(
         \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Checkout\Model\Session $session
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
-        $this->objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $this->session = $session;
         parent::__construct($resultFactory);
     }
 
@@ -69,24 +70,26 @@ class InstallmentValidator extends AbstractValidator
         $isValid = true;
         $fails = [];
         $payment = $validationSubject['payment'];
-        $cart = $this->objectManager->get('\Magento\Checkout\Model\Cart');
-        $grandTotal = $cart->getQuote()->getGrandTotal();
-        $installmentsAvailable = $this->adyenHelper->getAdyenCcConfigData('installments');
-        $installmentSelected = $payment->getAdditionalInformation('number_of_installments');
-        $ccType = $payment->getAdditionalInformation('cc_type');
-        if ($installmentsAvailable) {
-            $installments = unserialize($installmentsAvailable);
-        }
-        if ($installmentSelected && $installmentsAvailable) {
-            $isValid = false;
-            $fails[] = __('Installments not valid.');
-            if ($installments) {
-                foreach ($installments as $ccTypeInstallment => $installment) {
-                    if ($ccTypeInstallment == $ccType) {
-                        foreach ($installment as $amount => $installments2) {
-                            if ($installmentSelected == $installments2) {
-                                if ($grandTotal >= $amount) {
-                                    $isValid = true;
+        $quote = $this->session->getQuote();
+        if ($quote) {
+            $grandTotal = $quote->getGrandTotal();
+            $installmentsAvailable = $this->adyenHelper->getAdyenCcConfigData('installments');
+            $installmentSelected = $payment->getAdditionalInformation('number_of_installments');
+            $ccType = $payment->getAdditionalInformation('cc_type');
+            if ($installmentsAvailable) {
+                $installments = unserialize($installmentsAvailable);
+            }
+            if ($installmentSelected && $installmentsAvailable) {
+                $isValid = false;
+                $fails[] = __('Installments not valid.');
+                if ($installments) {
+                    foreach ($installments as $ccTypeInstallment => $installment) {
+                        if ($ccTypeInstallment == $ccType) {
+                            foreach ($installment as $amount => $installmentsData) {
+                                if ($installmentSelected == $installmentsData) {
+                                    if ($grandTotal >= $amount) {
+                                        $isValid = true;
+                                    }
                                 }
                             }
                         }

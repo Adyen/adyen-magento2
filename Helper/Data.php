@@ -829,6 +829,7 @@ class Data extends AbstractHelper
                             }
                         }
                         if ($numberOfInstallments) {
+                            sort($numberOfInstallments);
                             $data['number_of_installments'] = $numberOfInstallments;
                         }
                     }
