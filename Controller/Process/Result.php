@@ -211,23 +211,30 @@ class Result extends \Magento\Framework\App\Action\Action
             $type, $authResult, $pspReference, $paymentMethod
         );
 
-        $history = $this->_orderHistoryFactory->create()
-            //->setStatus($status)
-            ->setComment($comment)
-            ->setEntityName('order')
-            ->setOrder($order)
-        ;
-
-        $history->save();
 
         // needed because then we need to save $order objects
         $order->setAdyenResulturlEventCode($authResult);
 
         switch ($authResult) {
             case Notification::AUTHORISED:
+                $result = true;
+                $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
+                break;
             case Notification::PENDING:
                 // do nothing wait for the notification
                 $result = true;
+                if (strpos($paymentMethod,"bankTransfer") !== false){
+                    $comment .= "<br /><br />Waiting for the customer to transfer the money.";
+                }
+                elseif($paymentMethod == "sepadirectdebit"){
+                    $comment .= "<br /><br />This request will be send to the bank at the end of the day.";
+                }
+                else {
+                    $comment .= "<br /><br />The payment result is not confirmed (yet).
+                                 <br />Once the payment is authorised, the order status will be updated accordingly. 
+                                 <br />If the order is stuck on this status, the payment can be seen as unsuccessful. 
+                                 <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. Please contact Adyen Support to enable this.";
+                }
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
             case Notification::CANCELLED:
@@ -249,6 +256,15 @@ class Result extends \Magento\Framework\App\Action\Action
                 $result = false;
                 break;
         }
+
+        $history = $this->_orderHistoryFactory->create()
+            //->setStatus($status)
+            ->setComment($comment)
+            ->setEntityName('order')
+            ->setOrder($order)
+        ;
+
+        $history->save();
 
         return $result;
     }

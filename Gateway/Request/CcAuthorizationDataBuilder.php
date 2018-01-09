@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
+use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 
 class CcAuthorizationDataBuilder implements BuilderInterface
 {
@@ -46,7 +47,8 @@ class CcAuthorizationDataBuilder implements BuilderInterface
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\Model\Context $context
-    ) {
+    )
+    {
         $this->adyenHelper = $adyenHelper;
         $this->appState = $context->getAppState();
     }
@@ -64,35 +66,30 @@ class CcAuthorizationDataBuilder implements BuilderInterface
         $storeId = $order->getStoreId();
         $request = [];
 
-        if ($this->adyenHelper->getAdyenCcConfigDataFlag('cse_enabled', $storeId)) {
-            $request['additionalData']['card.encrypted.json'] =
-                $payment->getAdditionalInformation("encrypted_data");
-        } else {
-            $requestCreditCardDetails = [
-                "expiryMonth" => $payment->getCcExpMonth(),
-                "expiryYear" => $payment->getCcExpYear(),
-                "holderName" => $payment->getCcOwner(),
-                "number" => $payment->getCcNumber(),
-                "cvc" => $payment->getCcCid(),
-            ];
-            $cardDetails['card'] = $requestCreditCardDetails;
-            $request = array_merge($request, $cardDetails);
-        }
+
+        $request['additionalData']['card.encrypted.json'] =
+            $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_DATA);
+
+        // Remove from additional data
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_DATA);
+
 
         /**
          * if MOTO for backend is enabled use MOTO as shopper interaction type
          */
         $enableMoto = $this->adyenHelper->getAdyenCcConfigDataFlag('enable_moto', $storeId);
         if ($this->appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE &&
-            $enableMoto) {
+            $enableMoto
+        ) {
             $request['shopperInteraction'] = "Moto";
         }
         // if installments is set add it into the request
         if ($payment->getAdditionalInformation('number_of_installments') &&
-            $payment->getAdditionalInformation('number_of_installments')  > 0) {
+            $payment->getAdditionalInformation('number_of_installments') > 0
+        ) {
             $request['installments']['value'] = $payment->getAdditionalInformation('number_of_installments');
         }
-        
+
         return $request;
     }
 }

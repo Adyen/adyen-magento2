@@ -62,7 +62,10 @@ class Installments extends \Magento\Framework\App\Config\Value
     public function beforeSave()
     {
         $value = $this->getValue();
-
+        $unserialized = @unserialize($value);
+        if ($unserialized !== false) {
+            return $this;
+        }
         $result = [];
         foreach ($value as $data) {
             if (!$data) {
@@ -79,12 +82,19 @@ class Installments extends \Magento\Framework\App\Config\Value
             $installments = $data['installments'];
             $ccTypes = $data['cc_types'];
 
-            foreach($ccTypes as $ccType) {
-                    $result[$ccType][$amount] =  $installments;
+            foreach ($ccTypes as $ccType) {
+                $result[$ccType][$amount] = $installments;
             }
         }
 
-        $this->setValue(serialize($result));
+        // sort on installments
+        $finalResult = [];
+        foreach ($result as $key => $installments) {
+            asort($installments);
+            $finalResult[$key] = $installments;
+        }
+
+        $this->setValue(serialize($finalResult));
         return $this;
     }
 

@@ -47,20 +47,15 @@
             <source_model>Adyen\Payment\Model\Config\Source\CcType</source_model>
             <config_path>payment/adyen_cc/cctypes</config_path>
         </field>
-        <!--<field id="cse_enabled" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">-->
-            <!--<label>Enable CSE</label>-->
-            <!--<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
-            <!--<config_path>payment/adyen_cc/cse_enabled</config_path>-->
-        <!--</field>-->
-        <field id="cse_publickey_test" translate="label" type="textarea" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Enter CSE Public Key of Test Adyen Web Service User</label>
-            <depends><field id="cse_enabled">1</field></depends>
-            <config_path>payment/adyen_cc/cse_publickey_test</config_path>
+        <field id="cse_library_token_test" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Library token of Test Adyen Web Service User</label>
+            <tooltip>Copy this from the Test Adyen Customer Area => Settings => Users => System => [web service user]=> Library token.</tooltip>
+            <config_path>payment/adyen_cc/cse_library_token_test</config_path>
         </field>
-        <field id="cse_publickey_live" translate="label" type="textarea" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Enter CSE Public Key of Live Adyen Web Service User</label>
-            <depends><field id="cse_enabled">1</field></depends>
-            <config_path>payment/adyen_cc/cse_publickey_live</config_path>
+        <field id="cse_library_token_live" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Library token of Live Adyen Web Service User</label>
+            <tooltip>Copy this from the Live Adyen Customer Area => Settings => Users => System => [web service user]=> Library token.</tooltip>
+            <config_path>payment/adyen_cc/cse_library_token_live</config_path>
         </field>
 
         <group id="adyen_cc_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" sortOrder="150">
@@ -72,9 +67,17 @@
                 <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 <config_path>payment/adyen_cc/enable_moto</config_path>
             </field>
-            <field id="installments" translate="label" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="0">
+            <field id="enable_installments" translate="label" type="select" sortOrder="219" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Enable Installments</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <tooltip>Enable installments for each credit card type.</tooltip>
+                <config_path>payment/adyen_cc/enable_installments</config_path>
+            </field>
+            <field id="installments" translate="label" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Installments</label>
-                <tooltip>Configure your installment foreach creditcard type.</tooltip>
+                <depends><field id="enable_installments">1</field></depends>
+                <tooltip>Configure your installment for each credit card type: Insert the minimum amount required to make the configured installment available in the amount range column.
+                    Example: if the amount range is configured to 100 and the number of installments to 4x, the shopper will see the 4x option only if the payment total is higher or equal than 100.</tooltip>
                 <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Installments</frontend_model>
                 <backend_model>Adyen\Payment\Model\Config\Backend\Installments</backend_model>
                 <config_path>payment/adyen_cc/installments</config_path>
