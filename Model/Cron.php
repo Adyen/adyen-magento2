@@ -1212,7 +1212,7 @@ class Cron
             $captureModeOpenInvoice = $this->_getConfigData(
                 'auto_capture_openinvoice', 'adyen_abstract', $this->_order->getStoreId()
             );
-            $captureModePayPal = trim($this->_getConfigData(
+            $manualCapturePayPal = trim($this->_getConfigData(
                 'paypal_capture_mode', 'adyen_abstract', $this->_order->getStoreId())
             );
 
@@ -1252,7 +1252,7 @@ class Cron
 
             // if PayPal capture modues is different from the default use this one
             if (strcmp($this->_paymentMethod, 'paypal') === 0) {
-                if ($captureModePayPal) {
+                if ($manualCapturePayPal) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         'This payment method is paypal and configured to work as manual capture'
                     );
