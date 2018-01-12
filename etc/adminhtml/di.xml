@@ -4,6 +4,7 @@
         <arguments>
             <argument name="messages" xsi:type="array">
                 <item name="cronMessage" xsi:type="string">Adyen\Payment\AdminMessage\CronMessage</item>
+                <item name="versionMessage" xsi:type="string">Adyen\Payment\AdminMessage\VersionMessage</item>
             </argument>
         </arguments>
     </type>
