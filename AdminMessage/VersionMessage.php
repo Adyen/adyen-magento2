@@ -89,7 +89,7 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
                 if ($this->_adyenHelper->getModuleVersion() != $githubContent['tag_name']) {
                     return true;
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 return false;
             }
         }
@@ -110,8 +110,8 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
             $message .= __("<a href= " . $githubContent['html_url'] . " target='_blank'> " . $githubContent['tag_name'] . "!</a>");
             $message .= __(" You are running the " . $this->_adyenHelper->getModuleVersion() . " version. We advise to update your plugin extension.");
             return __($message);
-        } catch (Exception $e) {
-            return __("asd");
+        } catch (\Exception $e) {
+            return null;
         }
     }
 
