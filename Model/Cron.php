@@ -210,7 +210,8 @@ class Cron
         \Adyen\Payment\Model\Order\PaymentFactory $adyenOrderPaymentFactory,
         \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
         AreaList $areaList
-    ) {
+    )
+    {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
         $this->_notificationFactory = $notificationFactory;
@@ -235,7 +236,7 @@ class Cron
     {
         try {
             $this->execute();
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->_adyenLogger->addAdyenNotificationCronjob($e->getMessage() . "\n" . $e->getTraceAsString());
             throw $e;
         }
@@ -1248,18 +1249,19 @@ class Cron
                 );
                 return true;
             }
+
             // if PayPal capture modues is different from the default use this one
-            if (strcmp($this->_paymentMethod, 'paypal') === 0 && $captureModePayPal != "") {
-                if (strcmp($captureModePayPal, 'auto') === 0) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        'This payment method is paypal and configured to work as auto capture'
-                    );
-                    return true;
-                } elseif (strcmp($captureModePayPal, 'manual') === 0) {
+            if (strcmp($this->_paymentMethod, 'paypal') === 0) {
+                if ($captureModePayPal) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         'This payment method is paypal and configured to work as manual capture'
                     );
                     return false;
+                } else {
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        'This payment method is paypal and configured to work as auto capture'
+                    );
+                    return true;
                 }
             }
             if (strcmp($captureMode, 'manual') === 0) {
@@ -1609,4 +1611,6 @@ class Cron
         $path = 'payment/' . $paymentMethodCode . '/' . $field;
         return $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
     }
+
+
 }
