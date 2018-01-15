@@ -80,14 +80,14 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
         $this->addColumn(
             'amount',
             [
-                'label'     => __('Amount Range (minor units)'),
+                'label'     => __('Amount Range'),
                 'renderer'  => false,
             ]
         );
         $this->addColumn(
             'installments',
             [
-                'label'     => __('Max Number Of Installments'),
+                'label'     => __('Number Of Installments'),
                 'renderer'  => $this->getNumberOfInstallmentsRenderer(),
             ]
         );

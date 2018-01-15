@@ -110,6 +110,7 @@ define(
             context: function () {
                 return this;
             },
+
             canCreateBillingAgreement: function () {
                 return window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
             },
@@ -129,11 +130,18 @@ define(
 
                     // pre-define installments if they are set
                     var i, installments = [];
-                    if (value.number_of_installments > 0) {
-                        for (i = 1; i <= value.number_of_installments; i++) {
+
+                    var grandTotal = quote.totals().grand_total;
+                    var dividedString = "";
+                    var dividedAmount = 0;
+                    if (value.number_of_installments) {
+                        for (i = 0; i < value.number_of_installments.length; i++) {
+                            dividedAmount = (grandTotal / value.number_of_installments[i]).toFixed(quote.getPriceFormat().precision);
+                            dividedString = value.number_of_installments[i] + " x " + dividedAmount + " " + quote.totals().quote_currency_code;
+
                             installments.push({
-                                key: i,
-                                value: i
+                                key: [dividedString],
+                                value: value.number_of_installments[i]
                             });
                         }
                     }
@@ -156,6 +164,7 @@ define(
                         creditCardVerificationNumber: '',
                         creditCardExpMonth: ko.observable(creditCardExpMonth),
                         creditCardExpYear: ko.observable(creditCardExpYear),
+
                         getGenerationTime: function () {
                             return window.checkoutConfig.payment.adyenCc.generationTime;
                         },

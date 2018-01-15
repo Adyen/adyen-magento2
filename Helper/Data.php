@@ -455,6 +455,45 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @desc Gives back adyen_apple_pay configuration values
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenApplePayConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_apple_pay', $storeId);
+    }
+    
+    /**
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenApplePayMerchantIdentifier($storeId = null)
+    {
+        $demoMode = $this->getAdyenAbstractConfigDataFlag('demo_mode');
+        if ($demoMode) {
+            return $this->getAdyenApplePayConfigData('merchant_identifier_test', $storeId);
+        } else {
+            return $this->getAdyenApplePayConfigData('merchant_identifier_live', $storeId);
+        }
+    }
+
+    /**
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenApplePayPemFileLocation($storeId = null)
+    {
+        $demoMode = $this->getAdyenAbstractConfigDataFlag('demo_mode');
+        if ($demoMode) {
+            return $this->getAdyenApplePayConfigData('full_path_location_pem_file_test', $storeId);
+        } else {
+            return $this->getAdyenApplePayConfigData('full_path_location_pem_file_live', $storeId);
+        }
+    }
+
+    /**
      * @desc Retrieve decrypted hmac key
      * @return string
      */
@@ -778,18 +817,19 @@ class Data extends AbstractHelper
                     }
 
                     if ($installments) {
-                        $numberOfInstallments = null;
+                        $numberOfInstallments = [];
 
                         foreach ($installments as $ccTypeInstallment => $installment) {
                             if ($ccTypeInstallment == $ccType) {
                                 foreach ($installment as $amount => $installments) {
-                                    if ($grandTotal <= $amount) {
-                                        $numberOfInstallments = $installments;
+                                    if ($grandTotal >= $amount) {
+                                        array_push($numberOfInstallments, $installments);
                                     }
                                 }
                             }
                         }
                         if ($numberOfInstallments) {
+                            sort($numberOfInstallments);
                             $data['number_of_installments'] = $numberOfInstallments;
                         }
                     }
@@ -870,11 +910,33 @@ class Data extends AbstractHelper
         return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
     }
 
+    public function getApplePayShippingTypes()
+    {
+        return [
+            [
+                'value' => 'shipping',
+                'label' => __('Shipping Method')
+            ],
+            [
+                'value' => 'delivery',
+                'label' => __('Delivery Method')
+            ],
+            [
+                'value' => 'storePickup',
+                'label' => __('Store Pickup Method')
+            ],
+            [
+                'value' => 'servicePickup',
+                'label' => __('Service Pickup Method')
+            ]
+        ];
+    }
+
     public function getUnprocessedNotifications()
     {
         $notifications = $this->_notificationFactory->create();
         $notifications->unprocessedNotificationsFilter();
-        return count($notifications);
+        return $notifications->getSize();;
     }
 
     /**

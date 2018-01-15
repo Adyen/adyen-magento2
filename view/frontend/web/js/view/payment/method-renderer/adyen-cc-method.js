@@ -67,7 +67,10 @@ define(
             initialize: function () {
                 var self = this;
                 this._super();
-                
+
+                installments.setInstallments(0);
+
+
                 // include dynamic cse javascript
                 var dfScriptTag = document.createElement('script');
                 dfScriptTag.src = this.getLibrarySource();
@@ -81,29 +84,42 @@ define(
                     var allInstallments = self.getAllInstallments();
 
                     // what card is this ??
-                    var creditcardType = creditCardData.creditCard.type;
-                    if (creditcardType) {
+
+                    if (creditCardData.creditCard) {
+                        var creditcardType = creditCardData.creditCard.type;
+
                         cvcLength(4);
                         if (creditcardType != "AE") {
                             cvcLength(3);
                         }
                         if (creditcardType in allInstallments) {
+
                             // get for the creditcard the installments
                             var installmentCreditcard = allInstallments[creditcardType];
                             var grandTotal = quote.totals().grand_total;
 
-                            var numberOfInstallments = 0;
+                            var numberOfInstallments = [];
+                            var dividedAmount = 0;
+                            var dividedString = "";
                             $.each(installmentCreditcard, function (amount, installment) {
-                                if (grandTotal <= amount) {
-                                    numberOfInstallments = installment;
+
+                                if (grandTotal >= amount) {
+                                    dividedAmount = (grandTotal / installment).toFixed(quote.getPriceFormat().precision);
+                                    dividedString = installment + " x " + dividedAmount + " " + quote.totals().quote_currency_code;
+                                    numberOfInstallments.push({
+                                        key: [dividedString],
+                                        value: installment
+                                    });
+                                }
+                                else {
                                     return false;
                                 }
                             });
-
-                            if (numberOfInstallments > 0) {
-                                installments.setInstallments(numberOfInstallments);
-                            }
-                        } else {
+                        }
+                        if (numberOfInstallments) {
+                            installments.setInstallments(numberOfInstallments);
+                        }
+                        else {
                             installments.setInstallments(0);
                         }
                     }
@@ -195,8 +211,16 @@ define(
             context: function () {
                 return this;
             },
+
+            isCseEnabled: function () {
+                return window.checkoutConfig.payment.adyenCc.cseEnabled;
+            },
+            getCSEKey: function () {
+                return window.checkoutConfig.payment.adyenCc.cseKey;
+            },
             getLibrarySource: function () {
                 return window.checkoutConfig.payment.adyenCc.librarySource;
+
             },
             getGenerationTime: function () {
                 return window.checkoutConfig.payment.adyenCc.generationTime;
@@ -214,7 +238,9 @@ define(
                 var form = 'form[data-role=adyen-cc-form]';
 
                 var validate = $(form).validation() && $(form).validation('isValid');
-                // add extra validation because jqeury validation will not work on non name attributes
+
+                // add extra validation because jquery validation will not work on non name attributes
+
                 var ccNumber = Boolean($(form + ' #creditCardNumber').valid());
                 var owner = Boolean($(form + ' #creditCardHolderName').valid());
                 var expiration = Boolean($(form + ' #adyen_cc_expiration').valid());

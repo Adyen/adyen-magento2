@@ -1199,7 +1199,7 @@ class Cron
      */
     protected function _isAutoCapture()
     {
-        // validate if payment methods allowes manual capture
+        // validate if payment methods allows manual capture
         if ($this->_manualCaptureAllowed()) {
             $captureMode = trim($this->_getConfigData(
                 'capture_mode', 'adyen_abstract', $this->_order->getStoreId())
