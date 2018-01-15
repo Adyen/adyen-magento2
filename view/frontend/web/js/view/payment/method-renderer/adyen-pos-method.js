@@ -31,7 +31,6 @@ define(
     function ($, Component, additionalValidators, fullScreenLoader, placeOrderAction, quote) {
         'use strict';
         return Component.extend({
-            self: this,
             defaults: {
                 template: 'Adyen_Payment/payment/pos-form'
             },

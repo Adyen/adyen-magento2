@@ -301,7 +301,7 @@ define(
                          * @return {String}
                          */
                         getBillingAddressFormName: function () {
-                            return 'billing-address-form-' + self.item.method + '-' + value.reference_id;
+                            return 'billing-address-form-' + self.item.method;
                         }
                     }
                 });
