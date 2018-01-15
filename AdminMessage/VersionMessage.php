@@ -67,7 +67,7 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
 
             try {
                 $githubContent = $this->getDecodedContentFromGithub();
-                $title = "Adyen Plugin version " . $githubContent['tag_name'] . " available!";
+                $title = "Adyen extension version " . $githubContent['tag_name'] . " available!";
                 $versionData[] = array(
                     'severity' => self::SEVERITY_NOTICE,
                     'date_added' => $githubContent['published_at'],
@@ -106,9 +106,9 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
     {
         try {
             $githubContent = $this->getDecodedContentFromGithub();
-            $message = __("A new Adyen Plugin version is now available: ");
+            $message = __("A new Adyen extension version is now available: ");
             $message .= __("<a href= " . $githubContent['html_url'] . " target='_blank'> " . $githubContent['tag_name'] . "!</a>");
-            $message .= __(" You are running the " . $this->_adyenHelper->getModuleVersion() . " version. We advise to update your plugin extension.");
+            $message .= __(" You are running the " . $this->_adyenHelper->getModuleVersion() . " version. We advise to update your extension.");
             return __($message);
         } catch (\Exception $e) {
             return null;
