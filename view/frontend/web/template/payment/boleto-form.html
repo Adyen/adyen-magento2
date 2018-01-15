@@ -55,6 +55,10 @@
                 'orderSaveUrl':getPlaceOrderUrl(),
             }, 'validation':[]}">
 
+            <!-- ko foreach: getRegion('messages') -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+
 
             <fieldset data-bind="attr: {class: 'fieldset payment items adyen_boleto ' + getCode(), id: 'payment_form_' + getCode()}">
                 <!-- ko if: (isShowLegend())-->

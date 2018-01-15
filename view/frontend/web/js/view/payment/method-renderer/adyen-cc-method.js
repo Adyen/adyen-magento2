@@ -26,10 +26,12 @@ define(
         'Magento_Payment/js/view/payment/cc-form',
         'Magento_Customer/js/model/customer',
         'Magento_Payment/js/model/credit-card-validation/credit-card-data',
+        'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/quote',
-        'Adyen_Payment/js/model/installments'
+        'Adyen_Payment/js/model/installments',
+        'mage/url'
     ],
-    function ($, ko, Component, customer, creditCardData, quote, installments) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url) {
 
         'use strict';
         var cvcLength = ko.observable(4);
@@ -138,6 +140,8 @@ define(
              * @override
              */
             placeOrder: function (data, event) {
+                var self = this;
+
                 if (event) {
                     event.preventDefault();
                 }
@@ -158,8 +162,29 @@ define(
                 var data = cseInstance.encrypt(cardData);
                 this.encryptedData(data);
 
-                // rest is default placeOrder logic
-                return this._super();
+                if (this.validate() && additionalValidators.validate()) {
+                    this.isPlaceOrderActionAllowed(false);
+
+                    this.getPlaceOrderDeferredObject()
+                        .fail(
+                            function () {
+                                self.isPlaceOrderActionAllowed(true);
+                            }
+                        ).done(
+                        function () {
+                            self.afterPlaceOrder();
+
+                            if (self.redirectAfterPlaceOrder) {
+                                // use custom redirect Link for supporting 3D secure
+                                window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
+                            }
+                        }
+                    );
+
+                    return true;
+                }
+
+                return false;
             },
             getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];

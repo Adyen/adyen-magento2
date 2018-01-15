@@ -45,6 +45,11 @@
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
+
+        <!-- ko foreach: getRegion('messages') -->
+        <!-- ko template: getTemplate() --><!-- /ko -->
+        <!--/ko-->
+
         <fieldset class="fieldset" data-bind='attr: {id: "payment_form_" + getCode()}'>
             <div class="payment-method-note">
                 <!-- ko text: $t('You will be redirected to the Adyen App.') --><!-- /ko -->

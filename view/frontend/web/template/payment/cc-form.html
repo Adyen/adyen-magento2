@@ -38,8 +38,9 @@
     </div>
 
     <div class="payment-method-content">
+
         <div class="payment-method-billing-address">
-            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+            <!-- ko foreach: getRegion(getBillingAddressFormName()) -->
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
@@ -51,6 +52,11 @@
                 'controller': getControllerName(),
                 'orderSaveUrl':getPlaceOrderUrl(),
             }, 'validation':[]}">
+
+
+            <!-- ko foreach: getRegion('messages') -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
 
 
             <fieldset
@@ -266,6 +272,8 @@
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
+
+
         <div class="actions-toolbar">
             <div class="primary">
                 <button class="action primary checkout"

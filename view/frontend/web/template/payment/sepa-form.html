@@ -46,7 +46,9 @@
             <!--/ko-->
         </div>
 
-
+        <!-- ko foreach: getRegion('messages') -->
+        <!-- ko template: getTemplate() --><!-- /ko -->
+        <!--/ko-->
 
         <form class="form" id="adyen-sepa-form" data-role="adyen-sepa-form" action="#" method="post" data-bind="mageInit: {
             'transparent':{
