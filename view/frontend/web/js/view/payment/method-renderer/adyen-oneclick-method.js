@@ -297,21 +297,12 @@ define(
                             self.expiry(true);
                             return true;
                         },
-                        getRegion: function (name) {
-                            self.getRegion(name);
-                        },
                         getMessageName: function () {
                             return 'messages-' + value.reference_id;
                         },
                         getMessageContainer: function () {
                             return messageContainer;
                         },
-                        /**
-                         * @return {String}
-                         */
-                        getBillingAddressFormName: function () {
-                            return 'billing-address-form-' + self.item.method;
-                        }
                     }
                 });
                 return paymentList;

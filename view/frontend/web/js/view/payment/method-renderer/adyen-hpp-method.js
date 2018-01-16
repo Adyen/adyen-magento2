@@ -42,7 +42,7 @@ define(
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
         var dfValue = ko.observable(null);
-
+        var messageComponents;
         return Component.extend({
             self: this,
             defaults: {
@@ -128,35 +128,33 @@ define(
                         document.body.appendChild(dfScriptTag);
                         waitForDfSet();
 
+                        // create component needs to be in initialize method
+                        var messageComponents = {};
+                        _.map(response, function (value) {
+
+                            var messageContainer = new Messages();
+                            var name = 'messages-' + value.brandCode;
+                            var messagesComponent = {
+                                parent: self.name,
+                                name: 'messages-' + value.brandCode,
+                                displayArea: 'messages-' + value.brandCode,
+                                component: 'Magento_Ui/js/view/messages',
+                                config: {
+                                    messageContainer: messageContainer
+                                }
+                            };
+                            layout([messagesComponent]);
+
+                            messageComponents[name] = messageContainer;
+                        });
+                        self.messageComponents = messageComponents;
+
                         fullScreenLoader.stopLoader();
                     }
                 ).fail(function (error) {
                     console.log(JSON.stringify(error));
                     fullScreenLoader.stopLoader();
                 });
-
-
-                // create component needs to be in initialize method
-                var messageComponents = {};
-                var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
-                _.map(paymentMethods, function (value) {
-
-                    var messageContainer = new Messages();
-                    var name = 'messages-' + value.brandCode;
-                    var messagesComponent = {
-                        parent: self.name,
-                        name: 'messages-' + value.brandCode,
-                        displayArea: 'messages-' + value.brandCode,
-                        component: 'Magento_Ui/js/view/messages',
-                        config: {
-                            messageContainer: messageContainer
-                        }
-                    };
-                    layout([messagesComponent]);
-
-                    messageComponents[name] = messageContainer;
-                });
-                this.messageComponents = messageComponents;
             },
             getAdyenHppPaymentMethods: function () {
                 var self = this;
@@ -320,7 +318,6 @@ define(
                 
                 this.isPlaceOrderActionAllowed(false);
                 fullScreenLoader.startLoader();
-
                 $.when(
                     placeOrderAction(data, messageContainer)
                 ).fail(
