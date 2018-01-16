@@ -310,7 +310,6 @@ define(
                 // Place Order but use our own redirect url after
                 var self = this;
 
-
                 var messageContainer = this.messageContainer;
                 if(brandCode()) {
                     messageContainer = self.messageComponents['messages-' + brandCode()];
