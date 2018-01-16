@@ -34,8 +34,10 @@ define(
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Checkout/js/action/place-order',
+        'uiLayout',
+        'Magento_Ui/js/model/messages'
     ],
-    function (ko, $, Component, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader, placeOrderAction) {
+    function (ko, $, Component, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader, placeOrderAction, layout, Messages) {
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
@@ -132,6 +134,29 @@ define(
                     console.log(JSON.stringify(error));
                     fullScreenLoader.stopLoader();
                 });
+
+
+                // create component needs to be in initialize method
+                var messageComponents = {};
+                var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
+                _.map(paymentMethods, function (value) {
+
+                    var messageContainer = new Messages();
+                    var name = 'messages-' + value.brandCode;
+                    var messagesComponent = {
+                        parent: self.name,
+                        name: 'messages-' + value.brandCode,
+                        displayArea: 'messages-' + value.brandCode,
+                        component: 'Magento_Ui/js/view/messages',
+                        config: {
+                            messageContainer: messageContainer
+                        }
+                    };
+                    layout([messagesComponent]);
+
+                    messageComponents[name] = messageContainer;
+                });
+                this.messageComponents = messageComponents;
             },
             getAdyenHppPaymentMethods: function () {
                 var self = this;
@@ -286,11 +311,18 @@ define(
             placeRedirectOrder: function(data) {
                 // Place Order but use our own redirect url after
                 var self = this;
+
+
+                var messageContainer = this.messageContainer;
+                if(brandCode()) {
+                    messageContainer = self.messageComponents['messages-' + brandCode()];
+                }
+                
                 this.isPlaceOrderActionAllowed(false);
                 fullScreenLoader.startLoader();
 
                 $.when(
-                    placeOrderAction(data, this.messageContainer)
+                    placeOrderAction(data, messageContainer)
                 ).fail(
                     function () {
                         self.isPlaceOrderActionAllowed(true);
