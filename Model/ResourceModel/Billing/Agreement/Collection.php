@@ -20,43 +20,31 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Controller\Process;
-use Symfony\Component\Config\Definition\Exception\Exception;
+
+namespace Adyen\Payment\Model\ResourceModel\Billing\Agreement;
+
 /**
- * Class Json
- * @package Adyen\Payment\Controller\Process
+ * Billing agreements resource collection
  */
-class Cron extends \Magento\Framework\App\Action\Action
+class Collection extends \Magento\Paypal\Model\ResourceModel\Billing\Agreement\Collection
 {
-    /**
-     * @var \Magento\Framework\ObjectManagerInterface
-     */
-    protected $_objectManager;
-    /**
-     * @var \Magento\Framework\Controller\Result\RawFactory
-     */
-    protected $_resultFactory;
 
     /**
-     * Cron constructor.
+     * Collection initialization
      *
-     * @param \Magento\Framework\App\Action\Context $context
+     * @return void
      */
-    public function __construct(
-        \Magento\Framework\App\Action\Context $context
-    ) {
-        parent::__construct($context);
-        $this->_objectManager = $context->getObjectManager();
-        $this->_resultFactory = $context->getResultFactory();
+    protected function _construct()
+    {
+        $this->_init('Adyen\Payment\Model\Billing\Agreement', 'Magento\Paypal\Model\ResourceModel\Billing\Agreement');
     }
 
     /**
-     * Process Notification from Cron
+     * @return $this
      */
-    public function execute()
+    public function addActiveFilter()
     {
-        $cron = $this->_objectManager->create('Adyen\Payment\Model\Cron');
-        $cron->processNotification();
-        die();
+        $this->addFieldToFilter('status', \Magento\Paypal\Model\Billing\Agreement::STATUS_ACTIVE);
+        return $this;
     }
 }

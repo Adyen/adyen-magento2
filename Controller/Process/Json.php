@@ -62,7 +62,8 @@ class Json extends \Magento\Framework\App\Action\Action
         \Magento\Framework\App\Action\Context $context,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-    ) {
+    )
+    {
         parent::__construct($context);
         $this->_objectManager = $context->getObjectManager();
         $this->_resultFactory = $context->getResultFactory();
@@ -100,6 +101,8 @@ class Json extends \Magento\Framework\App\Action\Action
 
             if ($notificationMode != "" && $this->_validateNotificationMode($notificationMode)) {
                 foreach ($notificationItems['notificationItems'] as $notificationItem) {
+
+
                     $status = $this->_processNotification(
                         $notificationItem['NotificationRequestItem'], $notificationMode
                     );
@@ -108,9 +111,10 @@ class Json extends \Magento\Framework\App\Action\Action
                         $this->_return401();
                         return;
                     }
-                }
 
-                $acceptedMessage = "[accepted]";
+                    $acceptedMessage = "[accepted]";
+
+                }
                 $cronCheckTest = $notificationItems['notificationItems'][0]['NotificationRequestItem']['pspReference'];
 
                 // Run the query for checking unprocessed notifications, do this only for test notifications coming from the Adyen Customer Area
@@ -247,8 +251,7 @@ class Json extends \Magento\Framework\App\Action\Action
 
         if (empty($submitedMerchantAccount) && empty($internalMerchantAccount)) {
             if ($this->_isTestNotification($response['pspReference'])) {
-                echo 'merchantAccountCode is empty in magento settings';
-                exit();
+                $this->_returnResult('merchantAccountCode is empty in magento settings');
             }
             return false;
         }
@@ -256,8 +259,9 @@ class Json extends \Magento\Framework\App\Action\Action
         // validate username and password
         if ((!isset($_SERVER['PHP_AUTH_USER']) && !isset($_SERVER['PHP_AUTH_PW']))) {
             if ($this->_isTestNotification($response['pspReference'])) {
-                echo 'Authentication failed: PHP_AUTH_USER and PHP_AUTH_PW are empty. See Adyen Magento manual CGI mode';
-                exit();
+                $this->_returnResult(
+                    'Authentication failed: PHP_AUTH_USER and PHP_AUTH_PW are empty. See Adyen Magento manual CGI mode'
+                );
             }
             return false;
         }
@@ -275,11 +279,11 @@ class Json extends \Magento\Framework\App\Action\Action
         // If notification is test check if fields are correct if not return error
         if ($this->_isTestNotification($response['pspReference'])) {
             if ($accountCmp != 0) {
-                echo 'MerchantAccount in notification is not the same as in Magento settings';
-                exit();
+                $this->_returnResult('MerchantAccount in notification is not the same as in Magento settings');
             } elseif ($usernameCmp != 0 || $passwordCmp != 0) {
-                echo 'username (PHP_AUTH_USER) and\or password (PHP_AUTH_PW) are not the same as Magento settings';
-                exit();
+                $this->_returnResult(
+                    'username (PHP_AUTH_USER) and\or password (PHP_AUTH_PW) are not the same as Magento settings'
+                );
             }
         }
         return false;
@@ -355,5 +359,19 @@ class Json extends \Magento\Framework\App\Action\Action
         } else {
             return false;
         }
+    }
+
+    /**
+     * Returns the message to the browser
+     *
+     * @param $message
+     */
+    protected function _returnResult($message)
+    {
+        $this->getResponse()
+            ->clearHeader('Content-Type')
+            ->setHeader('Content-Type', 'text/html')
+            ->setBody($message);
+        return;
     }
 }

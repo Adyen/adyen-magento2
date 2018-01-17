@@ -21,29 +21,15 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Resource\Notification;
+namespace Adyen\Payment\Model\ResourceModel\Order;
 
-class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
+class Payment extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
      * Construct
      */
     public function _construct()
     {
-        $this->_init('Adyen\Payment\Model\Notification', 'Adyen\Payment\Model\Resource\Notification');
-    }
-
-    /**
-     * Filter the notifications table to see if there are any unprocessed ones that have been created more than 10 minutes ago
-     */
-    public function unprocessedNotificationsFilter()
-    {
-        $dateEnd = new \DateTime();
-        $dateEnd->modify('-10 minute');
-        $dateRange = ['to' => $dateEnd, 'datetime' => true];
-        $this->addFieldToFilter('done', 0);
-        $this->addFieldToFilter('processing', 0);
-        $this->addFieldToFilter('created_at', $dateRange);
-        return $this;
+        $this->_init('adyen_order_payment', 'entity_id');
     }
 }
