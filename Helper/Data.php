@@ -847,8 +847,6 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
     {
-        echo strpos($paymentMethod, 'klarna');
-
         if (strpos($paymentMethod, 'afterpay') !== false) {
             return true;
         } elseif (strpos($paymentMethod, 'klarna') !== false) {
