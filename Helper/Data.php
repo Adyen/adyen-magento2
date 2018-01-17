@@ -847,11 +847,13 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
     {
-        if (strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_') {
+        echo strpos($paymentMethod, 'klarna');
+
+        if (strpos($paymentMethod, 'afterpay') !== false) {
             return true;
-        } elseif (strlen($paymentMethod) >= 6 && substr($paymentMethod, 0, 6) == 'klarna') {
+        } elseif (strpos($paymentMethod, 'klarna') !== false) {
             return true;
-        } elseif (strlen($paymentMethod) >= 7 && substr($paymentMethod, 0, 7) == 'ratepay') {
+        } elseif (strpos($paymentMethod, 'ratepay') !== false) {
             return true;
         }
 
