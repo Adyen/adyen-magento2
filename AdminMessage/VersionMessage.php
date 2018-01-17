@@ -29,6 +29,7 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
     protected $_authSession;
     protected $_adyenHelper;
     protected $_inboxFactory;
+    protected $_githubVersion;
 
     public function __construct(
         \Magento\Backend\Model\Auth\Session $authSession,
@@ -38,6 +39,7 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
         $this->_authSession = $authSession;
         $this->_adyenHelper = $adyenHelper;
         $this->_inboxFactory = $inboxFactory;
+        $this->_githubVersion = $this->getSessionData("githubVersion");
     }
 
     /**
@@ -67,6 +69,7 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
 
             try {
                 $githubContent = $this->getDecodedContentFromGithub();
+                $this->setSessionData("githubVersion", $githubContent);
                 $title = "Adyen extension version " . $githubContent['tag_name'] . " available!";
                 $versionData[] = array(
                     'severity' => self::SEVERITY_NOTICE,
@@ -105,9 +108,9 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
     public function getText()
     {
         try {
-            $githubContent = $this->getDecodedContentFromGithub();
+            $githubContent = $this->getSessionData("githubVersion");
             $message = __("A new Adyen extension version is now available: ");
-            $message .= __("<a href= " . $githubContent['html_url'] . " target='_blank'> " . $githubContent['tag_name'] . "!</a>");
+            $message .= __("<a href= \"" . $githubContent['html_url'] . "\" target='_blank'> " . $githubContent['tag_name'] . "!</a>");
             $message .= __(" You are running the " . $this->_adyenHelper->getModuleVersion() . " version. We advise to update your extension.");
             return __($message);
         } catch (\Exception $e) {
@@ -122,7 +125,7 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
      */
     public function getSeverity()
     {
-        return self::SEVERITY_NOTICE;
+        return self::SEVERITY_MAJOR;
     }
 
     public function getDecodedContentFromGithub()
@@ -136,6 +139,22 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
         curl_close($ch);
         $json = json_decode($content, true);
         return $json;
+    }
+
+    /**
+     * Set the current value for the backend session
+     */
+    public function setSessionData($key, $value)
+    {
+        return $this->_authSession->setData($key, $value);
+    }
+
+    /**
+     * Retrieve the session value
+     */
+    public function getSessionData($key, $remove = false)
+    {
+        return $this->_authSession->getData($key, $remove);
     }
 
 }
