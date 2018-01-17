@@ -29,7 +29,6 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
     protected $_authSession;
     protected $_adyenHelper;
     protected $_inboxFactory;
-    protected $_githubVersion;
 
     public function __construct(
         \Magento\Backend\Model\Auth\Session $authSession,
@@ -39,7 +38,6 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
         $this->_authSession = $authSession;
         $this->_adyenHelper = $adyenHelper;
         $this->_inboxFactory = $inboxFactory;
-        $this->_githubVersion = $this->getSessionData("githubVersion");
     }
 
     /**
@@ -69,7 +67,7 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
 
             try {
                 $githubContent = $this->getDecodedContentFromGithub();
-                $this->setSessionData("githubVersion", $githubContent);
+                $this->setSessionData("AdyenGithubVersion", $githubContent);
                 $title = "Adyen extension version " . $githubContent['tag_name'] . " available!";
                 $versionData[] = array(
                     'severity' => self::SEVERITY_NOTICE,
@@ -107,15 +105,11 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
      */
     public function getText()
     {
-        try {
-            $githubContent = $this->getSessionData("githubVersion");
-            $message = __("A new Adyen extension version is now available: ");
-            $message .= __("<a href= \"" . $githubContent['html_url'] . "\" target='_blank'> " . $githubContent['tag_name'] . "!</a>");
-            $message .= __(" You are running the " . $this->_adyenHelper->getModuleVersion() . " version. We advise to update your extension.");
-            return __($message);
-        } catch (\Exception $e) {
-            return null;
-        }
+        $githubContent = $this->getSessionData("AdyenGithubVersion");
+        $message = __("A new Adyen extension version is now available: ");
+        $message .= __("<a href= \"" . $githubContent['html_url'] . "\" target='_blank'> " . $githubContent['tag_name'] . "!</a>");
+        $message .= __(" You are running the " . $this->_adyenHelper->getModuleVersion() . " version. We advise to update your extension.");
+        return __($message);
     }
 
     /**
