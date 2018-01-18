@@ -230,7 +230,6 @@ define(
                                         window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
                                     }
                                 );
-                                // debugger;;
                                 return true;
                             }
                             return false;
@@ -253,7 +252,6 @@ define(
                             return self.afterPlaceOrder(); // needed for placeOrder method
                         },
                         getPlaceOrderDeferredObject: function () {
-                            // debugger;;
                             return $.when(
                                 placeOrderAction(this.getData(), this.getMessageContainer())
                             );
