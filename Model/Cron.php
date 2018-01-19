@@ -1208,7 +1208,7 @@ class Cron
             $captureModeOpenInvoice = $this->_getConfigData(
                 'auto_capture_openinvoice', 'adyen_abstract', $this->_order->getStoreId()
             );
-            $captureModePayPal = trim($this->_getConfigData(
+            $manualCapturePayPal = trim($this->_getConfigData(
                 'paypal_capture_mode', 'adyen_abstract', $this->_order->getStoreId())
             );
 
@@ -1245,18 +1245,19 @@ class Cron
                 );
                 return true;
             }
+
             // if PayPal capture modues is different from the default use this one
-            if (strcmp($this->_paymentMethod, 'paypal') === 0 && $captureModePayPal != "") {
-                if (strcmp($captureModePayPal, 'auto') === 0) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        'This payment method is paypal and configured to work as auto capture'
-                    );
-                    return true;
-                } elseif (strcmp($captureModePayPal, 'manual') === 0) {
+            if (strcmp($this->_paymentMethod, 'paypal') === 0) {
+                if ($manualCapturePayPal) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         'This payment method is paypal and configured to work as manual capture'
                     );
                     return false;
+                } else {
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        'This payment method is paypal and configured to work as auto capture'
+                    );
+                    return true;
                 }
             }
             if (strcmp($captureMode, 'manual') === 0) {
@@ -1604,4 +1605,6 @@ class Cron
         $path = 'payment/' . $paymentMethodCode . '/' . $field;
         return $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
     }
+
+
 }
