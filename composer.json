@@ -17,9 +17,6 @@
     "adyen/php-api-library": "*",
     "magento/framework": ">=100.1.0"
   },
-  "require-dev": {
-    "phpunit/phpunit": "~5"
-  },
   "autoload": {
     "files": [
       "registration.php"

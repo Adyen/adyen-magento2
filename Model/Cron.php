@@ -210,7 +210,8 @@ class Cron
         \Adyen\Payment\Model\Order\PaymentFactory $adyenOrderPaymentFactory,
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
         AreaList $areaList
-    ) {
+    )
+    {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
         $this->_notificationFactory = $notificationFactory;
@@ -235,7 +236,7 @@ class Cron
     {
         try {
             $this->execute();
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->_adyenLogger->addAdyenNotificationCronjob($e->getMessage() . "\n" . $e->getTraceAsString());
             throw $e;
         }
@@ -536,11 +537,7 @@ class Cron
         }
 
         // if payment method is klarna, ratepay or openinvoice/afterpay show the reservartion number
-        if (($this->_paymentMethod == "klarna" || $this->_paymentMethod == "afterpay_default" ||
-                $this->_paymentMethod == "openinvoice" || $this->_paymentMethod == "ratepay"
-            ) && ($this->_klarnaReservationNumber != null &&
-                $this->_klarnaReservationNumber != "")
-        ) {
+        if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod) && !empty($this->_klarnaReservationNumber)) {
             $klarnaReservationNumberText = "<br /> reservationNumber: " . $this->_klarnaReservationNumber;
         } else {
             $klarnaReservationNumberText = "";
@@ -1298,6 +1295,11 @@ class Cron
         $manualCaptureAllowed = null;
         $paymentMethod = $this->_paymentMethod;
 
+        // For all openinvoice methods manual capture is the default
+        if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod)) {
+            return true;
+        }
+
         switch ($paymentMethod) {
             case 'cup':
             case 'cartebancaire':
@@ -1314,17 +1316,10 @@ class Cron
             case 'jcb':
             case 'laser':
             case 'paypal':
-            case 'klarna':
-            case 'afterpay_default':
-            case 'ratepay':
             case 'sepadirectdebit':
                 $manualCaptureAllowed = true;
                 break;
             default:
-                // To be sure check if it payment method starts with afterpay_ then manualCapture is allowed
-                if (strlen($this->_paymentMethod) >= 9 && substr($this->_paymentMethod, 0, 9) == "afterpay_") {
-                    $manualCaptureAllowed = true;
-                }
                 $manualCaptureAllowed = false;
         }
 

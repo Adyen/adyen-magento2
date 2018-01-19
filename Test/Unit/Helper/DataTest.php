@@ -24,9 +24,8 @@
 namespace Adyen\Payment\Tests\Helper;
 
 use Adyen\Payment\Helper\Data;
-use PHPUnit\Framework\TestCase;
 
-class DataTest extends TestCase
+class DataTest extends \PHPUnit_Framework_TestCase
 {
     private $dataHelper;
 
@@ -59,4 +58,16 @@ class DataTest extends TestCase
         $this->assertEquals("1200", $this->dataHelper->formatAmount("12.00", "USD"));
         $this->assertEquals("12", $this->dataHelper->formatAmount("12.00", "JPY"));
     }
+    
+    public function testisPaymentMethodOpenInvoiceMethod()
+    {
+        $this->assertEquals(true, $this->dataHelper->isPaymentMethodOpenInvoiceMethod("klarna"));
+        $this->assertEquals(true, $this->dataHelper->isPaymentMethodOpenInvoiceMethod("klarna_account"));
+        $this->assertEquals(true, $this->dataHelper->isPaymentMethodOpenInvoiceMethod("afterpay"));
+        $this->assertEquals(true, $this->dataHelper->isPaymentMethodOpenInvoiceMethod("afterpay_default"));
+        $this->assertEquals(true, $this->dataHelper->isPaymentMethodOpenInvoiceMethod("ratepay"));
+        $this->assertEquals(false, $this->dataHelper->isPaymentMethodOpenInvoiceMethod("ideal"));
+        $this->assertEquals(true, $this->dataHelper->isPaymentMethodOpenInvoiceMethod("test_klarna"));
+    }
 }
+

@@ -469,7 +469,7 @@ class Data extends AbstractHelper
     {
         return $this->getConfigData($field, 'adyen_apple_pay', $storeId);
     }
-    
+
     /**
      * @param null $storeId
      * @return mixed
@@ -852,15 +852,15 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
     {
-        if (strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_') {
+        if (strpos($paymentMethod, 'afterpay') !== false) {
             return true;
-        } else {
-            if ($paymentMethod == 'klarna' || $paymentMethod == 'ratepay') {
-                return true;
-            } else {
-                return false;
-            }
+        } elseif (strpos($paymentMethod, 'klarna') !== false) {
+            return true;
+        } elseif (strpos($paymentMethod, 'ratepay') !== false) {
+            return true;
         }
+
+        return false;
     }
 
     public function getRatePayId()
