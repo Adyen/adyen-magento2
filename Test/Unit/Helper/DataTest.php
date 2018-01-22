@@ -43,10 +43,10 @@ class DataTest extends \PHPUnit_Framework_TestCase
         $dataStorage = $this->getSimpleMock('\Magento\Framework\Config\DataInterface');
         $country = $this->getSimpleMock('\Magento\Directory\Model\Config\Source\Country');
         $moduleList = $this->getSimpleMock('\Magento\Framework\Module\ModuleListInterface');
-        $billingAgreementCollectionFactory = $this->getSimpleMock('\Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory');
+        $billingAgreementCollectionFactory = $this->getSimpleMock('\Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory');
         $assetRepo = $this->getSimpleMock('\Magento\Framework\View\Asset\Repository');
         $assetSource = $this->getSimpleMock('\Magento\Framework\View\Asset\Source');
-        $notificationFactory = $this->getSimpleMock('\Adyen\Payment\Model\Resource\Notification\CollectionFactory');
+        $notificationFactory = $this->getSimpleMock('\Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory');
 
         $this->dataHelper = new Data($context, $encryptor, $dataStorage, $country, $moduleList,
             $billingAgreementCollectionFactory, $assetRepo, $assetSource, $notificationFactory);

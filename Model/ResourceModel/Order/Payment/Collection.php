@@ -21,7 +21,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Resource\Order\Payment;
+namespace Adyen\Payment\Model\ResourceModel\Order\Payment;
 
 /**
  * Billing agreements resource collection
@@ -36,7 +36,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     protected function _construct()
     {
-        $this->_init('Adyen\Payment\Model\Order\Payment', 'Adyen\Payment\Model\Resource\Order\Payment');
+        $this->_init('Adyen\Payment\Model\Order\Payment', 'Adyen\Payment\Model\ResourceModel\Order\Payment');
     }
 
     /**

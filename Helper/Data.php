@@ -55,7 +55,7 @@ class Data extends AbstractHelper
     protected $_moduleList;
 
     /**
-     * @var \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory
+     * @var \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory
      */
     protected $_billingAgreementCollectionFactory;
 
@@ -70,6 +70,11 @@ class Data extends AbstractHelper
     protected $_assetSource;
 
     /**
+     * @var \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory
+     */
+    protected $_notificationFactory;
+
+    /**
      * Data constructor.
      *
      * @param \Magento\Framework\App\Helper\Context $context
@@ -77,7 +82,7 @@ class Data extends AbstractHelper
      * @param \Magento\Framework\Config\DataInterface $dataStorage
      * @param \Magento\Directory\Model\Config\Source\Country $country
      * @param \Magento\Framework\Module\ModuleListInterface $moduleList
-     * @param \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
+     * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param \Magento\Framework\View\Asset\Source $assetSource
      */
@@ -87,10 +92,10 @@ class Data extends AbstractHelper
         \Magento\Framework\Config\DataInterface $dataStorage,
         \Magento\Directory\Model\Config\Source\Country $country,
         \Magento\Framework\Module\ModuleListInterface $moduleList,
-        \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
+        \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\View\Asset\Source $assetSource,
-        \Adyen\Payment\Model\Resource\Notification\CollectionFactory $notificationFactory
+        \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory
     )
     {
         parent::__construct($context);

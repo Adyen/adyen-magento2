@@ -41,7 +41,7 @@ class Cron
     protected $_logger;
 
     /**
-     * @var Resource\Notification\CollectionFactory
+     * @var ResourceModel\Notification\CollectionFactory
      */
     protected $_notificationFactory;
 
@@ -88,7 +88,7 @@ class Cron
     protected $_billingAgreementFactory;
 
     /**
-     * @var Resource\Billing\Agreement\CollectionFactory
+     * @var ResourceModel\Billing\Agreement\CollectionFactory
      */
     protected $_billingAgreementCollectionFactory;
 
@@ -168,7 +168,7 @@ class Cron
     protected $_adyenOrderPaymentFactory;
 
     /**
-     * @var Resource\Order\Payment\CollectionFactory
+     * @var ResourceModel\Order\Payment\CollectionFactory
      */
     protected $_adyenOrderPaymentCollectionFactory;
 
@@ -182,33 +182,33 @@ class Cron
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param Resource\Notification\CollectionFactory $notificationFactory
+     * @param ResourceModel\Notification\CollectionFactory $notificationFactory
      * @param \Magento\Sales\Model\OrderFactory $orderFactory
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param OrderSender $orderSender
      * @param InvoiceSender $invoiceSender
      * @param \Magento\Framework\DB\TransactionFactory $transactionFactory
      * @param Billing\AgreementFactory $billingAgreementFactory
-     * @param Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
+     * @param ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
      * @param Api\PaymentRequest $paymentRequest
      * @param Order\PaymentFactory $adyenOrderPaymentFactory
-     * @param Resource\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory
+     * @param ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory
      * @param AreaList $areaList
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Model\Resource\Notification\CollectionFactory $notificationFactory,
+        \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory,
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Adyen\Payment\Helper\Data $adyenHelper,
         OrderSender $orderSender,
         InvoiceSender $invoiceSender,
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
         \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory,
-        \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
+        \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
         \Adyen\Payment\Model\Order\PaymentFactory $adyenOrderPaymentFactory,
-        \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
+        \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
         AreaList $areaList
     )
     {
