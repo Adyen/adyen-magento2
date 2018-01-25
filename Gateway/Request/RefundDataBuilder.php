@@ -37,18 +37,18 @@ class RefundDataBuilder implements BuilderInterface
     private $adyenHelper;
 
     /**
-     * @var \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory
+     * @var \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory
      */
     private $orderPaymentCollectionFactory;
 
     /**
      * RefundDataBuilder constructor.
      * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory $orderPaymentCollectionFactory
+     * @param \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory $orderPaymentCollectionFactory
+        \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory
     )
     {
         $this->adyenHelper = $adyenHelper;

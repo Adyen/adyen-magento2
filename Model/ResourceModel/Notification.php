@@ -21,7 +21,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Resource;
+namespace Adyen\Payment\Model\ResourceModel;
 
 class Notification extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {

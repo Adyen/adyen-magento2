@@ -77,7 +77,7 @@ class Data extends AbstractHelper
      * @param \Magento\Framework\Config\DataInterface $dataStorage
      * @param \Magento\Directory\Model\Config\Source\Country $country
      * @param \Magento\Framework\Module\ModuleListInterface $moduleList
-     * @param \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
+     * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param \Magento\Framework\View\Asset\Source $assetSource
      */
@@ -87,11 +87,12 @@ class Data extends AbstractHelper
         \Magento\Framework\Config\DataInterface $dataStorage,
         \Magento\Directory\Model\Config\Source\Country $country,
         \Magento\Framework\Module\ModuleListInterface $moduleList,
-        \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
+        \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\View\Asset\Source $assetSource,
-        \Adyen\Payment\Model\Resource\Notification\CollectionFactory $notificationFactory
-    ) {
+        \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory
+    )
+    {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
         $this->_dataStorage = $dataStorage;
@@ -508,7 +509,7 @@ class Data extends AbstractHelper
         if ($demoMode) {
             return $this->getAdyenApplePayConfigData('full_path_location_pem_file_test', $storeId);
         } else {
-            return $this->getAdyenApplePayConfigData('ƒ', $storeId);
+            return $this->getAdyenApplePayConfigData('full_path_location_pem_file_live', $storeId);
         }
     }
 
@@ -866,15 +867,15 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
     {
-        if (strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_') {
+        if (strpos($paymentMethod, 'afterpay') !== false) {
             return true;
-        } else {
-            if ($paymentMethod == 'klarna' || $paymentMethod == 'ratepay') {
-                return true;
-            } else {
-                return false;
-            }
+        } elseif (strpos($paymentMethod, 'klarna') !== false) {
+            return true;
+        } elseif (strpos($paymentMethod, 'ratepay') !== false) {
+            return true;
         }
+
+        return false;
     }
 
     public function getRatePayId()

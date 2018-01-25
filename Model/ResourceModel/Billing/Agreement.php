@@ -21,30 +21,12 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Resource\Billing\Agreement;
+namespace Adyen\Payment\Model\ResourceModel\Billing;
 
 /**
- * Billing agreements resource collection
+ * Billing agreement resource model
  */
-class Collection extends \Magento\Paypal\Model\ResourceModel\Billing\Agreement\Collection
+class Agreement extends \Magento\Paypal\Model\ResourceModel\Billing\Agreement
 {
 
-    /**
-     * Collection initialization
-     *
-     * @return void
-     */
-    protected function _construct()
-    {
-        $this->_init('Adyen\Payment\Model\Billing\Agreement', 'Magento\Paypal\Model\ResourceModel\Billing\Agreement');
-    }
-
-    /**
-     * @return $this
-     */
-    public function addActiveFilter()
-    {
-        $this->addFieldToFilter('status', \Magento\Paypal\Model\Billing\Agreement::STATUS_ACTIVE);
-        return $this;
-    }
 }

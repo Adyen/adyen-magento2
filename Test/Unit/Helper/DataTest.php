@@ -70,3 +70,4 @@ class DataTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(true, $this->dataHelper->isPaymentMethodOpenInvoiceMethod("test_klarna"));
     }
 }
+
