@@ -239,19 +239,8 @@ class Json extends \Magento\Framework\App\Action\Action
         // Add CGI support
         $this->_fixCgiHttpAuthentication();
 
-        $internalMerchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData('merchant_account');
         $username = $this->_adyenHelper->getAdyenAbstractConfigData('notification_username');
         $password = $this->_adyenHelper->getNotificationPassword();
-
-        $submitedMerchantAccount = $response['merchantAccountCode'];
-
-        if (empty($submitedMerchantAccount) && empty($internalMerchantAccount)) {
-            if ($this->_isTestNotification($response['pspReference'])) {
-                echo 'merchantAccountCode is empty in magento settings';
-                exit();
-            }
-            return false;
-        }
 
         // validate username and password
         if ((!isset($_SERVER['PHP_AUTH_USER']) && !isset($_SERVER['PHP_AUTH_PW']))) {
@@ -262,22 +251,15 @@ class Json extends \Magento\Framework\App\Action\Action
             return false;
         }
 
-        $accountCmp = !$this->_adyenHelper->getAdyenAbstractConfigDataFlag('multiple_merchants')
-            ? strcmp($submitedMerchantAccount, $internalMerchantAccount)
-            : 0;
-
         $usernameCmp = strcmp($_SERVER['PHP_AUTH_USER'], $username);
         $passwordCmp = strcmp($_SERVER['PHP_AUTH_PW'], $password);
-        if ($accountCmp === 0 && $usernameCmp === 0 && $passwordCmp === 0) {
+        if ($usernameCmp === 0 && $passwordCmp === 0) {
             return true;
         }
 
         // If notification is test check if fields are correct if not return error
         if ($this->_isTestNotification($response['pspReference'])) {
-            if ($accountCmp != 0) {
-                echo 'MerchantAccount in notification is not the same as in Magento settings';
-                exit();
-            } elseif ($usernameCmp != 0 || $passwordCmp != 0) {
+            if ($usernameCmp != 0 || $passwordCmp != 0) {
                 echo 'username (PHP_AUTH_USER) and\or password (PHP_AUTH_PW) are not the same as Magento settings';
                 exit();
             }

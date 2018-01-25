@@ -24,9 +24,9 @@
 namespace Adyen\Payment\Tests\Helper;
 
 use Adyen\Payment\Helper\Data;
-use PHPUnit\Framework\TestCase;
+//use PHPUnit\Framework\TestCase;
 
-class DataTest extends TestCase
+class DataTest extends \PHPUnit_Framework_TestCase
 {
     private $dataHelper;
 

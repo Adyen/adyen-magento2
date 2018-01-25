@@ -1,0 +1,75 @@
+<!--
+  ~                       ######
+  ~                       ######
+  ~ ############    ####( ######  #####. ######  ############   ############
+  ~ #############  #####( ######  #####. ######  #############  #############
+  ~        ######  #####( ######  #####. ######  #####  ######  #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####          #####  ######
+  ~ #############  #############  #############  #############  #####  ######
+  ~  ############   ############  #############   ############  #####  ######
+  ~                                      ######
+  ~                               #############
+  ~                               ############
+  ~
+  ~ Adyen Payment Module
+  ~
+  ~ Copyright (c) 2018 Adyen B.V.
+  ~ This file is open source and available under the MIT license.
+  ~ See the LICENSE file for more info.
+  ~
+  ~ Author: Adyen <magento@adyen.com>
+  -->
+
+<div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+    <div class="payment-method-title field choice">
+        <input type="radio"
+               name="payment[method]"
+               class="radio"
+               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+        <label data-bind="attr: {'for': getCode()}" class="label">
+
+            <!-- ko if: showLogo() -->
+
+            <div data-bind="attr: { 'class': 'adyen-sprite ' + getCode() }"></div>
+
+            <!--/ko-->
+
+            <span data-bind="text: getTitle()"></span>
+        </label>
+    </div>
+
+    <!-- ko foreach: getRegion('messages') -->
+    <!-- ko template: getTemplate() --><!-- /ko -->
+    <!--/ko-->
+
+    <div class="payment-method-content">
+        <div class="payment-method-billing-address">
+            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+
+        <div class="checkout-agreements-block">
+            <!-- ko foreach: $parent.getRegion('before-place-order') -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+        <div class="actions-toolbar">
+            <div class="primary">
+                <button class="action primary checkout"
+                        type="submit"
+                        data-bind="
+                            click: placeOrder,
+                            attr: {title: $t('Place Order')},
+                            enable: (getCode() == isChecked()),
+                            css: {disabled: !isPlaceOrderActionAllowed()}
+                            "
+                        disabled>
+                    <span data-bind="text: $t('Place Order')"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+

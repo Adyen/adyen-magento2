@@ -91,8 +91,7 @@ class Data extends AbstractHelper
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\View\Asset\Source $assetSource,
         \Adyen\Payment\Model\Resource\Notification\CollectionFactory $notificationFactory
-    )
-    {
+    ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
         $this->_dataStorage = $dataStorage;
@@ -411,6 +410,26 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @param $field
+     * @param null $storeId
+     * @return bool|mixed
+     */
+    public function getAdyenPosCloudConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_pos_cloud', $storeId);
+    }
+
+    /**
+     * @param $field
+     * @param null $storeId
+     * @return bool|mixed
+     */
+    public function getAdyenPosCloudConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_pos_cloud', $storeId, true);
+    }
+
+    /**
      * @desc Gives back adyen_pay_by_mail configuration values
      * @param $field
      * @param null $storeId
@@ -464,7 +483,7 @@ class Data extends AbstractHelper
     {
         return $this->getConfigData($field, 'adyen_apple_pay', $storeId);
     }
-    
+
     /**
      * @param null $storeId
      * @return mixed
@@ -489,7 +508,7 @@ class Data extends AbstractHelper
         if ($demoMode) {
             return $this->getAdyenApplePayConfigData('full_path_location_pem_file_test', $storeId);
         } else {
-            return $this->getAdyenApplePayConfigData('full_path_location_pem_file_live', $storeId);
+            return $this->getAdyenApplePayConfigData('ƒ', $storeId);
         }
     }
 
@@ -968,4 +987,35 @@ class Data extends AbstractHelper
 
         return "https://" . $environment . ".adyen.com/hpp/cse/js/" . $this->getLibraryToken($storeId) . ".shtml";
     }
+
+    public function getApiKey()
+    {
+        switch ($this->isDemoMode()) {
+            case true:
+                $apiKey = $this->getAdyenPosCloudConfigData('api_key_test');
+                break;
+            default:
+                $apiKey = $this->getAdyenPosCloudConfigData('api_key_live');
+                break;
+        }
+        return $apiKey;
+    }
+
+    public function getPoiId()
+    {
+        $poiId = $this->getAdyenPosCloudConfigData('pos_terminal_id');
+        return $poiId;
+    }
+
+    public function getAdyenMerchantAccount($payment, $storeId)
+    {
+        $merchantAccount = $this->getAdyenAbstractConfigData("merchant_account", $storeId);
+        $merchantAccountPos = $this->getAdyenPosCloudConfigData('pos_merchant_account', $storeId);
+
+        if ($payment->getMethod() == 'adyen_pos_cloud' && !empty($merchantAccountPos)) {
+            return $merchantAccountPos;
+        }
+        return $merchantAccount;
+    }
+
 }
