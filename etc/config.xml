@@ -149,13 +149,33 @@
                 <can_cancel>1</can_cancel>
                 <group>adyen</group>
             </adyen_pos>
+            <adyen_pos_cloud>
+                <active>0</active>
+                <model>AdyenPaymentPosCloudFacade</model>
+                <order_status>pending</order_status>
+                <title>Adyen POS Cloud API</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>6</sort_order>
+                <payment_action>authorize</payment_action>
+                <is_gateway>1</is_gateway>
+                <can_authorize>1</can_authorize>
+                <can_use_checkout>1</can_use_checkout>
+                <can_capture>1</can_capture>
+                <can_capture_partial>1</can_capture_partial>
+                <can_use_internal>1</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <group>adyen</group>
+            </adyen_pos_cloud>
             <adyen_pay_by_mail>
                 <active>0</active>
                 <model>AdyenPaymentPayByMailFacade</model>
                 <order_status>pending</order_status>
                 <title>Adyen PayByMail</title>
                 <allowspecific>0</allowspecific>
-                <sort_order>6</sort_order>
+                <sort_order>7</sort_order>
                 <session_validity>3</session_validity>
                 <payment_action>order</payment_action>
                 <is_gateway>1</is_gateway>
@@ -175,7 +195,7 @@
                 <model>AdyenPaymentBoletoFacade</model>
                 <title>Boleto</title>
                 <allowspecific>0</allowspecific>
-                <sort_order>7</sort_order>
+                <sort_order>8</sort_order>
                 <payment_action>authorize</payment_action>
                 <delivery_days>5</delivery_days>
                 <is_gateway>1</is_gateway>
@@ -195,7 +215,7 @@
                 <model>AdyenPaymentApplePayFacade</model>
                 <title>Adyen Apple Pay</title>
                 <allowspecific>0</allowspecific>
-                <sort_order>8</sort_order>
+                <sort_order>9</sort_order>
                 <payment_action>authorize</payment_action>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>1</can_use_checkout>

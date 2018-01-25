@@ -1,0 +1,35 @@
+<?php
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2018 Adyen B.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+// @codingStandardsIgnoreFile
+
+?>
+<?php
+$_info = $this->getInfo();
+?>
+
+<dl class="payment-method adyen_pos_cloud">
+    <?php echo $this->escapeHtml($this->getMethod()->getTitle()) ?><br/>
+    <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
+</dl>
