@@ -502,7 +502,7 @@ class Data extends AbstractHelper
     {
         return $this->getConfigData($field, 'adyen_apple_pay', $storeId);
     }
-    
+
     /**
      * @param null $storeId
      * @return mixed
