@@ -13,10 +13,11 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2018 Adyen B.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
@@ -25,7 +26,7 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-class MerchantAccountDataBuilder implements BuilderInterface
+class PosCloudBuilder implements BuilderInterface
 {
     /**
      * @var \Adyen\Payment\Helper\Data
@@ -33,13 +34,21 @@ class MerchantAccountDataBuilder implements BuilderInterface
     private $adyenHelper;
 
     /**
-     * RecurringDataBuilder constructor.
+     * @var
+     */
+    private $_adyenLogger;
+
+    /**
+     * PaymentDataBuilder constructor.
      *
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Helper\Data $adyenHelper
     ) {
+        $this->_adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
     }
 
@@ -49,14 +58,22 @@ class MerchantAccountDataBuilder implements BuilderInterface
      */
     public function build(array $buildSubject)
     {
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getOrder();
-        $storeId = $order->getStoreId();
         $payment = $paymentDataObject->getPayment();
+        $fullOrder = $payment->getOrder();
+        $currencyCode = $fullOrder->getOrderCurrencyCode();
+        $amount = $fullOrder->getGrandTotal();
 
-        $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($payment, $storeId);
+        $amount = [
+            'currency' => $currencyCode,
+            'value' => $this->adyenHelper->formatAmount($amount, $currencyCode)
+        ];
 
-        return ["merchantAccount" => $merchantAccount];
+        return [
+            "amount" => $amount,
+            "reference" => $order->getOrderIncrementId(),
+            "fraudOffset" => "0"
+        ];
     }
 }

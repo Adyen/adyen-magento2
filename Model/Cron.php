@@ -1325,6 +1325,22 @@ class Cron
                 return true;
             }
 
+            if ($_paymentCode == "adyen_pos_cloud") {
+                $captureModePos = $this->_adyenHelper->getAdyenPosCloudConfigData('capture_mode_pos');
+                if (strcmp($captureModePos, 'auto') === 0) {
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        'This payment method is POS Cloud and configured to be working as auto capture '
+                    );
+                    return true;
+                } elseif (strcmp($captureModePos, 'manual') === 0) {
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        'This payment method is POS Cloud and configured to be working as manual capture '
+                    );
+                    return false;
+                }
+
+            }
+
             // if auto capture mode for openinvoice is turned on then use auto capture
             if ($captureModeOpenInvoice == true &&
                 $this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod)
