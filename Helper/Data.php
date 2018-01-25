@@ -55,7 +55,7 @@ class Data extends AbstractHelper
     protected $_moduleList;
 
     /**
-     * @var \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory
+     * @var \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory
      */
     protected $_billingAgreementCollectionFactory;
 
@@ -68,6 +68,11 @@ class Data extends AbstractHelper
      * @var \Magento\Framework\View\Asset\Source
      */
     protected $_assetSource;
+
+    /**
+     * @var \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory
+     */
+    protected $_notificationFactory;
 
     /**
      * Data constructor.
