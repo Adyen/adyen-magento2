@@ -1171,12 +1171,12 @@ class Data extends AbstractHelper
         return $poiId;
     }
 
-    public function getAdyenMerchantAccount($payment, $storeId)
+    public function getAdyenMerchantAccount($method, $storeId)
     {
         $merchantAccount = $this->getAdyenAbstractConfigData("merchant_account", $storeId);
         $merchantAccountPos = $this->getAdyenPosCloudConfigData('pos_merchant_account', $storeId);
 
-        if ($payment->getMethod() == 'adyen_pos_cloud' && !empty($merchantAccountPos)) {
+        if ($method == 'adyen_pos_cloud' && !empty($merchantAccountPos)) {
             return $merchantAccountPos;
         }
         return $merchantAccount;

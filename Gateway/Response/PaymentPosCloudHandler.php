@@ -26,6 +26,7 @@ namespace Adyen\Payment\Gateway\Response;
 
 
 use Magento\Payment\Gateway\Response\HandlerInterface;
+use Magento\Setup\Exception;
 
 class PaymentPosCloudHandler implements HandlerInterface
 {
@@ -75,8 +76,13 @@ class PaymentPosCloudHandler implements HandlerInterface
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
         // set transaction
-        $pspReference = $response['SaleToPOIResponse']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'];
-        $payment->setTransactionId($pspReference);
+        if (!empty($response['SaleToPOIResponse']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {
+            $pspReference = $response['SaleToPOIResponse']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'];
+            $payment->setTransactionId($pspReference);
+        } else {
+            $this->adyenLogger->error("Missing POS Transaction ID");
+            throw new Exception("Missing POS Transaction ID");
+        }
 
         // do not close transaction so you can do a cancel() and void
         $payment->setIsTransactionClosed(false);
