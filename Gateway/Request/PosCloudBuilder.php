@@ -63,17 +63,16 @@ class PosCloudBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $fullOrder = $payment->getOrder();
         $currencyCode = $fullOrder->getOrderCurrencyCode();
-        $amount = $fullOrder->getGrandTotal();
+        $grandTotal = $fullOrder->getGrandTotal();
 
         $amount = [
             'currency' => $currencyCode,
-            'value' => $this->adyenHelper->formatAmount($amount, $currencyCode)
+            'value' => $grandTotal
         ];
 
         return [
             "amount" => $amount,
-            "reference" => $order->getOrderIncrementId(),
-            "fraudOffset" => "0"
+            "reference" => $order->getOrderIncrementId()
         ];
     }
 }

@@ -265,8 +265,7 @@ class Json extends \Magento\Framework\App\Action\Action
         // If notification is test check if fields are correct if not return error
         if ($this->_isTestNotification($response['pspReference'])) {
             if ($usernameCmp != 0 || $passwordCmp != 0) {
-                echo 'username (PHP_AUTH_USER) and\or password (PHP_AUTH_PW) are not the same as Magento settings';
-                exit();
+                $this->_returnResult('username (PHP_AUTH_USER) and\or password (PHP_AUTH_PW) are not the same as Magento settings');
             }
         }
         return false;

@@ -54,8 +54,9 @@ class MerchantAccountDataBuilder implements BuilderInterface
         $order = $paymentDataObject->getOrder();
         $storeId = $order->getStoreId();
         $payment = $paymentDataObject->getPayment();
+        $method = $payment->getMethod();
 
-        $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($payment, $storeId);
+        $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
 
         return ["merchantAccount" => $merchantAccount];
     }
