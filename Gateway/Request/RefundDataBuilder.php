@@ -76,7 +76,8 @@ class RefundDataBuilder implements BuilderInterface
         $pspReference = $payment->getCcTransId();
         $currency = $payment->getOrder()->getOrderCurrencyCode();
         $storeId = $order->getStoreId();
-        $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($payment, $storeId);
+        $method = $payment->getMethod();
+        $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
         $grandTotal = $payment->getOrder()->getGrandTotal();
 
 
