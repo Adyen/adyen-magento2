@@ -57,7 +57,11 @@ class PosCloudResponseValidator extends AbstractValidator
         $errorMessages = [];
         $isValid = true;
         $response = \Magento\Payment\Gateway\Helper\SubjectReader::readResponse($validationSubject);
-        if ($response['SaleToPOIResponse']['PaymentResponse']['Response']['Result'] != 'Success') {
+
+        if ((!empty($response['SaleToPOIResponse']['PaymentResponse']['Response']['Result']) &&
+                $response['SaleToPOIResponse']['PaymentResponse']['Response']['Result'] != 'Success'
+            ) || empty($response['SaleToPOIResponse']['PaymentResponse']['Response']['Result'])
+        ) {
             $errorMsg = __('Problem with POS terminal');
             $this->adyenLogger->error($errorMsg);
             $errorMessages[] = $errorMsg;

@@ -25,7 +25,7 @@
 
 namespace Adyen\Payment\Gateway\Http\Client;
 
-
+use Adyen\Util\Util;
 use Magento\Payment\Gateway\Http\ClientInterface;
 
 class TransactionPosCloudSync implements ClientInterface
@@ -75,7 +75,7 @@ class TransactionPosCloudSync implements ClientInterface
         $service = new \Adyen\Service\PosPayment($this->_client);
         $transactionType = \Adyen\TransactionType::GOODS_SERVICES;
         $poiId = $this->_adyenHelper->getPoiId();
-        $json = $service->getPaymentRequest($poiId, $request['amount']['value'], $request['amount']['currency'],
+        $json = Util::buildPosPaymentRequest($poiId, $request['amount']['value'], $request['amount']['currency'],
             $request['reference'], $transactionType);
         $params = json_decode($json, true); //Create associative array for passing along
         try {
