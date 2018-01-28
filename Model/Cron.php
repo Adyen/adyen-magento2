@@ -670,6 +670,8 @@ class Cron
         if (isset($authCode) && $authCode != "") {
             $this->_order->getPayment()->setAdditionalInformation('adyen_auth_code', $authCode);
         }
+
+        $this->_order->getPayment()->save();
     }
 
     /**
@@ -1135,6 +1137,8 @@ class Cron
 
         // set transaction
         $paymentObj->setTransactionId($this->_pspReference);
+
+        $paymentObj->save();
 
         //capture mode
         if (!$this->_isAutoCapture()) {
