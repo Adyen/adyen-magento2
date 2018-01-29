@@ -152,6 +152,15 @@ define(
             isActive: function () {
                 return true;
             },
+
+            /**
+             * Returns state of place order button
+             * @returns {boolean}
+            */
+            isButtonActive: function() {
+              return this.isActive() && this.getCode() == this.isChecked() && this.isPlaceOrderActionAllowed();
+            },
+
             /**
              * @override
              */
