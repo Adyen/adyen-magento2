@@ -23,9 +23,11 @@
 -->
 
 
-<!-- ko foreach: getAdyenBillingAgreements() -->
 
+<!-- ko foreach: getAdyenBillingAgreements() -->
 <div class="payment-method" data-bind="css: {'_active': (value == $parent.isBillingAgreementChecked())}">
+
+
     <div class="payment-method-title field choice">
         <input type="radio"
                name="payment[method]"
@@ -50,11 +52,17 @@
     </div>
     <div class="payment-method-content">
 
+        <!-- ko foreach: $parent.getRegion(getMessageName()) -->
+        <!-- ko template: getTemplate() --><!-- /ko -->
+        <!--/ko-->
+
         <div class="payment-method-billing-address">
             <!-- ko foreach: $parents[1].getRegion($parent.getBillingAddressFormName()) -->
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
+
+
 
         <form class="form" action="#" method="post" data-bind="
             attr: {'id': 'adyen_oneclick_' + value, 'data-role': 'adyen_oneclick_' + value },
@@ -221,9 +229,6 @@
                 <!-- /ko -->
 
 
-
-
-
             </fieldset>
             <div class="checkout-agreements-block">
                 <!-- ko foreach: $parents[1].getRegion('before-place-order') -->
@@ -235,7 +240,7 @@
                     <button class="action primary checkout"
                             type="submit"
                             data-bind="
-                                click: $parent.placeOrder,
+                                click: placeOrder,
                                 attr: {title: $t('Place Order')},
                                 enable: (value == $parent.isBillingAgreementChecked())
                                 "

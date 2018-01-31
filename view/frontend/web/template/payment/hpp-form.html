@@ -97,13 +97,17 @@
                                 <div class="control">
                                     <input type="text" class="input-text"
                                            name="payment[dob]"
-                                           data-bind="  datepicker: { storage: datepickerValue, options: { showOn: 'both', changeYear: true, yearRange: '-99:-1', defaultDate: '-20y' } },
-                                                        attr: {
-                                                             id: getCode() + '_dob_' + value,
-                                                             title: $t('Date of Birth'),
-                                                             'data-container': getCode() + '-dob'
-                                                         },
-                                                         value: dob"
+                                           data-bind="
+                                           attr: {
+                                                 id: getCode() + '_dob_' + value,
+                                                 title: $t('Date of Birth'),
+                                                 'data-container': getCode() + '-dob_'  + value,
+                                           },
+                                            datepicker: {
+                                                storage: datepickerValue,
+                                                options: { showOn: 'both', changeYear: true, yearRange: '-99:-1', defaultDate: '-20y' }
+                                           },
+                                           value: dob"
                                            data-validate="{required:true}"
                                     />
                                 </div>

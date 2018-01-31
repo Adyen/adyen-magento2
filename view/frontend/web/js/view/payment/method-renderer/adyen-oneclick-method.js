@@ -19,31 +19,38 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-/*browser:true*/
-/*global define*/
 define(
     [
         'ko',
         'underscore',
         'jquery',
         'Magento_Payment/js/view/payment/cc-form',
-        'Adyen_Payment/js/action/place-order',
-        'mage/translate',
-        'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/action/select-payment-method',
+        'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/quote',
-        'Magento_Checkout/js/checkout-data'
+        'Magento_Checkout/js/checkout-data',
+        'Magento_Checkout/js/action/redirect-on-success',
+        'uiLayout',
+        'Magento_Ui/js/model/messages',
+        'Magento_Checkout/js/action/place-order',
+        'mage/url'
     ],
-    function (ko, _, $, Component, placeOrderAction, $t, additionalValidators, selectPaymentMethodAction, quote, checkoutData) {
+    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, placeOrderAction, url) {
         'use strict';
         var updatedExpiryDate = false;
         var recurringDetailReference = ko.observable(null);
+        var variant = ko.observable(null);
         var paymentMethod = ko.observable(null);
+        var encryptedData = ko.observable(null);
+        var numberOfInstallments = ko.observable(null);
+        var messageComponents;
         return Component.extend({
             defaults: {
                 template: 'Adyen_Payment/payment/oneclick-form',
                 recurringDetailReference: '',
-                encryptedData: ''
+                encryptedData: '',
+                variant: '',
+                numberOfInstallments: ''
             },
             initObservable: function () {
                 this._super()
@@ -51,13 +58,37 @@ define(
                         'recurringDetailReference',
                         'creditCardType',
                         'creditCardVerificationNumber',
-                        'encryptedData'
+                        'encryptedData',
+                        'variant',
+                        'numberOfInstallments'
                     ]);
                 return this;
             },
             initialize: function () {
                 var self = this;
                 this._super();
+
+                // create component needs to be in initialize method
+                var messageComponents = {};
+                _.map(window.checkoutConfig.payment.adyenOneclick.billingAgreements, function (value) {
+
+                    var messageContainer = new Messages();
+                    var name = 'messages-' + value.reference_id;
+                    var messagesComponent = {
+                        parent: self.name,
+                        name: 'messages-' + value.reference_id,
+                        // name: self.name + '.messages',
+                        displayArea: 'messages-' + value.reference_id,
+                        component: 'Magento_Ui/js/view/messages',
+                        config: {
+                            messageContainer: messageContainer
+                        }
+                    };
+                    layout([messagesComponent]);
+
+                    messageComponents[name] = messageContainer;
+                });
+                this.messageComponents = messageComponents;
             },
             placeOrderHandler: null,
             validateHandler: null,
@@ -72,63 +103,6 @@ define(
             },
             isActive: function () {
                 return true;
-            },
-            /**
-             * @override
-             */
-            placeOrder: function (data, event) {
-                var self = this,
-                    placeOrder;
-
-                if (event) {
-                    event.preventDefault();
-                }
-
-                var data = {
-                    "method": self.method,
-                    "additional_data": {
-                        variant: self.agreement_data.variant,
-                        recurring_detail_reference: self.value
-                    }
-                }
-
-                // only use CSE and installments for cards
-                if (self.agreement_data.card) {
-
-                    var generationtime = self.getGenerationTime();
-
-                    var cardData = {
-                        cvc: self.creditCardVerificationNumber,
-                        expiryMonth: self.creditCardExpMonth(),
-                        expiryYear: self.creditCardExpYear(),
-                        generationtime: generationtime
-                    };
-
-                    if (updatedExpiryDate || self.hasVerification()) {
-
-                        var options = {enableValidations: false};
-
-                        var cseInstance = adyen.createEncryption(options);
-
-                        var encryptedData = cseInstance.encrypt(cardData);
-                        data.additional_data.encrypted_data = encryptedData;
-                    }
-
-
-                    // set payment method to adyen_hpp
-                    data.additional_data.number_of_installments = self.installment;
-                }
-
-                if (this.validate() && additionalValidators.validate()) {
-                    //this.isPlaceOrderActionAllowed(false);
-                    placeOrder = placeOrderAction(data, this.redirectAfterPlaceOrder);
-
-                    $.when(placeOrder).fail(function (response) {
-                        //self.isPlaceOrderActionAllowed(true);
-                    });
-                    return true;
-                }
-                return false;
             },
             getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
@@ -172,6 +146,8 @@ define(
                         }
                     }
 
+                    var messageContainer = self.messageComponents['messages-' + value.reference_id];
+
                     return {
                         'expiry': ko.observable(false),
                         'label': value.agreement_label,
@@ -194,6 +170,91 @@ define(
                         },
                         hasVerification: function () {
                             return window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction;
+                        },
+                        /**
+                         * @override
+                         */
+                        placeOrder: function (data, event) {
+                            var self = this;
+
+                            if (event) {
+                                event.preventDefault();
+                            }
+
+                            var data = {
+                                "method": self.method,
+                                "additional_data": {
+                                    variant: self.agreement_data.variant,
+                                    recurring_detail_reference: self.value
+                                }
+                            }
+
+                            // only use CSE and installments for cards
+                            if (self.agreement_data.card) {
+
+                                var generationtime = self.getGenerationTime();
+
+                                var cardData = {
+                                    cvc: self.creditCardVerificationNumber,
+                                    expiryMonth: self.creditCardExpMonth(),
+                                    expiryYear: self.creditCardExpYear(),
+                                    generationtime: generationtime
+                                };
+
+                                if (updatedExpiryDate || self.hasVerification()) {
+
+                                    var options = {enableValidations: false};
+                                    var cseInstance = adyen.createEncryption(options);
+                                    var encryptedDataResult = cseInstance.encrypt(cardData);
+                                    encryptedData(encryptedDataResult)
+                                }
+
+                                // set payment method to adyen_hpp
+                                // TODO can observer in front-end this not needed
+                                numberOfInstallments(self.installment);
+                            }
+
+                            // in different context so need custom place order logic
+                            if (this.validate() && additionalValidators.validate()) {
+                                self.isPlaceOrderActionAllowed(false);
+
+                                this.getPlaceOrderDeferredObject()
+                                    .fail(
+                                        function () {
+                                            self.isPlaceOrderActionAllowed(true);
+                                        }
+                                    ).done(
+                                    function () {
+                                        self.afterPlaceOrder();
+                                        // use custom redirect Link for supporting 3D secure
+                                        window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
+                                    }
+                                );
+                                return true;
+                            }
+                            return false;
+                        },
+                        getData: function () {
+                            return {
+                                "method": self.item.method,
+                                "additional_data": {
+                                    variant: variant(),
+                                    recurring_detail_reference: recurringDetailReference(),
+                                    number_of_installments: numberOfInstallments(),
+                                    encrypted_data: encryptedData()
+                                }
+                            };
+                        },
+                        isPlaceOrderActionAllowed: function () {
+                            return self.isPlaceOrderActionAllowed(); // needed for placeOrder method
+                        },
+                        afterPlaceOrder: function () {
+                            return self.afterPlaceOrder(); // needed for placeOrder method
+                        },
+                        getPlaceOrderDeferredObject: function () {
+                            return $.when(
+                                placeOrderAction(this.getData(), this.getMessageContainer())
+                            );
                         },
                         validate: function () {
 
@@ -233,7 +294,13 @@ define(
                             var self = this;
                             self.expiry(true);
                             return true;
-                        }
+                        },
+                        getMessageName: function () {
+                            return 'messages-' + value.reference_id;
+                        },
+                        getMessageContainer: function () {
+                            return messageContainer;
+                        },
                     }
                 });
                 return paymentList;
@@ -254,6 +321,7 @@ define(
 
                 // set the brandCode
                 recurringDetailReference(self.value);
+                variant(self.agreement_data.variant);
 
                 // set payment method
                 paymentMethod(self.method);

@@ -19,19 +19,14 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-/*browser:true*/
-/*global define*/
 define(
     [
         'underscore',
         'jquery',
         'Magento_Checkout/js/model/quote',
-        'Magento_Payment/js/view/payment/cc-form',
-        'Adyen_Payment/js/action/place-order',
-        'mage/translate',
-        'Magento_Checkout/js/model/payment/additional-validators'
+        'Magento_Payment/js/view/payment/cc-form'
     ],
-    function (_, $, quote, Component, placeOrderAction, $t, additionalValidators) {
+    function (_, $, quote, Component) {
         'use strict';
         var billingAddress = quote.billingAddress();
         return Component.extend({
@@ -51,16 +46,16 @@ define(
                     ]);
                 return this;
             },
-            setPlaceOrderHandler: function(handler) {
+            setPlaceOrderHandler: function (handler) {
                 this.placeOrderHandler = handler;
             },
-            setValidateHandler: function(handler) {
+            setValidateHandler: function (handler) {
                 this.validateHandler = handler;
             },
-            getCode: function() {
+            getCode: function () {
                 return 'adyen_boleto';
             },
-            getData: function() {
+            getData: function () {
                 return {
                     'method': this.item.method,
                     'additional_data': {
@@ -71,56 +66,34 @@ define(
                     }
                 };
             },
-            isActive: function() {
+            isActive: function () {
                 return true;
             },
-            /**
-             * @override
-             */
-            placeOrder: function(data, event) {
-                var self = this,
-                    placeOrder;
-
-                if (event) {
-                    event.preventDefault();
-                }
-
-                if (this.validate() && additionalValidators.validate()) {
-                    this.isPlaceOrderActionAllowed(false);
-                    placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder);
-
-                    $.when(placeOrder).fail(function(response) {
-                        self.isPlaceOrderActionAllowed(true);
-                    });
-                    return true;
-                }
-                return false;
-            },
-            getControllerName: function() {
+            getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
             },
-            getPlaceOrderUrl: function() {
+            getPlaceOrderUrl: function () {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
             },
-            context: function() {
+            context: function () {
                 return this;
             },
             validate: function () {
                 var form = 'form[data-role=adyen-boleto-form]';
 
-                var validate =  $(form).validation() && $(form).validation('isValid');
+                var validate = $(form).validation() && $(form).validation('isValid');
 
-                if(!validate) {
+                if (!validate) {
                     return false;
                 }
 
                 return true;
             },
-            showLogo: function() {
+            showLogo: function () {
                 return window.checkoutConfig.payment.adyen.showLogo;
             },
-            getBoletoTypes: function() {
-                return _.map(window.checkoutConfig.payment.adyenBoleto.boletoTypes, function(value, key) {
+            getBoletoTypes: function () {
+                return _.map(window.checkoutConfig.payment.adyenBoleto.boletoTypes, function (value, key) {
                     return {
                         'key': value.value,
                         'value': value.label

@@ -19,42 +19,53 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-/*browser:true*/
-/*global define*/
 define(
     [
-        'ko',
+        'jquery',
         'Magento_Checkout/js/view/payment/default',
-        'Adyen_Payment/js/action/set-payment-method',
-        'Magento_Checkout/js/model/payment/additional-validators'
+        'Magento_Checkout/js/model/payment/additional-validators',
+        'Magento_Checkout/js/model/full-screen-loader',
+        'Magento_Checkout/js/action/place-order',
+        'Magento_Checkout/js/model/quote'
     ],
-    function (ko, Component, setPaymentMethodAction, additionalValidators) {
+    function ($, Component, additionalValidators, fullScreenLoader, placeOrderAction, quote) {
         'use strict';
-        var brandCode = ko.observable(null);
-        var paymentMethod = ko.observable(null);
-
         return Component.extend({
-            self: this,
             defaults: {
-                template: 'Adyen_Payment/payment/pos-form',
-                brandCode: ''
+                template: 'Adyen_Payment/payment/pos-form'
             },
             initObservable: function () {
                 this._super()
-                    .observe([
-                    ]);
+                    .observe([]);
                 return this;
             },
             /** Redirect to adyen */
             continueToAdyen: function () {
+                var self = this;
+
                 if (this.validate() && additionalValidators.validate()) {
                     //update payment method information if additional data was changed
-                    this.selectPaymentMethod();
-                    setPaymentMethodAction();
-                    return false;
+                    this.isPlaceOrderActionAllowed(false);
+                    fullScreenLoader.startLoader();
+
+                    $.when(
+                        placeOrderAction(this.getData(), this.messageContainer)
+                    ).fail(
+                        function () {
+                            self.isPlaceOrderActionAllowed(true);
+                        }
+                    ).done(
+                        function () {
+                            self.afterPlaceOrder();
+                            $.mage.redirect(
+                                window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
+                            );
+                        }
+                    );
                 }
+                return false;
             },
-            showLogo: function() {
+            showLogo: function () {
                 return window.checkoutConfig.payment.adyen.showLogo;
             },
             validate: function () {
