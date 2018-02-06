@@ -38,11 +38,12 @@ class BoletoAuthorizationDataBuilder implements BuilderInterface
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
-    {
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper
+    ) {
         $this->adyenHelper = $adyenHelper;
     }
-    
+
     /**
      * @param array $buildSubject
      * @return mixed
@@ -59,7 +60,15 @@ class BoletoAuthorizationDataBuilder implements BuilderInterface
         $request = [];
 
         $request['socialSecurityNumber'] = $payment->getAdditionalInformation("social_security_number");
-        $request['selectedBrand'] = $payment->getAdditionalInformation("boleto_type");
+
+        $boletoTypes = $this->adyenHelper->getAdyenBoletoConfigData('boletotypes');
+        $boletoTypes = explode(',', $boletoTypes);
+
+        if (count($boletoTypes) == 1) {
+            $request['selectedBrand'] = $boletoTypes[0];
+        } else {
+            $request['selectedBrand'] = $payment->getAdditionalInformation("boleto_type");
+        }
 
         $shopperName = [
             'firstName' => $payment->getAdditionalInformation("firstname"),
@@ -68,7 +77,7 @@ class BoletoAuthorizationDataBuilder implements BuilderInterface
         $request['shopperName'] = $shopperName;
 
 
-        $deliveryDays = (int) $this->adyenHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
+        $deliveryDays = (int)$this->adyenHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
         $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
         $deliveryDate = date(
             "Y-m-d\TH:i:s ",
@@ -81,7 +90,7 @@ class BoletoAuthorizationDataBuilder implements BuilderInterface
         );
 
         $request['deliveryDate'] = $deliveryDate;
-        
+
         return $request;
     }
 }
