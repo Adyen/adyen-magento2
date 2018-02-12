@@ -58,7 +58,7 @@ class DataTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals("1200", $this->dataHelper->formatAmount("12.00", "USD"));
         $this->assertEquals("12", $this->dataHelper->formatAmount("12.00", "JPY"));
     }
-    
+
     public function testisPaymentMethodOpenInvoiceMethod()
     {
         $this->assertEquals(true, $this->dataHelper->isPaymentMethodOpenInvoiceMethod("klarna"));
