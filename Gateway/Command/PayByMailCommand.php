@@ -54,6 +54,7 @@ class PayByMailCommand implements CommandInterface
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
     }
+
     /**
      * @param array $commandSubject
      * @return $this
@@ -68,7 +69,7 @@ class PayByMailCommand implements CommandInterface
         $payment->setIsTransactionPending(true);
 
         // generateUrl
-        $payment->setAdditionalInformation('payment_url', $this->_generatePaymentUrl($payment));
+        $payment->setAdditionalInformation('payment_url', $this->generatePaymentUrl($payment));
 
         // update status and state
         $stateObject->setState(\Magento\Sales\Model\Order::STATE_NEW);
@@ -82,7 +83,7 @@ class PayByMailCommand implements CommandInterface
      * @param $payment
      * @return string
      */
-    protected function _generatePaymentUrl($payment)
+    public function generatePaymentUrl($payment)
     {
         $url = $this->getFormUrl();
         $fields = $this->getFormFields($payment);
