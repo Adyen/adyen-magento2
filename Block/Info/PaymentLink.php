@@ -86,6 +86,8 @@ class PaymentLink extends AbstractInfo
     public function _toHtml()
     {
         return strpos($this->getPayment()->getMethod(), 'adyen_') === 0
+            && $this->_scopeConfig->getValue('payment/adyen_hpp/active')
+            && $this->_scopeConfig->getValue('payment/adyen_pay_by_mail/active')
             && $this->getOrder()->getTotalInvoiced() > 0
             && $this->getOrder()->getTotalDue() > 0
                 ? parent::_toHtml()
