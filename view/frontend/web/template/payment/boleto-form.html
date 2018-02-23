@@ -84,6 +84,8 @@
                     </div>
                 </div>
 
+                <!-- ko if: getBoletoTypes().length > 1-->
+
                 <div class="field boleto_type type required">
                     <label data-bind="attr: {for: getCode() + '_boleto_type'}" class="label">
                         <span><!-- ko text: $t('Boleto Card Type')--><!-- /ko --></span>
@@ -103,7 +105,7 @@
                     </div>
                 </div>
 
-
+                <!--/ko-->
 
                 <div class="field firstname type required">
                     <label data-bind="attr: {for: getCode() + 'firstname'}" class="label">
