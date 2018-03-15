@@ -33,10 +33,6 @@ class PaymentAuthorisationDetailsHandler implements HandlerInterface
     )
     {
         $this->_adyenLogger = $adyenLogger;
-
-        $this->_adyenLogger->error("Constructor PaymentAuthorisationDetailsHandler");
-        $this->_adyenLogger->addNotificationLog("Constructor PaymentAuthorisationDetailsHandler");
-
     }
 
     /**

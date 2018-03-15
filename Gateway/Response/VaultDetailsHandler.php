@@ -52,13 +52,7 @@ class VaultDetailsHandler implements HandlerInterface
     )
     {
         $this->_adyenLogger = $adyenLogger;
-
-        $this->_adyenLogger->error("Constructor1");
-        $this->_adyenLogger->addNotificationLog("Constructor1");
-
-        $this->_adyenLogger->error("Constructo2r");
         $this->paymentTokenFactory = $paymentTokenFactory;
-        $this->_adyenLogger->error("Constructor2");
     }
 
     /**
@@ -66,37 +60,18 @@ class VaultDetailsHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $response)
     {
-
-        $this->_adyenLogger->error("Test handle Adyen NEWWW");
-
-//        $this->_adyenLogger->error(print_r($response, true));
-
         $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
-
-        $this->_adyenLogger->error("Class Payment" . get_class($payment));
-
 
         /** @var OrderPaymentInterface $payment */
         $payment = $payment->getPayment();
 
-        $this->_adyenLogger->error("Class Payment2" . get_class($payment));
-
-        $this->_adyenLogger->error("Test handle Adyen 2");
-
         // add vault payment token entity to extension attributes
         $paymentToken = $this->getVaultPaymentToken($response);
 
-
         if (null !== $paymentToken) {
-            $this->_adyenLogger->error("Test handle Adyen 3");
             $extensionAttributes = $this->getExtensionAttributes($payment);
-            $this->_adyenLogger->error("Test handle Adyen 4");
             $extensionAttributes->setVaultPaymentToken($paymentToken);
-            $this->_adyenLogger->error("Test handle Adyen 5");
         }
-
-
-        $this->_adyenLogger->error("Test handle Adyen 6");
     }
 
 
@@ -108,7 +83,6 @@ class VaultDetailsHandler implements HandlerInterface
      */
     private function getVaultPaymentToken(array $response)
     {
-        $this->_adyenLogger->error("getVaultPaymentToken");
         $additionalData = $response['additionalData'];
 
         if(empty($additionalData['recurring.recurringDetailReference'])) {
@@ -135,23 +109,13 @@ class VaultDetailsHandler implements HandlerInterface
             return null;
         }
 
-        // do we need to convert this ???
         $cardType = $additionalData['paymentMethod'];
 
-        //additional data then recurring.recurringDetailReference
-
-        $this->_adyenLogger->error("getVaultPaymentToken2");
-
         try {
-
-            $this->_adyenLogger->error("getVaultPaymentToken3");
-
             /** @var PaymentTokenInterface $paymentToken */
             $paymentToken = $this->paymentTokenFactory->create(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
             $paymentToken->setGatewayToken($token);
             $paymentToken->setExpiresAt($this->getExpirationDate($expirationDate));
-
-            $this->_adyenLogger->error("getVaultPaymentToken4");
 
             $details = [
                 'type' => $cardType,
@@ -159,21 +123,10 @@ class VaultDetailsHandler implements HandlerInterface
                 'expirationDate' => $expirationDate
             ];
 
-            $this->_adyenLogger->error(print_r($details, true));
-
-            $this->_adyenLogger->error("getVaultPaymentToken5");
-
             $paymentToken->setTokenDetails(json_encode($details));
-
-            $this->_adyenLogger->error(json_encode($details));
-
-            $this->_adyenLogger->error("getVaultPaymentToken6");
         } catch(Exception $e) {
-            $this->_adyenLogger->error("EXCEPTION!");
             $this->_adyenLogger->error(print_r($e, true));
         }
-
-        $this->_adyenLogger->error("getVaultPaymentToken before end");
         return $paymentToken;
     }
 
@@ -212,15 +165,10 @@ class VaultDetailsHandler implements HandlerInterface
      */
     private function getExtensionAttributes(InfoInterface $payment)
     {
-        $this->_adyenLogger->error("getExtensionAttributes 1");
         $extensionAttributes = $payment->getExtensionAttributes();
-        $this->_adyenLogger->error("getExtensionAttributes 2");
         if (null === $extensionAttributes) {
-            $this->_adyenLogger->error("getExtensionAttributes 3");
             $extensionAttributes = $this->paymentExtensionFactory->create();
-            $this->_adyenLogger->error("getExtensionAttributes 4");
             $payment->setExtensionAttributes($extensionAttributes);
-            $this->_adyenLogger->error("getExtensionAttributes 5");
         }
         return $extensionAttributes;
     }
