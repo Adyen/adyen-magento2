@@ -62,10 +62,12 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         $paymentInfo = $this->readPaymentModelArgument($observer);
 
         // set ccType
-        $paymentInfo->setCcType($additionalData['cc_type']);
-
+        if(!empty($additionalData['cc_type'])) {
+            $paymentInfo->setCcType($additionalData['cc_type']);
+        }
+        
         foreach ($this->additionalInformationList as $additionalInformationKey) {
-            if (isset($additionalData[$additionalInformationKey])) {
+            if (!empty($additionalData[$additionalInformationKey])) {
                 $paymentInfo->setAdditionalInformation(
                     $additionalInformationKey,
                     $additionalData[$additionalInformationKey]

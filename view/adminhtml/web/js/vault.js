@@ -1,5 +1,3 @@
-<?xml version="1.0"?>
-<!--
 /**
  *                       ######
  *                       ######
@@ -21,17 +19,42 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+/*browser:true*/
+/*global define*/
+define([
+    'jquery',
+    'uiComponent'
+], function ($, Class) {
+    'use strict';
 
-    <module name="Adyen_Payment" setup_version="2.2.0">
-        <sequence>
-            <module name="Magento_Sales"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Checkout"/>
-            <module name="Magento_Paypal"/>
-            <module name="Magento_AdminNotification"/>
-            <module name="Magento_Vault"/>
-        </sequence>
-    </module>
-</config>
+    return Class.extend({
+        defaults: {
+            $selector: null,
+            selector: 'edit_form'
+        },
+
+        initObservable: function () {
+            var self = this;
+
+            self.$selector = $('#' + self.selector);
+            this._super();
+
+            this.initEventHandlers();
+
+            return this;
+        },
+
+        getCode: function () {
+            return this.code;
+        },
+
+        initEventHandlers: function () {
+            $('#' + this.container).find('[name="payment[token_switcher]"]')
+                .on('click', this.setPaymentDetails.bind(this));
+        },
+
+        setPaymentDetails: function () {
+            this.$selector.find('[name="payment[public_hash]"]').val(this.publicHash);
+        }
+    });
+});

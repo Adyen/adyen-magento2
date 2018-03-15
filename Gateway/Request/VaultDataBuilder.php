@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -21,17 +20,35 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
 
-    <module name="Adyen_Payment" setup_version="2.2.0">
-        <sequence>
-            <module name="Magento_Sales"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Checkout"/>
-            <module name="Magento_Paypal"/>
-            <module name="Magento_AdminNotification"/>
-            <module name="Magento_Vault"/>
-        </sequence>
-    </module>
-</config>
+namespace Adyen\Payment\Gateway\Request;
+
+use Magento\Payment\Gateway\Request\BuilderInterface;
+
+class VaultDataBuilder implements BuilderInterface
+{
+
+    /**
+     * Additional options in request to gateway
+     */
+    const OPTIONS = 'options';
+
+    /**
+     * The option that determines whether the payment method associated with
+     * the successful transaction should be stored in the Vault.
+     */
+    const STORE_IN_VAULT_ON_SUCCESS = 'storeInVaultOnSuccess';
+
+    /**
+     * @inheritdoc
+     */
+    public function build(array $buildSubject)
+    {
+
+        // indicates if the user want to store it or not
+        // ignore for now
+        // needs to define if we need to store it as oneclick or recurring
+        $request = [];
+        return $request;
+    }
+}

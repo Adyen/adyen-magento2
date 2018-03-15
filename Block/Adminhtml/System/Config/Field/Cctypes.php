@@ -33,7 +33,7 @@ class Cctypes extends \Magento\Framework\View\Element\Html\Select
     protected $ccTypes = [];
 
     /**
-     * @var \Magento\Braintree\Model\Source\CcType
+     * @var \Adyen\Payment\Model\Config\Source\CcType
      */
     protected $ccTypeSource;
 

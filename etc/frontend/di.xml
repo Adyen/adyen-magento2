@@ -38,4 +38,13 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="Magento\Vault\Model\Ui\TokensConfigProvider">
+        <arguments>
+            <argument name="tokenUiComponentProviders" xsi:type="array">
+                <item name="adyen_cc" xsi:type="object">Adyen\Payment\Model\Ui\TokenUiComponentProvider</item>
+            </argument>
+        </arguments>
+    </type>
+
 </config>

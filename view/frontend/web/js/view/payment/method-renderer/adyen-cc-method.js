@@ -29,9 +29,10 @@ define(
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/model/installments',
-        'mage/url'
+        'mage/url',
+        'Magento_Vault/js/view/payment/vault-enabler'
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url, VaultEnabler) {
 
         'use strict';
         var cvcLength = ko.observable(4);
@@ -67,6 +68,9 @@ define(
             initialize: function () {
                 var self = this;
                 this._super();
+
+                this.vaultEnabler = new VaultEnabler();
+                this.vaultEnabler.setPaymentCode(this.getVaultCode());
 
                 installments.setInstallments(0);
 
@@ -135,7 +139,7 @@ define(
                 return 'adyen_cc';
             },
             getData: function () {
-                return {
+                var data = {
                     'method': this.item.method,
                     additional_data: {
                         'cc_type': this.creditCardType(),
@@ -145,6 +149,9 @@ define(
                         'number_of_installments': this.installment()
                     }
                 };
+                this.vaultEnabler.visitAdditionalData(data);
+
+               return data;
             },
             getCvcLength: function () {
                 return cvcLength();
@@ -275,6 +282,19 @@ define(
             },
             getAllInstallments: function () {
                 return window.checkoutConfig.payment.adyenCc.installments;
+            },
+            /**
+             * @returns {Bool}
+             */
+            isVaultEnabled: function () {
+                return this.vaultEnabler.isVaultEnabled();
+            },
+
+            /**
+             * @returns {String}
+             */
+            getVaultCode: function () {
+                return window.checkoutConfig.payment[this.getCode()].vaultCode;
             }
         });
     }

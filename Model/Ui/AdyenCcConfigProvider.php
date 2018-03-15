@@ -33,6 +33,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
 
     const CODE = 'adyen_cc';
 
+    const CC_VAULT_CODE = 'adyen_cc_vault';
+
     /**
      * @var PaymentHelper
      */
@@ -103,6 +105,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $config = [
             'payment' => [
                 self::CODE => [
+                    'vaultCode' => self::CC_VAULT_CODE,
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
                         'adyen/process/validate3d/', ['_secure' => $this->_getRequest()->isSecure()])

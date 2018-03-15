@@ -27,6 +27,18 @@ use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class PaymentAuthorisationDetailsHandler implements HandlerInterface
 {
+
+    public function __construct(
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+    )
+    {
+        $this->_adyenLogger = $adyenLogger;
+
+        $this->_adyenLogger->error("Constructor PaymentAuthorisationDetailsHandler");
+        $this->_adyenLogger->addNotificationLog("Constructor PaymentAuthorisationDetailsHandler");
+
+    }
+
     /**
      * @param array $handlingSubject
      * @param array $response
@@ -54,6 +66,6 @@ class PaymentAuthorisationDetailsHandler implements HandlerInterface
         // do not close transaction so you can do a cancel() and void
         $payment->setIsTransactionClosed(false);
         $payment->setShouldCloseParentTransaction(false);
-        
+
     }
 }
