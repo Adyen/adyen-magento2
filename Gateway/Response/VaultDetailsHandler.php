@@ -26,7 +26,6 @@ namespace Adyen\Payment\Gateway\Response;
 use Magento\Vault\Model\CreditCardTokenFactory;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Payment\Gateway\Response\HandlerInterface;
-use Magento\Payment\Model\InfoInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 
@@ -62,10 +61,10 @@ class VaultDetailsHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $response)
     {
-        $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
+        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
         /** @var OrderPaymentInterface $payment */
-        $payment = $payment->getPayment();
+        $payment = $paymentDataObject->getPayment();
 
         // add vault payment token entity to extension attributes
         $paymentToken = $this->getVaultPaymentToken($response);
@@ -180,16 +179,13 @@ class VaultDetailsHandler implements HandlerInterface
 
     /**
      * Get payment extension attributes
-     * @param InfoInterface $payment
+     * @param OrderPaymentInterface $payment
      * @return OrderPaymentExtensionInterface
      */
-    private function getExtensionAttributes(InfoInterface $payment)
+    private function getExtensionAttributes(OrderPaymentInterface $payment)
     {
         $extensionAttributes = $payment->getExtensionAttributes();
-        if (null === $extensionAttributes) {
-            $extensionAttributes = $this->paymentExtensionFactory->create();
-            $payment->setExtensionAttributes($extensionAttributes);
-        }
+
         return $extensionAttributes;
     }
 }
