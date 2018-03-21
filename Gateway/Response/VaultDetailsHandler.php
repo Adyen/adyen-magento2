@@ -23,15 +23,18 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
-use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
+use Magento\Vault\Model\CreditCardTokenFactory;
+use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 use Magento\Payment\Model\InfoInterface;
+use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 
 class VaultDetailsHandler implements HandlerInterface
 {
 
     /**
-     * @var PaymentTokenInterfaceFactory
+     * @var CreditCardTokenFactory
      */
     protected $paymentTokenFactory;
 
@@ -43,14 +46,13 @@ class VaultDetailsHandler implements HandlerInterface
     /**
      * VaultDetailsHandler constructor.
      *
-     * @param PaymentTokenFactoryInterface $paymentTokenFactory
+     * @param CreditCardTokenFactory $paymentTokenFactory
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
     public function __construct(
-        PaymentTokenFactoryInterface $paymentTokenFactory,
+        CreditCardTokenFactory $paymentTokenFactory,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-    )
-    {
+    ) {
         $this->_adyenLogger = $adyenLogger;
         $this->paymentTokenFactory = $paymentTokenFactory;
     }
@@ -83,29 +85,47 @@ class VaultDetailsHandler implements HandlerInterface
      */
     private function getVaultPaymentToken(array $response)
     {
+        if (empty($response['additionalData'])) {
+            $this->_adyenLogger->error(
+                "Missing Response additionalData set please send email to magento@adyen.com to enable vaulting"
+            );
+            return null;
+        }
         $additionalData = $response['additionalData'];
 
-        if(empty($additionalData['recurring.recurringDetailReference'])) {
-            $this->_adyenLogger->error("Missing Token in Result please send email to magento@adyen.com to enable the rechargeSynchronousStoreDetails property");
+        if (empty($additionalData['recurring.recurringDetailReference'])) {
+            $this->_adyenLogger->error(
+                "Missing Token in Result please send email to magento@adyen.com
+                 to enable the rechargeSynchronousStoreDetails property"
+            );
             return null;
         }
         $token = $additionalData['recurring.recurringDetailReference'];
 
 
         if (empty($additionalData['cardSummary'])) {
-            $this->_adyenLogger->error("Missing cardSummary in Result please login to the adyen portal and go to Settings -> API and Response and enable the Card summary property");
+            $this->_adyenLogger->error(
+                "Missing cardSummary in Result please login to the adyen portal
+                 and go to Settings -> API and Response and enable the Card summary property"
+            );
             return null;
         }
         $cardSummary = $additionalData['cardSummary'];
 
         if (empty($additionalData['expiryDate'])) {
-            $this->_adyenLogger->error("Missing expiryDate in Result please login to the adyen portal and go to Settings -> API and Response and enable the Expiry date property");
+            $this->_adyenLogger->error(
+                "Missing expiryDate in Result please login to the adyen portal
+                 and go to Settings -> API and Response and enable the Expiry date property"
+            );
             return null;
         }
         $expirationDate = $additionalData['expiryDate'];
 
         if (empty($additionalData['paymentMethod'])) {
-            $this->_adyenLogger->error("Missing paymentMethod in Result please login to the adyen portal and go to Settings -> API and Response and enable the Variant property");
+            $this->_adyenLogger->error(
+                "Missing paymentMethod in Result please login to the 
+                adyen portal and go to Settings -> API and Response and enable the Variant property"
+            );
             return null;
         }
 
@@ -113,7 +133,7 @@ class VaultDetailsHandler implements HandlerInterface
 
         try {
             /** @var PaymentTokenInterface $paymentToken */
-            $paymentToken = $this->paymentTokenFactory->create(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
+            $paymentToken = $this->paymentTokenFactory->create();
             $paymentToken->setGatewayToken($token);
             $paymentToken->setExpiresAt($this->getExpirationDate($expirationDate));
 
@@ -124,7 +144,7 @@ class VaultDetailsHandler implements HandlerInterface
             ];
 
             $paymentToken->setTokenDetails(json_encode($details));
-        } catch(Exception $e) {
+        } catch (\Exception $e) {
             $this->_adyenLogger->error(print_r($e, true));
         }
         return $paymentToken;
@@ -172,6 +192,4 @@ class VaultDetailsHandler implements HandlerInterface
         }
         return $extensionAttributes;
     }
-
-
 }
