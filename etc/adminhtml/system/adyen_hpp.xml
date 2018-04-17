@@ -55,7 +55,7 @@
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_hpp/hmac_live</config_path>
         </field>
-        <group id="adyen_hpp_openinvoice_settings" translate="label" showInDefault="1" showInWebsite="1" sortOrder="100">
+        <group id="adyen_hpp_openinvoice_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="100">
             <label>Klarna\RatePay\Afterpay Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
             <field id="show_gender" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -85,7 +85,7 @@
                 <config_path>payment/adyen_hpp/ratepay_id</config_path>
             </field>
         </group>
-        <group id="adyen_hpp_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" sortOrder="200">
+        <group id="adyen_hpp_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="200">
             <label>Advanced Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
             <field id="title" translate="label" type="text" sortOrder="65" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -122,7 +122,7 @@
                 <config_path>payment/adyen_hpp/country_code</config_path>
             </field>
         </group>
-        <group id="adyen_hpp_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="210">
+        <group id="adyen_hpp_country_specific" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="210">
             <label>Country Specific Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
             <field id="allowspecific" translate="label" type="allowspecific" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
