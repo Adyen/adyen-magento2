@@ -164,7 +164,7 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                             ];
                             $paymentToken->setTokenDetails(json_encode($details));
                         } catch(\Exception $e) {
-                            $this->_adyenLogger->error(print_r($e, true));
+                            $this->_adyenLogger->error((string)$e->getMessage());
                         }
 
                         $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
