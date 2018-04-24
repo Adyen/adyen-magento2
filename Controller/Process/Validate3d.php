@@ -23,8 +23,12 @@
 
 namespace Adyen\Payment\Controller\Process;
 
+use Magento\Payment\Model\InfoInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
+use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
+use Magento\Sales\Api\Data\OrderPaymentExtensionInterfaceFactory;
+use Magento\Sales\Model\ResourceModel\Order\Payment as OrderPaymentResource;
 
 class Validate3d extends \Magento\Framework\App\Action\Action
 {
@@ -64,12 +68,26 @@ class Validate3d extends \Magento\Framework\App\Action\Action
     private $paymentTokenFactory;
 
     /**
+     * @var OrderPaymentExtensionInterfaceFactory
+     */
+    private $paymentExtensionFactory;
+
+    /**
+     * @var OrderPaymentResource
+     */
+    private $orderPaymentResource;
+
+    /**
      * Validate3d constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
+     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+     * @param PaymentTokenFactoryInterface $paymentTokenFactory
+     * @param OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory
+     * @param OrderPaymentResource $orderPaymentResource
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -77,7 +95,9 @@ class Validate3d extends \Magento\Framework\App\Action\Action
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
-        PaymentTokenFactoryInterface $paymentTokenFactory
+        PaymentTokenFactoryInterface $paymentTokenFactory,
+        OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
+        OrderPaymentResource $orderPaymentResource
     ) {
         parent::__construct($context);
         $this->_adyenLogger = $adyenLogger;
@@ -85,6 +105,8 @@ class Validate3d extends \Magento\Framework\App\Action\Action
         $this->_paymentRequest = $paymentRequest;
         $this->_orderRepository = $orderRepository;
         $this->paymentTokenFactory = $paymentTokenFactory;
+        $this->paymentExtensionFactory = $paymentExtensionFactory;
+        $this->orderPaymentResource = $orderPaymentResource;
     }
 
     /**
@@ -163,6 +185,16 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                                 'expirationDate' => $expirationDate
                             ];
                             $paymentToken->setTokenDetails(json_encode($details));
+
+                            $extensionAttributes = $this->getExtensionAttributes($order->getPayment());
+                            $extensionAttributes->setVaultPaymentToken($paymentToken);
+                            $orderPayment = $order->getPayment()->setExtensionAttributes($extensionAttributes);
+
+                            $add = unserialize($orderPayment->getAdditionalData());
+                            $add['force_save'] = true;
+                            $orderPayment->setAdditionalData(serialize($add));
+
+                            $this->orderPaymentResource->save($orderPayment);
                         } catch(\Exception $e) {
                             $this->_adyenLogger->error((string)$e->getMessage());
                         }
@@ -199,6 +231,21 @@ class Validate3d extends \Magento\Framework\App\Action\Action
         } else {
             $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
         }
+    }
+
+    /**
+     * Get payment extension attributes
+     * @param InfoInterface $payment
+     * @return OrderPaymentExtensionInterface
+     */
+    private function getExtensionAttributes(InfoInterface $payment)
+    {
+        $extensionAttributes = $payment->getExtensionAttributes();
+        if (null === $extensionAttributes) {
+            $extensionAttributes = $this->paymentExtensionFactory->create();
+            $payment->setExtensionAttributes($extensionAttributes);
+        }
+        return $extensionAttributes;
     }
 
     /**
