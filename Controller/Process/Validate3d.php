@@ -23,6 +23,9 @@
 
 namespace Adyen\Payment\Controller\Process;
 
+use Magento\Vault\Api\Data\PaymentTokenInterface;
+use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
+
 class Validate3d extends \Magento\Framework\App\Action\Action
 {
     /**
@@ -56,6 +59,11 @@ class Validate3d extends \Magento\Framework\App\Action\Action
     protected $_orderRepository;
 
     /**
+     * @var PaymentTokenFactoryInterface
+     */
+    private $paymentTokenFactory;
+
+    /**
      * Validate3d constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -68,13 +76,15 @@ class Validate3d extends \Magento\Framework\App\Action\Action
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
+        PaymentTokenFactoryInterface $paymentTokenFactory
     ) {
         parent::__construct($context);
         $this->_adyenLogger = $adyenLogger;
         $this->_adyenHelper = $adyenHelper;
         $this->_paymentRequest = $paymentRequest;
         $this->_orderRepository = $orderRepository;
+        $this->paymentTokenFactory = $paymentTokenFactory;
     }
 
     /**
@@ -135,6 +145,27 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                         $order->getPayment()->setAdditionalInformation('3dSuccess', true);
                         $this->_orderRepository->save($order);
 
+                        try {
+                            $additionalData = $result['additionalData'];
+                            $token = $additionalData['recurring.recurringDetailReference'];
+                            $expirationDate = $additionalData['expiryDate'];
+                            $cardType = $additionalData['paymentMethod'];
+                            $cardSummary = $additionalData['cardSummary'];
+
+                            /** @var PaymentTokenInterface $paymentToken */
+                            $paymentToken = $this->paymentTokenFactory->create(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
+                            $paymentToken->setGatewayToken($token);
+                            $paymentToken->setExpiresAt($this->getExpirationDate($expirationDate));
+                            $details = [
+                                'type' => $cardType,
+                                'maskedCC' => $cardSummary,
+                                'expirationDate' => $expirationDate
+                            ];
+                            $paymentToken->setTokenDetails(json_encode($details));
+                        } catch(\Exception $e) {
+                            $this->_adyenLogger->error(print_r($e, true));
+                        }
+
                         $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
                     } else {
                         $order->addStatusHistoryComment(__('3D-secure validation was unsuccessful.'))->save();
@@ -167,6 +198,33 @@ class Validate3d extends \Magento\Framework\App\Action\Action
         } else {
             $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
         }
+    }
+
+    /**
+     * @param $expirationDate
+     * @return string
+     */
+    private function getExpirationDate($expirationDate)
+    {
+        $expirationDate = explode('/', $expirationDate);
+
+        //add leading zero to month
+        $month = sprintf("%02d", $expirationDate[0]);
+
+        $expDate = new \DateTime(
+            $expirationDate[1]
+            . '-'
+            . $month
+            . '-'
+            . '01'
+            . ' '
+            . '00:00:00',
+            new \DateTimeZone('UTC')
+        );
+
+        // add one month
+        $expDate->add(new \DateInterval('P1M'));
+        return $expDate->format('Y-m-d 00:00:00');
     }
 
     /**
