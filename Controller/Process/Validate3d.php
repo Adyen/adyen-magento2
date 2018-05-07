@@ -150,7 +150,7 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                         // restore the quote
                         $session->restoreQuote();
 
-                        $this->_redirect('checkout/cart');
+                        $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
                     }
                 }
             } else {

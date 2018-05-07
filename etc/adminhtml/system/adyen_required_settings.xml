@@ -106,5 +106,10 @@
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/debug</config_path>
         </field>
+        <field id="return_path" translate="label" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+            <label>Checkout Return Path</label>
+            <config_path>payment/adyen_abstract/return_path</config_path>
+            <tooltip><![CDATA[The path the customer will be redirected to when payment was <b>not</b> successful. Default is <i>checkout/cart</i>.]]></tooltip>
+        </field>
     </group>
 </include>
