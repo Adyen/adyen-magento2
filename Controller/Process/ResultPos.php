@@ -98,7 +98,7 @@ class ResultPos extends \Magento\Framework\App\Action\Action
             $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
         } else {
             $this->_cancel($response);
-            $this->_redirect('checkout/cart');
+            $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
         }
     }
 
