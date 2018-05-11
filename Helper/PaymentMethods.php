@@ -154,10 +154,16 @@ class PaymentMethods extends AbstractHelper
     {
         $paymentMethods = [];
 
-        $ccEnabled = $this->_config->getValue('payment/'.\Adyen\Payment\Model\Ui\AdyenCcConfigProvider::CODE.'/active');
+        $ccEnabled = $this->_config->getValue(
+            'payment/' . \Adyen\Payment\Model\Ui\AdyenCcConfigProvider::CODE . '/active',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
+            $store->getCode()
+        );
         $ccTypes = array_keys($this->_adyenHelper->getCcTypesAltData());
         $sepaEnabled = $this->_config->getValue(
-            'payment/'.\Adyen\Payment\Model\Ui\AdyenSepaConfigProvider::CODE.'/active'
+            'payment/' . \Adyen\Payment\Model\Ui\AdyenSepaConfigProvider::CODE . '/active',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
+            $store->getCode()
         );
 
         foreach ($this->_fetchHppMethods($store, $country) as $methodCode => $methodData) {
@@ -192,20 +198,20 @@ class PaymentMethods extends AbstractHelper
         }
 
         $adyFields = [
-            "paymentAmount"     => (int) $this->_adyenHelper->formatAmount(
+            "paymentAmount" => (int)$this->_adyenHelper->formatAmount(
                 $this->_getCurrentPaymentAmount(),
                 $this->_getCurrentCurrencyCode($store)
             ),
-            "currencyCode"      => $this->_getCurrentCurrencyCode($store),
+            "currencyCode" => $this->_getCurrentCurrencyCode($store),
             "merchantReference" => "Get Payment methods",
-            "skinCode"          => $skinCode,
-            "merchantAccount"   => $merchantAccount,
-            "sessionValidity"   => date(
+            "skinCode" => $skinCode,
+            "merchantAccount" => $merchantAccount,
+            "sessionValidity" => date(
                 DATE_ATOM,
                 mktime(date("H") + 1, date("i"), date("s"), date("m"), date("j"), date("Y"))
             ),
-            "countryCode"       => $this->_getCurrentCountryCode($store, $country),
-            "shopperLocale"     => $this->_getCurrentLocaleCode($store)
+            "countryCode" => $this->_getCurrentCountryCode($store, $country),
+            "shopperLocale" => $this->_getCurrentLocaleCode($store)
         ];
 
         $responseData = $this->_getDirectoryLookupResponse($adyFields, $store);
@@ -228,9 +234,9 @@ class PaymentMethods extends AbstractHelper
                     $themeCode = "Magento/blank";
 
                     $themeId = $this->_design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
-                    if(!empty($themeId)) {
+                    if (!empty($themeId)) {
                         $theme = $this->_themeProvider->getThemeById($themeId);
-                        if($theme && !empty($theme->getCode())) {
+                        if ($theme && !empty($theme->getCode())) {
                             $themeCode = $theme->getCode();
                         }
                     }
@@ -405,7 +411,7 @@ class PaymentMethods extends AbstractHelper
         $service = new \Adyen\Service\DirectoryLookup($client);
 
         try {
-            $responseData =  $service->directoryLookup($requestParams);
+            $responseData = $service->directoryLookup($requestParams);
         } catch (\Adyen\AdyenException $e) {
             $this->_adyenLogger->error(
                 "The Directory Lookup response is empty check your Adyen configuration in Magento."
