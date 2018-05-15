@@ -1309,7 +1309,6 @@ class Cron
             case 'mc':
             case 'uatp':
             case 'amex':
-            case 'bcmc':
             case 'maestro':
             case 'maestrouk':
             case 'diners':
