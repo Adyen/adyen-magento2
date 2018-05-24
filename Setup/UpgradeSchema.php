@@ -35,6 +35,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
 {
 
     const ADYEN_ORDER_PAYMENT = 'adyen_order_payment';
+    const ADYEN_INVOICE = 'adyen_invoice';
 
     /**
      * {@inheritdoc}
@@ -61,6 +62,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         if (version_compare($context->getVersion(), '2.0.7', '<')) {
             $this->updateSchemaVersion207($setup);
+        }
+
+        if (version_compare($context->getVersion(), '2.2.1', '<')) {
+            $this->updateSchemaVersion221($setup);
         }
 
         $setup->endSetup();
@@ -100,7 +105,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         $connection->addColumn($setup->getTable('sales_order_payment'), 'adyen_psp_reference', $pspReferenceColumn);
     }
-    
+
     /**
      * Upgrade to 1.0.0.2
      *
@@ -220,7 +225,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 \Magento\Framework\DB\Ddl\Table::ACTION_CASCADE
             )
             ->setComment('Adyen Order Payment');
-        
+
         $setup->getConnection()->createTable($table);
 
         // add originalReference to notification table
@@ -231,7 +236,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'length' => 255,
             'nullable' => true,
             'comment' => 'Original Reference',
-            'after'     => \Adyen\Payment\Model\Notification::PSPREFRENCE
+            'after' => \Adyen\Payment\Model\Notification::PSPREFRENCE
         ];
 
         $connection->addColumn(
@@ -268,9 +273,9 @@ class UpgradeSchema implements UpgradeSchemaInterface
     }
 
 
-     /**
+    /**
      * Upgrade to 2.0.7
-     * 
+     *
      * @param SchemaSetupInterface $setup
      * @return void
      */
@@ -285,7 +290,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'nullable' => true,
             'default' => 0,
             'comment' => 'Adyen Notification Cron Processing',
-            'after'     => \Adyen\Payment\Model\Notification::DONE
+            'after' => \Adyen\Payment\Model\Notification::DONE
         ];
 
         $connection->addColumn(
@@ -293,5 +298,60 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'processing',
             $adyenNotificationProcessingColumn
         );
+    }
+
+    public function updateSchemaVersion221(SchemaSetupInterface $setup)
+    {
+
+        $table = $setup->getConnection()
+            ->newTable($setup->getTable(self::ADYEN_INVOICE))
+            ->addColumn(
+                'entity_id',
+                \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                null,
+                ['identity' => true, 'unsigned' => true, 'nullable' => false, 'primary' => true],
+                'Adyen Payment ID'
+            )
+            ->addColumn(
+                'pspreference',
+                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                255,
+                ['unsigned' => true, 'nullable' => false],
+                'Adyen pspreference of the capture'
+            )
+            ->addColumn(
+                'original_reference',
+                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                255,
+                ['unsigned' => true, 'nullable' => true],
+                'Adyen OriginalReference of the payment'
+            )
+            ->addColumn('acquirer_reference',
+                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                255,
+                ['unsigned' => true, 'nullable' => true],
+                'Adyen AcquirerReference of the capture')
+            ->addColumn(
+                'invoice_id',
+                \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                11,
+                ['unsigned' => true, 'nullable' => false],
+                'Invoice Id'
+            )
+            ->addForeignKey(
+                $setup->getFkName(
+                    self::ADYEN_INVOICE,
+                    'invoice_id',
+                    'sales_invoice',
+                    'entity_id'
+                ),
+                'invoice_id',
+                $setup->getTable('sales_invoice'),
+                'entity_id',
+                \Magento\Framework\DB\Ddl\Table::ACTION_CASCADE
+            )
+            ->setComment('Adyen Invoice');
+
+        $setup->getConnection()->createTable($table);
     }
 }

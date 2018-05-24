@@ -115,6 +115,11 @@ class Cron
     /**
      * @var
      */
+    protected $_acquirerReference;
+
+    /**
+     * @var
+     */
     protected $_eventCode;
 
     /**
@@ -173,6 +178,11 @@ class Cron
     protected $_adyenOrderPaymentCollectionFactory;
 
     /**
+     * @var ResourceModel\InvoiceFactory
+     */
+    protected $_invoiceFactory;
+
+    /**
      * @var AreaList
      */
     protected $_areaList;
@@ -209,9 +219,9 @@ class Cron
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
         \Adyen\Payment\Model\Order\PaymentFactory $adyenOrderPaymentFactory,
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
+        \Adyen\Payment\Model\InvoiceFactory $invoiceFactory,
         AreaList $areaList
-    )
-    {
+    ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
         $this->_notificationFactory = $notificationFactory;
@@ -225,6 +235,7 @@ class Cron
         $this->_adyenPaymentRequest = $paymentRequest;
         $this->_adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->_adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
+        $this->_invoiceFactory = $invoiceFactory;
         $this->_areaList = $areaList;
     }
 
@@ -478,6 +489,10 @@ class Cron
             $additionalData2 = isset($additionalData['additionalData']) ? $additionalData['additionalData'] : null;
             if ($additionalData2 && is_array($additionalData2)) {
                 $this->_klarnaReservationNumber = isset($additionalData2['acquirerReference']) ? trim($additionalData2['acquirerReference']) : "";
+            }
+            $acquirerReference = isset($additionalData['acquirerReference']) ? $additionalData['acquirerReference'] : null;
+            if ($acquirerReference != "") {
+                $this->_acquirerReference = $acquirerReference;
             }
         }
     }
@@ -799,6 +814,22 @@ class Cron
                      */
                     if (!$this->_isAutoCapture()) {
                         $this->_setPaymentAuthorized(false, true);
+
+                        /*
+                         * Add invoice in the adyen_invoice table
+                         */
+                        $invoiceCollection = $this->_order->getInvoiceCollection();
+                        foreach ($invoiceCollection as $invoice) {
+                            if ($invoice->getTransactionId() == $this->_pspReference) {
+                                $this->_invoiceFactory->create()
+                                    ->setInvoiceId($invoice->getEntityId())
+                                    ->setPspreference($this->_pspReference)
+                                    ->setOriginalReference($this->_originalReference)
+                                    ->setAcquirerReference($this->_acquirerReference)
+                                    ->save();
+                                $this->_adyenLogger->addAdyenNotificationCronjob('Created invoice entry in the Adyen table');
+                            }
+                        }
                     }
                 } else {
                     // FOR POS authorize the payment on the CAPTURE notification
@@ -1447,6 +1478,19 @@ class Cron
 
                 $invoice->save();
                 $this->_adyenLogger->addAdyenNotificationCronjob('Created invoice');
+
+                /*
+                 * Add invoice in the adyen_invoice table
+                 */
+                $this->_invoiceFactory->create()
+                    ->setInvoiceId($invoice->getEntityId())
+                    ->setPspreference($this->_pspReference)
+                    ->setOriginalReference($this->_originalReference)
+                    ->setAcquirerReference($this->_acquirerReference)
+                    ->save();
+
+                $this->_adyenLogger->addAdyenNotificationCronjob('Created invoice entry in the Adyen table');
+
             } catch (Exception $e) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'Error saving invoice. The error message is: ' . $e->getMessage()
