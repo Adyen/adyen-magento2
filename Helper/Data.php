@@ -75,6 +75,16 @@ class Data extends AbstractHelper
     protected $_notificationFactory;
 
     /**
+     * @var \Magento\Tax\Model\Config
+     */
+    protected $_taxConfig;
+
+    /**
+     * @var \Magento\Tax\Model\Calculation
+     */
+    protected $_taxCalculation;
+
+    /**
      * Data constructor.
      *
      * @param \Magento\Framework\App\Helper\Context $context
@@ -95,7 +105,9 @@ class Data extends AbstractHelper
         \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\View\Asset\Source $assetSource,
-        \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory
+        \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory,
+        \Magento\Tax\Model\Config $taxConfig,
+        \Magento\Tax\Model\Calculation $taxCalculation
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -106,6 +118,8 @@ class Data extends AbstractHelper
         $this->_assetRepo = $assetRepo;
         $this->_assetSource = $assetSource;
         $this->_notificationFactory = $notificationFactory;
+        $this->_taxConfig = $taxConfig;
+        $this->_taxCalculation = $taxCalculation;
     }
 
     /**
@@ -973,8 +987,102 @@ class Data extends AbstractHelper
         return "https://" . $environment . ".adyen.com/hpp/cse/js/" . $this->getLibraryToken($storeId) . ".shtml";
     }
 
-    public function getItemVatAmount($taxAmount, $priceInclTax, $price, $currency)
-    {
+    /**
+     * @param $formFields
+     * @param $count
+     * @param $name
+     * @param $price
+     * @param $currency
+     * @param $taxAmount
+     * @param $priceInclTax
+     * @param $taxPercent
+     * @param $numberOfItems
+     * @param $payment
+     * @return mixed
+     */
+    public function createOpenInvoiceLineItem(
+        $formFields,
+        $count,
+        $name,
+        $price,
+        $currency,
+        $taxAmount,
+        $priceInclTax,
+        $taxPercent,
+        $numberOfItems,
+        $payment
+    ) {
+        $description = str_replace("\n", '', trim($name));
+        $itemAmount = $this->formatAmount($price, $currency);
+
+        $itemVatAmount = $this->getItemVatAmount($taxAmount,
+            $priceInclTax, $price, $currency);
+
+        // Calculate vat percentage
+        $itemVatPercentage = $this->getMinorUnitTaxPercent($taxPercent);
+
+        return $this->getOpenInvoiceLineData($formFields, $count, $currency, $description,
+            $itemAmount,
+            $itemVatAmount, $itemVatPercentage, $numberOfItems, $payment);
+    }
+
+    /**
+     * @param $formFields
+     * @param $count
+     * @param $order
+     * @param $shippingAmount
+     * @param $shippingTaxAmount
+     * @param $currency
+     * @param $payment
+     * @return mixed
+     */
+    public function createOpenInvoiceLineShipping(
+        $formFields,
+        $count,
+        $order,
+        $shippingAmount,
+        $shippingTaxAmount,
+        $currency,
+        $payment
+    ) {
+        $description = $order->getShippingDescription();
+        $itemAmount = $this->formatAmount($shippingAmount, $currency);
+        $itemVatAmount = $this->formatAmount($shippingTaxAmount, $currency);
+
+        // Create RateRequest to calculate the Tax class rate for the shipping method
+        $rateRequest = $this->_taxCalculation->getRateRequest(
+            $order->getShippingAddress(),
+            $order->getBillingAddress(),
+            null,
+            $order->getStoreId(),
+            $order->getCustomerId()
+        );
+
+        $taxClassId = $this->_taxConfig->getShippingTaxClass($order->getStoreId());
+        $rateRequest->setProductClassId($taxClassId);
+        $rate = $this->_taxCalculation->getRate($rateRequest);
+
+        $itemVatPercentage = $this->getMinorUnitTaxPercent($rate);
+        $numberOfItems = 1;
+
+        return $this->getOpenInvoiceLineData($formFields, $count, $currency, $description,
+            $itemAmount,
+            $itemVatAmount, $itemVatPercentage, $numberOfItems, $payment);
+    }
+
+    /**
+     * @param $taxAmount
+     * @param $priceInclTax
+     * @param $price
+     * @param $currency
+     * @return string
+     */
+    public function getItemVatAmount(
+        $taxAmount,
+        $priceInclTax,
+        $price,
+        $currency
+    ) {
         if ($taxAmount > 0 && $priceInclTax > 0) {
             return $this->formatAmount($priceInclTax, $currency) - $this->formatAmount($price, $currency);
         }

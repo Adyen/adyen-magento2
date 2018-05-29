@@ -37,16 +37,6 @@ class CaptureDataBuilder implements BuilderInterface
     private $adyenHelper;
 
     /**
-     * @var \Magento\Tax\Model\Config
-     */
-    private $taxConfig;
-
-    /**
-     * @var \Magento\Tax\Model\Calculation
-     */
-    private $taxCalculation;
-
-    /**
      * CaptureDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -54,14 +44,9 @@ class CaptureDataBuilder implements BuilderInterface
      * @param \Magento\Tax\Model\Calculation $taxCalculation
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Tax\Model\Config $taxConfig,
-        \Magento\Tax\Model\Calculation $taxCalculation
+        \Adyen\Payment\Helper\Data $adyenHelper
     ) {
         $this->adyenHelper = $adyenHelper;
-        $this->taxConfig = $taxConfig;
-        $this->taxCalculation = $taxCalculation;
-
     }
 
     /**
@@ -122,49 +107,33 @@ class CaptureDataBuilder implements BuilderInterface
 
         foreach ($latestInvoice->getItemsCollection() as $invoiceItem) {
             ++$count;
-
-            $description = str_replace("\n", '', trim($invoiceItem->getName()));
-            $itemAmount = $this->adyenHelper->formatAmount($invoiceItem->getPrice(), $currency);
-
-            $itemVatAmount = $this->adyenHelper->getItemVatAmount($invoiceItem->getTaxAmount(),
-                $invoiceItem->getPriceInclTax(), $invoiceItem->getPrice(), $currency);
-
-            // Calculate vat percentage
-            $itemVatPercentage = $this->adyenHelper->getMinorUnitTaxPercent($invoiceItem->getTaxPercent());
-
             $numberOfItems = (int)$invoiceItem->getQty();
-
-            $formFields = $this->adyenHelper->getOpenInvoiceLineData($formFields, $count, $currency, $description,
-                $itemAmount,
-                $itemVatAmount, $itemVatPercentage, $numberOfItems, $payment);
+            $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
+                $formFields,
+                $count,
+                $invoiceItem->getName(),
+                $invoiceItem->getPrice(),
+                $currency,
+                $invoiceItem->getTaxAmount(),
+                $invoiceItem->getPriceInclTax(),
+                $invoiceItem->getTaxPercent(),
+                $numberOfItems,
+                $payment
+            );
         }
 
         // Shipping cost
         if ($latestInvoice->getShippingAmount() > 0) {
-
             ++$count;
-            $description = $payment->getOrder()->getShippingDescription();
-            $itemAmount = $this->adyenHelper->formatAmount($latestInvoice->getShippingAmount(), $currency);
-            $itemVatAmount = $this->adyenHelper->formatAmount($latestInvoice->getShippingTaxAmount(), $currency);
-
-            // Create RateRequest to calculate the Tax class rate for the shipping method
-            $rateRequest = $this->taxCalculation->getRateRequest(
-                $payment->getOrder()->getShippingAddress(),
-                $payment->getOrder()->getBillingAddress(),
-                null,
-                $payment->getOrder()->getStoreId(), $payment->getOrder()->getCustomerId()
+            $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
+                $formFields,
+                $count,
+                $payment->getOrder(),
+                $latestInvoice->getShippingAmount(),
+                $latestInvoice->getShippingTaxAmount(),
+                $currency,
+                $payment
             );
-
-            $taxClassId = $this->taxConfig->getShippingTaxClass($payment->getOrder()->getStoreId());
-            $rateRequest->setProductClassId($taxClassId);
-            $rate = $this->taxCalculation->getRate($rateRequest);
-
-            $itemVatPercentage = $this->adyenHelper->getMinorUnitTaxPercent($rate);
-            $numberOfItems = 1;
-
-            $formFields = $this->adyenHelper->getOpenInvoiceLineData($formFields, $count, $currency, $description,
-                $itemAmount,
-                $itemVatAmount, $itemVatPercentage, $numberOfItems, $payment);
         }
 
         $formFields['openinvoicedata.numberOfLines'] = $count;
