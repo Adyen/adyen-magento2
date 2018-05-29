@@ -180,7 +180,7 @@ class Cron
     /**
      * @var ResourceModel\InvoiceFactory
      */
-    protected $_invoiceFactory;
+    protected $_adyenInvoiceFactory;
 
     /**
      * @var AreaList
@@ -219,7 +219,7 @@ class Cron
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
         \Adyen\Payment\Model\Order\PaymentFactory $adyenOrderPaymentFactory,
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
-        \Adyen\Payment\Model\InvoiceFactory $invoiceFactory,
+        \Adyen\Payment\Model\InvoiceFactory $adyenInvoiceFactory,
         AreaList $areaList
     ) {
         $this->_scopeConfig = $scopeConfig;
@@ -235,7 +235,7 @@ class Cron
         $this->_adyenPaymentRequest = $paymentRequest;
         $this->_adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->_adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
-        $this->_invoiceFactory = $invoiceFactory;
+        $this->_adyenInvoiceFactory = $adyenInvoiceFactory;
         $this->_areaList = $areaList;
     }
 
@@ -821,7 +821,7 @@ class Cron
                         $invoiceCollection = $this->_order->getInvoiceCollection();
                         foreach ($invoiceCollection as $invoice) {
                             if ($invoice->getTransactionId() == $this->_pspReference) {
-                                $this->_invoiceFactory->create()
+                                $this->_adyenInvoiceFactory->create()
                                     ->setInvoiceId($invoice->getEntityId())
                                     ->setPspreference($this->_pspReference)
                                     ->setOriginalReference($this->_originalReference)
@@ -1482,10 +1482,10 @@ class Cron
                 /*
                  * Add invoice in the adyen_invoice table
                  */
-                $this->_invoiceFactory->create()
+                $this->_adyenInvoiceFactory->create()
                     ->setInvoiceId($invoice->getEntityId())
                     ->setPspreference($this->_pspReference)
-                    ->setOriginalReference($this->_originalReference)
+                    ->setOriginalReference($this->_pspReference)
                     ->setAcquirerReference($this->_acquirerReference)
                     ->save();
 

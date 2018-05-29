@@ -53,10 +53,11 @@ class CaptureDataBuilder implements BuilderInterface
      * @param \Magento\Tax\Model\Config $taxConfig
      * @param \Magento\Tax\Model\Calculation $taxCalculation
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper,
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Tax\Model\Config $taxConfig,
-        \Magento\Tax\Model\Calculation $taxCalculation)
-    {
+        \Magento\Tax\Model\Calculation $taxCalculation
+    ) {
         $this->adyenHelper = $adyenHelper;
         $this->taxConfig = $taxConfig;
         $this->taxCalculation = $taxCalculation;
@@ -65,7 +66,7 @@ class CaptureDataBuilder implements BuilderInterface
 
     /**
      * Create capture request
-     * 
+     *
      * @param array $buildSubject
      * @return array
      */
@@ -74,7 +75,7 @@ class CaptureDataBuilder implements BuilderInterface
 
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $amount =  \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
+        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
 
         $payment = $paymentDataObject->getPayment();
 
@@ -94,8 +95,8 @@ class CaptureDataBuilder implements BuilderInterface
             \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
         );
 
-        if($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)){
-            $openInvoiceFields =  $this->setOpenInvoiceData($payment);
+        if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
+            $openInvoiceFields = $this->getOpenInvoiceData($payment);
             $request["additionalData"] = $openInvoiceFields;
         }
 
@@ -108,7 +109,7 @@ class CaptureDataBuilder implements BuilderInterface
      * @return mixed
      * @internal param $formFields
      */
-    protected function setOpenInvoiceData($payment)
+    protected function getOpenInvoiceData($payment)
     {
         $formFields = [];
         $count = 0;
@@ -119,28 +120,22 @@ class CaptureDataBuilder implements BuilderInterface
         // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
         $latestInvoice = $invoices->getLastItem();
 
-        foreach($latestInvoice->getItemsCollection() as $invoiceItem){
+        foreach ($latestInvoice->getItemsCollection() as $invoiceItem) {
             ++$count;
 
             $description = str_replace("\n", '', trim($invoiceItem->getName()));
             $itemAmount = $this->adyenHelper->formatAmount($invoiceItem->getPrice(), $currency);
-            $itemVatAmount =
-                ($invoiceItem->getTaxAmount() > 0 && $invoiceItem->getPriceInclTax() > 0) ?
-                    $this->adyenHelper->formatAmount(
-                        $invoiceItem->getPriceInclTax(),
-                        $currency
-                    ) - $this->adyenHelper->formatAmount(
-                        $invoiceItem->getPrice(),
-                        $currency
-                    ) : $this->adyenHelper->formatAmount($invoiceItem->getTaxAmount(), $currency);
 
+            $itemVatAmount = $this->adyenHelper->getItemVatAmount($invoiceItem->getTaxAmount(),
+                $invoiceItem->getPriceInclTax(), $invoiceItem->getPrice(), $currency);
 
             // Calculate vat percentage
             $itemVatPercentage = $this->adyenHelper->getMinorUnitTaxPercent($invoiceItem->getTaxPercent());
 
             $numberOfItems = (int)$invoiceItem->getQty();
 
-            $formFields = $this->setOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
+            $formFields = $this->adyenHelper->getOpenInvoiceLineData($formFields, $count, $currency, $description,
+                $itemAmount,
                 $itemVatAmount, $itemVatPercentage, $numberOfItems, $payment);
         }
 
@@ -167,46 +162,13 @@ class CaptureDataBuilder implements BuilderInterface
             $itemVatPercentage = $this->adyenHelper->getMinorUnitTaxPercent($rate);
             $numberOfItems = 1;
 
-            $formFields = $this->setOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
+            $formFields = $this->adyenHelper->getOpenInvoiceLineData($formFields, $count, $currency, $description,
+                $itemAmount,
                 $itemVatAmount, $itemVatPercentage, $numberOfItems, $payment);
         }
 
         $formFields['openinvoicedata.numberOfLines'] = $count;
 
-        return $formFields;
-    }
-
-    /**
-     * Set the openinvoice line
-     *
-     * @param $count
-     * @param $currencyCode
-     * @param $description
-     * @param $itemAmount
-     * @param $itemVatAmount
-     * @param $itemVatPercentage
-     * @param $numberOfItems
-     * @param $payment
-     */
-    protected function setOpenInvoiceLineData($formFields, $count, $currencyCode, $description, $itemAmount,
-        $itemVatAmount, $itemVatPercentage, $numberOfItems, $payment
-    )
-    {
-        $linename = "line" . $count;
-        $formFields['openinvoicedata.' . $linename . '.currencyCode'] = $currencyCode;
-        $formFields['openinvoicedata.' . $linename . '.description'] = $description;
-        $formFields['openinvoicedata.' . $linename . '.itemAmount'] = $itemAmount;
-        $formFields['openinvoicedata.' . $linename . '.itemVatAmount'] = $itemVatAmount;
-        $formFields['openinvoicedata.' . $linename . '.itemVatPercentage'] = $itemVatPercentage;
-        $formFields['openinvoicedata.' . $linename . '.numberOfItems'] = $numberOfItems;
-
-        if ($this->adyenHelper->isVatCategoryHigh($payment->getAdditionalInformation(
-            \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE))
-        ) {
-            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "High";
-        } else {
-            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "None";
-        }
         return $formFields;
     }
 }

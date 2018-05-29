@@ -465,8 +465,8 @@ class Redirect extends \Magento\Payment\Block\Form
 
             $numberOfItems = (int)$item->getQtyOrdered();
 
-            $formFields = $this->setOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
-                $itemVatAmount, $itemVatPercentage, $numberOfItems);
+            $formFields = $this->_adyenHelper->getOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
+                $itemVatAmount, $itemVatPercentage, $numberOfItems, $this->_order->getPayment());
         }
 
 
@@ -480,8 +480,8 @@ class Redirect extends \Magento\Payment\Block\Form
             $itemVatPercentage = "0";
             $numberOfItems = 1;
 
-            $formFields = $this->setOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
-                $itemVatAmount, $itemVatPercentage, $numberOfItems);
+            $formFields = $this->_adyenHelper->getOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
+                $itemVatAmount, $itemVatPercentage, $numberOfItems, $this->_order->getPayment());
         }
 
         // Shipping cost
@@ -507,47 +507,13 @@ class Redirect extends \Magento\Payment\Block\Form
             $itemVatPercentage = $this->_adyenHelper->getMinorUnitTaxPercent($rate);
             $numberOfItems = 1;
 
-            $formFields = $this->setOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
-                $itemVatAmount, $itemVatPercentage, $numberOfItems);
+            $formFields = $this->_adyenHelper->getOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
+                $itemVatAmount, $itemVatPercentage, $numberOfItems, $this->_order->getPayment());
         }
 
         $formFields['openinvoicedata.refundDescription'] = "Refund / Correction for " . $formFields['merchantReference'];
         $formFields['openinvoicedata.numberOfLines'] = $count;
 
-        return $formFields;
-    }
-
-
-    /**
-     * Set the openinvoice line
-     *
-     * @param $count
-     * @param $currencyCode
-     * @param $description
-     * @param $itemAmount
-     * @param $itemVatAmount
-     * @param $itemVatPercentage
-     * @param $numberOfItems
-     */
-    protected function setOpenInvoiceLineData($formFields, $count, $currencyCode, $description, $itemAmount,
-                                              $itemVatAmount, $itemVatPercentage, $numberOfItems
-    )
-    {
-        $linename = "line" . $count;
-        $formFields['openinvoicedata.' . $linename . '.currencyCode'] = $currencyCode;
-        $formFields['openinvoicedata.' . $linename . '.description'] = $description;
-        $formFields['openinvoicedata.' . $linename . '.itemAmount'] = $itemAmount;
-        $formFields['openinvoicedata.' . $linename . '.itemVatAmount'] = $itemVatAmount;
-        $formFields['openinvoicedata.' . $linename . '.itemVatPercentage'] = $itemVatPercentage;
-        $formFields['openinvoicedata.' . $linename . '.numberOfItems'] = $numberOfItems;
-
-        if ($this->_adyenHelper->isVatCategoryHigh($this->_order->getPayment()->getAdditionalInformation(
-            \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE))
-        ) {
-            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "High";
-        } else {
-            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "None";
-        }
         return $formFields;
     }
 

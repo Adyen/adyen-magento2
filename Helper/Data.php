@@ -96,8 +96,7 @@ class Data extends AbstractHelper
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\View\Asset\Source $assetSource,
         \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory
-    )
-    {
+    ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
         $this->_dataStorage = $dataStorage;
@@ -972,5 +971,56 @@ class Data extends AbstractHelper
         }
 
         return "https://" . $environment . ".adyen.com/hpp/cse/js/" . $this->getLibraryToken($storeId) . ".shtml";
+    }
+
+    public function getItemVatAmount($taxAmount, $priceInclTax, $price, $currency)
+    {
+        if ($taxAmount > 0 && $priceInclTax > 0) {
+            return $this->formatAmount($priceInclTax, $currency) - $this->formatAmount($price, $currency);
+        }
+        return $this->formatAmount($taxAmount, $currency);
+    }
+
+    /**
+     * Set the openinvoice line
+     *
+     * @param $formFields
+     * @param $count
+     * @param $currencyCode
+     * @param $description
+     * @param $itemAmount
+     * @param $itemVatAmount
+     * @param $itemVatPercentage
+     * @param $numberOfItems
+     * @param $payment
+     * @return
+     */
+    public function getOpenInvoiceLineData(
+        $formFields,
+        $count,
+        $currencyCode,
+        $description,
+        $itemAmount,
+        $itemVatAmount,
+        $itemVatPercentage,
+        $numberOfItems,
+        $payment
+    ) {
+        $linename = "line" . $count;
+        $formFields['openinvoicedata.' . $linename . '.currencyCode'] = $currencyCode;
+        $formFields['openinvoicedata.' . $linename . '.description'] = $description;
+        $formFields['openinvoicedata.' . $linename . '.itemAmount'] = $itemAmount;
+        $formFields['openinvoicedata.' . $linename . '.itemVatAmount'] = $itemVatAmount;
+        $formFields['openinvoicedata.' . $linename . '.itemVatPercentage'] = $itemVatPercentage;
+        $formFields['openinvoicedata.' . $linename . '.numberOfItems'] = $numberOfItems;
+
+        if ($this->isVatCategoryHigh($payment->getAdditionalInformation(
+            \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE))
+        ) {
+            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "High";
+        } else {
+            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "None";
+        }
+        return $formFields;
     }
 }
