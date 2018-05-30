@@ -40,12 +40,9 @@ class CaptureDataBuilder implements BuilderInterface
      * CaptureDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Tax\Model\Config $taxConfig
-     * @param \Magento\Tax\Model\Calculation $taxCalculation
      */
-    public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
-    ) {
+    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
+    {
         $this->adyenHelper = $adyenHelper;
     }
 
@@ -73,7 +70,7 @@ class CaptureDataBuilder implements BuilderInterface
         $request = [
             "modificationAmount" => $modificationAmount,
             "reference" => $payment->getOrder()->getIncrementId(),
-            "originalReference" => $pspReference,
+            "originalReference" => $pspReference
         ];
 
         $brandCode = $payment->getAdditionalInformation(
