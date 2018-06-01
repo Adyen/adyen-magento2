@@ -42,17 +42,30 @@ class RefundDataBuilder implements BuilderInterface
     private $orderPaymentCollectionFactory;
 
     /**
+     * @var \Adyen\Payment\Observer\AdyenCreditMemoObserver
+     */
+    private $creditMemoObserver;
+
+    /**
+     * @var \Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory
+     */
+    protected $adyenInvoiceCollectionFactory;
+
+    /**
      * RefundDataBuilder constructor.
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory
-    )
-    {
+        \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory,
+        \Adyen\Payment\Observer\AdyenCreditMemoObserver $creditMemoObserver,
+        \Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory $adyenInvoiceCollectionFactory
+    ) {
         $this->adyenHelper = $adyenHelper;
         $this->orderPaymentCollectionFactory = $orderPaymentCollectionFactory;
+        $this->creditMemoObserver = $creditMemoObserver;
+        $this->adyenInvoiceCollectionFactory = $adyenInvoiceCollectionFactory;
     }
 
     /**
@@ -63,7 +76,7 @@ class RefundDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $amount =  \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
+        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
 
         $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
@@ -96,7 +109,7 @@ class RefundDataBuilder implements BuilderInterface
                 $orderPaymentCollection->addPaymentFilterDescending($payment->getId());
             } elseif ($refundStrategy == "3") {
                 // refund based on ratio
-                $ratio =  $amount / $grandTotal;
+                $ratio = $amount / $grandTotal;
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
             }
 
@@ -109,7 +122,7 @@ class RefundDataBuilder implements BuilderInterface
                         // refund based on ratio calculate refund amount
                         $modificationAmount = $ratio * (
                                 $splitPayment->getAmount() - $splitPayment->getTotalRefunded()
-                        );
+                            );
                     } else {
                         // total authorised amount of the split payment
                         $splitPaymentAmount = $splitPayment->getAmount() - $splitPayment->getTotalRefunded();
@@ -119,7 +132,7 @@ class RefundDataBuilder implements BuilderInterface
                             continue;
                         }
 
-                        // if refunded amount is greather then split payment amount do a full refund
+                        // if refunded amount is greater than split payment amount do a full refund
                         if ($amount >= $splitPaymentAmount) {
                             $modificationAmount = $splitPaymentAmount;
                         } else {
@@ -143,6 +156,8 @@ class RefundDataBuilder implements BuilderInterface
                 }
             }
         } else {
+
+
             //format the amount to minor units
             $amount = $this->adyenHelper->formatAmount($amount, $currency);
             $modificationAmount = ['currency' => $currency, 'value' => $amount];
@@ -155,8 +170,78 @@ class RefundDataBuilder implements BuilderInterface
                     "merchantAccount" => $merchantAccount
                 ]
             ];
+
+            $brandCode = $payment->getAdditionalInformation(
+                \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
+            );
+
+            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
+                $openInvoiceFields = $this->getOpenInvoiceData($payment);
+
+                //$orderPaymentCollection->getSize() = 1, so we add the fields to the first(and only) result
+                $result[0]["additionalData"] = $openInvoiceFields;
+            }
+
         }
-        
+
         return $result;
+    }
+
+
+    protected function getOpenInvoiceData($payment)
+    {
+        $formFields = [];
+        $count = 0;
+        $currency = $payment->getOrder()->getOrderCurrencyCode();
+
+        /**
+         * Magento\Sales\Model\Order\Creditmemo
+         */
+        $creditMemo = $this->creditMemoObserver->getCreditMemo();
+
+        foreach ($creditMemo->getAllItems() as $refundItem) {
+            ++$count;
+            $numberOfItems = $refundItem->getQty();
+
+            $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
+                $formFields,
+                $count,
+                $refundItem->getName(),
+                $refundItem->getPrice(),
+                $currency,
+                $refundItem->getTaxAmount(),
+                $refundItem->getPriceInclTax(),
+                $refundItem->getTaxPercent(),
+                $numberOfItems,
+                $payment
+            );
+
+        }
+
+        // Shipping cost
+        if ($creditMemo->getShippingAmount() > 0) {
+            ++$count;
+            $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
+                $formFields,
+                $count,
+                $payment->getOrder(),
+                $creditMemo->getShippingAmount(),
+                $creditMemo->getShippingTaxAmount(),
+                $currency,
+                $payment
+            );
+        }
+
+        $formFields['openinvoicedata.numberOfLines'] = $count;
+
+        //Retrieve acquirerReference from the adyen_invoice
+        $invoiceId = $creditMemo->getInvoice()->getId();
+        $invoices = $this->adyenInvoiceCollectionFactory->create()
+            ->addFieldToFilter('invoice_id', $invoiceId);
+
+        $invoice = $invoices->getFirstItem();
+        $formFields['acquirerReference'] = $invoice->getAcquirerReference();
+
+        return $formFields;
     }
 }
