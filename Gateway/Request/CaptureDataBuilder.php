@@ -48,7 +48,7 @@ class CaptureDataBuilder implements BuilderInterface
 
     /**
      * Create capture request
-     * 
+     *
      * @param array $buildSubject
      * @return array
      */
@@ -57,21 +57,84 @@ class CaptureDataBuilder implements BuilderInterface
 
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $amount =  \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
+        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
 
         $payment = $paymentDataObject->getPayment();
+
         $pspReference = $payment->getCcTransId();
         $currency = $payment->getOrder()->getOrderCurrencyCode();
 
-        //format the amount to minor units
         $amount = $this->adyenHelper->formatAmount($amount, $currency);
 
         $modificationAmount = ['currency' => $currency, 'value' => $amount];
-
-        return [
+        $request = [
             "modificationAmount" => $modificationAmount,
             "reference" => $payment->getOrder()->getIncrementId(),
             "originalReference" => $pspReference
         ];
+
+        $brandCode = $payment->getAdditionalInformation(
+            \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
+        );
+
+        if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
+            $openInvoiceFields = $this->getOpenInvoiceData($payment);
+            $request["additionalData"] = $openInvoiceFields;
+        }
+
+        return $request;
+    }
+
+
+    /**
+     * @param $payment
+     * @return mixed
+     * @internal param $formFields
+     */
+    protected function getOpenInvoiceData($payment)
+    {
+        $formFields = [];
+        $count = 0;
+        $currency = $payment->getOrder()->getOrderCurrencyCode();
+
+        $invoices = $payment->getOrder()->getInvoiceCollection();
+
+        // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
+        $latestInvoice = $invoices->getLastItem();
+
+        foreach ($latestInvoice->getItemsCollection() as $invoiceItem) {
+            ++$count;
+            $numberOfItems = (int)$invoiceItem->getQty();
+            $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
+                $formFields,
+                $count,
+                $invoiceItem->getName(),
+                $invoiceItem->getPrice(),
+                $currency,
+                $invoiceItem->getTaxAmount(),
+                $invoiceItem->getPriceInclTax(),
+                $invoiceItem->getTaxPercent(),
+                $numberOfItems,
+                $payment
+            );
+        }
+
+        // Shipping cost
+        if ($latestInvoice->getShippingAmount() > 0) {
+            ++$count;
+            $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
+                $formFields,
+                $count,
+                $payment->getOrder(),
+                $latestInvoice->getShippingAmount(),
+                $latestInvoice->getShippingTaxAmount(),
+                $currency,
+                $payment
+            );
+        }
+
+        $formFields['openinvoicedata.numberOfLines'] = $count;
+
+        return $formFields;
     }
 }
