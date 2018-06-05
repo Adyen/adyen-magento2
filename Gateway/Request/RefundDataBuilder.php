@@ -42,11 +42,6 @@ class RefundDataBuilder implements BuilderInterface
     private $orderPaymentCollectionFactory;
 
     /**
-     * @var \Adyen\Payment\Observer\AdyenCreditMemoObserver
-     */
-    private $creditMemoObserver;
-
-    /**
      * @var \Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory
      */
     protected $adyenInvoiceCollectionFactory;
@@ -59,12 +54,10 @@ class RefundDataBuilder implements BuilderInterface
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory,
-        \Adyen\Payment\Observer\AdyenCreditMemoObserver $creditMemoObserver,
         \Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory $adyenInvoiceCollectionFactory
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->orderPaymentCollectionFactory = $orderPaymentCollectionFactory;
-        $this->creditMemoObserver = $creditMemoObserver;
         $this->adyenInvoiceCollectionFactory = $adyenInvoiceCollectionFactory;
     }
 
