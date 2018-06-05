@@ -26,7 +26,7 @@ namespace Adyen\Payment\Plugin;
 
 class PaymentPlugin
 {
-    public function beforeRefund( \Magento\Sales\Model\Order\Payment $subject, $creditMemo)
+    public function beforeRefund(\Magento\Sales\Model\Order\Payment $subject, $creditMemo)
     {
         $subject->setCreditmemo($creditMemo);
         return;
