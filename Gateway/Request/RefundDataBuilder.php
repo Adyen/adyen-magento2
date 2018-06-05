@@ -197,7 +197,7 @@ class RefundDataBuilder implements BuilderInterface
         /**
          * Magento\Sales\Model\Order\Creditmemo
          */
-        $creditMemo = $this->creditMemoObserver->getCreditMemo();
+        $creditMemo = $payment->getCreditMemo();
 
         foreach ($creditMemo->getAllItems() as $refundItem) {
             ++$count;

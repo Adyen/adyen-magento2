@@ -22,32 +22,13 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Observer;
+namespace Adyen\Payment\Plugin;
 
-
-use Magento\Framework\Event\Observer;
-use Magento\Framework\Event\ObserverInterface;
-
-class AdyenCreditMemoObserver implements ObserverInterface
+class PaymentPlugin
 {
-
-    private $creditMemo;
-
-    /**
-     * @param Observer $observer
-     * @return void
-     */
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    public function beforeRefund( \Magento\Sales\Model\Order\Payment $subject, $creditMemo)
     {
-        $this->creditMemo = $observer->getData('creditmemo');
+        $subject->setCreditmemo($creditMemo);
+        return;
     }
-
-    /**
-     * @return mixed
-     */
-    public function getCreditMemo()
-    {
-        return $this->creditMemo;
-    }
-
 }
