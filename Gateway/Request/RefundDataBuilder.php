@@ -149,8 +149,6 @@ class RefundDataBuilder implements BuilderInterface
                 }
             }
         } else {
-
-
             //format the amount to minor units
             $amount = $this->adyenHelper->formatAmount($amount, $currency);
             $modificationAmount = ['currency' => $currency, 'value' => $amount];
@@ -171,7 +169,7 @@ class RefundDataBuilder implements BuilderInterface
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
                 $openInvoiceFields = $this->getOpenInvoiceData($payment);
 
-                //$orderPaymentCollection->getSize() = 1, so we add the fields to the first(and only) result
+                //There is only one payment, so we add the fields to the first(and only) result
                 $result[0]["additionalData"] = $openInvoiceFields;
             }
 
