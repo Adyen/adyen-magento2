@@ -231,7 +231,10 @@ class RefundDataBuilder implements BuilderInterface
             ->addFieldToFilter('invoice_id', $invoiceId);
 
         $invoice = $invoices->getFirstItem();
-        $formFields['acquirerReference'] = $invoice->getAcquirerReference();
+
+        if($invoice) {
+            $formFields['acquirerReference'] = $invoice->getAcquirerReference();
+        }
 
         return $formFields;
     }
