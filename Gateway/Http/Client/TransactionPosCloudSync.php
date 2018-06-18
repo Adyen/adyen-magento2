@@ -71,12 +71,48 @@ class TransactionPosCloudSync implements ClientInterface
      */
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
+        $this->_adyenLogger->addAdyenDebug("placerequest");
         $request = $transferObject->getBody();
         $service = new \Adyen\Service\PosPayment($this->_client);
-        $transactionType = \Adyen\TransactionType::GOODS_SERVICES;
+        $transactionType = \Adyen\TransactionType::NORMAL;
         $poiId = $this->_adyenHelper->getPoiId();
-        $json = Util::buildPosPaymentRequest($poiId, $request['amount']['value'], $request['amount']['currency'],
-            $request['reference'], $transactionType);
+        $serviceID = date("dHis");
+        $timeStamper = date("Y-m-d") . "T" . date("H:i:s+00:00");
+
+        $json = '{
+                    "SaleToPOIRequest": {
+                        "MessageHeader": {
+                            "MessageType": "Request",
+                            "MessageClass": "Service",
+                            "MessageCategory": "Payment",
+                            "SaleID": "Magento2Cloud",
+                            "POIID": "' . $poiId . '",
+                            "ProtocolVersion": "3.0",
+                            "ServiceID": "' . $serviceID . '"
+                        },
+                        "PaymentRequest": {
+                            "SaleData": {
+                                "SaleTransactionID": {
+                                    "TransactionID": "' . $request['reference'] . '",
+                                    "TimeStamp": "' . $timeStamper . '"
+                                },
+                                "TokenRequestedType": "Customer",
+                                "SaleReferenceID": "SalesRefABC"
+                            },
+                            "PaymentTransaction": {
+                                "AmountsReq": {
+                                    "Currency": "' . $request['amount']['currency'] . '",
+                                    "RequestedAmount": ' . $request['amount']['value'] . '
+                                }
+                            },
+                            "PaymentData": {
+                                "PaymentType": "' . $transactionType . '"
+                            }
+                        }
+                    }
+                }
+            ';
+
         $params = json_decode($json, true); //Create associative array for passing along
         try {
             $response = $service->runTenderSync($params);

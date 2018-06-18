@@ -63,7 +63,6 @@ class PaymentPosCloudHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $response)
     {
-
         $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
         /** @var OrderPaymentInterface $payment */
@@ -78,6 +77,11 @@ class PaymentPosCloudHandler implements HandlerInterface
         // set transaction
         if (!empty($response['SaleToPOIResponse']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {
             $pspReference = $response['SaleToPOIResponse']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'];
+            $payment->setTransactionId($pspReference);
+        } elseif (!empty($response['SaleToPOIResponse']['PaymentResponse']['POIData']['POITransactionID']['TransactionID'])) {
+            $pspReference = explode('.',
+                $response['SaleToPOIResponse']['PaymentResponse']['POIData']['POITransactionID']['TransactionID'])[1];
+            $this->adyenLogger->error($pspReference);
             $payment->setTransactionId($pspReference);
         } else {
             $this->adyenLogger->error("Missing POS Transaction ID");

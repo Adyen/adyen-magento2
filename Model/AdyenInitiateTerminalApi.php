@@ -73,8 +73,6 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $this->_appState = $context->getAppState();
         $this->_quoteRepository = $quoteRepository;
 
-
-        $this->_adyenLogger->addAdyenDebug("construct pos");
         // initialize client
         $apiKey = $this->_adyenHelper->getApiKey();
         $client = new \Adyen\Client();
@@ -105,9 +103,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $payment->setMethod(AdyenPosCloudConfigProvider::CODE);
         $amount = $payment->getAmount();
         $reference = $quote->reserveOrderId()->getReservedOrderId();
-        $this->_adyenLogger->addAdyenDebug("reference: " . $reference);
 
-        $this->_adyenLogger->addAdyenDebug("starting pos request");
         $service = new \Adyen\Service\PosPayment($this->_client);
         $transactionType = \Adyen\TransactionType::NORMAL;
         $poiId = $this->_adyenHelper->getPoiId();
