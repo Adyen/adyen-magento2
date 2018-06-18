@@ -60,13 +60,13 @@
                 <button class="action primary checkout"
                         type="submit"
                         data-bind="
-                            click: placeOrder,
-                            attr: {title: $t('Place Order')},
+                            click: initiate,
+                            attr: {title: $t('Initiate')},
                             enable: (getCode() == isChecked()),
                             css: {disabled: !isPlaceOrderActionAllowed()}
                             "
                         disabled>
-                    <span data-bind="text: $t('Place Order')"></span>
+                    <span data-bind="text: $t('Initiate')"></span>
                 </button>
             </div>
         </div>
