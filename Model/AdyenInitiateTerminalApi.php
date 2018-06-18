@@ -22,12 +22,6 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-/**
- * Created by PhpStorm.
- * User: alessio
- * Date: 6/13/18
- * Time: 3:29 PM
- */
 
 namespace Adyen\Payment\Model;
 

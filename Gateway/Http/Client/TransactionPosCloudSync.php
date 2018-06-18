@@ -71,7 +71,6 @@ class TransactionPosCloudSync implements ClientInterface
      */
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
-        $this->_adyenLogger->addAdyenDebug("placerequest");
         $request = $transferObject->getBody();
         $service = new \Adyen\Service\PosPayment($this->_client);
         $transactionType = \Adyen\TransactionType::NORMAL;
