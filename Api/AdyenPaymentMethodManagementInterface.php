@@ -35,9 +35,10 @@ interface AdyenPaymentMethodManagementInterface
     /**
      * Get payment information
      *
-     * @param string $cartId
+     * @param  string $cartId
+     * @param  null|\Magento\Quote\Api\Data\AddressInterface
      * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
      */
-    public function getPaymentMethods($cartId, \Magento\Quote\Api\Data\AddressInterface $shippingAddress);
+    public function getPaymentMethods($cartId, \Magento\Quote\Api\Data\AddressInterface $shippingAddress = null);
     
 }
