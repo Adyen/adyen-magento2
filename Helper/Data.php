@@ -55,7 +55,7 @@ class Data extends AbstractHelper
     protected $_moduleList;
 
     /**
-     * @var \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory
+     * @var \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory
      */
     protected $_billingAgreementCollectionFactory;
 
@@ -70,6 +70,21 @@ class Data extends AbstractHelper
     protected $_assetSource;
 
     /**
+     * @var \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory
+     */
+    protected $_notificationFactory;
+
+    /**
+     * @var \Magento\Tax\Model\Config
+     */
+    protected $_taxConfig;
+
+    /**
+     * @var \Magento\Tax\Model\Calculation
+     */
+    protected $_taxCalculation;
+
+    /**
      * Data constructor.
      *
      * @param \Magento\Framework\App\Helper\Context $context
@@ -77,7 +92,7 @@ class Data extends AbstractHelper
      * @param \Magento\Framework\Config\DataInterface $dataStorage
      * @param \Magento\Directory\Model\Config\Source\Country $country
      * @param \Magento\Framework\Module\ModuleListInterface $moduleList
-     * @param \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
+     * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param \Magento\Framework\View\Asset\Source $assetSource
      */
@@ -87,12 +102,13 @@ class Data extends AbstractHelper
         \Magento\Framework\Config\DataInterface $dataStorage,
         \Magento\Directory\Model\Config\Source\Country $country,
         \Magento\Framework\Module\ModuleListInterface $moduleList,
-        \Adyen\Payment\Model\Resource\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
+        \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\View\Asset\Source $assetSource,
-        \Adyen\Payment\Model\Resource\Notification\CollectionFactory $notificationFactory
-    )
-    {
+        \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory,
+        \Magento\Tax\Model\Config $taxConfig,
+        \Magento\Tax\Model\Calculation $taxCalculation
+    ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
         $this->_dataStorage = $dataStorage;
@@ -102,6 +118,8 @@ class Data extends AbstractHelper
         $this->_assetRepo = $assetRepo;
         $this->_assetSource = $assetSource;
         $this->_notificationFactory = $notificationFactory;
+        $this->_taxConfig = $taxConfig;
+        $this->_taxCalculation = $taxCalculation;
     }
 
     /**
@@ -464,7 +482,7 @@ class Data extends AbstractHelper
     {
         return $this->getConfigData($field, 'adyen_apple_pay', $storeId);
     }
-    
+
     /**
      * @param null $storeId
      * @return mixed
@@ -847,15 +865,15 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
     {
-        if (strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_') {
+        if (strpos($paymentMethod, 'afterpay') !== false) {
             return true;
-        } else {
-            if ($paymentMethod == 'klarna' || $paymentMethod == 'ratepay') {
-                return true;
-            } else {
-                return false;
-            }
+        } elseif (strpos($paymentMethod, 'klarna') !== false) {
+            return true;
+        } elseif (strpos($paymentMethod, 'ratepay') !== false) {
+            return true;
         }
+
+        return false;
     }
 
     public function getRatePayId()
@@ -967,5 +985,150 @@ class Data extends AbstractHelper
         }
 
         return "https://" . $environment . ".adyen.com/hpp/cse/js/" . $this->getLibraryToken($storeId) . ".shtml";
+    }
+
+    /**
+     * @param $formFields
+     * @param $count
+     * @param $name
+     * @param $price
+     * @param $currency
+     * @param $taxAmount
+     * @param $priceInclTax
+     * @param $taxPercent
+     * @param $numberOfItems
+     * @param $payment
+     * @return mixed
+     */
+    public function createOpenInvoiceLineItem(
+        $formFields,
+        $count,
+        $name,
+        $price,
+        $currency,
+        $taxAmount,
+        $priceInclTax,
+        $taxPercent,
+        $numberOfItems,
+        $payment
+    ) {
+        $description = str_replace("\n", '', trim($name));
+        $itemAmount = $this->formatAmount($price, $currency);
+
+        $itemVatAmount = $this->getItemVatAmount($taxAmount,
+            $priceInclTax, $price, $currency);
+
+        // Calculate vat percentage
+        $itemVatPercentage = $this->getMinorUnitTaxPercent($taxPercent);
+
+        return $this->getOpenInvoiceLineData($formFields, $count, $currency, $description,
+            $itemAmount,
+            $itemVatAmount, $itemVatPercentage, $numberOfItems, $payment);
+    }
+
+    /**
+     * @param $formFields
+     * @param $count
+     * @param $order
+     * @param $shippingAmount
+     * @param $shippingTaxAmount
+     * @param $currency
+     * @param $payment
+     * @return mixed
+     */
+    public function createOpenInvoiceLineShipping(
+        $formFields,
+        $count,
+        $order,
+        $shippingAmount,
+        $shippingTaxAmount,
+        $currency,
+        $payment
+    ) {
+        $description = $order->getShippingDescription();
+        $itemAmount = $this->formatAmount($shippingAmount, $currency);
+        $itemVatAmount = $this->formatAmount($shippingTaxAmount, $currency);
+
+        // Create RateRequest to calculate the Tax class rate for the shipping method
+        $rateRequest = $this->_taxCalculation->getRateRequest(
+            $order->getShippingAddress(),
+            $order->getBillingAddress(),
+            null,
+            $order->getStoreId(),
+            $order->getCustomerId()
+        );
+
+        $taxClassId = $this->_taxConfig->getShippingTaxClass($order->getStoreId());
+        $rateRequest->setProductClassId($taxClassId);
+        $rate = $this->_taxCalculation->getRate($rateRequest);
+
+        $itemVatPercentage = $this->getMinorUnitTaxPercent($rate);
+        $numberOfItems = 1;
+
+        return $this->getOpenInvoiceLineData($formFields, $count, $currency, $description,
+            $itemAmount,
+            $itemVatAmount, $itemVatPercentage, $numberOfItems, $payment);
+    }
+
+    /**
+     * @param $taxAmount
+     * @param $priceInclTax
+     * @param $price
+     * @param $currency
+     * @return string
+     */
+    public function getItemVatAmount(
+        $taxAmount,
+        $priceInclTax,
+        $price,
+        $currency
+    ) {
+        if ($taxAmount > 0 && $priceInclTax > 0) {
+            return $this->formatAmount($priceInclTax, $currency) - $this->formatAmount($price, $currency);
+        }
+        return $this->formatAmount($taxAmount, $currency);
+    }
+
+    /**
+     * Set the openinvoice line
+     *
+     * @param $formFields
+     * @param $count
+     * @param $currencyCode
+     * @param $description
+     * @param $itemAmount
+     * @param $itemVatAmount
+     * @param $itemVatPercentage
+     * @param $numberOfItems
+     * @param $payment
+     * @return
+     */
+    public function getOpenInvoiceLineData(
+        $formFields,
+        $count,
+        $currencyCode,
+        $description,
+        $itemAmount,
+        $itemVatAmount,
+        $itemVatPercentage,
+        $numberOfItems,
+        $payment
+    ) {
+        $linename = "line" . $count;
+        $formFields['openinvoicedata.' . $linename . '.currencyCode'] = $currencyCode;
+        $formFields['openinvoicedata.' . $linename . '.description'] = $description;
+        $formFields['openinvoicedata.' . $linename . '.itemAmount'] = $itemAmount;
+        $formFields['openinvoicedata.' . $linename . '.itemVatAmount'] = $itemVatAmount;
+        $formFields['openinvoicedata.' . $linename . '.itemVatPercentage'] = $itemVatPercentage;
+        $formFields['openinvoicedata.' . $linename . '.numberOfItems'] = $numberOfItems;
+
+        if ($this->isVatCategoryHigh($payment->getAdditionalInformation(
+            \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE))
+        ) {
+            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "High";
+        } else {
+            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "None";
+        }
+        return $formFields;
     }
 }

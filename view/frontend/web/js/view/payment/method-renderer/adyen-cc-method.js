@@ -19,23 +19,19 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-/*browser:true*/
-/*global define*/
 define(
     [
-        'underscore',
         'jquery',
+        'ko',
         'Magento_Payment/js/view/payment/cc-form',
-        'Adyen_Payment/js/action/place-order',
-        'mage/translate',
-        'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Customer/js/model/customer',
         'Magento_Payment/js/model/credit-card-validation/credit-card-data',
+        'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/quote',
-        'ko',
         'Adyen_Payment/js/model/installments',
+        'mage/url'
     ],
-    function (_, $, Component, placeOrderAction, $t, additionalValidators, customer, creditCardData, quote, ko, installments) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url) {
 
         'use strict';
         var cvcLength = ko.observable(4);
@@ -156,43 +152,63 @@ define(
             isActive: function () {
                 return true;
             },
+
+            /**
+             * Returns state of place order button
+             * @returns {boolean}
+            */
+            isButtonActive: function() {
+              return this.isActive() && this.getCode() == this.isChecked() && this.isPlaceOrderActionAllowed();
+            },
+
             /**
              * @override
              */
             placeOrder: function (data, event) {
-                var self = this,
-                    placeOrder;
+                var self = this;
 
                 if (event) {
                     event.preventDefault();
                 }
 
-
                 var options = {};
                 var cseInstance = adyen.createEncryption(options);
-                var generationtime = self.getGenerationTime();
+                var generationtime = this.getGenerationTime();
 
                 var cardData = {
-                    number: self.creditCardNumber(),
-                    cvc: self.creditCardVerificationNumber(),
-                    holderName: self.creditCardOwner(),
-                    expiryMonth: self.creditCardExpMonth(),
-                    expiryYear: self.creditCardExpYear(),
+                    number: this.creditCardNumber(),
+                    cvc: this.creditCardVerificationNumber(),
+                    holderName: this.creditCardOwner(),
+                    expiryMonth: this.creditCardExpMonth(),
+                    expiryYear: this.creditCardExpYear(),
                     generationtime: generationtime
                 };
 
                 var data = cseInstance.encrypt(cardData);
-                self.encryptedData(data);
+                this.encryptedData(data);
 
                 if (this.validate() && additionalValidators.validate()) {
                     this.isPlaceOrderActionAllowed(false);
-                    placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder);
 
-                    $.when(placeOrder).fail(function (response) {
-                        self.isPlaceOrderActionAllowed(true);
-                    });
+                    this.getPlaceOrderDeferredObject()
+                        .fail(
+                            function () {
+                                self.isPlaceOrderActionAllowed(true);
+                            }
+                        ).done(
+                        function () {
+                            self.afterPlaceOrder();
+
+                            if (self.redirectAfterPlaceOrder) {
+                                // use custom redirect Link for supporting 3D secure
+                                window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
+                            }
+                        }
+                    );
+
                     return true;
                 }
+
                 return false;
             },
             getControllerName: function () {

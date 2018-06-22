@@ -34,7 +34,7 @@ class AbstractInfo extends \Magento\Payment\Block\Info
     protected $_adyenHelper;
 
     /**
-     * @var \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory
+     * @var \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory
      */
     protected $_adyenOrderPaymentCollectionFactory;
     
@@ -42,13 +42,13 @@ class AbstractInfo extends \Magento\Payment\Block\Info
      * AbstractInfo constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory
+     * @param \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory
      * @param Template\Context $context
      * @param array $data
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\Resource\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
+        \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
         Template\Context $context,
         array $data = []
     )

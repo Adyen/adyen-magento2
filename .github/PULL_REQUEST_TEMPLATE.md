@@ -5,6 +5,6 @@
 
 **Tested scenarios**
 <!-- Description of tested scenarios -->
-<!-- Please verify that the unit tests are passing by running "vendor/bin/phpunit -c ." -->
+<!-- Please verify that the unit tests are passing by running "vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist vendor/adyen/module-payment/Test/" -->
 
 **Fixed issue**:  <!-- #-prefixed issue number -->

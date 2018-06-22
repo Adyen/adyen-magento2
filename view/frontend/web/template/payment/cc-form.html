@@ -38,6 +38,7 @@
     </div>
 
     <div class="payment-method-content">
+
         <div class="payment-method-billing-address">
             <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
             <!-- ko template: getTemplate() --><!-- /ko -->
@@ -51,6 +52,11 @@
                 'controller': getControllerName(),
                 'orderSaveUrl':getPlaceOrderUrl(),
             }, 'validation':[]}">
+
+
+            <!-- ko foreach: getRegion('messages') -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
 
 
             <fieldset
@@ -268,16 +274,15 @@
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
+
+
         <div class="actions-toolbar">
             <div class="primary">
                 <button class="action primary checkout"
                         type="submit"
-                        data-bind="
-                        click: placeOrder,
+                        data-bind="click: placeOrder,
                         attr: {title: $t('Place Order')},
-                        enable: (getCode() == isChecked()),
-                        css: {disabled: !isPlaceOrderActionAllowed()}
-                        "
+                        enable: isButtonActive()"
                         disabled>
                     <span data-bind="text: $t('Place Order')"></span>
                 </button>

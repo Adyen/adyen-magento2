@@ -34,7 +34,7 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
      * @var PaymentHelper
      */
     protected $_paymentHelper;
-    
+
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -86,11 +86,31 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
                         'checkout/onepage/success/', ['_secure' => $this->_getRequest()->isSecure()])
                 ],
                 'adyenBoleto' => [
-                    'boletoTypes' => $this->_adyenHelper->getBoletoTypes()
+                    'boletoTypes' => $this->getBoletoAvailableTypes()
                 ]
             ]
         ];
     }
+
+    /**
+     * @return array
+     */
+    protected function getBoletoAvailableTypes()
+    {
+        $types = [];
+        $boletoTypes = $this->_adyenHelper->getBoletoTypes();
+        $availableTypes = $this->_adyenHelper->getAdyenBoletoConfigData('boletotypes');
+        if ($availableTypes) {
+            $availableTypes = explode(',', $availableTypes);
+            foreach ($boletoTypes as $boletoType) {
+                if (in_array($boletoType['value'], $availableTypes)) {
+                    $types[] = $boletoType;
+                }
+            }
+        }
+        return $types;
+    }
+
 
     /**
      * Retrieve request object

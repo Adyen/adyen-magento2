@@ -445,30 +445,21 @@ class Redirect extends \Magento\Payment\Block\Form
         foreach ($this->_order->getAllVisibleItems() as $item) {
 
             ++$count;
-
-
-            $description = str_replace("\n", '', trim($item->getName()));
-            $itemAmount = $this->_adyenHelper->formatAmount($item->getPrice(), $currency);
-            $itemVatAmount =
-                ($item->getTaxAmount() > 0 && $item->getPriceInclTax() > 0) ?
-                    $this->_adyenHelper->formatAmount(
-                        $item->getPriceInclTax(),
-                        $currency
-                    ) - $this->_adyenHelper->formatAmount(
-                        $item->getPrice(),
-                        $currency
-                    ) : $this->_adyenHelper->formatAmount($item->getTaxAmount(), $currency);
-
-
-            // Calculate vat percentage
-            $itemVatPercentage = $this->_adyenHelper->getMinorUnitTaxPercent($item->getTaxPercent());
-
             $numberOfItems = (int)$item->getQtyOrdered();
 
-            $formFields = $this->setOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
-                $itemVatAmount, $itemVatPercentage, $numberOfItems);
+            $formFields = $this->_adyenHelper->createOpenInvoiceLineItem(
+                $formFields,
+                $count,
+                $item->getName(),
+                $item->getPrice(),
+                $currency,
+                $item->getTaxAmount(),
+                $item->getPriceInclTax(),
+                $item->getTaxPercent(),
+                $numberOfItems,
+                $this->_order->getPayment()
+            );
         }
-
 
         // Discount cost
         if ($this->_order->getDiscountAmount() > 0 || $this->_order->getDiscountAmount() < 0) {
@@ -480,74 +471,28 @@ class Redirect extends \Magento\Payment\Block\Form
             $itemVatPercentage = "0";
             $numberOfItems = 1;
 
-            $formFields = $this->setOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
-                $itemVatAmount, $itemVatPercentage, $numberOfItems);
+            $formFields = $this->_adyenHelper->getOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
+                $itemVatAmount, $itemVatPercentage, $numberOfItems, $this->_order->getPayment());
         }
 
         // Shipping cost
         if ($this->_order->getShippingAmount() > 0 || $this->_order->getShippingTaxAmount() > 0) {
 
             ++$count;
-            $description = $this->_order->getShippingDescription();
-            $itemAmount = $this->_adyenHelper->formatAmount($this->_order->getShippingAmount(), $currency);
-            $itemVatAmount = $this->_adyenHelper->formatAmount($this->_order->getShippingTaxAmount(), $currency);
-
-            // Create RateRequest to calculate the Tax class rate for the shipping method
-            $rateRequest = $this->_taxCalculation->getRateRequest(
-                $this->_order->getShippingAddress(),
-                $this->_order->getBillingAddress(),
-                null,
-                $this->_order->getStoreId(), $this->_order->getCustomerId()
+            $formFields = $this->_adyenHelper->createOpenInvoiceLineShipping(
+                $formFields,
+                $count,
+                $this->_order,
+                $this->_order->getShippingAmount(),
+                $this->_order->getShippingTaxAmount(),
+                $currency,
+                $this->_order->getPayment()
             );
-
-            $taxClassId = $this->_taxConfig->getShippingTaxClass($this->_order->getStoreId());
-            $rateRequest->setProductClassId($taxClassId);
-            $rate = $this->_taxCalculation->getRate($rateRequest);
-
-            $itemVatPercentage = $this->_adyenHelper->getMinorUnitTaxPercent($rate);
-            $numberOfItems = 1;
-
-            $formFields = $this->setOpenInvoiceLineData($formFields, $count, $currency, $description, $itemAmount,
-                $itemVatAmount, $itemVatPercentage, $numberOfItems);
         }
 
         $formFields['openinvoicedata.refundDescription'] = "Refund / Correction for " . $formFields['merchantReference'];
         $formFields['openinvoicedata.numberOfLines'] = $count;
 
-        return $formFields;
-    }
-
-
-    /**
-     * Set the openinvoice line
-     *
-     * @param $count
-     * @param $currencyCode
-     * @param $description
-     * @param $itemAmount
-     * @param $itemVatAmount
-     * @param $itemVatPercentage
-     * @param $numberOfItems
-     */
-    protected function setOpenInvoiceLineData($formFields, $count, $currencyCode, $description, $itemAmount,
-                                              $itemVatAmount, $itemVatPercentage, $numberOfItems
-    )
-    {
-        $linename = "line" . $count;
-        $formFields['openinvoicedata.' . $linename . '.currencyCode'] = $currencyCode;
-        $formFields['openinvoicedata.' . $linename . '.description'] = $description;
-        $formFields['openinvoicedata.' . $linename . '.itemAmount'] = $itemAmount;
-        $formFields['openinvoicedata.' . $linename . '.itemVatAmount'] = $itemVatAmount;
-        $formFields['openinvoicedata.' . $linename . '.itemVatPercentage'] = $itemVatPercentage;
-        $formFields['openinvoicedata.' . $linename . '.numberOfItems'] = $numberOfItems;
-
-        if ($this->_adyenHelper->isVatCategoryHigh($this->_order->getPayment()->getAdditionalInformation(
-            \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE))
-        ) {
-            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "High";
-        } else {
-            $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "None";
-        }
         return $formFields;
     }
 

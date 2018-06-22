@@ -1,4 +1,5 @@
-<?php
+<?xml version="1.0"?>
+<!--
 /**
  *                       ######
  *                       ######
@@ -15,36 +16,16 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2018 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
-
-namespace Adyen\Payment\Model\Resource\Billing\Agreement;
-
-/**
- * Billing agreements resource collection
- */
-class Collection extends \Magento\Paypal\Model\ResourceModel\Billing\Agreement\Collection
-{
-
-    /**
-     * Collection initialization
-     *
-     * @return void
-     */
-    protected function _construct()
-    {
-        $this->_init('Adyen\Payment\Model\Billing\Agreement', 'Magento\Paypal\Model\ResourceModel\Billing\Agreement');
-    }
-
-    /**
-     * @return $this
-     */
-    public function addActiveFilter()
-    {
-        $this->addFieldToFilter('status', \Magento\Paypal\Model\Billing\Agreement::STATUS_ACTIVE);
-        return $this;
-    }
-}
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="admin-2columns-left" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="payment_additional_info">
+            <block class="Adyen\Payment\Block\Info\PaymentLink" name="adyen_paymentlink" template="Adyen_Payment::info/adyen_paymentlink.phtml" />
+        </referenceContainer>
+    </body>
+</page>

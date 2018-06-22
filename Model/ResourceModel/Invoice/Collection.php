@@ -13,23 +13,25 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2018 Adyen B.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Resource\Order;
+namespace Adyen\Payment\Model\ResourceModel\Invoice;
 
-class Payment extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
+class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
     /**
      * Construct
      */
     public function _construct()
     {
-        $this->_init('adyen_order_payment', 'entity_id');
+        $this->_init('Adyen\Payment\Model\Invoice', 'Adyen\Payment\Model\ResourceModel\Invoice');
     }
+
 }
