@@ -72,6 +72,10 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $client = new \Adyen\Client();
         $client->setApplicationName("Magento 2 plugin");
         $client->setXApiKey($apiKey);
+
+        //Set configurable option in M2
+        $client->setTimeout(15);
+
         if ($this->_adyenHelper->isDemoMode()) {
             $client->setEnvironment(\Adyen\Environment::TEST);
         } else {
@@ -86,16 +90,13 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     /**
      * Trigger sync call on terminal
      * @param string $quoteId
-     * @param string $currency
-     * @param int $amount
      * @return mixed
      */
-    public function initiate($quoteId, $currency, $amount)
+    public function initiate($quoteId)
     {
         $quote = $this->_quoteRepository->getActive($quoteId);
         $payment = $quote->getPayment();
         $payment->setMethod(AdyenPosCloudConfigProvider::CODE);
-        $amount = $payment->getAmount();
         $reference = $quote->reserveOrderId()->getReservedOrderId();
 
         $service = new \Adyen\Service\PosPayment($this->_client);
@@ -126,8 +127,8 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                             },
                             "PaymentTransaction": {
                                 "AmountsReq": {
-                                    "Currency": "' . $currency . '",
-                                    "RequestedAmount": ' . $amount . '
+                                    "Currency": "' . $quote->getCurrency()->getQuoteCurrencyCode() . '",
+                                    "RequestedAmount": ' . $quote->getGrandTotal() . '
                                 }
                             },
                             "PaymentData": {
@@ -139,15 +140,25 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             ';
 
         $params = json_decode($json, true); //Create associative array for passing along
+
+        $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation('serviceID',
+            $serviceID);
+
         try {
             $response = $service->runTenderSync($params);
         } catch (\Adyen\AdyenException $e) {
+            //Not able to perform a payment
             $response['error'] = $e->getMessage();
+        } catch (\Exception $e) {
+            //Probably timeout
+            $quote->save();
+            $response['error'] = $e->getMessage();
+            throw $e;
         }
-
         $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation('terminalResponse',
             $response);
 
+        $quote->save();
         return $response;
     }
 }

@@ -22,15 +22,27 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Api;
+
+namespace Adyen\Payment\Model;
 
 
-interface AdyenInitiateTerminalApiInterface
+class AdyenPaymentInformationManagement extends \Magento\Checkout\Model\PaymentInformationManagement
 {
+
     /**
-     * Trigger sync call on terminal
-     * @param string $quoteId
-     * @return mixed
+     * {@inheritDoc}
      */
-    public function initiate($quoteId);
+    public function savePaymentInformationAndPlaceOrder(
+        $cartId,
+        \Magento\Quote\Api\Data\PaymentInterface $paymentMethod,
+        \Magento\Quote\Api\Data\AddressInterface $billingAddress = null
+    ) {
+        $this->savePaymentInformation($cartId, $paymentMethod, $billingAddress);
+        try {
+            $orderId = $this->cartManagement->placeOrder($cartId);
+        } catch (\Exception $e) {
+            throw $e;
+        }
+        return $orderId;
+    }
 }

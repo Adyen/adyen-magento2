@@ -62,51 +62,66 @@ define(
                 if (!customer.isLoggedIn()) {
                     serviceUrl = urlBuilder.createUrl('/adyen/initiate', {});
                     payload = {
-                        quoteId: quote.getQuoteId(),
-                        currency: quote.totals().quote_currency_code,
-                        amount: quote.totals().base_grand_total
+                        quoteId: quote.getQuoteId()
                     };
                 } else {
-                    console.log(quote);
                     serviceUrl = urlBuilder.createUrl('/adyen/initiate', {});
                     payload = {
-                        quoteId: quote.getQuoteId(),
-                        currency: quote.totals().quote_currency_code,
-                        amount: quote.totals().base_grand_total
+                        quoteId: quote.getQuoteId()
                     };
                 }
 
-
                 fullScreenLoader.startLoader();
-
                 return storage.post(
                     serviceUrl, JSON.stringify(payload)
                 ).done(
-                    function () {
-
+                    function (response) {
                         return $.when(
                             placeOrderAction(self.getData(), new Messages())
                         ).fail(
-                            function () {
+                            function (response) {
+                                errorProcessor.process(response);
+                                fullScreenLoader.stopLoader();
                                 self.isPlaceOrderActionAllowed(true);
                             }
                         ).done(
                             function () {
-                                self.afterPlaceOrder();
-                                if (self.redirectAfterPlaceOrder) {
-                                    redirectOnSuccessAction.execute();
-                                }
+                                self.posComplete();
                             }
-                        );
+                        )
+                        fullScreenLoader.stopLoader();
                     }
                 ).fail(
                     function (response) {
-                        fullScreenLoader.stopLoader();
+                        var statusInterval = window.setInterval(function () {
+                            return $.when(
+                                placeOrderAction(self.getData(), new Messages())
+                            ).fail(
+                                function (response) {
+                                    if (response.responseText.indexOf("In Progress") > -1) {
+                                        return;
+                                    }
+                                    errorProcessor.process(response);
+                                    fullScreenLoader.stopLoader();
+                                    self.isPlaceOrderActionAllowed(true);
+                                    clearInterval(statusInterval);
+                                }
+                            ).done(
+                                function () {
+                                    self.posComplete();
+                                }
+                            )
+                        }, 5000);
                     }
                 );
                 return false;
             },
-
+            posComplete: function () {
+                this.afterPlaceOrder();
+                if (this.redirectAfterPlaceOrder) {
+                    redirectOnSuccessAction.execute();
+                }
+            },
             showLogo: function () {
                 return window.checkoutConfig.payment.adyen.showLogo;
             },

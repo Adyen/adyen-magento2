@@ -74,8 +74,12 @@ class PaymentPosCloudHandler implements HandlerInterface
         // no not send order confirmation mail
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
-        // set transaction
-        if (!empty($response['SaleToPOIResponse']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {
+        // set transaction(status)
+        if (!empty($response['SaleToPOIResponse']['TransactionStatusResponse']['RepeatedMessageResponse']['RepeatedResponseMessageBody']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {
+            $pspReference = $response['SaleToPOIResponse']['TransactionStatusResponse']['RepeatedMessageResponse']['RepeatedResponseMessageBody']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'];
+            $payment->setTransactionId($pspReference);
+            // set transaction(payment)
+        } elseif (!empty($response['SaleToPOIResponse']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {
             $pspReference = $response['SaleToPOIResponse']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'];
             $payment->setTransactionId($pspReference);
         } elseif (!empty($response['SaleToPOIResponse']['PaymentResponse']['POIData']['POITransactionID']['TransactionID'])) {

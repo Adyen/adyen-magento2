@@ -72,52 +72,49 @@ class TransactionPosCloudSync implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
-        $service = new \Adyen\Service\PosPayment($this->_client);
-        $transactionType = \Adyen\TransactionType::NORMAL;
-        $poiId = $this->_adyenHelper->getPoiId();
-        $serviceID = date("dHis");
-        $timeStamper = date("Y-m-d") . "T" . date("H:i:s+00:00");
 
-        $json = '{
-                    "SaleToPOIRequest": {
-                        "MessageHeader": {
-                            "MessageType": "Request",
-                            "MessageClass": "Service",
-                            "MessageCategory": "Payment",
-                            "SaleID": "Magento2Cloud",
-                            "POIID": "' . $poiId . '",
-                            "ProtocolVersion": "3.0",
-                            "ServiceID": "' . $serviceID . '"
-                        },
-                        "PaymentRequest": {
-                            "SaleData": {
-                                "SaleTransactionID": {
-                                    "TransactionID": "' . $request['reference'] . '",
-                                    "TimeStamp": "' . $timeStamper . '"
+        //always do status call and return the response of the status call
+        $service = new \Adyen\Service\PosPayment($this->_client);
+
+        $poiId = $this->_adyenHelper->getPoiId();
+        $newServiceID = date("dHis");
+
+        //Provide receipt to the shopper
+        $jsonStatus='{
+                        "SaleToPOIRequest": {
+                            "MessageHeader": {
+                                "ProtocolVersion": "3.0",
+                                "MessageClass": "Service",
+                                "MessageCategory": "TransactionStatus",
+                                "MessageType": "Request",
+                                "ServiceID": "' . $newServiceID . '",
+                                "SaleID": "Magento2CloudStatus",
+                                "POIID": "' . $poiId . '"
+                            },
+                            "TransactionStatusRequest": {
+                                "MessageReference": {
+                                    "MessageCategory": "Payment",
+                                    "SaleID": "Magento2Cloud",
+                                    "ServiceID":  "' . $request['serviceID'] . '"
                                 },
-                                "TokenRequestedType": "Customer",
-                                "SaleReferenceID": "SalesRefABC"
-                            },
-                            "PaymentTransaction": {
-                                "AmountsReq": {
-                                    "Currency": "' . $request['amount']['currency'] . '",
-                                    "RequestedAmount": ' . $request['amount']['value'] . '
-                                }
-                            },
-                            "PaymentData": {
-                                "PaymentType": "' . $transactionType . '"
+                                "DocumentQualifier" : [
+                                    "CashierReceipt",
+                                    "CustomerReceipt"
+                                ],
+                              
+                                "ReceiptReprintFlag" : true
                             }
                         }
-                    }
-                }
-            ';
+                    }';
 
-        $params = json_decode($json, true); //Create associative array for passing along
+        $params = json_decode($jsonStatus, true); //Create associative array for passing along
+
         try {
             $response = $service->runTenderSync($params);
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
+
         return $response;
     }
 }
