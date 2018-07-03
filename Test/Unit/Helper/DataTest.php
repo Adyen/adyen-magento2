@@ -48,9 +48,22 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $assetRepo = $this->getSimpleMock(\Magento\Framework\View\Asset\Repository::class);
         $assetSource = $this->getSimpleMock(\Magento\Framework\View\Asset\Source::class);
         $notificationFactory = $this->getSimpleMock(\Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory::class);
+        $taxConfig = $this->getSimpleMock(\Magento\Tax\Model\Config::class);
+        $taxCalculation = $this->getSimpleMock(\Magento\Tax\Model\Calculation::class);
 
-        $this->dataHelper = new \Adyen\Payment\Helper\Data($context, $encryptor, $dataStorage, $country, $moduleList,
-            $billingAgreementCollectionFactory, $assetRepo, $assetSource, $notificationFactory);
+        $this->dataHelper = new \Adyen\Payment\Helper\Data(
+            $context,
+            $encryptor,
+            $dataStorage,
+            $country,
+            $moduleList,
+            $billingAgreementCollectionFactory,
+            $assetRepo,
+            $assetSource,
+            $notificationFactory,
+            $taxConfig,
+            $taxCalculation
+        );
     }
 
     public function testFormatAmount()
