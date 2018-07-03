@@ -30,7 +30,8 @@ interface AdyenInitiateTerminalApiInterface
     /**
      * Trigger sync call on terminal
      * @param string $quoteId
+     * @param boolean $guest
      * @return mixed
      */
-    public function initiate($quoteId);
+    public function initiate($quoteId, $guest);
 }

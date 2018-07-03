@@ -82,11 +82,6 @@ class PaymentPosCloudHandler implements HandlerInterface
         } elseif (!empty($response['SaleToPOIResponse']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {
             $pspReference = $response['SaleToPOIResponse']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'];
             $payment->setTransactionId($pspReference);
-        } elseif (!empty($response['SaleToPOIResponse']['PaymentResponse']['POIData']['POITransactionID']['TransactionID'])) {
-            $pspReference = explode('.',
-                $response['SaleToPOIResponse']['PaymentResponse']['POIData']['POITransactionID']['TransactionID'])[1];
-            $this->adyenLogger->error($pspReference);
-            $payment->setTransactionId($pspReference);
         } else {
             $this->adyenLogger->error("Missing POS Transaction ID");
             throw new Exception("Missing POS Transaction ID");

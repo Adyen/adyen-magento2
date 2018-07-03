@@ -50,6 +50,7 @@ class TransactionPosCloudSync implements ClientInterface
         $client = new \Adyen\Client();
         $client->setApplicationName("Magento 2 plugin");
         $client->setXApiKey($apiKey);
+        $client->setTimeout(5);
         if ($this->_adyenHelper->isDemoMode()) {
             $client->setEnvironment(\Adyen\Environment::TEST);
         } else {
@@ -72,13 +73,16 @@ class TransactionPosCloudSync implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
-
+        if(!empty($request['response'])){
+            //Initiate has already a response
+            return $request['response'];
+        }
         //always do status call and return the response of the status call
         $service = new \Adyen\Service\PosPayment($this->_client);
 
         $poiId = $this->_adyenHelper->getPoiId();
         $newServiceID = date("dHis");
-
+        $this->_adyenLogger->addAdyenDebug("serviceid?:". $request['serviceID']);
         //Provide receipt to the shopper
         $jsonStatus='{
                         "SaleToPOIRequest": {

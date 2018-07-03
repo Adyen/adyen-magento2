@@ -58,6 +58,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Model\RecurringType $recurringType,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
+        \Magento\Quote\Model\QuoteIdMaskFactory $quoteIdMaskFactory,
         array $data = []
     ) {
         $this->_encryptor = $encryptor;
@@ -66,6 +67,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
         $this->_quoteRepository = $quoteRepository;
+        $this->_quoteIdMaskFactory = $quoteIdMaskFactory;
 
         // initialize client
         $apiKey = $this->_adyenHelper->getApiKey();
@@ -74,7 +76,10 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $client->setXApiKey($apiKey);
 
         //Set configurable option in M2
-        $client->setTimeout(15);
+        $posTimeout = $this->_adyenHelper->getAdyenPosCloudConfigData('pos_timeout');
+        if (!empty($posTimeout)) {
+            $client->setTimeout($posTimeout);
+        }
 
         if ($this->_adyenHelper->isDemoMode()) {
             $client->setEnvironment(\Adyen\Environment::TEST);
@@ -90,10 +95,15 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     /**
      * Trigger sync call on terminal
      * @param string $quoteId
+     * @param boolean $guest
      * @return mixed
      */
-    public function initiate($quoteId)
+    public function initiate($quoteId, $guest)
     {
+        if ($guest) {
+            $quoteIdMask = $this->_quoteIdMaskFactory->create()->load($quoteId, 'masked_id');
+            $quoteId = $quoteIdMask->getQuoteId();
+        }
         $quote = $this->_quoteRepository->getActive($quoteId);
         $payment = $quote->getPayment();
         $payment->setMethod(AdyenPosCloudConfigProvider::CODE);
@@ -122,8 +132,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                                     "TransactionID": "' . $reference . '",
                                     "TimeStamp": "' . $timeStamper . '"
                                 },
-                                "TokenRequestedType": "Customer",
-                                "SaleReferenceID": "SalesRefABC"
+                                "TokenRequestedType": "Customer"
                             },
                             "PaymentTransaction": {
                                 "AmountsReq": {
@@ -148,9 +157,12 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             $response = $service->runTenderSync($params);
         } catch (\Adyen\AdyenException $e) {
             //Not able to perform a payment
+            $this->_adyenLogger->addAdyenDebug("adyenexception");
             $response['error'] = $e->getMessage();
         } catch (\Exception $e) {
             //Probably timeout
+            $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation('terminalResponse',
+                null);
             $quote->save();
             $response['error'] = $e->getMessage();
             throw $e;
