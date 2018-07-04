@@ -82,7 +82,6 @@ class TransactionPosCloudSync implements ClientInterface
 
         $poiId = $this->_adyenHelper->getPoiId();
         $newServiceID = date("dHis");
-        $this->_adyenLogger->addAdyenDebug("serviceid?:". $request['serviceID']);
         //Provide receipt to the shopper
         $jsonStatus='{
                         "SaleToPOIRequest": {
