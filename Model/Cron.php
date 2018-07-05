@@ -188,6 +188,11 @@ class Cron
     protected $_areaList;
 
     /**
+     * @var \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory
+     */
+    protected $_orderStatusCollection;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -220,8 +225,10 @@ class Cron
         \Adyen\Payment\Model\Order\PaymentFactory $adyenOrderPaymentFactory,
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
         \Adyen\Payment\Model\InvoiceFactory $adyenInvoiceFactory,
-        AreaList $areaList
-    ) {
+        AreaList $areaList,
+        \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollection
+    )
+    {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
         $this->_notificationFactory = $notificationFactory;
@@ -237,6 +244,7 @@ class Cron
         $this->_adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
         $this->_adyenInvoiceFactory = $adyenInvoiceFactory;
         $this->_areaList = $areaList;
+        $this->_orderStatusCollection = $orderStatusCollection;
     }
 
     /**
@@ -1137,6 +1145,8 @@ class Cron
         // only do this if status in configuration is set
         if (!empty($status)) {
             $this->_order->addStatusHistoryComment(__('Payment is authorised waiting for capture'), $status);
+            $this->_setState($status);
+
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 'Order status is changed to Pre-authorised status, status is ' . $status
             );
@@ -1594,14 +1604,30 @@ class Cron
                 $comment = "Adyen Payment is in Manual Review check the Adyen platform";
             }
         }
-
         $status = (!empty($status)) ? $status : $this->_order->getStatus();
         $this->_order->addStatusHistoryComment(__($comment), $status);
+        $this->_setState($status);
+
         $this->_adyenLogger->addAdyenNotificationCronjob(
             'Order status is changed to authorised status, status is ' . $status
         );
     }
 
+    /**
+     * Set State from Status
+     */
+
+    protected function _setState($status)
+    {
+        $statusObject = $this->_orderStatusCollection->create()
+            ->addFieldToFilter('main_table.status', $status)
+            ->addFieldToFilter('state_table.is_default', true)
+            ->joinStates()
+            ->getFirstItem();
+
+        $this->_order->setState($statusObject->getState());
+        $this->_adyenLogger->addAdyenNotificationCronjob('State is changed to  ' . $statusObject->getState());
+    }
 
     /**
      * Create shipment
