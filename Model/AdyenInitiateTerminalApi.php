@@ -40,7 +40,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     private $_recurringType;
     private $_appState;
 
-    protected $_quoteRepository;
+    protected $_checkoutSession;
 
     /**
      * AdyenInitiateTerminalApi constructor.
@@ -57,8 +57,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Model\RecurringType $recurringType,
-        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-        \Magento\Quote\Model\QuoteIdMaskFactory $quoteIdMaskFactory,
+        \Magento\Checkout\Model\Session $_checkoutSession,
         array $data = []
     ) {
         $this->_encryptor = $encryptor;
@@ -66,8 +65,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $this->_adyenLogger = $adyenLogger;
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
-        $this->_quoteRepository = $quoteRepository;
-        $this->_quoteIdMaskFactory = $quoteIdMaskFactory;
+        $this->_checkoutSession = $_checkoutSession;
 
         // initialize client
         $apiKey = $this->_adyenHelper->getApiKey();
@@ -94,17 +92,11 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
     /**
      * Trigger sync call on terminal
-     * @param string $quoteId
-     * @param boolean $guest
      * @return mixed
      */
-    public function initiate($quoteId, $guest)
+    public function initiate()
     {
-        if ($guest) {
-            $quoteIdMask = $this->_quoteIdMaskFactory->create()->load($quoteId, 'masked_id');
-            $quoteId = $quoteIdMask->getQuoteId();
-        }
-        $quote = $this->_quoteRepository->getActive($quoteId);
+        $quote = $this->_checkoutSession->getQuote();
         $payment = $quote->getPayment();
         $payment->setMethod(AdyenPosCloudConfigProvider::CODE);
         $reference = $quote->reserveOrderId()->getReservedOrderId();

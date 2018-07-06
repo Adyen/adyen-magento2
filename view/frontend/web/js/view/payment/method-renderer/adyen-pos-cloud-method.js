@@ -52,69 +52,16 @@ define(
             initiate: function () {
                 var self = this,
                     serviceUrl,
-                    payload,
                     paymentData = quote.paymentMethod();
 
                 // use core code to assign the agreement
                 agreementsAssigner(paymentData);
-                /** Checkout for guest and registered customer. */
-                if (!customer.isLoggedIn()) {
-                    serviceUrl = urlBuilder.createUrl('/adyen/initiate', {});
-                    payload = {
-                        quoteId: quote.getQuoteId(),
-                        guest: true
-                    };
-                } else {
-                    serviceUrl = urlBuilder.createUrl('/adyen/initiate', {});
-                    payload = {
-                        quoteId: quote.getQuoteId(),
-                        guest: false
-                    };
-                }
-
+                serviceUrl = urlBuilder.createUrl('/adyen/initiate', {});
                 fullScreenLoader.startLoader();
                 return storage.post(
-                    serviceUrl, JSON.stringify(payload)
-                ).done(
-                    function (response) {
-                        return $.when(
-                            placeOrderAction(self.getData(), new Messages())
-                        ).fail(
-                            function (response) {
-                                errorProcessor.process(response);
-                                fullScreenLoader.stopLoader();
-                                self.isPlaceOrderActionAllowed(true);
-                            }
-                        ).done(
-                            function () {
-                                self.posComplete();
-                            }
-                        )
-                        fullScreenLoader.stopLoader();
-                    }
-                ).fail(
-                    function (response) {
-                        var statusInterval = window.setInterval(function () {
-                            return $.when(
-                                placeOrderAction(self.getData(), new Messages())
-                            ).fail(
-                                function (response) {
-                                    if (response.responseText.indexOf("In Progress") > -1) {
-                                        return;
-                                    }
-                                    errorProcessor.process(response);
-                                    fullScreenLoader.stopLoader();
-                                    self.isPlaceOrderActionAllowed(true);
-                                    clearInterval(statusInterval);
-                                }
-                            ).done(
-                                function () {
-                                    self.posComplete();
-                                }
-                            )
-                        }, 5000);
-                    }
-                );
+                    serviceUrl
+                ).always(function(){
+                    self.placeOrderPos()});
                 return false;
             },
             posComplete: function () {
@@ -122,6 +69,28 @@ define(
                 if (this.redirectAfterPlaceOrder) {
                     redirectOnSuccessAction.execute();
                 }
+            },
+
+            placeOrderPos: function () {
+                var self = this;
+                return $.when(
+                    placeOrderAction(self.getData(), new Messages())
+                ).fail(
+                    function (response) {
+                        if (response.responseText.indexOf("In Progress") > -1) {
+                            window.setTimeout(function(){
+                                self.placeOrderPos()},5000);
+                            return;
+                        }
+                        errorProcessor.process(response);
+                        fullScreenLoader.stopLoader();
+                        self.isPlaceOrderActionAllowed(true);
+                    }
+                ).done(
+                    function () {
+                        self.posComplete();
+                    }
+                )
             },
             showLogo: function () {
                 return window.checkoutConfig.payment.adyen.showLogo;

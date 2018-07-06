@@ -70,12 +70,6 @@
             <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
             <config_path>payment/adyen_pos_cloud/capture_mode_pos</config_path>
         </field>
-        <field id="pos_timeout" translate="label" type="text" sortOrder="100" showInDefault="0" showInWebsite="0" showInStore="0">
-            <label>Terminal API timeout(in seconds)</label>
-            <tooltip>Please set the time after the call to the terminal times out.</tooltip>
-            <frontend_class>validate-number</frontend_class>
-            <config_path>payment/adyen_pos_cloud/pos_timeout</config_path>
-        </field>
         <group id="adyen_pos_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="210">
             <label>Country Specific Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>

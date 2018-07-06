@@ -61,12 +61,12 @@
                         type="submit"
                         data-bind="
                             click: initiate,
-                            attr: {title: $t('Initiate')},
+                            attr: {title: $t('Place Order')},
                             enable: (getCode() == isChecked()),
                             css: {disabled: !isPlaceOrderActionAllowed()}
                             "
                         disabled>
-                    <span data-bind="text: $t('Initiate')"></span>
+                    <span data-bind="text: $t('Place Order')"></span>
                 </button>
             </div>
         </div>
