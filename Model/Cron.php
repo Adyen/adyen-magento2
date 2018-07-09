@@ -208,7 +208,9 @@ class Cron
      * @param Api\PaymentRequest $paymentRequest
      * @param Order\PaymentFactory $adyenOrderPaymentFactory
      * @param ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory
+     * @param InvoiceFactory $adyenInvoiceFactory
      * @param AreaList $areaList
+     * @param \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollection
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
