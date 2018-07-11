@@ -38,6 +38,8 @@ class PosCloudBuilder implements BuilderInterface
      */
     private $_adyenLogger;
 
+    protected $_quoteRepository;
+
     /**
      * PaymentDataBuilder constructor.
      *
@@ -46,10 +48,12 @@ class PosCloudBuilder implements BuilderInterface
      */
     public function __construct(
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
     ) {
         $this->_adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
+        $this->_quoteRepository = $quoteRepository;
     }
 
     /**
@@ -59,20 +63,16 @@ class PosCloudBuilder implements BuilderInterface
     public function build(array $buildSubject)
     {
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $order = $paymentDataObject->getOrder();
-        $payment = $paymentDataObject->getPayment();
-        $fullOrder = $payment->getOrder();
-        $currencyCode = $fullOrder->getOrderCurrencyCode();
-        $grandTotal = $fullOrder->getGrandTotal();
 
-        $amount = [
-            'currency' => $currencyCode,
-            'value' => $grandTotal
-        ];
+        $payment = $paymentDataObject->getPayment();
+
+        $fullOrder = $payment->getOrder();
+
+        $quote = $this->_quoteRepository->getActive($fullOrder->getQuoteId());
 
         return [
-            "amount" => $amount,
-            "reference" => $order->getOrderIncrementId()
+            "response" => $quote->getPayment()->getAdditionalInformation("terminalResponse"),
+            "serviceID" => $quote->getPayment()->getAdditionalInformation("serviceID")
         ];
     }
 }
