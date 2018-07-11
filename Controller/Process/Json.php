@@ -99,7 +99,7 @@ class Json extends \Magento\Framework\App\Action\Action
 
             $notificationMode = isset($notificationItems['live']) ? $notificationItems['live'] : "";
 
-            if ($notificationMode != "" || $notificationMode !== "" && $this->_validateNotificationMode($notificationMode)) {
+            if ($notificationMode !== "" && $this->_validateNotificationMode($notificationMode)) {
                 foreach ($notificationItems['notificationItems'] as $notificationItem) {
 
 
