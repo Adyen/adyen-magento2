@@ -1156,10 +1156,10 @@ class Data extends AbstractHelper
     {
         switch ($this->isDemoMode()) {
             case true:
-                $apiKey = $this->getAdyenPosCloudConfigData('api_key_test');
+                $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_test')));
                 break;
             default:
-                $apiKey = $this->getAdyenPosCloudConfigData('api_key_live');
+                $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_live')));
                 break;
         }
         return $apiKey;

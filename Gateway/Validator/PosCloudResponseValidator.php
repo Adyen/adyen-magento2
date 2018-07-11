@@ -58,7 +58,13 @@ class PosCloudResponseValidator extends AbstractValidator
         $isValid = true;
         $response = \Magento\Payment\Gateway\Helper\SubjectReader::readResponse($validationSubject);
 
-        if ((!empty($response['SaleToPOIResponse']['PaymentResponse']['Response']['Result']) &&
+        // Check In Progress status call
+        if (!empty($response['SaleToPOIResponse']['TransactionStatusResponse']['Response']['Result']) && $response['SaleToPOIResponse']['TransactionStatusResponse']['Response']['Result'] == "Failure") {
+            $errorMsg = __('In Progress');
+            $errorMessages[] = $errorMsg;
+            throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
+        }
+        elseif ((!empty($response['SaleToPOIResponse']['PaymentResponse']['Response']['Result']) &&
                 $response['SaleToPOIResponse']['PaymentResponse']['Response']['Result'] != 'Success'
             ) || empty($response['SaleToPOIResponse']['PaymentResponse']['Response']['Result'])
         ) {
