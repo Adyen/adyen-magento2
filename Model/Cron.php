@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Model;
 
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Webapi\Exception;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
@@ -30,6 +31,7 @@ use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
 use Magento\Framework\Phrase\Renderer\Placeholder;
 use Magento\Framework\Phrase;
+use Magento\Sales\Model\OrderRepository;
 
 class Cron
 {
@@ -193,6 +195,16 @@ class Cron
     protected $_orderStatusCollection;
 
     /**
+     * @var SearchCriteriaBuilder
+     */
+    private $searchCriteriaBuilder;
+
+    /**
+     * @var OrderRepository
+     */
+    private $orderRepository;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -211,6 +223,8 @@ class Cron
      * @param InvoiceFactory $adyenInvoiceFactory
      * @param AreaList $areaList
      * @param \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollection
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param OrderRepository $orderRepository
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -228,7 +242,9 @@ class Cron
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
         \Adyen\Payment\Model\InvoiceFactory $adyenInvoiceFactory,
         AreaList $areaList,
-        \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollection
+        \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollection,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        OrderRepository $orderRepository
     )
     {
         $this->_scopeConfig = $scopeConfig;
@@ -247,6 +263,8 @@ class Cron
         $this->_adyenInvoiceFactory = $adyenInvoiceFactory;
         $this->_areaList = $areaList;
         $this->_orderStatusCollection = $orderStatusCollection;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->orderRepository = $orderRepository;
     }
 
     /**
@@ -331,8 +349,17 @@ class Cron
             // get order
             $incrementId = $notification->getMerchantReference();
 
-            $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
-            if (!$this->_order->getId()) {
+            $searchCriteria = $this->searchCriteriaBuilder
+                ->addFilter('increment_id', $incrementId, 'eq')
+                ->create();
+
+            $orderList = $this->orderRepository->getList($searchCriteria)->getItems();
+
+            /** @var \Magento\Sales\Model\Order $order */
+            $order = reset($orderList);
+            $this->_order = $order;
+
+            if (!$this->_order) {
 
                 // order does not exists remove from queue
                 $notification->delete();
