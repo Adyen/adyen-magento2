@@ -27,7 +27,6 @@ use Magento\Vault\Api\Data\PaymentTokenInterface;
 
 class PaymentVaultDeleteToken
 {
-
     /**
      * @var \Adyen\Payment\Model\Api\PaymentRequest
      */
@@ -52,6 +51,10 @@ class PaymentVaultDeleteToken
 
     public function beforeDelete(\Magento\Vault\Api\PaymentTokenRepositoryInterface $subject, PaymentTokenInterface $paymentToken)
     {
+        if (strpos($paymentToken->getPaymentMethodCode(), 'adyen_') !== 0) {
+            return $paymentToken;
+        }
+
         try {
             $this->_paymentRequest->disableRecurringContract(
                 $paymentToken->getGatewayToken(),
@@ -61,7 +64,5 @@ class PaymentVaultDeleteToken
         } catch(\Exception $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__('Failed to disable this contract'));
         }
-
     }
-
 }
