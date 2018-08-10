@@ -655,6 +655,8 @@ class Cron
             $acquirerReference = (isset($additionalData['acquirerReference'])) ?
                 $additionalData['acquirerReference'] : "";
             $authCode = (isset($additionalData['authCode'])) ? $additionalData['authCode'] : "";
+            $cardBin = (isset($additionalData['cardBin'])) ? $additionalData['cardBin'] : "";
+            $expiryDate = (isset($additionalData['expiryDate'])) ? $additionalData['expiryDate'] : "";
         }
 
         // if there is no server communication setup try to get last4 digits from reason field
@@ -694,6 +696,12 @@ class Cron
         }
         if (isset($authCode) && $authCode != "") {
             $this->_order->getPayment()->setAdditionalInformation('adyen_auth_code', $authCode);
+        }
+        if (!empty($cardBin)) {
+            $this->_order->getPayment()->setAdditionalInformation('adyen_card_bin', $cardBin);
+        }
+        if (!empty($expiryDate)) {
+            $this->_order->getPayment()->setAdditionalInformation('adyen_expiry_date', $expiryDate);
         }
     }
 
