@@ -99,7 +99,7 @@ class Json extends \Magento\Framework\App\Action\Action
 
             $notificationMode = isset($notificationItems['live']) ? $notificationItems['live'] : "";
 
-            if ($notificationMode != "" && $this->_validateNotificationMode($notificationMode)) {
+            if ($notificationMode !== "" && $this->_validateNotificationMode($notificationMode)) {
                 foreach ($notificationItems['notificationItems'] as $notificationItem) {
 
 
@@ -154,7 +154,8 @@ class Json extends \Magento\Framework\App\Action\Action
     {
         $mode = $this->_adyenHelper->getAdyenAbstractConfigData('demo_mode');
 
-        if (($mode == '1' && $notificationMode == "false") || ($mode == '0' && $notificationMode == 'true')) {
+        // Notification mode can be a string or a boolean
+        if (($mode == '1' && ($notificationMode == "false" || $notificationMode == false)) || ($mode == '0' && ($notificationMode == 'true' || $notificationMode == true))) {
             return true;
         }
         return false;

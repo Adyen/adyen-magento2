@@ -261,8 +261,6 @@ class Redirect extends \Magento\Payment\Block\Form
                     ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK);
 
                 $formFields['resURL'] = $baseUrl . 'adyen/process/result';
-                $hmacKey = $this->_adyenHelper->getHmac();
-
 
                 if ($brandCode) {
                     $formFields['brandCode'] = $brandCode;
@@ -307,15 +305,9 @@ class Redirect extends \Magento\Payment\Block\Form
                     $formFields['dfValue'] = $this->_order->getPayment()->getAdditionalInformation("df_value");
                 }
 
-                // Sort the array by key using SORT_STRING order
-                ksort($formFields, SORT_STRING);
-
-                // Generate the signing data string
-                $signData = implode(":", array_map([$this, 'escapeString'],
-                    array_merge(array_keys($formFields), array_values($formFields))));
-
-                $merchantSig = base64_encode(hash_hmac('sha256', $signData, pack("H*", $hmacKey), true));
-
+                // Sign request using secret key
+                $hmacKey = $this->_adyenHelper->getHmac();
+                $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $formFields);
                 $formFields['merchantSig'] = $merchantSig;
 
                 $this->_adyenLogger->addAdyenDebug(print_r($formFields, true));

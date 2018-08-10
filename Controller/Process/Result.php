@@ -279,7 +279,6 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     protected function _authenticate($response) {
 
-        $hmacKey = $this->_adyenHelper->getHmac();
         $merchantSigNotification = $response['merchantSig'];
 
         // do it like this because $_GET is converting dot to underscore
@@ -297,14 +296,9 @@ class Result extends \Magento\Framework\App\Action\Action
         // do not include the merchantSig in the merchantSig calculation
         unset($result['merchantSig']);
 
-        // Sort the array by key using SORT_STRING order
-        ksort($result, SORT_STRING);
-
-        // Generate the signing data string
-        $signData = implode(":", array_map([$this, 'escapeString'],
-            array_merge(array_keys($result), array_values($result))));
-
-        $merchantSig = base64_encode(hash_hmac('sha256', $signData, pack("H*", $hmacKey), true));
+        // Sign request using secret key
+        $hmacKey = $this->_adyenHelper->getHmac();
+        $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
 
         if (strcmp($merchantSig, $merchantSigNotification) === 0) {
             return true;
