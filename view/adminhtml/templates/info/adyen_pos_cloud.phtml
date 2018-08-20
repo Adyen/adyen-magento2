@@ -61,3 +61,10 @@ $_isDemoMode = $block->isDemoMode();
 <?php endif;?>
 
 <?php echo $block->getChildHtml()?>
+    <br>
+    <style>
+        td.terminal-api-receipt-name{padding:inherit; font-weight: 700}
+        td.terminal-api-receipt-value{padding:inherit;}
+        tr.terminal-api-receipt{padding-bottom: 5px;}
+    </style>
+<table><?php $receipt = $this->getMethod()->getInfoInstance()->getAdditionalInformation('receipt'); echo $receipt;?></table>

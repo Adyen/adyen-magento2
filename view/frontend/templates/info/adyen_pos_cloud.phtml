@@ -32,4 +32,10 @@ $_info = $this->getInfo();
 <dl class="payment-method adyen_pos_cloud">
     <?php echo $this->escapeHtml($this->getMethod()->getTitle()) ?><br/>
     <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
+    <style>
+        td.terminal-api-receipt-name{padding:inherit; font-weight: 700}
+        td.terminal-api-receipt-value{padding:inherit;}
+        tr.terminal-api-receipt{padding-bottom: 5px;}
+    </style>
+    <table><?php $receipt = $this->getMethod()->getInfoInstance()->getAdditionalInformation('receipt'); echo $receipt;?></table>
 </dl>
