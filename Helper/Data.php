@@ -1022,23 +1022,23 @@ class Data extends AbstractHelper
     public function formatTerminalAPIReceipt($paymentReceipt)
     {
         $paymentReceipt = json_decode($paymentReceipt);
-        $formatted = "<!DOCTYPE html><html><body>";
+        $formatted = "<table class='terminal-api-receipt'>";
         foreach ($paymentReceipt as $receipt) {
             if ($receipt->DocumentQualifier == "CustomerReceipt") {
                 foreach ($receipt->OutputContent->OutputText as $item) {
                     parse_str($item->Text, $get_array);
-                        $formatted .= "<tr class='terminal-api-receipt'>";
-                        if (!empty($get_array['name'])) {
-                            $formatted .= "<td class='terminal-api-receipt-name'>" . $get_array['name'] . "</td>";
-                        }
-                        if (!empty($get_array['value'])) {
-                            $formatted .= "<td class='terminal-api-receipt-value' align='right'>" . $get_array['value'] . "</td>";
-                        }
-                        $formatted .= "</tr>";
+                    $formatted .= "<tr class='terminal-api-receipt'>";
+                    if (!empty($get_array['name'])) {
+                        $formatted .= "<td class='terminal-api-receipt-name'>" . $get_array['name'] . "</td>";
+                    }
+                    if (!empty($get_array['value'])) {
+                        $formatted .= "<td class='terminal-api-receipt-value' align='right'>" . $get_array['value'] . "</td>";
+                    }
+                    $formatted .= "</tr>";
                 }
             }
         }
-        $formatted .= "</body></html>";
+        $formatted .= "</table>";
         return $formatted;
     }
 
