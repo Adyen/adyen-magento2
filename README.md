@@ -42,5 +42,5 @@ You can create issues on our Magento Repository. In case of specific problems wi
 This module is using the Adyen APIs Library for PHP for all (API) connections to Adyen.
 <a href="https://github.com/Adyen/adyen-php-api-library" target="_blank">This library can be found here</a>
 
-## Licence
+## License
 MIT license. For more information, see the LICENSE file.
