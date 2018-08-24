@@ -36,15 +36,22 @@ class PosCloudResponseValidator extends AbstractValidator
     private $adyenLogger;
 
     /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    private $adyenHelper;
+
+    /**
      * PosCloudResponseValidator constructor.
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
     public function __construct(
         \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Adyen\Payment\Helper\Data $adyenHelper
     ) {
         $this->adyenLogger = $adyenLogger;
+        $this->adyenHelper = $adyenHelper;
         parent::__construct($resultFactory);
     }
 
@@ -57,6 +64,8 @@ class PosCloudResponseValidator extends AbstractValidator
         $errorMessages = [];
         $isValid = true;
         $response = \Magento\Payment\Gateway\Helper\SubjectReader::readResponse($validationSubject);
+        $paymentDataObjectInterface = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($validationSubject);
+        $payment = $paymentDataObjectInterface->getPayment();
 
         // Check In Progress status call
         if (!empty($response['SaleToPOIResponse']['TransactionStatusResponse']['Response']['Result']) && $response['SaleToPOIResponse']['TransactionStatusResponse']['Response']['Result'] == "Failure") {
@@ -72,6 +81,10 @@ class PosCloudResponseValidator extends AbstractValidator
             $this->adyenLogger->error($errorMsg);
             $errorMessages[] = $errorMsg;
             $isValid = true;
+        }
+        if(!empty($response['SaleToPOIResponse']['PaymentResponse']['PaymentReceipt'])) {
+            $formattedReceipt = $this->adyenHelper->formatTerminalAPIReceipt(json_encode($response['SaleToPOIResponse']['PaymentResponse']['PaymentReceipt']));
+            $payment->setAdditionalInformation('receipt', $formattedReceipt);
         }
         return $this->createResult($isValid, $errorMessages);
     }
