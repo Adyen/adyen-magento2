@@ -2,8 +2,7 @@
 Use Adyen's plugin for Magento 2 to offer frictionless payments online, in-app, and in-store.
 
 ## Requirements
-This plugin supports Magento2 version 2.1 and higher. <br/>
-For Magento2 version 2.0 support, use plugin version 1.4.6.
+This plugin supports Magento2 version 2.1 and higher
 
 ## Collaboration
 We commit all our new features directly into our GitHub repository.
