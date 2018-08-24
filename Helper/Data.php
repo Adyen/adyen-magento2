@@ -96,8 +96,7 @@ class Data extends AbstractHelper
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\View\Asset\Source $assetSource,
         \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory
-    )
-    {
+    ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
         $this->_dataStorage = $dataStorage;
@@ -813,9 +812,7 @@ class Data extends AbstractHelper
                     if ($this->showLogos()) {
                         $logoName = $agreementData['variant'];
 
-                        $asset = $this->createAsset(
-                            'Adyen_Payment::images/logos/' . $logoName . '.png'
-                        );
+                        $asset = $this->createAsset('Adyen_Payment::images/logos/' . $logoName . '.png');
 
                         $icon = null;
                         $placeholder = $this->_assetSource->findSource($asset);
@@ -896,9 +893,7 @@ class Data extends AbstractHelper
      */
     public function isVatCategoryHigh($paymentMethod)
     {
-        if ($paymentMethod == "klarna" ||
-            strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_'
-        ) {
+        if ($paymentMethod == "klarna" || strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_') {
             return true;
         }
         return false;
@@ -1022,6 +1017,33 @@ class Data extends AbstractHelper
             return $merchantAccountPos;
         }
         return $merchantAccount;
+    }
+
+    public function formatTerminalAPIReceipt($paymentReceipt)
+    {
+        $paymentReceipt = json_decode($paymentReceipt);
+        $formatted = "<table class='terminal-api-receipt'>";
+        foreach ($paymentReceipt as $receipt) {
+            if ($receipt->DocumentQualifier == "CustomerReceipt") {
+                foreach ($receipt->OutputContent->OutputText as $item) {
+                    parse_str($item->Text, $textParts);
+                    $formatted .= "<tr class='terminal-api-receipt'>";
+                    if (!empty($textParts['name'])) {
+                        $formatted .= "<td class='terminal-api-receipt-name'>" . $textParts['name'] . "</td>";
+                    } else {
+                        $formatted .= "<td class='terminal-api-receipt-name'>&nbsp;</td>";
+                    }
+                    if (!empty($textParts['value'])) {
+                        $formatted .= "<td class='terminal-api-receipt-value' align='right'>" . $textParts['value'] . "</td>";
+                    } else {
+                        $formatted .= "<td class='terminal-api-receipt-value' align='right'>&nbsp;</td>";
+                    }
+                    $formatted .= "</tr>";
+                }
+            }
+        }
+        $formatted .= "</table>";
+        return $formatted;
     }
 
 }
