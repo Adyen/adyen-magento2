@@ -1026,13 +1026,17 @@ class Data extends AbstractHelper
         foreach ($paymentReceipt as $receipt) {
             if ($receipt->DocumentQualifier == "CustomerReceipt") {
                 foreach ($receipt->OutputContent->OutputText as $item) {
-                    parse_str($item->Text, $get_array);
+                    parse_str($item->Text, $textParts);
                     $formatted .= "<tr class='terminal-api-receipt'>";
-                    if (!empty($get_array['name'])) {
-                        $formatted .= "<td class='terminal-api-receipt-name'>" . $get_array['name'] . "</td>";
+                    if (!empty($textParts['name'])) {
+                        $formatted .= "<td class='terminal-api-receipt-name'>" . $textParts['name'] . "</td>";
+                    } else {
+                        $formatted .= "<td class='terminal-api-receipt-name'>&nbsp;</td>";
                     }
-                    if (!empty($get_array['value'])) {
-                        $formatted .= "<td class='terminal-api-receipt-value' align='right'>" . $get_array['value'] . "</td>";
+                    if (!empty($textParts['value'])) {
+                        $formatted .= "<td class='terminal-api-receipt-value' align='right'>" . $textParts['value'] . "</td>";
+                    } else {
+                        $formatted .= "<td class='terminal-api-receipt-value' align='right'>&nbsp;</td>";
                     }
                     $formatted .= "</tr>";
                 }
