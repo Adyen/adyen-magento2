@@ -59,7 +59,8 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         \Adyen\Payment\Model\RecurringType $recurringType,
         \Magento\Checkout\Model\Session $_checkoutSession,
         array $data = []
-    ) {
+    )
+    {
         $this->_encryptor = $encryptor;
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
@@ -107,6 +108,28 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $serviceID = date("dHis");
         $timeStamper = date("Y-m-d") . "T" . date("H:i:s+00:00");
 
+        // if custom is logged in send data accross
+        $customerId = $quote->getCustomerId();
+
+
+        $newStructureValue = "";
+//        $oldValueStructure = "";
+        if (!empty($customerId)) {
+            $shopperEmail = $quote->getCustomerEmail();
+            $recurringContract = $this->_adyenHelper->getAdyenPosCloudConfigData('recurring_type');
+
+            $jsonValue = '{
+                "shopperEmail": "' . $shopperEmail . '",
+                "shopperReference": "' . $customerId . '",
+                "recurringContract": "' . $recurringContract . '"
+             }';
+
+            $jsonValueBase64 = base64_encode($jsonValue);
+
+            $newStructureValue = '"SaleToAcquirerData":"' . $jsonValueBase64 . '",';
+//            $oldValueStructure = '"SaleToAcquirerData":"shopperEmail=' . $shopperEmail . '&shopperReference=' . $customerId . '&recurringContract=' . $recurringContract . '",';
+        }
+
         $json = '{
                     "SaleToPOIRequest": {
                         "MessageHeader": {
@@ -120,6 +143,8 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                         },
                         "PaymentRequest": {
                             "SaleData": {
+                                ' . $newStructureValue . '
+                                "TokenRequestedType":"Customer",
                                 "SaleTransactionID": {
                                     "TransactionID": "' . $reference . '",
                                     "TimeStamp": "' . $timeStamper . '"
