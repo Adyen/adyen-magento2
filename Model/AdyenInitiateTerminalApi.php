@@ -73,6 +73,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $client = new \Adyen\Client();
         $client->setApplicationName("Magento 2 plugin");
         $client->setXApiKey($apiKey);
+        $client->setInputType('json');
 
         //Set configurable option in M2
         $posTimeout = $this->_adyenHelper->getAdyenPosCloudConfigData('pos_timeout');
@@ -111,9 +112,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         // if custom is logged in send data accross
         $customerId = $quote->getCustomerId();
 
-
-        $newStructureValue = "";
-//        $oldValueStructure = "";
+        $storeCustomer = "";
         if (!empty($customerId)) {
             $shopperEmail = $quote->getCustomerEmail();
             $recurringContract = $this->_adyenHelper->getAdyenPosCloudConfigData('recurring_type');
@@ -124,10 +123,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                 "recurringContract": "' . $recurringContract . '"
              }';
 
-            $jsonValueBase64 = base64_encode($jsonValue);
-
-            $newStructureValue = '"SaleToAcquirerData":"' . $jsonValueBase64 . '",';
-//            $oldValueStructure = '"SaleToAcquirerData":"shopperEmail=' . $shopperEmail . '&shopperReference=' . $customerId . '&recurringContract=' . $recurringContract . '",';
+            $storeCustomer = '"SaleToAcquirerData":"' . base64_encode($jsonValue) . '",';
         }
 
         $json = '{
@@ -143,7 +139,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                         },
                         "PaymentRequest": {
                             "SaleData": {
-                                ' . $newStructureValue . '
+                                ' . $storeCustomer . '
                                 "TokenRequestedType":"Customer",
                                 "SaleTransactionID": {
                                     "TransactionID": "' . $reference . '",
@@ -165,13 +161,11 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                 }
             ';
 
-        $params = json_decode($json, true); //Create associative array for passing along
-
         $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation('serviceID',
             $serviceID);
 
         try {
-            $response = $service->runTenderSync($params);
+            $response = $service->runTenderSync($json);
         } catch (\Adyen\AdyenException $e) {
             //Not able to perform a payment
             $this->_adyenLogger->addAdyenDebug("adyenexception");
