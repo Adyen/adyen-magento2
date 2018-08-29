@@ -137,7 +137,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                                     'AmountsReq' =>
                                         [
                                             'Currency' => $quote->getCurrency()->getQuoteCurrencyCode(),
-                                            'RequestedAmount' => $quote->getGrandTotal(),
+                                            'RequestedAmount' => doubleval($quote->getGrandTotal()),
                                         ],
                                 ],
                             'PaymentData' =>
