@@ -22,14 +22,11 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-
 namespace Adyen\Payment\Model;
-
 
 use Adyen\Payment\Api\AdyenInitiateTerminalApiInterface;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Adyen\Util\Util;
-use Magento\Payment\Gateway\Http\ClientInterface;
 
 class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 {
@@ -73,7 +70,6 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $client = new \Adyen\Client();
         $client->setApplicationName("Magento 2 plugin");
         $client->setXApiKey($apiKey);
-        $client->setInputType('json');
 
         //Set configurable option in M2
         $posTimeout = $this->_adyenHelper->getAdyenPosCloudConfigData('pos_timeout');
@@ -94,7 +90,9 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
     /**
      * Trigger sync call on terminal
+     *
      * @return mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function initiate()
     {
@@ -108,64 +106,69 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $poiId = $this->_adyenHelper->getPoiId();
         $serviceID = date("dHis");
         $timeStamper = date("Y-m-d") . "T" . date("H:i:s+00:00");
-
-        // if custom is logged in send data accross
         $customerId = $quote->getCustomerId();
 
-        $storeCustomer = "";
+        $request = [
+            'SaleToPOIRequest' =>
+                [
+                    'MessageHeader' =>
+                        [
+                            'MessageType' => 'Request',
+                            'MessageClass' => 'Service',
+                            'MessageCategory' => 'Payment',
+                            'SaleID' => 'Magento2Cloud',
+                            'POIID' => $poiId,
+                            'ProtocolVersion' => '3.0',
+                            'ServiceID' => $serviceID,
+                        ],
+                    'PaymentRequest' =>
+                        [
+                            'SaleData' =>
+                                [
+                                    'TokenRequestedType' => 'Customer',
+                                    'SaleTransactionID' =>
+                                        [
+                                            'TransactionID' => $reference,
+                                            'TimeStamp' => $timeStamper,
+                                        ],
+                                ],
+                            'PaymentTransaction' =>
+                                [
+                                    'AmountsReq' =>
+                                        [
+                                            'Currency' => $quote->getCurrency()->getQuoteCurrencyCode(),
+                                            'RequestedAmount' => $quote->getGrandTotal(),
+                                        ],
+                                ],
+                            'PaymentData' =>
+                                [
+                                    'PaymentType' => $transactionType,
+                                ],
+                        ],
+                ],
+        ];
+
+        // If customer exists add it into the request to store request
         if (!empty($customerId)) {
             $shopperEmail = $quote->getCustomerEmail();
             $recurringContract = $this->_adyenHelper->getAdyenPosCloudConfigData('recurring_type');
 
-            $jsonValue = '{
+            if (!empty($recurringContract)) {
+                $jsonValue = '{
                 "shopperEmail": "' . $shopperEmail . '",
                 "shopperReference": "' . $customerId . '",
                 "recurringContract": "' . $recurringContract . '"
              }';
 
-            $storeCustomer = '"SaleToAcquirerData":"' . base64_encode($jsonValue) . '",';
+                $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = base64_encode($jsonValue);
+            }
         }
-
-        $json = '{
-                    "SaleToPOIRequest": {
-                        "MessageHeader": {
-                            "MessageType": "Request",
-                            "MessageClass": "Service",
-                            "MessageCategory": "Payment",
-                            "SaleID": "Magento2Cloud",
-                            "POIID": "' . $poiId . '",
-                            "ProtocolVersion": "3.0",
-                            "ServiceID": "' . $serviceID . '"
-                        },
-                        "PaymentRequest": {
-                            "SaleData": {
-                                ' . $storeCustomer . '
-                                "TokenRequestedType":"Customer",
-                                "SaleTransactionID": {
-                                    "TransactionID": "' . $reference . '",
-                                    "TimeStamp": "' . $timeStamper . '"
-                                },
-                                "TokenRequestedType": "Customer"
-                            },
-                            "PaymentTransaction": {
-                                "AmountsReq": {
-                                    "Currency": "' . $quote->getCurrency()->getQuoteCurrencyCode() . '",
-                                    "RequestedAmount": ' . $quote->getGrandTotal() . '
-                                }
-                            },
-                            "PaymentData": {
-                                "PaymentType": "' . $transactionType . '"
-                            }
-                        }
-                    }
-                }
-            ';
 
         $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation('serviceID',
             $serviceID);
 
         try {
-            $response = $service->runTenderSync($json);
+            $response = $service->runTenderSync($request);
         } catch (\Adyen\AdyenException $e) {
             //Not able to perform a payment
             $this->_adyenLogger->addAdyenDebug("adyenexception");
