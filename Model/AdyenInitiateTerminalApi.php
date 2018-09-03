@@ -153,14 +153,13 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             $shopperEmail = $quote->getCustomerEmail();
             $recurringContract = $this->_adyenHelper->getAdyenPosCloudConfigData('recurring_type');
 
-            if (!empty($recurringContract)) {
-                $jsonValue = '{
-                "shopperEmail": "' . $shopperEmail . '",
-                "shopperReference": "' . $customerId . '",
-                "recurringContract": "' . $recurringContract . '"
-             }';
-
-                $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = base64_encode($jsonValue);
+            if (!empty($recurringContract) && !empty($shopperEmail) && !empty($customerId)) {
+                $recurringDetails = [
+                    ['shopperEmail'] => $shopperEmail,
+                    ['shopperReference'] => $customerId,
+                    ['recurringContract'] => $recurringContract
+                ];
+                $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = base64_encode(json_encode($recurringDetails));
             }
         }
 
