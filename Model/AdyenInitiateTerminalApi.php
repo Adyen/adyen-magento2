@@ -22,14 +22,11 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-
 namespace Adyen\Payment\Model;
-
 
 use Adyen\Payment\Api\AdyenInitiateTerminalApiInterface;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Adyen\Util\Util;
-use Magento\Payment\Gateway\Http\ClientInterface;
 
 class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 {
@@ -59,7 +56,8 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         \Adyen\Payment\Model\RecurringType $recurringType,
         \Magento\Checkout\Model\Session $_checkoutSession,
         array $data = []
-    ) {
+    )
+    {
         $this->_encryptor = $encryptor;
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
@@ -92,7 +90,9 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
     /**
      * Trigger sync call on terminal
+     *
      * @return mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function initiate()
     {
@@ -106,47 +106,68 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $poiId = $this->_adyenHelper->getPoiId();
         $serviceID = date("dHis");
         $timeStamper = date("Y-m-d") . "T" . date("H:i:s+00:00");
+        $customerId = $quote->getCustomerId();
 
-        $json = '{
-                    "SaleToPOIRequest": {
-                        "MessageHeader": {
-                            "MessageType": "Request",
-                            "MessageClass": "Service",
-                            "MessageCategory": "Payment",
-                            "SaleID": "Magento2Cloud",
-                            "POIID": "' . $poiId . '",
-                            "ProtocolVersion": "3.0",
-                            "ServiceID": "' . $serviceID . '"
-                        },
-                        "PaymentRequest": {
-                            "SaleData": {
-                                "SaleTransactionID": {
-                                    "TransactionID": "' . $reference . '",
-                                    "TimeStamp": "' . $timeStamper . '"
-                                },
-                                "TokenRequestedType": "Customer"
-                            },
-                            "PaymentTransaction": {
-                                "AmountsReq": {
-                                    "Currency": "' . $quote->getCurrency()->getQuoteCurrencyCode() . '",
-                                    "RequestedAmount": ' . $quote->getGrandTotal() . '
-                                }
-                            },
-                            "PaymentData": {
-                                "PaymentType": "' . $transactionType . '"
-                            }
-                        }
-                    }
-                }
-            ';
+        $request = [
+            'SaleToPOIRequest' =>
+                [
+                    'MessageHeader' =>
+                        [
+                            'MessageType' => 'Request',
+                            'MessageClass' => 'Service',
+                            'MessageCategory' => 'Payment',
+                            'SaleID' => 'Magento2Cloud',
+                            'POIID' => $poiId,
+                            'ProtocolVersion' => '3.0',
+                            'ServiceID' => $serviceID,
+                        ],
+                    'PaymentRequest' =>
+                        [
+                            'SaleData' =>
+                                [
+                                    'TokenRequestedType' => 'Customer',
+                                    'SaleTransactionID' =>
+                                        [
+                                            'TransactionID' => $reference,
+                                            'TimeStamp' => $timeStamper,
+                                        ],
+                                ],
+                            'PaymentTransaction' =>
+                                [
+                                    'AmountsReq' =>
+                                        [
+                                            'Currency' => $quote->getCurrency()->getQuoteCurrencyCode(),
+                                            'RequestedAmount' => doubleval($quote->getGrandTotal()),
+                                        ],
+                                ],
+                            'PaymentData' =>
+                                [
+                                    'PaymentType' => $transactionType,
+                                ],
+                        ],
+                ],
+        ];
 
-        $params = json_decode($json, true); //Create associative array for passing along
+        // If customer exists add it into the request to store request
+        if (!empty($customerId)) {
+            $shopperEmail = $quote->getCustomerEmail();
+            $recurringContract = $this->_adyenHelper->getAdyenPosCloudConfigData('recurring_type');
+
+            if (!empty($recurringContract) && !empty($shopperEmail) && !empty($customerId)) {
+                $recurringDetails = [
+                    ['shopperEmail'] => $shopperEmail,
+                    ['shopperReference'] => $customerId,
+                    ['recurringContract'] => $recurringContract
+                ];
+                $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = base64_encode(json_encode($recurringDetails));
+            }
+        }
 
         $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation('serviceID',
             $serviceID);
 
         try {
-            $response = $service->runTenderSync($params);
+            $response = $service->runTenderSync($request);
         } catch (\Adyen\AdyenException $e) {
             //Not able to perform a payment
             $this->_adyenLogger->addAdyenDebug("adyenexception");
