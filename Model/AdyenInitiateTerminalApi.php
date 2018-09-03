@@ -155,9 +155,9 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
             if (!empty($recurringContract) && !empty($shopperEmail) && !empty($customerId)) {
                 $recurringDetails = [
-                    ['shopperEmail'] => $shopperEmail,
-                    ['shopperReference'] => $customerId,
-                    ['recurringContract'] => $recurringContract
+                    'shopperEmail' => $shopperEmail,
+                    'shopperReference' => strval($customerId),
+                    'recurringContract' => $recurringContract
                 ];
                 $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = base64_encode(json_encode($recurringDetails));
             }
