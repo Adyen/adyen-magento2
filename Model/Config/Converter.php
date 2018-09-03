@@ -60,6 +60,7 @@ class Converter implements \Magento\Framework\Config\ConverterInterface
                         break;
                     case 'code_alt':
                         $typeArray['code_alt'] = $typeSubNode->nodeValue;
+                        break;
                     default:
                         break;
                 }
