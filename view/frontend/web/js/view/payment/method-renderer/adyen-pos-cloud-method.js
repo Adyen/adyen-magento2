@@ -27,7 +27,6 @@ define(
         'ko',
         'jquery',
         'Magento_Checkout/js/view/payment/default',
-        'Adyen_Payment/js/action/set-payment-method',
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/model/quote',
@@ -40,7 +39,7 @@ define(
         'Magento_Ui/js/model/messages',
         'Magento_Checkout/js/action/redirect-on-success'
     ],
-    function (ko, $, Component, setPaymentMethodAction, additionalValidators, placeOrderAction, quote, agreementsAssigner, customer, urlBuilder, storage, fullScreenLoader, errorProcessor, Messages, redirectOnSuccessAction) {
+    function (ko, $, Component, additionalValidators, placeOrderAction, quote, agreementsAssigner, customer, urlBuilder, storage, fullScreenLoader, errorProcessor, Messages, redirectOnSuccessAction) {
         'use strict';
 
         return Component.extend({
