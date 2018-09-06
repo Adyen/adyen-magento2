@@ -67,23 +67,44 @@ class PosCloudResponseValidator extends AbstractValidator
         $paymentDataObjectInterface = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($validationSubject);
         $payment = $paymentDataObjectInterface->getPayment();
 
-        // Check In Progress status call
-        if (!empty($response['SaleToPOIResponse']['TransactionStatusResponse']['Response']['Result']) && $response['SaleToPOIResponse']['TransactionStatusResponse']['Response']['Result'] == "Failure") {
-            $errorMsg = __('In Progress');
-            $errorMessages[] = $errorMsg;
-            throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
+        $this->adyenLogger->addAdyenDebug(print_r($response, true));
+
+        // Check for errors
+        if (!empty($response['error'])) {
+            if (strpos($response['error'], "Could not connect") !== false) {
+                // Do the status call(try to place an order)
+                return $this->createResult($isValid, $errorMessages);
+            } else {
+                throw new \Magento\Framework\Exception\LocalizedException(__($response['error']));
+            }
         }
-        elseif ((!empty($response['SaleToPOIResponse']['PaymentResponse']['Response']['Result']) &&
-                $response['SaleToPOIResponse']['PaymentResponse']['Response']['Result'] != 'Success'
-            ) || empty($response['SaleToPOIResponse']['PaymentResponse']['Response']['Result'])
-        ) {
-            $errorMsg = __('Problem with POS terminal');
+
+        // We receive a SaleToPOIRequest when the terminal is not reachable
+        if (!empty($response['SaleToPOIRequest'])){
+            throw new \Magento\Framework\Exception\LocalizedException(__("The terminal could not be reached."));
+        }
+
+        // Check if Status or PaymentResponse
+        if (!empty($response['SaleToPOIResponse']['TransactionStatusResponse'])) {
+            $statusResponse = $response['SaleToPOIResponse']['TransactionStatusResponse'];
+            if ($statusResponse['Response']['Result'] == 'Failure') {
+                $errorMsg = __('In Progress');
+                throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
+            } else {
+                $paymentResponse = $statusResponse['RepeatedMessageResponse']['RepeatedResponseMessageBody']['PaymentResponse'];
+            }
+        } else {
+            $paymentResponse = $response['SaleToPOIResponse']['PaymentResponse'];
+        }
+
+        if (!empty($paymentResponse) && $paymentResponse['Response']['Result'] != 'Success') {
+            $errorMsg = __($paymentResponse['Response']['ErrorCondition']);
             $this->adyenLogger->error($errorMsg);
-            $errorMessages[] = $errorMsg;
-            $isValid = true;
+            throw new \Magento\Framework\Exception\LocalizedException(__("The transaction could not be completed."));
         }
-        if(!empty($response['SaleToPOIResponse']['PaymentResponse']['PaymentReceipt'])) {
-            $formattedReceipt = $this->adyenHelper->formatTerminalAPIReceipt(json_encode($response['SaleToPOIResponse']['PaymentResponse']['PaymentReceipt']));
+
+        if (!empty($paymentResponse['PaymentReceipt'])) {
+            $formattedReceipt = $this->adyenHelper->formatTerminalAPIReceipt(json_encode($paymentResponse['PaymentReceipt']));
             $payment->setAdditionalInformation('receipt', $formattedReceipt);
         }
         return $this->createResult($isValid, $errorMessages);
