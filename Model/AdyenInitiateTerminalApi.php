@@ -104,7 +104,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $service = new \Adyen\Service\PosPayment($this->_client);
         $transactionType = \Adyen\TransactionType::NORMAL;
         $poiId = $this->_adyenHelper->getPoiId();
-        $serviceID = date("dHis");
+        $serviceID = date("U");
         $timeStamper = date("Y-m-d") . "T" . date("H:i:s+00:00");
         $customerId = $quote->getCustomerId();
 

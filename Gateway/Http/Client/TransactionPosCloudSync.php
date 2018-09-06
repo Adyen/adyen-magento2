@@ -73,7 +73,7 @@ class TransactionPosCloudSync implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
-        if(!empty($request['response'])){
+        if (!empty($request['response'])) {
             //Initiate has already a response
             return $request['response'];
         }
@@ -81,9 +81,14 @@ class TransactionPosCloudSync implements ClientInterface
         $service = new \Adyen\Service\PosPayment($this->_client);
 
         $poiId = $this->_adyenHelper->getPoiId();
-        $newServiceID = date("dHis");
+        $newServiceID = date("U");
+
+        $timeDiff = (int)$newServiceID - (int)$request['serviceID'];
+        if ($timeDiff > 120) {
+            throw new \Magento\Framework\Exception\LocalizedException(__("Pos Timeout."));
+        }
         //Provide receipt to the shopper
-        $jsonStatus='{
+        $jsonStatus = '{
                         "SaleToPOIRequest": {
                             "MessageHeader": {
                                 "ProtocolVersion": "3.0",
