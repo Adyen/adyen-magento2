@@ -74,14 +74,18 @@ class PaymentPosCloudHandler implements HandlerInterface
         // no not send order confirmation mail
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
+        if (!empty($response['SaleToPOIResponse']['TransactionStatusResponse'])) {
+            $statusResponse = $response['SaleToPOIResponse']['TransactionStatusResponse'];
+            $paymentResponse = $statusResponse['RepeatedMessageResponse']['RepeatedResponseMessageBody']['PaymentResponse'];
+        } else {
+            $paymentResponse = $response['SaleToPOIResponse']['PaymentResponse'];
+        }
+
         // set transaction(status)
-        if (!empty($response['SaleToPOIResponse']['TransactionStatusResponse']['RepeatedMessageResponse']['RepeatedResponseMessageBody']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {
-            $pspReference = $response['SaleToPOIResponse']['TransactionStatusResponse']['RepeatedMessageResponse']['RepeatedResponseMessageBody']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'];
+        if (!empty($paymentResponse) && !empty($paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {
+            $pspReference = $paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'];
             $payment->setTransactionId($pspReference);
             // set transaction(payment)
-        } elseif (!empty($response['SaleToPOIResponse']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {
-            $pspReference = $response['SaleToPOIResponse']['PaymentResponse']['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'];
-            $payment->setTransactionId($pspReference);
         } else {
             $this->adyenLogger->error("Missing POS Transaction ID");
             throw new Exception("Missing POS Transaction ID");
