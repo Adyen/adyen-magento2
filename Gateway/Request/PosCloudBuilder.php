@@ -66,13 +66,10 @@ class PosCloudBuilder implements BuilderInterface
 
         $payment = $paymentDataObject->getPayment();
 
-        $fullOrder = $payment->getOrder();
-
-        $quote = $this->_quoteRepository->getActive($fullOrder->getQuoteId());
-
         return [
-            "response" => $quote->getPayment()->getAdditionalInformation("terminalResponse"),
-            "serviceID" => $quote->getPayment()->getAdditionalInformation("serviceID")
+            "response" => $payment->getAdditionalInformation("terminalResponse"),
+            "serviceID" => $payment->getAdditionalInformation("serviceID"),
+            "initiateDate" => $payment->getAdditionalInformation("initiateDate")
         ];
     }
 }
