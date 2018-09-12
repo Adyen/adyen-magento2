@@ -160,7 +160,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                     'shopperReference' => strval($customerId),
                     'recurringContract' => $recurringContract
                 ];
-                $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = base64_encode(json_encode($recurringDetails));
+                $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = http_build_query($recurringDetails);
             }
         }
 
