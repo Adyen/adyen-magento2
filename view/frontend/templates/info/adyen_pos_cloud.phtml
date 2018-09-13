@@ -37,5 +37,8 @@ $_info = $this->getInfo();
         td.terminal-api-receipt-value{padding:inherit;}
         tr.terminal-api-receipt{padding-bottom: 5px;}
     </style>
-    <table><?php $receipt = $this->getMethod()->getInfoInstance()->getAdditionalInformation('receipt'); echo $receipt;?></table>
+    <?php
+    $receipt = $this->getMethod()->getInfoInstance()->getAdditionalInformation('receipt');
+    echo $receipt;
+    ?>
 </dl>
