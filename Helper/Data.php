@@ -429,6 +429,26 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @param $field
+     * @param null $storeId
+     * @return bool|mixed
+     */
+    public function getAdyenPosCloudConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_pos_cloud', $storeId);
+    }
+
+    /**
+     * @param $field
+     * @param null $storeId
+     * @return bool|mixed
+     */
+    public function getAdyenPosCloudConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_pos_cloud', $storeId, true);
+    }
+
+    /**
      * @desc Gives back adyen_pay_by_mail configuration values
      * @param $field
      * @param null $storeId
@@ -1131,4 +1151,62 @@ class Data extends AbstractHelper
         }
         return $formFields;
     }
+
+    public function getApiKey()
+    {
+        switch ($this->isDemoMode()) {
+            case true:
+                $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_test')));
+                break;
+            default:
+                $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_live')));
+                break;
+        }
+        return $apiKey;
+    }
+
+    public function getPoiId()
+    {
+        $poiId = $this->getAdyenPosCloudConfigData('pos_terminal_id');
+        return $poiId;
+    }
+
+    public function getAdyenMerchantAccount($method, $storeId)
+    {
+        $merchantAccount = $this->getAdyenAbstractConfigData("merchant_account", $storeId);
+        $merchantAccountPos = $this->getAdyenPosCloudConfigData('pos_merchant_account', $storeId);
+
+        if ($method == 'adyen_pos_cloud' && !empty($merchantAccountPos)) {
+            return $merchantAccountPos;
+        }
+        return $merchantAccount;
+    }
+
+    public function formatTerminalAPIReceipt($paymentReceipt)
+    {
+        $paymentReceipt = json_decode($paymentReceipt);
+        $formatted = "<table class='terminal-api-receipt'>";
+        foreach ($paymentReceipt as $receipt) {
+            if ($receipt->DocumentQualifier == "CustomerReceipt") {
+                foreach ($receipt->OutputContent->OutputText as $item) {
+                    parse_str($item->Text, $textParts);
+                    $formatted .= "<tr class='terminal-api-receipt'>";
+                    if (!empty($textParts['name'])) {
+                        $formatted .= "<td class='terminal-api-receipt-name'>" . $textParts['name'] . "</td>";
+                    } else {
+                        $formatted .= "<td class='terminal-api-receipt-name'>&nbsp;</td>";
+                    }
+                    if (!empty($textParts['value'])) {
+                        $formatted .= "<td class='terminal-api-receipt-value' align='right'>" . $textParts['value'] . "</td>";
+                    } else {
+                        $formatted .= "<td class='terminal-api-receipt-value' align='right'>&nbsp;</td>";
+                    }
+                    $formatted .= "</tr>";
+                }
+            }
+        }
+        $formatted .= "</table>";
+        return $formatted;
+    }
+
 }
