@@ -73,7 +73,7 @@ class TransactionPosCloudSync implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
-        if(!empty($request['response'])){
+        if (!empty($request['response'])) {
             //Initiate has already a response
             return $request['response'];
         }
@@ -82,38 +82,45 @@ class TransactionPosCloudSync implements ClientInterface
 
         $poiId = $this->_adyenHelper->getPoiId();
         $newServiceID = date("dHis");
-        //Provide receipt to the shopper
-        $jsonStatus='{
-                        "SaleToPOIRequest": {
-                            "MessageHeader": {
-                                "ProtocolVersion": "3.0",
-                                "MessageClass": "Service",
-                                "MessageCategory": "TransactionStatus",
-                                "MessageType": "Request",
-                                "ServiceID": "' . $newServiceID . '",
-                                "SaleID": "Magento2CloudStatus",
-                                "POIID": "' . $poiId . '"
-                            },
-                            "TransactionStatusRequest": {
-                                "MessageReference": {
-                                    "MessageCategory": "Payment",
-                                    "SaleID": "Magento2Cloud",
-                                    "ServiceID":  "' . $request['serviceID'] . '"
-                                },
-                                "DocumentQualifier" : [
-                                    "CashierReceipt",
-                                    "CustomerReceipt"
-                                ],
-                              
-                                "ReceiptReprintFlag" : true
-                            }
-                        }
-                    }';
 
-        $params = json_decode($jsonStatus, true); //Create associative array for passing along
+        $statusDate = date("U");
+        $timeDiff = (int)$statusDate - (int)$request['initiateDate'];
+
+        $totalTimeout = $this->_adyenHelper->getAdyenPosCloudConfigData('total_timeout');
+        if ($timeDiff > $totalTimeout) {
+            throw new \Magento\Framework\Exception\LocalizedException(__("Pos Timeout."));
+        }
+        //Provide receipt to the shopper
+
+        $request = [
+            'SaleToPOIRequest' => [
+                'MessageHeader' => [
+                    'ProtocolVersion' => '3.0',
+                    'MessageClass' => 'Service',
+                    'MessageCategory' => 'TransactionStatus',
+                    'MessageType' => 'Request',
+                    'ServiceID' => $newServiceID,
+                    'SaleID' => 'Magento2CloudStatus',
+                    'POIID' => $poiId
+                ],
+                'TransactionStatusRequest' => [
+                    'MessageReference' => [
+                        'MessageCategory' => 'Payment',
+                        'SaleID' => 'Magento2Cloud',
+                        'ServiceID' => $request['serviceID']
+                    ],
+                    'DocumentQualifier' => [
+                        "CashierReceipt",
+                        "CustomerReceipt"
+                    ],
+
+                    'ReceiptReprintFlag' => true
+                ]
+            ]
+        ];
 
         try {
-            $response = $service->runTenderSync($params);
+            $response = $service->runTenderSync($request);
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
