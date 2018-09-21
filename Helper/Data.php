@@ -773,7 +773,6 @@ class Data extends AbstractHelper
 
         $baCollection = $this->_billingAgreementCollectionFactory->create();
         $baCollection->addFieldToFilter('customer_id', $customerId);
-        $baCollection->addFieldToFilter('store_id', $storeId);
         $baCollection->addFieldToFilter('method_code', 'adyen_oneclick');
         $baCollection->addActiveFilter();
 
