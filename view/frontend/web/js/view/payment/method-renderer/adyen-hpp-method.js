@@ -242,12 +242,8 @@ define(
             },
             /** Redirect to adyen */
             continueToAdyen: function () {
-                var self = this;
-
                 if (this.validate() && additionalValidators.validate()) {
-                     var data = {};
-                    data.method = self.method;
-                    this.placeRedirectOrder(data);
+                    this.placeRedirectOrder(this.getData());
                     return false;
                 }
             },
