@@ -152,7 +152,7 @@ define(
                         fullScreenLoader.stopLoader();
                     }
                 ).fail(function (error) {
-                    console.log(JSON.stringify(error));
+                    //console.log(JSON.stringify(error));
                     fullScreenLoader.stopLoader();
                 });
             },
@@ -193,10 +193,22 @@ define(
                             return 4;
                         }
                     };
-                    if (value.brandCode == "ideal") {
+                    result.isIssuerListAvailable = function () {
+                        if (typeof value.issuers !== 'undefined' && value.issuers.length > 0) {
+                            return true;
+                        }
+
+                        return false;
+                    };
+
+                    if (value.hasOwnProperty("issuers")) {
+                        if (value.issuers.length == 0) {
+                            return false;
+                        }
+
                         result.issuerIds = value.issuers;
                         result.issuerId = ko.observable(null);
-                    } else if (value.isPaymentMethodOpenInvoiceMethod) {
+                    }else if (value.isPaymentMethodOpenInvoiceMethod) {
                         result.telephone = ko.observable(quote.shippingAddress().telephone);
                         result.gender = ko.observable(window.checkoutConfig.payment.adyenHpp.gender);
                         result.dob = ko.observable(window.checkoutConfig.payment.adyenHpp.dob);
@@ -228,8 +240,10 @@ define(
                             return false;
                         };
                     }
+
                     return result;
                 });
+
                 return paymentList;
             },
             getGenderTypes: function () {
@@ -260,7 +274,7 @@ define(
                     additionalData.brand_code = self.value;
                     additionalData.df_value = dfValue();
 
-                    if (brandCode() == "ideal") {
+                    if (self.isIssuerListAvailable()) {
                         additionalData.issuer_id = this.issuerId();
                     }
                     else if (self.isPaymentMethodOpenInvoiceMethod()) {
