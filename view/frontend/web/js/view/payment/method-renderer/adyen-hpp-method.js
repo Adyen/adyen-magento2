@@ -152,7 +152,6 @@ define(
                         fullScreenLoader.stopLoader();
                     }
                 ).fail(function (error) {
-                    //console.log(JSON.stringify(error));
                     fullScreenLoader.stopLoader();
                 });
             },
@@ -208,7 +207,7 @@ define(
 
                         result.issuerIds = value.issuers;
                         result.issuerId = ko.observable(null);
-                    }else if (value.isPaymentMethodOpenInvoiceMethod) {
+                    } else if (value.isPaymentMethodOpenInvoiceMethod) {
                         result.telephone = ko.observable(quote.shippingAddress().telephone);
                         result.gender = ko.observable(window.checkoutConfig.payment.adyenHpp.gender);
                         result.dob = ko.observable(window.checkoutConfig.payment.adyenHpp.dob);
