@@ -69,6 +69,11 @@ class TransactionAuthorization implements ClientInterface
         $client->setUsername($webserviceUsername);
         $client->setPassword($webservicePassword);
 
+		$client->setAdyenPaymentSource($this->_adyenHelper->getModuleName(), $this->_adyenHelper->getModuleVersion());
+
+		$productMetadata = new \Magento\Framework\App\ProductMetadata();
+		$client->setExternalPlatform($productMetadata->getName(), $productMetadata->getVersion());
+
         if ($this->_adyenHelper->isDemoMode()) {
             $client->setEnvironment(\Adyen\Environment::TEST);
         } else {

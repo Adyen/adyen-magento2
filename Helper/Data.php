@@ -30,7 +30,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
  */
 class Data extends AbstractHelper
 {
-
+	const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
 
@@ -729,6 +729,21 @@ class Data extends AbstractHelper
         return $sepaCountries;
     }
 
+	/**
+	 * Get adyen magento module's name sent to Adyen
+	 *
+	 * @return string
+	 */
+	public function getModuleName()
+	{
+		return (string)self::MODULE_NAME;
+	}
+
+	/**
+	 * Get adyen magento module's version
+	 *
+	 * @return string
+	 */
     public function getModuleVersion()
     {
         return (string)$this->_moduleList->getOne("Adyen_Payment")['setup_version'];
