@@ -193,7 +193,7 @@ define(
                         }
                     };
                     result.isIssuerListAvailable = function () {
-                        if (typeof value.issuers !== 'undefined' && value.issuers.length > 0) {
+                        if (value.hasOwnProperty("issuers") && value.issuers.length > 0) {
                             return true;
                         }
 
