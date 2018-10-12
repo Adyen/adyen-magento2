@@ -90,7 +90,8 @@ class PaymentRequest extends DataObject
 
         $client->setAdyenPaymentSource($this->_adyenHelper->getModuleName(), $this->_adyenHelper->getModuleVersion());
 
-		$productMetadata = new \Magento\Framework\App\ProductMetadata();
+		$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+		$productMetadata = $objectManager->get('Magento\Framework\App\ProductMetadataInterface');
 		$client->setExternalPlatform($productMetadata->getName(), $productMetadata->getVersion());
 
         if ($this->_adyenHelper->isDemoMode($storeId)) {
