@@ -55,31 +55,7 @@ class TransactionRefund implements ClientInterface
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
 
-        // initialize client
-        $webserviceUsername = $this->_adyenHelper->getWsUsername();
-        $webservicePassword = $this->_adyenHelper->getWsPassword();
-
-        $client = new \Adyen\Client();
-        $client->setApplicationName("Magento 2 plugin");
-        $client->setUsername($webserviceUsername);
-        $client->setPassword($webservicePassword);
-
-        $client->setAdyenPaymentSource($this->_adyenHelper->getModuleName(), $this->_adyenHelper->getModuleVersion());
-
-		$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-		$productMetadata = $objectManager->get('Magento\Framework\App\ProductMetadataInterface');
-		$client->setExternalPlatform($productMetadata->getName(), $productMetadata->getVersion());
-
-        if ($this->_adyenHelper->isDemoMode()) {
-            $client->setEnvironment(\Adyen\Environment::TEST);
-        } else {
-            $client->setEnvironment(\Adyen\Environment::LIVE);
-        }
-
-        // assign magento log
-        $client->setLogger($adyenLogger);
-
-        $this->_client = $client;
+		$this->_client = $this->_adyenHelper->initializeAdyenClient();
     }
 
     /**

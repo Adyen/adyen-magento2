@@ -84,6 +84,16 @@ class Data extends AbstractHelper
      */
     protected $_taxCalculation;
 
+	/**
+	 * @var \Magento\Framework\App\ProductMetadataInterface
+	 */
+    protected $productMetadata;
+
+	/**
+	 * @var \Adyen\Payment\Logger\AdyenLogger
+	 */
+    protected $adyenLogger;
+
     /**
      * Data constructor.
      *
@@ -95,6 +105,8 @@ class Data extends AbstractHelper
      * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param \Magento\Framework\View\Asset\Source $assetSource
+	 * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
+	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -107,7 +119,10 @@ class Data extends AbstractHelper
         \Magento\Framework\View\Asset\Source $assetSource,
         \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory,
         \Magento\Tax\Model\Config $taxConfig,
-        \Magento\Tax\Model\Calculation $taxCalculation
+        \Magento\Tax\Model\Calculation $taxCalculation,
+		\Magento\Framework\App\ProductMetadataInterface $productMetadata,
+		\Adyen\Payment\Logger\AdyenLogger $adyenLogger
+
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -120,6 +135,8 @@ class Data extends AbstractHelper
         $this->_notificationFactory = $notificationFactory;
         $this->_taxConfig = $taxConfig;
         $this->_taxCalculation = $taxCalculation;
+        $this->productMetadata = $productMetadata;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -1146,4 +1163,37 @@ class Data extends AbstractHelper
         }
         return $formFields;
     }
+
+	/**
+	 * Initializes and returns Adyen Client and sets the required parameters of it
+	 *
+	 * @param $storeId
+	 * @return \Adyen\Client
+	 * @throws \Adyen\AdyenException
+	 */
+    public function initializeAdyenClient($storeId = null)
+	{
+		// initialize client
+		$webserviceUsername = $this->getWsUsername();
+		$webservicePassword = $this->getWsPassword();
+
+		$client = new \Adyen\Client();
+		$client->setApplicationName("Magento 2 plugin");
+		$client->setUsername($webserviceUsername);
+		$client->setPassword($webservicePassword);
+
+		$client->setAdyenPaymentSource($this->getModuleName(), $this->getModuleVersion());
+
+		$client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
+
+		if ($this->isDemoMode($storeId)) {
+			$client->setEnvironment(\Adyen\Environment::TEST);
+		} else {
+			$client->setEnvironment(\Adyen\Environment::LIVE);
+		}
+
+		$client->setLogger($this->adyenLogger);
+
+		return $client;
+	}
 }
