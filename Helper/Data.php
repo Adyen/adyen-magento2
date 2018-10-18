@@ -1174,8 +1174,8 @@ class Data extends AbstractHelper
     public function initializeAdyenClient($storeId = null)
 	{
 		// initialize client
-		$webserviceUsername = $this->getWsUsername();
-		$webservicePassword = $this->getWsPassword();
+		$webserviceUsername = $this->getWsUsername($storeId);
+		$webservicePassword = $this->getWsPassword($storeId);
 
 		$client = new \Adyen\Client();
 		$client->setApplicationName("Magento 2 plugin");
