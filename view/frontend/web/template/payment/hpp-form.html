@@ -54,7 +54,7 @@
 
                 <form class="form" data-role="adyen-hpp-form" action="#" method="post" data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + $parent.getCode() + '_' + value}">
                 <fieldset class="fieldset" data-bind='attr: {id: "payment_fieldset_" + $parent.getCode() + "_" + value}'>
-                     <!-- ko if: value == 'ideal' -->
+                     <!-- ko if: isIssuerListAvailable() -->
                         <label data-bind="attr: {'for': 'issuerId'}" class="label">
                             <span><!-- ko text: $t('Select Your Bank') --><!-- /ko --></span>
                         </label>
