@@ -78,25 +78,13 @@ class PaymentRequest extends DataObject
         $this->_appState = $context->getAppState();
     }
 
+	/**
+	 * @param $storeId
+	 * @return mixed
+	 * @throws \Adyen\AdyenException
+	 */
     private function createClient($storeId) {
-        // initialize client
-        $webserviceUsername = $this->_adyenHelper->getWsUsername($storeId);
-        $webservicePassword = $this->_adyenHelper->getWsPassword($storeId);
-
-        $client = new \Adyen\Client();
-        $client->setApplicationName("Magento 2 plugin");
-        $client->setUsername($webserviceUsername);
-        $client->setPassword($webservicePassword);
-
-        if ($this->_adyenHelper->isDemoMode($storeId)) {
-            $client->setEnvironment(\Adyen\Environment::TEST);
-        } else {
-            $client->setEnvironment(\Adyen\Environment::LIVE);
-        }
-
-        // assign magento log
-        $client->setLogger($this->_adyenLogger);
-
+		$client = $this->_adyenHelper->initializeAdyenClient($storeId);
         return $client;
     }
 
