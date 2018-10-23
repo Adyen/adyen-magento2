@@ -75,14 +75,12 @@ class PosCloudResponseValidator extends AbstractValidator
                 // Do the status call(try to place an order)
                 return $this->createResult($isValid, $errorMessages);
             } else {
-                $this->adyenLogger->error(json_encode($response));
                 throw new \Magento\Framework\Exception\LocalizedException(__($response['error']));
             }
         }
 
         // We receive a SaleToPOIRequest when the terminal is not reachable
         if (!empty($response['SaleToPOIRequest'])){
-            $this->adyenLogger->error(json_encode($response));
             throw new \Magento\Framework\Exception\LocalizedException(__("The terminal could not be reached."));
         }
 
@@ -102,7 +100,6 @@ class PosCloudResponseValidator extends AbstractValidator
         if (!empty($paymentResponse) && $paymentResponse['Response']['Result'] != 'Success') {
             $errorMsg = __($paymentResponse['Response']['ErrorCondition']);
             $this->adyenLogger->error($errorMsg);
-            $this->adyenLogger->error(json_encode($response));
             throw new \Magento\Framework\Exception\LocalizedException(__("The transaction could not be completed."));
         }
 

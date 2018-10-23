@@ -793,7 +793,7 @@ class Data extends AbstractHelper
 
         $baCollection = $this->_billingAgreementCollectionFactory->create();
         $baCollection->addFieldToFilter('customer_id', $customerId);
-        $baCollection->addFieldToFilter('store_id', $storeId);
+        // $baCollection->addFieldToFilter('store_id', $storeId);
         $baCollection->addFieldToFilter('method_code', 'adyen_oneclick');
         $baCollection->addActiveFilter();
 
@@ -1209,4 +1209,12 @@ class Data extends AbstractHelper
         return $formatted;
     }
 
+    public function getCustomerReference($customerId)
+    {
+        $prefix = $this->getAdyenOneclickConfigData('customer_reference_prefix');
+        if (empty($prefix)) {
+            return strval($customerId);
+        }
+        return $prefix . strval($customerId);
+    }
 }
