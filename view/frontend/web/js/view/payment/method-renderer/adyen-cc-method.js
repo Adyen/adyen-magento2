@@ -70,12 +70,12 @@ define(
 
                 installments.setInstallments(0);
 
-
-                // include dynamic cse javascript
-                var dfScriptTag = document.createElement('script');
-                dfScriptTag.src = this.getLibrarySource();
-                dfScriptTag.type = "text/javascript";
-                document.body.appendChild(dfScriptTag);
+                // include secure fields sdk javascript
+                var secureFieldsScriptTag = document.createElement('script');
+                secureFieldsScriptTag.id = "secure-fields-script-tag";
+                secureFieldsScriptTag.src = this.getSecureFieldsSource();
+                secureFieldsScriptTag.type = "text/javascript";
+                document.body.appendChild(secureFieldsScriptTag)
 
                 //Set credit card number to credit card data object
                 this.creditCardNumber.subscribe(function (value) {
@@ -134,6 +134,9 @@ define(
             getCode: function () {
                 return 'adyen_cc';
             },
+            getOriginKey: function () {
+                return window.checkoutConfig.payment.adyenCc.originKey;
+            },
             getData: function () {
                 return {
                     'method': this.item.method,
@@ -178,9 +181,9 @@ define(
                 var cardData = {
                     number: this.creditCardNumber(),
                     cvc: this.creditCardVerificationNumber(),
-                    holderName: this.creditCardOwner(),
                     expiryMonth: this.creditCardExpMonth(),
                     expiryYear: this.creditCardExpYear(),
+                    holderName: this.creditCardOwner(),
                     generationtime: generationtime
                 };
 
@@ -227,9 +230,8 @@ define(
             getCSEKey: function () {
                 return window.checkoutConfig.payment.adyenCc.cseKey;
             },
-            getLibrarySource: function () {
-                return window.checkoutConfig.payment.adyenCc.librarySource;
-
+            getSecureFieldsSource: function () {
+                return window.checkoutConfig.payment.adyenCc.secureFieldsSource;
             },
             getGenerationTime: function () {
                 return window.checkoutConfig.payment.adyenCc.generationTime;

@@ -49,27 +49,17 @@
             <config_path>payment/adyen_abstract/notification_password</config_path>
             <tooltip>Set a password of your choice and copy it over to Adyen Customer Area => Settings => Server Communication => Standard Notification => Password.</tooltip>
         </field>
-        <field id="ws_username_test" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Webservice username for Test</label>
-            <tooltip>Find this in your Test Adyen Customer Area => Settings => Users => System. Normally this will be ws@Company.YourCompanyAccount. Copy and Paste the exact ws user name here.</tooltip>
-            <config_path>payment/adyen_abstract/ws_username_test</config_path>
-        </field>
-        <field id="ws_password_test" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Webservice Password for Test</label>
-            <tooltip>Find this in your Test Adyen Customer Area => Settings => Users => System. Click on your web service user and generate a new password. Copy and Paste the exact password here.</tooltip>
+        <field id="api_key_test" translate="label" type="obscure" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>API key for Test</label>
+            <tooltip>If you don't know your Api-Key, log in to your Test Customer Area. Navigate to Settings > Users > System, and click on your webservice user, normally this will be ws@Company.YourCompanyAccount. Under Checkout token is your API Key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-            <config_path>payment/adyen_abstract/ws_password_test</config_path>
+            <config_path>payment/adyen_abstract/api_key_test</config_path>
         </field>
-        <field id="ws_username_live" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Webservice username for Live</label>
-            <tooltip>This is only applicable if you have a Live account. Find this in your Live Adyen Customer Area => Settings => Users => System. Normally this will be ws@Company.YourCompanyAccount. Copy and Paste the exact ws user name here.</tooltip>
-            <config_path>payment/adyen_abstract/ws_username_live</config_path>
-        </field>
-        <field id="ws_password_live" translate="label" type="obscure" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Webservice Password for Live</label>
-            <tooltip>This is only applicable if you have a Live account. Find this in your Live Adyen Customer Area => Settings => Users => System. Click on your web service user and generate a new password. Copy and Paste the exact password here.</tooltip>
+        <field id="api_key_live" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>API key for Live</label>
+            <tooltip>If you don't know your Api-Key, log in to your Live Customer Area. Navigate to Settings > Users > System, and click on your webservice user, normally this will be ws@Company.YourCompanyAccount. Under Checkout token is your API Key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-            <config_path>payment/adyen_abstract/ws_password_live</config_path>
+            <config_path>payment/adyen_abstract/api_key_live</config_path>
         </field>
         <field id="capture_mode" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Capture Delay</label>
