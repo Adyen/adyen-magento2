@@ -55,25 +55,7 @@ class TransactionCancel implements ClientInterface
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
 
-        // initialize client
-        $webserviceUsername = $this->_adyenHelper->getWsUsername();
-        $webservicePassword = $this->_adyenHelper->getWsPassword();
-
-        $client = new \Adyen\Client();
-        $client->setApplicationName("Magento 2 plugin");
-        $client->setUsername($webserviceUsername);
-        $client->setPassword($webservicePassword);
-
-        if ($this->_adyenHelper->isDemoMode()) {
-            $client->setEnvironment(\Adyen\Environment::TEST);
-        } else {
-            $client->setEnvironment(\Adyen\Environment::LIVE);
-        }
-
-        // assign magento log
-        $client->setLogger($adyenLogger);
-
-        $this->_client = $client;
+		$this->_client = $this->_adyenHelper->initializeAdyenClient();
     }
 
     /**
