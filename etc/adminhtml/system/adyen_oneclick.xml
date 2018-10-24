@@ -49,7 +49,7 @@
             <source_model>Adyen\Payment\Model\Config\Source\RecurringPaymentType</source_model>
             <config_path>payment/adyen_oneclick/recurring_payment_type</config_path>
         </field>
-        <field id="customer_reference_prefix" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="customer_reference_prefix" translate="label" type="text" sortOrder="50" showInDefault="1">
             <label>Customer Reference Prefix</label>
             <tooltip>This optional prefix is used for the customer reference showing on payments. If you change this later then card details of earlier payments can't be retrieved.</tooltip>
             <config_path>payment/adyen_oneclick/customer_reference_prefix</config_path>

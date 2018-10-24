@@ -35,6 +35,10 @@ class CustomerDataBuilder implements BuilderInterface
      */
     private $adyenHelper;
 
+    /**
+     * CustomerDataBuilder constructor.
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     */
     public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
     {
         $this->adyenHelper = $adyenHelper;

@@ -46,7 +46,9 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param RecurringType $recurringType
+     * @param \Adyen\Payment\Model\RecurringType $recurringType
+     * @param \Magento\Checkout\Model\Session $_checkoutSession
+     * @param \Magento\Customer\Model\ResourceModel\Customer\CollectionFactory $customerCollectionFactory
      * @param array $data
      */
     public function __construct(
