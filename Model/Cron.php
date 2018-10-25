@@ -295,7 +295,7 @@ class Cron
         $dateStart = new \DateTime();
         $dateStart->modify('-5 day');
         $dateEnd = new \DateTime();
-        $dateEnd->modify('-1 minute');
+        // $dateEnd->modify('-1 minute');
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
 
         // create collection
