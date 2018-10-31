@@ -51,9 +51,6 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
 	 */
 	protected $authSession;
 
-	/**
-	 * Message identity
-	 */
 	const MESSAGE_IDENTITY = 'Adyen API Key Control message';
 
 	/**
@@ -95,14 +92,20 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
 	public function isDisplayed()
 	{
 		// Only execute the query the first time you access the Admin page
-		if ($this->authSession->isFirstPageAfterLogin() && $this->_adyenHelper->getWsUsername()) {
+		if ($this->authSession->isFirstPageAfterLogin() && empty($this->_adyenHelper->getAPIKey())) {
 			try {
 				$title = "Adyen extension requires the API KEY!";
+				if (!empty($this->_adyenHelper->getWsUsername())) {
+					$description = "Please provide API-KEY for the webservice user " . $this->_adyenHelper->getWsUsername() . "  for default/store " . $this->storeManagerInterface->getStore()->getName();
+				}else{
+					$description = "Please provide API-KEY for default/store " . $this->storeManagerInterface->getStore()->getName();
+				}
+
 				$messageData[] = array(
 					'severity' => $this->getSeverity(),
 					'date_added' => date("Y-m-d"),
 					'title' => $title,
-					'description' => "Please provide API-KEY for the webserver user " . $this->_adyenHelper->getWsUsername() . "  for default/store " . $this->storeManagerInterface->getStore()->getName(),
+					'description' => $description,
 					'url' => "https://docs.adyen.com/developers/plug-ins-and-partners/magento-2/set-up-the-plugin-in-magento#step3configuretheplugininmagento",
 				);
 
@@ -111,13 +114,8 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
 				 * otherwise it will create it and add it to the inbox.
 				 */
 				$this->_inboxFactory->create()->parse(array_reverse($messageData));
+				return true;
 
-				/*
-				 * Only show the message if the API Key is not set
-				 */
-				if (empty($this->_adyenHelper->getAPIKey())) {
-					return true;
-				}
 			} catch (\Exception $e) {
 				return false;
 			}

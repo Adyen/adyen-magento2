@@ -25,8 +25,6 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
     <head>
         <css src="Adyen_Payment::css/styles.css"/>
-        <script src="Adyen_Payment::js/adyen.2.0.0.js"></script>
-        <script src="Adyen_Payment::js/adyen.checkout.js"></script>
     </head>
     <body>
         <referenceBlock name="checkout.root">

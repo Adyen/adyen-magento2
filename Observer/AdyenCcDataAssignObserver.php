@@ -32,18 +32,28 @@ use Magento\Quote\Api\Data\PaymentInterface;
 class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 {
     const CC_TYPE = 'cc_type';
-    const ENCRYPTED_DATA = 'encrypted_data';
     const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
     const STORE_CC = 'store_cc';
+	const CREDIT_CARD_NUMBER = 'number';
+	const SECURITY_CODE = 'cvc';
+	const EXPIRY_MONTH = 'expiryMonth';
+	const EXPIRY_YEAR = 'expiryYear';
+	const HOLDER_NAME = 'holderName';
+
+	const ENCRYPTED_DATA = 'encrypted_data';
 
     /**
      * @var array
      */
     protected $additionalInformationList = [
         self::CC_TYPE,
-        self::ENCRYPTED_DATA,
         self::NUMBER_OF_INSTALLMENTS,
-        self::STORE_CC
+        self::STORE_CC,
+		self::CREDIT_CARD_NUMBER,
+		self::SECURITY_CODE,
+		self::EXPIRY_MONTH,
+		self::EXPIRY_YEAR,
+		self::HOLDER_NAME
     ];
 
     /**

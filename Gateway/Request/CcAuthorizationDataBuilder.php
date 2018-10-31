@@ -38,57 +38,73 @@ class CcAuthorizationDataBuilder implements BuilderInterface
      */
     private $appState;
 
-    /**
-     * CcAuthorizationDataBuilder constructor.
-     *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Framework\Model\Context $context
-     */
-    public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\Model\Context $context
-    ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->appState = $context->getAppState();
-    }
+	/**
+	 * @var \Adyen\Payment\Logger\AdyenLogger
+	 */
+	protected $_adyenLogger;
 
-    /**
-     * @param array $buildSubject
-     * @return mixed
-     */
-    public function build(array $buildSubject)
-    {
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $payment = $paymentDataObject->getPayment();
-        $order = $paymentDataObject->getOrder();
-        $storeId = $order->getStoreId();
-        $request = [];
+	/**
+	 * CcAuthorizationDataBuilder constructor.
+	 *
+	 * @param \Adyen\Payment\Helper\Data $adyenHelper
+	 * @param \Magento\Framework\Model\Context $context
+	 */
+	public function __construct(
+		\Adyen\Payment\Helper\Data $adyenHelper,
+		\Magento\Framework\Model\Context $context,
+		\Adyen\Payment\Logger\AdyenLogger $adyenLogger
+	)
+	{
+		$this->adyenHelper = $adyenHelper;
+		$this->appState = $context->getAppState();
+		$this->_adyenLogger = $adyenLogger;
+	}
 
+	/**
+	 * @param array $buildSubject
+	 * @return mixed
+	 */
+	public function build(array $buildSubject)
+	{
+		/** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
+		$paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+		$payment = $paymentDataObject->getPayment();
+		$order = $paymentDataObject->getOrder();
+		$storeId = $order->getStoreId();
+		$request = [];
 
-        $request['additionalData']['card.encrypted.json'] =
-            $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_DATA);
+		$request['paymentMethod']['type'] = "scheme";
+		$request['paymentMethod']['encryptedCardNumber'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::CREDIT_CARD_NUMBER);
+		$request['paymentMethod']['encryptedExpiryMonth'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::EXPIRY_MONTH);
+		$request['paymentMethod']['encryptedExpiryYear'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::EXPIRY_YEAR);
+		$request['paymentMethod']['encryptedSecurityCode'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::SECURITY_CODE);
+		$request['paymentMethod']['holderName'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME);
 
-        // Remove from additional data
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_DATA);
+		// Remove from additional data
+		$payment->unsAdditionalInformation(AdyenCcDataAssignObserver::CREDIT_CARD_NUMBER);
+		$payment->unsAdditionalInformation(AdyenCcDataAssignObserver::EXPIRY_MONTH);
+		$payment->unsAdditionalInformation(AdyenCcDataAssignObserver::EXPIRY_YEAR);
+		$payment->unsAdditionalInformation(AdyenCcDataAssignObserver::SECURITY_CODE);
+		$payment->unsAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME);
 
+		$payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_DATA);
 
-        /**
-         * if MOTO for backend is enabled use MOTO as shopper interaction type
-         */
-        $enableMoto = $this->adyenHelper->getAdyenCcConfigDataFlag('enable_moto', $storeId);
-        if ($this->appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE &&
-            $enableMoto
-        ) {
-            $request['shopperInteraction'] = "Moto";
-        }
-        // if installments is set add it into the request
-        if ($payment->getAdditionalInformation('number_of_installments') &&
-            $payment->getAdditionalInformation('number_of_installments') > 0
-        ) {
-            $request['installments']['value'] = $payment->getAdditionalInformation('number_of_installments');
-        }
+		/**
+		 * if MOTO for backend is enabled use MOTO as shopper interaction type
+		 */
+		$enableMoto = $this->adyenHelper->getAdyenCcConfigDataFlag('enable_moto', $storeId);
+		if ($this->appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE &&
+			$enableMoto
+		) {
+			$request['shopperInteraction'] = "Moto";
+		}
+		// if installments is set add it into the request
+		if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) &&
+			$payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) > 0
+		) {
+			$request['installments']['value'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS);
+		}
 
-        return $request;
-    }
+		return $request;
+	}
 }

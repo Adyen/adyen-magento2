@@ -33,8 +33,8 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
-	const SECURE_FIELDS_SDK_TEST = "https://checkoutshopper-test.adyen.com/checkoutshopper/assets/js/sdk/checkoutSecuredFields.1.3.0.min.js";
-	const SECURE_FIELDS_SDK_LIVE = "https://checkoutshopper-live.adyen.com/checkoutshopper/assets/js/sdk/checkoutSecuredFields.1.3.0.min.js";
+    const CHECKOUT_CONTEXT_URL_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/';
+	const CHECKOUT_CONTEXT_URL_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -97,14 +97,19 @@ class Data extends AbstractHelper
     protected $adyenLogger;
 
 	/**
-	 * @var \Magento\Framework\UrlInterface
-	 */
-    protected $urlInterface;
-
-	/**
 	 * @var \Adyen\Service\ServiceFactory
 	 */
     protected $adyenServiceFactory;
+
+	/**
+	 * @var \Magento\Store\Model\StoreManagerInterface
+	 */
+    protected $storeManager;
+
+	/**
+	 * @var \Magento\Framework\App\CacheInterface
+	 */
+    protected $cache;
 
 	/**
 	 * Data constructor.
@@ -122,8 +127,9 @@ class Data extends AbstractHelper
 	 * @param \Magento\Tax\Model\Calculation $taxCalculation
 	 * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
 	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-	 * @param \Magento\Framework\UrlInterface $urlInterface
 	 * @param \Adyen\Service\ServiceFactory $adyenServiceFactory
+	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+	 * @param \Magento\Framework\App\CacheInterface $cache
 	 */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -139,8 +145,9 @@ class Data extends AbstractHelper
         \Magento\Tax\Model\Calculation $taxCalculation,
 		\Magento\Framework\App\ProductMetadataInterface $productMetadata,
 		\Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-		\Magento\Framework\UrlInterface $urlInterface,
-		\Adyen\Service\ServiceFactory $adyenServiceFactory
+		\Adyen\Service\ServiceFactory $adyenServiceFactory,
+		\Magento\Store\Model\StoreManagerInterface $storeManager,
+		\Magento\Framework\App\CacheInterface $cache
 
     ) {
         parent::__construct($context);
@@ -156,8 +163,9 @@ class Data extends AbstractHelper
         $this->_taxCalculation = $taxCalculation;
         $this->productMetadata = $productMetadata;
         $this->adyenLogger = $adyenLogger;
-        $this->urlInterface = $urlInterface;
         $this->adyenServiceFactory = $adyenServiceFactory;
+        $this->storeManager = $storeManager;
+        $this->cache = $cache;
     }
 
     /**
@@ -1042,20 +1050,6 @@ class Data extends AbstractHelper
         ;
     }
 
-	/**
-	 * Retrieves secure field sdk url based on the demo mode
-	 *
-	 * @return string
-	 */
-	public function getSecureFieldsSdk()
-	{
-		if ($this->isDemoMode()) {
-			return self::SECURE_FIELDS_SDK_TEST;
-		} else {
-			return self::SECURE_FIELDS_SDK_LIVE;
-		}
-	}
-
     /**
      * @param $formFields
      * @param $count
@@ -1352,11 +1346,17 @@ class Data extends AbstractHelper
 	 */
 	public function getOriginKeyForBaseUrl()
 	{
-		$originKey = "";
-		$baseUrl = $this->urlInterface->getBaseUrl();
+		$baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
+		$parsed = parse_url($baseUrl);
+		$domain = $parsed['scheme'] . "://" . $parsed['host'];
 
-		if ($originKeys = $this->getOriginKeys($baseUrl)) {
-			$originKey = $originKeys[$baseUrl];
+		if (!$originKey = $this->cache->load("Adyen_origin_key_for_" . $domain)) {
+			$originKey = "";
+
+			if ($originKeys = $this->getOriginKeys($domain)) {
+				$originKey = $originKeys[$domain];
+				$this->cache->save($originKey, "Adyen_origin_key_for_" . $domain, array(), 60 * 60 * 24);
+			}
 		}
 
 		return $originKey;
@@ -1382,5 +1382,17 @@ class Data extends AbstractHelper
 		$service = $this->adyenServiceFactory->createCheckoutUtility($client);
 		$respone = $service->originKeys($params);
 		return $respone['originKeys'];
+	}
+
+	/**
+	 * @param int|null $storeId
+	 * @return string
+	 */
+	public function getCheckoutContextUrl($storeId = null) {
+		if ($this->isDemoMode($storeId)) {
+			return self::CHECKOUT_CONTEXT_URL_TEST;
+		}
+
+		return self::CHECKOUT_CONTEXT_URL_LIVE;
 	}
 }

@@ -20,10 +20,35 @@
  * Author: Adyen <magento@adyen.com>
  */
 
+.hidden {
+    display: none;
+}
+
+
 .checkout-payment-method .ccard .changable-card-expiry { display:none; }
 .checkout-payment-method .ccard  .changable-card-expiry._active { display:block; }
 .checkout-payment-method .ccard  .expire-update._disable { display:none; }
-.checkout-payment-method .ccard .holdername .input-text { width: 225px; }
+
+.checkout-payment-method .ccard .holdername .input-text {
+    width: 225px;
+    border: none;
+    padding: 0;
+    color: rgb(0, 27, 43);
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.checkout-payment-method .ccard .holdername .input-text:focus {
+    border: none;
+    box-shadow: none;
+}
+
+.checkout-payment-method .ccard .holdername .input-text::placeholder,
+.checkout-payment-method .ccard .holdername .input-text:placeholder-shown
+{
+    color: rgb(144, 162, 189);
+    font-weight: 200;
+}
 
 .checkout-payment-method .payment-method-title, .checkout-payment-method .payment-method-title label {
     display: -webkit-flex;
@@ -139,6 +164,22 @@
     min-height: 42px; /* override magento min-height */
 }
 
+/* Checkout card components style */
 
+.adyen-checkout-card__form .adyen-checkout__input iframe{
+    max-height: 40px;
+}
 
+.adyen-checkout-card__form .adyen-checkout__input img{
+    display: none;
+}
 
+#adyen-cc-form .fieldset > .field > .label, .fieldset > .fields > .field > .label {
+    font-weight: 400;
+}
+
+#adyen-cc-form .helper-text{
+    font-size: 11px;
+    color: rgb(144, 162, 189);
+    font-weight: 100;
+}
