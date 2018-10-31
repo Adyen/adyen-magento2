@@ -29,133 +29,155 @@ define(
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/model/installments',
-        'mage/url'
+        'mage/url',
+        'Adyen_Payment/js/adyen.2.0.0',
+        'Adyen_Payment/js/adyen.checkout'
     ],
     function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url) {
 
         'use strict';
-        var cvcLength = ko.observable(4);
 
         return Component.extend({
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
                 creditCardOwner: '',
-                encryptedData: '',
                 setStoreCc: true,
-                installment: ''
+                installment: '',
+                creditCardDetailsValid: false
             },
             initObservable: function () {
                 this._super()
                     .observe([
                         'creditCardType',
-                        'creditCardExpYear',
-                        'creditCardExpMonth',
-                        'creditCardNumber',
-                        'creditCardVerificationNumber',
-                        'creditCardSsStartMonth',
-                        'creditCardSsStartYear',
-                        'selectedCardType',
                         'creditCardOwner',
-                        'encryptedData',
-                        'generationtime',
+                        'creditCardNumber',
+                        'securityCode',
+                        'expiryMonth',
+                        'expiryYear',
                         'setStoreCc',
-                        'installment'
+                        'installment',
+                        'creditCardDetailsValid'
                     ]);
+
                 return this;
             },
             getInstallments: installments.getInstallments(),
-            initialize: function () {
+            /**
+             * Renders the secure fields,
+             * creates the card component,
+             * sets up the callbacks for card components and
+             * set up the installments
+             */
+            renderSecureFields: function() {
                 var self = this;
-                this._super();
+
+                self.creditCardOwner.subscribe(function () {
+                    self.updateButton();
+                });
 
                 installments.setInstallments(0);
 
-                // include secure fields sdk javascript
-                var secureFieldsScriptTag = document.createElement('script');
-                secureFieldsScriptTag.id = "secure-fields-script-tag";
-                secureFieldsScriptTag.src = this.getSecureFieldsSource();
-                secureFieldsScriptTag.type = "text/javascript";
-                document.body.appendChild(secureFieldsScriptTag)
+                // installments enabled ??
+                var allInstallments = self.getAllInstallments();
+                var cardNode = document.getElementById('cardContainer');
 
-                //Set credit card number to credit card data object
-                this.creditCardNumber.subscribe(function (value) {
+                var checkout = new Adyen.Checkout({
+                    locale: window.checkoutConfig.payment.adyenCc.locale
+                });
 
-                    // installments enabled ??
-                    var allInstallments = self.getAllInstallments();
+                var card = checkout.create('card', {
+                    originKey: window.checkoutConfig.payment.adyenCc.originKey,
+                    loadingContext: window.checkoutConfig.payment.adyenCc.checkoutUrl,
+                    type: 'card',
+                    groupTypes: self.getAvailableCardTypeAltCodes(),
 
-                    // what card is this ??
+                    onChange: function(state) {
+                        // what card is this ??
+                        // translate adyen card type to magento card type
+                        var creditCardType = self.getCcCodeByAltCode(state.brand);
 
-                    if (creditCardData.creditCard) {
-                        var creditcardType = creditCardData.creditCard.type;
+                        if (creditCardType) {
+                            /* If the credit card type is already set, check if it changed or not */
+                            if (!self.creditCardType() || self.creditCardType() && self.creditCardType() != creditCardType) {
+                                if (creditCardType in allInstallments) {
 
-                        cvcLength(4);
-                        if (creditcardType != "AE") {
-                            cvcLength(3);
-                        }
-                        if (creditcardType in allInstallments) {
+                                    // get for the creditcard the installments
+                                    var installmentCreditcard = allInstallments[creditCardType];
+                                    var grandTotal = quote.totals().grand_total;
 
-                            // get for the creditcard the installments
-                            var installmentCreditcard = allInstallments[creditcardType];
-                            var grandTotal = quote.totals().grand_total;
+                                    var numberOfInstallments = [];
+                                    var dividedAmount = 0;
+                                    var dividedString = "";
+                                    $.each(installmentCreditcard, function (amount, installment) {
 
-                            var numberOfInstallments = [];
-                            var dividedAmount = 0;
-                            var dividedString = "";
-                            $.each(installmentCreditcard, function (amount, installment) {
-
-                                if (grandTotal >= amount) {
-                                    dividedAmount = (grandTotal / installment).toFixed(quote.getPriceFormat().precision);
-                                    dividedString = installment + " x " + dividedAmount + " " + quote.totals().quote_currency_code;
-                                    numberOfInstallments.push({
-                                        key: [dividedString],
-                                        value: installment
+                                        if (grandTotal >= amount) {
+                                            dividedAmount = (grandTotal / installment).toFixed(quote.getPriceFormat().precision);
+                                            dividedString = installment + " x " + dividedAmount + " " + quote.totals().quote_currency_code;
+                                            numberOfInstallments.push({
+                                                key: [dividedString],
+                                                value: installment
+                                            });
+                                        }
+                                        else {
+                                            return false;
+                                        }
                                     });
                                 }
-                                else {
-                                    return false;
+                                if (numberOfInstallments) {
+                                    installments.setInstallments(numberOfInstallments);
                                 }
-                            });
+                                else {
+                                    installments.setInstallments(0);
+                                }
+                            }
+
+                            // Color the image of the credit card
+                            self.creditCardType(creditCardType);
+                        }else{
+                            self.creditCardType("")
                         }
-                        if (numberOfInstallments) {
-                            installments.setInstallments(numberOfInstallments);
+
+                        if (state.isValid) {
+                            // Here we enable the button if the component is now valid
+                            self.creditCardNumber(state.data.encryptedCardNumber);
+                            self.expiryMonth(state.data.encryptedExpiryMonth);
+                            self.expiryYear(state.data.encryptedExpiryYear);
+                            self.securityCode(state.data.encryptedSecurityCode);
+                            self.creditCardDetailsValid(true);
+                        }else{
+                            self.creditCardDetailsValid(false);
                         }
-                        else {
-                            installments.setInstallments(0);
-                        }
-                    }
+
+                        self.updateButton();
+                    },
+                    onError: function() {}
                 });
+
+                card.mount(cardNode);
+
+                self.isPlaceOrderActionAllowed(false);
             },
-            setPlaceOrderHandler: function (handler) {
-                this.placeOrderHandler = handler;
-            },
-            setValidateHandler: function (handler) {
-                this.validateHandler = handler;
-            },
-            getCode: function () {
-                return 'adyen_cc';
-            },
-            getOriginKey: function () {
-                return window.checkoutConfig.payment.adyenCc.originKey;
-            },
+            /**
+             * Builds the payment details part of the payment information reqeust
+             *
+             * @returns {{method: *, additional_data: {cc_type: *, number: *, cvc, expiryMonth: *, expiryYear: *, holderName: *, generationtime: *, store_cc: *, number_of_installments: *}}}
+             */
             getData: function () {
                 return {
                     'method': this.item.method,
                     additional_data: {
                         'cc_type': this.creditCardType(),
-                        'encrypted_data': this.encryptedData(),
-                        'generationtime': this.generationtime(),
+                        'number': this.creditCardNumber(),
+                        'cvc': this.securityCode(),
+                        'expiryMonth': this.expiryMonth(),
+                        'expiryYear': this.expiryYear(),
+                        'holderName': this.creditCardOwner(),
+                        'generationtime': this.getGenerationTime(),
                         'store_cc': this.setStoreCc(),
                         'number_of_installments': this.installment()
                     }
                 };
             },
-            getCvcLength: function () {
-                return cvcLength();
-            },
-            isActive: function () {
-                return true;
-            },
-
             /**
              * Returns state of place order button
              * @returns {boolean}
@@ -163,9 +185,26 @@ define(
             isButtonActive: function() {
               return this.isActive() && this.getCode() == this.isChecked() && this.isPlaceOrderActionAllowed();
             },
-
             /**
+             * Checks if the pay button can be enabled and enables if can
+             */
+            updateButton: function() {
+                var self = this;
+
+                if (self.isCardOwnerValid() && self.isCreditCardDetailsValid()) {
+                    self.isPlaceOrderActionAllowed(true);
+                } else {
+                    self.isPlaceOrderActionAllowed(false);
+                }
+            },
+            /**
+             * Custom place order function
+             *
              * @override
+             *
+             * @param data
+             * @param event
+             * @returns {boolean}
              */
             placeOrder: function (data, event) {
                 var self = this;
@@ -173,22 +212,6 @@ define(
                 if (event) {
                     event.preventDefault();
                 }
-
-                var options = {};
-                var cseInstance = adyen.createEncryption(options);
-                var generationtime = this.getGenerationTime();
-
-                var cardData = {
-                    number: this.creditCardNumber(),
-                    cvc: this.creditCardVerificationNumber(),
-                    expiryMonth: this.creditCardExpMonth(),
-                    expiryYear: this.creditCardExpYear(),
-                    holderName: this.creditCardOwner(),
-                    generationtime: generationtime
-                };
-
-                var data = cseInstance.encrypt(cardData);
-                this.encryptedData(data);
 
                 if (this.validate() && additionalValidators.validate()) {
                     this.isPlaceOrderActionAllowed(false);
@@ -214,24 +237,88 @@ define(
 
                 return false;
             },
+            /**
+             * Validates the payment date when clicking the pay button
+             *
+             * @returns {boolean}
+             */
+            validate: function () {
+                var self = this;
+
+                var form = 'form[data-role=adyen-cc-form]';
+
+                var validate = $(form).validation() && $(form).validation('isValid');
+
+                var owner = Boolean($(form + ' #creditCardHolderName').valid());
+
+                if (!validate || !owner) {
+                    return false;
+                }
+
+                return true;
+            },
+            /**
+             * Validates if the typed in card holder is valid
+             * - length validation, can not be empty
+             *
+             * @returns {boolean}
+             */
+            isCardOwnerValid: function() {
+                if (this.creditCardOwner().length == 0) {
+                    return false;
+                }
+
+                return true;
+            },
+            /**
+             * The card component send the card details validity in a callback which is saved in the
+             * creditCardDetailsValid observable
+             *
+             * @returns {*}
+             */
+            isCreditCardDetailsValid: function() {
+                return this.creditCardDetailsValid();
+            },
+            /**
+             * Translates the card type alt code (used in Adyen) to card type code (used in Magento) if it's available
+             *
+             * @param altCode
+             * @returns {*}
+             */
+            getCcCodeByAltCode: function(altCode) {
+                var ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
+                if (ccTypes.hasOwnProperty(altCode))  {
+                    return ccTypes[altCode];
+                }
+
+                return "";
+            },
+            /**
+             * Get available card types translated to the Adyen card type codes
+             * (The card type alt code is the Adyen card type code)
+             *
+             * @returns {string[]}
+             */
+            getAvailableCardTypeAltCodes: function() {
+                var ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
+                return Object.keys(ccTypes);
+            },
+            /**
+             * Return Payment method code
+             *
+             * @returns {*}
+             */
+            getCode: function () {
+                return window.checkoutConfig.payment.adyenCc.methodCode;
+            },
+            isActive: function () {
+                return true;
+            },
             getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
             },
             getPlaceOrderUrl: function () {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
-            },
-            context: function () {
-                return this;
-            },
-
-            isCseEnabled: function () {
-                return window.checkoutConfig.payment.adyenCc.cseEnabled;
-            },
-            getCSEKey: function () {
-                return window.checkoutConfig.payment.adyenCc.cseKey;
-            },
-            getSecureFieldsSource: function () {
-                return window.checkoutConfig.payment.adyenCc.secureFieldsSource;
             },
             getGenerationTime: function () {
                 return window.checkoutConfig.payment.adyenCc.generationTime;
@@ -240,28 +327,10 @@ define(
                 if (customer.isLoggedIn()) {
                     return window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
                 }
+
                 return false;
             },
             isShowLegend: function () {
-                return true;
-            },
-            validate: function () {
-                var form = 'form[data-role=adyen-cc-form]';
-
-                var validate = $(form).validation() && $(form).validation('isValid');
-
-                // add extra validation because jquery validation will not work on non name attributes
-
-                var ccNumber = Boolean($(form + ' #creditCardNumber').valid());
-                var owner = Boolean($(form + ' #creditCardHolderName').valid());
-                var expiration = Boolean($(form + ' #adyen_cc_expiration').valid());
-                var expiration_yr = Boolean($(form + ' #adyen_cc_expiration_yr').valid());
-                var cid = Boolean($(form + ' #adyen_cc_cc_cid').valid());
-
-                if (!validate || !ccNumber || !owner || !expiration || !expiration_yr || !cid) {
-                    return false;
-                }
-
                 return true;
             },
             showLogo: function () {
@@ -277,9 +346,16 @@ define(
             },
             getAllInstallments: function () {
                 return window.checkoutConfig.payment.adyenCc.installments;
+            },
+            setPlaceOrderHandler: function (handler) {
+                this.placeOrderHandler = handler;
+            },
+            setValidateHandler: function (handler) {
+                this.validateHandler = handler;
+            },
+            context: function () {
+                return this;
             }
         });
     }
 );
-
-
