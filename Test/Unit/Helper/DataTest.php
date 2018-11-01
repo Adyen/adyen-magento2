@@ -50,6 +50,8 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $notificationFactory = $this->getSimpleMock(\Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory::class);
         $taxConfig = $this->getSimpleMock(\Magento\Tax\Model\Config::class);
         $taxCalculation = $this->getSimpleMock(\Magento\Tax\Model\Calculation::class);
+        $productMetadata = $this->getSimpleMock( \Magento\Framework\App\ProductMetadata::class);
+        $adyenLogger = $this->getSimpleMock(\Adyen\Payment\Logger\AdyenLogger::class);
 
         $this->dataHelper = new \Adyen\Payment\Helper\Data(
             $context,
@@ -62,7 +64,9 @@ class DataTest extends \PHPUnit\Framework\TestCase
             $assetSource,
             $notificationFactory,
             $taxConfig,
-            $taxCalculation
+            $taxCalculation,
+            $productMetadata,
+            $adyenLogger
         );
     }
 
