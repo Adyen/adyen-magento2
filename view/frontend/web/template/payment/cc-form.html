@@ -68,29 +68,6 @@
                 <br/>
                 <!-- /ko -->
 
-                <div class="field holdername type">
-                    <label data-bind="attr: {for: 'creditCardHolderName'}" class="label">
-                        <span><!-- ko text: $t('Credit Card Owner')--><!-- /ko --></span>
-                    </label>
-                    <div class="control">
-                        <input type="text"
-                               class="input-text required-entry"
-                               data-encrypted-name="holderName"
-                               value=""
-                               data-bind="attr: {
-                                                id: 'creditCardHolderName',
-                                                title: $t('Credit Card Owner'),
-                                                placeholder: $t('Credit Card Owner'),
-                                                'data-container': getCode() + '-cc-owner'
-                                                },
-                                            enable: isActive($parents),
-                                            value: creditCardOwner,
-                                            valueUpdate: 'keyup' "
-                               data-validate="{required:true}"
-                        />
-                    </div>
-                </div>
-
                 <div class="field type">
                     <label data-bind="attr: {for: getCode() + '_cc_type'}" class="label">
                         <span><!-- ko text: $t('Credit Card Type')--><!-- /ko --></span>
@@ -120,6 +97,30 @@
                            ">
                     </div>
                 </div>
+
+                <div class="field holdername type">
+                    <label data-bind="attr: {for: 'creditCardHolderName'}" class="label">
+                        <span><!-- ko text: $t('Credit Card Owner')--><!-- /ko --></span>
+                    </label>
+                    <div class="control">
+                        <input type="text"
+                               class="input-text required-entry"
+                               data-encrypted-name="holderName"
+                               value=""
+                               data-bind="attr: {
+                                                id: 'creditCardHolderName',
+                                                title: $t('Credit Card Owner'),
+                                                placeholder: $t('Credit Card Owner'),
+                                                'data-container': getCode() + '-cc-owner'
+                                                },
+                                            enable: isActive($parents),
+                                            value: creditCardOwner,
+                                            valueUpdate: 'keyup' "
+                               data-validate="{required:true}"
+                        />
+                    </div>
+                </div>
+
                 <div class="field number cardContainerField">
                     <div afterRender="renderSecureFields()" data-bind="attr: { id: 'cardContainer'}" ></div>
                 </div>

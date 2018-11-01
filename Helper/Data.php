@@ -1175,7 +1175,7 @@ class Data extends AbstractHelper
 		// initialize client
 		$apiKey = $this->getAPIKey($storeId);
 
-		$client = new \Adyen\Client();
+		$client = $this->createAdyenClient();
 		$client->setApplicationName("Magento 2 plugin");
 		$client->setXApiKey($apiKey);
 
@@ -1195,6 +1195,14 @@ class Data extends AbstractHelper
 	}
 
 	/**
+	 * @return \Adyen\Client
+	 * @throws \Adyen\AdyenException
+	 */
+	private function createAdyenClient() {
+    	return new \Adyen\Client();
+	}
+
+	/**
 	 * Retrieve origin keys for platform's base url
 	 *
 	 * @return string
@@ -1209,8 +1217,7 @@ class Data extends AbstractHelper
 		if (!$originKey = $this->cache->load("Adyen_origin_key_for_" . $domain)) {
 			$originKey = "";
 
-			if ($originKeys = $this->getOriginKeys($domain)) {
-				$originKey = $originKeys[$domain];
+			if ($originKey = $this->getOriginKeyForUrl($domain)) {
 				$this->cache->save($originKey, "Adyen_origin_key_for_" . $domain, array(), 60 * 60 * 24);
 			}
 		}
@@ -1219,13 +1226,13 @@ class Data extends AbstractHelper
 	}
 
 	/**
-	 * Get origin keys for a specific url using the adyen api library client
+	 * Get origin key for a specific url using the adyen api library client
 	 *
 	 * @param $url
 	 * @return mixed
 	 * @throws \Adyen\AdyenException
 	 */
-	private function getOriginKeys($url)
+	private function getOriginKeyForUrl($url)
 	{
 		$params = array(
 			"originDomains" => array(
@@ -1237,7 +1244,12 @@ class Data extends AbstractHelper
 
 		$service = $this->adyenServiceFactory->createCheckoutUtility($client);
 		$respone = $service->originKeys($params);
-		return $respone['originKeys'];
+
+		if (empty($originKey = $respone['originKeys'][$url])) {
+			$originKey = "";
+		}
+
+		return $originKey;
 	}
 
 	/**
