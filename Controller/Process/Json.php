@@ -20,6 +20,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+declare(strict_types=1);
 
 namespace Adyen\Payment\Controller\Process;
 
@@ -29,7 +30,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
  * Class Json
  * @package Adyen\Payment\Controller\Process
  */
-class Json extends \Magento\Framework\App\Action\Action
+class Json extends \Magento\Framework\App\Action\Action implements \Magento\Framework\App\CsrfAwareActionInterface
 {
     /**
      * @var \Magento\Framework\ObjectManagerInterface
@@ -69,6 +70,23 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->_resultFactory = $context->getResultFactory();
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createCsrfValidationException(
+        \Magento\Framework\App\RequestInterface $request
+    ): ?\Magento\Framework\App\Request\InvalidRequestException {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateForCsrf(\Magento\Framework\App\RequestInterface $request): ?bool
+    {
+        return true;
     }
 
     /**
