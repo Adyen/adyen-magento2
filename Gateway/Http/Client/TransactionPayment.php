@@ -30,12 +30,6 @@ use Magento\Payment\Gateway\Http\ClientInterface;
  */
 class TransactionPayment implements ClientInterface
 {
-
-	/**
-	 * @var \Adyen\Client
-	 */
-	protected $client;
-
 	/**
 	 * PaymentRequest constructor.
 	 *
@@ -59,8 +53,6 @@ class TransactionPayment implements ClientInterface
 		$this->_adyenLogger = $adyenLogger;
 		$this->_recurringType = $recurringType;
 		$this->_appState = $context->getAppState();
-
-		$this->client = $this->_adyenHelper->initializeAdyenClient();
 	}
 
 	/**
@@ -72,7 +64,9 @@ class TransactionPayment implements ClientInterface
 	{
 		$request = $transferObject->getBody();
 
-		$service = new \Adyen\Service\Checkout($this->client);
+		$client = $this->_adyenHelper->initializeAdyenClient();
+
+		$service = new \Adyen\Service\Checkout($client);
 
 		try {
 			$response = $service->payments($request);

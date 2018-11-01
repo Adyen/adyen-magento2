@@ -30,8 +30,7 @@ define(
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/model/installments',
         'mage/url',
-        'Adyen_Payment/js/adyen.2.0.0',
-        'Adyen_Payment/js/adyen.checkout'
+        'Adyen_Payment/js/adyen.2.0.0'
     ],
     function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url) {
 
