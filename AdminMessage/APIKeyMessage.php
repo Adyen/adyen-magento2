@@ -37,11 +37,6 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
 	protected $_inboxFactory;
 
 	/**
-	 * @var \Magento\Framework\App\Config\ScopeConfigInterface
-	 */
-	protected $scopeConfigInterface;
-
-	/**
 	 * @var \Magento\Store\Model\StoreManagerInterface
 	 */
 	protected $storeManagerInterface;
@@ -58,18 +53,15 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
 	 *
 	 * @param \Adyen\Payment\Helper\Data $adyenHelper
 	 * @param \Magento\AdminNotification\Model\InboxFactory $inboxFactory
-	 * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfigInterface
 	 */
 	public function __construct(
 		\Adyen\Payment\Helper\Data $adyenHelper,
 		\Magento\AdminNotification\Model\InboxFactory $inboxFactory,
-		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfigInterface,
 		\Magento\Store\Model\StoreManagerInterface $storeManagerInterface,
 		\Magento\Backend\Model\Auth\Session $authSession
 	) {
 		$this->_adyenHelper = $adyenHelper;
 		$this->_inboxFactory = $inboxFactory;
-		$this->scopeConfigInterface = $scopeConfigInterface;
 		$this->storeManagerInterface = $storeManagerInterface;
 		$this->authSession = $authSession;
 	}
@@ -95,17 +87,12 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
 		if ($this->authSession->isFirstPageAfterLogin() && empty($this->_adyenHelper->getAPIKey())) {
 			try {
 				$title = "Adyen extension requires the API KEY!";
-				if (!empty($this->_adyenHelper->getWsUsername())) {
-					$description = "Please provide API-KEY for the webservice user " . $this->_adyenHelper->getWsUsername() . "  for default/store " . $this->storeManagerInterface->getStore()->getName();
-				}else{
-					$description = "Please provide API-KEY for default/store " . $this->storeManagerInterface->getStore()->getName();
-				}
 
 				$messageData[] = array(
 					'severity' => $this->getSeverity(),
 					'date_added' => date("Y-m-d"),
 					'title' => $title,
-					'description' => $description,
+					'description' => $this->getText(),
 					'url' => "https://docs.adyen.com/developers/plug-ins-and-partners/magento-2/set-up-the-plugin-in-magento#step3configuretheplugininmagento",
 				);
 
@@ -131,8 +118,13 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
 	 */
 	public function getText()
 	{
-		$message = __("Please provide API-KEY for the webserver user " . $this->_adyenHelper->getWsUsername() . " for default/store" . $this->storeManagerInterface->getStore()->getName());
-		return __($message);
+		if (!empty($this->_adyenHelper->getWsUsername())) {
+			$message = "Please provide API-KEY for the webservice user " . $this->_adyenHelper->getWsUsername() . "  for default/store " . $this->storeManagerInterface->getStore()->getName();
+		}else{
+			$message = "Please provide API-KEY for default/store " . $this->storeManagerInterface->getStore()->getName();
+		}
+
+		return $message;
 	}
 
 	/**
