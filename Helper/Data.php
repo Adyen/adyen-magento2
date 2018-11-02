@@ -33,6 +33,8 @@ class Data extends AbstractHelper
 	const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
+    const CHECKOUT_CONTEXT_URL_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/';
+	const CHECKOUT_CONTEXT_URL_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -94,20 +96,41 @@ class Data extends AbstractHelper
 	 */
     protected $adyenLogger;
 
-    /**
-     * Data constructor.
-     *
-     * @param \Magento\Framework\App\Helper\Context $context
-     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
-     * @param \Magento\Framework\Config\DataInterface $dataStorage
-     * @param \Magento\Directory\Model\Config\Source\Country $country
-     * @param \Magento\Framework\Module\ModuleListInterface $moduleList
-     * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
-     * @param \Magento\Framework\View\Asset\Repository $assetRepo
-     * @param \Magento\Framework\View\Asset\Source $assetSource
+	/**
+	 * @var \Adyen\Service\ServiceFactory
+	 */
+    protected $adyenServiceFactory;
+
+	/**
+	 * @var \Magento\Store\Model\StoreManagerInterface
+	 */
+    protected $storeManager;
+
+	/**
+	 * @var \Magento\Framework\App\CacheInterface
+	 */
+    protected $cache;
+
+	/**
+	 * Data constructor.
+	 *
+	 * @param \Magento\Framework\App\Helper\Context $context
+	 * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+	 * @param \Magento\Framework\Config\DataInterface $dataStorage
+	 * @param \Magento\Directory\Model\Config\Source\Country $country
+	 * @param \Magento\Framework\Module\ModuleListInterface $moduleList
+	 * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
+	 * @param \Magento\Framework\View\Asset\Repository $assetRepo
+	 * @param \Magento\Framework\View\Asset\Source $assetSource
+	 * @param \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory
+	 * @param \Magento\Tax\Model\Config $taxConfig
+	 * @param \Magento\Tax\Model\Calculation $taxCalculation
 	 * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
 	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     */
+	 * @param \Adyen\Service\ServiceFactory $adyenServiceFactory
+	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+	 * @param \Magento\Framework\App\CacheInterface $cache
+	 */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
@@ -121,7 +144,10 @@ class Data extends AbstractHelper
         \Magento\Tax\Model\Config $taxConfig,
         \Magento\Tax\Model\Calculation $taxCalculation,
 		\Magento\Framework\App\ProductMetadataInterface $productMetadata,
-		\Adyen\Payment\Logger\AdyenLogger $adyenLogger
+		\Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+		\Adyen\Service\ServiceFactory $adyenServiceFactory,
+		\Magento\Store\Model\StoreManagerInterface $storeManager,
+		\Magento\Framework\App\CacheInterface $cache
 
     ) {
         parent::__construct($context);
@@ -137,6 +163,9 @@ class Data extends AbstractHelper
         $this->_taxCalculation = $taxCalculation;
         $this->productMetadata = $productMetadata;
         $this->adyenLogger = $adyenLogger;
+        $this->adyenServiceFactory = $adyenServiceFactory;
+        $this->storeManager = $storeManager;
+        $this->cache = $cache;
     }
 
     /**
@@ -576,35 +605,35 @@ class Data extends AbstractHelper
         return $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('notification_password')));
     }
 
-    /**
-     * @desc Retrieve the webserver username
-     * @return string
-     */
-    public function getWsUsername($storeId = null)
-    {
-        if ($this->isDemoMode($storeId)) {
-            $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_test', $storeId));
-        } else {
-            $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_live', $storeId));
-        }
-        return $wsUsername;
-    }
+	/**
+	 * @desc Retrieve the API key
+	 * @return string
+	 */
+	public function getAPIKey($storeId = null)
+	{
+		if ($this->isDemoMode($storeId)) {
+			$apiKey = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('api_key_test',
+				$storeId)));
+		} else {
+			$apiKey = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('api_key_live',
+				$storeId)));
+		}
+		return $apiKey;
+	}
 
-    /**
-     * @desc Retrieve the webserver password
-     * @return string
-     */
-    public function getWsPassword($storeId = null)
-    {
-        if ($this->isDemoMode($storeId)) {
-            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_test',
-                $storeId)));
-        } else {
-            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_live',
-                $storeId)));
-        }
-        return $wsPassword;
-    }
+	/**
+	 * @desc Retrieve the webserver username
+	 * @return string
+	 */
+	public function getWsUsername($storeId = null)
+	{
+		if ($this->isDemoMode($storeId)) {
+			$wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_test', $storeId));
+		} else {
+			$wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_live', $storeId));
+		}
+		return $wsUsername;
+	}
 
     /**
      * @desc Cancels the order
@@ -990,36 +1019,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param $storeId
-     * @return mixed
-     */
-    public function getLibraryToken($storeId = null)
-    {
-        if ($this->isDemoMode($storeId)) {
-            $libraryToken = $this->getAdyenCcConfigData('cse_library_token_test', $storeId);
-        } else {
-            $libraryToken = $this->getAdyenCcConfigData('cse_library_token_live', $storeId);
-        }
-        return $libraryToken;
-    }
-
-    /**
-     * Returns the hosted location of the client side encryption file
-     *
-     * @param null $storeId
-     * @return string
-     */
-    public function getLibrarySource($storeId = null)
-    {
-        $environment = self::LIVE;
-        if ($this->isDemoMode($storeId)) {
-            $environment = self::TEST;
-        }
-
-        return "https://" . $environment . ".adyen.com/hpp/cse/js/" . $this->getLibraryToken($storeId) . ".shtml";
-    }
-
-    /**
      * @param $formFields
      * @param $count
      * @param $name
@@ -1174,13 +1173,11 @@ class Data extends AbstractHelper
     public function initializeAdyenClient($storeId = null)
 	{
 		// initialize client
-		$webserviceUsername = $this->getWsUsername($storeId);
-		$webservicePassword = $this->getWsPassword($storeId);
+		$apiKey = $this->getAPIKey($storeId);
 
-		$client = new \Adyen\Client();
+		$client = $this->createAdyenClient();
 		$client->setApplicationName("Magento 2 plugin");
-		$client->setUsername($webserviceUsername);
-		$client->setPassword($webservicePassword);
+		$client->setXApiKey($apiKey);
 
 		$client->setAdyenPaymentSource($this->getModuleName(), $this->getModuleVersion());
 
@@ -1195,5 +1192,75 @@ class Data extends AbstractHelper
 		$client->setLogger($this->adyenLogger);
 
 		return $client;
+	}
+
+	/**
+	 * @return \Adyen\Client
+	 * @throws \Adyen\AdyenException
+	 */
+	private function createAdyenClient() {
+    	return new \Adyen\Client();
+	}
+
+	/**
+	 * Retrieve origin keys for platform's base url
+	 *
+	 * @return string
+	 * @throws \Adyen\AdyenException
+	 */
+	public function getOriginKeyForBaseUrl()
+	{
+		$baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
+		$parsed = parse_url($baseUrl);
+		$domain = $parsed['scheme'] . "://" . $parsed['host'];
+
+		if (!$originKey = $this->cache->load("Adyen_origin_key_for_" . $domain)) {
+			$originKey = "";
+
+			if ($originKey = $this->getOriginKeyForUrl($domain)) {
+				$this->cache->save($originKey, "Adyen_origin_key_for_" . $domain, array(), 60 * 60 * 24);
+			}
+		}
+
+		return $originKey;
+	}
+
+	/**
+	 * Get origin key for a specific url using the adyen api library client
+	 *
+	 * @param $url
+	 * @return mixed
+	 * @throws \Adyen\AdyenException
+	 */
+	private function getOriginKeyForUrl($url)
+	{
+		$params = array(
+			"originDomains" => array(
+				$url
+			)
+		);
+
+		$client = $this->initializeAdyenClient();
+
+		$service = $this->adyenServiceFactory->createCheckoutUtility($client);
+		$respone = $service->originKeys($params);
+
+		if (empty($originKey = $respone['originKeys'][$url])) {
+			$originKey = "";
+		}
+
+		return $originKey;
+	}
+
+	/**
+	 * @param int|null $storeId
+	 * @return string
+	 */
+	public function getCheckoutContextUrl($storeId = null) {
+		if ($this->isDemoMode($storeId)) {
+			return self::CHECKOUT_CONTEXT_URL_TEST;
+		}
+
+		return self::CHECKOUT_CONTEXT_URL_LIVE;
 	}
 }

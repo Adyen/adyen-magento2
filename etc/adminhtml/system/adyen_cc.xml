@@ -47,16 +47,6 @@
             <source_model>Adyen\Payment\Model\Config\Source\CcType</source_model>
             <config_path>payment/adyen_cc/cctypes</config_path>
         </field>
-        <field id="cse_library_token_test" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Library token of Test Adyen Web Service User</label>
-            <tooltip>Copy this from the Test Adyen Customer Area => Settings => Users => System => [web service user]=> Library token.</tooltip>
-            <config_path>payment/adyen_cc/cse_library_token_test</config_path>
-        </field>
-        <field id="cse_library_token_live" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Library token of Live Adyen Web Service User</label>
-            <tooltip>Copy this from the Live Adyen Customer Area => Settings => Users => System => [web service user]=> Library token.</tooltip>
-            <config_path>payment/adyen_cc/cse_library_token_live</config_path>
-        </field>
 
         <group id="adyen_cc_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" sortOrder="150">
             <label>Advanced Settings</label>
