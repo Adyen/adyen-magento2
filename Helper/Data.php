@@ -1151,15 +1151,16 @@ class Data extends AbstractHelper
         return $formFields;
     }
 
-    public function getApiKey()
+    /**
+     * @param integer|null $storeId
+     * @return string the X API Key for the specified or current store
+     */
+    public function getApiKey($storeId = null)
     {
-        switch ($this->isDemoMode()) {
-            case true:
-                $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_test')));
-                break;
-            default:
-                $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_live')));
-                break;
+        if ($this->isDemoMode($storeId)) {
+            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_test')));
+        } else {
+            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_live')));
         }
         return $apiKey;
     }
