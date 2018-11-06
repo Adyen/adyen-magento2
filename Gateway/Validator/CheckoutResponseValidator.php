@@ -97,14 +97,15 @@ class CheckoutResponseValidator extends AbstractValidator
 				case "RedirectShopper":
 					$payment->setAdditionalInformation('3dActive', true);
 
-					$issuerUrl = $response['redirect']['url'];
-					$paReq = $response['redirect']['data']['PaReq'];
-					$md = $response['redirect']['data']['MD'];
-
-					if (!empty($paReq) && !empty($md) && !empty($issuerUrl)) {
+					if (!empty($paReq = $response['redirect']['data']['PaReq']) &&
+						!empty($md = $response['redirect']['data']['MD']) &&
+						!empty($issuerUrl = $response['redirect']['url']) &&
+						!empty($paymentData = $response['paymentData'])
+					) {
 						$payment->setAdditionalInformation('issuerUrl', $issuerUrl);
 						$payment->setAdditionalInformation('paRequest', $paReq);
 						$payment->setAdditionalInformation('md', $md);
+						$payment->setAdditionalInformation('paymentData', $paymentData);
 					} else {
 						$isValid = false;
 						$errorMsg = __('3D secure is not valid.');

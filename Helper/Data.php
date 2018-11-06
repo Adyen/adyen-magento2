@@ -97,11 +97,6 @@ class Data extends AbstractHelper
     protected $adyenLogger;
 
 	/**
-	 * @var \Adyen\Service\ServiceFactory
-	 */
-    protected $adyenServiceFactory;
-
-	/**
 	 * @var \Magento\Store\Model\StoreManagerInterface
 	 */
     protected $storeManager;
@@ -1405,7 +1400,7 @@ class Data extends AbstractHelper
 
 		$client = $this->initializeAdyenClient();
 
-		$service = $this->adyenServiceFactory->createCheckoutUtility($client);
+		$service = $this->createAdyenCheckoutUtilityService($client);
 		$respone = $service->originKeys($params);
 
 		if (empty($originKey = $respone['originKeys'][$url])) {
@@ -1425,5 +1420,15 @@ class Data extends AbstractHelper
 		}
 
 		return self::CHECKOUT_CONTEXT_URL_LIVE;
+	}
+
+	/**
+	 * @param \Adyen\Clien $client
+	 * @return \Adyen\Service\CheckoutUtility
+	 * @throws \Adyen\AdyenException
+	 */
+	private function createAdyenCheckoutUtilityService($client)
+	{
+		return new \Adyen\Service\CheckoutUtility($client);
 	}
 }
