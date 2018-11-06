@@ -661,11 +661,7 @@ class Data extends AbstractHelper
 	 */
 	public function getLiveEndpointPrefix($storeId = null)
 	{
-		if ($this->isDemoMode($storeId)) {
-			$prefix = "";
-		} else {
-			$prefix = trim($this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId));
-		}
+		$prefix = trim($this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId));
 		return $prefix;
 	}
 
