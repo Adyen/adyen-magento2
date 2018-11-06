@@ -71,35 +71,21 @@ class PosCloudResponseValidator extends AbstractValidator
 
         // Check for errors
         if (!empty($response['error'])) {
-            if (strpos($response['error'], "Could not connect") !== false) {
+            if (!empty($response['code']) && $response['code'] == CURLE_OPERATION_TIMEOUTED) {
                 // Do the status call(try to place an order)
                 return $this->createResult($isValid, $errorMessages);
             } else {
+                $this->adyenLogger->error(json_encode($response));
                 throw new \Magento\Framework\Exception\LocalizedException(__($response['error']));
             }
-        }
-
-        // We receive a SaleToPOIRequest when the terminal is not reachable
-        if (!empty($response['SaleToPOIRequest'])){
-            throw new \Magento\Framework\Exception\LocalizedException(__("The terminal could not be reached."));
-        }
-
-        // Check if Status or PaymentResponse
-        if (!empty($response['SaleToPOIResponse']['TransactionStatusResponse'])) {
-            $statusResponse = $response['SaleToPOIResponse']['TransactionStatusResponse'];
-            if ($statusResponse['Response']['Result'] == 'Failure') {
-                $errorMsg = __('In Progress');
-                throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
-            } else {
-                $paymentResponse = $statusResponse['RepeatedMessageResponse']['RepeatedResponseMessageBody']['PaymentResponse'];
-            }
         } else {
-            $paymentResponse = $response['SaleToPOIResponse']['PaymentResponse'];
+            $paymentResponse = $response;
         }
 
         if (!empty($paymentResponse) && $paymentResponse['Response']['Result'] != 'Success') {
             $errorMsg = __($paymentResponse['Response']['ErrorCondition']);
             $this->adyenLogger->error($errorMsg);
+            $this->adyenLogger->error(json_encode($response));
             throw new \Magento\Framework\Exception\LocalizedException(__("The transaction could not be completed."));
         }
 
