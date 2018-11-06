@@ -61,6 +61,13 @@
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/api_key_live</config_path>
         </field>
+        <field id="live_endpoint_url_prefix" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Live endpoint prefix</label>
+            <tooltip><![CDATA[e.g. if your live endpoint is: <br/> <i>https://1234a567bcd89ef0-MagentoCompany-checkout-live.adyenpayments.com</i> <br/> please type:  <strong>1234a567bcd89ef0-MagentoCompany</strong> in this field.]]></tooltip>
+            <comment><![CDATA[Provide the unique live url prefix: <strong>[random]-[company name]</strong> from the "API URLs and Response" menu in the Adyen Customer Area. For more information, please check <a href="https://docs.adyen.com/developers/development-resources/live-endpoints#checkoutendpoints">  our documentation</a>.]]></comment>
+            <config_path>payment/adyen_abstract/live_endpoint_url_prefix</config_path>
+        </field>
+
         <field id="capture_mode" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Capture Delay</label>
             <tooltip>Immediate is the default. Set to manual if you want to perform the capture of funds manually later (only affects credit cards and a few alternative payment methods). You need to change this setting as well in Adyen Customer Area => Settings => Merchant Settings => Capture Delay. If you have selected a capture delay of a couple of days in Adyen keep it here on immediate</tooltip>

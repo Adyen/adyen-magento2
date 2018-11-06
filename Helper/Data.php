@@ -127,7 +127,6 @@ class Data extends AbstractHelper
 	 * @param \Magento\Tax\Model\Calculation $taxCalculation
 	 * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
 	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-	 * @param \Adyen\Service\ServiceFactory $adyenServiceFactory
 	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
 	 * @param \Magento\Framework\App\CacheInterface $cache
 	 */
@@ -145,7 +144,6 @@ class Data extends AbstractHelper
         \Magento\Tax\Model\Calculation $taxCalculation,
 		\Magento\Framework\App\ProductMetadataInterface $productMetadata,
 		\Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-		\Adyen\Service\ServiceFactory $adyenServiceFactory,
 		\Magento\Store\Model\StoreManagerInterface $storeManager,
 		\Magento\Framework\App\CacheInterface $cache
 
@@ -163,7 +161,6 @@ class Data extends AbstractHelper
         $this->_taxCalculation = $taxCalculation;
         $this->productMetadata = $productMetadata;
         $this->adyenLogger = $adyenLogger;
-        $this->adyenServiceFactory = $adyenServiceFactory;
         $this->storeManager = $storeManager;
         $this->cache = $cache;
     }
@@ -587,10 +584,12 @@ class Data extends AbstractHelper
         return $secretWord;
     }
 
-    /**
-     * @desc Check if configuration is set to demo mode
-     * @return mixed
-     */
+	/**
+	 * @desc Check if configuration is set to demo mode
+	 *
+	 * @param int|null $storeId
+	 * @return mixed
+	 */
     public function isDemoMode($storeId = null)
     {
         return $this->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
@@ -607,6 +606,8 @@ class Data extends AbstractHelper
 
 	/**
 	 * @desc Retrieve the API key
+	 *
+	 * @param int|null $storeId
 	 * @return string
 	 */
 	public function getAPIKey($storeId = null)
@@ -623,6 +624,8 @@ class Data extends AbstractHelper
 
 	/**
 	 * @desc Retrieve the webserver username
+	 *
+	 * @param int|null $storeId
 	 * @return string
 	 */
 	public function getWsUsername($storeId = null)
@@ -633,6 +636,18 @@ class Data extends AbstractHelper
 			$wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_live', $storeId));
 		}
 		return $wsUsername;
+	}
+
+	/**
+	 * @desc Retrieve the Live endpoint prefix key
+	 *
+	 * @param int|null $storeId
+	 * @return string
+	 */
+	public function getLiveEndpointPrefix($storeId = null)
+	{
+		$prefix = trim($this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId));
+		return $prefix;
 	}
 
     /**
@@ -1186,7 +1201,7 @@ class Data extends AbstractHelper
 		if ($this->isDemoMode($storeId)) {
 			$client->setEnvironment(\Adyen\Environment::TEST);
 		} else {
-			$client->setEnvironment(\Adyen\Environment::LIVE);
+			$client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
 		}
 
 		$client->setLogger($this->adyenLogger);
