@@ -97,11 +97,6 @@ class Data extends AbstractHelper
     protected $adyenLogger;
 
 	/**
-	 * @var \Adyen\Service\ServiceFactory
-	 */
-    protected $adyenServiceFactory;
-
-	/**
 	 * @var \Magento\Store\Model\StoreManagerInterface
 	 */
     protected $storeManager;
@@ -127,7 +122,6 @@ class Data extends AbstractHelper
 	 * @param \Magento\Tax\Model\Calculation $taxCalculation
 	 * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
 	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-	 * @param \Adyen\Service\ServiceFactory $adyenServiceFactory
 	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
 	 * @param \Magento\Framework\App\CacheInterface $cache
 	 */
@@ -145,7 +139,6 @@ class Data extends AbstractHelper
         \Magento\Tax\Model\Calculation $taxCalculation,
 		\Magento\Framework\App\ProductMetadataInterface $productMetadata,
 		\Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-		\Adyen\Service\ServiceFactory $adyenServiceFactory,
 		\Magento\Store\Model\StoreManagerInterface $storeManager,
 		\Magento\Framework\App\CacheInterface $cache
 
@@ -163,7 +156,6 @@ class Data extends AbstractHelper
         $this->_taxCalculation = $taxCalculation;
         $this->productMetadata = $productMetadata;
         $this->adyenLogger = $adyenLogger;
-        $this->adyenServiceFactory = $adyenServiceFactory;
         $this->storeManager = $storeManager;
         $this->cache = $cache;
     }
@@ -1242,7 +1234,7 @@ class Data extends AbstractHelper
 
 		$client = $this->initializeAdyenClient();
 
-		$service = $this->adyenServiceFactory->createCheckoutUtility($client);
+		$service = $this->createAdyenCheckoutUtilityService($client);
 		$respone = $service->originKeys($params);
 
 		if (empty($originKey = $respone['originKeys'][$url])) {
@@ -1262,5 +1254,15 @@ class Data extends AbstractHelper
 		}
 
 		return self::CHECKOUT_CONTEXT_URL_LIVE;
+	}
+
+	/**
+	 * @param \Adyen\Clien $client
+	 * @return \Adyen\Service\CheckoutUtility
+	 * @throws \Adyen\AdyenException
+	 */
+	private function createAdyenCheckoutUtilityService($client)
+	{
+		return new \Adyen\Service\CheckoutUtility($client);
 	}
 }
