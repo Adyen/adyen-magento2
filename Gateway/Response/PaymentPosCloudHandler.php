@@ -58,8 +58,9 @@ class PaymentPosCloudHandler implements HandlerInterface
      * Handles response
      *
      * @param array $handlingSubject
-     * @param array $response
+     * @param array $paymentResponse
      * @return void
+     * @throws Exception
      */
     public function handle(array $handlingSubject, array $paymentResponse)
     {
@@ -71,7 +72,7 @@ class PaymentPosCloudHandler implements HandlerInterface
         // set transaction not to processing by default wait for notification
         $payment->setIsTransactionPending(true);
 
-        // no not send order confirmation mail
+        // do not send order confirmation mail
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
         // set transaction(status)

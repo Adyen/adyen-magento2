@@ -67,8 +67,7 @@ class TransactionPosCloudSync implements ClientInterface
      *
      * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
      * @return array
-     * @throws \Magento\Payment\Gateway\Http\ClientException
-     * @throws \Magento\Payment\Gateway\Http\ConverterException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {

@@ -72,13 +72,15 @@ class PosCloudResponseValidator extends AbstractValidator
         // Check for errors
         if (!empty($response['error'])) {
             if (!empty($response['code']) && $response['code'] == CURLE_OPERATION_TIMEOUTED) {
-                // Do the status call(try to place an order)
+                // If the initiate call resulted in a timeout, do a status call(try to place an order)
                 return $this->createResult($isValid, $errorMessages);
             } else {
+                // There is an error which is not a timeout, stop the transaction and show the error
                 $this->adyenLogger->error(json_encode($response));
                 throw new \Magento\Framework\Exception\LocalizedException(__($response['error']));
             }
         } else {
+            // We have a paymentResponse from the terminal
             $paymentResponse = $response;
         }
 
