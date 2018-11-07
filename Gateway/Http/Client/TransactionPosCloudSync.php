@@ -72,7 +72,7 @@ class TransactionPosCloudSync implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
-        if (!empty($request['response']) && !empty($request['response']['SaleToPOIResponse']['PaymentResponse'])) {
+        if (!empty($request['response']['SaleToPOIResponse']['PaymentResponse'])) {
             $paymentResponse = $request['response']['SaleToPOIResponse']['PaymentResponse'];
             //Initiate has already a response
             return $paymentResponse;
