@@ -825,7 +825,6 @@ class Data extends AbstractHelper
 
         $baCollection = $this->_billingAgreementCollectionFactory->create();
         $baCollection->addFieldToFilter('customer_id', $customerId);
-        $baCollection->addFieldToFilter('store_id', $storeId);
         $baCollection->addFieldToFilter('method_code', 'adyen_oneclick');
         $baCollection->addActiveFilter();
 
@@ -1184,15 +1183,16 @@ class Data extends AbstractHelper
         return $formFields;
     }
 
-    public function getApiKey()
+    /**
+     * @param integer|null $storeId
+     * @return string the X API Key for the specified or current store
+     */
+    public function getApiKey($storeId = null)
     {
-        switch ($this->isDemoMode()) {
-            case true:
-                $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_test')));
-                break;
-            default:
-                $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_live')));
-                break;
+        if ($this->isDemoMode($storeId)) {
+            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_test')));
+        } else {
+            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_live')));
         }
         return $apiKey;
     }
@@ -1241,6 +1241,18 @@ class Data extends AbstractHelper
         return $formatted;
     }
 
+    /**
+     * @param $customerId int|string the numerice ID of the customer
+     * @return string customer ID, prefixed by customer_reference_prefix if that is set
+     */
+    public function getCustomerReference($customerId)
+    {
+        $prefix = $this->getAdyenOneclickConfigData('customer_reference_prefix');
+        if (empty($prefix)) {
+            return strval($customerId);
+        }
+        return $prefix . strval($customerId);
+    }
 
 	/**
 	 * Initializes and returns Adyen Client and sets the required parameters of it

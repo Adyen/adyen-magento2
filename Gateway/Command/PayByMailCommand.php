@@ -196,7 +196,7 @@ class PayByMailCommand implements CommandInterface
 
         if ($customerId > 0) {
             $formFields['recurringContract'] = $recurringType;
-            $formFields['shopperReference']  = $customerId;
+            $formFields['shopperReference']  = $this->_adyenHelper->getCustomerReference($customerId);
         }
 
         // Sign request using secret key
