@@ -295,7 +295,7 @@ class Cron
         $dateStart = new \DateTime();
         $dateStart->modify('-5 day');
         $dateEnd = new \DateTime();
-        $dateEnd->modify('-1 minute');
+        // $dateEnd->modify('-1 minute');
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
 
         // create collection
@@ -324,22 +324,6 @@ class Cron
                 );
                 $this->_updateNotification($notification, false, true);
                 ++$count;
-                continue;
-            }
-
-            /**
-             *  If the event is a RECURRING_CONTRACT wait an extra 5 minutes
-             * before processing so we are sure the RECURRING_CONTRACT
-             */
-            if (trim($notification->getEventCode()) == Notification::RECURRING_CONTRACT &&
-                strtotime($notification->getCreatedAt()) >= strtotime('-5 minutes', time())
-            ) {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    "This is a recurring_contract notification wait an extra 5 minutes 
-                    before processing this to make sure the contract exists"
-                );
-                // set processing back to false
-                $this->_updateNotification($notification, false, false);
                 continue;
             }
 
@@ -930,7 +914,8 @@ class Cron
                 $recurringDetailReference = $this->_pspReference;
 
                 $storeId = $this->_order->getStoreId();
-                $customerReference = $this->_order->getCustomerId();
+                $customerId = $this->_order->getCustomerId();
+                $customerReference = $this->_adyenHelper->getCustomerReference($customerId);
                 $listRecurringContracts = null;
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     __('CustomerReference is: %1 and storeId is %2 and RecurringDetailsReference is %3',
@@ -967,7 +952,7 @@ class Cron
                     }
 
                     $billingAgreements = $this->_billingAgreementCollectionFactory->create();
-                    $billingAgreements->addFieldToFilter('customer_id', $customerReference);
+                    $billingAgreements->addFieldToFilter('customer_id', $customerId);
 
                     // Get collection and update existing agreements
 

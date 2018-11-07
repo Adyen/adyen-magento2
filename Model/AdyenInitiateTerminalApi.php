@@ -38,6 +38,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     private $_appState;
 
     protected $_checkoutSession;
+    private $_customerCollectionFactory;
 
     /**
      * AdyenInitiateTerminalApi constructor.
@@ -45,7 +46,9 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param RecurringType $recurringType
+     * @param \Adyen\Payment\Model\RecurringType $recurringType
+     * @param \Magento\Checkout\Model\Session $_checkoutSession
+     * @param \Magento\Customer\Model\ResourceModel\Customer\CollectionFactory $customerCollectionFactory
      * @param array $data
      */
     public function __construct(
@@ -55,6 +58,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Model\RecurringType $recurringType,
         \Magento\Checkout\Model\Session $_checkoutSession,
+        \Magento\Customer\Model\ResourceModel\Customer\CollectionFactory $customerCollectionFactory,
         array $data = []
     )
     {
@@ -64,6 +68,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
         $this->_checkoutSession = $_checkoutSession;
+        $this->_customerCollectionFactory = $customerCollectionFactory;
 
         // initialize client
         $apiKey = $this->_adyenHelper->getApiKey();
@@ -149,6 +154,19 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                 ],
         ];
 
+        if (empty($customerId)) {
+            // No customer ID in quote but the customer might still exist; so find him/her by email address
+            $shopperEmail = $quote->getCustomerEmail();
+            $collection = $this->_customerCollectionFactory->create();
+            $collection->addAttributeToSelect('*');
+            $collection->addFieldToFilter('email', ['eq' => $shopperEmail]);
+            $customer = $collection->getFirstItem();
+
+            if ($customer && !empty($customer->getId())) {
+                $customerId = $customer->getId();
+            }
+        }
+
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
             $shopperEmail = $quote->getCustomerEmail();
@@ -157,7 +175,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             if (!empty($recurringContract) && !empty($shopperEmail) && !empty($customerId)) {
                 $recurringDetails = [
                     'shopperEmail' => $shopperEmail,
-                    'shopperReference' => strval($customerId),
+                    'shopperReference' => $this->_adyenHelper->getCustomerReference($customerId),
                     'recurringContract' => $recurringContract
                 ];
                 $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = http_build_query($recurringDetails);
