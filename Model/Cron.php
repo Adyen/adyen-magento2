@@ -122,6 +122,11 @@ class Cron
     /**
      * @var
      */
+    protected $ratepayDescriptor;
+
+    /**
+     * @var
+     */
     protected $_eventCode;
 
     /**
@@ -531,6 +536,10 @@ class Cron
             if ($acquirerReference != "") {
                 $this->_acquirerReference = $acquirerReference;
             }
+            $ratepayDescriptor = isset($additionalData['openinvoicedata.descriptor']) ? $additionalData['openinvoicedata.descriptor'] : null;
+            if ($ratepayDescriptor != "") {
+                $this->ratepayDescriptor = $ratepayDescriptor;
+            }
         }
     }
 
@@ -730,6 +739,12 @@ class Cron
         if (!empty($expiryDate)) {
             $this->_order->getPayment()->setAdditionalInformation('adyen_expiry_date', $expiryDate);
         }
+        if ($this->ratepayDescriptor != "") {
+            $this->_order->getPayment()->setAdditionalInformation(
+                'adyen_ratepay_descriptor', $this->ratepayDescriptor
+            );
+        }
+
     }
 
     /**
