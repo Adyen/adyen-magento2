@@ -57,6 +57,9 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         } else {
             $config['payment']['adyen']['showLogo'] = false;
         }
+
+		$config['payment']['checkoutCardComponentSource'] = $this->_adyenHelper->getCheckoutCardComponentJs();
+
         return $config;
     }
     /**

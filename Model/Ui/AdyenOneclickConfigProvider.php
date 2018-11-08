@@ -72,16 +72,17 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
      */
     private $ccConfig;
 
-    /**
-     * AdyenOneclickConfigProvider constructor.
-     *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Framework\App\RequestInterface $request
-     * @param \Magento\Customer\Model\Session $customerSession
-     * @param \Magento\Checkout\Model\Session $session
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Framework\UrlInterface $urlBuilder
-     */
+	/**
+	 * AdyenOneclickConfigProvider constructor.
+	 *
+	 * @param \Adyen\Payment\Helper\Data $adyenHelper
+	 * @param \Magento\Framework\App\RequestInterface $request
+	 * @param \Magento\Customer\Model\Session $customerSession
+	 * @param \Magento\Checkout\Model\Session $session
+	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+	 * @param \Magento\Framework\UrlInterface $urlBuilder
+	 * @param \Magento\Payment\Model\CcConfig $ccConfig
+	 */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\App\RequestInterface $request,
@@ -131,6 +132,11 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             ]
         ]);
 
+		$config['payment']['adyenOneclick']['methodCode'] = self::CODE;
+		$config['payment']['adyenOneclick']['originKey'] = $this->_adyenHelper->getOriginKeyForBaseUrl();
+		$config['payment']['adyenOneclick']['checkoutUrl'] = $this->_adyenHelper->getCheckoutContextUrl($this->_storeManager->getStore()->getId());
+		$config['payment']['adyenOneclick']['locale'] = $this->_adyenHelper->getStoreLocale($this->_storeManager->getStore()->getId());
+
         $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type');
         $canCreateBillingAgreement = false;
         if ($recurringType == "ONECLICK" || $recurringType == "ONECLICK,RECURRING") {
@@ -174,6 +180,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
                 $recurringType
             );
         }
+
         return $billingAgreements;
     }
 

@@ -29,8 +29,7 @@ define(
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/model/installments',
-        'mage/url',
-        'Adyen_Payment/js/adyen.2.0.0'
+        'mage/url'
     ],
     function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url) {
 
@@ -80,13 +79,13 @@ define(
                 var allInstallments = self.getAllInstallments();
                 var cardNode = document.getElementById('cardContainer');
 
-                var checkout = new Adyen.Checkout({
-                    locale: window.checkoutConfig.payment.adyenCc.locale
+                var checkout = new AdyenCheckout({
+                    locale: self.getLocale()
                 });
 
                 var card = checkout.create('card', {
-                    originKey: window.checkoutConfig.payment.adyenCc.originKey,
-                    loadingContext: window.checkoutConfig.payment.adyenCc.checkoutUrl,
+                    originKey: self.getOriginKey(),
+                    loadingContext: self.getLoadingContext(),
                     type: 'card',
                     groupTypes: self.getAvailableCardTypeAltCodes(),
 
@@ -96,7 +95,7 @@ define(
                         var creditCardType = self.getCcCodeByAltCode(state.brand);
 
                         if (creditCardType) {
-                            /* If the credit card type is already set, check if it changed or not */
+                            // If the credit card type is already set, check if it changed or not
                             if (!self.creditCardType() || self.creditCardType() && self.creditCardType() != creditCardType) {
                                 if (creditCardType in allInstallments) {
 
@@ -309,6 +308,15 @@ define(
              */
             getCode: function () {
                 return window.checkoutConfig.payment.adyenCc.methodCode;
+            },
+            getOriginKey: function () {
+                return window.checkoutConfig.payment.adyenCc.originKey;
+            },
+            getLoadingContext: function () {
+                return window.checkoutConfig.payment.adyenCc.checkoutUrl;
+            },
+            getLocale: function () {
+                return window.checkoutConfig.payment.adyenCc.locale;
             },
             isActive: function () {
                 return true;

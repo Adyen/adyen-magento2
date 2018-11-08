@@ -406,7 +406,7 @@
         <arguments>
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentOneclickAuthorizeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
-            <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionAuthorization</argument>
+            <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
             <argument name="validator" xsi:type="object">GeneralResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentCcResponseHandlerComposite</argument>
         </arguments>
