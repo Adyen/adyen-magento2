@@ -85,4 +85,9 @@ $_isDemoMode = $block->isDemoMode();
     </table>
 <?php endif;?>
 
+<?php if ($ratepayDescriptor = $_info->getAdditionalInformation('adyen_ratepay_descriptor')):?>
+    <div><?php echo __('Invoice Descriptor: %1', $ratepayDescriptor); ?>
+    </div>
+<?php endif;?>
+
 <?php echo $block->getChildHtml()?>
