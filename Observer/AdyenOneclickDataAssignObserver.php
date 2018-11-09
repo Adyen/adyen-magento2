@@ -32,7 +32,7 @@ use Magento\Quote\Api\Data\PaymentInterface;
 class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
 {
     const RECURRING_DETAIL_REFERENCE = 'recurring_detail_reference';
-    const ENCRYPTED_DATA = 'encrypted_data';
+	const SECURITY_CODE = 'cvc';
     const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
 
     /**
@@ -40,7 +40,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
      */
     protected $additionalInformationList = [
         self::RECURRING_DETAIL_REFERENCE,
-        self::ENCRYPTED_DATA,
+		self::SECURITY_CODE,
         self::NUMBER_OF_INSTALLMENTS
     ];
 
