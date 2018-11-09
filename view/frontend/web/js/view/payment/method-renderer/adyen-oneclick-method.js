@@ -266,7 +266,7 @@ define(
                             var cid = true;
                             if (this.agreement_data.card) {
                                 // if encrypted cvc is empty the request is not valid
-                                if (this.encryptedCreditCardVerificationNumber.length === 0) {
+                                if (this.hasVerification() && this.encryptedCreditCardVerificationNumber.length === 0) {
                                     cid = false;
                                 }
                             }
