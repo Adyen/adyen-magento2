@@ -38,17 +38,11 @@ class SepaAuthorizationDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $request = [];
 
-        // set brand to sepa
-        $request['selectedBrand'] = "sepadirectdebit";
-
-        // add bankDetails into request
-        $bankAccount = [
-            'iban' => $payment->getAdditionalInformation("iban"),
-            'ownerName' => $payment->getAdditionalInformation("account_name"),
-            'countryCode' => $payment->getAdditionalInformation("country")
-        ];
-
-        $request['bankAccount'] = $bankAccount;
+		// add bankDetails into request
+		$request['paymentMethod']['type'] = "sepadirectdebit";
+		$request['paymentMethod']['sepa.ibanNumber'] = $payment->getAdditionalInformation("iban");
+		$request['paymentMethod']['sepa.ownerName'] = $payment->getAdditionalInformation("account_name");
+		$request['paymentMethod']['countryCode'] = $payment->getAdditionalInformation("country");
         
         return $request;
     }
