@@ -39,11 +39,6 @@ class CcAuthorizationDataBuilder implements BuilderInterface
 	private $appState;
 
 	/**
-	 * @var \Adyen\Payment\Logger\AdyenLogger
-	 */
-	protected $_adyenLogger;
-
-	/**
 	 * CcAuthorizationDataBuilder constructor.
 	 *
 	 * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -51,13 +46,11 @@ class CcAuthorizationDataBuilder implements BuilderInterface
 	 */
 	public function __construct(
 		\Adyen\Payment\Helper\Data $adyenHelper,
-		\Magento\Framework\Model\Context $context,
-		\Adyen\Payment\Logger\AdyenLogger $adyenLogger
+		\Magento\Framework\Model\Context $context
 	)
 	{
 		$this->adyenHelper = $adyenHelper;
 		$this->appState = $context->getAppState();
-		$this->_adyenLogger = $adyenLogger;
 	}
 
 	/**
@@ -74,11 +67,25 @@ class CcAuthorizationDataBuilder implements BuilderInterface
 		$request = [];
 
 		$request['paymentMethod']['type'] = "scheme";
-		$request['paymentMethod']['encryptedCardNumber'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::CREDIT_CARD_NUMBER);
-		$request['paymentMethod']['encryptedExpiryMonth'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::EXPIRY_MONTH);
-		$request['paymentMethod']['encryptedExpiryYear'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::EXPIRY_YEAR);
+
+		if ($cardNumber = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::CREDIT_CARD_NUMBER)) {
+			$request['paymentMethod']['encryptedCardNumber'] = $cardNumber;
+		}
+
+		if ($expiryMonth = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::EXPIRY_MONTH)) {
+			$request['paymentMethod']['encryptedExpiryMonth'] = $expiryMonth;
+		}
+
+		if ($expiryYear = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::EXPIRY_YEAR)) {
+			$request['paymentMethod']['encryptedExpiryYear'] = $expiryYear;
+		}
+
+		if ($holderName = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME)) {
+			$request['paymentMethod']['holderName'] = $holderName;
+		}
+
+		// The encrypted security code is required in both cc and oneclick
 		$request['paymentMethod']['encryptedSecurityCode'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::SECURITY_CODE);
-		$request['paymentMethod']['holderName'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME);
 
 		// Remove from additional data
 		$payment->unsAdditionalInformation(AdyenCcDataAssignObserver::CREDIT_CARD_NUMBER);

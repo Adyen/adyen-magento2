@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class OneclickAuthorizationDataBuilder implements BuilderInterface
@@ -53,7 +54,6 @@ class OneclickAuthorizationDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        $recurringDetailReference = $payment->getAdditionalInformation("recurring_detail_reference");
 
         if ($payment->getAdditionalInformation('customer_interaction')) {
             $shopperInteraction = "Ecommerce";
@@ -61,8 +61,8 @@ class OneclickAuthorizationDataBuilder implements BuilderInterface
             $shopperInteraction = "ContAuth";
         }
 
-        $request['selectedRecurringDetailReference'] =  $recurringDetailReference;
         $request['shopperInteraction'] = $shopperInteraction;
+        $request['paymentMethod']['recurringDetailReference'] = $payment->getAdditionalInformation(AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE);
 
         // if it is a sepadirectdebit set selectedBrand to sepadirectdebit in the case of oneclick
         if ($payment->getCcType() == "sepadirectdebit") {

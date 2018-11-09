@@ -153,14 +153,6 @@ define(
                                 event.preventDefault();
                             }
 
-                            var data = {
-                                "method": self.method,
-                                "additional_data": {
-                                    variant: self.agreement_data.variant,
-                                    recurring_detail_reference: self.value
-                                }
-                            }
-
                             // only use installments for cards
                             if (self.agreement_data.card) {
                                 if (self.hasVerification()) {
@@ -249,7 +241,7 @@ define(
 
                             return {
                                 "method": self.method,
-                                "additional_data": {
+                                additional_data: {
                                     variant: variant(),
                                     recurring_detail_reference: recurringDetailReference(),
                                     number_of_installments: numberOfInstallments(),
