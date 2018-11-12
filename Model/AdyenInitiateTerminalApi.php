@@ -144,19 +144,6 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                 ],
         ];
 
-        if (empty($customerId)) {
-            // No customer ID in quote but the customer might still exist; so find him/her by email address
-            $shopperEmail = $quote->getCustomerEmail();
-            $collection = $this->_customerCollectionFactory->create();
-            $collection->addAttributeToSelect('*');
-            $collection->addFieldToFilter('email', ['eq' => $shopperEmail]);
-            $customer = $collection->getFirstItem();
-
-            if ($customer && !empty($customer->getId())) {
-                $customerId = $customer->getId();
-            }
-        }
-
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
             $shopperEmail = $quote->getCustomerEmail();
@@ -165,7 +152,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             if (!empty($recurringContract) && !empty($shopperEmail) && !empty($customerId)) {
                 $recurringDetails = [
                     'shopperEmail' => $shopperEmail,
-                    'shopperReference' => $this->_adyenHelper->getCustomerReference($customerId),
+                    'shopperReference' => strval($customerId),
                     'recurringContract' => $recurringContract
                 ];
                 $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = http_build_query($recurringDetails);

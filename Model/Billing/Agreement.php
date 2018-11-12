@@ -70,11 +70,11 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
     /**
      * Not yet possible to set different reference on customer level like magento 1.x version
      *
-     * @return string
+     * @return int
      */
     public function getCustomerReference()
     {
-        return $this->_adyenHelper->getCustomerReference($this->getCustomerId());
+        return $this->getCustomerId();
     }
 
     /**

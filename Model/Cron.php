@@ -300,7 +300,7 @@ class Cron
         $dateStart = new \DateTime();
         $dateStart->modify('-5 day');
         $dateEnd = new \DateTime();
-        // $dateEnd->modify('-1 minute');
+        $dateEnd->modify('-1 minute');
         $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
 
         // create collection
@@ -929,8 +929,7 @@ class Cron
                 $recurringDetailReference = $this->_pspReference;
 
                 $storeId = $this->_order->getStoreId();
-                $customerId = $this->_order->getCustomerId();
-                $customerReference = $this->_adyenHelper->getCustomerReference($customerId);
+                $customerReference = $this->_order->getCustomerId();
                 $listRecurringContracts = null;
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     __('CustomerReference is: %1 and storeId is %2 and RecurringDetailsReference is %3',
@@ -967,7 +966,7 @@ class Cron
                     }
 
                     $billingAgreements = $this->_billingAgreementCollectionFactory->create();
-                    $billingAgreements->addFieldToFilter('customer_id', $customerId);
+                    $billingAgreements->addFieldToFilter('customer_id', $customerReference);
 
                     // Get collection and update existing agreements
 

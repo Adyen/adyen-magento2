@@ -31,20 +31,6 @@ class CustomerDataBuilder implements BuilderInterface
 {
 
     /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    private $adyenHelper;
-
-    /**
-     * CustomerDataBuilder constructor.
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
-    {
-        $this->adyenHelper = $adyenHelper;
-    }
-
-    /**
      * Add shopper data into request
      * 
      * @param array $buildSubject
@@ -63,7 +49,7 @@ class CustomerDataBuilder implements BuilderInterface
         $customerId = $order->getCustomerId();
 
         if ($customerId > 0) {
-            $result['shopperReference'] = $this->adyenHelper->getCustomerReference($customerId);
+            $result['shopperReference'] = $customerId;
         }
 
         $result ['shopperEmail'] = $customerEmail;
