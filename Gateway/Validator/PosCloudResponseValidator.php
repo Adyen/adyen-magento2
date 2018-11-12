@@ -71,32 +71,17 @@ class PosCloudResponseValidator extends AbstractValidator
 
         // Check for errors
         if (!empty($response['error'])) {
-            if (strpos($response['error'], "Could not connect") !== false) {
-                // Do the status call(try to place an order)
+            if (!empty($response['code']) && $response['code'] == CURLE_OPERATION_TIMEOUTED) {
+                // If the initiate call resulted in a timeout, do a status call(try to place an order)
                 return $this->createResult($isValid, $errorMessages);
             } else {
+                // There is an error which is not a timeout, stop the transaction and show the error
                 $this->adyenLogger->error(json_encode($response));
                 throw new \Magento\Framework\Exception\LocalizedException(__($response['error']));
             }
-        }
-
-        // We receive a SaleToPOIRequest when the terminal is not reachable
-        if (!empty($response['SaleToPOIRequest'])){
-            $this->adyenLogger->error(json_encode($response));
-            throw new \Magento\Framework\Exception\LocalizedException(__("The terminal could not be reached."));
-        }
-
-        // Check if Status or PaymentResponse
-        if (!empty($response['SaleToPOIResponse']['TransactionStatusResponse'])) {
-            $statusResponse = $response['SaleToPOIResponse']['TransactionStatusResponse'];
-            if ($statusResponse['Response']['Result'] == 'Failure') {
-                $errorMsg = __('In Progress');
-                throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
-            } else {
-                $paymentResponse = $statusResponse['RepeatedMessageResponse']['RepeatedResponseMessageBody']['PaymentResponse'];
-            }
         } else {
-            $paymentResponse = $response['SaleToPOIResponse']['PaymentResponse'];
+            // We have a paymentResponse from the terminal
+            $paymentResponse = $response;
         }
 
         if (!empty($paymentResponse) && $paymentResponse['Response']['Result'] != 'Success') {

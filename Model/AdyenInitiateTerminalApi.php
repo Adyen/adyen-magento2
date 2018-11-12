@@ -41,28 +41,20 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
     /**
      * AdyenInitiateTerminalApi constructor.
-     * @param \Magento\Framework\Model\Context $context
-     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param RecurringType $recurringType
+     * @param \Magento\Checkout\Model\Session $_checkoutSession
      * @param array $data
      */
     public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Model\RecurringType $recurringType,
         \Magento\Checkout\Model\Session $_checkoutSession,
         array $data = []
     )
     {
-        $this->_encryptor = $encryptor;
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
-        $this->_recurringType = $recurringType;
-        $this->_appState = $context->getAppState();
         $this->_checkoutSession = $_checkoutSession;
 
         // initialize client
@@ -90,9 +82,8 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
     /**
      * Trigger sync call on terminal
-     *
      * @return mixed
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Exception
      */
     public function initiate()
     {

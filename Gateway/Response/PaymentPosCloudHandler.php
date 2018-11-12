@@ -58,10 +58,11 @@ class PaymentPosCloudHandler implements HandlerInterface
      * Handles response
      *
      * @param array $handlingSubject
-     * @param array $response
+     * @param array $paymentResponse
      * @return void
+     * @throws Exception
      */
-    public function handle(array $handlingSubject, array $response)
+    public function handle(array $handlingSubject, array $paymentResponse)
     {
         $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
@@ -71,15 +72,8 @@ class PaymentPosCloudHandler implements HandlerInterface
         // set transaction not to processing by default wait for notification
         $payment->setIsTransactionPending(true);
 
-        // no not send order confirmation mail
+        // do not send order confirmation mail
         $payment->getOrder()->setCanSendNewEmailFlag(false);
-
-        if (!empty($response['SaleToPOIResponse']['TransactionStatusResponse'])) {
-            $statusResponse = $response['SaleToPOIResponse']['TransactionStatusResponse'];
-            $paymentResponse = $statusResponse['RepeatedMessageResponse']['RepeatedResponseMessageBody']['PaymentResponse'];
-        } else {
-            $paymentResponse = $response['SaleToPOIResponse']['PaymentResponse'];
-        }
 
         // set transaction(status)
         if (!empty($paymentResponse) && !empty($paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {

@@ -67,15 +67,15 @@ class TransactionPosCloudSync implements ClientInterface
      *
      * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
      * @return array
-     * @throws \Magento\Payment\Gateway\Http\ClientException
-     * @throws \Magento\Payment\Gateway\Http\ConverterException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
-        if (!empty($request['response'])) {
+        if (!empty($request['response']['SaleToPOIResponse']['PaymentResponse'])) {
+            $paymentResponse = $request['response']['SaleToPOIResponse']['PaymentResponse'];
             //Initiate has already a response
-            return $request['response'];
+            return $paymentResponse;
         }
         //always do status call and return the response of the status call
         $service = new \Adyen\Service\PosPayment($this->_client);
@@ -123,8 +123,23 @@ class TransactionPosCloudSync implements ClientInterface
             $response = $service->runTenderSync($request);
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
+            return $response;
         }
 
-        return $response;
+        if (!empty($response['SaleToPOIResponse']['TransactionStatusResponse'])) {
+            $statusResponse = $response['SaleToPOIResponse']['TransactionStatusResponse'];
+            if ($statusResponse['Response']['Result'] == 'Failure') {
+                $errorMsg = __('In Progress');
+                throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
+            } else {
+                $paymentResponse = $statusResponse['RepeatedMessageResponse']['RepeatedResponseMessageBody']['PaymentResponse'];
+            }
+        } else {
+            // probably SaleToPOIRequest, that means terminal unreachable, log the response as error
+            $this->adyenLogger->error(json_encode($response));
+            throw new \Magento\Framework\Exception\LocalizedException(__("The terminal could not be reached."));
+        }
+
+        return $paymentResponse;
     }
 }
