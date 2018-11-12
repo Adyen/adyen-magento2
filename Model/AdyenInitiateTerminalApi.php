@@ -38,28 +38,24 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     private $_appState;
 
     protected $_checkoutSession;
-    private $_customerCollectionFactory;
 
     /**
      * AdyenInitiateTerminalApi constructor.
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Checkout\Model\Session $_checkoutSession
-     * @param \Magento\Customer\Model\ResourceModel\Customer\CollectionFactory $customerCollectionFactory
      * @param array $data
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Checkout\Model\Session $_checkoutSession,
-        \Magento\Customer\Model\ResourceModel\Customer\CollectionFactory $customerCollectionFactory,
         array $data = []
     )
     {
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
         $this->_checkoutSession = $_checkoutSession;
-        $this->_customerCollectionFactory = $customerCollectionFactory;
 
         // initialize client
         $apiKey = $this->_adyenHelper->getApiKey();
