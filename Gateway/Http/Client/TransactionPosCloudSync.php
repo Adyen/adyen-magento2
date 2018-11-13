@@ -49,8 +49,7 @@ class TransactionPosCloudSync implements ClientInterface
         $this->_adyenLogger = $adyenLogger;
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
-        $this->storeManager = $storeManager;
-        $this->storeId = $this->storeManager->getStore()->getId();
+        $this->storeId = $storeManager->getStore()->getId();
 
         // initialize client
         $client = $this->_adyenHelper->initializeAdyenClient($this->storeId);

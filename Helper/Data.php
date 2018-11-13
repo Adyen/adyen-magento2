@@ -1216,10 +1216,10 @@ class Data extends AbstractHelper
      * return the merchant account name defined in required settings.
      *
      * @param $paymentMethod
-     * @param int|null $storeId
+     * @param int $storeId
      * @return string
      */
-    public function getAdyenMerchantAccount($paymentMethod, $storeId = null)
+    public function getAdyenMerchantAccount($paymentMethod, $storeId)
     {
         $merchantAccount = $this->getAdyenAbstractConfigData("merchant_account", $storeId);
         $merchantAccountPos = $this->getAdyenPosCloudConfigData('pos_merchant_account', $storeId);

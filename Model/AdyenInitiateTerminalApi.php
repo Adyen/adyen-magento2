@@ -38,11 +38,6 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     private $_appState;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
-     */
-    protected $storeManager;
-
-    /**
      * @var int
      */
     protected $storeId;
@@ -69,8 +64,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
         $this->_checkoutSession = $_checkoutSession;
-        $this->storeManager = $storeManager;
-        $this->storeId = $this->storeManager->getStore()->getId();
+        $this->storeId = $storeManager->getStore()->getId();
 
         // initialize client
         $client = $this->_adyenHelper->initializeAdyenClient($this->storeId);
