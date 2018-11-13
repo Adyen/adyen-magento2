@@ -58,6 +58,7 @@ class PosCloudResponseValidator extends AbstractValidator
     /**
      * @param array $validationSubject
      * @return \Magento\Payment\Gateway\Validator\ResultInterface
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function validate(array $validationSubject)
     {
@@ -92,7 +93,7 @@ class PosCloudResponseValidator extends AbstractValidator
         }
 
         if (!empty($paymentResponse['PaymentReceipt'])) {
-            $formattedReceipt = $this->adyenHelper->formatTerminalAPIReceipt(json_encode($paymentResponse['PaymentReceipt']));
+            $formattedReceipt = $this->adyenHelper->formatTerminalAPIReceipt($paymentResponse['PaymentReceipt']);
             $payment->setAdditionalInformation('receipt', $formattedReceipt);
         }
         return $this->createResult($isValid, $errorMessages);

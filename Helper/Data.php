@@ -1188,58 +1188,79 @@ class Data extends AbstractHelper
      * @param integer|null $storeId
      * @return string the X API Key for the specified or current store
      */
-    public function getApiKey($storeId = null)
+    public function getPosApiKey($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_test')));
+            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_test', $storeId)));
         } else {
-            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_live')));
+            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_live', $storeId)));
         }
         return $apiKey;
     }
 
-    public function getPoiId()
+    /**
+     * Return the Terminal ID for the current store/mode
+     *
+     * @param int|null $storeId
+     * @return mixed
+     */
+    public function getPoiId($storeId = null)
     {
-        $poiId = $this->getAdyenPosCloudConfigData('pos_terminal_id');
+        $poiId = $this->getAdyenPosCloudConfigData('pos_terminal_id', $storeId);
         return $poiId;
     }
 
-    public function getAdyenMerchantAccount($method, $storeId)
+    /**
+     * Return the merchant account name configured for the proper payment method.
+     * If it is not configured for the specific payment method,
+     * return the merchant account name defined in required settings.
+     *
+     * @param $paymentMethod
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getAdyenMerchantAccount($paymentMethod, $storeId = null)
     {
         $merchantAccount = $this->getAdyenAbstractConfigData("merchant_account", $storeId);
         $merchantAccountPos = $this->getAdyenPosCloudConfigData('pos_merchant_account', $storeId);
 
-        if ($method == 'adyen_pos_cloud' && !empty($merchantAccountPos)) {
+        if ($paymentMethod == 'adyen_pos_cloud' && !empty($merchantAccountPos)) {
             return $merchantAccountPos;
         }
         return $merchantAccount;
     }
 
+    /**
+     * Format the Receipt sent in the Terminal API response in HTML
+     * so that it can be easily shown to the shopper
+     *
+     * @param $paymentReceipt
+     * @return string
+     */
     public function formatTerminalAPIReceipt($paymentReceipt)
     {
-        $paymentReceipt = json_decode($paymentReceipt);
-        $formatted = "<table class='terminal-api-receipt'>";
+        $formattedHtml = "<table class='terminal-api-receipt'>";
         foreach ($paymentReceipt as $receipt) {
-            if ($receipt->DocumentQualifier == "CustomerReceipt") {
-                foreach ($receipt->OutputContent->OutputText as $item) {
-                    parse_str($item->Text, $textParts);
-                    $formatted .= "<tr class='terminal-api-receipt'>";
+            if ($receipt['DocumentQualifier'] == "CustomerReceipt") {
+                foreach ($receipt['OutputContent']['OutputText'] as $item) {
+                    parse_str($item['Text'], $textParts);
+                    $formattedHtml .= "<tr class='terminal-api-receipt'>";
                     if (!empty($textParts['name'])) {
-                        $formatted .= "<td class='terminal-api-receipt-name'>" . $textParts['name'] . "</td>";
+                        $formattedHtml .= "<td class='terminal-api-receipt-name'>" . $textParts['name'] . "</td>";
                     } else {
-                        $formatted .= "<td class='terminal-api-receipt-name'>&nbsp;</td>";
+                        $formattedHtml .= "<td class='terminal-api-receipt-name'>&nbsp;</td>";
                     }
                     if (!empty($textParts['value'])) {
-                        $formatted .= "<td class='terminal-api-receipt-value' align='right'>" . $textParts['value'] . "</td>";
+                        $formattedHtml .= "<td class='terminal-api-receipt-value' align='right'>" . $textParts['value'] . "</td>";
                     } else {
-                        $formatted .= "<td class='terminal-api-receipt-value' align='right'>&nbsp;</td>";
+                        $formattedHtml .= "<td class='terminal-api-receipt-value' align='right'>&nbsp;</td>";
                     }
-                    $formatted .= "</tr>";
+                    $formattedHtml .= "</tr>";
                 }
             }
         }
-        $formatted .= "</table>";
-        return $formatted;
+        $formattedHtml .= "</table>";
+        return $formattedHtml;
     }
 
 	/**
