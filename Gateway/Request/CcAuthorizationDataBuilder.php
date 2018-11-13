@@ -84,8 +84,9 @@ class CcAuthorizationDataBuilder implements BuilderInterface
 			$request['paymentMethod']['holderName'] = $holderName;
 		}
 
-		// The encrypted security code is required in both cc and oneclick
-		$request['paymentMethod']['encryptedSecurityCode'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::SECURITY_CODE);
+		if ($securityCode = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::SECURITY_CODE)) {
+			$request['paymentMethod']['encryptedSecurityCode'] = $securityCode;
+		}
 
 		// Remove from additional data
 		$payment->unsAdditionalInformation(AdyenCcDataAssignObserver::CREDIT_CARD_NUMBER);

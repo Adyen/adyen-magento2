@@ -72,8 +72,7 @@ define(
                 this._super();
 
                 // include checkout card component javascript
-                var checkoutCardComponentScriptTag = document.getElementById('AdyenCheckoutCardComponentScript');
-                checkoutCardComponentScriptTag = document.createElement('script');
+                var checkoutCardComponentScriptTag = document.createElement('script');
                 checkoutCardComponentScriptTag.id = "AdyenCheckoutCardComponentScript";
                 checkoutCardComponentScriptTag.src = self.getCheckoutCardComponentSource();
                 checkoutCardComponentScriptTag.type = "text/javascript";

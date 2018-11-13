@@ -20,6 +20,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Model\Ui;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
@@ -34,14 +35,23 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
     protected $_adyenHelper;
 
     /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
      * AdyenGenericConfigProvider constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
-    {
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
+    ) {
         $this->_adyenHelper = $adyenHelper;
+        $this->storeManager = $storeManager;
     }
+
     /**
      * Define foreach payment methods the RedirectUrl
      *
@@ -59,10 +69,11 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
             $config['payment']['adyen']['showLogo'] = false;
         }
 
-		$config['payment']['checkoutCardComponentSource'] = $this->_adyenHelper->getCheckoutCardComponentJs();
+        $config['payment']['checkoutCardComponentSource'] = $this->_adyenHelper->getCheckoutCardComponentJs($this->storeManager->getStore()->getId());
 
         return $config;
     }
+
     /**
      * Return redirect URL for method
      *
