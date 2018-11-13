@@ -143,9 +143,6 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             $canCreateBillingAgreement = true;
         }
 
-        // Commented out otherwise would break the checkoutsince the getLibrarySource is removed
-        //$config['payment'] ['adyenOneclick']['librarySource'] = $this->_adyenHelper->getLibrarySource();
-        $config['payment']['adyenOneclick']['generationTime'] = date("c");
         $config['payment']['adyenOneclick']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
 
         $recurringContractType = $this->_getRecurringContractType();

@@ -158,7 +158,7 @@ define(
             /**
              * Builds the payment details part of the payment information reqeust
              *
-             * @returns {{method: *, additional_data: {cc_type: *, number: *, cvc, expiryMonth: *, expiryYear: *, holderName: *, generationtime: *, store_cc: *, number_of_installments: *}}}
+             * @returns {{method: *, additional_data: {cc_type: *, number: *, cvc, expiryMonth: *, expiryYear: *, holderName: *, store_cc: *, number_of_installments: *}}}
              */
             getData: function () {
                 return {
@@ -170,7 +170,6 @@ define(
                         'expiryMonth': this.expiryMonth(),
                         'expiryYear': this.expiryYear(),
                         'holderName': this.creditCardOwner(),
-                        'generationtime': this.getGenerationTime(),
                         'store_cc': this.setStoreCc(),
                         'number_of_installments': this.installment()
                     }
@@ -326,9 +325,6 @@ define(
             },
             getPlaceOrderUrl: function () {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
-            },
-            getGenerationTime: function () {
-                return window.checkoutConfig.payment.adyenCc.generationTime;
             },
             canCreateBillingAgreement: function () {
                 if (customer.isLoggedIn()) {

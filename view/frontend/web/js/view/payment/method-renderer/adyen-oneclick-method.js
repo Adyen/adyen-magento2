@@ -234,7 +234,7 @@ define(
                         /**
                          * Builds the payment details part of the payment information reqeust
                          *
-                         * @returns {{method: *, additional_data: {variant: *, recurring_detail_reference: *, number_of_installments: *, cvc: (string|*), expiryMonth: *, expiryYear: *, generationtime: *}}}
+                         * @returns {{method: *, additional_data: {variant: *, recurring_detail_reference: *, number_of_installments: *, cvc: (string|*), expiryMonth: *, expiryYear: *}}}
                          */
                         getData: function () {
                             var self = this;
@@ -247,8 +247,7 @@ define(
                                     number_of_installments: numberOfInstallments(),
                                     cvc: self.encryptedCreditCardVerificationNumber,
                                     expiryMonth: self.creditCardExpMonth(),
-                                    expiryYear: self.creditCardExpYear(),
-                                    generationtime: self.getGenerationTime()
+                                    expiryYear: self.creditCardExpYear()
                                 }
                             };
                         },
@@ -288,9 +287,6 @@ define(
                         },
                         getLoadingContext: function () {
                             return window.checkoutConfig.payment.adyenOneclick.checkoutUrl;
-                        },
-                        getGenerationTime: function () {
-                            return window.checkoutConfig.payment.adyenCc.generationTime;
                         },
                         hasVerification: function () {
                             return window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction;

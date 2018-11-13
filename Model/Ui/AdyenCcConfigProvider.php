@@ -140,7 +140,6 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
 
 		$config['payment']['adyenCc']['locale'] = $this->_adyenHelper->getStoreLocale($this->storeManager->getStore()->getId());
 
-        $config['payment']['adyenCc']['generationTime'] = date("c");
         $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();
 
