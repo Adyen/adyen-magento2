@@ -1310,7 +1310,7 @@ class Cron
             }
 
             if ($_paymentCode == "adyen_pos_cloud") {
-                $captureModePos = $this->_adyenHelper->getAdyenPosCloudConfigData('capture_mode_pos');
+                $captureModePos = $this->_adyenHelper->getAdyenPosCloudConfigData('capture_mode_pos', $this->_order->getStoreId());
                 if (strcmp($captureModePos, 'auto') === 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         'This payment method is POS Cloud and configured to be working as auto capture '

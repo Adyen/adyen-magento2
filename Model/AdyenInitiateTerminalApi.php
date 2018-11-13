@@ -37,6 +37,14 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     private $_recurringType;
     private $_appState;
 
+    /**
+     * @var int
+     */
+    protected $storeId;
+
+    /**
+     * @var \Magento\Checkout\Model\Session
+     */
     protected $_checkoutSession;
 
     /**
@@ -50,30 +58,26 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Checkout\Model\Session $_checkoutSession,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
         array $data = []
     )
     {
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
         $this->_checkoutSession = $_checkoutSession;
+        $this->storeId = $storeManager->getStore()->getId();
 
         // initialize client
-        $apiKey = $this->_adyenHelper->getApiKey();
-        $client = new \Adyen\Client();
-        $client->setApplicationName("Magento 2 plugin");
+        $client = $this->_adyenHelper->initializeAdyenClient($this->storeId);
+        $apiKey = $this->_adyenHelper->getPosApiKey($this->storeId);
         $client->setXApiKey($apiKey);
 
         //Set configurable option in M2
-        $posTimeout = $this->_adyenHelper->getAdyenPosCloudConfigData('pos_timeout');
+        $posTimeout = $this->_adyenHelper->getAdyenPosCloudConfigData('pos_timeout', $this->storeId);
         if (!empty($posTimeout)) {
             $client->setTimeout($posTimeout);
         }
 
-        if ($this->_adyenHelper->isDemoMode()) {
-            $client->setEnvironment(\Adyen\Environment::TEST);
-        } else {
-            $client->setEnvironment(\Adyen\Environment::LIVE);
-        }
         // assign magento log
         $client->setLogger($adyenLogger);
 
@@ -94,7 +98,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
         $service = new \Adyen\Service\PosPayment($this->_client);
         $transactionType = \Adyen\TransactionType::NORMAL;
-        $poiId = $this->_adyenHelper->getPoiId();
+        $poiId = $this->_adyenHelper->getPoiId($this->storeId);
         $serviceID = date("dHis");
         $initiateDate = date("U");
         $timeStamper = date("Y-m-d") . "T" . date("H:i:s+00:00");
@@ -143,7 +147,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
             $shopperEmail = $quote->getCustomerEmail();
-            $recurringContract = $this->_adyenHelper->getAdyenPosCloudConfigData('recurring_type');
+            $recurringContract = $this->_adyenHelper->getAdyenPosCloudConfigData('recurring_type', $this->storeId);
 
             if (!empty($recurringContract) && !empty($shopperEmail) && !empty($customerId)) {
                 $recurringDetails = [
