@@ -40,11 +40,13 @@ class PosCloudResponseValidator extends AbstractValidator
      */
     private $adyenHelper;
 
-    /**
-     * PosCloudResponseValidator constructor.
-     * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     */
+	/**
+	 * PosCloudResponseValidator constructor.
+	 *
+	 * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
+	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+	 * @param \Adyen\Payment\Helper\Data $adyenHelper
+	 */
     public function __construct(
         \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,

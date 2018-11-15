@@ -24,7 +24,6 @@
 
 namespace Adyen\Payment\Block\Form;
 
-
 class PosCloud extends \Magento\Payment\Block\Form
 {
     /**

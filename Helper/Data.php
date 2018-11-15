@@ -426,7 +426,7 @@ class Data extends AbstractHelper
     /**
      * @desc Gives back adyen_pos configuration values
      * @param $field
-     * @param null $storeId
+     * @param int|null $storeId
      * @return mixed
      */
     public function getAdyenPosConfigData($field, $storeId = null)
@@ -437,7 +437,7 @@ class Data extends AbstractHelper
     /**
      * @desc Gives back adyen_pos configuration values as flag
      * @param $field
-     * @param null $storeId
+     * @param int|null $storeId
      * @return mixed
      */
     public function getAdyenPosConfigDataFlag($field, $storeId = null)
@@ -447,7 +447,7 @@ class Data extends AbstractHelper
 
     /**
      * @param $field
-     * @param null $storeId
+     * @param int|null $storeId
      * @return bool|mixed
      */
     public function getAdyenPosCloudConfigData($field, $storeId = null)
@@ -457,7 +457,7 @@ class Data extends AbstractHelper
 
     /**
      * @param $field
-     * @param null $storeId
+     * @param int|null $storeId
      * @return bool|mixed
      */
     public function getAdyenPosCloudConfigDataFlag($field, $storeId = null)
@@ -468,7 +468,7 @@ class Data extends AbstractHelper
     /**
      * @desc Gives back adyen_pay_by_mail configuration values
      * @param $field
-     * @param null $storeId
+     * @param int|null $storeId
      * @return mixed
      */
     public function getAdyenPayByMailConfigData($field, $storeId = null)
@@ -479,7 +479,7 @@ class Data extends AbstractHelper
     /**
      * @desc Gives back adyen_pay_by_mail configuration values as flag
      * @param $field
-     * @param null $storeId
+     * @param int|null $storeId
      * @return mixed
      */
     public function getAdyenPayByMailConfigDataFlag($field, $storeId = null)
@@ -1185,7 +1185,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param integer|null $storeId
+     * @param int|null $storeId
      * @return string the X API Key for the specified or current store
      */
     public function getPosApiKey($storeId = null)
@@ -1206,8 +1206,7 @@ class Data extends AbstractHelper
      */
     public function getPoiId($storeId = null)
     {
-        $poiId = $this->getAdyenPosCloudConfigData('pos_terminal_id', $storeId);
-        return $poiId;
+        return $this->getAdyenPosCloudConfigData('pos_terminal_id', $storeId);
     }
 
     /**
@@ -1266,20 +1265,21 @@ class Data extends AbstractHelper
 	/**
 	 * Initializes and returns Adyen Client and sets the required parameters of it
 	 *
-	 * @param $storeId
+	 * @param int|null $storeId
+	 * @param string|null $apiKey
 	 * @return \Adyen\Client
 	 * @throws \Adyen\AdyenException
 	 */
-    public function initializeAdyenClient($storeId = null)
+	public function initializeAdyenClient($storeId = null, $apiKey = null)
 	{
-		// initialize client
-		$webserviceUsername = $this->getWsUsername($storeId);
-		$webservicePassword = $this->getWsPassword($storeId);
+		if (!$apiKey) {
+			$apiKey = $this->getAPIKey($storeId);
+		}
 
-		$client = new \Adyen\Client();
+		// initialize client
+		$client = $this->createAdyenClient();
 		$client->setApplicationName("Magento 2 plugin");
-		$client->setUsername($webserviceUsername);
-		$client->setPassword($webservicePassword);
+		$client->setXApiKey($apiKey);
 
 		$client->setAdyenPaymentSource($this->getModuleName(), $this->getModuleVersion());
 
@@ -1288,11 +1288,23 @@ class Data extends AbstractHelper
 		if ($this->isDemoMode($storeId)) {
 			$client->setEnvironment(\Adyen\Environment::TEST);
 		} else {
-			$client->setEnvironment(\Adyen\Environment::LIVE);
+			$client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
 		}
 
 		$client->setLogger($this->adyenLogger);
 
 		return $client;
 	}
+
+	/**
+	 * @param \Adyen\Clien $client
+	 * @return \Adyen\Service\PosPayment
+	 * @throws \Adyen\AdyenException
+	 */
+	public function createAdyenPosPaymentService($client)
+	{
+		return new \Adyen\Service\PosPayment($client);
+	}
 }
+
+

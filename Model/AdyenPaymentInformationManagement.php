@@ -22,9 +22,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-
 namespace Adyen\Payment\Model;
-
 
 class AdyenPaymentInformationManagement extends \Magento\Checkout\Model\PaymentInformationManagement
 {
