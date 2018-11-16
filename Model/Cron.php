@@ -332,22 +332,6 @@ class Cron
                 continue;
             }
 
-            /**
-             *  If the event is a RECURRING_CONTRACT wait an extra 5 minutes
-             * before processing so we are sure the RECURRING_CONTRACT
-             */
-            if (trim($notification->getEventCode()) == Notification::RECURRING_CONTRACT &&
-                strtotime($notification->getCreatedAt()) >= strtotime('-5 minutes', time())
-            ) {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    "This is a recurring_contract notification wait an extra 5 minutes 
-                    before processing this to make sure the contract exists"
-                );
-                // set processing back to false
-                $this->_updateNotification($notification, false, false);
-                continue;
-            }
-
             // log the executed notification
             $this->_adyenLogger->addAdyenNotificationCronjob(print_r($notification->debug(), 1));
 
@@ -1323,6 +1307,22 @@ class Cron
                     $_paymentCode . ' paymentMethod:' . $this->_paymentMethod . ' sepaFLow:' . $sepaFlow
                 );
                 return true;
+            }
+
+            if ($_paymentCode == "adyen_pos_cloud") {
+                $captureModePos = $this->_adyenHelper->getAdyenPosCloudConfigData('capture_mode_pos', $this->_order->getStoreId());
+                if (strcmp($captureModePos, 'auto') === 0) {
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        'This payment method is POS Cloud and configured to be working as auto capture '
+                    );
+                    return true;
+                } elseif (strcmp($captureModePos, 'manual') === 0) {
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        'This payment method is POS Cloud and configured to be working as manual capture '
+                    );
+                    return false;
+                }
+
             }
 
             // if auto capture mode for openinvoice is turned on then use auto capture
