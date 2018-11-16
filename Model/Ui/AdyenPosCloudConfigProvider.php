@@ -25,37 +25,23 @@
 namespace Adyen\Payment\Model\Ui;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Magento\Payment\Helper\Data as PaymentHelper;
-use Magento\Directory\Helper\Data;
-
 
 class AdyenPosCloudConfigProvider implements ConfigProviderInterface
 {
 
     const CODE = 'adyen_pos_cloud';
-
-    protected $_adyenLogger;
-    /**
-     * @var PaymentHelper
-     */
-    protected $_paymentHelper;
-
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $_adyenHelper;
-
+    
     /**
      * Request object
      *
      * @var \Magento\Framework\App\RequestInterface
      */
-    protected $_request;
+    protected $request;
 
     /**
      * @var \Magento\Framework\UrlInterface
      */
-    protected $_urlBuilder;
+    protected $urlBuilder;
 
     /**
      * AdyenHppConfigProvider constructor.
@@ -64,18 +50,11 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
-        PaymentHelper $paymentHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\UrlInterface $urlBuilder,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-
+        \Magento\Framework\UrlInterface $urlBuilder
     ) {
-        $this->_paymentHelper = $paymentHelper;
-        $this->_adyenHelper = $adyenHelper;
-        $this->_request = $request;
-        $this->_urlBuilder = $urlBuilder;
-        $this->_adyenLogger = $adyenLogger;
+        $this->request = $request;
+        $this->urlBuilder = $urlBuilder;
     }
 
     /**
@@ -90,8 +69,8 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
             'payment' => [
                 self::CODE => [
                     'isActive' => true,
-                    'redirectUrl' => $this->_urlBuilder->getUrl(
-                        '/checkout/onepage/success/', ['_secure' => $this->_getRequest()->isSecure()])
+                    'redirectUrl' => $this->urlBuilder->getUrl(
+                        '/checkout/onepage/success/', ['_secure' => $this->getRequest()->isSecure()])
                 ]
             ]
         ];
@@ -104,8 +83,8 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
      *
      * @return \Magento\Framework\App\RequestInterface
      */
-    protected function _getRequest()
+    protected function getRequest()
     {
-        return $this->_request;
+        return $this->request;
     }
 }

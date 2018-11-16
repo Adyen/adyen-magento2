@@ -24,7 +24,6 @@
 
 namespace Adyen\Payment\Block\Info;
 
-
 class PosCloud extends AbstractInfo
 {
     /**

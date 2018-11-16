@@ -35,34 +35,43 @@ class TransactionPosCloudSync implements ClientInterface
      */
     protected $storeId;
 
+	/**
+	 * @var \Adyen\Client
+	 */
+    protected $client;
+
+	/**
+	 * @var \Adyen\Payment\Helper\Data
+	 */
+    protected $adyenHelper;
+
+	/**
+	 * @var \Adyen\Payment\Logger\AdyenLogger
+	 */
+    protected $adyenLogger;
+
     public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Model\RecurringType $recurringType,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         array $data = []
     ) {
-        $this->_encryptor = $encryptor;
-        $this->_adyenHelper = $adyenHelper;
-        $this->_adyenLogger = $adyenLogger;
-        $this->_recurringType = $recurringType;
-        $this->_appState = $context->getAppState();
+        $this->adyenHelper = $adyenHelper;
+        $this->adyenLogger = $adyenLogger;
         $this->storeId = $storeManager->getStore()->getId();
 
         // initialize client
-        $client = $this->_adyenHelper->initializeAdyenClient($this->storeId);
-        $apiKey = $this->_adyenHelper->getPosApiKey($this->storeId);
+        $client = $this->adyenHelper->initializeAdyenClient($this->storeId);
+        $apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
         $client->setXApiKey($apiKey);
 
         //Set configurable option in M2
-        $posTimeout = $this->_adyenHelper->getAdyenPosCloudConfigData('pos_timeout', $this->storeId);
+        $posTimeout = $this->adyenHelper->getAdyenPosCloudConfigData('pos_timeout', $this->storeId);
         if (!empty($posTimeout)) {
             $client->setTimeout($posTimeout);
         }
 
-        $this->_client = $client;
+        $this->client = $client;
 
     }
 
@@ -82,15 +91,15 @@ class TransactionPosCloudSync implements ClientInterface
             return $paymentResponse;
         }
         //always do status call and return the response of the status call
-        $service = new \Adyen\Service\PosPayment($this->_client);
+        $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
 
-        $poiId = $this->_adyenHelper->getPoiId($this->storeId);
+        $poiId = $this->adyenHelper->getPoiId($this->storeId);
         $newServiceID = date("dHis");
 
         $statusDate = date("U");
         $timeDiff = (int)$statusDate - (int)$request['initiateDate'];
 
-        $totalTimeout = $this->_adyenHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
+        $totalTimeout = $this->adyenHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
         if ($timeDiff > $totalTimeout) {
             throw new \Magento\Framework\Exception\LocalizedException(__("Pos Timeout."));
         }

@@ -35,9 +35,9 @@ class PaymentPosCloudHandler implements HandlerInterface
      */
     private $adyenHelper;
 
-    /**
-     * @var
-     */
+	/**
+	 * @var \Adyen\Payment\Logger\AdyenLogger
+	 */
     private $adyenLogger;
 
     /**
@@ -64,10 +64,10 @@ class PaymentPosCloudHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $paymentResponse)
     {
-        $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
+		$paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
         /** @var OrderPaymentInterface $payment */
-        $payment = $payment->getPayment();
+        $payment = $paymentDataObject->getPayment();
 
         // set transaction not to processing by default wait for notification
         $payment->setIsTransactionPending(true);
@@ -76,7 +76,7 @@ class PaymentPosCloudHandler implements HandlerInterface
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
         // set transaction(status)
-        if (!empty($paymentResponse) && !empty($paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {
+        if (!empty($paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {
             $pspReference = $paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'];
             $payment->setTransactionId($pspReference);
             // set transaction(payment)

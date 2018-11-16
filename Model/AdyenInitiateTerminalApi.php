@@ -30,12 +30,20 @@ use Adyen\Util\Util;
 
 class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 {
+	/**
+	 * @var \Adyen\Payment\Helper\Data 
+	 */
+    private $adyenHelper;
 
-    private $_encryptor;
-    private $_adyenHelper;
-    private $_adyenLogger;
-    private $_recurringType;
-    private $_appState;
+	/**
+	 * @var \Adyen\Payment\Logger\AdyenLogger 
+	 */
+    private $adyenLogger;
+
+	/**
+	 * @var \Adyen\Client 
+	 */
+	protected $client;
 
     /**
      * @var int
@@ -45,7 +53,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     /**
      * @var \Magento\Checkout\Model\Session
      */
-    protected $_checkoutSession;
+    protected $checkoutSession;
 
     /**
      * AdyenInitiateTerminalApi constructor.
@@ -57,23 +65,22 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Magento\Checkout\Model\Session $_checkoutSession,
+        \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         array $data = []
     )
     {
-        $this->_adyenHelper = $adyenHelper;
-        $this->_adyenLogger = $adyenLogger;
-        $this->_checkoutSession = $_checkoutSession;
+        $this->adyenHelper = $adyenHelper;
+        $this->adyenLogger = $adyenLogger;
+        $this->checkoutSession = $checkoutSession;
         $this->storeId = $storeManager->getStore()->getId();
 
         // initialize client
-        $client = $this->_adyenHelper->initializeAdyenClient($this->storeId);
-        $apiKey = $this->_adyenHelper->getPosApiKey($this->storeId);
-        $client->setXApiKey($apiKey);
+		$apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
+        $client = $this->adyenHelper->initializeAdyenClient($this->storeId, $apiKey);
 
         //Set configurable option in M2
-        $posTimeout = $this->_adyenHelper->getAdyenPosCloudConfigData('pos_timeout', $this->storeId);
+        $posTimeout = $this->adyenHelper->getAdyenPosCloudConfigData('pos_timeout', $this->storeId);
         if (!empty($posTimeout)) {
             $client->setTimeout($posTimeout);
         }
@@ -81,7 +88,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         // assign magento log
         $client->setLogger($adyenLogger);
 
-        $this->_client = $client;
+        $this->client = $client;
     }
 
     /**
@@ -91,14 +98,14 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
      */
     public function initiate()
     {
-        $quote = $this->_checkoutSession->getQuote();
+        $quote = $this->checkoutSession->getQuote();
         $payment = $quote->getPayment();
         $payment->setMethod(AdyenPosCloudConfigProvider::CODE);
         $reference = $quote->reserveOrderId()->getReservedOrderId();
 
-        $service = new \Adyen\Service\PosPayment($this->_client);
+        $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
         $transactionType = \Adyen\TransactionType::NORMAL;
-        $poiId = $this->_adyenHelper->getPoiId($this->storeId);
+        $poiId = $this->adyenHelper->getPoiId($this->storeId);
         $serviceID = date("dHis");
         $initiateDate = date("U");
         $timeStamper = date("Y-m-d") . "T" . date("H:i:s+00:00");
@@ -147,9 +154,9 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
             $shopperEmail = $quote->getCustomerEmail();
-            $recurringContract = $this->_adyenHelper->getAdyenPosCloudConfigData('recurring_type', $this->storeId);
+            $recurringContract = $this->adyenHelper->getAdyenPosCloudConfigData('recurring_type', $this->storeId);
 
-            if (!empty($recurringContract) && !empty($shopperEmail) && !empty($customerId)) {
+            if (!empty($recurringContract) && !empty($shopperEmail)) {
                 $recurringDetails = [
                     'shopperEmail' => $shopperEmail,
                     'shopperReference' => strval($customerId),
@@ -168,7 +175,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             $response = $service->runTenderSync($request);
         } catch (\Adyen\AdyenException $e) {
             //Not able to perform a payment
-            $this->_adyenLogger->addAdyenDebug("adyenexception");
+            $this->adyenLogger->addAdyenDebug("adyenexception");
             $response['error'] = $e->getMessage();
         } catch (\Exception $e) {
             //Probably timeout
