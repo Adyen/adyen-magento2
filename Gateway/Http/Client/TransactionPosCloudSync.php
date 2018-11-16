@@ -101,7 +101,7 @@ class TransactionPosCloudSync implements ClientInterface
 
         $totalTimeout = $this->adyenHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
         if ($timeDiff > $totalTimeout) {
-            throw new \Magento\Framework\Exception\LocalizedException(__("Pos Timeout."));
+            throw new \Magento\Framework\Exception\LocalizedException(__("POS connection timed out."));
         }
         //Provide receipt to the shopper
 

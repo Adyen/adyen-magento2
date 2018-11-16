@@ -267,21 +267,15 @@ class Json extends \Magento\Framework\App\Action\Action
             return false;
         }
 
-        $accountCmp = !$this->_adyenHelper->getAdyenAbstractConfigDataFlag('multiple_merchants')
-            ? strcmp($submitedMerchantAccount, $internalMerchantAccount)
-            : 0;
-
         $usernameCmp = strcmp($_SERVER['PHP_AUTH_USER'], $username);
         $passwordCmp = strcmp($_SERVER['PHP_AUTH_PW'], $password);
-        if ($accountCmp === 0 && $usernameCmp === 0 && $passwordCmp === 0) {
+        if ($usernameCmp === 0 && $passwordCmp === 0) {
             return true;
         }
 
         // If notification is test check if fields are correct if not return error
         if ($this->_isTestNotification($response['pspReference'])) {
-            if ($accountCmp != 0) {
-                $this->_returnResult('MerchantAccount in notification is not the same as in Magento settings');
-            } elseif ($usernameCmp != 0 || $passwordCmp != 0) {
+            if ($usernameCmp != 0 || $passwordCmp != 0) {
                 $this->_returnResult(
                     'username (PHP_AUTH_USER) and\or password (PHP_AUTH_PW) are not the same as Magento settings'
                 );
