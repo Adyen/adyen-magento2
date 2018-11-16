@@ -67,7 +67,7 @@ class PaymentPosCloudHandler implements HandlerInterface
 		$paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
         /** @var OrderPaymentInterface $payment */
-        $payment = $payment->getPayment();
+        $payment = $paymentDataObject->getPayment();
 
         // set transaction not to processing by default wait for notification
         $payment->setIsTransactionPending(true);
