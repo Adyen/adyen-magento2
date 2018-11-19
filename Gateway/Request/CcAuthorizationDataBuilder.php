@@ -95,8 +95,6 @@ class CcAuthorizationDataBuilder implements BuilderInterface
 		$payment->unsAdditionalInformation(AdyenCcDataAssignObserver::SECURITY_CODE);
 		$payment->unsAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME);
 
-		$payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_DATA);
-
 		/**
 		 * if MOTO for backend is enabled use MOTO as shopper interaction type
 		 */
