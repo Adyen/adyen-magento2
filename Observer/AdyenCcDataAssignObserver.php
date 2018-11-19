@@ -40,8 +40,6 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 	const EXPIRY_YEAR = 'expiryYear';
 	const HOLDER_NAME = 'holderName';
 
-	const ENCRYPTED_DATA = 'encrypted_data';
-
     /**
      * @var array
      */
