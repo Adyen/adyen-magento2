@@ -50,10 +50,10 @@ class PaymentMethods extends AbstractHelper
      */
     protected $session;
 
-    /**
-     * @var \Magento\Framework\Locale\ResolverInterface
-     */
-    protected $localeResolver;
+	/**
+	 * @var \Magento\Framework\Locale\ResolverInterface
+	 */
+	protected $localeResolver;
 
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
@@ -92,7 +92,7 @@ class PaymentMethods extends AbstractHelper
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param Data $adyenHelper
      * @param \Magento\Checkout\Model\Session $session
-     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
+	 * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param \Magento\Framework\App\RequestInterface $request
@@ -105,7 +105,7 @@ class PaymentMethods extends AbstractHelper
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $session,
-        \Magento\Framework\Locale\ResolverInterface $localeResolver,
+		\Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\App\RequestInterface $request,
