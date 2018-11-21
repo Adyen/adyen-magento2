@@ -30,7 +30,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
  */
 class Data extends AbstractHelper
 {
-    const MODULE_NAME = 'adyen-magento2';
+	const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
     const CHECKOUT_CONTEXT_URL_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/';
@@ -1539,4 +1539,23 @@ class Data extends AbstractHelper
             return \Adyen\Payment\Model\RecurringType::NONE;
         }
     }
+
+	/**
+	 * @param $client
+	 * @return mixed
+	 */
+	public function createAdyenCheckoutService($client)
+	{
+		return new \Adyen\Service\Checkout($client);
+	}
+
+	/**
+	 * @param $client
+	 * @return \Adyen\Service\Recurring
+	 * @throws \Adyen\AdyenException
+	 */
+	public function createAdyenRecurringService($client)
+	{
+		return new \Adyen\Service\Recurring($client);
+	}
 }
