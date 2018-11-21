@@ -133,11 +133,11 @@ define(
                         _.map(response, function (value) {
 
                             var messageContainer = new Messages();
-                            var name = 'messages-' + value.brandCode;
+                            var name = 'messages-' + value.type;
                             var messagesComponent = {
                                 parent: self.name,
-                                name: 'messages-' + value.brandCode,
-                                displayArea: 'messages-' + value.brandCode,
+                                name: 'messages-' + value.type,
+                                displayArea: 'messages-' + value.type,
                                 component: 'Magento_Ui/js/view/messages',
                                 config: {
                                     messageContainer: messageContainer
@@ -161,14 +161,14 @@ define(
 
                 var paymentList = _.map(paymentMethods, function (value) {
                     var result = {};
-                    result.value = value.brandCode;
+                    result.value = value.type;
                     result.name = value;
                     result.method = self.item.method;
                     result.getCode = function () {
                         return self.item.method;
                     };
                     result.validate = function () {
-                        return self.validate(value.brandCode);
+                        return self.validate(value.type);
                     };
                     result.placeRedirectOrder = function placeRedirectOrder(data) {
                         return self.placeRedirectOrder(data);
@@ -227,7 +227,7 @@ define(
                             return window.checkoutConfig.payment.adyenHpp.showTelephone;
                         };
                         result.showSsn = function () {
-                            if (value.brandCode.indexOf("klarna") >= 0) {
+                            if (value.type.indexOf("klarna") >= 0) {
                                 var ba = quote.billingAddress();
                                 if (ba != null) {
                                     var nordicCountriesList = window.checkoutConfig.payment.adyenHpp.nordicCountries;
