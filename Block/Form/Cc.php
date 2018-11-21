@@ -31,36 +31,30 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     protected $_template = 'Adyen_Payment::form/cc.phtml';
 
     /**
-     * Payment config model
-     *
-     * @var \Magento\Payment\Model\Config
-     */
-    protected $_paymentConfig;
-
-    /**
      * @var \Adyen\Payment\Helper\Data
      */
-    protected $_adyenHelper;
+    protected $adyenHelper;
 
     /**
      * @var \Magento\Framework\App\State
      */
-    protected $_appState;
+    protected $appState;
 
     /**
      * @var \Magento\Checkout\Model\Session
      */
-    protected $_checkoutSession;
+    protected $checkoutSession;
 
-    /**
-     * Cc constructor.
-     *
-     * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param \Magento\Payment\Model\Config $paymentConfig
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Checkout\Model\Session $checkoutSession
-     * @param array $data
-     */
+	/**
+	 * Cc constructor.
+	 *
+	 * @param \Magento\Framework\View\Element\Template\Context $context
+	 * @param \Magento\Payment\Model\Config $paymentConfig
+	 * @param \Adyen\Payment\Helper\Data $adyenHelper
+	 * @param \Magento\Checkout\Model\Session $checkoutSession
+	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+	 * @param array $data
+	 */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Payment\Model\Config $paymentConfig,
@@ -70,27 +64,35 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     )
     {
         parent::__construct($context, $paymentConfig);
-        $this->_adyenHelper = $adyenHelper;
-        $this->_appState = $context->getAppState();
-        $this->_checkoutSession = $checkoutSession;
+        $this->adyenHelper = $adyenHelper;
+        $this->appState = $context->getAppState();
+        $this->checkoutSession = $checkoutSession;
     }
 
+	/**
+	 * @return string
+	 */
+    public function getCheckoutCardComponentJs()
+	{
+		return $this->adyenHelper->getCheckoutCardComponentJs($this->checkoutSession->getQuote()->getStore()->getId());
+	}
 
-    /**
-     * @return mixed
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function getLibrarySource()
-    {
-        // get storeId for admin
-        if (!$this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
-            $storeId = $this->_storeManager->getStore()->getId();
-        } else {
-            $storeId = null;
-        }
+	/**
+	 * @return string
+	 * @throws \Adyen\AdyenException
+	 */
+	public function getCheckoutOriginKeys()
+	{
+		return $this->adyenHelper->getOriginKeyForBaseUrl();
+	}
 
-        return $this->_adyenHelper->getLibrarySource($storeId);
-    }
+	/**
+	 * @return string
+	 */
+	public function getCheckoutContextUrl()
+	{
+		return $this->adyenHelper->getCheckoutContextUrl($this->checkoutSession->getQuote()->getStore()->getId());
+	}
 
     /**
      * Retrieve has verification configuration
@@ -100,14 +102,45 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     public function hasVerification()
     {
         // if backend order and moto payments is turned on don't show cvc
-        if ($this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
+        if ($this->appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
             $this->getCheckoutSession();
-            $store = $this->_checkoutSession->getQuote()->getStore();
-            $enableMoto = $this->_adyenHelper->getAdyenCcConfigDataFlag('enable_moto', $store->getId());
+            $store = $this->checkoutSession->getQuote()->getStore();
+            $enableMoto = $this->adyenHelper->getAdyenCcConfigDataFlag('enable_moto', $store->getId());
             if ($enableMoto) {
                 return false;
             }
         }
         return true;
     }
+
+	/**
+	 * @return string
+	 */
+	public function getLocale()
+	{
+		return $this->adyenHelper->getStoreLocale($this->checkoutSession->getQuote()->getStore()->getId());
+	}
+
+	/**
+	 * Retrieve availables credit card type codes by alt code
+	 *
+	 * @return array
+	 */
+	public function getCcAvailableTypesByAlt()
+	{
+		$types = [];
+		$ccTypes = $this->adyenHelper->getAdyenCcTypes();
+
+		$availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
+		if ($availableTypes) {
+			$availableTypes = explode(',', $availableTypes);
+			foreach (array_keys($ccTypes) as $code) {
+				if (in_array($code, $availableTypes)) {
+					$types[$ccTypes[$code]['code_alt']] = $code;
+				}
+			}
+		}
+
+		return $types;
+	}
 }

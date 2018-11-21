@@ -1,0 +1,68 @@
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+#payment_form_adyen_cc {
+    padding-left: 30px;
+}
+
+.adyen-checkout-card__form .adyen-checkout__input iframe{
+    max-height: 40px;
+}
+
+#payment_form_adyen_cc .admin__field{
+    margin-bottom: 10px;
+}
+
+#payment_form_adyen_cc .helper-text{
+    font-size: 11px;
+    color: rgb(144, 162, 189);
+    font-weight: 100;
+}
+
+
+#payment_form_adyen_cc #adyen_cc_cc_owner {
+    width: 225px;
+    border: none;
+    padding: 0;
+    color: rgb(0, 27, 43);
+    font-size: 16px;
+    font-weight: 400;
+    margin-top: 10px;
+}
+
+#payment_form_adyen_cc #adyen_cc_cc_owner .input-text:focus {
+    border: none;
+    box-shadow: none;
+}
+
+#payment_form_adyen_cc #adyen_cc_cc_owner::placeholder,
+#payment_form_adyen_cc #adyen_cc_cc_owner:placeholder-shown
+{
+    color: rgb(144, 162, 189);
+    font-weight: 200;
+}
+
+#payment_form_adyen_cc .cc-type-VI {
+    margin: 10px;
+    display: inline-block;
+    font-weight: bold;
+}

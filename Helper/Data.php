@@ -1229,7 +1229,8 @@ class Data extends AbstractHelper
 		if (!$originKey = $this->cache->load("Adyen_origin_key_for_" . $domain)) {
 			$originKey = "";
 
-			if ($originKey = $this->getOriginKeyForUrl($domain)) {
+			$storeId = $this->storeManager->getStore()->getId();
+			if ($originKey = $this->getOriginKeyForUrl($domain, $storeId)) {
 				$this->cache->save($originKey, "Adyen_origin_key_for_" . $domain, array(), 60 * 60 * 24);
 			}
 		}
@@ -1241,10 +1242,11 @@ class Data extends AbstractHelper
 	 * Get origin key for a specific url using the adyen api library client
 	 *
 	 * @param $url
-	 * @return mixed
+	 * @param int|null $storeId
+	 * @return string
 	 * @throws \Adyen\AdyenException
 	 */
-	private function getOriginKeyForUrl($url)
+	private function getOriginKeyForUrl($url, $storeId = null)
 	{
 		$params = array(
 			"originDomains" => array(
@@ -1252,7 +1254,7 @@ class Data extends AbstractHelper
 			)
 		);
 
-		$client = $this->initializeAdyenClient();
+		$client = $this->initializeAdyenClient($storeId);
 
 		$service = $this->createAdyenCheckoutUtilityService($client);
 		$respone = $service->originKeys($params);
