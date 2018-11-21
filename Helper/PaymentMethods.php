@@ -50,6 +50,11 @@ class PaymentMethods extends AbstractHelper
      */
     protected $session;
 
+	/**
+	 * @var \Magento\Framework\Locale\ResolverInterface
+	 */
+	protected $localeResolver;
+
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
@@ -87,6 +92,7 @@ class PaymentMethods extends AbstractHelper
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param Data $adyenHelper
      * @param \Magento\Checkout\Model\Session $session
+	 * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param \Magento\Framework\App\RequestInterface $request
@@ -99,6 +105,7 @@ class PaymentMethods extends AbstractHelper
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $session,
+		\Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\App\RequestInterface $request,
@@ -110,6 +117,7 @@ class PaymentMethods extends AbstractHelper
         $this->config = $config;
         $this->adyenHelper = $adyenHelper;
         $this->session = $session;
+		$this->localeResolver = $localeResolver;
         $this->adyenLogger = $adyenLogger;
         $this->assetRepo = $assetRepo;
         $this->request = $request;
@@ -191,6 +199,7 @@ class PaymentMethods extends AbstractHelper
 					$this->getCurrentCurrencyCode($store)
 				),
 			],
+			"shopperLocale" => $this->getCurrentLocaleCode($store),
             "shopperReference" => $this->getCurrentShopperReference()
         ];
 
@@ -309,6 +318,32 @@ class PaymentMethods extends AbstractHelper
 
         return "";
     }
+
+	/**
+	 * @param $store
+	 * @return mixed|string
+	 */
+	protected function getCurrentLocaleCode($store)
+	{
+		$localeCode = $this->adyenHelper->getAdyenAbstractConfigData('shopper_locale', $store->getId());
+		if ($localeCode != "") {
+			return $localeCode;
+		}
+
+		$locale = $this->localeResolver->getLocale();
+		if ($locale) {
+			return $locale;
+		}
+
+		// should have the value if not fall back to default
+		$localeCode = $this->config->getValue(
+			\Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE,
+			\Magento\Store\Model\ScopeInterface::SCOPE_STORES,
+			$store->getCode()
+		);
+
+		return $localeCode;
+	}
 
     /**
      * @var array
