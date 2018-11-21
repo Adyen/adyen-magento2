@@ -113,7 +113,7 @@ class PaymentRequest extends DataObject
 
         try {
             $client = $this->_adyenHelper->initializeAdyenClient($storeId);
-            $service = new \Adyen\Service\Checkout($client);
+            $service = $this->_adyenHelper->createAdyenCheckoutService($client);
             $result = $service->paymentsDetails($request);
         } catch (\Adyen\AdyenException $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure failed'));
@@ -187,8 +187,8 @@ class PaymentRequest extends DataObject
         ];
 
         // call lib
-        $client = $this->createClient($storeId);
-        $service = new \Adyen\Service\Recurring($client);
+        $client = $this->_adyenHelper->initializeAdyenClient($storeId);
+        $service = $this->_adyenHelper->createAdyenRecurringService($client);
         $result = $service->listRecurringDetails($request);
 
         return $result;
@@ -214,8 +214,8 @@ class PaymentRequest extends DataObject
         ];
 
         // call lib
-        $client = $this->createClient($storeId);
-        $service = new \Adyen\Service\Recurring($client);
+		$client = $this->_adyenHelper->initializeAdyenClient($storeId);
+		$service = $this->_adyenHelper->createAdyenRecurringService($client);
 
         try {
             $result = $service->disable($request);
