@@ -117,7 +117,7 @@ class PaymentMethods extends AbstractHelper
         $this->config = $config;
         $this->adyenHelper = $adyenHelper;
         $this->session = $session;
-        $this->localeResolver = $localeResolver;
+		$this->localeResolver = $localeResolver;
         $this->adyenLogger = $adyenLogger;
         $this->assetRepo = $assetRepo;
         $this->request = $request;
