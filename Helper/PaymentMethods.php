@@ -159,7 +159,7 @@ class PaymentMethods extends AbstractHelper
             $store->getCode()
         );
 
-        foreach ($this->fetchHppMethods($store, $country) as $methodCode => $methodData) {
+        foreach ($this->fetchAlternativeMethods($store, $country) as $methodCode => $methodData) {
             /*
              * skip payment methods if it is a creditcard that is enabled in adyen_cc
              * or if payment is sepadirectdebit and SEPA api is enabled
@@ -181,7 +181,7 @@ class PaymentMethods extends AbstractHelper
      * @param $country
      * @return array
      */
-    protected function fetchHppMethods($store, $country)
+    protected function fetchAlternativeMethods($store, $country)
     {
         $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData('merchant_account');
 
