@@ -1663,4 +1663,23 @@ class Data extends AbstractHelper
 
         return in_array(strtolower($country), $countryList);
     }
+
+	/**
+	 * @param $client
+	 * @return mixed
+	 */
+	public function createAdyenCheckoutService($client)
+	{
+		return new \Adyen\Service\Checkout($client);
+	}
+
+	/**
+	 * @param $client
+	 * @return \Adyen\Service\Recurring
+	 * @throws \Adyen\AdyenException
+	 */
+	public function createAdyenRecurringService($client)
+	{
+		return new \Adyen\Service\Recurring($client);
+	}
 }
