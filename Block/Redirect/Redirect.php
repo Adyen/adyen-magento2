@@ -102,6 +102,50 @@ class Redirect extends \Magento\Payment\Block\Form
         $this->_taxCalculation = $taxCalculation;
     }
 
+	/**
+	 * Returns if the payment should follow the old HPP or the new Checkout flow
+	 *  - hpp will submit a form with all the additional information that the API requests\
+	 *  - checkout will redirect to a url without form submission
+	 *
+	 * @return bool
+	 * @throws \Exception
+	 */
+    public function isCheckoutAPM() {
+		try {
+			if ($paymentObject = $this->_order->getPayment()) {
+				if ($paymentObject->getAdditionalInformation('CheckoutAPM')) {
+					return true;
+				}
+			}
+		} catch (Exception $e) {
+			// do nothing for now
+			throw($e);
+		}
+
+		return false;
+	}
+
+	/**
+	 * Retrieves redirect url for the flow of checkout API
+	 *
+	 * @return string|string[]
+	 * @throws \Exception
+	 */
+	public function getRedirectUrl()
+	{
+		try {
+			if ($paymentObject = $this->_order->getPayment()) {
+				if ($redirectUrl = $paymentObject->getAdditionalInformation('redirectUrl')) {
+					return $redirectUrl;
+				}
+			}
+		} catch (Exception $e) {
+			// do nothing for now
+			throw($e);
+		}
+
+		return "";
+	}
 
     /**
      * @return $this
