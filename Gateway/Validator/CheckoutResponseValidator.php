@@ -135,8 +135,10 @@ class CheckoutResponseValidator extends AbstractValidator
 						}
 					// otherwise it is an alternative payment method which only requires the redirect url to be present
 					} else {
+						$payment->setAdditionalInformation('CheckoutAPM', true);
+
 						if ($redirectUrl && $paymentData) {
-							$payment->setAdditionalInformation('issuerUrl', $redirectUrl);
+							$payment->setAdditionalInformation('redirectUrl', $redirectUrl);
 							$payment->setAdditionalInformation('paymentData', $paymentData);
 						} else {
 							$isValid = false;
