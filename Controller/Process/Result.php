@@ -302,32 +302,36 @@ class Result extends \Magento\Framework\App\Action\Action
     protected function _authenticate($response)
     {
 
-		$merchantSigNotification = $response['merchantSig'];
+    	if (!empty($response['merchantSig'])) {
+			$merchantSigNotification = $response['merchantSig'];
 
-		// do it like this because $_GET is converting dot to underscore
-		$queryString = $_SERVER['QUERY_STRING'];
-		$result = [];
-		$pairs = explode("&", $queryString);
+        // do it like this because $_GET is converting dot to underscore
+        $queryString = $_SERVER['QUERY_STRING'];
+        $result = [];
+        $pairs = explode("&", $queryString);
 
-		foreach ($pairs as $pair) {
-			$nv = explode("=", $pair);
-			$name = urldecode($nv[0]);
-			$value = urldecode($nv[1]);
-			$result[$name] = $value;
+			foreach ($pairs as $pair) {
+				$nv = explode("=", $pair);
+				$name = urldecode($nv[0]);
+				$value = urldecode($nv[1]);
+				$result[$name] = $value;
+			}
+
+        // do not include the merchantSig in the merchantSig calculation
+        unset($result['merchantSig']);
+
+        // Sign request using secret key
+        $hmacKey = $this->_adyenHelper->getHmac();
+        $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
+
+			if (strcmp($merchantSig, $merchantSigNotification) === 0) {
+				return true;
+			}
+			return false;
+		} else{
+    		// send the payload verification payment\details request to validate the response
+
 		}
-
-		// do not include the merchantSig in the merchantSig calculation
-		unset($result['merchantSig']);
-
-		// Sign request using secret key
-		$hmacKey = $this->_adyenHelper->getHmac();
-		$merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
-
-		if (strcmp($merchantSig, $merchantSigNotification) === 0) {
-			return true;
-		}
-
-		return false;
 
     }
 
