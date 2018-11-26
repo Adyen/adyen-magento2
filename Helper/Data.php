@@ -1606,7 +1606,7 @@ class Data extends AbstractHelper
 
 	/**
 	 * @param $client
-	 * @return mixed
+	 * @return \Adyen\Service\Checkout
 	 */
 	public function createAdyenCheckoutService($client)
 	{
