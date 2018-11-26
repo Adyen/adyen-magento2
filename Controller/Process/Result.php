@@ -57,6 +57,11 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     protected $_adyenLogger;
 
+	/**
+	 * @var \Magento\Store\Model\StoreManagerInterface
+	 */
+	protected $storeManager;
+
     /**
      * Result constructor.
      *
@@ -66,6 +71,7 @@ class Result extends \Magento\Framework\App\Action\Action
      * @param \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory
      * @param \Magento\Checkout\Model\Session $session
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -73,13 +79,15 @@ class Result extends \Magento\Framework\App\Action\Action
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory,
         \Magento\Checkout\Model\Session $session,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+		\Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
         $this->_orderHistoryFactory = $orderHistoryFactory;
         $this->_session = $session;
         $this->_adyenLogger = $adyenLogger;
+		$this->storeManager = $storeManager;
         parent::__construct($context);
     }
 
@@ -152,11 +160,18 @@ class Result extends \Magento\Framework\App\Action\Action
             );
         }
 
-        // authenticate result url
-        $authStatus = $this->_authenticate($response);
-        if (!$authStatus) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('ResultUrl authentification failure'));
-        }
+        // If the merchant signature is present, authenticate the result url
+        if (!empty($response['merchantSig'])) {
+			// authenticate result url
+			$authStatus = $this->_authenticate($response);
+			if (!$authStatus) {
+				throw new \Magento\Framework\Exception\LocalizedException(__('ResultUrl authentification failure'));
+			}
+		// Otherwise validate the pazload and get back the response that can be used to finish the order
+		} else {
+			// send the payload verification payment\details request to validate the response
+			$response = $this->validatePayloadAndReturnResponse($response);
+		}
 
         $incrementId = $response['merchantReference'];
 
@@ -204,7 +219,12 @@ class Result extends \Magento\Framework\App\Action\Action
 
         $this->_adyenLogger->addAdyenResult('Updating the order');
 
-        $authResult = $response['authResult'];
+        if (!empty($response['authResult'])) {
+			$authResult = $response['authResult'];
+		} elseif (!empty($response['authResponse'])) {
+			$authResult = $response['authResponse'];
+		}
+
         $paymentMethod = isset($response['paymentMethod']) ? trim($response['paymentMethod']) : '';
         $pspReference = isset($response['pspReference']) ? trim($response['pspReference']) : '';
 
@@ -217,7 +237,7 @@ class Result extends \Magento\Framework\App\Action\Action
         // needed because then we need to save $order objects
         $order->setAdyenResulturlEventCode($authResult);
 
-        switch ($authResult) {
+        switch (strtoupper($authResult)) {
             case Notification::AUTHORISED:
                 $result = true;
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
@@ -279,36 +299,32 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     protected function _authenticate($response) {
 
-    	if (!empty($response['merchantSig'])) {
-			$merchantSigNotification = $response['merchantSig'];
+		$merchantSigNotification = $response['merchantSig'];
 
-			// do it like this because $_GET is converting dot to underscore
-			$queryString = $_SERVER['QUERY_STRING'];
-			$result = [];
-			$pairs = explode("&", $queryString);
+		// do it like this because $_GET is converting dot to underscore
+		$queryString = $_SERVER['QUERY_STRING'];
+		$result = [];
+		$pairs = explode("&", $queryString);
 
-			foreach ($pairs as $pair) {
-				$nv = explode("=", $pair);
-				$name = urldecode($nv[0]);
-				$value = urldecode($nv[1]);
-				$result[$name] = $value;
-			}
-
-			// do not include the merchantSig in the merchantSig calculation
-			unset($result['merchantSig']);
-
-			// Sign request using secret key
-			$hmacKey = $this->_adyenHelper->getHmac();
-			$merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
-
-			if (strcmp($merchantSig, $merchantSigNotification) === 0) {
-				return true;
-			}
-			return false;
-		} else{
-    		// send the payload verification payment\details request to validate the response
-
+		foreach ($pairs as $pair) {
+			$nv = explode("=", $pair);
+			$name = urldecode($nv[0]);
+			$value = urldecode($nv[1]);
+			$result[$name] = $value;
 		}
+
+		// do not include the merchantSig in the merchantSig calculation
+		unset($result['merchantSig']);
+
+		// Sign request using secret key
+		$hmacKey = $this->_adyenHelper->getHmac();
+		$merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
+
+		if (strcmp($merchantSig, $merchantSigNotification) === 0) {
+			return true;
+		}
+
+		return false;
 
     }
 
@@ -336,4 +352,31 @@ class Result extends \Magento\Framework\App\Action\Action
         }
         return $this->_order;
     }
+
+	/**
+	 * Validates the payload from checkout /payments hpp and returns the api response
+	 *
+	 * @param $response
+	 * @return mixed
+	 * @throws \Adyen\AdyenException
+	 */
+    protected function validatePayloadAndReturnResponse($response)
+	{
+		$client = $this->_adyenHelper->initializeAdyenClient($this->storeManager->getStore()->getId());
+		$service = $this->_adyenHelper->createAdyenCheckoutService($client);
+
+		$request = array(
+			"details" => array(
+				"payload" => $response["payload"]
+			)
+		);
+
+		try {
+			$response = $service->paymentsDetails($request);
+		} catch(\Adyen\AdyenException $e) {
+			$response['error'] =  $e->getMessage();
+		}
+
+		return $response;
+	}
 }
