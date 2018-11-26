@@ -63,12 +63,23 @@ class TransactionPayment implements ClientInterface
 
 		$client = $this->_adyenHelper->initializeAdyenClient();
 
-		$service = new \Adyen\Service\Checkout($client);
+		// Route all the openinvoce payments throught the old HPP flow until PW-755
+		if (isset($request['paymentMethod']["type"]) && $this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($request['paymentMethod']["type"])) {
 
-		try {
-			$response = $service->payments($request);
-		} catch(\Adyen\AdyenException $e) {
-			$response['error'] =  $e->getMessage();
+			// Mock reponse and make it easier to identify old HPP
+			return array(
+				'resultCode' => 'RedirectShopper',
+				'HPP' => true
+			);
+		// Route all the others through the new checkout api /payments route
+		} else {
+			$service = new \Adyen\Service\Checkout($client);
+
+			try {
+				$response = $service->payments($request);
+			} catch(\Adyen\AdyenException $e) {
+				$response['error'] =  $e->getMessage();
+			}
 		}
 
 		return $response;

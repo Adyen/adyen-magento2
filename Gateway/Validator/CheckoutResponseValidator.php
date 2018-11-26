@@ -108,7 +108,7 @@ class CheckoutResponseValidator extends AbstractValidator
 					}
 
 					// If the redirect data is there then the payment is a card payment with 3d secure
-					if (isset($response['redirect']['data'])) {
+					if (isset($response['redirect']['data']['PaReq']) && isset($response['redirect']['data']['MD'])) {
 						$paReq = null;
 						$md = null;
 
@@ -135,6 +135,11 @@ class CheckoutResponseValidator extends AbstractValidator
 						}
 					// otherwise it is an alternative payment method which only requires the redirect url to be present
 					} else {
+						// If the old HPP flow is detected no more process is necessary - until PW-755
+						if (isset($response['HPP']) && $response['HPP'] === true) {
+							break;
+						}
+
 						$payment->setAdditionalInformation('CheckoutAPM', true);
 
 						if ($redirectUrl && $paymentData) {

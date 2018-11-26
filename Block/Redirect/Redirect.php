@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Block\Redirect;
 
+use Adyen\AdyenException;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 class Redirect extends \Magento\Payment\Block\Form
@@ -128,8 +129,8 @@ class Redirect extends \Magento\Payment\Block\Form
 	/**
 	 * Retrieves redirect url for the flow of checkout API
 	 *
-	 * @return string|string[]
-	 * @throws \Exception
+	 * @return string[]
+	 * @throws AdyenException
 	 */
 	public function getRedirectUrl()
 	{
@@ -144,7 +145,7 @@ class Redirect extends \Magento\Payment\Block\Form
 			throw($e);
 		}
 
-		return "";
+		throw new AdyenException("No redirect url is not provided.");
 	}
 
     /**
