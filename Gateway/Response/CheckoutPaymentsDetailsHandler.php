@@ -57,5 +57,8 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
 		$payment->setIsTransactionClosed(false);
 		$payment->setShouldCloseParentTransaction(false);
 
+		$payment->unsAdditionalInformation('paymentData');
+		$payment->unsAdditionalInformation('paRequest');
+		$payment->unsAdditionalInformation('md');
 	}
 }

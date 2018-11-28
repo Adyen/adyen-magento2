@@ -22,23 +22,34 @@
  */
 ?>
 <html>
-<head>
-</head>
-<body>
-
-
-<form id="adyen_form" method="POST" action="<?php echo $block->getFormUrl()?>">
+    <head>
+    </head>
+    <body>
 
     <?php
-    foreach($block->getFormFields() as $field => $value) {
-        echo '<input type="hidden" name="' .htmlspecialchars($field,   ENT_COMPAT | ENT_HTML401 ,'UTF-8').
-            '" value="' .htmlspecialchars($value, ENT_COMPAT | ENT_HTML401 ,'UTF-8') . '" />';
-    }
-    ?>
-</form>
-<script>
-     document.getElementById('adyen_form').submit();
-</script>
+        // Only redirect when the flow follows the checkout API case
+        if ($block->isCheckoutAPM()) { ?>
+            <script>
+                window.location.replace("<?php echo $block->getRedirectUrl()?>");
+            </script>
+        <?php
+        // Form submission for the old HPP flow
+        } else { ?>
+            <form id="adyen_form" method="POST" action="<?php echo $block->getFormUrl()?>">
 
-</body>
+                <?php
+                foreach($block->getFormFields() as $field => $value) {
+                    echo '<input type="hidden" name="' .htmlspecialchars($field,   ENT_COMPAT | ENT_HTML401 ,'UTF-8').
+                        '" value="' .htmlspecialchars($value, ENT_COMPAT | ENT_HTML401 ,'UTF-8') . '" />';
+                }
+                ?>
+            </form>
+            <script>
+                document.getElementById('adyen_form').submit();
+            </script>
+        <?php
+        }
+    ?>
+
+    </body>
 </html>

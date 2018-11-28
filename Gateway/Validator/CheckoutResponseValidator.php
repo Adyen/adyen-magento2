@@ -95,23 +95,64 @@ class CheckoutResponseValidator extends AbstractValidator
 					}
 					break;
 				case "RedirectShopper":
-					$payment->setAdditionalInformation('3dActive', true);
 
-					if (!empty($paReq = $response['redirect']['data']['PaReq']) &&
-						!empty($md = $response['redirect']['data']['MD']) &&
-						!empty($issuerUrl = $response['redirect']['url']) &&
-						!empty($paymentData = $response['paymentData'])
-					) {
-						$payment->setAdditionalInformation('issuerUrl', $issuerUrl);
-						$payment->setAdditionalInformation('paRequest', $paReq);
-						$payment->setAdditionalInformation('md', $md);
-						$payment->setAdditionalInformation('paymentData', $paymentData);
-					} else {
-						$isValid = false;
-						$errorMsg = __('3D secure is not valid.');
-						$this->adyenLogger->error($errorMsg);;
-						$errorMessages[] = $errorMsg;
+					$redirectUrl = null;
+					$paymentData = null;
+
+					if (isset($response['redirect']['url']) && !empty($response['redirect']['url'])) {
+						$redirectUrl = $response['redirect']['url'];
 					}
+
+					if (!empty($response['paymentData'])) {
+						$paymentData = $response['paymentData'];
+					}
+
+					// If the redirect data is there then the payment is a card payment with 3d secure
+					if (isset($response['redirect']['data']['PaReq']) && isset($response['redirect']['data']['MD'])) {
+						$paReq = null;
+						$md = null;
+
+						$payment->setAdditionalInformation('3dActive', true);
+
+						if (!empty($response['redirect']['data']['PaReq'])) {
+							$paReq = $response['redirect']['data']['PaReq'];
+						}
+
+						if (!empty($response['redirect']['data']['MD'])) {
+							$md = $response['redirect']['data']['MD'];
+						}
+
+						if ($paReq && $md && $redirectUrl && $paymentData) {
+							$payment->setAdditionalInformation('issuerUrl', $redirectUrl);
+							$payment->setAdditionalInformation('paRequest', $paReq);
+							$payment->setAdditionalInformation('md', $md);
+							$payment->setAdditionalInformation('paymentData', $paymentData);
+						} else {
+							$isValid = false;
+							$errorMsg = __('3D secure is not valid.');
+							$this->adyenLogger->error($errorMsg);;
+							$errorMessages[] = $errorMsg;
+						}
+					// otherwise it is an alternative payment method which only requires the redirect url to be present
+					} else {
+						// If the old HPP flow is detected no more process is necessary - until PW-755
+						if (isset($response['HPP']) && $response['HPP'] === true) {
+							break;
+						}
+
+						$payment->setAdditionalInformation('CheckoutAPM', true);
+
+						if ($redirectUrl && $paymentData) {
+							$payment->setAdditionalInformation('redirectUrl', $redirectUrl);
+							$payment->setAdditionalInformation('paymentData', $paymentData);
+						} else {
+							$isValid = false;
+							$errorMsg = __('Payment method is not valid.');
+							$this->adyenLogger->error($errorMsg);;
+							$errorMessages[] = $errorMsg;
+						}
+					}
+
 					break;
 				case "Refused":
 					$errorMsg = __('The payment is REFUSED.');
