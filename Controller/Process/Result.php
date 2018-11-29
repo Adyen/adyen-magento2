@@ -219,8 +219,8 @@ class Result extends \Magento\Framework\App\Action\Action
 
         if (!empty($response['authResult'])) {
 			$authResult = $response['authResult'];
-		} elseif (!empty($response['authResponse'])) {
-			$authResult = $response['authResponse'];
+		} elseif (!empty($response['resultCode'])) {
+			$authResult = $response['resultCode'];
 		}
 
         $paymentMethod = isset($response['paymentMethod']) ? trim($response['paymentMethod']) : '';
@@ -235,7 +235,6 @@ class Result extends \Magento\Framework\App\Action\Action
             $paymentMethod
         );
 
-
         // needed because then we need to save $order objects
         $order->setAdyenResulturlEventCode($authResult);
 
@@ -244,6 +243,10 @@ class Result extends \Magento\Framework\App\Action\Action
                 $result = true;
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
+			case Notification::RECEIVED:
+				$result = true;
+				$this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
+				break;
             case Notification::PENDING:
                 // do nothing wait for the notification
                 $result = true;
