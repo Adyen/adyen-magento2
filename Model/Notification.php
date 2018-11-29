@@ -32,6 +32,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel
     const AUTHORISATION = 'AUTHORISATION';
     const PENDING = 'PENDING';
     const AUTHORISED = 'AUTHORISED';
+	const RECEIVED = 'RECEIVED';
     const CANCELLED = 'CANCELLED';
     const REFUSED = 'REFUSED';
     const ERROR = 'ERROR';
