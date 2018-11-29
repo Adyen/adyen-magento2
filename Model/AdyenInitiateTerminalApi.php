@@ -85,9 +85,6 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             $client->setTimeout($posTimeout);
         }
 
-        // assign magento log
-        $client->setLogger($adyenLogger);
-
         $this->client = $client;
     }
 
