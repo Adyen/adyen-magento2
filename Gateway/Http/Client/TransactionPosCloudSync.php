@@ -60,10 +60,10 @@ class TransactionPosCloudSync implements ClientInterface
         $this->adyenLogger = $adyenLogger;
         $this->storeId = $storeManager->getStore()->getId();
 
+		$apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
+
         // initialize client
-        $client = $this->adyenHelper->initializeAdyenClient($this->storeId);
-        $apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
-        $client->setXApiKey($apiKey);
+        $client = $this->adyenHelper->initializeAdyenClient($this->storeId, $apiKey);
 
         //Set configurable option in M2
         $posTimeout = $this->adyenHelper->getAdyenPosCloudConfigData('pos_timeout', $this->storeId);
