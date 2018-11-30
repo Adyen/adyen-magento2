@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2018 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -45,33 +45,8 @@ $_isDemoMode = $block->isDemoMode();
     </div>
 <?php endif;?>
 
-<?php if ($_brandCode = $_info->getAdditionalInformation('brand_code')):?>
-    <div><?php echo __('Payment Method: %1', $_brandCode); ?>
-    </div>
-<?php endif;?>
-
 <?php if($_info->getAdditionalInformation('adyen_total_fraud_score') != ""): ?>
     <?php echo __('Total fraud score: %1', $_info->getAdditionalInformation('adyen_total_fraud_score')) ?><br/>
-<?php endif; ?>
-
-
-<?php if($block->getSplitPayments()): ?>
-    <table class="edit-order-table">
-        <tr>
-            <th>PspReference</th>
-            <th>Payment Method</th>
-            <th>Amount</th>
-            <th>Refunded</th>
-        </tr>
-        <?php foreach ($block->getSplitPayments() as $payment): ?>
-            <tr>
-                <td><?php echo $payment->getPspreference() ?></td>
-                <td><?php echo $payment->getPaymentMethod() ?></td>
-                <td><?php echo $payment->getAmount() ?></td>
-                <td><?php echo $payment->getTotalRefunded() ?></td>
-            </tr>
-        <?php endforeach; ?>
-    </table>
 <?php endif; ?>
 
 <?php if ($_specificInfo = $block->getSpecificInformation()):?>
@@ -85,9 +60,11 @@ $_isDemoMode = $block->isDemoMode();
     </table>
 <?php endif;?>
 
-<?php if ($ratepayDescriptor = $_info->getAdditionalInformation('adyen_ratepay_descriptor')):?>
-    <div><?php echo __('Invoice Descriptor: %1', $ratepayDescriptor); ?>
-    </div>
-<?php endif;?>
-
 <?php echo $block->getChildHtml()?>
+    <style>
+        table.terminal-api-receipt{margin-top: 10px}
+        td.terminal-api-receipt-name{padding:inherit; font-weight: 700}
+        td.terminal-api-receipt-value{padding:inherit;}
+        tr.terminal-api-receipt{padding-bottom: 5px;}
+    </style>
+<?php echo $this->getMethod()->getInfoInstance()->getAdditionalInformation('receipt');?>
