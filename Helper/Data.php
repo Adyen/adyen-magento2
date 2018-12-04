@@ -928,6 +928,19 @@ class Data extends AbstractHelper
         return false;
     }
 
+	/**
+	 * @param $paymentMethod
+	 * @return bool
+	 */
+	public function isPaymentMethodMolpayMethod($paymentMethod)
+	{
+		if (strpos($paymentMethod, 'molpay_') !== false) {
+			return true;
+		}
+
+		return false;
+	}
+
     public function getRatePayId()
     {
         return $this->getAdyenHppConfigData("ratepay_id");
@@ -1291,7 +1304,7 @@ class Data extends AbstractHelper
 		if ($this->isDemoMode($storeId)) {
 			$client->setEnvironment(\Adyen\Environment::TEST);
 		} else {
-			$client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
+			$client->setEnvironment(\Adyen\Environment::LIVE);
 		}
 
 		$client->setLogger($this->adyenLogger);
