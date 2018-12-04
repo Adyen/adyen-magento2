@@ -1291,7 +1291,7 @@ class Data extends AbstractHelper
 		if ($this->isDemoMode($storeId)) {
 			$client->setEnvironment(\Adyen\Environment::TEST);
 		} else {
-			$client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
+			$client->setEnvironment(\Adyen\Environment::LIVE);
 		}
 
 		$client->setLogger($this->adyenLogger);
