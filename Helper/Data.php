@@ -934,7 +934,7 @@ class Data extends AbstractHelper
 	 */
 	public function isPaymentMethodMolpayMethod($paymentMethod)
 	{
-		if (strpos($paymentMethod, 'molpay_ebanking_MY') !== false) {
+		if (strpos($paymentMethod, 'molpay_') !== false) {
 			return true;
 		}
 
