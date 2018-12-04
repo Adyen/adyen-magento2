@@ -928,6 +928,19 @@ class Data extends AbstractHelper
         return false;
     }
 
+	/**
+	 * @param $paymentMethod
+	 * @return bool
+	 */
+	public function isPaymentMethodMolpayMethod($paymentMethod)
+	{
+		if (strpos($paymentMethod, 'molpay_ebanking_MY') !== false) {
+			return true;
+		}
+
+		return false;
+	}
+
     public function getRatePayId()
     {
         return $this->getAdyenHppConfigData("ratepay_id");

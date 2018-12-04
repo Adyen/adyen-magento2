@@ -130,7 +130,16 @@ class Redirect extends \Magento\Payment\Block\Form
                             if ($this->getPaymentMethodSelectionOnAdyen()) {
                                 $url = 'https://test.adyen.com/hpp/select.shtml';
                             } else {
-								$url = "https://test.adyen.com/hpp/skipDetails.shtml";
+								if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
+										$this->_order->getPayment()->getAdditionalInformation('brand_code')
+									) || $this->_adyenHelper->isPaymentMethodMolpayMethod(
+										$this->_order->getPayment()->getAdditionalInformation('brand_code')
+									)
+								) {
+									$url = "https://test.adyen.com/hpp/skipDetails.shtml";
+								} else {
+									$url = "https://test.adyen.com/hpp/details.shtml";
+								}
                             }
                         }
                         break;
@@ -141,7 +150,16 @@ class Redirect extends \Magento\Payment\Block\Form
                             if ($this->getPaymentMethodSelectionOnAdyen()) {
                                 $url = 'https://live.adyen.com/hpp/select.shtml';
                             } else {
-                            	$url = "https://live.adyen.com/hpp/skipDetails.shtml";
+								if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
+										$this->_order->getPayment()->getAdditionalInformation('brand_code')
+									) || $this->_adyenHelper->isPaymentMethodMolpayMethod(
+										$this->_order->getPayment()->getAdditionalInformation('brand_code')
+									)
+								) {
+									$url = "https://live.adyen.com/hpp/skipDetails.shtml";
+								} else {
+									$url = "https://live.adyen.com/hpp/details.shtml";
+								}
                             }
                         }
                         break;
