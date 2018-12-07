@@ -52,6 +52,11 @@ class Json extends \Magento\Framework\App\Action\Action
     protected $_adyenLogger;
 
     /**
+     * @var array
+     */
+    protected $postParams;
+
+    /**
      * Json constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -69,6 +74,13 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->_resultFactory = $context->getResultFactory();
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
+        $this->postParams = json_decode(file_get_contents('php://input'), true);
+        
+        // Fix for Magento2.3 adding isAjax to the request params
+        if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface") && !isset($this->getRequest()->getParams()['version'])) {
+            $this->postParams['isAjax'] = true;
+            $this->_request->setParams($this->postParams);
+        }
     }
 
     /**
@@ -90,7 +102,7 @@ class Json extends \Magento\Framework\App\Action\Action
         }
 
         try {
-            $notificationItems = json_decode(file_get_contents('php://input'), true);
+            $notificationItems = $this->postParams;
 
             // log the notification
             $this->_adyenLogger->addAdyenNotification(
