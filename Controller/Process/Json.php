@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Controller\Process;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Magento\Framework\App\Request\Http as HttpRequest;
 
 /**
  * Class Json
@@ -52,11 +53,6 @@ class Json extends \Magento\Framework\App\Action\Action
     protected $_adyenLogger;
 
     /**
-     * @var array
-     */
-    protected $postParams;
-
-    /**
      * Json constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -74,12 +70,13 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->_resultFactory = $context->getResultFactory();
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
-        $this->postParams = json_decode(file_get_contents('php://input'), true);
         
         // Fix for Magento2.3 adding isAjax to the request params
-        if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface") && !isset($this->getRequest()->getParams()['version'])) {
-            $this->postParams['isAjax'] = true;
-            $this->_request->setParams($this->postParams);
+        if(interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
+            $request = $this->getRequest();
+            if ($request instanceof HttpRequest && $request->isPost()) {
+                $request->setParam('isAjax', true);
+            }
         }
     }
 
@@ -102,7 +99,7 @@ class Json extends \Magento\Framework\App\Action\Action
         }
 
         try {
-            $notificationItems = $this->postParams;
+            $notificationItems = json_decode(file_get_contents('php://input'), true);
 
             // log the notification
             $this->_adyenLogger->addAdyenNotification(
