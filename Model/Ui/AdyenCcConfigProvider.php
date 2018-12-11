@@ -84,8 +84,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         \Magento\Framework\UrlInterface $urlBuilder,
         Source $assetSource,
         \Magento\Payment\Model\CcConfig $ccConfig
-    )
-    {
+    ) {
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
@@ -105,7 +104,9 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'adyen/process/validate3d/', ['_secure' => $this->_getRequest()->isSecure()])
+                        'adyen/process/validate3d/',
+                        ['_secure' => $this->_getRequest()->isSecure()]
+                    )
                 ]
             ]
         ];

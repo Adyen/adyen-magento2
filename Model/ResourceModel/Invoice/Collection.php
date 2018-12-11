@@ -33,5 +33,4 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     {
         $this->_init('Adyen\Payment\Model\Invoice', 'Adyen\Payment\Model\ResourceModel\Invoice');
     }
-
 }

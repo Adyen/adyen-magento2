@@ -201,5 +201,4 @@ interface OrderPaymentInterface
      * @return $this
      */
     public function setUpdatedAt($timestamp);
-
 }

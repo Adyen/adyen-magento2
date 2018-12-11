@@ -30,5 +30,4 @@ class PosCloud extends \Magento\Payment\Block\Form
      * @var string
      */
     protected $_template = 'Adyen_Payment::form/pos_cloud.phtml';
-
 }

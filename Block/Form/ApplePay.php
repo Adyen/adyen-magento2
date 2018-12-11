@@ -42,8 +42,7 @@ class ApplePay extends \Magento\Payment\Block\Form
         \Magento\Framework\View\Element\Template\Context $context,
         \Adyen\Payment\Helper\Data $adyenHelper,
         array $data = []
-    )
-    {
+    ) {
         parent::__construct($context, $data);
         $this->_adyenHelper = $adyenHelper;
     }
@@ -60,5 +59,4 @@ class ApplePay extends \Magento\Payment\Block\Form
         }
         return $types;
     }
-
 }

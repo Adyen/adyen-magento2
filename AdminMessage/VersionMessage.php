@@ -64,18 +64,17 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
     {
         // Only execute the query the first time you access the Admin page
         if ($this->_authSession->isFirstPageAfterLogin()) {
-
             try {
                 $githubContent = $this->getDecodedContentFromGithub();
                 $this->setSessionData("AdyenGithubVersion", $githubContent);
                 $title = "Adyen extension version " . $githubContent['tag_name'] . " available!";
-                $versionData[] = array(
+                $versionData[] = [
                     'severity' => self::SEVERITY_NOTICE,
                     'date_added' => $githubContent['published_at'],
                     'title' => $title,
                     'description' => $githubContent['body'],
                     'url' => $githubContent['html_url'],
-                );
+                ];
 
                 /*
                  * The parse function checks if the $versionData message exists in the inbox,
@@ -95,7 +94,6 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
             }
         }
         return false;
-
     }
 
     /**
@@ -150,6 +148,4 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
     {
         return $this->_authSession->getData($key, $remove);
     }
-
 }
-

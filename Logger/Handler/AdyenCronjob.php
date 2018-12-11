@@ -39,5 +39,4 @@ class AdyenCronjob extends AdyenBase
     protected $loggerType = AdyenLogger::ADYEN_NOTIFICATION_CRONJOB;
 
     protected $level = AdyenLogger::ADYEN_NOTIFICATION_CRONJOB;
-
 }

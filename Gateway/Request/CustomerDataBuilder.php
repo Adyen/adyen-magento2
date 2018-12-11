@@ -32,7 +32,7 @@ class CustomerDataBuilder implements BuilderInterface
 
     /**
      * Add shopper data into request
-     * 
+     *
      * @param array $buildSubject
      * @return array
      */

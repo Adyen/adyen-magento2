@@ -30,5 +30,4 @@ class PosCloud extends AbstractInfo
      * @var string
      */
     protected $_template = 'Adyen_Payment::info/adyen_pos_cloud.phtml';
-
 }

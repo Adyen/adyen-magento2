@@ -39,5 +39,4 @@ class AdyenNotification extends AdyenBase
     protected $loggerType = AdyenLogger::ADYEN_NOTIFICATION;
 
     protected $level = AdyenLogger::ADYEN_NOTIFICATION;
-
 }

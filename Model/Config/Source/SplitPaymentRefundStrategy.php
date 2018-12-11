@@ -48,5 +48,4 @@ class SplitPaymentRefundStrategy implements \Magento\Framework\Option\ArrayInter
             self::REFUND_ON_RATIO => __('refund based on ratio')
         ];
     }
-
 }

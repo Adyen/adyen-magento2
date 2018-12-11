@@ -74,12 +74,11 @@ class SepaValidator extends AbstractValidator
 
         if (isset($countries[substr($iban, 0, 2)]) &&
             strlen($iban) == $countries[substr($iban, 0, 2)]) {
-
             $movedChar = substr($iban, 4).substr($iban, 0, 4);
             $movedCharArray = str_split($movedChar);
             $newString = "";
 
-            foreach ($movedCharArray AS $key => $value) {
+            foreach ($movedCharArray as $key => $value) {
                 if (!is_numeric($movedCharArray[$key])) {
                     $movedCharArray[$key] = $chars[$movedCharArray[$key]];
                 }

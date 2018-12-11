@@ -66,22 +66,22 @@ class AdyenLogger extends Logger
      * @param  array   $context The log context
      * @return Boolean Whether the record has been processed
      */
-    public function addAdyenNotification($message, array $context = array())
+    public function addAdyenNotification($message, array $context = [])
     {
         return $this->addRecord(static::ADYEN_NOTIFICATION, $message, $context);
     }
 
-    public function addAdyenDebug($message, array $context = array())
+    public function addAdyenDebug($message, array $context = [])
     {
         return $this->addRecord(static::ADYEN_DEBUG, $message, $context);
     }
 
-    public function addAdyenResult($message, array $context = array())
+    public function addAdyenResult($message, array $context = [])
     {
         return $this->addRecord(static::ADYEN_RESULT, $message, $context);
     }
 
-    public function addAdyenNotificationCronjob($message, array $context = array())
+    public function addAdyenNotificationCronjob($message, array $context = [])
     {
         return $this->addRecord(static::ADYEN_NOTIFICATION_CRONJOB, $message, $context);
     }
@@ -109,7 +109,7 @@ class AdyenLogger extends Logger
      * @param  array   $context The log context
      * @return Boolean Whether the record has been processed
      */
-    public function addNotificationLog($message, array $context = array())
+    public function addNotificationLog($message, array $context = [])
     {
         return $this->addRecord(static::INFO, $message, $context);
     }

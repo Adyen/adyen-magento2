@@ -81,12 +81,14 @@ class BoletoAuthorizationDataBuilder implements BuilderInterface
         $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
         $deliveryDate = date(
             "Y-m-d\TH:i:s ",
-            mktime(date("H"),
+            mktime(
+                date("H"),
                 date("i"),
                 date("s"),
                 date("m"),
                 date("j") + $deliveryDays,
-                date("Y"))
+                date("Y")
+            )
         );
 
         $request['deliveryDate'] = $deliveryDate;

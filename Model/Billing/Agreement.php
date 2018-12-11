@@ -33,7 +33,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 
     /**
      * Agreement constructor.
-     * 
+     *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
@@ -55,14 +55,16 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
-        parent::__construct($context,
-                            $registry,
-                            $paymentData,
-                            $billingAgreementFactory,
-                            $dateFactory,
-                            $resource,
-                            $resourceCollection,
-                            $data);
+        parent::__construct(
+            $context,
+            $registry,
+            $paymentData,
+            $billingAgreementFactory,
+            $dateFactory,
+            $resource,
+            $resourceCollection,
+            $data
+        );
 
         $this->_adyenHelper = $adyenHelper;
     }
@@ -93,7 +95,8 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 
         //Billing agreement SEPA
         if (isset($data['bank']['iban'])) {
-            $this->setAgreementLabel(__('%1, %2',
+            $this->setAgreementLabel(__(
+                '%1, %2',
                 $data['bank']['iban'],
                 $data['bank']['ownerName']
             ));
@@ -108,7 +111,8 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
                 $ccType = $ccTypes[$ccType]['name'];
             }
 
-            $label = __('%1, %2, **** %3',
+            $label = __(
+                '%1, %2, **** %3',
                 $ccType,
                 $data['card']['holderName'],
                 $data['card']['number'],
@@ -119,7 +123,6 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         }
 
         if ($data['variant'] == 'paypal') {
-
             $email = "";
 
             if (isset($data['tokenDetails']['tokenData']['EmailId'])) {
@@ -128,7 +131,8 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
                 $email = $data['lastKnownShopperEmail'];
             }
 
-            $label = __('PayPal %1',
+            $label = __(
+                'PayPal %1',
                 $email
             );
             $this->setAgreementLabel($label);

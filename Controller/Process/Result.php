@@ -163,7 +163,6 @@ class Result extends \Magento\Framework\App\Action\Action
         if ($incrementId) {
             $order = $this->_getOrder($incrementId);
             if ($order->getId()) {
-
                 $this->_eventManager->dispatch('adyen_payment_process_resulturl_before', [
                     'order' => $order,
                     'adyen_response' => $response
@@ -179,7 +178,6 @@ class Result extends \Magento\Framework\App\Action\Action
                     'order' => $order,
                     'adyen_response' => $response
                 ]);
-
             } else {
                 throw new \Magento\Framework\Exception\LocalizedException(
                     __('Order does not exists with increment_id: %1', $incrementId)
@@ -209,8 +207,12 @@ class Result extends \Magento\Framework\App\Action\Action
         $pspReference = isset($response['pspReference']) ? trim($response['pspReference']) : '';
 
         $type = 'Adyen Result URL response:';
-        $comment = __('%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> paymentMethod: %4',
-            $type, $authResult, $pspReference, $paymentMethod
+        $comment = __(
+            '%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> paymentMethod: %4',
+            $type,
+            $authResult,
+            $pspReference,
+            $paymentMethod
         );
 
 
@@ -225,13 +227,11 @@ class Result extends \Magento\Framework\App\Action\Action
             case Notification::PENDING:
                 // do nothing wait for the notification
                 $result = true;
-                if (strpos($paymentMethod,"bankTransfer") !== false){
+                if (strpos($paymentMethod, "bankTransfer") !== false) {
                     $comment .= "<br /><br />Waiting for the customer to transfer the money.";
-                }
-                elseif($paymentMethod == "sepadirectdebit"){
+                } elseif ($paymentMethod == "sepadirectdebit") {
                     $comment .= "<br /><br />This request will be send to the bank at the end of the day.";
-                }
-                else {
+                } else {
                     $comment .= "<br /><br />The payment result is not confirmed (yet).
                                  <br />Once the payment is authorised, the order status will be updated accordingly. 
                                  <br />If the order is stuck on this status, the payment can be seen as unsuccessful. 
@@ -263,8 +263,7 @@ class Result extends \Magento\Framework\App\Action\Action
             //->setStatus($status)
             ->setComment($comment)
             ->setEntityName('order')
-            ->setOrder($order)
-        ;
+            ->setOrder($order);
 
         $history->save();
 
@@ -277,7 +276,8 @@ class Result extends \Magento\Framework\App\Action\Action
      * @param $response
      * @return bool
      */
-    protected function _authenticate($response) {
+    protected function _authenticate($response)
+    {
 
         $merchantSigNotification = $response['merchantSig'];
 
@@ -314,7 +314,7 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     protected function escapeString($val)
     {
-        return str_replace(':','\\:',str_replace('\\','\\\\',$val));
+        return str_replace(':', '\\:', str_replace('\\', '\\\\', $val));
     }
 
     /**

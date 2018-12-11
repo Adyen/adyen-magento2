@@ -67,8 +67,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $checkoutSession,
         array $data = []
-    )
-    {
+    ) {
         parent::__construct($context, $paymentConfig);
         $this->_adyenHelper = $adyenHelper;
         $this->_appState = $context->getAppState();

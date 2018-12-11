@@ -80,7 +80,6 @@ class CronMessage implements \Magento\Framework\Notification\MessageInterface
         } else {
             return false;
         }
-
     }
 
     /**
@@ -93,8 +92,11 @@ class CronMessage implements \Magento\Framework\Notification\MessageInterface
         $message = __('You have ' . $this->_cronCheck . ' unprocessed notification(s). Please check your Cron');
         $urlMagento = "http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html";
         $urlAdyen = "https://docs.adyen.com/developers/plug-ins-and-partners/magento/magento-2/configuring-the-adyen-plug-in";
-        $message .= __(' and visit <a href="%1">Magento DevDocs</a> and <a href="%2">Adyen Docs</a> on how to configure Cron.',
-            $urlMagento, $urlAdyen);
+        $message .= __(
+            ' and visit <a href="%1">Magento DevDocs</a> and <a href="%2">Adyen Docs</a> on how to configure Cron.',
+            $urlMagento,
+            $urlAdyen
+        );
         $message .= __('<i> Last  cron check was: %1</i> ', $this->_dateChecked->format('d/m/Y H:i:s'));
         return __($message);
     }
@@ -125,4 +127,3 @@ class CronMessage implements \Magento\Framework\Notification\MessageInterface
         return $this->_authSession->getData($key, $remove);
     }
 }
-

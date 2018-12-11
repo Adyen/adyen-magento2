@@ -81,8 +81,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Checkout\Model\Session $session
-    )
-    {
+    ) {
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
@@ -104,7 +103,9 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'adyen/process/redirect', ['_secure' => $this->_getRequest()->isSecure()])
+                        'adyen/process/redirect',
+                        ['_secure' => $this->_getRequest()->isSecure()]
+                    )
                 ]
             ]
         ];
@@ -114,14 +115,13 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
 
         // get customer
         if ($this->_customerSession->isLoggedIn()) {
-
             $gender = \Adyen\Payment\Model\Gender::getAdyenGenderFromMagentoGender(
                 $this->_customerSession->getCustomerData()->getGender()
             );
 
             // format to calendar date
             $dob = $this->_customerSession->getCustomerData()->getDob();
-            if($dob) {
+            if ($dob) {
                 $dob = strtotime($dob);
                 $dob = date('m/d/Y', $dob);
             }

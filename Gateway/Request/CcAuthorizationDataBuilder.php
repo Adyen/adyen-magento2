@@ -47,8 +47,7 @@ class CcAuthorizationDataBuilder implements BuilderInterface
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\Model\Context $context
-    )
-    {
+    ) {
         $this->adyenHelper = $adyenHelper;
         $this->appState = $context->getAppState();
     }

@@ -111,27 +111,27 @@ class ResultPos extends \Magento\Framework\App\Action\Action
         $result = false;
 
         if ($response != null && $response['result'] != "" && $this->_validateChecksum($response)) {
-
             $incrementId = $response['merchantReference'];
             $responseResult = $response['result'];
 
             if ($incrementId) {
                 $order = $this->_getOrder($incrementId);
                 if ($order->getId()) {
-
-                    $comment = __('%1 <br /> Result: %2 <br /> paymentMethod: %3',
-                        'Adyen App Result URL Notification:', $responseResult, 'POS');
+                    $comment = __(
+                        '%1 <br /> Result: %2 <br /> paymentMethod: %3',
+                        'Adyen App Result URL Notification:',
+                        $responseResult,
+                        'POS'
+                    );
 
                     if ($responseResult == 'APPROVED') {
-
                         $this->_adyenLogger->addAdyenResult('Result is approved');
 
                         $history = $this->_orderHistoryFactory->create()
                             //->setStatus($status)
                             ->setComment($comment)
                             ->setEntityName('order')
-                            ->setOrder($order)
-                        ;
+                            ->setOrder($order);
                         $history->save();
 
                         // needed  becuase then we need to save $order objects
@@ -148,8 +148,7 @@ class ResultPos extends \Magento\Framework\App\Action\Action
                             //->setStatus($status)
                             ->setComment($comment)
                             ->setEntityName('order')
-                            ->setOrder($order)
-                        ;
+                            ->setOrder($order);
                         $history->save();
 
                         // cancel the order

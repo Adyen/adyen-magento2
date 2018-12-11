@@ -34,7 +34,7 @@ class CaptureMode implements \Magento\Framework\Option\ArrayInterface
 
     /**
      * CaptureMode constructor.
-     * 
+     *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(

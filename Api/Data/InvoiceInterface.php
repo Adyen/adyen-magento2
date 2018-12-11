@@ -121,5 +121,4 @@ interface InvoiceInterface
      * @return $this
      */
     public function setInvoiceId($invoiceId);
-
 }

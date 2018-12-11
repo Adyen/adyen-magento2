@@ -30,6 +30,4 @@ class PayByMail extends \Magento\Payment\Block\Form
      * @var string
      */
     protected $_template = 'Adyen_Payment::form/pay_by_mail.phtml';
-
-
 }

@@ -70,7 +70,6 @@ class GeneralResponseValidator extends AbstractValidator
                     $payment->setAdditionalInformation('pspReference', $response['pspReference']);
                     // set additionalData
                     if (isset($response['additionalData']) && is_array($response['additionalData'])) {
-
                         $additionalData = $response['additionalData'];
                         if (isset($additionalData['boletobancario.dueDate'])) {
                             $payment->setAdditionalInformation(
@@ -109,7 +108,8 @@ class GeneralResponseValidator extends AbstractValidator
                     } else {
                         $isValid = false;
                         $errorMsg = __('3D secure is not valid.');
-                        $this->adyenLogger->error($errorMsg);;
+                        $this->adyenLogger->error($errorMsg);
+                        ;
                         $errorMessages[] = $errorMsg;
                     }
                     break;

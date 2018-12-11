@@ -24,7 +24,6 @@
 
 namespace Adyen\Payment\Api;
 
-
 interface AdyenRequestMerchantSessionInterface
 {
 
@@ -32,5 +31,4 @@ interface AdyenRequestMerchantSessionInterface
      * @return mixed
      */
     public function getMerchantSession();
-
 }

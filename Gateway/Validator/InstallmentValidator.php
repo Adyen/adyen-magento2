@@ -25,7 +25,6 @@
 
 namespace Adyen\Payment\Gateway\Validator;
 
-
 use Magento\Payment\Gateway\Validator\AbstractValidator;
 
 class InstallmentValidator extends AbstractValidator

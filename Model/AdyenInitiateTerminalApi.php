@@ -30,20 +30,20 @@ use Adyen\Util\Util;
 
 class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 {
-	/**
-	 * @var \Adyen\Payment\Helper\Data 
-	 */
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
     private $adyenHelper;
 
-	/**
-	 * @var \Adyen\Payment\Logger\AdyenLogger 
-	 */
+    /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
     private $adyenLogger;
 
-	/**
-	 * @var \Adyen\Client 
-	 */
-	protected $client;
+    /**
+     * @var \Adyen\Client
+     */
+    protected $client;
 
     /**
      * @var int
@@ -68,15 +68,14 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         array $data = []
-    )
-    {
+    ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
         $this->checkoutSession = $checkoutSession;
         $this->storeId = $storeManager->getStore()->getId();
 
         // initialize client
-		$apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
+        $apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
         $client = $this->adyenHelper->initializeAdyenClient($this->storeId, $apiKey);
 
         //Set configurable option in M2
@@ -163,10 +162,14 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             }
         }
 
-        $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation('serviceID',
-            $serviceID);
-        $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation('initiateDate',
-            $initiateDate);
+        $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation(
+            'serviceID',
+            $serviceID
+        );
+        $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation(
+            'initiateDate',
+            $initiateDate
+        );
 
         try {
             $response = $service->runTenderSync($request);
@@ -176,14 +179,18 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             $response['error'] = $e->getMessage();
         } catch (\Exception $e) {
             //Probably timeout
-            $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation('terminalResponse',
-                null);
+            $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation(
+                'terminalResponse',
+                null
+            );
             $quote->save();
             $response['error'] = $e->getMessage();
             throw $e;
         }
-        $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation('terminalResponse',
-            $response);
+        $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation(
+            'terminalResponse',
+            $response
+        );
 
         $quote->save();
         return $response;

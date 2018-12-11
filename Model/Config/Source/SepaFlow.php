@@ -38,5 +38,4 @@ class SepaFlow implements \Magento\Framework\Option\ArrayInterface
             ['value' => self::SEPA_FLOW_AUTHCAP, 'label' => __('Auth/Cap')],
         ];
     }
-
 }
