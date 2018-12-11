@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Controller\Process;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Magento\Framework\App\Request\Http as HttpRequest;
 
 /**
  * Class Json
@@ -69,6 +70,14 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->_resultFactory = $context->getResultFactory();
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
+        
+        // Fix for Magento2.3 adding isAjax to the request params
+        if(interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
+            $request = $this->getRequest();
+            if ($request instanceof HttpRequest && $request->isPost()) {
+                $request->setParam('isAjax', true);
+            }
+        }
     }
 
     /**
