@@ -109,7 +109,6 @@ class GeneralResponseValidator extends AbstractValidator
                         $isValid = false;
                         $errorMsg = __('3D secure is not valid.');
                         $this->adyenLogger->error($errorMsg);
-                        ;
                         $errorMessages[] = $errorMsg;
                     }
                     break;
