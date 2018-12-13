@@ -84,7 +84,7 @@ class RecurringDataBuilder implements BuilderInterface
                 } else {
                     $recurringContractType =  \Adyen\Payment\Model\RecurringType::RECURRING;
                 }
-            } else if ($paymentMethodCode == \Adyen\Payment\Model\Ui\AdyenCcConfigProvider::CODE) {
+            } elseif ($paymentMethodCode == \Adyen\Payment\Model\Ui\AdyenCcConfigProvider::CODE) {
                 if ($payment->getAdditionalInformation("store_cc") == "" &&
                     ($recurringType == "ONECLICK,RECURRING" || $recurringType == "RECURRING")) {
                     $recurringContractType = \Adyen\Payment\Model\RecurringType::RECURRING;

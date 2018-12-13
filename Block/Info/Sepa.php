@@ -29,5 +29,4 @@ class Sepa extends AbstractInfo
      * @var string
      */
     protected $_template = 'Adyen_Payment::info/adyen_sepa.phtml';
-    
 }

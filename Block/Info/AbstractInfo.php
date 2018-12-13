@@ -51,8 +51,7 @@ class AbstractInfo extends \Magento\Payment\Block\Info
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
         Template\Context $context,
         array $data = []
-    )
-    {
+    ) {
         parent::__construct($context, $data);
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;

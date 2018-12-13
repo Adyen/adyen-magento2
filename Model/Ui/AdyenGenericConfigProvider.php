@@ -38,7 +38,8 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper) {
+    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
+    {
         $this->_adyenHelper = $adyenHelper;
     }
     /**

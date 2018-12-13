@@ -54,6 +54,5 @@ class PaymentAuthorisationDetailsHandler implements HandlerInterface
         // do not close transaction so you can do a cancel() and void
         $payment->setIsTransactionClosed(false);
         $payment->setShouldCloseParentTransaction(false);
-        
     }
 }

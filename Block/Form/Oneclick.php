@@ -72,6 +72,4 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
 
         return $cards;
     }
-
-
 }

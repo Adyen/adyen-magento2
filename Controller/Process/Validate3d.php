@@ -94,19 +94,16 @@ class Validate3d extends \Magento\Framework\App\Action\Action
 
         // check if 3D secure is active. If not just go to success page
         if ($active && $success != true) {
-
             $this->_adyenLogger->addAdyenResult("3D secure is active");
 
             // check if it is already processed
             if ($this->getRequest()->isPost()) {
-
                 $this->_adyenLogger->addAdyenResult("Process 3D secure payment");
                 $requestMD = $this->getRequest()->getPost('MD');
                 $requestPaRes = $this->getRequest()->getPost('PaRes');
                 $md = $order->getPayment()->getAdditionalInformation('md');
 
                 if ($requestMD == $md) {
-
                     $order->getPayment()->setAdditionalInformation('paResponse', $requestPaRes);
 
                     try {
@@ -159,7 +156,8 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                     __('Customer was redirected to bank for 3D-secure validation. Once the shopper authenticated, the order status will be updated accordingly. 
                         <br />Make sure that your notifications are being processed! 
                         <br />If the order is stuck on this status, the shopper abandoned the session. The payment can be seen as unsuccessful. 
-                        <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. Please contact Adyen Support to enable this.'))->save();
+                        <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. Please contact Adyen Support to enable this.')
+                )->save();
                 $this->_view->loadLayout();
                 $this->_view->getLayout()->initMessages();
                 $this->_view->renderLayout();
@@ -180,7 +178,7 @@ class Validate3d extends \Magento\Framework\App\Action\Action
     {
         try {
             $response = $this->_paymentRequest->authorise3d($payment);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
         $responseCode = $response['resultCode'];

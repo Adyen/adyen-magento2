@@ -42,5 +42,4 @@ class AdyenError extends AdyenBase
      * @var
      */
     protected $level = AdyenLogger::ERROR;
-
 }

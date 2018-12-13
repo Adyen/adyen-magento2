@@ -78,7 +78,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
                     $additionalInformationKey,
                     $additionalData[$additionalInformationKey]
                 );
-                }
             }
         }
     }
+}

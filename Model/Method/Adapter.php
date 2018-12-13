@@ -96,11 +96,10 @@ class Adapter extends Method\Adapter
                     $agreement->getCustomerReference(),
                     $agreement->getStoreId()
                 );
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 throw new \Magento\Framework\Exception\LocalizedException(__('Failed to disable this contract'));
             }
         }
         return $this;
     }
-
 }

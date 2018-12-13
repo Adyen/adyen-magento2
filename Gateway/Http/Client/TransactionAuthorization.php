@@ -60,7 +60,7 @@ class TransactionAuthorization implements ClientInterface
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
 
-		$this->_client = $this->_adyenHelper->initializeAdyenClient();
+        $this->_client = $this->_adyenHelper->initializeAdyenClient();
     }
     
     /**
@@ -77,7 +77,7 @@ class TransactionAuthorization implements ClientInterface
 
         try {
             $response = $service->authorise($request);
-        } catch(\Adyen\AdyenException $e) {
+        } catch (\Adyen\AdyenException $e) {
             $response['error'] =  $e->getMessage();
         }
         return $response;

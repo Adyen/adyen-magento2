@@ -426,14 +426,14 @@ class PaymentMethods extends AbstractHelper
     /**
      * @var array
      */
-    protected $_cacheParams = array(
+    protected $_cacheParams = [
         'currencyCode',
         'merchantReference',
         'skinCode',
         'merchantAccount',
         'countryCode',
         'shopperLocale',
-    );
+    ];
 
     /**
      * @param $requestParams

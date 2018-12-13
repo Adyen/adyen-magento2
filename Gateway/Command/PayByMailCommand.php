@@ -26,7 +26,6 @@ namespace Adyen\Payment\Gateway\Command;
 use Magento\Payment\Gateway\Command;
 use Magento\Payment\Gateway\CommandInterface;
 
-
 class PayByMailCommand implements CommandInterface
 {
 

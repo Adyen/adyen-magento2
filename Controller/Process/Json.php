@@ -63,8 +63,7 @@ class Json extends \Magento\Framework\App\Action\Action
         \Magento\Framework\App\Action\Context $context,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-    )
-    {
+    ) {
         parent::__construct($context);
         $this->_objectManager = $context->getObjectManager();
         $this->_resultFactory = $context->getResultFactory();
@@ -89,7 +88,6 @@ class Json extends \Magento\Framework\App\Action\Action
         // if version is in the notification string show the module version
         $response = $this->getRequest()->getParams();
         if (isset($response['version'])) {
-
             $this->getResponse()
                 ->clearHeader('Content-Type')
                 ->setHeader('Content-Type', 'text/html')
@@ -110,10 +108,9 @@ class Json extends \Magento\Framework\App\Action\Action
 
             if ($notificationMode !== "" && $this->_validateNotificationMode($notificationMode)) {
                 foreach ($notificationItems['notificationItems'] as $notificationItem) {
-
-
                     $status = $this->_processNotification(
-                        $notificationItem['NotificationRequestItem'], $notificationMode
+                        $notificationItem['NotificationRequestItem'],
+                        $notificationMode
                     );
 
                     if ($status != true) {
@@ -122,7 +119,6 @@ class Json extends \Magento\Framework\App\Action\Action
                     }
 
                     $acceptedMessage = "[accepted]";
-
                 }
                 $cronCheckTest = $notificationItems['notificationItems'][0]['NotificationRequestItem']['pspReference'];
 
@@ -182,7 +178,6 @@ class Json extends \Magento\Framework\App\Action\Action
     {
         // validate the notification
         if ($this->authorised($response)) {
-
             // check if notification already exists
             if (!$this->_isDuplicate($response)) {
                 try {

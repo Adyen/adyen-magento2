@@ -48,7 +48,7 @@ class CancelDataBuilder implements BuilderInterface
 
     /**
      * Create cancel_or_refund request
-     * 
+     *
      * @param array $buildSubject
      * @return array
      */

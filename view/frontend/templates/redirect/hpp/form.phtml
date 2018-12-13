@@ -30,9 +30,9 @@
 <form id="adyen_form" method="POST" action="<?php echo $block->getFormUrl()?>">
 
     <?php
-    foreach($block->getFormFields() as $field => $value) {
-        echo '<input type="hidden" name="' .htmlspecialchars($field,   ENT_COMPAT | ENT_HTML401 ,'UTF-8').
-            '" value="' .htmlspecialchars($value, ENT_COMPAT | ENT_HTML401 ,'UTF-8') . '" />';
+    foreach ($block->getFormFields() as $field => $value) {
+        echo '<input type="hidden" name="' .htmlspecialchars($field, ENT_COMPAT | ENT_HTML401, 'UTF-8').
+            '" value="' .htmlspecialchars($value, ENT_COMPAT | ENT_HTML401, 'UTF-8') . '" />';
     }
     ?>
 </form>

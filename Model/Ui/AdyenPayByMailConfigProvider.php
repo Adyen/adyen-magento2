@@ -85,7 +85,9 @@ class AdyenPayByMailConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'adyen/process/redirect', ['_secure' => $this->_getRequest()->isSecure()])
+                        'adyen/process/redirect',
+                        ['_secure' => $this->_getRequest()->isSecure()]
+                    )
                 ]
             ]
         ];

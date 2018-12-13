@@ -47,7 +47,7 @@ class AddressDataBuilder implements BuilderInterface
     
     /**
      * Add delivery\billing details into request
-     * 
+     *
      * @param array $buildSubject
      * @return array
      */
@@ -61,7 +61,6 @@ class AddressDataBuilder implements BuilderInterface
 
         $billingAddress = $order->getBillingAddress();
         if ($billingAddress) {
-
             $requestBilling = ["street" => "N/A",
                 "postalCode" => '',
                 "city" => "N/A",
@@ -95,7 +94,6 @@ class AddressDataBuilder implements BuilderInterface
         
         $shippingAddress = $order->getShippingAddress();
         if ($shippingAddress) {
-            
             // filter housenumber from streetLine1
             $requestDelivery = ["street" => $shippingAddress->getStreetLine1(),
                 "postalCode" => $shippingAddress->getPostcode(),

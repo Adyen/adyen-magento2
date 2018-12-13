@@ -87,7 +87,9 @@ class AdyenApplePayConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'checkout/onepage/success/', ['_secure' => $this->_getRequest()->isSecure()]),
+                        'checkout/onepage/success/',
+                        ['_secure' => $this->_getRequest()->isSecure()]
+                    ),
                     'merchant_identifier' => $this->_adyenHelper->getAdyenApplePayMerchantIdentifier()
                 ]
             ]

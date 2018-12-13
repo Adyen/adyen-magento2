@@ -33,7 +33,7 @@ class DemoMode implements \Magento\Framework\Option\ArrayInterface
 
     /**
      * DemoMode constructor.
-     * 
+     *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(

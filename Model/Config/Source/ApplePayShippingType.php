@@ -24,7 +24,6 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
-
 class ApplePayShippingType implements \Magento\Framework\Option\ArrayInterface
 {
     /**
@@ -46,7 +45,8 @@ class ApplePayShippingType implements \Magento\Framework\Option\ArrayInterface
     /**
      * @return array
      */
-    public function toOptionArray() {
+    public function toOptionArray()
+    {
         return $this->_adyenHelper->getApplePayShippingTypes();
     }
 }

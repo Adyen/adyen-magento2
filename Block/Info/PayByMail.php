@@ -29,5 +29,4 @@ class PayByMail extends AbstractInfo
      * @var string
      */
     protected $_template = 'Adyen_Payment::info/adyen_pay_by_mail.phtml';
-
 }

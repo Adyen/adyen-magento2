@@ -24,7 +24,6 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
-
 use Magento\Payment\Gateway\Response\HandlerInterface;
 use Magento\Setup\Exception;
 
@@ -35,9 +34,9 @@ class PaymentPosCloudHandler implements HandlerInterface
      */
     private $adyenHelper;
 
-	/**
-	 * @var \Adyen\Payment\Logger\AdyenLogger
-	 */
+    /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
     private $adyenLogger;
 
     /**
@@ -64,7 +63,7 @@ class PaymentPosCloudHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $paymentResponse)
     {
-		$paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
+        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
         /** @var OrderPaymentInterface $payment */
         $payment = $paymentDataObject->getPayment();

@@ -64,7 +64,6 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->appState = $context->getAppState();
-
     }
 
     /**
@@ -108,7 +107,6 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
         $variant = $additionalData['variant'];
         $ccType = $this->adyenHelper->getMagentoCreditCartType($variant);
         $paymentInfo->setAdditionalInformation('cc_type', $ccType);
-
     }
 
     /**

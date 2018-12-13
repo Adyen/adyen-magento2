@@ -78,13 +78,14 @@ class PaymentRequest extends DataObject
         $this->_appState = $context->getAppState();
     }
 
-	/**
-	 * @param $storeId
-	 * @return mixed
-	 * @throws \Adyen\AdyenException
-	 */
-    private function createClient($storeId) {
-		$client = $this->_adyenHelper->initializeAdyenClient($storeId);
+    /**
+     * @param $storeId
+     * @return mixed
+     * @throws \Adyen\AdyenException
+     */
+    private function createClient($storeId)
+    {
+        $client = $this->_adyenHelper->initializeAdyenClient($storeId);
         return $client;
     }
 
@@ -116,7 +117,7 @@ class PaymentRequest extends DataObject
             $client = $this->createClient($storeId);
             $service = new \Adyen\Service\Payment($client);
             $result = $service->authorise3D($request);
-        } catch(\Adyen\AdyenException $e) {
+        } catch (\Adyen\AdyenException $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure failed'));
         }
 
@@ -135,7 +136,6 @@ class PaymentRequest extends DataObject
         $recurringTypes = $this->_recurringType->getAllowedRecurringTypesForListRecurringCall();
 
         foreach ($recurringTypes as $recurringType) {
-
             try {
                 // merge ONECLICK and RECURRING into one record with recurringType ONECLICK,RECURRING
                 $listRecurringContractByType =
@@ -221,7 +221,7 @@ class PaymentRequest extends DataObject
 
         try {
             $result = $service->disable($request);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->_adyenLogger->info($e->getMessage());
         }
 

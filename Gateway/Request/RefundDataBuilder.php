@@ -88,7 +88,6 @@ class RefundDataBuilder implements BuilderInterface
 
         // partial refund if multiple payments check refund strategy
         if ($orderPaymentCollection->getSize() > 1) {
-
             $refundStrategy = $this->adyenHelper->getAdyenAbstractConfigData(
                 'split_payments_refund_strategy',
                 $order->getStoreId()
@@ -173,7 +172,6 @@ class RefundDataBuilder implements BuilderInterface
                 //There is only one payment, so we add the fields to the first(and only) result
                 $result[0]["additionalData"] = $openInvoiceFields;
             }
-
         }
 
         return $result;
@@ -207,7 +205,6 @@ class RefundDataBuilder implements BuilderInterface
                 $numberOfItems,
                 $payment
             );
-
         }
 
         // Shipping cost
@@ -233,7 +230,7 @@ class RefundDataBuilder implements BuilderInterface
 
         $invoice = $invoices->getFirstItem();
 
-        if($invoice) {
+        if ($invoice) {
             $formFields['acquirerReference'] = $invoice->getAcquirerReference();
         }
 
