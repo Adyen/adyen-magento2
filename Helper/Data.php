@@ -88,6 +88,7 @@ class Data extends AbstractHelper
      */
     protected $_taxCalculation;
 
+
 	/**
 	 * @var \Magento\Framework\App\ProductMetadataInterface
 	 */
@@ -96,7 +97,7 @@ class Data extends AbstractHelper
 	/**
 	 * @var \Adyen\Payment\Logger\AdyenLogger
 	 */
-    protected $adyenLogger;
+	protected $adyenLogger;
 
 	/**
 	 * @var \Magento\Store\Model\StoreManagerInterface
@@ -1317,5 +1318,19 @@ class Data extends AbstractHelper
 	public function createAdyenRecurringService($client)
 	{
 		return new \Adyen\Service\Recurring($client);
+	}
+
+	/**
+	 * @param string $date
+	 * @param string $format
+	 * @return mixed
+	 */
+	public function formatDate($date = null, $format = 'Y-m-d H:i:s')
+	{
+		if (strlen($date) < 0) {
+			$date = date('d-m-Y H:i:s');
+		}
+		$timeStamp = new \DateTime($date);
+		return $timeStamp->format($format);
 	}
 }

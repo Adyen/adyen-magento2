@@ -64,17 +64,29 @@ class Redirect extends \Magento\Payment\Block\Form
      */
     protected $_taxConfig;
 
+	/**
+	 * @var \Magento\Tax\Model\Calculation
+	 */
     protected $_taxCalculation;
 
-    /**
-     * Redirect constructor.
-     *
-     * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param array $data
-     * @param \Magento\Sales\Model\OrderFactory $orderFactory
-     * @param \Magento\Checkout\Model\Session $checkoutSession
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     */
+	/**
+	 * Request object
+	 */
+	protected $_request;
+
+	/**
+	 * Redirect constructor.
+	 *
+	 * @param \Magento\Framework\View\Element\Template\Context $context
+	 * @param array $data
+	 * @param \Magento\Sales\Model\OrderFactory $orderFactory
+	 * @param \Magento\Checkout\Model\Session $checkoutSession
+	 * @param \Adyen\Payment\Helper\Data $adyenHelper
+	 * @param \Magento\Framework\Locale\ResolverInterface $resolver
+	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+	 * @param \Magento\Tax\Model\Config $taxConfig
+	 * @param \Magento\Tax\Model\Calculation $taxCalculation
+	 */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         array $data = [],
@@ -95,36 +107,11 @@ class Redirect extends \Magento\Payment\Block\Form
         $this->_resolver = $resolver;
         $this->_adyenLogger = $adyenLogger;
 
-        if (!$this->_order) {
-            $incrementId = $this->_getCheckout()->getLastRealOrderId();
-            $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
-        }
+		$this->_getOrder();
         $this->_taxConfig = $taxConfig;
         $this->_taxCalculation = $taxCalculation;
+		$this->_request = $context->getRequest();
     }
-
-	/**
-	 * Returns if the payment should follow the old HPP or the new Checkout flow
-	 *  - hpp will submit a form with all the additional information that the API requests\
-	 *  - checkout will redirect to a url without form submission
-	 *
-	 * @return bool
-	 * @throws \Exception
-	 */
-    public function isCheckoutAPM() {
-		try {
-			if ($paymentObject = $this->_order->getPayment()) {
-				if ($paymentObject->getAdditionalInformation('CheckoutAPM')) {
-					return true;
-				}
-			}
-		} catch (Exception $e) {
-			// do nothing for now
-			throw($e);
-		}
-
-		return false;
-	}
 
 	/**
 	 * Retrieves redirect url for the flow of checkout API
@@ -138,6 +125,8 @@ class Redirect extends \Magento\Payment\Block\Form
 			if ($paymentObject = $this->_order->getPayment()) {
 				if ($redirectUrl = $paymentObject->getAdditionalInformation('redirectUrl')) {
 					return $redirectUrl;
+				} else {
+					return $this->getIssuerUrl();
 				}
 			}
 		} catch (Exception $e) {
@@ -145,7 +134,7 @@ class Redirect extends \Magento\Payment\Block\Form
 			throw($e);
 		}
 
-		throw new AdyenException("No redirect url is not provided.");
+		throw new AdyenException("No redirect url is provided.");
 	}
 
     /**
@@ -176,7 +165,7 @@ class Redirect extends \Magento\Payment\Block\Form
                                 $url = 'https://test.adyen.com/hpp/select.shtml';
                             } else {
                                 if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
-                                    $this->_order->getPayment()->getAdditionalInformation('brand_code')
+									$this->getBrandCode()
                                 )
                                 ) {
                                     $url = "https://test.adyen.com/hpp/skipDetails.shtml";
@@ -194,7 +183,7 @@ class Redirect extends \Magento\Payment\Block\Form
                                 $url = 'https://live.adyen.com/hpp/select.shtml';
                             } else {
                                 if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
-                                    $this->_order->getPayment()->getAdditionalInformation('brand_code')
+                                    $this->getBrandCode()
                                 )
                                 ) {
                                     $url = "https://live.adyen.com/hpp/skipDetails.shtml";
@@ -221,6 +210,14 @@ class Redirect extends \Magento\Payment\Block\Form
     {
         return $this->_adyenHelper->getAdyenHppConfigDataFlag('payment_selection_on_adyen');
     }
+
+	/**
+	 * @return mixed
+	 */
+	private function getBrandCode()
+	{
+		return $this->_order->getPayment()->getAdditionalInformation('brand_code');
+	}
 
     /**
      * @return array
@@ -323,9 +320,9 @@ class Redirect extends \Magento\Payment\Block\Form
                 $formFields['shopper.gender'] = $this->getGenderText($this->_order->getCustomerGender());
                 $dob = $this->_order->getCustomerDob();
                 if ($dob) {
-                    $formFields['shopper.dateOfBirthDayOfMonth'] = trim($this->_getDate($dob, 'd'));
-                    $formFields['shopper.dateOfBirthMonth'] = trim($this->_getDate($dob, 'm'));
-                    $formFields['shopper.dateOfBirthYear'] = trim($this->_getDate($dob, 'Y'));
+                    $formFields['shopper.dateOfBirthDayOfMonth'] = trim($this->_adyenHelper->formatDate($dob, 'd'));
+                    $formFields['shopper.dateOfBirthMonth'] = trim($this->_adyenHelper->formatDate($dob, 'm'));
+                    $formFields['shopper.dateOfBirthYear'] = trim($this->_adyenHelper->formatDate($dob, 'Y'));
                 }
 
                 // For klarna acceptPrivacyPolicy to skip HPP page
@@ -549,21 +546,6 @@ class Redirect extends \Magento\Payment\Block\Form
     }
 
     /**
-     * @param null $date
-     * @param string $format
-     * @return mixed
-     */
-    protected function _getDate($date = null, $format = 'Y-m-d H:i:s')
-    {
-        if (strlen($date) < 0) {
-            $date = date('d-m-Y H:i:s');
-        }
-        $timeStamp = new \DateTime($date);
-        return $timeStamp->format($format);
-    }
-
-
-    /**
      * The character escape function is called from the array_map function in _signRequestParams
      *
      * @param $val
@@ -583,4 +565,61 @@ class Redirect extends \Magento\Payment\Block\Form
     {
         return $this->_checkoutSession;
     }
+
+	/**
+	 * Retrieve request object
+	 *
+	 * @return \Magento\Framework\App\RequestInterface
+	 */
+	protected function _getRequest()
+	{
+		return $this->_request;
+	}
+
+	/**
+	 * Get order object
+	 *
+	 * @return \Magento\Sales\Model\Order
+	 */
+	protected function _getOrder()
+	{
+		if (!$this->_order) {
+			$incrementId = $this->_getCheckout()->getLastRealOrderId();
+			$this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
+		}
+		return $this->_order;
+	}
+
+	/**
+	 * @return mixed
+	 */
+	public function getIssuerUrl()
+	{
+		return $this->_order->getPayment()->getAdditionalInformation('issuerUrl');
+	}
+
+	/**
+	 * @return mixed
+	 */
+	public function getPaReq()
+	{
+		return $this->_order->getPayment()->getAdditionalInformation('paRequest');
+	}
+
+	/**
+	 * @return mixed
+	 */
+	public function getMd()
+	{
+		return $this->_order->getPayment()->getAdditionalInformation('md');
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getTermUrl()
+	{
+		return $this->getUrl('adyen/process/redirect',
+			['_secure' => $this->_getRequest()->isSecure()]);
+	}
 }

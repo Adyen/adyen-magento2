@@ -63,16 +63,23 @@ class AddressDataBuilder implements BuilderInterface
         if ($billingAddress) {
 
             $requestBilling = ["street" => "N/A",
-                "postalCode" => '',
+                "postalCode" => 'N/A',
                 "city" => "N/A",
-                "houseNumberOrName" => '',
-                "stateOrProvince" => '',
+                "houseNumberOrName" => 'N/A',
+                "stateOrProvince" => 'N/A',
                 "country" => "ZZ"
             ];
 
-            if ($billingAddress->getStreetLine1()) {
-                $requestBilling["street"] = $billingAddress->getStreetLine1();
-            }
+			if ($billingAddress->getStreetLine1()) {
+				$address = $this->adyenHelper->getStreet($billingAddress->getStreetLine1());
+
+				if ($address) {
+					$requestBilling["street"] = $address["street"];
+					$requestBilling["houseNumberOrName"] = $address["house_number"];
+				} else {
+					$requestBilling["street"] = $billingAddress->getStreetLine1();
+				}
+			}
 
             if ($billingAddress->getPostcode()) {
                 $requestBilling["postalCode"] = $billingAddress->getPostcode();
@@ -94,17 +101,35 @@ class AddressDataBuilder implements BuilderInterface
         }
         
         $shippingAddress = $order->getShippingAddress();
-        if ($shippingAddress) {
-            
-            // filter housenumber from streetLine1
-            $requestDelivery = ["street" => $shippingAddress->getStreetLine1(),
-                "postalCode" => $shippingAddress->getPostcode(),
-                "city" => $shippingAddress->getCity(),
-                "houseNumberOrName" => '',
-                "stateOrProvince" => $shippingAddress->getRegionCode(),
-                "country" => $shippingAddress->getCountryId()
-            ];
 
+        if ($shippingAddress) {
+
+			if ($shippingAddress->getStreetLine1()) {
+				$address = $this->adyenHelper->getStreet($shippingAddress->getStreetLine1());
+
+				if ($address) {
+					$requestDelivery["street"] = $address["street"];
+					$requestDelivery["houseNumberOrName"] = $address["house_number"];
+				} else {
+					$requestDelivery["street"] = $shippingAddress->getStreetLine1();
+				}
+			}
+
+			if ($shippingAddress->getPostcode()) {
+				$requestDelivery["postalCode"] = $shippingAddress->getPostcode();
+			}
+
+			if ($shippingAddress->getCity()) {
+				$requestDelivery["city"] = $shippingAddress->getCity();
+			}
+
+			if ($shippingAddress->getRegionCode()) {
+				$requestDelivery["stateOrProvince"] = $shippingAddress->getRegionCode();
+			}
+
+			if ($shippingAddress->getCountryId()) {
+				$requestDelivery["country"] = $shippingAddress->getCountryId();
+			}
 
             $result['deliveryAddress'] = $requestDelivery;
         }

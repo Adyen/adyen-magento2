@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -21,9 +20,29 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
-    <container name="root">
-        <block class="Adyen\Payment\Block\Redirect\Validate3d" name="adyen-cc-form-validate3d" template="redirect/cc/3dform.phtml" cacheable="false"/>
-    </container>
-</layout>
+?>
+
+<?php if ($block->getRedirectUrl()) { ?>
+	<body>
+		<script>
+			window.location.replace("<?php echo $block->getRedirectUrl()?>");
+		</script>
+	</body>
+	<?php } else { ?>
+		<body onload="document.getElementById('3dform').submit();">
+			<form method="POST" action="<?php echo $block->getIssuerUrl(); ?>" id="3dform">
+				<input type="hidden" name="PaReq" value="<?php echo $block->getPaReq(); ?>" />
+				<input type="hidden" name="MD" value="<?php echo $block->getMd() ?>" />
+				<input type="hidden" name="TermUrl" value="<?php echo $block->getTermUrl(); ?>" />
+				<noscript>
+					<br>
+					<br>
+					<div style="text-align: center">
+						<h1>Processing your 3-D Secure Transaction</h1>
+						<p>Please click continue to continue the processing of your 3-D Secure transaction.</p>
+						<input type="submit" class="button" value="continue"/>
+					</div>
+				</noscript>
+			</form>
+		</body>
+<?php } ?>
