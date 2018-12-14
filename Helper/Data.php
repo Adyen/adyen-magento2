@@ -1622,4 +1622,18 @@ class Data extends AbstractHelper
 	{
 		return new \Adyen\Service\Recurring($client);
 	}
+
+	/**
+	 * @param string $date
+	 * @param string $format
+	 * @return mixed
+	 */
+	public function formatDate($date = null, $format = 'Y-m-d H:i:s')
+	{
+		if (strlen($date) < 0) {
+			$date = date('d-m-Y H:i:s');
+		}
+		$timeStamp = new \DateTime($date);
+		return $timeStamp->format($format);
+	}
 }

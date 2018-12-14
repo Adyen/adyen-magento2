@@ -147,13 +147,9 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
             $this->adyenHelper->getAdyenHppConfigDataFlag('payment_selection_on_adyen');
 
         $config['payment'] ['adyenHpp']['isPaymentMethodSelectionOnAdyen'] = $paymentMethodSelectionOnAdyen;
-        $config['payment'] ['adyenHpp']['showGender'] = $this->adyenHelper->getAdyenHppConfigDataFlag('show_gender');
-        $config['payment'] ['adyenHpp']['showDob'] = $this->adyenHelper->getAdyenHppConfigDataFlag('show_dob');
-        $config['payment'] ['adyenHpp']['showTelephone'] = $this->adyenHelper->getAdyenHppConfigDataFlag(
-            'show_telephone'
-        );
-        $config['payment'] ['adyenHpp']['ratePayId'] = $this->adyenHelper->getRatePayId();
-        $config['payment'] ['adyenHpp']['deviceIdentToken'] = md5($this->session->getQuoteId() . date('c'));
+
+        $config['payment'] ['adyenHpp']['ratePayId'] = $this->_adyenHelper->getRatePayId();
+        $config['payment'] ['adyenHpp']['deviceIdentToken'] = md5($this->_session->getQuoteId() . date('c'));
         $config['payment'] ['adyenHpp']['nordicCountries'] = ['SE', 'NO', 'DK', 'FI'];
 
         return $config;
