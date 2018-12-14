@@ -112,9 +112,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'adyen/process/validate3d/',
-                        ['_secure' => $this->_getRequest()->isSecure()]
-                    )
+                        'adyen/process/redirect/', ['_secure' => $this->_getRequest()->isSecure()])
                 ]
             ]
         ];

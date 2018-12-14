@@ -54,6 +54,11 @@ class CustomerDataBuilder implements BuilderInterface
 
         $result ['shopperEmail'] = $customerEmail;
 
+        $result['shopperName']['firstName'] = $order->getBillingAddress()->getFirstname();
+		$result['shopperName']['lastName'] = $order->getBillingAddress()->getLastname();
+
+		$result['countryCode'] = $billingAddress->getCountryId();
+
         return $result;
     }
 }
