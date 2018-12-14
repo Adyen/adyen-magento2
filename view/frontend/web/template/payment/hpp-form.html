@@ -74,72 +74,68 @@
                     <!--/ko-->
 
                     <!-- ko if: isPaymentMethodOpenInvoiceMethod() -->
-                        <!-- ko if: showGender() -->
-                            <div class="field gender required">
-                                    <label data-bind="attr: {for: getCode() + '_gender_type_' + value}" class="label">
-                                        <span><!-- ko text: $t('Gender')--><!-- /ko --></span>
-                                    </label>
-                                    <div class="control">
-                                        <select class="select select-gender-type"
-                                                name="payment[gender]"
-                                                data-bind="attr: {id: getCode() + '_gender_type_' + value, 'data-container': getCode() + '-gender-type'},
-                                                    options: $parent.getGenderTypes(),
-                                                    optionsValue: 'key',
-                                                    optionsText: 'value',
-                                                    optionsCaption: $t('-Please select-'),
-                                                    value: gender"
-                                                data-validate="{required:true}">
-                                        </select>
-                                    </div>
-                            </div>
-                        <!--/ko-->
 
-                        <!-- ko if: showDob() -->
-                            <div class="field dob type required">
-                                <label data-bind="attr: {for: getCode() + '_dob_' + value}" class="label">
-                                    <span><!-- ko text: $t('Date of Birth')--><!-- /ko --></span>
+                        <div class="field gender required">
+                                <label data-bind="attr: {for: getCode() + '_gender_type_' + value}" class="label">
+                                    <span><!-- ko text: $t('Gender')--><!-- /ko --></span>
                                 </label>
                                 <div class="control">
-                                    <input type="text" class="input-text"
-                                           name="payment[dob]"
-                                           data-bind="
+                                    <select class="select select-gender-type"
+                                            name="payment[gender]"
+                                            data-bind="attr: {id: getCode() + '_gender_type_' + value, 'data-container': getCode() + '-gender-type'},
+                                                options: $parent.getGenderTypes(),
+                                                optionsValue: 'key',
+                                                optionsText: 'value',
+                                                optionsCaption: $t('-Please select-'),
+                                                value: gender"
+                                            data-validate="{required:true}">
+                                    </select>
+                                </div>
+                        </div>
+
+                        <div class="field dob type required">
+                            <label data-bind="attr: {for: getCode() + '_dob_' + value}" class="label">
+                                <span><!-- ko text: $t('Date of Birth')--><!-- /ko --></span>
+                            </label>
+                            <div class="control">
+                                <input type="text" class="input-text"
+                                       name="payment[dob]"
+                                       data-bind="
+                                       attr: {
+                                             id: getCode() + '_dob_' + value,
+                                             title: $t('Date of Birth'),
+                                             'data-container': getCode() + '-dob_'  + value,
+                                       },
+                                        datepicker: {
+                                            storage: datepickerValue,
+                                            options: { showOn: 'both', changeYear: true, yearRange: '-99:-1', defaultDate: '-20y' }
+                                       },
+                                       value: dob"
+                                       data-validate="{required:true}"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="field telephone type required">
+                            <label data-bind="attr: {for: getCode() + '_telephone_' + value}" class="label">
+                                <span><!-- ko text: $t('Telephone')--><!-- /ko --></span>
+                            </label>
+                            <div class="control">
+                                <input type="number" class="input-text"
+                                       name="payment[telephone]"
+                                       data-bind="
                                            attr: {
-                                                 id: getCode() + '_dob_' + value,
-                                                 title: $t('Date of Birth'),
-                                                 'data-container': getCode() + '-dob_'  + value,
-                                           },
-                                            datepicker: {
-                                                storage: datepickerValue,
-                                                options: { showOn: 'both', changeYear: true, yearRange: '-99:-1', defaultDate: '-20y' }
-                                           },
-                                           value: dob"
-                                           data-validate="{required:true}"
-                                    />
-                                </div>
+                                                id: getCode() + '_telephone_' + value,
+                                                title: $t('Telephone'),
+                                                'data-container': getCode() + '-telephone_' + value,
+                                                'data-validate': JSON.stringify({'required-number':true})
+                                            },
+                                            value: telephone"
+                                       data-validate="{required:true}"
+                                />
                             </div>
-                        <!--/ko-->
+                        </div>
 
-                        <!-- ko if: showTelephone() -->
-                            <div class="field telephone type required">
-                                <label data-bind="attr: {for: getCode() + '_telephone_' + value}" class="label">
-                                    <span><!-- ko text: $t('Telephone')--><!-- /ko --></span>
-                                </label>
-                                <div class="control">
-                                    <input type="number" class="input-text"
-                                           name="payment[telephone]"
-                                           data-bind="
-                                               attr: {
-                                                    id: getCode() + '_telephone_' + value,
-                                                    title: $t('Telephone'),
-                                                    'data-container': getCode() + '-telephone_' + value,
-                                                    'data-validate': JSON.stringify({'required-number':true})
-                                                },
-                                                value: telephone"
-                                           data-validate="{required:true}"
-                                    />
-                                </div>
-                            </div>
-                        <!--/ko-->
 
                     <!-- ko if: showSsn() -->
                     <div class="field ssn type required">

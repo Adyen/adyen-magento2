@@ -272,15 +272,6 @@ define(
                         result.getRatePayDeviceIdentToken = function () {
                             return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
                         };
-                        result.showGender = function () {
-                            return window.checkoutConfig.payment.adyenHpp.showGender;
-                        };
-                        result.showDob = function () {
-                            return window.checkoutConfig.payment.adyenHpp.showDob;
-                        };
-                        result.showTelephone = function () {
-                            return window.checkoutConfig.payment.adyenHpp.showTelephone;
-                        };
                         result.showSsn = function () {
                             if (value.type.indexOf("klarna") >= 0) {
                                 var ba = quote.billingAddress();
@@ -386,6 +377,7 @@ define(
                 ).fail(
                     function () {
                         self.isPlaceOrderActionAllowed(true);
+                        fullScreenLoader.stopLoader();
                     }
                 ).done(
                     function () {
