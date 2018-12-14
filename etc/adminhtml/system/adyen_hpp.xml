@@ -58,21 +58,6 @@
         <group id="adyen_hpp_openinvoice_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="100">
             <label>Klarna\RatePay\Afterpay Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-            <field id="show_gender" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Show Gender</label>
-                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                <config_path>payment/adyen_hpp/show_gender</config_path>
-            </field>
-            <field id="show_dob" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Show Date of Birth</label>
-                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                <config_path>payment/adyen_hpp/show_dob</config_path>
-            </field>
-            <field id="show_telephone" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Show Telephone</label>
-                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                <config_path>payment/adyen_hpp/show_telephone</config_path>
-            </field>
             <field id="ignore_second_address_field" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Ignore the second address line field</label>
                 <tooltip>If you do not want to send the second line address field to Klarna set this setting to 'Yes'</tooltip>
