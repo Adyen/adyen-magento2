@@ -55,7 +55,7 @@ class TransactionRefund implements ClientInterface
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
 
-		$this->_client = $this->_adyenHelper->initializeAdyenClient();
+        $this->_client = $this->_adyenHelper->initializeAdyenClient();
     }
 
     /**
@@ -68,13 +68,12 @@ class TransactionRefund implements ClientInterface
         $responses = [];
 
         foreach ($requests as $request) {
-
             // call lib
             $service = new \Adyen\Service\Modification($this->_client);
 
             try {
                 $responses[] = $service->refund($request);
-            } catch(\Adyen\AdyenException $e) {
+            } catch (\Adyen\AdyenException $e) {
                 $responses[] = null;
             }
         }

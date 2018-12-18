@@ -35,19 +35,19 @@ class TransactionPosCloudSync implements ClientInterface
      */
     protected $storeId;
 
-	/**
-	 * @var \Adyen\Client
-	 */
+    /**
+     * @var \Adyen\Client
+     */
     protected $client;
 
-	/**
-	 * @var \Adyen\Payment\Helper\Data
-	 */
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
     protected $adyenHelper;
 
-	/**
-	 * @var \Adyen\Payment\Logger\AdyenLogger
-	 */
+    /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
     protected $adyenLogger;
 
     public function __construct(
@@ -60,7 +60,7 @@ class TransactionPosCloudSync implements ClientInterface
         $this->adyenLogger = $adyenLogger;
         $this->storeId = $storeManager->getStore()->getId();
 
-		$apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
+        $apiKey = $this->adyenHelper->getPosApiKey($this->storeId);
 
         // initialize client
         $client = $this->adyenHelper->initializeAdyenClient($this->storeId, $apiKey);
@@ -72,7 +72,6 @@ class TransactionPosCloudSync implements ClientInterface
         }
 
         $this->client = $client;
-
     }
 
     /**

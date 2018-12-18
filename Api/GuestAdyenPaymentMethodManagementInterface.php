@@ -40,5 +40,4 @@ interface GuestAdyenPaymentMethodManagementInterface
      * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
      */
     public function getPaymentMethods($cartId, \Magento\Quote\Api\Data\AddressInterface $shippingAddress = null);
-    
 }

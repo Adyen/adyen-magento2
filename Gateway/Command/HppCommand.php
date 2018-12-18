@@ -61,8 +61,8 @@ class HppCommand implements CommandInterface
         // update customer based on additionalFields
         if ($payment->getAdditionalInformation("gender")) {
             $order->setCustomerGender(\Adyen\Payment\Model\Gender::getMagentoGenderFromAdyenGender(
-                $payment->getAdditionalInformation("gender"))
-            );
+                $payment->getAdditionalInformation("gender")
+            ));
         }
 
         if ($payment->getAdditionalInformation("dob")) {

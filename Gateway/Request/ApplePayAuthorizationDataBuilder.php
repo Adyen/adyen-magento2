@@ -48,8 +48,7 @@ class ApplePayAuthorizationDataBuilder implements BuilderInterface
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-    )
-    {
+    ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
     }
@@ -77,5 +76,4 @@ class ApplePayAuthorizationDataBuilder implements BuilderInterface
 
         return $request;
     }
-
 }

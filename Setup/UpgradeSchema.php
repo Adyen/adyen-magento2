@@ -123,7 +123,9 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'comment' => 'Agreement Data'
         ];
         $connection->addColumn(
-            $setup->getTable('paypal_billing_agreement'), 'agreement_data', $adyenAgreementDataColumn
+            $setup->getTable('paypal_billing_agreement'),
+            'agreement_data',
+            $adyenAgreementDataColumn
         );
     }
 
@@ -241,7 +243,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         $connection->addColumn(
             $setup->getTable('adyen_notification'),
-            \Adyen\Payment\Model\Notification::ORIGINAL_REFERENCE, $column
+            \Adyen\Payment\Model\Notification::ORIGINAL_REFERENCE,
+            $column
         );
     }
 
@@ -326,11 +329,13 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 ['unsigned' => true, 'nullable' => true],
                 'Adyen OriginalReference of the payment'
             )
-            ->addColumn('acquirer_reference',
+            ->addColumn(
+                'acquirer_reference',
                 \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
                 255,
                 ['unsigned' => true, 'nullable' => true],
-                'Adyen AcquirerReference of the capture')
+                'Adyen AcquirerReference of the capture'
+            )
             ->addColumn(
                 'invoice_id',
                 \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,

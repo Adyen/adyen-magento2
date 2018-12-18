@@ -25,8 +25,7 @@ namespace Adyen\Payment\Model\Order;
 
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 
-class Payment extends \Magento\Framework\Model\AbstractModel
-    implements OrderPaymentInterface
+class Payment extends \Magento\Framework\Model\AbstractModel implements OrderPaymentInterface
 {
 
     /**

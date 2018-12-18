@@ -44,7 +44,6 @@ class PaymentCommentHistoryRefundHandler implements HandlerInterface
             if (isset($singleResponse['resultCode'])) {
                 $responseCode = $singleResponse['resultCode'];
             } else {
-
                 // try to get response from response key (used for modifications
                 if (isset($singleResponse['response'])) {
                     $responseCode = $singleResponse['response'];
@@ -60,8 +59,12 @@ class PaymentCommentHistoryRefundHandler implements HandlerInterface
             }
 
             $type = 'Adyen Result response:';
-            $comment = __('%1 <br /> authResult: %2 <br /> pspReference: %3 ',
-                $type, $responseCode, $pspReference);
+            $comment = __(
+                '%1 <br /> authResult: %2 <br /> pspReference: %3 ',
+                $type,
+                $responseCode,
+                $pspReference
+            );
 
             if ($responseCode) {
                 $payment->getOrder()->setAdyenResulturlEventCode($responseCode);
@@ -73,4 +76,3 @@ class PaymentCommentHistoryRefundHandler implements HandlerInterface
         return $this;
     }
 }
-

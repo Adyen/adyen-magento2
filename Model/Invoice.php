@@ -26,8 +26,7 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\InvoiceInterface;
 
-class Invoice extends \Magento\Framework\Model\AbstractModel
-    implements InvoiceInterface
+class Invoice extends \Magento\Framework\Model\AbstractModel implements InvoiceInterface
 {
     /**
      * Notification constructor.
@@ -139,5 +138,4 @@ class Invoice extends \Magento\Framework\Model\AbstractModel
     {
         return $this->setData(self::INVOICE_ID, $invoiceId);
     }
-
 }

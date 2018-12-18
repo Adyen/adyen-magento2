@@ -64,5 +64,4 @@ class Boleto extends \Magento\Payment\Block\Form
         }
         return $types;
     }
-    
 }

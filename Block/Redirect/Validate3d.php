@@ -120,8 +120,10 @@ class Validate3d extends \Magento\Payment\Block\Form
      */
     public function getTermUrl()
     {
-        return $this->getUrl('adyen/process/validate3d',
-            ['_secure' => $this->_getRequest()->isSecure()]);
+        return $this->getUrl(
+            'adyen/process/validate3d',
+            ['_secure' => $this->_getRequest()->isSecure()]
+        );
     }
 
     /**
@@ -133,5 +135,4 @@ class Validate3d extends \Magento\Payment\Block\Form
     {
         return $this->_request;
     }
-
 }

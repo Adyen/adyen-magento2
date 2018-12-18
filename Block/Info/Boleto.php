@@ -29,5 +29,4 @@ class Boleto extends AbstractInfo
      * @var string
      */
     protected $_template = 'Adyen_Payment::info/adyen_boleto.phtml';
-    
 }

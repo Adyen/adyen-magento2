@@ -81,7 +81,7 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
             "displayName":"' . $displayName . '"
         }';
 
-        $this->_adyenLogger->addAdyenDebug("JSON Requesst is: " . print_r($data,true));
+        $this->_adyenLogger->addAdyenDebug("JSON Requesst is: " . print_r($data, true));
 
         curl_setopt($ch, CURLOPT_URL, $validationUrl);
 
@@ -92,11 +92,10 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
         curl_setopt($ch, CURLOPT_SSLCERT, $fullPathLocationPEMFile);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 'Content-Type: application/json',
                 'Content-Length: ' . strlen($data)
-            )
-        );
+            ]);
 
         $result = curl_exec($ch);
         $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -107,7 +106,7 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
         // result not 200 throw error
         if ($httpStatus != 200 && $result) {
             $this->_adyenLogger->addAdyenDebug("Error Apple, API HTTP Status is: " . $httpStatus . " result is:" . $result);
-        } elseif(!$result) {
+        } elseif (!$result) {
             $errno = curl_errno($ch);
             $message = curl_error($ch);
             $msg = "(Network error [errno $errno]: $message)";

@@ -105,18 +105,19 @@ class Pos extends \Magento\Payment\Block\Form
     {
         $launchlink = "";
         try {
-            if ($this->_order->getPayment())
-            {
-
+            if ($this->_order->getPayment()) {
                 $realOrderId            = $this->_order->getRealOrderId();
                 $orderCurrencyCode      = $this->_order->getOrderCurrencyCode();
                 $amount                 = $this->_adyenHelper->formatAmount(
-                    $this->_order->getGrandTotal(), $orderCurrencyCode
+                    $this->_order->getGrandTotal(),
+                    $orderCurrencyCode
                 );
                 $shopperEmail           = $this->_order->getCustomerEmail();
                 $customerId             = $this->_order->getCustomerId();
-                $callbackUrl            = $this->_urlBuilder->getUrl('adyen/process/resultpos',
-                    ['_secure' => $this->_getRequest()->isSecure()]);
+                $callbackUrl            = $this->_urlBuilder->getUrl(
+                    'adyen/process/resultpos',
+                    ['_secure' => $this->_getRequest()->isSecure()]
+                );
                 $addReceiptOrderLines   = $this->_adyenHelper->getAdyenPosConfigData("add_receipt_order_lines");
                 $recurringContract      = $this->_adyenHelper->getAdyenPosConfigData('recurring_type');
                 $currencyCode           = $orderCurrencyCode;
@@ -153,7 +154,7 @@ class Pos extends \Magento\Payment\Block\Form
 
                 $this->_adyenLogger->addAdyenDebug(print_r($launchlink, true));
             }
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             // do nothing for now
             throw($e);
         }
@@ -232,7 +233,6 @@ class Pos extends \Magento\Payment\Block\Form
             );
             $myReceiptOrderLines .= "  " . 1 . " " . $order->getShippingDescription() . "| " .
                 $currency . " " . $shippingAmountFormat ."|\n";
-
         }
 
         if ($order->getPaymentFeeAmount() > 0) {
@@ -243,7 +243,6 @@ class Pos extends \Magento\Payment\Block\Form
             );
             $myReceiptOrderLines .= "  " . 1 . " " . $this->__('Payment Fee') . "| " .
                 $currency . " " . $paymentFeeAmount ."|\n";
-
         }
 
         $myReceiptOrderLines .=    "|--------|\n".

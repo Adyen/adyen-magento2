@@ -30,7 +30,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
  */
 class Data extends AbstractHelper
 {
-	const MODULE_NAME = 'adyen-magento2';
+    const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
 
@@ -84,14 +84,14 @@ class Data extends AbstractHelper
      */
     protected $_taxCalculation;
 
-	/**
-	 * @var \Magento\Framework\App\ProductMetadataInterface
-	 */
+    /**
+     * @var \Magento\Framework\App\ProductMetadataInterface
+     */
     protected $productMetadata;
 
-	/**
-	 * @var \Adyen\Payment\Logger\AdyenLogger
-	 */
+    /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
     protected $adyenLogger;
 
     /**
@@ -105,8 +105,8 @@ class Data extends AbstractHelper
      * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param \Magento\Framework\View\Asset\Source $assetSource
-	 * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
-	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -120,9 +120,8 @@ class Data extends AbstractHelper
         \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory,
         \Magento\Tax\Model\Config $taxConfig,
         \Magento\Tax\Model\Calculation $taxCalculation,
-		\Magento\Framework\App\ProductMetadataInterface $productMetadata,
-		\Adyen\Payment\Logger\AdyenLogger $adyenLogger
-
+        \Magento\Framework\App\ProductMetadataInterface $productMetadata,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -319,7 +318,7 @@ class Data extends AbstractHelper
      * @param type $street
      * @return type $street
      */
-    static public function formatStreet($street)
+    public static function formatStreet($street)
     {
         if (count($street) != 1) {
             return $street;
@@ -617,11 +616,15 @@ class Data extends AbstractHelper
     public function getWsPassword($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_test',
-                $storeId)));
+            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData(
+                'ws_password_test',
+                $storeId
+            )));
         } else {
-            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('ws_password_live',
-                $storeId)));
+            $wsPassword = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData(
+                'ws_password_live',
+                $storeId
+            )));
         }
         return $wsPassword;
     }
@@ -766,21 +769,21 @@ class Data extends AbstractHelper
         return $sepaCountries;
     }
 
-	/**
-	 * Get adyen magento module's name sent to Adyen
-	 *
-	 * @return string
-	 */
-	public function getModuleName()
-	{
-		return (string)self::MODULE_NAME;
-	}
+    /**
+     * Get adyen magento module's name sent to Adyen
+     *
+     * @return string
+     */
+    public function getModuleName()
+    {
+        return (string)self::MODULE_NAME;
+    }
 
-	/**
-	 * Get adyen magento module's version
-	 *
-	 * @return string
-	 */
+    /**
+     * Get adyen magento module's version
+     *
+     * @return string
+     */
     public function getModuleVersion()
     {
         return (string)$this->_moduleList->getOne("Adyen_Payment")['setup_version'];
@@ -830,7 +833,6 @@ class Data extends AbstractHelper
         $baCollection->addActiveFilter();
 
         foreach ($baCollection as $billingAgreement) {
-
             $agreementData = $billingAgreement->getAgreementData();
 
             // no agreementData and contractType then ignore
@@ -843,7 +845,6 @@ class Data extends AbstractHelper
             if (in_array($recurringType, $allowedContractTypes)) {
                 // check if AgreementLabel is set and if contract has an recurringType
                 if ($billingAgreement->getAgreementLabel()) {
-
                     // for Ideal use sepadirectdebit because it is
                     if ($agreementData['variant'] == 'ideal') {
                         $agreementData['variant'] = 'sepadirectdebit';
@@ -928,18 +929,18 @@ class Data extends AbstractHelper
         return false;
     }
 
-	/**
-	 * @param $paymentMethod
-	 * @return bool
-	 */
-	public function isPaymentMethodMolpayMethod($paymentMethod)
-	{
-		if (strpos($paymentMethod, 'molpay_') !== false) {
-			return true;
-		}
+    /**
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodMolpayMethod($paymentMethod)
+    {
+        if (strpos($paymentMethod, 'molpay_') !== false) {
+            return true;
+        }
 
-		return false;
-	}
+        return false;
+    }
 
     public function getRatePayId()
     {
@@ -1019,7 +1020,8 @@ class Data extends AbstractHelper
     {
         $notifications = $this->_notificationFactory->create();
         $notifications->unprocessedNotificationsFilter();
-        return $notifications->getSize();;
+        return $notifications->getSize();
+        ;
     }
 
     /**
@@ -1080,15 +1082,27 @@ class Data extends AbstractHelper
         $description = str_replace("\n", '', trim($name));
         $itemAmount = $this->formatAmount($price, $currency);
 
-        $itemVatAmount = $this->getItemVatAmount($taxAmount,
-            $priceInclTax, $price, $currency);
+        $itemVatAmount = $this->getItemVatAmount(
+            $taxAmount,
+            $priceInclTax,
+            $price,
+            $currency
+        );
 
         // Calculate vat percentage
         $itemVatPercentage = $this->getMinorUnitTaxPercent($taxPercent);
 
-        return $this->getOpenInvoiceLineData($formFields, $count, $currency, $description,
+        return $this->getOpenInvoiceLineData(
+            $formFields,
+            $count,
+            $currency,
+            $description,
             $itemAmount,
-            $itemVatAmount, $itemVatPercentage, $numberOfItems, $payment);
+            $itemVatAmount,
+            $itemVatPercentage,
+            $numberOfItems,
+            $payment
+        );
     }
 
     /**
@@ -1130,9 +1144,17 @@ class Data extends AbstractHelper
         $itemVatPercentage = $this->getMinorUnitTaxPercent($rate);
         $numberOfItems = 1;
 
-        return $this->getOpenInvoiceLineData($formFields, $count, $currency, $description,
+        return $this->getOpenInvoiceLineData(
+            $formFields,
+            $count,
+            $currency,
+            $description,
             $itemAmount,
-            $itemVatAmount, $itemVatPercentage, $numberOfItems, $payment);
+            $itemVatAmount,
+            $itemVatPercentage,
+            $numberOfItems,
+            $payment
+        );
     }
 
     /**
@@ -1188,7 +1210,8 @@ class Data extends AbstractHelper
         $formFields['openinvoicedata.' . $linename . '.numberOfItems'] = $numberOfItems;
 
         if ($this->isVatCategoryHigh($payment->getAdditionalInformation(
-            \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE))
+            \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
+        ))
         ) {
             $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "High";
         } else {
@@ -1275,52 +1298,50 @@ class Data extends AbstractHelper
         return $formattedHtml;
     }
 
-	/**
-	 * Initializes and returns Adyen Client and sets the required parameters of it
-	 *
-	 * @param int|null $storeId
-	 * @param string|null $apiKey
-	 * @return \Adyen\Client
-	 * @throws \Adyen\AdyenException
-	 */
-	public function initializeAdyenClient($storeId = null, $apiKey = null)
-	{
-		// initialize client
-		$client = new \Adyen\Client();
+    /**
+     * Initializes and returns Adyen Client and sets the required parameters of it
+     *
+     * @param int|null $storeId
+     * @param string|null $apiKey
+     * @return \Adyen\Client
+     * @throws \Adyen\AdyenException
+     */
+    public function initializeAdyenClient($storeId = null, $apiKey = null)
+    {
+        // initialize client
+        $client = new \Adyen\Client();
 
-		if ($apiKey) {
-			$client->setXApiKey($apiKey);
-		} else {
-			$client->setUsername($this->getWsUsername($storeId));
-			$client->setPassword($this->getWsPassword($storeId));
-		}
+        if ($apiKey) {
+            $client->setXApiKey($apiKey);
+        } else {
+            $client->setUsername($this->getWsUsername($storeId));
+            $client->setPassword($this->getWsPassword($storeId));
+        }
 
-		$client->setApplicationName("Magento 2 plugin");
+        $client->setApplicationName("Magento 2 plugin");
 
-		$client->setAdyenPaymentSource($this->getModuleName(), $this->getModuleVersion());
+        $client->setAdyenPaymentSource($this->getModuleName(), $this->getModuleVersion());
 
-		$client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
+        $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
 
-		if ($this->isDemoMode($storeId)) {
-			$client->setEnvironment(\Adyen\Environment::TEST);
-		} else {
-			$client->setEnvironment(\Adyen\Environment::LIVE);
-		}
+        if ($this->isDemoMode($storeId)) {
+            $client->setEnvironment(\Adyen\Environment::TEST);
+        } else {
+            $client->setEnvironment(\Adyen\Environment::LIVE);
+        }
 
-		$client->setLogger($this->adyenLogger);
+        $client->setLogger($this->adyenLogger);
 
-		return $client;
-	}
+        return $client;
+    }
 
-	/**
-	 * @param \Adyen\Clien $client
-	 * @return \Adyen\Service\PosPayment
-	 * @throws \Adyen\AdyenException
-	 */
-	public function createAdyenPosPaymentService($client)
-	{
-		return new \Adyen\Service\PosPayment($client);
-	}
+    /**
+     * @param \Adyen\Clien $client
+     * @return \Adyen\Service\PosPayment
+     * @throws \Adyen\AdyenException
+     */
+    public function createAdyenPosPaymentService($client)
+    {
+        return new \Adyen\Service\PosPayment($client);
+    }
 }
-
-

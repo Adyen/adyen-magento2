@@ -36,7 +36,7 @@ class Notification extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 
     /**
      * Get Notification for duplicate check
-     * 
+     *
      * @param $pspReference
      * @param $eventCode
      * @param $success

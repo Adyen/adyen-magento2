@@ -127,7 +127,6 @@ class Installments extends \Magento\Framework\App\Config\Value
         // first combine the ccTypes together
         $list = [];
         foreach ($value as $ccType => $items) {
-
             // sort on amount
             ksort($items);
 

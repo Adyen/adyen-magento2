@@ -56,7 +56,7 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
 
     /**
      * Returns renderer for country element
-     * 
+     *
      * @return \Magento\Braintree\Block\Adminhtml\Form\Field\Cctypes
      */
     protected function getCcTypesRenderer()
@@ -114,7 +114,6 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
 
         $options = [];
         if ($installlments) {
-            
             $options['option_' . $this->getNumberOfInstallmentsRenderer()->calcOptionHash($installlments)]
                 = 'selected="selected"';
 

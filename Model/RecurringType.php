@@ -23,9 +23,10 @@
 
 namespace Adyen\Payment\Model;
 
-class RecurringType {
+class RecurringType
+{
 
-    CONST NONE = '';
+    const NONE = '';
     const ONECLICK = 'ONECLICK';
     const ONECLICK_RECURRING = 'ONECLICK,RECURRING';
     const RECURRING = 'RECURRING';

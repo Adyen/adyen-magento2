@@ -55,7 +55,7 @@ class TransactionCapture implements ClientInterface
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
 
-		$this->_client = $this->_adyenHelper->initializeAdyenClient();
+        $this->_client = $this->_adyenHelper->initializeAdyenClient();
     }
 
     /**
@@ -71,7 +71,7 @@ class TransactionCapture implements ClientInterface
 
         try {
             $response = $service->capture($request);
-        } catch(\Adyen\AdyenException $e) {
+        } catch (\Adyen\AdyenException $e) {
             $this->_adyenLogger->error($e); // add this for now not in the lib yet
             $response = null;
         }

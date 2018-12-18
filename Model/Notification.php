@@ -25,8 +25,7 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\NotificationInterface;
 
-class Notification extends \Magento\Framework\Model\AbstractModel
-    implements NotificationInterface
+class Notification extends \Magento\Framework\Model\AbstractModel implements NotificationInterface
 {
 
     const AUTHORISATION = 'AUTHORISATION';

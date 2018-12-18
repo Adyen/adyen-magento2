@@ -55,7 +55,7 @@ class TransactionCancel implements ClientInterface
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
 
-		$this->_client = $this->_adyenHelper->initializeAdyenClient();
+        $this->_client = $this->_adyenHelper->initializeAdyenClient();
     }
 
     /**
@@ -71,7 +71,7 @@ class TransactionCancel implements ClientInterface
 
         try {
             $response = $service->cancel($request);
-        } catch(\Adyen\AdyenException $e) {
+        } catch (\Adyen\AdyenException $e) {
             $response = null;
         }
 

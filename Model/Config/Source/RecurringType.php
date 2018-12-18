@@ -39,8 +39,7 @@ class RecurringType implements \Magento\Framework\Option\ArrayInterface
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper
-    )
-    {
+    ) {
         $this->_adyenHelper = $adyenHelper;
     }
 

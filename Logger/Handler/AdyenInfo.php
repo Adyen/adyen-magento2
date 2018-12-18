@@ -39,5 +39,4 @@ class AdyenInfo extends AdyenBase
     protected $loggerType = AdyenLogger::INFO;
 
     protected $level = AdyenLogger::INFO;
-
 }

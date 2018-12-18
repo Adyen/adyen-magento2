@@ -90,8 +90,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Payment\Model\CcConfig $ccConfig
-    )
-    {
+    ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
         $this->_customerSession = $customerSession;
@@ -112,7 +111,9 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'adyen/process/validate3d/', ['_secure' => $this->_getRequest()->isSecure()])
+                        'adyen/process/validate3d/',
+                        ['_secure' => $this->_getRequest()->isSecure()]
+                    )
                 ]
             ]
         ];
