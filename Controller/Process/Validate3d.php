@@ -22,6 +22,7 @@
  */
 
 namespace Adyen\Payment\Controller\Process;
+use Magento\Framework\App\Request\Http as HttpRequest;
 
 class Validate3d extends \Magento\Framework\App\Action\Action
 {
@@ -75,6 +76,13 @@ class Validate3d extends \Magento\Framework\App\Action\Action
         $this->_adyenHelper = $adyenHelper;
         $this->_paymentRequest = $paymentRequest;
         $this->_orderRepository = $orderRepository;
+        // Fix for Magento2.3 adding isAjax to the request params
+        if(interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
+            $request = $this->getRequest();
+            if ($request instanceof HttpRequest && $request->isPost()) {
+                $request->setParam('isAjax', true);
+            }
+        }
     }
 
     /**
