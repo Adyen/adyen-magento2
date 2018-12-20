@@ -27,6 +27,14 @@ use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class CheckoutPaymentsDetailsHandler implements HandlerInterface
 {
+    public function __construct(
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Adyen\Payment\Helper\Data $adyenHelper
+    ) {
+        $this->_adyenLogger = $adyenLogger;
+        $this->_adyenHelper = $adyenHelper;
+    }
+
 	/**
 	 * @param array $handlingSubject
 	 * @param array $response
@@ -52,6 +60,12 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
 			// set transaction
 			$payment->setTransactionId($response['pspReference']);
 		}
+
+		if (!empty($response['additionalData']) && !empty($response['additionalData']['recurring.recurringDetailReference'])){
+            $order = $payment->getOrder();
+		   
+		    $this->_adyenHelper->createAdyenBillingAgreement($order, $response['additionalData']);
+        }
 
 		// do not close transaction so you can do a cancel() and void
 		$payment->setIsTransactionClosed(false);

@@ -109,24 +109,29 @@ class Data extends AbstractHelper
     protected $cache;
 
     /**
-     * Data constructor.
-     *
-     * @param \Magento\Framework\App\Helper\Context $context
-     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
-     * @param \Magento\Framework\Config\DataInterface $dataStorage
-     * @param \Magento\Directory\Model\Config\Source\Country $country
-     * @param \Magento\Framework\Module\ModuleListInterface $moduleList
-     * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
-     * @param \Magento\Framework\View\Asset\Repository $assetRepo
-     * @param \Magento\Framework\View\Asset\Source $assetSource
-     * @param \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory
-     * @param \Magento\Tax\Model\Config $taxConfig
-     * @param \Magento\Tax\Model\Calculation $taxCalculation
-     * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Framework\App\CacheInterface $cache
+     * @var \Adyen\Payment\Model\Billing\AgreementFactory
      */
+    protected $_billingAgreementFactory;
+
+	/**
+	 * Data constructor.
+	 *
+	 * @param \Magento\Framework\App\Helper\Context $context
+	 * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+	 * @param \Magento\Framework\Config\DataInterface $dataStorage
+	 * @param \Magento\Directory\Model\Config\Source\Country $country
+	 * @param \Magento\Framework\Module\ModuleListInterface $moduleList
+	 * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
+	 * @param \Magento\Framework\View\Asset\Repository $assetRepo
+	 * @param \Magento\Framework\View\Asset\Source $assetSource
+	 * @param \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory
+	 * @param \Magento\Tax\Model\Config $taxConfig
+	 * @param \Magento\Tax\Model\Calculation $taxCalculation
+	 * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
+	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+	 * @param \Magento\Framework\App\CacheInterface $cache
+	 */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
@@ -143,6 +148,11 @@ class Data extends AbstractHelper
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\App\CacheInterface $cache
+		\Magento\Framework\App\ProductMetadataInterface $productMetadata,
+		\Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+		\Magento\Store\Model\StoreManagerInterface $storeManager,
+		\Magento\Framework\App\CacheInterface $cache,
+        \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -1440,5 +1450,54 @@ class Data extends AbstractHelper
 		}
 
 		return self::CHECKOUT_COMPONENT_JS_LIVE;
+	}
+
+	public function createAdyenBillingAgreement($order, $additionalData){
+        $storeId = $order->getStoreId();
+        $customerReference = $order->getCustomerId();
+        $listRecurringContracts = null;
+        try {
+            // Get or create billing agreement
+            $billingAgreement = $this->_billingAgreementFactory->create();
+            $billingAgreement->load($additionalData['recurring.recurringDetailReference'], 'reference_id');
+            // check if BA exists
+            if (!($billingAgreement && $billingAgreement->getAgreementId() > 0 && $billingAgreement->isValid())) {
+                // create new
+
+                $this->adyenLogger->addNotificationLog("Creating new Billing Agreement");
+
+                $billingAgreement = $this->_billingAgreementFactory->create();
+                $billingAgreement->setStoreId($order->getStoreId());
+                $billingAgreement->importOrderPayment($order->getPayment());
+                $message = __('Created billing agreement #%1.', $additionalData['recurring.recurringDetailReference']);
+            } else {
+
+                $billingAgreement->setIsObjectChanged(true);
+                $message = __('Updated billing agreement #%1.', $additionalData['recurring.recurringDetailReference']);
+            }
+
+            // Populate billing agreement data
+            $billingAgreement->setCcBillingAgreement($additionalData);
+            if ($billingAgreement->isValid()) {
+
+                // save into sales_billing_agreement_order
+                $billingAgreement->addOrderRelation($order);
+                // add to order to save agreement
+                $order->addRelatedObject($billingAgreement);
+            } else {
+                $message = __('Failed to create billing agreement for this order.');
+                throw new \Exception($message);
+            }
+
+        } catch (\Exception $exception) {
+            $message = $exception->getMessage();
+            $this->adyenLogger->addAdyenDebug("exception: " . $message);
+
+        }
+
+        $comment = $order->addStatusHistoryComment($message);
+
+        $order->addRelatedObject($comment);
+
     }
 }

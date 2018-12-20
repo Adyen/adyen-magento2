@@ -32,6 +32,11 @@ class RecurringDataBuilder implements BuilderInterface
     private $adyenHelper;
 
     /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    protected $_adyenLogger;
+
+    /**
      * @var \Magento\Framework\App\State
      */
     private $appState;
@@ -44,10 +49,12 @@ class RecurringDataBuilder implements BuilderInterface
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\Model\Context $context
+        \Magento\Framework\Model\Context $context,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->appState = $context->getAppState();
+        $this->_adyenLogger = $adyenLogger;
     }
 
     /**
@@ -93,14 +100,17 @@ class RecurringDataBuilder implements BuilderInterface
                 }
             } else {
                 $recurringContractType = $recurringType;
+                $result['paymentMethod']['storeDetails'] = "true";
             }
         }
+//        $this->_adyenLogger->addAdyenDebug("recurring?: ". $recurringContractType);
 
-        // only when recurringContractType is set and when a customer is loggedIn
-        if ($recurringContractType && $customerId > 0) {
-            $recurring = ['contract' => $recurringContractType];
-            $result['recurring'] = $recurring;
-        }
+
+//        // only when recurringContractType is set and when a customer is loggedIn
+//        if ($recurringContractType && $customerId > 0) {
+//            $recurring = ['contract' => $recurringContractType];
+//            $result['recurring'] = $recurring;
+//        }
 
         return $result;
     }

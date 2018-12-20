@@ -166,4 +166,58 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
     {
         return json_decode($this->getData('agreement_data'), true);
     }
+
+    public function setCcBillingAgreement($contractDetail)
+    {
+        $this
+            ->setMethodCode('adyen_oneclick')
+            ->setReferenceId($contractDetail['recurring.recurringDetailReference']);
+
+        // Billing agreement is CC
+        /**
+         *   $contractDetail['cardBin'] = $cardBin;
+         * $contractDetail['recurringDetailReference'] = $recurringDetailReference;
+         * $contractDetail['cardHolderName'] = $cardHolderName;
+         * $contractDetail['cardSummary'] = $cardSummary;
+         * $contractDetail['expiryDate'] = $expiryDate;
+         * $contractDetail['paymentMethod'] = $paymentMethod;
+         */
+        if (isset($contractDetail['cardBin']) &&
+            isset($contractDetail['cardHolderName']) &&
+            isset($contractDetail['cardSummary']) &&
+            isset($contractDetail['expiryDate']) &&
+            isset($contractDetail['paymentMethod'])) {
+            $ccType = $contractDetail['paymentMethod'];
+            $ccTypes = $this->_adyenHelper->getCcTypesAltData();
+
+            if (isset($ccTypes[$ccType])) {
+                $ccType = $ccTypes[$ccType]['name'];
+            }
+
+            $label = __('%1, %2, **** %3',
+                $ccType,
+                $contractDetail['cardHolderName'],
+                $contractDetail['cardSummary']
+            );
+            $this->setAgreementLabel($label);
+        }
+        $expiryDate = explode('/', $contractDetail['expiryDate']);
+
+        $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type');
+        $agreementData = [
+            'card' => [
+                'holderName' => $contractDetail['cardHolderName'],
+                'number' => $contractDetail['cardSummary'],
+                'expiryMonth' => $expiryDate[0],
+                'expiryYear' => $expiryDate[1]
+            ],
+            'variant' => $contractDetail['paymentMethod'],
+            'contractTypes' => explode(',', $recurringType)
+        ];
+
+        $this->setAgreementData($agreementData);
+
+        return $this;
+
+    }
 }
