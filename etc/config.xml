@@ -41,7 +41,7 @@
             <adyen_cc>
                 <active>1</active>
                 <model>AdyenPaymentCcFacade</model>
-                <title>Adyen CreditCard</title>
+                <title>Credit Card</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>2</sort_order>
                 <cctypes>AE,VI,MC,DI</cctypes>
