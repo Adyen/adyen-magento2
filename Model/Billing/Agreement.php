@@ -90,7 +90,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
             ->setReferenceId($data['recurringDetailReference'])
             ->setCreatedAt($data['creationDate']);
 
-        $creationDate =  str_replace(' ', '-', $data['creationDate']);
+        $creationDate = str_replace(' ', '-', $data['creationDate']);
         $this->setCreatedAt($creationDate);
 
         //Billing agreement SEPA

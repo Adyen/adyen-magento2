@@ -113,25 +113,25 @@ class Data extends AbstractHelper
      */
     protected $_billingAgreementFactory;
 
-	/**
-	 * Data constructor.
-	 *
-	 * @param \Magento\Framework\App\Helper\Context $context
-	 * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
-	 * @param \Magento\Framework\Config\DataInterface $dataStorage
-	 * @param \Magento\Directory\Model\Config\Source\Country $country
-	 * @param \Magento\Framework\Module\ModuleListInterface $moduleList
-	 * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
-	 * @param \Magento\Framework\View\Asset\Repository $assetRepo
-	 * @param \Magento\Framework\View\Asset\Source $assetSource
-	 * @param \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory
-	 * @param \Magento\Tax\Model\Config $taxConfig
-	 * @param \Magento\Tax\Model\Calculation $taxCalculation
-	 * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
-	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-	 * @param \Magento\Framework\App\CacheInterface $cache
-	 */
+    /**
+     * Data constructor.
+     * @param \Magento\Framework\App\Helper\Context $context
+     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     * @param \Magento\Framework\Config\DataInterface $dataStorage
+     * @param \Magento\Directory\Model\Config\Source\Country $country
+     * @param \Magento\Framework\Module\ModuleListInterface $moduleList
+     * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
+     * @param \Magento\Framework\View\Asset\Repository $assetRepo
+     * @param \Magento\Framework\View\Asset\Source $assetSource
+     * @param \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory
+     * @param \Magento\Tax\Model\Config $taxConfig
+     * @param \Magento\Tax\Model\Calculation $taxCalculation
+     * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\App\CacheInterface $cache
+     * @param \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory
+     */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
@@ -144,10 +144,6 @@ class Data extends AbstractHelper
         \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory,
         \Magento\Tax\Model\Config $taxConfig,
         \Magento\Tax\Model\Calculation $taxCalculation,
-        \Magento\Framework\App\ProductMetadataInterface $productMetadata,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Framework\App\CacheInterface $cache
 		\Magento\Framework\App\ProductMetadataInterface $productMetadata,
 		\Adyen\Payment\Logger\AdyenLogger $adyenLogger,
 		\Magento\Store\Model\StoreManagerInterface $storeManager,
