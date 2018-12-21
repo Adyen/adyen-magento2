@@ -825,6 +825,13 @@
         </arguments>
     </virtualType>
 
+    <!--Checkout Response validator-->
+    <virtualType name="CheckoutResponseValidator" type="Adyen\Payment\Gateway\Validator\CheckoutResponseValidator">
+        <arguments>
+            <argument name="loggerInterface" xsi:type="object">Adyen\Payment\Logger\AdyenLogger</argument>
+        </arguments>
+    </virtualType>
+
     <virtualType name="PosCloudResponseValidator" type="Adyen\Payment\Gateway\Validator\PosCloudResponseValidator">
         <arguments>
             <argument name="loggerInterface" xsi:type="object">Adyen\Payment\Logger\AdyenLogger</argument>

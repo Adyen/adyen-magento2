@@ -34,9 +34,9 @@ class Data extends AbstractHelper
     const TEST = 'test';
     const LIVE = 'live';
     const CHECKOUT_CONTEXT_URL_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/';
-	const CHECKOUT_CONTEXT_URL_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/';
-	const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.0.0-beta.4/adyen.js';
-	const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.0.0-beta.4/adyen.js';
+    const CHECKOUT_CONTEXT_URL_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/';
+    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.0.0-beta.4/adyen.js';
+    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.0.0-beta.4/adyen.js';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -98,35 +98,35 @@ class Data extends AbstractHelper
      */
     protected $adyenLogger;
 
-	/**
-	 * @var \Magento\Store\Model\StoreManagerInterface
-	 */
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
     protected $storeManager;
 
-	/**
-	 * @var \Magento\Framework\App\CacheInterface
-	 */
+    /**
+     * @var \Magento\Framework\App\CacheInterface
+     */
     protected $cache;
 
-	/**
-	 * Data constructor.
-	 *
-	 * @param \Magento\Framework\App\Helper\Context $context
-	 * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
-	 * @param \Magento\Framework\Config\DataInterface $dataStorage
-	 * @param \Magento\Directory\Model\Config\Source\Country $country
-	 * @param \Magento\Framework\Module\ModuleListInterface $moduleList
-	 * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
-	 * @param \Magento\Framework\View\Asset\Repository $assetRepo
-	 * @param \Magento\Framework\View\Asset\Source $assetSource
-	 * @param \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory
-	 * @param \Magento\Tax\Model\Config $taxConfig
-	 * @param \Magento\Tax\Model\Calculation $taxCalculation
-	 * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
-	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-	 * @param \Magento\Framework\App\CacheInterface $cache
-	 */
+    /**
+     * Data constructor.
+     *
+     * @param \Magento\Framework\App\Helper\Context $context
+     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     * @param \Magento\Framework\Config\DataInterface $dataStorage
+     * @param \Magento\Directory\Model\Config\Source\Country $country
+     * @param \Magento\Framework\Module\ModuleListInterface $moduleList
+     * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
+     * @param \Magento\Framework\View\Asset\Repository $assetRepo
+     * @param \Magento\Framework\View\Asset\Source $assetSource
+     * @param \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory
+     * @param \Magento\Tax\Model\Config $taxConfig
+     * @param \Magento\Tax\Model\Calculation $taxCalculation
+     * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\App\CacheInterface $cache
+     */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
@@ -139,11 +139,10 @@ class Data extends AbstractHelper
         \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory,
         \Magento\Tax\Model\Config $taxConfig,
         \Magento\Tax\Model\Calculation $taxCalculation,
-		\Magento\Framework\App\ProductMetadataInterface $productMetadata,
-		\Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-		\Magento\Store\Model\StoreManagerInterface $storeManager,
-		\Magento\Framework\App\CacheInterface $cache
-
+        \Magento\Framework\App\ProductMetadataInterface $productMetadata,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Framework\App\CacheInterface $cache
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -601,12 +600,12 @@ class Data extends AbstractHelper
         return $secretWord;
     }
 
-	/**
-	 * @desc Check if configuration is set to demo mode
-	 *
-	 * @param int|null $storeId
-	 * @return mixed
-	 */
+    /**
+     * @desc Check if configuration is set to demo mode
+     *
+     * @param int|null $storeId
+     * @return mixed
+     */
     public function isDemoMode($storeId = null)
     {
         return $this->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
@@ -621,51 +620,51 @@ class Data extends AbstractHelper
         return $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('notification_password')));
     }
 
-	/**
-	 * @desc Retrieve the API key
-	 *
-	 * @param int|null $storeId
-	 * @return string
-	 */
-	public function getAPIKey($storeId = null)
-	{
-		if ($this->isDemoMode($storeId)) {
-			$apiKey = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('api_key_test',
-				$storeId)));
-		} else {
-			$apiKey = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('api_key_live',
-				$storeId)));
-		}
-		return $apiKey;
-	}
+    /**
+     * @desc Retrieve the API key
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getAPIKey($storeId = null)
+    {
+        if ($this->isDemoMode($storeId)) {
+            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('api_key_test',
+                $storeId)));
+        } else {
+            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('api_key_live',
+                $storeId)));
+        }
+        return $apiKey;
+    }
 
-	/**
-	 * @desc Retrieve the webserver username
-	 *
-	 * @param int|null $storeId
-	 * @return string
-	 */
-	public function getWsUsername($storeId = null)
-	{
-		if ($this->isDemoMode($storeId)) {
-			$wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_test', $storeId));
-		} else {
-			$wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_live', $storeId));
-		}
-		return $wsUsername;
-	}
+    /**
+     * @desc Retrieve the webserver username
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getWsUsername($storeId = null)
+    {
+        if ($this->isDemoMode($storeId)) {
+            $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_test', $storeId));
+        } else {
+            $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_live', $storeId));
+        }
+        return $wsUsername;
+    }
 
-	/**
-	 * @desc Retrieve the Live endpoint prefix key
-	 *
-	 * @param int|null $storeId
-	 * @return string
-	 */
-	public function getLiveEndpointPrefix($storeId = null)
-	{
-		$prefix = trim($this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId));
-		return $prefix;
-	}
+    /**
+     * @desc Retrieve the Live endpoint prefix key
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getLiveEndpointPrefix($storeId = null)
+    {
+        $prefix = trim($this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId));
+        return $prefix;
+    }
 
     /**
      * @desc Cancels the order
@@ -1059,7 +1058,6 @@ class Data extends AbstractHelper
         $notifications = $this->_notificationFactory->create();
         $notifications->unprocessedNotificationsFilter();
         return $notifications->getSize();
-        ;
     }
 
     /**
@@ -1320,20 +1318,20 @@ class Data extends AbstractHelper
         $apiKey = $this->getAPIKey($storeId);
 
 		$client = $this->createAdyenClient();
-		$client->setApplicationName("Magento 2 plugin");
+        $client->setApplicationName("Magento 2 plugin");
 		$client->setXApiKey($apiKey);
 
-		$client->setAdyenPaymentSource($this->getModuleName(), $this->getModuleVersion());
+        $client->setAdyenPaymentSource($this->getModuleName(), $this->getModuleVersion());
 
-		$client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
+        $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
 
-		if ($this->isDemoMode($storeId)) {
-			$client->setEnvironment(\Adyen\Environment::TEST);
-		} else {
+        if ($this->isDemoMode($storeId)) {
+            $client->setEnvironment(\Adyen\Environment::TEST);
+        } else {
 			$client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
-		}
+        }
 
-		$client->setLogger($this->adyenLogger);
+        $client->setLogger($this->adyenLogger);
 
         return $client;
     }
@@ -1442,5 +1440,5 @@ class Data extends AbstractHelper
 		}
 
 		return self::CHECKOUT_COMPONENT_JS_LIVE;
-	}
+    }
 }
