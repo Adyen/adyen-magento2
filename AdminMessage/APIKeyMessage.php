@@ -84,9 +84,9 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
 	public function isDisplayed()
 	{
 		// Only execute the query the first time you access the Admin page
-		if ($this->authSession->isFirstPageAfterLogin() && empty($this->_adyenHelper->getAPIKey())) {
+		if ($this->authSession->isFirstPageAfterLogin() && !empty($this->_adyenHelper->getWsUsername()) && empty($this->_adyenHelper->getAPIKey())) {
 			try {
-				$title = "Adyen extension requires the API KEY!";
+				$title = "Adyen extension requires the API KEY!222";
 
 				$messageData[] = array(
 					'severity' => $this->getSeverity(),
