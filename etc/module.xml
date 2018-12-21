@@ -24,7 +24,7 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
 
-    <module name="Adyen_Payment" setup_version="2.4.2">
+    <module name="Adyen_Payment" setup_version="2.4.3">
         <sequence>
             <module name="Magento_Sales"/>
             <module name="Magento_Quote"/>
