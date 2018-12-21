@@ -30,7 +30,7 @@
                 <model>AdyenPaymentGenericFacade</model>
                 <recurring_type>ONECLICK</recurring_type>
                 <order_status>pending</order_status>
-                <demo_mode>0</demo_mode>
+                <demo_mode>1</demo_mode>
                 <debug>1</debug>
                 <title_renderer>title_image</title_renderer>
                 <sepa_flow>sale</sepa_flow>
