@@ -1351,8 +1351,6 @@ class Data extends AbstractHelper
     {
         return new \Adyen\Service\PosPayment($client);
     }
-		return $client;
-	}
 
 	/**
 	 * @return \Adyen\Client
@@ -1447,53 +1445,4 @@ class Data extends AbstractHelper
 
 		return self::CHECKOUT_COMPONENT_JS_LIVE;
 	}
-
-	public function createAdyenBillingAgreement($order, $additionalData){
-        $storeId = $order->getStoreId();
-        $customerReference = $order->getCustomerId();
-        $listRecurringContracts = null;
-        try {
-            // Get or create billing agreement
-            $billingAgreement = $this->_billingAgreementFactory->create();
-            $billingAgreement->load($additionalData['recurring.recurringDetailReference'], 'reference_id');
-            // check if BA exists
-            if (!($billingAgreement && $billingAgreement->getAgreementId() > 0 && $billingAgreement->isValid())) {
-                // create new
-
-                $this->adyenLogger->addNotificationLog("Creating new Billing Agreement");
-
-                $billingAgreement = $this->_billingAgreementFactory->create();
-                $billingAgreement->setStoreId($order->getStoreId());
-                $billingAgreement->importOrderPayment($order->getPayment());
-                $message = __('Created billing agreement #%1.', $additionalData['recurring.recurringDetailReference']);
-            } else {
-
-                $billingAgreement->setIsObjectChanged(true);
-                $message = __('Updated billing agreement #%1.', $additionalData['recurring.recurringDetailReference']);
-            }
-
-            // Populate billing agreement data
-            $billingAgreement->setCcBillingAgreement($additionalData);
-            if ($billingAgreement->isValid()) {
-
-                // save into sales_billing_agreement_order
-                $billingAgreement->addOrderRelation($order);
-                // add to order to save agreement
-                $order->addRelatedObject($billingAgreement);
-            } else {
-                $message = __('Failed to create billing agreement for this order.');
-                throw new \Exception($message);
-            }
-
-        } catch (\Exception $exception) {
-            $message = $exception->getMessage();
-            $this->adyenLogger->addAdyenDebug("exception: " . $message);
-
-        }
-
-        $comment = $order->addStatusHistoryComment($message);
-
-        $order->addRelatedObject($comment);
-
-    }
 }
