@@ -35,8 +35,8 @@ class Data extends AbstractHelper
     const LIVE = 'live';
     const CHECKOUT_CONTEXT_URL_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/';
     const CHECKOUT_CONTEXT_URL_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/';
-    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.0.0-beta.4/adyen.js';
-    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.0.0-beta.4/adyen.js';
+    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.0.0/adyen.js';
+    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.0.0/adyen.js';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -111,7 +111,7 @@ class Data extends AbstractHelper
     /**
      * @var \Adyen\Payment\Model\Billing\AgreementFactory
      */
-    protected $_billingAgreementFactory;
+    protected $billingAgreementFactory;
 
     /**
      * Data constructor.
@@ -144,10 +144,10 @@ class Data extends AbstractHelper
         \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory,
         \Magento\Tax\Model\Config $taxConfig,
         \Magento\Tax\Model\Calculation $taxCalculation,
-		\Magento\Framework\App\ProductMetadataInterface $productMetadata,
-		\Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-		\Magento\Store\Model\StoreManagerInterface $storeManager,
-		\Magento\Framework\App\CacheInterface $cache,
+        \Magento\Framework\App\ProductMetadataInterface $productMetadata,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Framework\App\CacheInterface $cache,
         \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory
     ) {
         parent::__construct($context);
@@ -165,6 +165,7 @@ class Data extends AbstractHelper
         $this->adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
         $this->cache = $cache;
+        $this->billingAgreementFactory = $billingAgreementFactory;
     }
 
     /**
@@ -1323,9 +1324,9 @@ class Data extends AbstractHelper
         // initialize client
         $apiKey = $this->getAPIKey($storeId);
 
-		$client = $this->createAdyenClient();
+        $client = $this->createAdyenClient();
         $client->setApplicationName("Magento 2 plugin");
-		$client->setXApiKey($apiKey);
+        $client->setXApiKey($apiKey);
 
         $client->setAdyenPaymentSource($this->getModuleName(), $this->getModuleVersion());
 
@@ -1334,7 +1335,7 @@ class Data extends AbstractHelper
         if ($this->isDemoMode($storeId)) {
             $client->setEnvironment(\Adyen\Environment::TEST);
         } else {
-			$client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
+            $client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
         }
 
         $client->setLogger($this->adyenLogger);
@@ -1352,97 +1353,172 @@ class Data extends AbstractHelper
         return new \Adyen\Service\PosPayment($client);
     }
 
-	/**
-	 * @return \Adyen\Client
-	 * @throws \Adyen\AdyenException
-	 */
-	private function createAdyenClient() {
-    	return new \Adyen\Client();
-	}
+    /**
+     * @return \Adyen\Client
+     * @throws \Adyen\AdyenException
+     */
+    private function createAdyenClient()
+    {
+        return new \Adyen\Client();
+    }
 
-	/**
-	 * Retrieve origin keys for platform's base url
-	 *
-	 * @return string
-	 * @throws \Adyen\AdyenException
-	 */
-	public function getOriginKeyForBaseUrl()
-	{
-		$baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
-		$parsed = parse_url($baseUrl);
-		$domain = $parsed['scheme'] . "://" . $parsed['host'];
+    /**
+     * Retrieve origin keys for platform's base url
+     *
+     * @return string
+     * @throws \Adyen\AdyenException
+     */
+    public function getOriginKeyForBaseUrl()
+    {
+        $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
+        $parsed = parse_url($baseUrl);
+        $domain = $parsed['scheme'] . "://" . $parsed['host'];
 
-		if (!$originKey = $this->cache->load("Adyen_origin_key_for_" . $domain)) {
-			$originKey = "";
+        if (!$originKey = $this->cache->load("Adyen_origin_key_for_" . $domain)) {
+            $originKey = "";
 
-			$storeId = $this->storeManager->getStore()->getId();
-			if ($originKey = $this->getOriginKeyForUrl($domain, $storeId)) {
-				$this->cache->save($originKey, "Adyen_origin_key_for_" . $domain, array(), 60 * 60 * 24);
-			}
-		}
+            $storeId = $this->storeManager->getStore()->getId();
+            if ($originKey = $this->getOriginKeyForUrl($domain, $storeId)) {
+                $this->cache->save($originKey, "Adyen_origin_key_for_" . $domain, array(), 60 * 60 * 24);
+            }
+        }
 
-		return $originKey;
-	}
+        return $originKey;
+    }
 
-	/**
-	 * Get origin key for a specific url using the adyen api library client
-	 *
-	 * @param $url
-	 * @param int|null $storeId
-	 * @return string
-	 * @throws \Adyen\AdyenException
-	 */
-	private function getOriginKeyForUrl($url, $storeId = null)
-	{
-		$params = array(
-			"originDomains" => array(
-				$url
-			)
-		);
+    /**
+     * Get origin key for a specific url using the adyen api library client
+     *
+     * @param $url
+     * @param int|null $storeId
+     * @return string
+     * @throws \Adyen\AdyenException
+     */
+    private function getOriginKeyForUrl($url, $storeId = null)
+    {
+        $params = array(
+            "originDomains" => array(
+                $url
+            )
+        );
 
-		$client = $this->initializeAdyenClient($storeId);
+        $client = $this->initializeAdyenClient($storeId);
 
-		$service = $this->createAdyenCheckoutUtilityService($client);
-		$respone = $service->originKeys($params);
+        $service = $this->createAdyenCheckoutUtilityService($client);
+        $respone = $service->originKeys($params);
 
-		if (empty($originKey = $respone['originKeys'][$url])) {
-			$originKey = "";
-		}
+        if (empty($originKey = $respone['originKeys'][$url])) {
+            $originKey = "";
+        }
 
-		return $originKey;
-	}
+        return $originKey;
+    }
 
-	/**
-	 * @param int|null $storeId
-	 * @return string
-	 */
-	public function getCheckoutContextUrl($storeId = null) {
-		if ($this->isDemoMode($storeId)) {
-			return self::CHECKOUT_CONTEXT_URL_TEST;
-		}
+    /**
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getCheckoutContextUrl($storeId = null)
+    {
+        if ($this->isDemoMode($storeId)) {
+            return self::CHECKOUT_CONTEXT_URL_TEST;
+        }
 
-		return self::CHECKOUT_CONTEXT_URL_LIVE;
-	}
+        return self::CHECKOUT_CONTEXT_URL_LIVE;
+    }
 
-	/**
-	 * @param \Adyen\Clien $client
-	 * @return \Adyen\Service\CheckoutUtility
-	 * @throws \Adyen\AdyenException
-	 */
-	private function createAdyenCheckoutUtilityService($client)
-	{
-		return new \Adyen\Service\CheckoutUtility($client);
-	}
+    /**
+     * @param \Adyen\Clien $client
+     * @return \Adyen\Service\CheckoutUtility
+     * @throws \Adyen\AdyenException
+     */
+    private function createAdyenCheckoutUtilityService($client)
+    {
+        return new \Adyen\Service\CheckoutUtility($client);
+    }
 
-	/**
-	 * @param int|null $storeId
-	 * @return string
-	 */
-	public function getCheckoutCardComponentJs($storeId = null) {
-		if ($this->isDemoMode($storeId)) {
-			return self::CHECKOUT_COMPONENT_JS_TEST;
-		}
+    /**
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getCheckoutCardComponentJs($storeId = null)
+    {
+        if ($this->isDemoMode($storeId)) {
+            return self::CHECKOUT_COMPONENT_JS_TEST;
+        }
 
-		return self::CHECKOUT_COMPONENT_JS_LIVE;
-	}
+        return self::CHECKOUT_COMPONENT_JS_LIVE;
+    }
+
+    public function createAdyenBillingAgreement($order, $additionalData)
+    {
+        if (!empty($additionalData['recurring.recurringDetailReference'])) {
+            $listRecurringContracts = null;
+            try {
+                // Get or create billing agreement
+                $billingAgreement = $this->billingAgreementFactory->create();
+                $billingAgreement->load($additionalData['recurring.recurringDetailReference'], 'reference_id');
+
+                // check if BA exists
+                if (!($billingAgreement && $billingAgreement->getAgreementId() > 0 && $billingAgreement->isValid())) {
+                    // create new BA
+                    $this->adyenLogger->addAdyenDebug("Creating new Billing Agreement");
+                    $billingAgreement = $this->billingAgreementFactory->create();
+                    $billingAgreement->setStoreId($order->getStoreId());
+                    $billingAgreement->importOrderPayment($order->getPayment());
+                    $message = __('Created billing agreement #%1.',
+                        $additionalData['recurring.recurringDetailReference']);
+                } else {
+
+                    $billingAgreement->setIsObjectChanged(true);
+                    $message = __('Updated billing agreement #%1.',
+                        $additionalData['recurring.recurringDetailReference']);
+                }
+
+                // Populate billing agreement data
+                $billingAgreement->setCcBillingAgreement($additionalData);
+                if ($billingAgreement->isValid()) {
+
+                    // save into sales_billing_agreement_order
+                    $billingAgreement->addOrderRelation($order);
+                    // add to order to save agreement
+                    $order->addRelatedObject($billingAgreement);
+                } else {
+                    $message = __('Failed to create billing agreement for this order.');
+                    throw new \Exception($message);
+                }
+
+            } catch (\Exception $exception) {
+                $message = $exception->getMessage();
+                $this->adyenLogger->error("exception: " . $message);
+            }
+
+            $comment = $order->addStatusHistoryComment($message);
+
+            $order->addRelatedObject($comment);
+        }
+    }
+
+    /**
+     * For backwards compatibility get the recurringType used for HPP + current billing agreements
+     *
+     * @param null $storeId
+     * @return null|string
+     */
+    public function getRecurringTypeFromOneclickRecurringSetting($storeId = null)
+    {
+        $enableOneclick = $this->getAdyenAbstractConfigData('enable_oneclick', $storeId);
+        $enableRecurring = $this->getAdyenAbstractConfigData('enable_recurring', $storeId);
+
+        if ($enableOneclick && $enableRecurring) {
+            return \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING;
+        } elseif ($enableOneclick && !$enableRecurring) {
+            return \Adyen\Payment\Model\RecurringType::ONECLICK;
+        } elseif (!$enableOneclick && $enableRecurring) {
+            return \Adyen\Payment\Model\RecurringType::RECURRING;
+        } else {
+            return \Adyen\Payment\Model\RecurringType::NONE;
+        }
+        return null;
+    }
 }

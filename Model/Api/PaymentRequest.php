@@ -119,6 +119,8 @@ class PaymentRequest extends DataObject
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure failed'));
         }
 
+        $this->_adyenHelper->createAdyenBillingAgreement($order, $result['additionalData']);
+
         return $result;
     }
 

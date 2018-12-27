@@ -203,7 +203,8 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         }
         $expiryDate = explode('/', $contractDetail['expiryDate']);
 
-        $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type');
+        $recurringType = $this->_adyenHelper->getRecurringTypeFromOneclickRecurringSetting();
+
         $agreementData = [
             'card' => [
                 'holderName' => $contractDetail['cardHolderName'],
