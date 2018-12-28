@@ -85,6 +85,7 @@ define(
 
                 var card = checkout.create('card', {
                     originKey: self.getOriginKey(),
+                    loadingContext: self.getLoadingContext(),
                     type: 'card',
                     hasHolderName: true,
                     holderNameRequired: true,

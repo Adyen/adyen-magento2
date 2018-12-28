@@ -216,6 +216,7 @@ define(
                             var oneClickCard = checkout
                                 .create('card', {
                                     originKey: self.getOriginKey(),
+                                    loadingContext: self.getLoadingContext(),
                                     type: self.agreement_data.variant,
                                     oneClick: true,
                                     hideCVC: hideCVC,
