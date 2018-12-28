@@ -40,7 +40,9 @@ class AddressDataBuilder implements BuilderInterface
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
+    public function __construct(
+    	\Adyen\Payment\Helper\Data $adyenHelper
+	)
     {
         $this->adyenHelper = $adyenHelper;
     }
@@ -56,12 +58,14 @@ class AddressDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getOrder();
+		$billingAddress = $order->getBillingAddress();
 
         $result = [];
 
-        $billingAddress = $order->getBillingAddress();
         if ($billingAddress) {
-            $requestBilling = ["street" => "N/A",
+
+            $requestBilling = [
+            	"street" => "N/A",
                 "postalCode" => '',
                 "city" => "N/A",
                 "houseNumberOrName" => '',
@@ -69,13 +73,11 @@ class AddressDataBuilder implements BuilderInterface
                 "country" => "ZZ"
             ];
 
-			if ($billingAddress->getStreetLine1()) {
-				$address = $this->adyenHelper->getStreet($billingAddress->getStreetLine1());
+			$address = $this->adyenHelper->getStreetFromString($billingAddress->getStreetLine1());
 
-				if ($address) {
-					$requestBilling["street"] = $address["street"];
-					$requestBilling["houseNumberOrName"] = $address["house_number"];
-				}
+			if ($address) {
+				$requestBilling["street"] = $address["name"];
+				$requestBilling["houseNumberOrName"] = $address["house_number"];
 			}
 
             if ($billingAddress->getPostcode()) {
@@ -101,15 +103,11 @@ class AddressDataBuilder implements BuilderInterface
 
         if ($shippingAddress) {
 
-			if ($shippingAddress->getStreetLine1()) {
-				$address = $this->adyenHelper->getStreet($shippingAddress->getStreetLine1());
+			$address = $this->adyenHelper->getStreetFromString($shippingAddress->getStreetLine1());
 
-				if ($address) {
-					$requestDelivery["street"] = $address["street"];
-					$requestDelivery["houseNumberOrName"] = $address["house_number"];
-				} else {
-					$requestDelivery["street"] = $shippingAddress->getStreetLine1();
-				}
+			if ($address) {
+				$requestDelivery["street"] = $address["name"];
+				$requestDelivery["houseNumberOrName"] = $address["house_number"];
 			}
 
 			if ($shippingAddress->getPostcode()) {

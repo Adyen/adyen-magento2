@@ -136,30 +136,28 @@
                             </div>
                         </div>
 
-
-                    <!-- ko if: showSsn() -->
-                    <div class="field ssn type required">
-                        <label data-bind="attr: {for: getCode() + '_ssn_' + value}" class="label">
-                            <span><!-- ko text: $t('Personal number (last digits)')--><!-- /ko --></span>
-                        </label>
-                        <div class="control">
-                            <input type="text" class="input-text"
-                                   name="payment[ssn]"
-                                   data-bind="
-                                           attr: {
-                                                id: getCode() + '_ssn_' + value,
-                                                title: $t('Social Security Number'),
-                                                'data-container': getCode() + '-ssn',
-                                                'data-validate': JSON.stringify({'required-number':true}),
-                                                maxlength : getSsnLength()
-                                            },
-                                            value: ssn"
-                                   data-validate="{required:true}"
-                            />
+                        <!-- ko if: showSsn() -->
+                        <div class="field ssn type required">
+                            <label data-bind="attr: {for: getCode() + '_ssn_' + value}" class="label">
+                                <span><!-- ko text: $t('Personal number (last digits)')--><!-- /ko --></span>
+                            </label>
+                            <div class="control">
+                                <input type="text" class="input-text"
+                                       name="payment[ssn]"
+                                       data-bind="
+                                               attr: {
+                                                    id: getCode() + '_ssn_' + value,
+                                                    title: $t('Social Security Number'),
+                                                    'data-container': getCode() + '-ssn',
+                                                    'data-validate': JSON.stringify({'required-number':true}),
+                                                    maxlength : getSsnLength()
+                                                },
+                                                value: ssn"
+                                       data-validate="{required:true}"
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <!--/ko-->
-
+                        <!--/ko-->
                     <!--/ko-->
                 </fieldset>
                 </form>
