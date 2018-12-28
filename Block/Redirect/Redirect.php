@@ -369,6 +369,7 @@ class Redirect extends \Magento\Payment\Block\Form
     protected function setBillingAddressData($formFields)
     {
         $billingAddress = $this->_order->getBillingAddress();
+
         if ($billingAddress) {
             $formFields['shopper.firstName'] = trim($billingAddress->getFirstname());
             $middleName = trim($billingAddress->getMiddlename());
@@ -387,7 +388,7 @@ class Redirect extends \Magento\Payment\Block\Form
             if (isset($street['house_number']) && $street['house_number'] != "") {
                 $formFields['billingAddress.houseNumberOrName'] = $street['house_number'];
             } else {
-                $formFields['billingAddress.houseNumberOrName'] = "NA";
+                $formFields['billingAddress.houseNumberOrName'] = "";
             }
 
             if (trim($billingAddress->getCity()) == "") {
@@ -397,19 +398,19 @@ class Redirect extends \Magento\Payment\Block\Form
             }
 
             if (trim($billingAddress->getPostcode()) == "") {
-                $formFields['billingAddress.postalCode'] = "NA";
+                $formFields['billingAddress.postalCode'] = "";
             } else {
                 $formFields['billingAddress.postalCode'] = trim($billingAddress->getPostcode());
             }
 
             if (trim($billingAddress->getRegionCode()) == "") {
-                $formFields['billingAddress.stateOrProvince'] = "NA";
+                $formFields['billingAddress.stateOrProvince'] = "";
             } else {
                 $formFields['billingAddress.stateOrProvince'] = trim($billingAddress->getRegionCode());
             }
 
             if (trim($billingAddress->getCountryId()) == "") {
-                $formFields['billingAddress.country'] = "NA";
+                $formFields['billingAddress.country'] = "ZZ";
             } else {
                 $formFields['billingAddress.country'] = trim($billingAddress->getCountryId());
             }
@@ -437,7 +438,7 @@ class Redirect extends \Magento\Payment\Block\Form
             if (isset($street['house_number']) && $street['house_number'] != "") {
                 $formFields['deliveryAddress.houseNumberOrName'] = $street['house_number'];
             } else {
-                $formFields['deliveryAddress.houseNumberOrName'] = "NA";
+                $formFields['deliveryAddress.houseNumberOrName'] = "";
             }
 
             if (trim($shippingAddress->getCity()) == "") {
@@ -447,19 +448,19 @@ class Redirect extends \Magento\Payment\Block\Form
             }
 
             if (trim($shippingAddress->getPostcode()) == "") {
-                $formFields['deliveryAddress.postalCode'] = "NA";
+                $formFields['deliveryAddress.postalCode'] = "";
             } else {
                 $formFields['deliveryAddress.postalCode'] = trim($shippingAddress->getPostcode());
             }
 
             if (trim($shippingAddress->getRegionCode()) == "") {
-                $formFields['deliveryAddress.stateOrProvince'] = "NA";
+                $formFields['deliveryAddress.stateOrProvince'] = "";
             } else {
                 $formFields['deliveryAddress.stateOrProvince'] = trim($shippingAddress->getRegionCode());
             }
 
             if (trim($shippingAddress->getCountryId()) == "") {
-                $formFields['deliveryAddress.country'] = "NA";
+                $formFields['deliveryAddress.country'] = "ZZ";
             } else {
                 $formFields['deliveryAddress.country'] = trim($shippingAddress->getCountryId());
             }
