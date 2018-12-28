@@ -85,8 +85,9 @@ define(
 
                 var card = checkout.create('card', {
                     originKey: self.getOriginKey(),
-                    loadingContext: self.getLoadingContext(),
                     type: 'card',
+                    hasHolderName: true,
+                    holderNameRequired: true,
                     groupTypes: self.getAvailableCardTypeAltCodes(),
 
                     onChange: function(state) {
@@ -141,6 +142,7 @@ define(
                         self.expiryMonth(state.data.encryptedExpiryMonth);
                         self.expiryYear(state.data.encryptedExpiryYear);
                         self.securityCode(state.data.encryptedSecurityCode);
+                        self.creditCardOwner(state.data.holderName);
                         self.creditCardDetailsValid(true);
                         self.placeOrderAllowed(true);
                     },
@@ -232,9 +234,7 @@ define(
 
                 var validate = $(form).validation() && $(form).validation('isValid');
 
-                var owner = Boolean($(form + ' #creditCardHolderName').valid());
-
-                if (!validate || !owner) {
+                if (!validate) {
                     return false;
                 }
 
