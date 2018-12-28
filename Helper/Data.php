@@ -350,6 +350,20 @@ class Data extends AbstractHelper
         return (['name' => trim($streetName), 'house_number' => $streetNr]);
     }
 
+	/**
+	 * Street format
+	 * @param string $streetLine
+	 * @return array
+	 */
+	public function getStreetFromString($streetLine)
+	{
+		$street = self::formatStreet(array($streetLine));
+		$streetName = $street['0'];
+		unset($street['0']);
+		$streetNr = implode(' ', $street);
+		return (['name' => trim($streetName), 'house_number' => $streetNr]);
+	}
+
     /**
      * Fix this one string street + number
      * @example street + number
