@@ -45,19 +45,20 @@ class CustomerDataBuilder implements BuilderInterface
 
         $order = $paymentDataObject->getOrder();
         $billingAddress = $order->getBillingAddress();
-        $customerEmail = $billingAddress->getEmail();
+
         $customerId = $order->getCustomerId();
+
+        if (!empty($billingAddress)) {
+
+			$result['shopperEmail'] = $billingAddress->getEmail();
+			$result['shopperName']['firstName'] = $billingAddress->getFirstname();
+			$result['shopperName']['lastName'] = $billingAddress->getLastname();
+			$result['countryCode'] = $billingAddress->getCountryId();
+		}
 
         if ($customerId > 0) {
             $result['shopperReference'] = $customerId;
         }
-
-        $result ['shopperEmail'] = $customerEmail;
-
-        $result['shopperName']['firstName'] = $order->getBillingAddress()->getFirstname();
-		$result['shopperName']['lastName'] = $order->getBillingAddress()->getLastname();
-
-		$result['countryCode'] = $billingAddress->getCountryId();
 
         return $result;
     }
