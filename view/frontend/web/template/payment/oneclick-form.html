@@ -23,7 +23,6 @@
 -->
 
 
-
 <!-- ko foreach: getAdyenBillingAgreements() -->
 <div class="payment-method" data-bind="css: {'_active': (value == $parent.isBillingAgreementChecked())}">
 
@@ -63,7 +62,6 @@
         </div>
 
 
-
         <form class="form" action="#" method="post" data-bind="
             attr: {'id': 'adyen_oneclick_' + value, 'data-role': 'adyen_oneclick_' + value },
             mageInit: {
@@ -73,7 +71,8 @@
                     'orderSaveUrl':$parent.getPlaceOrderUrl(),
                 }, 'validation':[]}">
 
-            <fieldset data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + $parent.getCode() + '_' + value}">
+            <fieldset
+                    data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + $parent.getCode() + '_' + value}">
 
                 <!-- ko if: agreement_data.card -->
 
@@ -87,7 +86,7 @@
                 </div>
 
                 <!-- ko if: hasVerification()-->
-                <div afterRender="renderSecureCVC()" data-bind="attr: { id: 'cvcContainer-' + value}" ></div>
+                <div afterRender="renderSecureCVC()" data-bind="attr: { id: 'cvcContainer-' + value}"></div>
                 <!-- /ko -->
                 <!--/ko-->
 
@@ -124,21 +123,22 @@
 
                 <!-- ko if: number_of_installments.length > 0 -->
 
-                <div class="field required" data-bind="attr: {id: getCode() + '_installments_div'}, visible: getInstallments().length > 0">
+                <div class="field required"
+                     data-bind="attr: {id: getCode() + '_installments_div'}, visible: getInstallments().length > 0">
                     <label data-bind="attr: {for: getCode() + '_installments'}" class="label">
                         <span><!-- ko text: $t('Installments')--><!-- /ko --></span>
                     </label>
                     <div class="control">
-                        <select  class="select"
-                                 name="payment[number_of_installments]"
-                                 data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
+                        <select class="select"
+                                name="payment[number_of_installments]"
+                                data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
                                         enable: $parent.isActive($parents),
                                         options: getInstallments,
                                         optionsValue: 'value',
                                         optionsText: 'key',
                                         optionsCaption: $t('Do not use Installments'),
                                         value: installment"
-                                 data-validate="{required:true}">
+                                data-validate="{required:true}">
                         </select>
                     </div>
                 </div>
@@ -160,8 +160,7 @@
                             data-bind="
                                 click: placeOrder,
                                 attr: {title: $t('Place Order')},
-                                enable: (value == $parent.isBillingAgreementChecked())
-                                "
+                                enable: isButtonActive()"
                             disabled>
                         <span data-bind="text: $t('Place Order')"></span>
                     </button>

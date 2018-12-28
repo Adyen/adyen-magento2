@@ -34,6 +34,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
     const RECURRING_DETAIL_REFERENCE = 'recurring_detail_reference';
 	const SECURITY_CODE = 'cvc';
     const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
+    const VARIANT = 'variant';
 
     /**
      * @var array
@@ -41,7 +42,8 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
     protected $additionalInformationList = [
         self::RECURRING_DETAIL_REFERENCE,
 		self::SECURITY_CODE,
-        self::NUMBER_OF_INSTALLMENTS
+        self::NUMBER_OF_INSTALLMENTS,
+        self::VARIANT
     ];
 
     /**

@@ -54,7 +54,9 @@ define(
                         'expiryYear',
                         'setStoreCc',
                         'installment',
-                        'creditCardDetailsValid'
+                        'creditCardDetailsValid',
+                        'variant',
+                        'placeOrderAllowed'
                     ]);
 
                 return this;
@@ -68,10 +70,8 @@ define(
              */
             renderSecureFields: function() {
                 var self = this;
+                self.placeOrderAllowed(false);
 
-                self.creditCardOwner.subscribe(function () {
-                    self.updateButton();
-                });
 
                 installments.setInstallments(0);
 
@@ -134,26 +134,23 @@ define(
                         }else{
                             self.creditCardType("")
                         }
-
-                        if (state.isValid) {
-                            // Here we enable the button if the component is now valid
-                            self.creditCardNumber(state.data.encryptedCardNumber);
-                            self.expiryMonth(state.data.encryptedExpiryMonth);
-                            self.expiryYear(state.data.encryptedExpiryYear);
-                            self.securityCode(state.data.encryptedSecurityCode);
-                            self.creditCardDetailsValid(true);
-                        }else{
-                            self.creditCardDetailsValid(false);
-                        }
-
-                        self.updateButton();
                     },
-                    onError: function() {}
+                    onValid: function(state) {
+                        self.variant(state.brand);
+                        self.creditCardNumber(state.data.encryptedCardNumber);
+                        self.expiryMonth(state.data.encryptedExpiryMonth);
+                        self.expiryYear(state.data.encryptedExpiryYear);
+                        self.securityCode(state.data.encryptedSecurityCode);
+                        self.creditCardDetailsValid(true);
+                        self.placeOrderAllowed(true);
+                    },
+                    onError: function(state) {
+                        self.creditCardDetailsValid(false);
+                        self.placeOrderAllowed(false);
+                    }
                 });
 
                 card.mount(cardNode);
-
-                self.isPlaceOrderActionAllowed(false);
             },
             /**
              * Builds the payment details part of the payment information reqeust
@@ -164,6 +161,7 @@ define(
                 return {
                     'method': this.item.method,
                     additional_data: {
+                        'card_brand': this.variant(),
                         'cc_type': this.creditCardType(),
                         'number': this.creditCardNumber(),
                         'cvc': this.securityCode(),
@@ -180,19 +178,7 @@ define(
              * @returns {boolean}
             */
             isButtonActive: function() {
-              return this.isActive() && this.getCode() == this.isChecked() && this.isPlaceOrderActionAllowed();
-            },
-            /**
-             * Checks if the pay button can be enabled and enables if can
-             */
-            updateButton: function() {
-                var self = this;
-
-                if (self.isCardOwnerValid() && self.isCreditCardDetailsValid()) {
-                    self.isPlaceOrderActionAllowed(true);
-                } else {
-                    self.isPlaceOrderActionAllowed(false);
-                }
+              return this.isActive() && this.getCode() == this.isChecked() && this.isPlaceOrderActionAllowed() && this.placeOrderAllowed();
             },
             /**
              * Custom place order function

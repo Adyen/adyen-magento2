@@ -142,8 +142,12 @@ define(
                         'creditCardExpMonth': ko.observable(creditCardExpMonth),
                         'creditCardExpYear': ko.observable(creditCardExpYear),
                         'getInstallments': ko.observableArray(installments),
+                        'placeOrderAllowed': ko.observable(false),
 
 
+                        isButtonActive: function() {
+                            return self.isActive() && this.getCode() == self.isChecked() && self.isBillingAgreementChecked()  && this.placeOrderAllowed();
+                        },
                         /**
                          * @override
                          */
@@ -203,6 +207,10 @@ define(
                             var hideCVC = false;
                             if (self.agreement_data.variant == "bcmc") {
                                 hideCVC = true;
+                                self.placeOrderAllowed(true);
+                            } else if(self.agreement_data.variant == "maestro") {
+                                // for maestro cvc is optional
+                                self.placeOrderAllowed(true);
                             }
 
                             var oneClickCard = checkout
@@ -236,8 +244,9 @@ define(
                                             self.encryptedCreditCardVerificationNumber = '';
                                         }
                                     },
-                                    onValid: function (data) {
-                                        if (data.isValid) {
+                                    onValid: function (state) {
+                                        if (state.isValid) {
+                                            self.placeOrderAllowed(true);
                                             isValid(true);
                                         } else {
                                             isValid(false);
@@ -245,9 +254,8 @@ define(
                                         return;
                                     },
                                     onError: function(data) {
-                                        if(data.fieldType == "encryptedSecurityCode" && data.error != "") {
-                                            isValid(false);
-                                        }
+                                        self.placeOrderAllowed(false);
+                                        isValid(false);
                                         return;
                                     }
                                 })
@@ -287,7 +295,7 @@ define(
                             var validate = $(form).validation() && $(form).validation('isValid');
 
                             // bcmc does not have any cvc
-                            if (!validate || (isValid() == false && variant() != "bcmc")) {
+                            if (!validate || (isValid() == false && variant() != "bcmc" && variant() != "maestro")) {
                                 return false;
                             }
 

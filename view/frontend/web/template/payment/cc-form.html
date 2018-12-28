@@ -87,7 +87,9 @@
                             </li>
                             <!--/ko-->
                         </ul>
-                        <p class="helper-text" data-bind="css: {hidden: creditCardType() !== ''} "><!-- ko text: $t('(Please provide a card with the type from the list above)')--><!-- /ko --></p>
+                        <p class="helper-text" data-bind="css: {hidden: creditCardType() !== ''} ">
+                            <!-- ko text: $t('(Please provide a card with the type from the list above)')-->
+                            <!-- /ko --></p>
                         <input type="hidden"
                                name="payment[cc_type]"
                                class="input-text"
@@ -122,10 +124,8 @@
                 </div>
 
                 <div class="field number cardContainerField">
-                    <div afterRender="renderSecureFields()" data-bind="attr: { id: 'cardContainer'}" ></div>
+                    <div afterRender="renderSecureFields()" data-bind="attr: { id: 'cardContainer'}"></div>
                 </div>
-
-
 
 
                 <!-- ko if: (hasInstallments())-->
@@ -137,9 +137,9 @@
                     </label>
                     <div class="control">
 
-                        <select  class="select"
-                                 name="payment[number_of_installments]"
-                                 data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
+                        <select class="select"
+                                name="payment[number_of_installments]"
+                                data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
 
                                         enable: isActive($parents),
                                         options: getInstallments,
