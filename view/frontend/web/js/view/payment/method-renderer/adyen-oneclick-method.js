@@ -45,6 +45,7 @@ define(
         var variant = ko.observable(null);
         var paymentMethod = ko.observable(null);
         var numberOfInstallments = ko.observable(null);
+        var isValid = ko.observable(false);
 
         return Component.extend({
             defaults: {
@@ -141,8 +142,12 @@ define(
                         'creditCardExpMonth': ko.observable(creditCardExpMonth),
                         'creditCardExpYear': ko.observable(creditCardExpYear),
                         'getInstallments': ko.observableArray(installments),
+                        'placeOrderAllowed': ko.observable(false),
 
 
+                        isButtonActive: function() {
+                            return self.isActive() && this.getCode() == self.isChecked() && self.isBillingAgreementChecked()  && this.placeOrderAllowed();
+                        },
                         /**
                          * @override
                          */
@@ -189,7 +194,7 @@ define(
                          * creates the card component,
                          * sets up the callbacks for card components
                          */
-                        renderSecureCVC: function() {
+                        renderSecureCVC: function () {
                             var self = this;
 
                             var oneClickCardNode = document.getElementById('cvcContainer-' + self.value);
@@ -198,12 +203,22 @@ define(
                                 locale: self.getLocale()
                             });
 
+                            // this should be fixed in new version of checkout card component
+                            var hideCVC = false;
+                            if (self.agreement_data.variant == "bcmc") {
+                                hideCVC = true;
+                                self.placeOrderAllowed(true);
+                            } else if(self.agreement_data.variant == "maestro") {
+                                // for maestro cvc is optional
+                                self.placeOrderAllowed(true);
+                            }
+
                             var oneClickCard = checkout
                                 .create('card', {
                                     originKey: self.getOriginKey(),
-                                    loadingContext: self.getLoadingContext(),
                                     type: self.agreement_data.variant,
                                     oneClick: true,
+                                    hideCVC: hideCVC,
 
                                     // Specific for oneClick cards
                                     details: [
@@ -221,15 +236,32 @@ define(
                                         }
                                     },
 
-                                    onChange: function(state) {
+                                    onChange: function (state) {
                                         if (state.isValid) {
                                             self.encryptedCreditCardVerificationNumber = state.data.encryptedSecurityCode;
                                         } else {
                                             self.encryptedCreditCardVerificationNumber = '';
                                         }
+                                    },
+                                    onValid: function (state) {
+                                        if (state.isValid) {
+                                            self.placeOrderAllowed(true);
+                                            isValid(true);
+                                        } else {
+                                            isValid(false);
+                                        }
+                                        return;
+                                    },
+                                    onError: function(data) {
+                                        self.placeOrderAllowed(false);
+                                        isValid(false);
+                                        return;
                                     }
                                 })
                                 .mount(oneClickCardNode);
+
+
+                            window.adyencheckout = oneClickCard;
                         },
                         /**
                          * Builds the payment details part of the payment information reqeust
@@ -261,16 +293,8 @@ define(
 
                             var validate = $(form).validation() && $(form).validation('isValid');
 
-                            // if oneclick or recurring is a card check CVC validity
-                            var cid = true;
-                            if (this.agreement_data.card) {
-                                // if encrypted cvc is empty the request is not valid
-                                if (this.hasVerification() && this.encryptedCreditCardVerificationNumber.length === 0) {
-                                    cid = false;
-                                }
-                            }
-
-                            if (!validate || !cid) {
+                            // bcmc does not have any cvc
+                            if (!validate || (isValid() == false && variant() != "bcmc" && variant() != "maestro")) {
                                 return false;
                             }
 

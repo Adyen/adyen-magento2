@@ -39,6 +39,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 	const EXPIRY_MONTH = 'expiryMonth';
 	const EXPIRY_YEAR = 'expiryYear';
 	const HOLDER_NAME = 'holderName';
+    const VARIANT = 'variant';
 
     /**
      * @var array
@@ -51,7 +52,8 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 		self::SECURITY_CODE,
 		self::EXPIRY_MONTH,
 		self::EXPIRY_YEAR,
-		self::HOLDER_NAME
+		self::HOLDER_NAME,
+        self::VARIANT
     ];
 
     /**

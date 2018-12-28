@@ -235,9 +235,7 @@ class Redirect extends \Magento\Payment\Block\Form
                 );
                 $formFields['shopperEmail'] = $shopperEmail;
                 // recurring
-                $recurringType = trim($this->_adyenHelper->getAdyenAbstractConfigData(
-                    'recurring_type'
-                ));
+                $recurringType = $this->_adyenHelper->getRecurringTypeFromOneclickRecurringSetting();
                 $brandCode = $this->_order->getPayment()->getAdditionalInformation(
                     \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
                 );

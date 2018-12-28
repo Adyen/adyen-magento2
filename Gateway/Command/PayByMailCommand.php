@@ -183,7 +183,7 @@ class PayByMailCommand implements CommandInterface
 
         $formFields['shopperEmail']      = $shopperEmail;
         // recurring
-        $recurringType                   = trim($this->_adyenHelper->getAdyenAbstractConfigData('recurring_type', $storeId));
+        $recurringType                   = $this->_adyenHelper->getRecurringTypeFromOneclickRecurringSetting($storeId);
         
         $sessionValidity = $this->_adyenHelper->getAdyenPayByMailConfigData('session_validity', $storeId);
 

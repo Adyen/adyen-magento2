@@ -138,9 +138,9 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
 		$config['payment']['adyenOneclick']['checkoutUrl'] = $this->_adyenHelper->getCheckoutContextUrl($this->_storeManager->getStore()->getId());
 		$config['payment']['adyenOneclick']['locale'] = $this->_adyenHelper->getStoreLocale($this->_storeManager->getStore()->getId());
 
-        $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type');
+        $enableOneclick = $this->_adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
         $canCreateBillingAgreement = false;
-        if ($recurringType == "ONECLICK" || $recurringType == "ONECLICK,RECURRING") {
+        if ($enableOneclick) {
             $canCreateBillingAgreement = true;
         }
 

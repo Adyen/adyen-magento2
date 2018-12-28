@@ -29,7 +29,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
     /**
      * @var \Adyen\Payment\Helper\Data
      */
-    private $_adyenHelper;
+    private $adyenHelper;
 
     /**
      * Agreement constructor.
@@ -66,7 +66,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
             $data
         );
 
-        $this->_adyenHelper = $adyenHelper;
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -90,7 +90,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
             ->setReferenceId($data['recurringDetailReference'])
             ->setCreatedAt($data['creationDate']);
 
-        $creationDate =  str_replace(' ', '-', $data['creationDate']);
+        $creationDate = str_replace(' ', '-', $data['creationDate']);
         $this->setCreatedAt($creationDate);
 
         //Billing agreement SEPA
@@ -105,7 +105,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         // Billing agreement is CC
         if (isset($data['card']['number'])) {
             $ccType = $data['variant'];
-            $ccTypes = $this->_adyenHelper->getCcTypesAltData();
+            $ccTypes = $this->adyenHelper->getCcTypesAltData();
 
             if (isset($ccTypes[$ccType])) {
                 $ccType = $ccTypes[$ccType]['name'];
@@ -123,7 +123,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         }
 
         if ($data['variant'] == 'paypal') {
-            $email = "";
+            $email = '';
 
             if (isset($data['tokenDetails']['tokenData']['EmailId'])) {
                 $email = $data['tokenDetails']['tokenData']['EmailId'];
@@ -150,9 +150,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
     public function setAgreementData($data)
     {
         if (is_array($data)) {
-            unset($data['creationDate']);
-            unset($data['recurringDetailReference']);
-            unset($data['payment_method']);
+            unset($data['creationDate'], $data['recurringDetailReference'], $data['payment_method']);
         }
 
         $this->setData('agreement_data', json_encode($data));
@@ -165,5 +163,52 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
     public function getAgreementData()
     {
         return json_decode($this->getData('agreement_data'), true);
+    }
+
+    public function setCcBillingAgreement($contractDetail)
+    {
+        $this
+            ->setMethodCode('adyen_oneclick')
+            ->setReferenceId($contractDetail['recurring.recurringDetailReference']);
+
+        // Billing agreement is CC
+        if (isset($contractDetail['cardBin']) &&
+            isset($contractDetail['cardHolderName']) &&
+            isset($contractDetail['cardSummary']) &&
+            isset($contractDetail['expiryDate']) &&
+            isset($contractDetail['paymentMethod'])) {
+            $ccType = $contractDetail['paymentMethod'];
+            $ccTypes = $this->adyenHelper->getCcTypesAltData();
+
+            if (isset($ccTypes[$ccType])) {
+                $ccType = $ccTypes[$ccType]['name'];
+            }
+
+            $label = __(
+                '%1, %2, **** %3',
+                $ccType,
+                $contractDetail['cardHolderName'],
+                $contractDetail['cardSummary']
+            );
+            $this->setAgreementLabel($label);
+        }
+        $expiryDate = explode('/', $contractDetail['expiryDate']);
+
+        $recurringType = $this->adyenHelper->getRecurringTypeFromOneclickRecurringSetting();
+
+        $agreementData = [
+            'card' => [
+                'holderName' => $contractDetail['cardHolderName'],
+                'number' => $contractDetail['cardSummary'],
+                'expiryMonth' => $expiryDate[0],
+                'expiryYear' => $expiryDate[1]
+            ],
+            'variant' => $contractDetail['paymentMethod'],
+            'contractTypes' => explode(',', $recurringType)
+        ];
+
+        $this->setAgreementData($agreementData);
+
+        return $this;
     }
 }

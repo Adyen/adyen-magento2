@@ -130,10 +130,10 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
             ]
         ]);
 
-        $recurringType = $this->_adyenHelper->getAdyenAbstractConfigData('recurring_type');
+        $enableOneclick = $this->_adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
 
         $canCreateBillingAgreement = false;
-        if ($recurringType == "ONECLICK" || $recurringType == "ONECLICK,RECURRING") {
+        if ($enableOneclick) {
             $canCreateBillingAgreement = true;
         }
 

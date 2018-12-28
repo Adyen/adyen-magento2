@@ -87,7 +87,9 @@
                             </li>
                             <!--/ko-->
                         </ul>
-                        <p class="helper-text" data-bind="css: {hidden: creditCardType() !== ''} "><!-- ko text: $t('(Please provide a card with the type from the list above)')--><!-- /ko --></p>
+                        <p class="helper-text" data-bind="css: {hidden: creditCardType() !== ''} ">
+                            <!-- ko text: $t('(Please provide a card with the type from the list above)')-->
+                            <!-- /ko --></p>
                         <input type="hidden"
                                name="payment[cc_type]"
                                class="input-text"
@@ -98,34 +100,9 @@
                     </div>
                 </div>
 
-                <div class="field holdername type">
-                    <label data-bind="attr: {for: 'creditCardHolderName'}" class="label">
-                        <span><!-- ko text: $t('Credit Card Owner')--><!-- /ko --></span>
-                    </label>
-                    <div class="control">
-                        <input type="text"
-                               class="input-text required-entry"
-                               data-encrypted-name="holderName"
-                               value=""
-                               data-bind="attr: {
-                                                id: 'creditCardHolderName',
-                                                title: $t('Credit Card Owner'),
-                                                placeholder: $t('Credit Card Owner'),
-                                                'data-container': getCode() + '-cc-owner'
-                                                },
-                                            enable: isActive($parents),
-                                            value: creditCardOwner,
-                                            valueUpdate: 'keyup' "
-                               data-validate="{required:true}"
-                        />
-                    </div>
-                </div>
-
                 <div class="field number cardContainerField">
-                    <div afterRender="renderSecureFields()" data-bind="attr: { id: 'cardContainer'}" ></div>
+                    <div afterRender="renderSecureFields()" data-bind="attr: { id: 'cardContainer'}"></div>
                 </div>
-
-
 
 
                 <!-- ko if: (hasInstallments())-->
@@ -137,9 +114,9 @@
                     </label>
                     <div class="control">
 
-                        <select  class="select"
-                                 name="payment[number_of_installments]"
-                                 data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
+                        <select class="select"
+                                name="payment[number_of_installments]"
+                                data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
 
                                         enable: isActive($parents),
                                         options: getInstallments,
