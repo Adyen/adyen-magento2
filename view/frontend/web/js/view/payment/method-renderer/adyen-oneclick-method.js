@@ -285,7 +285,7 @@ define(
                             var form = 'form[data-role=' + codeValue + ']';
 
                             var validate = $(form).validation() && $(form).validation('isValid');
-                            debugger;
+
                             // bcmc does not have any cvc
                             if (!validate || (isValid() == false && variant() != "bcmc")) {
                                 return false;

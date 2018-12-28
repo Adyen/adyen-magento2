@@ -33,11 +33,6 @@ class RecurringDataBuilder implements BuilderInterface
     private $adyenHelper;
 
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
-     */
-    protected $_adyenLogger;
-
-    /**
      * @var \Magento\Framework\App\State
      */
     private $appState;
@@ -50,12 +45,10 @@ class RecurringDataBuilder implements BuilderInterface
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\Model\Context $context,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+        \Magento\Framework\Model\Context $context
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->appState = $context->getAppState();
-        $this->_adyenLogger = $adyenLogger;
     }
 
 
@@ -88,7 +81,7 @@ class RecurringDataBuilder implements BuilderInterface
             $result['enableRecurring'] = true;
         }
 
-        if ($payment->getAdditionalInformation("store_cc") === "1") {
+        if ($payment->getAdditionalInformation('store_cc') === '1') {
             $result['paymentMethod']['storeDetails'] = true;
         }
 
