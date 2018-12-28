@@ -184,17 +184,31 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
                 $ccType = $ccTypes[$ccType]['name'];
             }
 
-            $label = __(
-                '%1, %2, **** %3',
-                $ccType,
-                $contractDetail['cardHolderName'],
-                $contractDetail['cardSummary']
-            );
+            if ($contractDetail['cardHolderName']) {
+                $label = __(
+                    '%1, %2, **** %3',
+                    $ccType,
+                    $contractDetail['cardHolderName'],
+                    $contractDetail['cardSummary']
+                );
+            } else {
+                $label = __(
+                    '%1, **** %2',
+                    $ccType,
+                    $contractDetail['cardSummary']
+                );
+            }
+
             $this->setAgreementLabel($label);
         }
         $expiryDate = explode('/', $contractDetail['expiryDate']);
 
-        $recurringType = $this->adyenHelper->getRecurringTypeFromOneclickRecurringSetting();
+        if (!empty($contractDetail['pos_payment'])) {
+            $recurringType = $this->adyenHelper->getAdyenPosCloudConfigData('recurring_type');
+        } else {
+            $recurringType = $this->adyenHelper->getRecurringTypeFromOneclickRecurringSetting();
+        }
+
 
         $agreementData = [
             'card' => [
@@ -206,6 +220,10 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
             'variant' => $contractDetail['paymentMethod'],
             'contractTypes' => explode(',', $recurringType)
         ];
+
+        if (!empty($contractDetail['pos_payment'])) {
+            $agreementData['posPayment'] = true;
+        }
 
         $this->setAgreementData($agreementData);
 
