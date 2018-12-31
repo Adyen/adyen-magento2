@@ -453,28 +453,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @desc Gives back adyen_pos configuration values
-     * @param $field
-     * @param int|null $storeId
-     * @return mixed
-     */
-    public function getAdyenPosConfigData($field, $storeId = null)
-    {
-        return $this->getConfigData($field, 'adyen_pos', $storeId);
-    }
-
-    /**
-     * @desc Gives back adyen_pos configuration values as flag
-     * @param $field
-     * @param int|null $storeId
-     * @return mixed
-     */
-    public function getAdyenPosConfigDataFlag($field, $storeId = null)
-    {
-        return $this->getConfigData($field, 'adyen_pos', $storeId, true);
-    }
-
-    /**
      * @param $field
      * @param int|null $storeId
      * @return bool|mixed
