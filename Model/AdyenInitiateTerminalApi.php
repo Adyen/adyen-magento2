@@ -199,6 +199,9 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     }
 
     /**
+	 * This getter makes it possible to overwrite the customer id from other plugins
+	 * Use this function to get the customer id so we can keep using this plugin in the UCD
+	 *
      * @param Quote $quote
      * @return mixed
      */
