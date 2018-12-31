@@ -40,7 +40,7 @@ class PaymentPosCloudHandler implements HandlerInterface
     private $adyenLogger;
 
     /**
-     * PaymentDataBuilder constructor.
+     * PaymentPosCloudHandler constructor.
      *
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -73,6 +73,42 @@ class PaymentPosCloudHandler implements HandlerInterface
 
         // do not send order confirmation mail
         $payment->getOrder()->setCanSendNewEmailFlag(false);
+
+        if (!empty($paymentResponse['Response']) &&
+            !empty($paymentResponse['Response']['AdditionalResponse'])
+        ) {
+            $pairs = explode('&', $paymentResponse['Response']['AdditionalResponse']);
+
+            foreach ($pairs as $pair) {
+                $nv = explode('=', $pair);
+
+                if ($nv[0] == 'recurring.recurringDetailReference') {
+                    $recurringDetailReference = $nv[1];
+                    break;
+                }
+            }
+
+            if (!empty($recurringDetailReference) &&
+                !empty($paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData'])
+            ) {
+                $maskedPan = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['MaskedPan'];
+                $expiryDate = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['SensitiveCardData']['ExpiryDate']; // 1225
+                $expiryDate = substr($expiryDate, 0, 2) . '/' . substr($expiryDate, 2, 2);
+                $brand = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['PaymentBrand'];
+
+                // create additionalData so we can use the helper
+                $additionalData = [];
+                $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
+                $additionalData['cardBin'] = $recurringDetailReference;
+                $additionalData['cardHolderName'] = '';
+                $additionalData['cardSummary'] = substr($maskedPan, -4);
+                $additionalData['expiryDate'] = $expiryDate;
+                $additionalData['paymentMethod'] = $brand;
+                $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
+                $additionalData['pos_payment'] = true;
+                $this->adyenHelper->createAdyenBillingAgreement($payment->getOrder(), $additionalData);
+            }
+        }
 
         // set transaction(status)
         if (!empty($paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {

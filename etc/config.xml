@@ -170,7 +170,7 @@
                 <can_cancel>1</can_cancel>
                 <pos_timeout>30</pos_timeout>
                 <total_timeout>120</total_timeout>
-                <recurring_type>ONECLICK</recurring_type>
+                <recurring_type>NONE</recurring_type>
                 <group>adyen</group>
             </adyen_pos_cloud>
             <adyen_pay_by_mail>
