@@ -130,6 +130,15 @@ define(
 
                     var messageContainer = self.messageComponents['messages-' + value.reference_id];
 
+                    // for recurring enable the placeOrder button at all times
+                    var placeOrderAllowed = true;
+                    if (self.hasVerification()) {
+                        placeOrderAllowed = false;
+                    } else {
+                        // for recurring cards there is no validation needed
+                        isValid(true);
+                    }
+
                     return {
                         'label': value.agreement_label,
                         'value': value.reference_id,
@@ -142,11 +151,11 @@ define(
                         'creditCardExpMonth': ko.observable(creditCardExpMonth),
                         'creditCardExpYear': ko.observable(creditCardExpYear),
                         'getInstallments': ko.observableArray(installments),
-                        'placeOrderAllowed': ko.observable(false),
+                        'placeOrderAllowed': ko.observable(placeOrderAllowed),
 
 
-                        isButtonActive: function() {
-                            return self.isActive() && this.getCode() == self.isChecked() && self.isBillingAgreementChecked()  && this.placeOrderAllowed();
+                        isButtonActive: function () {
+                            return self.isActive() && this.getCode() == self.isChecked() && self.isBillingAgreementChecked() && this.placeOrderAllowed();
                         },
                         /**
                          * @override
@@ -208,7 +217,7 @@ define(
                             if (self.agreement_data.variant == "bcmc") {
                                 hideCVC = true;
                                 self.placeOrderAllowed(true);
-                            } else if(self.agreement_data.variant == "maestro") {
+                            } else if (self.agreement_data.variant == "maestro") {
                                 // for maestro cvc is optional
                                 self.placeOrderAllowed(true);
                             }
@@ -239,7 +248,11 @@ define(
 
                                     onChange: function (state) {
                                         if (state.isValid) {
-                                            self.encryptedCreditCardVerificationNumber = state.data.encryptedSecurityCode;
+                                            if (typeof state.data !== 'undefined' &&
+                                                typeof state.data.encryptedSecurityCode !== 'undefined'
+                                            ) {
+                                                self.encryptedCreditCardVerificationNumber = state.data.encryptedSecurityCode;
+                                            }
                                         } else {
                                             self.encryptedCreditCardVerificationNumber = '';
                                         }
@@ -253,7 +266,7 @@ define(
                                         }
                                         return;
                                     },
-                                    onError: function(data) {
+                                    onError: function (data) {
                                         self.placeOrderAllowed(false);
                                         isValid(false);
                                         return;
@@ -314,7 +327,7 @@ define(
                             return window.checkoutConfig.payment.adyenOneclick.checkoutUrl;
                         },
                         hasVerification: function () {
-                            return window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction;
+                            return self.hasVerification()
                         },
                         getMessageName: function () {
                             return 'messages-' + value.reference_id;
@@ -407,6 +420,9 @@ define(
             },
             isShowLegend: function () {
                 return true;
+            },
+            hasVerification: function () {
+                return window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction;
             }
         });
     }

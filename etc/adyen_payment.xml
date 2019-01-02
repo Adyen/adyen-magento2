@@ -61,5 +61,9 @@
             <label>UnionPay</label>
             <code_alt>cup</code_alt>
         </type>
+        <type id="BCMC" order="80">
+            <label>Bancontact</label>
+            <code_alt>bcmc</code_alt>
+        </type>
     </adyen_credit_cards>
 </payment>

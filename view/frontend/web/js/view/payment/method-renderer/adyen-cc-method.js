@@ -68,7 +68,7 @@ define(
              * sets up the callbacks for card components and
              * set up the installments
              */
-            renderSecureFields: function() {
+            renderSecureFields: function () {
                 var self = this;
                 self.placeOrderAllowed(false);
 
@@ -91,8 +91,15 @@ define(
                     holderNameRequired: true,
                     groupTypes: self.getAvailableCardTypeAltCodes(),
 
-                    onChange: function(state) {
-                        // what card is this ??
+                    onChange: function (state) {
+
+                        // isValid is not present on start
+                        if (typeof state.isValid !== 'undefined' && state.isValid === false) {
+                            self.creditCardDetailsValid(false);
+                            self.placeOrderAllowed(false);
+                        }
+
+                        // Define the card type
                         // translate adyen card type to magento card type
                         var creditCardType = self.getCcCodeByAltCode(state.brand);
 
@@ -132,12 +139,18 @@ define(
                             }
 
                             // Color the image of the credit card
-                            self.creditCardType(creditCardType);
-                        }else{
+                            // for BCMC as this is not a core payment method inside magento use maestro as brand detection
+                            if (creditCardType == "BCMC") {
+                                self.creditCardType("MI");
+                            } else {
+                                self.creditCardType(creditCardType);
+
+                            }
+                        } else {
                             self.creditCardType("")
                         }
                     },
-                    onValid: function(state) {
+                    onValid: function (state) {
                         self.variant(state.brand);
                         self.creditCardNumber(state.data.encryptedCardNumber);
                         self.expiryMonth(state.data.encryptedExpiryMonth);
@@ -147,7 +160,7 @@ define(
                         self.creditCardDetailsValid(true);
                         self.placeOrderAllowed(true);
                     },
-                    onError: function(state) {
+                    onError: function (state) {
                         self.creditCardDetailsValid(false);
                         self.placeOrderAllowed(false);
                     }
@@ -179,9 +192,9 @@ define(
             /**
              * Returns state of place order button
              * @returns {boolean}
-            */
-            isButtonActive: function() {
-              return this.isActive() && this.getCode() == this.isChecked() && this.isPlaceOrderActionAllowed() && this.placeOrderAllowed();
+             */
+            isButtonActive: function () {
+                return this.isActive() && this.getCode() == this.isChecked() && this.isPlaceOrderActionAllowed() && this.placeOrderAllowed();
             },
             /**
              * Custom place order function
@@ -247,7 +260,7 @@ define(
              *
              * @returns {boolean}
              */
-            isCardOwnerValid: function() {
+            isCardOwnerValid: function () {
                 if (this.creditCardOwner().length == 0) {
                     return false;
                 }
@@ -260,7 +273,7 @@ define(
              *
              * @returns {*}
              */
-            isCreditCardDetailsValid: function() {
+            isCreditCardDetailsValid: function () {
                 return this.creditCardDetailsValid();
             },
             /**
@@ -269,9 +282,9 @@ define(
              * @param altCode
              * @returns {*}
              */
-            getCcCodeByAltCode: function(altCode) {
+            getCcCodeByAltCode: function (altCode) {
                 var ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
-                if (ccTypes.hasOwnProperty(altCode))  {
+                if (ccTypes.hasOwnProperty(altCode)) {
                     return ccTypes[altCode];
                 }
 
@@ -283,7 +296,7 @@ define(
              *
              * @returns {string[]}
              */
-            getAvailableCardTypeAltCodes: function() {
+            getAvailableCardTypeAltCodes: function () {
                 var ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
                 return Object.keys(ccTypes);
             },
