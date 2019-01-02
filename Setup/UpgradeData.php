@@ -27,6 +27,7 @@ use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
+use Magento\Framework\App\Config\ReinitableConfigInterface;
 
 /**
  * Class UpgradeData
