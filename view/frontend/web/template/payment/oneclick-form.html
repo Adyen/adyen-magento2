@@ -21,12 +21,8 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-
-
 <!-- ko foreach: getAdyenBillingAgreements() -->
 <div class="payment-method" data-bind="css: {'_active': (value == $parent.isBillingAgreementChecked())}">
-
-
     <div class="payment-method-title field choice">
         <input type="radio"
                name="payment[method]"
@@ -34,9 +30,7 @@
                data-bind="attr: {'id': value}, value: value, checked: $parent.isBillingAgreementChecked, click: $parent.selectBillingAgreement"/>
         <label data-bind="attr: {'for': value}" class="label">
 
-
             <!-- ko if: logo -->
-
             <img data-bind="attr: {
                                 'class': getCode(),
                                 'src': logo.url,
@@ -61,7 +55,6 @@
             <!--/ko-->
         </div>
 
-
         <form class="form" action="#" method="post" data-bind="
             attr: {'id': 'adyen_oneclick_' + value, 'data-role': 'adyen_oneclick_' + value },
             mageInit: {
@@ -75,7 +68,6 @@
                     data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + $parent.getCode() + '_' + value}">
 
                 <!-- ko if: agreement_data.card -->
-
                 <div class="field number">
                     <label class="label">
                         <span><!-- ko text: $t('Credit Card Number')--><!-- /ko --></span>
@@ -91,7 +83,6 @@
                 <!--/ko-->
 
                 <!-- ko if: agreement_data.bank -->
-
                 <div class="field number">
                     <label class="label">
                         <span><!-- ko text: $t('Bank account holder name')--><!-- /ko --></span>
@@ -118,11 +109,9 @@
                         <span data-bind="text: agreement_data.bank.countryCode"></span>
                     </div>
                 </div>
-
                 <!--/ko-->
 
                 <!-- ko if: number_of_installments.length > 0 -->
-
                 <div class="field required"
                      data-bind="attr: {id: getCode() + '_installments_div'}, visible: getInstallments().length > 0">
                     <label data-bind="attr: {for: getCode() + '_installments'}" class="label">
@@ -142,32 +131,27 @@
                         </select>
                     </div>
                 </div>
-
-
                 <!-- /ko -->
-
-
             </fieldset>
-            <div class="checkout-agreements-block">
-                <!-- ko foreach: $parents[1].getRegion('before-place-order') -->
-                <!-- ko template: getTemplate() --><!-- /ko -->
-                <!--/ko-->
-            </div>
-            <div class="actions-toolbar">
-                <div class="primary">
-                    <button class="action primary checkout"
-                            type="submit"
-                            data-bind="
+        </form>
+        <div class="checkout-agreements-block">
+            <!-- ko foreach: $parents[1].getRegion('before-place-order') -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+        <div class="actions-toolbar">
+            <div class="primary">
+                <button class="action primary checkout"
+                        type="submit"
+                        data-bind="
                                 click: placeOrder,
                                 attr: {title: $t('Place Order')},
                                 enable: isButtonActive()"
-                            disabled>
-                        <span data-bind="text: $t('Place Order')"></span>
-                    </button>
-                </div>
+                        disabled>
+                    <span data-bind="text: $t('Place Order')"></span>
+                </button>
             </div>
-        </form>
+        </div>
     </div>
 </div>
-
 <!--/ko-->
