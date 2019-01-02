@@ -245,7 +245,6 @@ define(
                                             "number": self.agreement_data.card.number
                                         }
                                     },
-
                                     onChange: function (state) {
                                         if (state.isValid) {
                                             if (typeof state.data !== 'undefined' &&
@@ -255,6 +254,8 @@ define(
                                             }
                                         } else {
                                             self.encryptedCreditCardVerificationNumber = '';
+                                            self.placeOrderAllowed(false);
+                                            isValid(false);
                                         }
                                     },
                                     onValid: function (state) {
