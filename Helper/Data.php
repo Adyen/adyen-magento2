@@ -773,7 +773,9 @@ class Data extends AbstractHelper
 
         $baCollection = $this->_billingAgreementCollectionFactory->create();
         $baCollection->addFieldToFilter('customer_id', $customerId);
-        $baCollection->addFieldToFilter('store_id', $storeId);
+        if ($this->isPerStoreBillingAgreement($storeId)) {
+            $baCollection->addFieldToFilter('store_id', $storeId);
+        }
         $baCollection->addFieldToFilter('method_code', 'adyen_oneclick');
         $baCollection->addActiveFilter();
 
@@ -858,6 +860,9 @@ class Data extends AbstractHelper
         return $billingAgreements;
     }
 
+    public function isPerStoreBillingAgreement($storeId) {
+        return !$this->getAdyenOneclickConfigDataFlag('share_billing_agreement', $storeId);
+    }
 
     /**
      * @param $paymentMethod
