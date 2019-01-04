@@ -235,4 +235,8 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 
         return $this;
     }
+
+    public function getErrors() {
+        return $this->_errors;
+    }
 }

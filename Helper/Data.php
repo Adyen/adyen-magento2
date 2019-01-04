@@ -850,7 +850,9 @@ class Data extends AbstractHelper
 
         $baCollection = $this->_billingAgreementCollectionFactory->create();
         $baCollection->addFieldToFilter('customer_id', $customerId);
-        $baCollection->addFieldToFilter('store_id', $storeId);
+        if ($this->isPerStoreBillingAgreement($storeId)) {
+            $baCollection->addFieldToFilter('store_id', $storeId);
+        }
         $baCollection->addFieldToFilter('method_code', 'adyen_oneclick');
         $baCollection->addActiveFilter();
 
@@ -933,6 +935,9 @@ class Data extends AbstractHelper
         return $billingAgreements;
     }
 
+    public function isPerStoreBillingAgreement($storeId) {
+        return !$this->getAdyenOneclickConfigDataFlag('share_billing_agreement', $storeId);
+    }
 
     /**
      * @param $paymentMethod
@@ -1434,6 +1439,7 @@ class Data extends AbstractHelper
             $listRecurringContracts = null;
             try {
                 // Get or create billing agreement
+                /** @var \Adyen\Payment\Model\Billing\Agreement $billingAgreement */
                 $billingAgreement = $this->billingAgreementFactory->create();
                 $billingAgreement->load($additionalData['recurring.recurringDetailReference'], 'reference_id');
 
@@ -1444,6 +1450,9 @@ class Data extends AbstractHelper
                     $billingAgreement = $this->billingAgreementFactory->create();
                     $billingAgreement->setStoreId($order->getStoreId());
                     $billingAgreement->importOrderPayment($order->getPayment());
+                    if ($billingAgreement->getCustomerId() === null) {
+                        $billingAgreement->setCustomerId($this->getCustomerId($order));
+                    }
                     $message = __('Created billing agreement #%1.',
                         $additionalData['recurring.recurringDetailReference']);
                 } else {
@@ -1462,7 +1471,7 @@ class Data extends AbstractHelper
                     // add to order to save agreement
                     $order->addRelatedObject($billingAgreement);
                 } else {
-                    $message = __('Failed to create billing agreement for this order.');
+                    $message = __('Failed to create billing agreement for this order. Reason(s): ') . join(', ', $billingAgreement->getErrors());
                     throw new \Exception($message);
                 }
 
@@ -1475,6 +1484,15 @@ class Data extends AbstractHelper
 
             $order->addRelatedObject($comment);
         }
+    }
+
+    /**
+     * Method can be used by interceptors to provide the customer ID in a different way.
+     * @param \Magento\Sales\Model\Order $order
+     * @return int|null
+     */
+    public function getCustomerId(\Magento\Sales\Model\Order $order) {
+        return $order->getCustomerId();
     }
 
     /**
