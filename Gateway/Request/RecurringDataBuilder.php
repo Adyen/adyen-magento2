@@ -74,11 +74,15 @@ class RecurringDataBuilder implements BuilderInterface
         $enableRecurring = $this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', $storeId);
 
         if ($enableOneclick) {
-            $result['enableOneclick'] = true;
+            $result['enableOneClick'] = true;
+        } else {
+            $result['enableOneClick'] = false;
         }
 
         if ($enableRecurring) {
             $result['enableRecurring'] = true;
+        } else {
+            $result['enableRecurring'] = false;
         }
 
         if ($payment->getAdditionalInformation('store_cc') === '1') {
