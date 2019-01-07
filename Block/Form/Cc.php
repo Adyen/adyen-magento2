@@ -45,16 +45,15 @@ class Cc extends \Magento\Payment\Block\Form\Cc
      */
     protected $checkoutSession;
 
-	/**
-	 * Cc constructor.
-	 *
-	 * @param \Magento\Framework\View\Element\Template\Context $context
-	 * @param \Magento\Payment\Model\Config $paymentConfig
-	 * @param \Adyen\Payment\Helper\Data $adyenHelper
-	 * @param \Magento\Checkout\Model\Session $checkoutSession
-	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-	 * @param array $data
-	 */
+    /**
+     * Cc constructor.
+     *
+     * @param \Magento\Framework\View\Element\Template\Context $context
+     * @param \Magento\Payment\Model\Config $paymentConfig
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param array $data
+     */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Payment\Model\Config $paymentConfig,

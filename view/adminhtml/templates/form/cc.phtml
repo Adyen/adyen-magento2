@@ -44,28 +44,22 @@ echo $code; ?>" style="display:none">
                    title="<?php echo $block->escapeHtml(__('Name on Card')); ?>" class="admin__control-text"
                    value="<?php /* @noEscape */
                    echo $block->getInfoData('cc_owner'); ?>"
-                    placeholder="<?php echo $block->escapeHtml(__('Name on Card')); ?>"/>
+                   placeholder="<?php echo $block->escapeHtml(__('Name on Card')); ?>"/>
         </div>
     </div>
 
-    <div>
-        <div>Available card types:</div>
-        <div>
-            <?php foreach ($block->getCcAvailableTypes() as $typeCode => $typeName): ?>
-                <span class="cc-type-<?php echo $block->escapeHtml($typeCode); ?>">
-                    <?php echo $block->escapeHtml($typeName); ?>
-                </span>
-            <?php endforeach ?>
-        </div>
-        <p class="helper-text" id="cc-type-helper-text"><?php echo $block->escapeHtml(__('(Please provide a card with the type from the list above)')); ?></p>
-    </div>
-
-    <div id="cardContainer-<?php /* @noEscape */ echo $code; ?>"></div>
-    <input id="<?php /* @noEscape */ echo $code; ?>-number" type="hidden" name="payment[number]">
-    <input id="<?php /* @noEscape */ echo $code; ?>-cvc" type="hidden" name="payment[cvc]">
-    <input id="<?php /* @noEscape */ echo $code; ?>-expiryMonth" type="hidden" name="payment[expiryMonth]">
-    <input id="<?php /* @noEscape */ echo $code; ?>-expiryYear" type="hidden" name="payment[expiryYear]">
-    <input id="<?php /* @noEscape */ echo $code; ?>-cc_type" type="hidden" name="payment[cc_type]">
+    <div id="cardContainer-<?php /* @noEscape */
+    echo $code; ?>"></div>
+    <input id="<?php /* @noEscape */
+    echo $code; ?>-number" type="hidden" name="payment[number]">
+    <input id="<?php /* @noEscape */
+    echo $code; ?>-cvc" type="hidden" name="payment[cvc]">
+    <input id="<?php /* @noEscape */
+    echo $code; ?>-expiryMonth" type="hidden" name="payment[expiryMonth]">
+    <input id="<?php /* @noEscape */
+    echo $code; ?>-expiryYear" type="hidden" name="payment[expiryYear]">
+    <input id="<?php /* @noEscape */
+    echo $code; ?>-cc_type" type="hidden" name="payment[cc_type]">
 
     <script>
         require(
@@ -86,9 +80,9 @@ echo $code; ?>" style="display:none">
                 document.body.appendChild(scriptTag);
 
                 // Get cc type by adyen cc type
-                var getCcCodeByAltCode = function(altCode) {
+                var getCcCodeByAltCode = function (altCode) {
 
-                    if (ccTypes.hasOwnProperty(altCode))  {
+                    if (ccTypes.hasOwnProperty(altCode)) {
                         return ccTypes[altCode];
                     }
 
@@ -114,14 +108,7 @@ echo $code; ?>" style="display:none">
                         type: 'card',
                         groupTypes: ccTypes,
 
-                        onChange: function(state) {
-
-                            if (state.isCardValid) {
-                                jQuery("#cc-type-helper-text").hide();
-                            } else {
-                                jQuery("#cc-type-helper-text").show();
-                            }
-
+                        onChange: function (state) {
                             // When the state is valid update the input fields
                             if (state.isValid) {
                                 // Here we enable the button if the component is now valid
@@ -132,38 +119,28 @@ echo $code; ?>" style="display:none">
                                 jQuery("#<?php /* @noEscape */ echo $code; ?>-cc_type").val(getCcCodeByAltCode(state.brand));
                             }
                         },
-                        onError: function() {}
+                        onError: function () {
+                        }
                     });
-
                     card.mount(cardNode);
-                    
-                    /*order.submit = order.submit.wrap(function (originalSaveMethod) {
-                        attachSecureFieldsData.call(this);
-                        originalSaveMethod();
-                    });*/
                 }
 
                 // Load card components and force wait until the external script is loaded
                 if (scriptTag.readyState) {
-                    scriptTag.onreadystatechange = function(){
+                    scriptTag.onreadystatechange = function () {
                         if (script.readyState == "loaded" ||
-                            script.readyState == "complete"){
+                            script.readyState == "complete") {
                             script.onreadystatechange = null;
                             secureFieldsInitialize();
                         }
                     };
                 }
                 else {
-                    scriptTag.onload = function(){
+                    scriptTag.onload = function () {
                         secureFieldsInitialize();
                     };
                 }
-
                 //]]>
             });
-
-        // TODO Oneclick
-        // cvc is not required so cvchide: true or hidecvc
-
     </script>
 </fieldset>

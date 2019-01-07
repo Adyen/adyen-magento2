@@ -67,8 +67,8 @@ class CcAuthorizationDataBuilder implements BuilderInterface
 
         // If ccType is set use this. For bcmc you need bcmc otherwise it will fail
         $request['paymentMethod']['type'] = "scheme";
-        if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::VARIANT)) {
-            $request['paymentMethod']['type'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::VARIANT);
+        if ($variant = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::VARIANT)) {
+            $request['paymentMethod']['type'] = $variant;
         }
 
         if ($cardNumber = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::CREDIT_CARD_NUMBER)) {

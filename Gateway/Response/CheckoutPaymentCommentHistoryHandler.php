@@ -28,50 +28,50 @@ use Magento\Payment\Gateway\Response\HandlerInterface;
 class CheckoutPaymentCommentHistoryHandler implements HandlerInterface
 {
 
-	/**
-	 * @param array $handlingSubject
-	 * @param array $response
-	 * @return $this
-	 */
-	public function handle(array $handlingSubject, array $response)
-	{
-		$payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
+    /**
+     * @param array $handlingSubject
+     * @param array $response
+     * @return $this
+     */
+    public function handle(array $handlingSubject, array $response)
+    {
+        $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
-		/** @var OrderPaymentInterface $payment */
-		$payment = $payment->getPayment();
+        /** @var OrderPaymentInterface $payment */
+        $payment = $payment->getPayment();
 
-		$commentText = "Adyen Result response:";
+        $commentText = "Adyen Result response:";
 
-		if (isset($response['resultCode'])) {
-			$responseCode = $response['resultCode'];
-		} else {
-			// try to get response from response key (used for modifications
-			if (isset($response['response'])) {
-				$responseCode = $response['response'];
-			} else {
-				$responseCode = "";
-			}
-		}
+        if (isset($response['resultCode'])) {
+            $responseCode = $response['resultCode'];
+        } else {
+            // try to get response from response key (used for modifications
+            if (isset($response['response'])) {
+                $responseCode = $response['response'];
+            } else {
+                $responseCode = "";
+            }
+        }
 
-		if (isset($response['pspReference'])) {
-			$pspReference = $response['pspReference'];
-		} else {
-			$pspReference = "";
-		}
+        if (isset($response['pspReference'])) {
+            $pspReference = $response['pspReference'];
+        } else {
+            $pspReference = "";
+        }
 
-		if ($responseCode) {
-			$commentText .= '<br /> authResult: ' . $responseCode;
-			$payment->getOrder()->setAdyenResulturlEventCode($responseCode);
-		}
+        if ($responseCode) {
+            $commentText .= '<br /> authResult: ' . $responseCode;
+            $payment->getOrder()->setAdyenResulturlEventCode($responseCode);
+        }
 
-		if ($pspReference) {
-			$commentText .= '<br /> authResult: ' . $pspReference;
-		}
+        if ($pspReference) {
+            $commentText .= '<br /> pspReference: ' . $pspReference;
+        }
 
-		$comment = __($commentText);
+        $comment = __($commentText);
 
-		$payment->getOrder()->addStatusHistoryComment($comment);
+        $payment->getOrder()->addStatusHistoryComment($comment);
 
-		return $this;
-	}
+        return $this;
+    }
 }

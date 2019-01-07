@@ -30,47 +30,42 @@ use Magento\Payment\Gateway\Http\ClientInterface;
  */
 class TransactionPayment implements ClientInterface
 {
-	/**
-	 * PaymentRequest constructor.
-	 *
-	 * @param \Magento\Framework\Model\Context $context
-	 * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
-	 * @param \Adyen\Payment\Helper\Data $adyenHelper
-	 * @param \Adyen\Payment\Model\RecurringType $recurringType
-	 * @param array $data
-	 */
-	public function __construct(
-		\Magento\Framework\Model\Context $context,
-		\Magento\Framework\Encryption\EncryptorInterface $encryptor,
-		\Adyen\Payment\Helper\Data $adyenHelper,
-		\Adyen\Payment\Model\RecurringType $recurringType,
-		array $data = []
-	) {
-		$this->_encryptor = $encryptor;
-		$this->_adyenHelper = $adyenHelper;
-		$this->_recurringType = $recurringType;
-		$this->_appState = $context->getAppState();
-	}
 
-	/**
-	 * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
-	 * @return mixed
-	 * @throws ClientException
-	 */
-	public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
-	{
-		$request = $transferObject->getBody();
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    private $adyenHelper;
 
-		$client = $this->_adyenHelper->initializeAdyenClient();
 
-		$service = new \Adyen\Service\Checkout($client);
+    /**
+     * TransactionPayment constructor.
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     */
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper
+    ) {
+        $this->adyenHelper = $adyenHelper;
+    }
 
-		try {
-			$response = $service->payments($request);
-		} catch(\Adyen\AdyenException $e) {
-			$response['error'] =  $e->getMessage();
-		}
+    /**
+     * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
+     * @return mixed
+     * @throws ClientException
+     */
+    public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
+    {
+        $request = $transferObject->getBody();
 
-		return $response;
-	}
+        $client = $this->adyenHelper->initializeAdyenClient();
+
+        $service = new \Adyen\Service\Checkout($client);
+
+        try {
+            $response = $service->payments($request);
+        } catch (\Adyen\AdyenException $e) {
+            $response['error'] = $e->getMessage();
+        }
+
+        return $response;
+    }
 }

@@ -126,14 +126,9 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
      */
     public function getText()
     {
-        $message = '';
-        if (!empty($this->adyenHelper->getWsUsername())) {
-            $message = 'Please provide API-KEY for the webservice user ' .
-                $this->adyenHelper->getWsUsername() . ' for default/store ' .
-                $this->storeManagerInterface->getStore()->getName();
-        }
-
-        return $message;
+        return 'Please provide API-KEY for the webservice user ' .
+            $this->adyenHelper->getWsUsername() . ' for default/store ' .
+            $this->storeManagerInterface->getStore()->getName();
     }
 
     /**
