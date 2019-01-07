@@ -64,7 +64,7 @@ class Data extends AbstractHelper
     protected $_billingAgreementCollectionFactory;
 
     /**
-     * @var Repository
+     * @var \Magento\Framework\View\Asset\Repository
      */
     protected $_assetRepo;
 
@@ -345,8 +345,8 @@ class Data extends AbstractHelper
     /**
      * Fix this one string street + number
      * @example street + number
-     * @param type $street
-     * @return type $street
+     * @param array $street
+     * @return array $street
      */
     public static function formatStreet($street)
     {
@@ -1327,7 +1327,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param \Adyen\Clien $client
+     * @param \Adyen\Client $client
      * @return \Adyen\Service\PosPayment
      * @throws \Adyen\AdyenException
      */
@@ -1410,7 +1410,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param \Adyen\Clien $client
+     * @param \Adyen\Client $client
      * @return \Adyen\Service\CheckoutUtility
      * @throws \Adyen\AdyenException
      */
@@ -1514,6 +1514,5 @@ class Data extends AbstractHelper
         } else {
             return \Adyen\Payment\Model\RecurringType::NONE;
         }
-        return null;
     }
 }
