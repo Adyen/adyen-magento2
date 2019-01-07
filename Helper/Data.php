@@ -1356,13 +1356,12 @@ class Data extends AbstractHelper
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
         $parsed = parse_url($baseUrl);
         $domain = $parsed['scheme'] . "://" . $parsed['host'];
+        $storeId = $this->storeManager->getStore()->getId();
+        $cacheKey = 'Adyen_origin_key_for_' . $domain . '_' . $storeId;
 
-        if (!$originKey = $this->cache->load("Adyen_origin_key_for_" . $domain)) {
-            $originKey = "";
-
-            $storeId = $this->storeManager->getStore()->getId();
+        if (!$originKey = $this->cache->load($cacheKey)) {
             if ($originKey = $this->getOriginKeyForUrl($domain, $storeId)) {
-                $this->cache->save($originKey, "Adyen_origin_key_for_" . $domain, array(), 60 * 60 * 24);
+                $this->cache->save($originKey, $cacheKey, array(), 60 * 60 * 24);
             }
         }
 
