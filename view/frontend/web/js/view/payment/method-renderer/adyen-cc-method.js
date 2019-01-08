@@ -92,7 +92,6 @@ define(
                     groupTypes: self.getAvailableCardTypeAltCodes(),
 
                     onChange: function (state) {
-
                         // isValid is not present on start
                         if (typeof state.isValid !== 'undefined' && state.isValid === false) {
                             self.creditCardDetailsValid(false);

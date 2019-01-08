@@ -40,7 +40,7 @@ class CheckoutPaymentCommentHistoryHandler implements HandlerInterface
         /** @var OrderPaymentInterface $payment */
         $payment = $payment->getPayment();
 
-        $commentText = "Adyen Result response:";
+		$comment = __("Adyen Result response:");
 
         if (isset($response['resultCode'])) {
             $responseCode = $response['resultCode'];
@@ -60,15 +60,13 @@ class CheckoutPaymentCommentHistoryHandler implements HandlerInterface
         }
 
         if ($responseCode) {
-            $commentText .= '<br /> authResult: ' . $responseCode;
+			$comment .= '<br /> ' . __('authResult:') . ' ' . $responseCode;
             $payment->getOrder()->setAdyenResulturlEventCode($responseCode);
         }
 
         if ($pspReference) {
-            $commentText .= '<br /> pspReference: ' . $pspReference;
+			$comment .= '<br /> ' . __('pspReference:') . ' ' . $pspReference;
         }
-
-        $comment = __($commentText);
 
         $payment->getOrder()->addStatusHistoryComment($comment);
 

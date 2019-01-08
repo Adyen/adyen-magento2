@@ -71,15 +71,15 @@ class CcAuthorizationDataBuilder implements BuilderInterface
             $request['paymentMethod']['type'] = $variant;
         }
 
-        if ($cardNumber = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::CREDIT_CARD_NUMBER)) {
+        if ($cardNumber = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER)) {
             $request['paymentMethod']['encryptedCardNumber'] = $cardNumber;
         }
 
-        if ($expiryMonth = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::EXPIRY_MONTH)) {
+        if ($expiryMonth = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH)) {
             $request['paymentMethod']['encryptedExpiryMonth'] = $expiryMonth;
         }
 
-        if ($expiryYear = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::EXPIRY_YEAR)) {
+        if ($expiryYear = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR)) {
             $request['paymentMethod']['encryptedExpiryYear'] = $expiryYear;
         }
 
@@ -87,15 +87,15 @@ class CcAuthorizationDataBuilder implements BuilderInterface
             $request['paymentMethod']['holderName'] = $holderName;
         }
 
-        if ($securityCode = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::SECURITY_CODE)) {
+        if ($securityCode = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE)) {
             $request['paymentMethod']['encryptedSecurityCode'] = $securityCode;
         }
 
         // Remove from additional data
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::CREDIT_CARD_NUMBER);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::EXPIRY_MONTH);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::EXPIRY_YEAR);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::SECURITY_CODE);
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER);
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH);
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR);
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE);
         $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME);
 
         /**

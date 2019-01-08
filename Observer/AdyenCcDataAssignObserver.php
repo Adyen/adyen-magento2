@@ -34,10 +34,10 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     const CC_TYPE = 'cc_type';
     const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
     const STORE_CC = 'store_cc';
-	const CREDIT_CARD_NUMBER = 'number';
-	const SECURITY_CODE = 'cvc';
-	const EXPIRY_MONTH = 'expiryMonth';
-	const EXPIRY_YEAR = 'expiryYear';
+	const ENCRYPTED_CREDIT_CARD_NUMBER = 'number';
+	const ENCRYPTED_SECURITY_CODE = 'cvc';
+	const ENCRYPTED_EXPIRY_MONTH = 'expiryMonth';
+	const ENCRYPTED_EXPIRY_YEAR = 'expiryYear';
 	const HOLDER_NAME = 'holderName';
     const VARIANT = 'variant';
 
@@ -48,10 +48,10 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         self::CC_TYPE,
         self::NUMBER_OF_INSTALLMENTS,
         self::STORE_CC,
-		self::CREDIT_CARD_NUMBER,
-		self::SECURITY_CODE,
-		self::EXPIRY_MONTH,
-		self::EXPIRY_YEAR,
+		self::ENCRYPTED_CREDIT_CARD_NUMBER,
+		self::ENCRYPTED_SECURITY_CODE,
+		self::ENCRYPTED_EXPIRY_MONTH,
+		self::ENCRYPTED_EXPIRY_YEAR,
 		self::HOLDER_NAME,
         self::VARIANT
     ];
