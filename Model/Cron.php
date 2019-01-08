@@ -416,8 +416,13 @@ class Cron
                 $this->_processNotification();
             }
 
-            $this->_order->save();
-            // set done to true
+            try {
+                // set done to true
+                $this->_order->save();
+            } catch (\Exception $e) {
+                $this->_adyenLogger->addAdyenNotificationCronjob($e->getMessage());
+            }
+
             $this->_updateNotification($notification, false, true);
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 sprintf("Notification %s is processed", $notification->getEntityId())
