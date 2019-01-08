@@ -55,17 +55,22 @@
                 <form class="form" data-role="adyen-hpp-form" action="#" method="post" data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + $parent.getCode() + '_' + value}">
                 <fieldset class="fieldset" data-bind='attr: {id: "payment_fieldset_" + $parent.getCode() + "_" + value}'>
                      <!-- ko if: isIssuerListAvailable() -->
-                        <label data-bind="attr: {'for': 'issuerId'}" class="label">
-                            <span><!-- ko text: $t('Select Your Bank') --><!-- /ko --></span>
-                        </label>
+                        <!-- ko if: isIdeal() -->
+                            <div afterRender="renderIdealComponent()" data-bind="attr: { id: 'iDealContainer'}"></div>
+                        <!--/ko-->
+                        <!-- ko ifnot: isIdeal() -->
+                            <label data-bind="attr: {'for': 'issuerId'}" class="label">
+                                <span><!-- ko text: $t('Select Your Bank') --><!-- /ko --></span>
+                            </label>
 
-                        <select name="payment[issuer_id]" data-bind="
-                                options: name.issuers,
-                                optionsText: 'name',
-                                optionsValue: 'issuerId',
-                                value: issuerId,
-                                optionsCaption: $t('Choose Your Bank')">
-                        </select>
+                            <select name="payment[issuer_id]" data-bind="
+                                        options: name.issuers,
+                                        optionsText: 'name',
+                                        optionsValue: 'issuerId',
+                                        value: issuerId,
+                                        optionsCaption: $t('Choose Your Bank')">
+                            </select>
+                        <!--/ko-->
                     <!--/ko-->
 
                     <!-- ko if: isPaymentMethodOpenInvoiceMethod() -->

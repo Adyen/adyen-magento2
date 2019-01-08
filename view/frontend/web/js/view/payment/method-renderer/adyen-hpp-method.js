@@ -199,6 +199,65 @@ define(
 
                         return false;
                     };
+                    // Can be removed after checkout api feature branch goes live since the issuerId key is changed to
+                    // id there
+                    result.getIssuerListForComponent = function() {
+                        if (result.isIssuerListAvailable()) {
+                            return _.map(value.issuers, function (issuer, key) {
+                                return {
+                                    "id": issuer.issuerId,
+                                    "name": issuer.name
+                                };
+                            });
+                        }
+
+                        return [];
+                    };
+                    result.isIdeal = function () {
+                        if (value.brandCode.indexOf("ideal") >= 0) {
+                            return true;
+                        }
+
+                        return false;
+                    };
+
+                    /**
+                     * Renders the secure fields,
+                     * creates the card component,
+                     * sets up the callbacks for card components and
+                     * set up the installments
+                     */
+                    result.renderIdealComponent = function () {
+
+                        self.isPlaceOrderActionAllowed(false);
+
+                        var secureFieldsNode = document.getElementById('iDealContainer');
+
+                        var checkout = new AdyenCheckout({
+                            locale: self.getLocale()
+                        });
+
+                        var ideal = checkout.create('ideal', {
+                            originKey: self.getOriginKey(),
+                            loadingContext: self.getLoadingContext(),
+                            items: result.getIssuerListForComponent(),
+                            onChange: function (state) {
+                                // isValid is not present on start
+                                if (typeof state.isValid !== 'undefined' && state.isValid === false) {
+                                    self.isPlaceOrderActionAllowed(false);
+                                }
+                            },
+                            onValid: function (state) {
+                                result.issuerId(state.data.issuer);
+                                self.isPlaceOrderActionAllowed(true);
+                            },
+                            onError: function (state) {
+                                self.isPlaceOrderActionAllowed(false);
+                            }
+                        });
+
+                        ideal.mount(secureFieldsNode);
+                    };
 
                     if (value.hasOwnProperty("issuers")) {
                         if (value.issuers.length == 0) {
@@ -370,6 +429,15 @@ define(
             },
             getRatePayDeviceIdentToken: function () {
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
+            },
+            getOriginKey: function () {
+                return window.checkoutConfig.payment.adyenHpp.originKey;
+            },
+            getLoadingContext: function () {
+                return window.checkoutConfig.payment.adyenHpp.checkoutUrl;
+            },
+            getLocale: function () {
+                return window.checkoutConfig.payment.adyenHpp.locale;
             }
         });
     }
