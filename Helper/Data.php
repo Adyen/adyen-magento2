@@ -64,7 +64,7 @@ class Data extends AbstractHelper
     protected $_billingAgreementCollectionFactory;
 
     /**
-     * @var Repository
+     * @var \Magento\Framework\View\Asset\Repository
      */
     protected $_assetRepo;
 
@@ -353,8 +353,8 @@ class Data extends AbstractHelper
     /**
      * Fix this one string street + number
      * @example street + number
-     * @param type $street
-     * @return type $street
+     * @param array $street
+     * @return array $street
      */
     public static function formatStreet($street)
     {
@@ -858,7 +858,9 @@ class Data extends AbstractHelper
 
         $baCollection = $this->_billingAgreementCollectionFactory->create();
         $baCollection->addFieldToFilter('customer_id', $customerId);
-        $baCollection->addFieldToFilter('store_id', $storeId);
+        if ($this->isPerStoreBillingAgreement($storeId)) {
+            $baCollection->addFieldToFilter('store_id', $storeId);
+        }
         $baCollection->addFieldToFilter('method_code', 'adyen_oneclick');
         $baCollection->addActiveFilter();
 
@@ -941,6 +943,9 @@ class Data extends AbstractHelper
         return $billingAgreements;
     }
 
+    public function isPerStoreBillingAgreement($storeId) {
+        return !$this->getAdyenOneclickConfigDataFlag('share_billing_agreement', $storeId);
+    }
 
     /**
      * @param $paymentMethod
@@ -1330,7 +1335,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param \Adyen\Clien $client
+     * @param \Adyen\Client $client
      * @return \Adyen\Service\PosPayment
      * @throws \Adyen\AdyenException
      */
@@ -1359,13 +1364,12 @@ class Data extends AbstractHelper
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
         $parsed = parse_url($baseUrl);
         $domain = $parsed['scheme'] . "://" . $parsed['host'];
+        $storeId = $this->storeManager->getStore()->getId();
+        $cacheKey = 'Adyen_origin_key_for_' . $domain . '_' . $storeId;
 
-        if (!$originKey = $this->cache->load("Adyen_origin_key_for_" . $domain)) {
-            $originKey = "";
-
-            $storeId = $this->storeManager->getStore()->getId();
+        if (!$originKey = $this->cache->load($cacheKey)) {
             if ($originKey = $this->getOriginKeyForUrl($domain, $storeId)) {
-                $this->cache->save($originKey, "Adyen_origin_key_for_" . $domain, array(), 60 * 60 * 24);
+                $this->cache->save($originKey, $cacheKey, array(), 60 * 60 * 24);
             }
         }
 
@@ -1416,7 +1420,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param \Adyen\Clien $client
+     * @param \Adyen\Client $client
      * @return \Adyen\Service\CheckoutUtility
      * @throws \Adyen\AdyenException
      */
@@ -1448,6 +1452,7 @@ class Data extends AbstractHelper
             $listRecurringContracts = null;
             try {
                 // Get or create billing agreement
+                /** @var \Adyen\Payment\Model\Billing\Agreement $billingAgreement */
                 $billingAgreement = $this->billingAgreementFactory->create();
                 $billingAgreement->load($additionalData['recurring.recurringDetailReference'], 'reference_id');
 
@@ -1458,6 +1463,9 @@ class Data extends AbstractHelper
                     $billingAgreement = $this->billingAgreementFactory->create();
                     $billingAgreement->setStoreId($order->getStoreId());
                     $billingAgreement->importOrderPayment($order->getPayment());
+                    if ($billingAgreement->getCustomerId() === null) {
+                        $billingAgreement->setCustomerId($this->getCustomerId($order));
+                    }
                     $message = __('Created billing agreement #%1.',
                         $additionalData['recurring.recurringDetailReference']);
                 } else {
@@ -1480,7 +1488,7 @@ class Data extends AbstractHelper
                     // add to order to save agreement
                     $order->addRelatedObject($billingAgreement);
                 } else {
-                    $message = __('Failed to create billing agreement for this order.');
+                    $message = __('Failed to create billing agreement for this order. Reason(s): ') . join(', ', $billingAgreement->getErrors());
                     throw new \Exception($message);
                 }
 
@@ -1493,6 +1501,15 @@ class Data extends AbstractHelper
 
             $order->addRelatedObject($comment);
         }
+    }
+
+    /**
+     * Method can be used by interceptors to provide the customer ID in a different way.
+     * @param \Magento\Sales\Model\Order $order
+     * @return int|null
+     */
+    public function getCustomerId(\Magento\Sales\Model\Order $order) {
+        return $order->getCustomerId();
     }
 
     /**
@@ -1515,6 +1532,5 @@ class Data extends AbstractHelper
         } else {
             return \Adyen\Payment\Model\RecurringType::NONE;
         }
-        return null;
     }
 }
