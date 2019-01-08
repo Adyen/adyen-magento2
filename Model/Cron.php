@@ -1037,10 +1037,10 @@ class Cron
 
                             // save into sales_billing_agreement_order
                             $billingAgreement->addOrderRelation($this->_order);
-                        }
 
-                        // add to order to save agreement
-                        $this->_order->addRelatedObject($billingAgreement);
+                            // add to order to save agreement
+                            $this->_order->addRelatedObject($billingAgreement);
+                        }
                     } else {
                         $message = __('Failed to create billing agreement for this order.');
                         throw new \Exception($message);
