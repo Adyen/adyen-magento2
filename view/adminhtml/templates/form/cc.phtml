@@ -101,13 +101,15 @@ echo $code; ?>" style="display:none">
                     var checkout = new AdyenCheckout({
                         locale: "<?php echo $block->getLocale(); ?>"
                     });
+                    var hideCVC = "<?php echo !$block->hasVerification(); ?>";
 
                     var card = checkout.create('card', {
                         originKey: "<?php echo $block->getCheckoutOriginKeys(); ?>",
                         loadingContext: "<?php echo $block->getCheckoutContextUrl(); ?>",
                         type: 'card',
                         groupTypes: ccTypes,
-
+                        hideCVC: hideCVC,
+                        
                         onChange: function (state) {
                             // When the state is valid update the input fields
                             if (state.isValid) {
