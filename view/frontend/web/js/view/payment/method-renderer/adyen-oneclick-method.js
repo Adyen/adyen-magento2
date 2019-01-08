@@ -214,12 +214,16 @@ define(
 
                             // this should be fixed in new version of checkout card component
                             var hideCVC = false;
-                            if (self.agreement_data.variant == "bcmc") {
+                            if (this.hasVerification()) {
+                                if (self.agreement_data.variant == "bcmc") {
+                                    hideCVC = true;
+                                    self.placeOrderAllowed(true);
+                                } else if (self.agreement_data.variant == "maestro") {
+                                    // for maestro cvc is optional
+                                    self.placeOrderAllowed(true);
+                                }
+                            } else {
                                 hideCVC = true;
-                                self.placeOrderAllowed(true);
-                            } else if (self.agreement_data.variant == "maestro") {
-                                // for maestro cvc is optional
-                                self.placeOrderAllowed(true);
                             }
 
                             var oneClickCard = checkout
