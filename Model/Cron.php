@@ -210,8 +210,12 @@ class Cron
     private $orderRepository;
 
     /**
+     * @var ResourceModel\Billing\Agreement
+     */
+    private $agreementResourceModel;
+
+    /**
      * Cron constructor.
-     *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param ResourceModel\Notification\CollectionFactory $notificationFactory
@@ -230,6 +234,7 @@ class Cron
      * @param \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollection
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param OrderRepository $orderRepository
+     * @param ResourceModel\Billing\Agreement $agreementResourceModel
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -249,7 +254,8 @@ class Cron
         AreaList $areaList,
         \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollection,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        OrderRepository $orderRepository
+        OrderRepository $orderRepository,
+        \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -269,6 +275,7 @@ class Cron
         $this->_orderStatusCollection = $orderStatusCollection;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->orderRepository = $orderRepository;
+        $this->agreementResourceModel = $agreementResourceModel;
     }
 
     /**
@@ -1019,8 +1026,13 @@ class Cron
                     // Populate billing agreement data
                     $billingAgreement->parseRecurringContractData($contractDetail);
                     if ($billingAgreement->isValid()) {
-                        // save into sales_billing_agreement_order
-                        $billingAgreement->addOrderRelation($this->_order);
+
+                        if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),
+                            $this->_order->getId())) {
+
+                            // save into sales_billing_agreement_order
+                            $billingAgreement->addOrderRelation($this->_order);
+                        }
 
                         // add to order to save agreement
                         $this->_order->addRelatedObject($billingAgreement);

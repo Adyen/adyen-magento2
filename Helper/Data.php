@@ -114,6 +114,11 @@ class Data extends AbstractHelper
     protected $billingAgreementFactory;
 
     /**
+     * @var ResourceModel\Billing\Agreement
+     */
+    private $agreementResourceModel;
+
+    /**
      * Data constructor.
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
@@ -131,6 +136,7 @@ class Data extends AbstractHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\App\CacheInterface $cache
      * @param \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory
+     * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -148,7 +154,8 @@ class Data extends AbstractHelper
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\App\CacheInterface $cache,
-        \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory
+        \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory,
+        \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -166,6 +173,7 @@ class Data extends AbstractHelper
         $this->storeManager = $storeManager;
         $this->cache = $cache;
         $this->billingAgreementFactory = $billingAgreementFactory;
+        $this->agreementResourceModel = $agreementResourceModel;
     }
 
     /**
@@ -1463,8 +1471,12 @@ class Data extends AbstractHelper
                 $billingAgreement->setCcBillingAgreement($additionalData);
                 if ($billingAgreement->isValid()) {
 
-                    // save into sales_billing_agreement_order
-                    $billingAgreement->addOrderRelation($order);
+                    if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),
+                        $order->getId())) {
+
+                        // save into sales_billing_agreement_order
+                        $billingAgreement->addOrderRelation($order);
+                    }
                     // add to order to save agreement
                     $order->addRelatedObject($billingAgreement);
                 } else {
