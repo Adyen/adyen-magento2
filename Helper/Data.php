@@ -1383,10 +1383,12 @@ class Data extends AbstractHelper
         $client = $this->initializeAdyenClient($storeId);
 
         $service = $this->createAdyenCheckoutUtilityService($client);
-        $respone = $service->originKeys($params);
+        $response = $service->originKeys($params);
 
-        if (empty($originKey = $respone['originKeys'][$url])) {
-            $originKey = "";
+		$originKey = "";
+
+        if (!empty($response['originKeys'][$url])) {
+            $originKey = $response['originKeys'][$url];
         }
 
         return $originKey;
@@ -1428,6 +1430,10 @@ class Data extends AbstractHelper
         return self::CHECKOUT_COMPONENT_JS_LIVE;
     }
 
+	/**
+	 * @param $order
+	 * @param $additionalData
+	 */
     public function createAdyenBillingAgreement($order, $additionalData)
     {
         if (!empty($additionalData['recurring.recurringDetailReference'])) {

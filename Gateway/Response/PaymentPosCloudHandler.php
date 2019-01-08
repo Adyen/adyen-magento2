@@ -74,8 +74,7 @@ class PaymentPosCloudHandler implements HandlerInterface
         // do not send order confirmation mail
         $payment->getOrder()->setCanSendNewEmailFlag(false);
 
-        if (!empty($paymentResponse['Response']) &&
-            !empty($paymentResponse['Response']['AdditionalResponse'])
+        if (!empty($paymentResponse['Response']['AdditionalResponse'])
         ) {
             $pairs = explode('&', $paymentResponse['Response']['AdditionalResponse']);
 

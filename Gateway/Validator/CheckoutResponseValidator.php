@@ -61,7 +61,7 @@ class CheckoutResponseValidator extends AbstractValidator
 		$errorMessages = [];
 
 		// validate result
-		if ($response && isset($response['resultCode'])) {
+		if (isset($response['resultCode'])) {
 			switch ($response['resultCode']) {
 				case "Authorised":
 					$payment->setAdditionalInformation('pspReference', $response['pspReference']);
@@ -97,15 +97,15 @@ class CheckoutResponseValidator extends AbstractValidator
 				case "RedirectShopper":
 					$payment->setAdditionalInformation('3dActive', true);
 
-					if (!empty($paReq = $response['redirect']['data']['PaReq']) &&
-						!empty($md = $response['redirect']['data']['MD']) &&
-						!empty($issuerUrl = $response['redirect']['url']) &&
-						!empty($paymentData = $response['paymentData'])
+					if (!empty($response['redirect']['data']['PaReq']) &&
+						!empty($response['redirect']['data']['MD']) &&
+						!empty($response['redirect']['url']) &&
+						!empty($response['paymentData'])
 					) {
-						$payment->setAdditionalInformation('issuerUrl', $issuerUrl);
-						$payment->setAdditionalInformation('paRequest', $paReq);
-						$payment->setAdditionalInformation('md', $md);
-						$payment->setAdditionalInformation('paymentData', $paymentData);
+						$payment->setAdditionalInformation('issuerUrl', $response['redirect']['url']);
+						$payment->setAdditionalInformation('paRequest', $response['redirect']['data']['PaReq']);
+						$payment->setAdditionalInformation('md', $response['redirect']['data']['MD']);
+						$payment->setAdditionalInformation('paymentData', $response['paymentData']);
 					} else {
 						$isValid = false;
 						$errorMsg = __('3D secure is not valid.');

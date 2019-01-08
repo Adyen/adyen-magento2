@@ -65,8 +65,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             $payment->setTransactionId($response['pspReference']);
         }
 
-        if (!empty($response['additionalData']) &&
-            !empty($response['additionalData']['recurring.recurringDetailReference'])
+        if (!empty($response['additionalData']['recurring.recurringDetailReference'])
         ) {
             $order = $payment->getOrder();
 
