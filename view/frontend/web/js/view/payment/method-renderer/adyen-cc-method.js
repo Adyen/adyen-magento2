@@ -39,7 +39,7 @@ define(
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
                 creditCardOwner: '',
-                setStoreCc: true,
+                setStoreCc: false,
                 installment: '',
                 creditCardDetailsValid: false
             },

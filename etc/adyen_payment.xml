@@ -66,15 +66,15 @@
             <code_alt>bcmc</code_alt>
         </type>
         <type id="HIPERCARD" order="80">
-            <label>hipercard</label>
+            <label>Hipercard</label>
             <code_alt>hipercard</code_alt>
         </type>
         <type id="ELO" order="80">
-            <label>elo</label>
+            <label>Elo</label>
             <code_alt>elo</code_alt>
         </type>
         <type id="AURA" order="80">
-            <label>aura</label>
+            <label>Aura</label>
             <code_alt>aura</code_alt>
         </type>
     </adyen_credit_cards>

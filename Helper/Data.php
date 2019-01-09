@@ -1442,10 +1442,10 @@ class Data extends AbstractHelper
         return self::CHECKOUT_COMPONENT_JS_LIVE;
     }
 
-	/**
-	 * @param $order
-	 * @param $additionalData
-	 */
+    /**
+     * @param $order
+     * @param $additionalData
+     */
     public function createAdyenBillingAgreement($order, $additionalData)
     {
         if (!empty($additionalData['recurring.recurringDetailReference'])) {
@@ -1476,7 +1476,8 @@ class Data extends AbstractHelper
                 }
 
                 // Populate billing agreement data
-                $billingAgreement->setCcBillingAgreement($additionalData);
+                $storeOneClick = $order->getPayment()->getAdditionalInformation('store_cc');
+                $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick);
                 if ($billingAgreement->isValid()) {
 
                     if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),

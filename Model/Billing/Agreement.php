@@ -80,6 +80,8 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
     }
 
     /**
+     * for async store of billing agreement through the recurring_contract notification
+     *
      * @param $data
      * @return $this
      */
@@ -165,7 +167,13 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         return json_decode($this->getData('agreement_data'), true);
     }
 
-    public function setCcBillingAgreement($contractDetail)
+    /**
+     * For sync result to store billing agreement
+     *
+     * @param $contractDetail
+     * @return $this
+     */
+    public function setCcBillingAgreement($contractDetail, $storeOneClick)
     {
         $this
             ->setMethodCode('adyen_oneclick')
@@ -213,6 +221,13 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
                 ($contractDetail['paymentMethod'] === "bcmc" || $contractDetail['paymentMethod'] === "maestro")
             ) {
                 $recurringType = \Adyen\Payment\Model\RecurringType::ONECLICK;
+            }
+
+            // if shopper decides to not store the card don't save it as oneclick
+            if (!$storeOneClick &&
+                $recurringType === \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING
+            ) {
+                $recurringType = \Adyen\Payment\Model\RecurringType::RECURRING;
             }
         }
 
