@@ -1393,9 +1393,9 @@ class Data extends AbstractHelper
         );
 
         $client = $this->initializeAdyenClient($storeId);
-
-        $service = $this->createAdyenCheckoutUtilityService($client);
+        
         try {
+            $service = $this->createAdyenCheckoutUtilityService($client);
             $response = $service->originKeys($params);
         }
         catch(\Exception $e){
