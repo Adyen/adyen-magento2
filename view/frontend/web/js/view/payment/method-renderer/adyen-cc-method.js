@@ -71,6 +71,9 @@ define(
             renderSecureFields: function () {
                 var self = this;
                 self.placeOrderAllowed(false);
+                if (!self.getOriginKey()) {
+                    return;
+                }
 
 
                 installments.setInstallments(0);

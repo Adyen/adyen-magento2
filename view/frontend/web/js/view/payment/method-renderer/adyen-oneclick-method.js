@@ -206,6 +206,9 @@ define(
                         renderSecureCVC: function () {
                             var self = this;
 
+                            if (!self.getOriginKey()) {
+                                return;
+                            }
                             var oneClickCardNode = document.getElementById('cvcContainer-' + self.value);
 
                             var checkout = new AdyenCheckout({

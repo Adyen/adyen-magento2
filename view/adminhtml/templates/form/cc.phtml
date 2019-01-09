@@ -33,6 +33,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
 
 <fieldset class="admin__fieldset payment-method" id="payment_form_<?php /* @noEscape */
 echo $code; ?>" style="display:none">
+    <span id="noApiKey" class="message message-error error" style="visibility: hidden"><?php echo $block->escapeHtml(__('Please configure an API Key in your Adyen Required Settings'));?></span>
     <div class="field admin__field">
         <label for="<?php /* @noEscape */
         echo $code; ?>_cc_owner">
@@ -96,6 +97,10 @@ echo $code; ?>" style="display:none">
                  */
                 var secureFieldsInitialize = function () {
 
+                    if (!"<?php echo $block->getCheckoutOriginKeys(); ?>") {
+                        document.getElementById('noApiKey').style="visibility: visible; display:inline-block";
+                        return;
+                    }
                     var cardNode = document.getElementById("cardContainer-<?php /* @noEscape */ echo $code; ?>");
 
                     var checkout = new AdyenCheckout({
