@@ -200,7 +200,7 @@ define(
                         return false;
                     };
                     // Can be removed after checkout api feature branch goes live since the issuerId key is changed to
-                    // id there
+                    // id there and just use the value.issuers in the component
                     result.getIssuerListForComponent = function() {
                         if (result.isIssuerListAvailable()) {
                             return _.map(value.issuers, function (issuer, key) {
@@ -223,9 +223,8 @@ define(
 
                     /**
                      * Renders the secure fields,
-                     * creates the card component,
-                     * sets up the callbacks for card components and
-                     * set up the installments
+                     * creates the ideal component,
+                     * sets up the callbacks for ideal components and
                      */
                     result.renderIdealComponent = function () {
 
