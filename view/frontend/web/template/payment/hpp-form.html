@@ -54,7 +54,7 @@
 
                 <form class="form" data-role="adyen-hpp-form" action="#" method="post" data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + $parent.getCode() + '_' + value}">
                 <fieldset class="fieldset" data-bind='attr: {id: "payment_fieldset_" + $parent.getCode() + "_" + value}'>
-                     <!-- ko if: isIssuerListAvailable() -->
+                     <!-- ko if: hasIssuersAvailable() -->
                         <!-- ko if: isIdeal() -->
                             <div afterRender="renderIdealComponent()" data-bind="attr: { id: 'iDealContainer'}"></div>
                         <!--/ko-->
