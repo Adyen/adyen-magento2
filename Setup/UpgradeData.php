@@ -70,7 +70,7 @@ class UpgradeData implements UpgradeDataInterface
     }
 
     /**
-     * Upgrade to 2.4.4
+     * Upgrade to 2.4.4 used for release 3.0.0
      * We use new configuration options to define if you want to store the payment for oneclick or
      * recurring or a combination of those in a more friendly way and make it easier to integrate with our checkout API
      *
