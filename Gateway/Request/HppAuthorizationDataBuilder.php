@@ -93,8 +93,9 @@ class HppAuthorizationDataBuilder implements BuilderInterface
 
 		$request['paymentMethod']['type'] = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
 
-		// Pass issuer id TODO in PW-875
-		$request['paymentMethod']['issuer'] = "";
+		if ($payment->getAdditionalInformation(AdyenHppDataAssignObserver::ISSUER_ID)) {
+			$request['paymentMethod']['issuer'] = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::ISSUER_ID);
+		}
 
 		$request['returnUrl'] = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK) . 'adyen/process/result';
 
