@@ -192,29 +192,46 @@ define(
                             return 4;
                         }
                     };
-                    result.isIssuerListAvailable = function () {
-                        if (value.hasOwnProperty("issuers") && value.issuers.length > 0) {
+                    /**
+                     * Checks if the payment method has issuers property available
+                     * @returns {boolean}
+                     */
+                    result.hasIssuersProperty = function () {
+                        if (typeof value.details !== 'undefined' && typeof value.details[0].items !== 'undefined') {
                             return true;
                         }
 
                         return false;
                     };
-                    // Can be removed after checkout api feature branch goes live since the issuerId key is changed to
-                    // id there and just use the value.issuers in the component
-                    result.getIssuerListForComponent = function() {
-                        if (result.isIssuerListAvailable()) {
-                            return _.map(value.issuers, function (issuer, key) {
-                                return {
-                                    "id": issuer.issuerId,
-                                    "name": issuer.name
-                                };
-                            });
+                    /**
+                     * Checks if the payment method has issuer(s) available
+                     * @returns {boolean}
+                     */
+                    result.hasIssuersAvailable = function () {
+                        console.log(value);
+                        if (result.hasIssuersProperty() && value.details[0].items.length > 0) {
+                            return true;
+                        }
+
+                        return false;
+                    };
+                    /**
+                     * Returns the issuers for a payment method
+                     * @returns {*}
+                     */
+                    result.getIssuers = function() {
+                        if (result.hasIssuersAvailable()) {
+                            return value.details[0].items;
                         }
 
                         return [];
                     };
+                    /**
+                     * Checks if payment method is iDeal
+                     * @returns {boolean}s
+                     */
                     result.isIdeal = function () {
-                        if (value.brandCode.indexOf("ideal") >= 0) {
+                        if (typeof value.type !== 'undefined' && value.type.indexOf("ideal") >= 0) {
                             return true;
                         }
 
@@ -227,6 +244,7 @@ define(
                      * sets up the callbacks for ideal components and
                      */
                     result.renderIdealComponent = function () {
+
                         self.isPlaceOrderActionAllowed(false);
 
                         var secureFieldsNode = document.getElementById('iDealContainer');
@@ -255,12 +273,12 @@ define(
                         ideal.mount(secureFieldsNode);
                     };
 
-                    if (value.hasOwnProperty("issuers")) {
-                        if (value.issuers.length == 0) {
+                    if (result.hasIssuersProperty()) {
+                        if (!result.hasIssuersAvailable()) {
                             return false;
                         }
 
-                        result.issuerIds = value.issuers;
+                        result.issuerIds = result.getIssuers();
                         result.issuerId = ko.observable(null);
                     } else if (value.isPaymentMethodOpenInvoiceMethod) {
                         result.telephone = ko.observable(quote.shippingAddress().telephone);
@@ -273,7 +291,7 @@ define(
                             return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
                         };
                         result.showSsn = function () {
-                            if (value.type.indexOf("klarna") >= 0) {
+                            if (typeof value.type !== 'undefined' && value.type.indexOf("klarna") >= 0) {
                                 var ba = quote.billingAddress();
                                 if (ba != null) {
                                     var nordicCountriesList = window.checkoutConfig.payment.adyenHpp.nordicCountries;
@@ -319,7 +337,7 @@ define(
                     additionalData.brand_code = self.value;
                     additionalData.df_value = dfValue();
 
-                    if (self.isIssuerListAvailable()) {
+                    if (self.hasIssuersAvailable()) {
                         additionalData.issuer_id = this.issuerId();
                     }
                     else if (self.isPaymentMethodOpenInvoiceMethod()) {
