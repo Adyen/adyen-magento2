@@ -33,7 +33,6 @@
                 <item name="adyen_hpp_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenHppConfigProvider</item>
                 <item name="adyen_sepa_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenSepaConfigProvider</item>
                 <item name="adyen_boleto_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider</item>
-                <item name="adyen_pos_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenPosConfigProvider</item>
                 <item name="adyen_pos_cloud_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider</item>
                 <item name="adyen_apple_pay_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenApplePayConfigProvider</item>
             </argument>

@@ -65,13 +65,38 @@ class CcAuthorizationDataBuilder implements BuilderInterface
         $storeId = $order->getStoreId();
         $request = [];
 
+        // If ccType is set use this. For bcmc you need bcmc otherwise it will fail
+        $request['paymentMethod']['type'] = "scheme";
+        if ($variant = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::VARIANT)) {
+            $request['paymentMethod']['type'] = $variant;
+        }
 
-        $request['additionalData']['card.encrypted.json'] =
-            $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_DATA);
+        if ($cardNumber = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER)) {
+            $request['paymentMethod']['encryptedCardNumber'] = $cardNumber;
+        }
+
+        if ($expiryMonth = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH)) {
+            $request['paymentMethod']['encryptedExpiryMonth'] = $expiryMonth;
+        }
+
+        if ($expiryYear = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR)) {
+            $request['paymentMethod']['encryptedExpiryYear'] = $expiryYear;
+        }
+
+        if ($holderName = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME)) {
+            $request['paymentMethod']['holderName'] = $holderName;
+        }
+
+        if ($securityCode = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE)) {
+            $request['paymentMethod']['encryptedSecurityCode'] = $securityCode;
+        }
 
         // Remove from additional data
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_DATA);
-
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER);
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH);
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR);
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE);
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME);
 
         /**
          * if MOTO for backend is enabled use MOTO as shopper interaction type
@@ -83,10 +108,10 @@ class CcAuthorizationDataBuilder implements BuilderInterface
             $request['shopperInteraction'] = "Moto";
         }
         // if installments is set add it into the request
-        if ($payment->getAdditionalInformation('number_of_installments') &&
-            $payment->getAdditionalInformation('number_of_installments') > 0
+        if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) &&
+            $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) > 0
         ) {
-            $request['installments']['value'] = $payment->getAdditionalInformation('number_of_installments');
+            $request['installments']['value'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS);
         }
 
         return $request;

@@ -68,7 +68,7 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
         // For backend only allow recurring payments
         $recurringType = \Adyen\Payment\Model\RecurringType::RECURRING;
 
-        $cards = $this->_adyenHelper->getOneClickPaymentMethods($customerId, $storeId, $grandTotal, $recurringType);
+        $cards = $this->adyenHelper->getOneClickPaymentMethods($customerId, $storeId, $grandTotal, $recurringType);
 
         return $cards;
     }

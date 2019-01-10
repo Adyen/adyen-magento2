@@ -21,13 +21,8 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-
-
-
 <!-- ko foreach: getAdyenBillingAgreements() -->
 <div class="payment-method" data-bind="css: {'_active': (value == $parent.isBillingAgreementChecked())}">
-
-
     <div class="payment-method-title field choice">
         <input type="radio"
                name="payment[method]"
@@ -35,9 +30,7 @@
                data-bind="attr: {'id': value}, value: value, checked: $parent.isBillingAgreementChecked, click: $parent.selectBillingAgreement"/>
         <label data-bind="attr: {'for': value}" class="label">
 
-
             <!-- ko if: logo -->
-
             <img data-bind="attr: {
                                 'class': getCode(),
                                 'src': logo.url,
@@ -52,6 +45,10 @@
     </div>
     <div class="payment-method-content">
 
+        <!-- ko ifnot: (getOriginKey()) -->
+        <span class="message message-error error"><!-- ko text: $t('Please configure an API Key and a live endpoint prefix(if in Production Mode) in your Adyen Required Settings')--><!-- /ko --></span>
+        <!--/ko-->
+
         <!-- ko foreach: $parent.getRegion(getMessageName()) -->
         <!-- ko template: getTemplate() --><!-- /ko -->
         <!--/ko-->
@@ -62,8 +59,6 @@
             <!--/ko-->
         </div>
 
-
-
         <form class="form" action="#" method="post" data-bind="
             attr: {'id': 'adyen_oneclick_' + value, 'data-role': 'adyen_oneclick_' + value },
             mageInit: {
@@ -73,10 +68,10 @@
                     'orderSaveUrl':$parent.getPlaceOrderUrl(),
                 }, 'validation':[]}">
 
-            <fieldset data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + $parent.getCode() + '_' + value}">
+            <fieldset
+                    data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + $parent.getCode() + '_' + value}">
 
                 <!-- ko if: agreement_data.card -->
-
                 <div class="field number">
                     <label class="label">
                         <span><!-- ko text: $t('Credit Card Number')--><!-- /ko --></span>
@@ -86,95 +81,10 @@
                     </div>
                 </div>
 
-
-                <div class="field number expire-update" data-bind="css: {'_disable': (true == expiry())}">
-                    <label class="label">
-                        <span><!-- ko text: $t('Expiration Date')--><!-- /ko --></span>
-                    </label>
-                    <div class="control">
-                        <span data-bind="text: agreement_data.card.expiryMonth + '/' + agreement_data.card.expiryYear"></span>
-                        <a class="" data-bind="click: selectExpiry"
-                                ><!-- ko text: $t('Update') --><!-- /ko --></a>
-                    </div>
-                </div>
-
-                <div class="field date required changable-card-expiry" data-bind="attr: {id: getCode() + '_' + value + '_cc_type_exp_div'}, css: {'_active': (true == expiry())}">
-                    <label data-bind="attr: {for: getCode() + '_' + value + '_expiration'}" class="label">
-                        <span><!-- ko text: $t('Expiration Date')--><!-- /ko --></span>
-                    </label>
-                    <div class="control">
-                        <div class="fields group group-2">
-                            <div class="field no-label month">
-                                <div class="control">
-                                    <select  class="select select-month"
-                                             data-encrypted-name="expiryMonth"
-                                             data-bind="attr: {id: getCode() + '_' + value + '_expiration', 'data-container': getCode() + '-' + value + '-cc-month', 'data-validate': JSON.stringify({required:true, 'validate-cc-exp':'#' + getCode() + '_expiration_yr'})},
-                                                enable: $parent.isActive($parents),
-                                                options: $parent.getCcMonthsValues(),
-                                                optionsValue: 'value',
-                                                optionsText: 'month',
-                                                optionsCaption: $t('Month'),
-                                                value: creditCardExpMonth"
-                                             data-validate="{required:true}">
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="field no-label year">
-                                <div class="control">
-                                    <select class="select select-year"
-                                            data-encrypted-name="expiryYear"
-                                            data-bind="attr: {id: getCode() + '_' + value + '_expiration_yr', 'data-container': getCode() + '-' + value + '-cc-year', 'data-validate': JSON.stringify({required:true})},
-                                               enable: $parent.isActive($parents),
-                                               options: $parent.getCcYearsValues(),
-                                               optionsValue: 'value',
-                                               optionsText: 'year',
-                                               optionsCaption: $t('Year'),
-                                               value: creditCardExpYear"
-                                            data-validate="{required:true}">
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <!-- ko if: hasVerification()-->
-                <div class="field cvv required" data-bind="attr: {id: getCode() + '_' + value + '_cc_type_cvv_div'}">
-                    <label data-bind="attr: {for: getCode() + '_' + value + '_cc_cid'}" class="label">
-                        <span><!-- ko text: $t('Card Verification Number')--><!-- /ko --></span>
-                    </label>
-                    <div class="control _with-tooltip">
-                        <input type="number"
-                               autocomplete="off"
-                               class="input-text cvv"
-                               data-encrypted-name="cvc"
-                               value=""
-                               data-bind="attr: {id: getCode() + '_' + value + '_cc_cid',
-                                title: $t('Card Verification Number'),
-                                'data-container': getCode() + '-' + value + '-cc-cvv',
-                                'data-validate': JSON.stringify({'required-number':true})},
-                                enable: $parent.isActive($parents),
-                                value: creditCardVerificationNumber"
-                               data-validate="{required:true}"/>
-                        <div class="field-tooltip toggle">
-                        <span class="field-tooltip-action action-cvv"
-                              tabindex="0"
-                              data-toggle="dropdown"
-                              data-bind="attr: {title: $t('What is this?')}, mageInit: {'dropdown':{'activeClass': '_active'}}">
-                            <span><!-- ko text: $t('What is this?')--><!-- /ko --></span>
-                        </span>
-                            <div class="field-tooltip-content"
-                                 data-target="dropdown"
-                                 data-bind="html: $parent.getCvvImageHtml()"></div>
-                        </div>
-                    </div>
-                </div>
-                <!-- /ko -->
+                <div afterRender="renderSecureCVC()" data-bind="attr: { id: 'cvcContainer-' + value}"></div>
                 <!--/ko-->
 
                 <!-- ko if: agreement_data.bank -->
-
                 <div class="field number">
                     <label class="label">
                         <span><!-- ko text: $t('Bank account holder name')--><!-- /ko --></span>
@@ -201,56 +111,49 @@
                         <span data-bind="text: agreement_data.bank.countryCode"></span>
                     </div>
                 </div>
-
                 <!--/ko-->
 
                 <!-- ko if: number_of_installments.length > 0 -->
-
-                <div class="field required" data-bind="attr: {id: getCode() + '_installments_div'}, visible: getInstallments().length > 0">
+                <div class="field required"
+                     data-bind="attr: {id: getCode() + '_installments_div'}, visible: getInstallments().length > 0">
                     <label data-bind="attr: {for: getCode() + '_installments'}" class="label">
                         <span><!-- ko text: $t('Installments')--><!-- /ko --></span>
                     </label>
                     <div class="control">
-                        <select  class="select"
-                                 name="payment[number_of_installments]"
-                                 data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
+                        <select class="select"
+                                name="payment[number_of_installments]"
+                                data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
                                         enable: $parent.isActive($parents),
                                         options: getInstallments,
                                         optionsValue: 'value',
                                         optionsText: 'key',
                                         optionsCaption: $t('Do not use Installments'),
                                         value: installment"
-                                 data-validate="{required:true}">
+                                data-validate="{required:true}">
                         </select>
                     </div>
                 </div>
-
-
                 <!-- /ko -->
-
-
             </fieldset>
-            <div class="checkout-agreements-block">
-                <!-- ko foreach: $parents[1].getRegion('before-place-order') -->
-                <!-- ko template: getTemplate() --><!-- /ko -->
-                <!--/ko-->
-            </div>
-            <div class="actions-toolbar">
-                <div class="primary">
-                    <button class="action primary checkout"
-                            type="submit"
-                            data-bind="
+        </form>
+        <div class="checkout-agreements-block">
+            <!-- ko foreach: $parents[1].getRegion('before-place-order') -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+        <div class="actions-toolbar">
+            <div class="primary">
+                <button class="action primary checkout"
+                        type="submit"
+                        data-bind="
                                 click: placeOrder,
                                 attr: {title: $t('Place Order')},
-                                enable: (value == $parent.isBillingAgreementChecked())
-                                "
-                            disabled>
-                        <span data-bind="text: $t('Place Order')"></span>
-                    </button>
-                </div>
+                                enable: isButtonActive()"
+                        disabled>
+                    <span data-bind="text: $t('Place Order')"></span>
+                </button>
             </div>
-        </form>
+        </div>
     </div>
 </div>
-
 <!--/ko-->

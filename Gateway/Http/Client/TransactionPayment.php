@@ -20,14 +20,15 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Gateway\Request;
 
-use Magento\Payment\Gateway\Request\BuilderInterface;
+namespace Adyen\Payment\Gateway\Http\Client;
+
+use Magento\Payment\Gateway\Http\ClientInterface;
 
 /**
- * Payment Data Builder
+ * Class TransactionSale
  */
-class Authorize3DSecureDataBuilder implements BuilderInterface
+class TransactionPayment implements ClientInterface
 {
 
     /**
@@ -35,30 +36,36 @@ class Authorize3DSecureDataBuilder implements BuilderInterface
      */
     private $adyenHelper;
 
+
     /**
-     * PaymentDataBuilder constructor.
-     *
+     * TransactionPayment constructor.
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
-    {
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper
+    ) {
         $this->adyenHelper = $adyenHelper;
     }
 
     /**
-     * @param array $buildSubject
-     * @return array
+     * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
+     * @return mixed
+     * @throws ClientException
      */
-    public function build(array $buildSubject)
+    public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $payment = $paymentDataObject->getPayment();
-        $md = $payment->getAdditionalInformation('md');
-        $paResponse = $payment->getAdditionalInformation('paResponse');
-        return [
-            "md" => $md,
-            "paResponse" => $paResponse,
-        ];
+        $request = $transferObject->getBody();
+
+        $client = $this->adyenHelper->initializeAdyenClient();
+
+        $service = new \Adyen\Service\Checkout($client);
+
+        try {
+            $response = $service->payments($request);
+        } catch (\Adyen\AdyenException $e) {
+            $response['error'] = $e->getMessage();
+        }
+
+        return $response;
     }
 }

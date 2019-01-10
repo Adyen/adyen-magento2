@@ -1,4 +1,5 @@
-<?php
+<?xml version="1.0"?>
+<!--
 /**
  *                       ######
  *                       ######
@@ -20,15 +21,9 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-
-// @codingStandardsIgnoreFile
-
-?>
-<?php
-$_info = $this->getInfo();
-?>
-
-<dl class="payment-method adyen_pos">
-    <?php echo $this->escapeHtml($this->getMethod()->getTitle()) ?><br/>
-    <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
-</dl>
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Adyen_Payment::css/order_create_styles.css"/>
+    </head>
+</page>

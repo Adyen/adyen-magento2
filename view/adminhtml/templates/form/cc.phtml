@@ -32,109 +32,35 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
 ?>
 
 <fieldset class="admin__fieldset payment-method" id="payment_form_<?php /* @noEscape */
-echo $code; ?>"
-          style="display:none">
-
-
-    <div class="field admin__field _required">
-        <label class="admin__field-label" for="<?php /* @noEscape */
+echo $code; ?>" style="display:none">
+    <span id="noApiKey" class="message message-error error" style="visibility: hidden"><?php echo $block->escapeHtml(__('Please configure an API Key and a live endpoint prefix(if in Production Mode) in your Adyen Required Settings'));?></span>
+    <div class="field admin__field">
+        <label for="<?php /* @noEscape */
         echo $code; ?>_cc_owner">
             <span><?php echo $block->escapeHtml(__('Name on Card')); ?></span>
         </label>
-        <div class="admin__field-control">
+        <div>
             <input type="text" id="<?php /* @noEscape */
-            echo $code; ?>_cc_owner" data-encrypted-name="holderName"
+            echo $code; ?>_cc_owner" name="payment[holderName]"
                    title="<?php echo $block->escapeHtml(__('Name on Card')); ?>" class="admin__control-text"
                    value="<?php /* @noEscape */
-                   echo $block->getInfoData('cc_owner'); ?>"/>
+                   echo $block->getInfoData('cc_owner'); ?>"
+                   placeholder="<?php echo $block->escapeHtml(__('Name on Card')); ?>"/>
         </div>
     </div>
 
-
-    <div class="field-type admin__field _required">
-        <label class="admin__field-label" for="<?php /* @noEscape */
-        echo $code; ?>_cc_type">
-            <span><?php echo $block->escapeHtml(__('Credit Card Type')); ?></span>
-        </label>
-        <div class="admin__field-control">
-            <select id="<?php /* @noEscape */
-            echo $code; ?>_cc_type" name="payment[cc_type]"
-                    class="required-entry validate-cc-type-select admin__control-select">
-                <option value=""></option>
-                <?php foreach ($block->getCcAvailableTypes() as $typeCode => $typeName): ?>
-                    <option value="<?php echo $block->escapeHtml($typeCode); ?>"
-                            <?php if ($typeCode == $ccType): ?>selected="selected"<?php endif ?>>
-                        <?php echo $block->escapeHtml($typeName); ?>
-                    </option>
-                <?php endforeach ?>
-            </select>
-        </div>
-    </div>
-    <div class="field-number admin__field _required">
-        <label class="admin__field-label" for="<?php /* @noEscape */
-        echo $code; ?>_cc_number">
-            <span><?php echo $block->escapeHtml(__('Credit Card Number')); ?></span>
-        </label>
-        <div class="admin__field-control">
-            <input type="text" id="<?php /* @noEscape */
-            echo $code; ?>_cc_number" data-encrypted-name="number"
-                   title="<?php echo $block->escapeHtml(__('Credit Card Number')); ?>"
-                   class="admin__control-text validate-cc-number"
-                   value="<?php /* @noEscape */
-                   echo $block->getInfoData('cc_number'); ?>"/>
-        </div>
-    </div>
-    <div class="field-date admin__field _required">
-        <label class="admin__field-label" for="<?php /* @noEscape */
-        echo $code; ?>_expiration">
-            <span><?php echo $block->escapeHtml(__('Expiration Date')); ?></span>
-        </label>
-        <div class="admin__field-control">
-            <select id="<?php /* @noEscape */
-            echo $code ?>_expiration" data-encrypted-name="expiryMonth"
-                    class="admin__control-select admin__control-select-month validate-cc-exp required-entry">
-                <?php foreach ($block->getCcMonths() as $k => $v): ?>
-                    <option value="<?php echo $block->escapeHtml($k); ?>"
-                            <?php if ($k == $ccExpMonth): ?>selected="selected"<?php endif ?>>
-                        <?php echo $block->escapeHtml($v); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <select id="<?php /* @noEscape */
-            echo $code ?>_expiration_yr" data-encrypted-name="expiryYear"
-                    class="admin__control-select admin__control-select-year required-entry">
-                <?php foreach ($block->getCcYears() as $k => $v): ?>
-                    <option value="<?php /* @noEscape */
-                    echo $k ? $block->escapeHtml($k) : '' ?>"
-                            <?php if ($k == $ccExpYear): ?>selected="selected"<?php endif ?>>
-                        <?php echo $block->escapeHtml($v); ?>
-                    </option>
-                <?php endforeach ?>
-            </select>
-
-
-            <input type="hidden" id="<?php echo $code ?>_encrypted_form_expiry_generationtime"
-                   value="<?php echo date("c"); ?>" data-encrypted-name="generationtime"/>
-
-        </div>
-    </div>
-
-    <?php if ($block->hasVerification()): ?>
-        <div class="field-number required admin__field _required">
-            <label class="admin__field-label" for="<?php /* @noEscape */
-            echo $code; ?>_cc_cid">
-                <span><?php echo $block->escapeHtml(__('Card Verification Number')); ?></span>
-            </label>
-            <div class="admin__field-control">
-                <input type="text" title="<?php echo $block->escapeHtml(__('Card Verification Number')); ?>"
-                       class="required-entry validate-cc-cvn admin__control-cvn admin__control-text"
-                       id="<?php /* @noEscape */
-                       echo $code; ?>_cc_cid"
-                       data-encrypted-name="cvc" value="<?php /* @noEscape */
-                echo $block->getInfoData('cc_cid') ?>"/>
-            </div>
-        </div>
-    <?php endif; ?>
+    <div id="cardContainer-<?php /* @noEscape */
+    echo $code; ?>"></div>
+    <input id="<?php /* @noEscape */
+    echo $code; ?>-number" type="hidden" name="payment[number]">
+    <input id="<?php /* @noEscape */
+    echo $code; ?>-cvc" type="hidden" name="payment[cvc]">
+    <input id="<?php /* @noEscape */
+    echo $code; ?>-expiryMonth" type="hidden" name="payment[expiryMonth]">
+    <input id="<?php /* @noEscape */
+    echo $code; ?>-expiryYear" type="hidden" name="payment[expiryYear]">
+    <input id="<?php /* @noEscape */
+    echo $code; ?>-cc_type" type="hidden" name="payment[cc_type]">
 
     <script>
         require(
@@ -144,58 +70,84 @@ echo $code; ?>"
                 "Magento_Sales/order/create/form"
             ],
             function () {
+                var ccTypes = <?php echo json_encode($block->getCcAvailableTypesByAlt()); ?>;
+
                 //<![CDATA[
-                var dfScriptTag = document.createElement('script');
-                dfScriptTag.src = "<?php echo $block->getLibrarySource(); ?>";
-                dfScriptTag.type = "text/javascript";
-                document.body.appendChild(dfScriptTag);
 
-                var element = $('payment_form_<?php echo $code ?>');
-                var cse_form = $(element).closest('form');
-                var cse_options = {
-                    name: 'payment[encrypted_data]'
-                };
+                // Append checkout card components script
+                var scriptTag = document.createElement('script');
+                scriptTag.src = "<?php echo $block->getCheckoutCardComponentJs(); ?>";
+                scriptTag.type = "text/javascript";
+                document.body.appendChild(scriptTag);
 
-                var cse = function () {
+                // Get cc type by adyen cc type
+                var getCcCodeByAltCode = function (altCode) {
 
-                    if (order.paymentMethod && order.paymentMethod == '<?php echo $code ?>') {
-                        try {
-
-                            // do not validate because it could be that CVC field does not exists (because MOTO this is not needed)
-                            cse_options.enableValidations = false;
-
-                            var cseForm = adyen.createEncryptedForm(cse_form, cse_options);
-                            // encrypt data directly because submit button is not always on the page
-                            var test = cseForm.encrypt();
-                            cseForm.createEncryptedField(test);
-                        } catch (e) {
-                            var encryptionFailed = true;
-                        }
-                        var encryptedForm = document.getElementById(cse_options.name);
-                        if (encryptionFailed || !encryptedForm || encryptedForm.value.length == 0) {
-                            alert("Warning: Adyen Client Side Encryption cannot succeed.");
-                        }
+                    if (ccTypes.hasOwnProperty(altCode)) {
+                        return ccTypes[altCode];
                     }
+
+                    return "";
                 }
 
-                var cse_initialize = function () {
+                /*
+                 * Initialize secure fields and set up the onChange callback to
+                 *  - fill the input fields with the encrypted data
+                 *  - show the heklper text when necessary
+                 */
+                var secureFieldsInitialize = function () {
 
-                    order.submit = order.submit.wrap(function (originalSaveMethod) {
-                        cse.call(this);
-                        originalSaveMethod();
+                    if (!"<?php echo $block->getCheckoutOriginKeys(); ?>") {
+                        document.getElementById('noApiKey').style="visibility: visible; display:inline-block";
+                        return;
+                    }
+                    var cardNode = document.getElementById("cardContainer-<?php /* @noEscape */ echo $code; ?>");
+
+                    var checkout = new AdyenCheckout({
+                        locale: "<?php echo $block->getLocale(); ?>"
                     });
+                    var hideCVC = "<?php echo !$block->hasVerification(); ?>";
 
+                    var card = checkout.create('card', {
+                        originKey: "<?php echo $block->getCheckoutOriginKeys(); ?>",
+                        loadingContext: "<?php echo $block->getCheckoutContextUrl(); ?>",
+                        type: 'card',
+                        groupTypes: ccTypes,
+                        hideCVC: hideCVC,
+                        
+                        onChange: function (state) {
+                            // When the state is valid update the input fields
+                            if (state.isValid) {
+                                // Here we enable the button if the component is now valid
+                                jQuery("#<?php /* @noEscape */ echo $code; ?>-number").val(state.data.encryptedCardNumber);
+                                jQuery("#<?php /* @noEscape */ echo $code; ?>-expiryMonth").val(state.data.encryptedExpiryMonth);
+                                jQuery("#<?php /* @noEscape */ echo $code; ?>-expiryYear").val(state.data.encryptedExpiryYear);
+                                jQuery("#<?php /* @noEscape */ echo $code; ?>-cvc").val(state.data.encryptedSecurityCode);
+                                jQuery("#<?php /* @noEscape */ echo $code; ?>-cc_type").val(getCcCodeByAltCode(state.brand));
+                            }
+                        },
+                        onError: function () {
+                        }
+                    });
+                    card.mount(cardNode);
                 }
 
-                if (document.readyState === "complete") {
-                    cse_initialize();
+                // Load card components and force wait until the external script is loaded
+                if (scriptTag.readyState) {
+                    scriptTag.onreadystatechange = function () {
+                        if (script.readyState == "loaded" ||
+                            script.readyState == "complete") {
+                            script.onreadystatechange = null;
+                            secureFieldsInitialize();
+                        }
+                    };
                 }
                 else {
-                    Event.observe(window, 'load', cse_initialize);
+                    scriptTag.onload = function () {
+                        secureFieldsInitialize();
+                    };
                 }
                 //]]>
             });
     </script>
-
-
 </fieldset>

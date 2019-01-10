@@ -210,8 +210,12 @@ class Cron
     private $orderRepository;
 
     /**
+     * @var ResourceModel\Billing\Agreement
+     */
+    private $agreementResourceModel;
+
+    /**
      * Cron constructor.
-     *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param ResourceModel\Notification\CollectionFactory $notificationFactory
@@ -230,6 +234,7 @@ class Cron
      * @param \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollection
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param OrderRepository $orderRepository
+     * @param ResourceModel\Billing\Agreement $agreementResourceModel
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -249,7 +254,8 @@ class Cron
         AreaList $areaList,
         \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollection,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        OrderRepository $orderRepository
+        OrderRepository $orderRepository,
+        \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -269,6 +275,7 @@ class Cron
         $this->_orderStatusCollection = $orderStatusCollection;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->orderRepository = $orderRepository;
+        $this->agreementResourceModel = $agreementResourceModel;
     }
 
     /**
@@ -409,8 +416,13 @@ class Cron
                 $this->_processNotification();
             }
 
-            $this->_order->save();
-            // set done to true
+            try {
+                // set done to true
+                $this->_order->save();
+            } catch (\Exception $e) {
+                $this->_adyenLogger->addAdyenNotificationCronjob($e->getMessage());
+            }
+
             $this->_updateNotification($notification, false, true);
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 sprintf("Notification %s is processed", $notification->getEntityId())
@@ -649,7 +661,6 @@ class Cron
 
         if ($this->_eventCode == Notification::AUTHORISATION
             || $this->_eventCode == Notification::HANDLED_EXTERNALLY
-            || ($this->_eventCode == Notification::CAPTURE && $_paymentCode == "adyen_pos")
         ) {
             /*
              * if current notification is authorisation : false and
@@ -847,10 +858,7 @@ class Cron
                 break;
             case Notification::HANDLED_EXTERNALLY:
             case Notification::AUTHORISATION:
-                // for POS don't do anything on the AUTHORIZATION
-                if ($_paymentCode != "adyen_pos") {
-                    $this->_authorizePayment();
-                }
+                $this->_authorizePayment();
                 break;
             case Notification::MANUAL_REVIEW_REJECT:
                 // don't do anything it will send a CANCEL_OR_REFUND notification when this payment is captured
@@ -865,33 +873,28 @@ class Cron
                 }
                 break;
             case Notification::CAPTURE:
-                if ($_paymentCode != "adyen_pos") {
-                    /*
-                     * ignore capture if you are on auto capture
-                     * this could be called if manual review is enabled and you have a capture delay
-                     */
-                    if (!$this->_isAutoCapture()) {
-                        $this->_setPaymentAuthorized(false, true);
+                /*
+                 * ignore capture if you are on auto capture
+                 * this could be called if manual review is enabled and you have a capture delay
+                 */
+                if (!$this->_isAutoCapture()) {
+                    $this->_setPaymentAuthorized(false, true);
 
-                        /*
-                         * Add invoice in the adyen_invoice table
-                         */
-                        $invoiceCollection = $this->_order->getInvoiceCollection();
-                        foreach ($invoiceCollection as $invoice) {
-                            if ($invoice->getTransactionId() == $this->_pspReference) {
-                                $this->_adyenInvoiceFactory->create()
-                                    ->setInvoiceId($invoice->getEntityId())
-                                    ->setPspreference($this->_pspReference)
-                                    ->setOriginalReference($this->_originalReference)
-                                    ->setAcquirerReference($this->_acquirerReference)
-                                    ->save();
-                                $this->_adyenLogger->addAdyenNotificationCronjob('Created invoice entry in the Adyen table');
-                            }
+                    /*
+                     * Add invoice in the adyen_invoice table
+                     */
+                    $invoiceCollection = $this->_order->getInvoiceCollection();
+                    foreach ($invoiceCollection as $invoice) {
+                        if ($invoice->getTransactionId() == $this->_pspReference) {
+                            $this->_adyenInvoiceFactory->create()
+                                ->setInvoiceId($invoice->getEntityId())
+                                ->setPspreference($this->_pspReference)
+                                ->setOriginalReference($this->_originalReference)
+                                ->setAcquirerReference($this->_acquirerReference)
+                                ->save();
+                            $this->_adyenLogger->addAdyenNotificationCronjob('Created invoice entry in the Adyen table');
                         }
                     }
-                } else {
-                    // FOR POS authorize the payment on the CAPTURE notification
-                    $this->_authorizePayment();
                 }
                 break;
             case Notification::OFFER_CLOSED:
@@ -1028,11 +1031,16 @@ class Cron
                     // Populate billing agreement data
                     $billingAgreement->parseRecurringContractData($contractDetail);
                     if ($billingAgreement->isValid()) {
-                        // save into sales_billing_agreement_order
-                        $billingAgreement->addOrderRelation($this->_order);
 
-                        // add to order to save agreement
-                        $this->_order->addRelatedObject($billingAgreement);
+                        if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),
+                            $this->_order->getId())) {
+
+                            // save into sales_billing_agreement_order
+                            $billingAgreement->addOrderRelation($this->_order);
+
+                            // add to order to save agreement
+                            $this->_order->addRelatedObject($billingAgreement);
+                        }
                     } else {
                         $message = __('Failed to create billing agreement for this order.');
                         throw new \Exception($message);
@@ -1147,10 +1155,8 @@ class Cron
             }
         }
 
-        if (($this->_paymentMethod == "c_cash" &&
-                $this->_getConfigData('create_shipment', 'adyen_cash', $this->_order->getStoreId())) ||
-            ($this->_getConfigData('create_shipment', 'adyen_pos', $this->_order->getStoreId()) &&
-                $_paymentCode == "adyen_pos")
+        if ($this->_paymentMethod == "c_cash" &&
+            $this->_getConfigData('create_shipment', 'adyen_cash', $this->_order->getStoreId())
         ) {
             $this->_createShipment();
         }
@@ -1321,9 +1327,9 @@ class Cron
                 return false;
             }
 
-            // payment method ideal, cash adyen_boleto or adyen_pos has direct capture
-            if ($_paymentCode == "adyen_pos" || (($_paymentCode == "adyen_sepa" ||
-                        $this->_paymentMethod == "sepadirectdebit") && $sepaFlow != "authcap")
+            // payment method ideal, cash adyen_boleto has direct capture
+            if (($_paymentCode == "adyen_sepa" ||
+                    $this->_paymentMethod == "sepadirectdebit") && $sepaFlow != "authcap"
             ) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'This payment method does not allow manual capture.(2) paymentCode:' .
@@ -1333,7 +1339,8 @@ class Cron
             }
 
             if ($_paymentCode == "adyen_pos_cloud") {
-                $captureModePos = $this->_adyenHelper->getAdyenPosCloudConfigData('capture_mode_pos', $this->_order->getStoreId());
+                $captureModePos = $this->_adyenHelper->getAdyenPosCloudConfigData('capture_mode_pos',
+                    $this->_order->getStoreId());
                 if (strcmp($captureModePos, 'auto') === 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         'This payment method is POS Cloud and configured to be working as auto capture '
