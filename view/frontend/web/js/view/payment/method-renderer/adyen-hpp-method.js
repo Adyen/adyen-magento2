@@ -199,6 +199,61 @@ define(
 
                         return false;
                     };
+                    // Can be removed after checkout api feature branch goes live since the issuerId key is changed to
+                    // id there and just use the value.issuers in the component
+                    result.getIssuerListForComponent = function() {
+                        if (result.isIssuerListAvailable()) {
+                            return _.map(value.issuers, function (issuer, key) {
+                                return {
+                                    "id": issuer.issuerId,
+                                    "name": issuer.name
+                                };
+                            });
+                        }
+
+                        return [];
+                    };
+                    result.isIdeal = function () {
+                        if (value.brandCode.indexOf("ideal") >= 0) {
+                            return true;
+                        }
+
+                        return false;
+                    };
+
+                    /**
+                     * Renders the secure fields,
+                     * creates the ideal component,
+                     * sets up the callbacks for ideal components and
+                     */
+                    result.renderIdealComponent = function () {
+                        self.isPlaceOrderActionAllowed(false);
+
+                        var secureFieldsNode = document.getElementById('iDealContainer');
+
+                        var checkout = new AdyenCheckout({
+                            locale: self.getLocale()
+                        });
+
+                        var ideal = checkout.create('ideal', {
+                            items: result.getIssuerListForComponent(),
+                            onChange: function (state) {
+                                // isValid is not present on start
+                                if (typeof state.isValid !== 'undefined' && state.isValid === false) {
+                                    self.isPlaceOrderActionAllowed(false);
+                                }
+                            },
+                            onValid: function (state) {
+                                result.issuerId(state.data.issuer);
+                                self.isPlaceOrderActionAllowed(true);
+                            },
+                            onError: function (state) {
+                                self.isPlaceOrderActionAllowed(false);
+                            }
+                        });
+
+                        ideal.mount(secureFieldsNode);
+                    };
 
                     if (value.hasOwnProperty("issuers")) {
                         if (value.issuers.length == 0) {
@@ -370,6 +425,9 @@ define(
             },
             getRatePayDeviceIdentToken: function () {
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
+            },
+            getLocale: function () {
+                return window.checkoutConfig.payment.adyenHpp.locale;
             }
         });
     }
