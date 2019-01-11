@@ -134,8 +134,6 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
             }
         }
 
-		$config['payment']['adyenHpp']['originKey'] = $this->adyenHelper->getOriginKeyForBaseUrl();
-		$config['payment']['adyenHpp']['checkoutUrl'] = $this->adyenHelper->getCheckoutContextUrl($this->storeManager->getStore()->getId());
 		$config['payment']['adyenHpp']['locale'] = $this->adyenHelper->getStoreLocale($this->storeManager->getStore()->getId());
 
         // add to config

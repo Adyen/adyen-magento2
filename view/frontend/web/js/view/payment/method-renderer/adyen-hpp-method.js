@@ -227,7 +227,6 @@ define(
                      * sets up the callbacks for ideal components and
                      */
                     result.renderIdealComponent = function () {
-
                         self.isPlaceOrderActionAllowed(false);
 
                         var secureFieldsNode = document.getElementById('iDealContainer');
@@ -237,8 +236,6 @@ define(
                         });
 
                         var ideal = checkout.create('ideal', {
-                            originKey: self.getOriginKey(),
-                            loadingContext: self.getLoadingContext(),
                             items: result.getIssuerListForComponent(),
                             onChange: function (state) {
                                 // isValid is not present on start
@@ -428,12 +425,6 @@ define(
             },
             getRatePayDeviceIdentToken: function () {
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
-            },
-            getOriginKey: function () {
-                return window.checkoutConfig.payment.adyenHpp.originKey;
-            },
-            getLoadingContext: function () {
-                return window.checkoutConfig.payment.adyenHpp.checkoutUrl;
             },
             getLocale: function () {
                 return window.checkoutConfig.payment.adyenHpp.locale;
