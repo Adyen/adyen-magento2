@@ -98,28 +98,28 @@ class PaymentRequest extends DataObject
     {
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
-        $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
-        $shopperIp = $order->getRemoteIp();
 
         $md = $payment->getAdditionalInformation('md');
         $paResponse = $payment->getAdditionalInformation('paResponse');
+		$paymentData = $payment->getAdditionalInformation('paymentData');
 
-        $browserInfo = ['userAgent' => $_SERVER['HTTP_USER_AGENT'], 'acceptHeader' => $_SERVER['HTTP_ACCEPT']];
         $request = [
-            "merchantAccount" => $merchantAccount,
-            "browserInfo" => $browserInfo,
-            "md" => $md,
-            "paResponse" => $paResponse,
-            "shopperIP" => $shopperIp
+			"paymentData" => $paymentData,
+			"details" => [
+				"MD" => $md,
+				"PaRes" => $paResponse
+			]
         ];
 
         try {
-            $client = $this->createClient($storeId);
-            $service = new \Adyen\Service\Payment($client);
-            $result = $service->authorise3D($request);
-        } catch (\Adyen\AdyenException $e) {
+            $client = $this->_adyenHelper->initializeAdyenClient($storeId);
+            $service = new \Adyen\Service\Checkout($client);
+            $result = $service->paymentsDetails($request);
+        } catch(\Adyen\AdyenException $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure failed'));
         }
+
+        $this->_adyenHelper->createAdyenBillingAgreement($order, $result['additionalData']);
 
         return $result;
     }

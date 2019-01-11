@@ -28,20 +28,21 @@
             <adyen_abstract>
                 <active>0</active>
                 <model>AdyenPaymentGenericFacade</model>
-                <recurring_type>ONECLICK</recurring_type>
                 <order_status>pending</order_status>
-                <demo_mode>0</demo_mode>
+                <demo_mode>1</demo_mode>
                 <debug>1</debug>
                 <title_renderer>title_image</title_renderer>
                 <sepa_flow>sale</sepa_flow>
                 <split_payments_refund_strategy>1</split_payments_refund_strategy>
                 <return_path>checkout/cart</return_path>
+                <enable_oneclick>1</enable_oneclick>
+                <enable_recurring>0</enable_recurring>
                 <group>adyen</group>
             </adyen_abstract>
             <adyen_cc>
                 <active>1</active>
                 <model>AdyenPaymentCcFacade</model>
-                <title>Adyen CreditCard</title>
+                <title>Credit Card</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>2</sort_order>
                 <cctypes>AE,VI,MC,DI</cctypes>
@@ -129,26 +130,6 @@
                 <can_cancel>1</can_cancel>
                 <group>adyen</group>
             </adyen_sepa>
-            <adyen_pos>
-                <active>0</active>
-                <model>AdyenPaymentPosFacade</model>
-                <order_status>pending</order_status>
-                <title>Adyen POS</title>
-                <allowspecific>0</allowspecific>
-                <sort_order>5</sort_order>
-                <payment_action>order</payment_action>
-                <can_initialize>1</can_initialize>
-                <is_gateway>1</is_gateway>
-                <can_use_checkout>1</can_use_checkout>
-                <can_capture>1</can_capture>
-                <can_capture_partial>1</can_capture_partial>
-                <can_use_internal>0</can_use_internal>
-                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
-                <can_refund>1</can_refund>
-                <can_void>1</can_void>
-                <can_cancel>1</can_cancel>
-                <group>adyen</group>
-            </adyen_pos>
             <adyen_pos_cloud>
                 <active>0</active>
                 <model>AdyenPaymentPosCloudFacade</model>
@@ -169,7 +150,7 @@
                 <can_cancel>1</can_cancel>
                 <pos_timeout>30</pos_timeout>
                 <total_timeout>120</total_timeout>
-                <recurring_type>ONECLICK</recurring_type>
+                <recurring_type>NONE</recurring_type>
                 <group>adyen</group>
             </adyen_pos_cloud>
             <adyen_pay_by_mail>

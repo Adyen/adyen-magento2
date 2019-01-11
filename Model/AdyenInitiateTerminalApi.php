@@ -27,6 +27,7 @@ namespace Adyen\Payment\Model;
 use Adyen\Payment\Api\AdyenInitiateTerminalApiInterface;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Adyen\Util\Util;
+use Magento\Quote\Model\Quote;
 
 class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 {
@@ -105,7 +106,6 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $serviceID = date("dHis");
         $initiateDate = date("U");
         $timeStamper = date("Y-m-d") . "T" . date("H:i:s+00:00");
-        $customerId = $quote->getCustomerId();
 
         $request = [
             'SaleToPOIRequest' =>
@@ -146,6 +146,8 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                         ],
                 ],
         ];
+
+        $customerId = $this->getCustomerId($quote);
 
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
@@ -194,5 +196,17 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
         $quote->save();
         return $response;
+    }
+
+    /**
+	 * This getter makes it possible to overwrite the customer id from other plugins
+	 * Use this function to get the customer id so we can keep using this plugin in the UCD
+	 *
+     * @param Quote $quote
+     * @return mixed
+     */
+    public function getCustomerId(Quote $quote)
+    {
+        return $quote->getCustomerId();
     }
 }

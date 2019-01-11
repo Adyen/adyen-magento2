@@ -61,5 +61,21 @@
             <label>UnionPay</label>
             <code_alt>cup</code_alt>
         </type>
+        <type id="BCMC" order="80">
+            <label>Bancontact</label>
+            <code_alt>bcmc</code_alt>
+        </type>
+        <type id="HIPERCARD" order="80">
+            <label>Hipercard</label>
+            <code_alt>hipercard</code_alt>
+        </type>
+        <type id="ELO" order="80">
+            <label>Elo</label>
+            <code_alt>elo</code_alt>
+        </type>
+        <type id="AURA" order="80">
+            <label>Aura</label>
+            <code_alt>aura</code_alt>
+        </type>
     </adyen_credit_cards>
 </payment>

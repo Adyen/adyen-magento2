@@ -20,148 +20,51 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-.hidden {
-    display: none;
+#payment_form_adyen_cc {
+    padding-left: 30px;
+}
+
+.adyen-checkout-card__form .adyen-checkout__input iframe{
+    max-height: 40px;
+}
+
+#payment_form_adyen_cc .admin__field{
+    margin-bottom: 10px;
+}
+
+#payment_form_adyen_cc .helper-text{
+    font-size: 11px;
+    color: rgb(144, 162, 189);
+    font-weight: 100;
 }
 
 
-.checkout-payment-method .ccard .changable-card-expiry { display:none; }
-.checkout-payment-method .ccard  .changable-card-expiry._active { display:block; }
-.checkout-payment-method .ccard  .expire-update._disable { display:none; }
-
-.checkout-payment-method .ccard .holdername .input-text {
+#payment_form_adyen_cc #adyen_cc_cc_owner {
     width: 225px;
     border: none;
     padding: 0;
     color: rgb(0, 27, 43);
     font-size: 16px;
     font-weight: 400;
+    margin-top: 10px;
 }
 
-.checkout-payment-method .ccard .holdername .input-text:focus {
+#payment_form_adyen_cc #adyen_cc_cc_owner .input-text:focus {
     border: none;
     box-shadow: none;
 }
 
-.checkout-payment-method .ccard .holdername .input-text::placeholder,
-.checkout-payment-method .ccard .holdername .input-text:placeholder-shown
+#payment_form_adyen_cc #adyen_cc_cc_owner::placeholder,
+#payment_form_adyen_cc #adyen_cc_cc_owner:placeholder-shown
 {
     color: rgb(144, 162, 189);
     font-weight: 200;
 }
 
-.checkout-payment-method .payment-method-title, .checkout-payment-method .payment-method-title label {
-    display: -webkit-flex;
-    display: flex;
-    align-items: center;
-    -webkit-align-items: center;
-}
-
-.checkout-payment-method .payment-method-title label img,
-.checkout-payment-method .payment-method-title label div { padding-right:10px;}
-
-
-
-.checkout-payment-method .payment-method-title label div.adyen-sprite {
-    background:url(../images/logos/pm_gloss.png) no-repeat;
-    background-position: 0 -272px;
-    width:65px;
-    height:42px;
+#payment_form_adyen_cc .cc-type-VI {
+    margin: 10px;
     display: inline-block;
-}
-
-.checkout-payment-method .payment-method-title label div.adyen-sprite.adyen_cc {
-    background-position: 0 -272px;
-}
-
-.checkout-payment-method .payment-method-title label div.adyen-sprite.adyen_pos {
-    background-position: 0 -1819px;
-}
-
-.checkout-payment-method .payment-method-title label div.adyen-sprite.adyen_pos_cloud {
-    background-position: 0 -1819px;
-}
-
-.checkout-payment-method .payment-method-title label div.adyen-sprite.adyen_sepa {
-    background-position: 0 -1910px;
-}
-
-.checkout-payment-method .payment-method-title label div.adyen-sprite.adyen_hpp {
-    background-position: 0 -272px;
-}
-
-.checkout-payment-method .payment-method-title label div.adyen-sprite.adyen_boleto {
-    background-position: 0 -2092px;
-}
-
-.checkout-payment-method .payment-method-title label div.adyen-sprite.adyen_apple_pay {
-    background:url(../images/logos/apple_pay.png) no-repeat;
-    height:43px;
-}
-
-.checkout-payment-method .input-text._has-datepicker {
-    width:20%;
-    margin-right:10px;
-}
-
-.apple-pay-button-with-text {
-    --apple-pay-scale: 1.5625; /* (height / 32) */
-    display: inline-flex;
-    justify-content: center;
-    font-size: 12px;
-    border-radius: 5px;
-    padding: 0px;
-    box-sizing: border-box;
-    /*min-width: 200px;*/
-    width:100%;
-    min-height: 32px;
-    max-height: 64px;
-    margin-bottom: 10px;
-    cursor: pointer;
-}
-.apple-pay-button-black-with-text {
-    background-color: black;
-    color: white;
-}
-.apple-pay-button-white-with-text {
-    background-color: white;
-    color: black;
-}
-.apple-pay-button-white-with-line-with-text {
-    background-color: white;
-    color: black;
-    border: .5px solid black;
-}
-.apple-pay-button-with-text.apple-pay-button-black-with-text > .logo {
-    background-image: -webkit-named-image(apple-pay-logo-white);
-    background-color: black;
-}
-.apple-pay-button-with-text.apple-pay-button-white-with-text > .logo {
-    background-image: -webkit-named-image(apple-pay-logo-black);
-    background-color: white;
-}
-.apple-pay-button-with-text.apple-pay-button-white-with-line-with-text > .logo {
-    background-image: -webkit-named-image(apple-pay-logo-black);
-    background-color: white;
-}
-.apple-pay-button-with-text > .text {
-    font-family: -apple-system;
-    font-size: calc(1em * var(--apple-pay-scale));
-    font-weight: 300;
-    align-self: center;
-
-    margin-right: calc(2px * var(--apple-pay-scale));
-}
-.apple-pay-button-with-text > .logo {
-    width: calc(35px * var(--apple-pay-scale));
-    height: 100%;
-    background-size: 100% 60%;
-    background-repeat: no-repeat;
-    background-position: 0 50%;
-    margin: 0;
-    border: none;
-    min-width: 0px; /* override magento min-width */
-    min-height: 42px; /* override magento min-height */
+    font-weight: bold;
 }
 
 /* Checkout card components style */
@@ -1000,26 +903,3 @@
     font-size: 13px;
     text-decoration: underline;
 }
-
-
-/*.adyen-checkout__card__form .adyen-checkout__input {*/
-    /*max-height: 40px;*/
-/*}*/
-
-/*.adyen-checkout__card__form .adyen-checkout__input img{*/
-    /*display: none;*/
-/*}*/
-
-/*#adyen-cc-form .fieldset > .field > .label, .fieldset > .fields > .field > .label {*/
-    /*font-weight: 400;*/
-/*}*/
-
-/*#adyen-cc-form .fieldset > .holdername.field{*/
-    /*margin-bottom: 10px;*/
-/*}*/
-
-/*#adyen-cc-form .helper-text{*/
-    /*font-size: 11px;*/
-    /*color: rgb(144, 162, 189);*/
-    /*font-weight: 100;*/
-/*}*/

@@ -28,5 +28,14 @@ namespace Adyen\Payment\Model\ResourceModel\Billing;
  */
 class Agreement extends \Magento\Paypal\Model\ResourceModel\Billing\Agreement
 {
-
+    
+    public function getOrderRelation($agreementId, $orderId)
+    {
+        $select = $this->getConnection()->select()
+            ->from(['billingagreement_order' => $this->getTable('paypal_billing_agreement_order')])
+            ->where('billingagreement_order.agreement_id=?', $agreementId)
+            ->where('billingagreement_order.order_id=?', $orderId);
+        
+        return $this->getConnection()->fetchAll($select);
+    }
 }
