@@ -208,7 +208,6 @@ define(
                      * @returns {boolean}
                      */
                     result.hasIssuersAvailable = function () {
-                        console.log(value);
                         if (result.hasIssuersProperty() && value.details[0].items.length > 0) {
                             return true;
                         }
@@ -228,7 +227,7 @@ define(
                     };
                     /**
                      * Checks if payment method is iDeal
-                     * @returns {boolean}s
+                     * @returns {boolean}
                      */
                     result.isIdeal = function () {
                         if (typeof value.type !== 'undefined' && value.type.indexOf("ideal") >= 0) {
