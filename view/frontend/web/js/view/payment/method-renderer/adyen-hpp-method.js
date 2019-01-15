@@ -292,26 +292,22 @@ define(
                     result.renderIdealComponent = function () {
                         result.isPlaceOrderAllowed(false);
 
-                        var secureFieldsNode = document.getElementById('iDealContainer');
+                        var idealNode = document.getElementById('iDealContainer');
 
                         var ideal = self.checkoutComponent.create('ideal', {
                             items: result.getIssuers(),
                             onChange: function (state) {
                                 // isValid is not present on start
-                                if (typeof state.isValid !== 'undefined' && state.isValid === false) {
+                                if (!!state.isValid) {
                                     result.isPlaceOrderAllowed(false);
+                                } else {
+                                    result.issuerId(state.data.issuer);
+                                    result.isPlaceOrderAllowed(true);
                                 }
-                            },
-                            onValid: function (state) {
-                                result.issuerId(state.data.issuer);
-                                result.isPlaceOrderAllowed(true);
-                            },
-                            onError: function (state) {
-                                result.isPlaceOrderAllowed(false);
                             }
                         });
 
-                        ideal.mount(secureFieldsNode);
+                        ideal.mount(idealNode);
                     };
 
                     /**
@@ -327,18 +323,13 @@ define(
                         var sepaDirectDebit = self.checkoutComponent.create('sepadirectdebit', {
                             countryCode: self.getLocale(),
                             onChange: function (state) {
-                                // isValid is not present on start
-                                if (typeof state.isValid !== 'undefined' && state.isValid === false) {
+                                if (!!state.isValid) {
                                     result.isPlaceOrderAllowed(false);
+                                } else {
+                                    result.ownerName(state.data["sepa.ownerName"]);
+                                    result.ibanNumber(state.data["sepa.ibanNumber"]);
+                                    result.isPlaceOrderAllowed(true);
                                 }
-                            },
-                            onValid: function (state) {
-                                result.ownerName(state.data["sepa.ownerName"]);
-                                result.ibanNumber(state.data["sepa.ibanNumber"]);
-                                result.isPlaceOrderAllowed(true);
-                            },
-                            onError: function (state) {
-                                result.isPlaceOrderAllowed(false);
                             }
                         });
 
