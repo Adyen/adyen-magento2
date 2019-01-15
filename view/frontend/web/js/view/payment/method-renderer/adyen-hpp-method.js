@@ -43,6 +43,12 @@ define(
         var paymentMethod = ko.observable(null);
         var dfValue = ko.observable(null);
         var messageComponents;
+        /**
+         * Shareble adyen checkout component
+         * @type {AdyenCheckout}
+         */
+        var checkoutComponent;
+
         return Component.extend({
             self: this,
             defaults: {
@@ -57,7 +63,9 @@ define(
                         'gender',
                         'dob',
                         'telephone',
-                        'dfValue'
+                        'dfValue',
+                        'ownerName',
+                        'ibanNumber'
                     ]);
                 return this;
             },initialize: function () {
@@ -66,6 +74,14 @@ define(
                 this._super();
 
                 fullScreenLoader.startLoader();
+
+                /**
+                 * Create sherable checkout component
+                 * @type {AdyenCheckout}
+                 */
+                self.checkoutComponent = new AdyenCheckout({
+                    locale: self.getLocale()
+                });
 
                 // reset variable:
                 adyenPaymentService.setPaymentMethods();
@@ -133,11 +149,11 @@ define(
                         _.map(response, function (value) {
 
                             var messageContainer = new Messages();
-                            var name = 'messages-' + value.type;
+                            var name = 'messages-' + self.getBrandCodeFromPaymentMethod(value);
                             var messagesComponent = {
                                 parent: self.name,
-                                name: 'messages-' + value.type,
-                                displayArea: 'messages-' + value.type,
+                                name: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
+                                displayArea: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
                                 component: 'Magento_Ui/js/view/messages',
                                 config: {
                                     messageContainer: messageContainer
@@ -161,7 +177,16 @@ define(
 
                 var paymentList = _.map(paymentMethods, function (value) {
                     var result = {};
-                    result.value = value.type;
+
+                    /**
+                     * Returns the payment method's brand code (in checkout api it is the type)
+                     * @returns {*}
+                     */
+                    result.getBrandCode = function() {
+                        return self.getBrandCodeFromPaymentMethod(value);
+                    };
+
+                    result.value = result.getBrandCode();
                     result.name = value;
                     result.method = self.item.method;
                     /**
@@ -174,13 +199,20 @@ define(
                         return self.item.method;
                     };
                     result.validate = function () {
-                        return self.validate(value.type);
+                        return self.validate(result.getBrandCode());
                     };
                     result.placeRedirectOrder = function placeRedirectOrder(data) {
                         return self.placeRedirectOrder(data);
                     };
-                    result.isPlaceOrderActionAllowed = function(bool) {
-                        return self.isPlaceOrderActionAllowed(bool);
+                    /**
+                     * Set and get if the place order action is allowed
+                     * Sets the placeOrderAllowed observable and the original isPlaceOrderActionAllowed as well
+                     * @param bool
+                     * @returns {*}
+                     */
+                    result.isPlaceOrderAllowed = function(bool) {
+                        self.isPlaceOrderActionAllowed(bool);
+                        return result.placeOrderAllowed(bool);
                     };
 
                     /**
@@ -247,13 +279,22 @@ define(
                      * @returns {boolean}
                      */
                     result.isIdeal = function () {
-                        if (typeof value.type !== 'undefined' && value.type.indexOf("ideal") >= 0) {
+                        if (result.getBrandCode().indexOf("ideal") >= 0) {
                             return true;
                         }
 
                         return false;
                     };
+                    /**
+                     * Checks if payment method is sepa direct debit
+                     */
+                    result.isSepaDirectDebit = function () {
+                        if (result.getBrandCode().indexOf("sepadirectdebit") >= 0) {
+                            return true;
+                        }
 
+                        return false;
+                    };
                     /**
                      * Renders the secure fields,
                      * creates the ideal component,
@@ -264,12 +305,8 @@ define(
 
                         var secureFieldsNode = document.getElementById('iDealContainer');
 
-                        var checkout = new AdyenCheckout({
-                            locale: self.getLocale()
-                        });
-
-                        var ideal = checkout.create('ideal', {
-                            items: result.getIssuerListForComponent(),
+                        var ideal = self.checkoutComponent.create('ideal', {
+                            items: result.getIssuers(),
                             onChange: function (state) {
                                 // isValid is not present on start
                                 if (typeof state.isValid !== 'undefined' && state.isValid === false) {
@@ -286,6 +323,37 @@ define(
                         });
 
                         ideal.mount(secureFieldsNode);
+                    };
+
+                    /**
+                     * Renders the secure fields,
+                     * creates the sepa direct debit component,
+                     * sets up the callbacks for sepa components and
+                     */
+                    result.renderSepaDirectDebitComponent = function () {
+                        result.isPlaceOrderAllowed(false);
+
+                        var sepaDirectDebitNode = document.getElementById('sepaDirectDebitContainer');
+
+                        var sepaDirectDebit = self.checkoutComponent.create('sepadirectdebit', {
+                            countryCode: self.getLocale(),
+                            onChange: function (state) {
+                                // isValid is not present on start
+                                if (typeof state.isValid !== 'undefined' && state.isValid === false) {
+                                    result.isPlaceOrderAllowed(false);
+                                }
+                            },
+                            onValid: function (state) {
+                                result.ownerName(state.data["sepa.ownerName"]);
+                                result.ibanNumber(state.data["sepa.ibanNumber"]);
+                                result.isPlaceOrderAllowed(true);
+                            },
+                            onError: function (state) {
+                                result.isPlaceOrderAllowed(false);
+                            }
+                        });
+
+                        sepaDirectDebit.mount(sepaDirectDebitNode);
                     };
 
                     if (result.hasIssuersProperty()) {
@@ -306,7 +374,7 @@ define(
                             return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
                         };
                         result.showSsn = function () {
-                            if (typeof value.type !== 'undefined' && value.type.indexOf("klarna") >= 0) {
+                            if (result.getBrandCode().indexOf("klarna") >= 0) {
                                 var ba = quote.billingAddress();
                                 if (ba != null) {
                                     var nordicCountriesList = window.checkoutConfig.payment.adyenHpp.nordicCountries;
@@ -317,6 +385,9 @@ define(
                             }
                             return false;
                         };
+                    } else if (result.isSepaDirectDebit()) {
+                        result.ownerName = ko.observable(null);
+                        result.ibanNumber = ko.observable(null);
                     }
 
                     return result;
@@ -354,8 +425,7 @@ define(
 
                     if (self.hasIssuersAvailable()) {
                         additionalData.issuer_id = this.issuerId();
-                    }
-                    else if (self.isPaymentMethodOpenInvoiceMethod()) {
+                    } else if (self.isPaymentMethodOpenInvoiceMethod()) {
                         additionalData.gender = this.gender();
                         additionalData.dob = this.dob();
                         additionalData.telephone = this.telephone();
@@ -363,6 +433,9 @@ define(
                         if (brandCode() == "ratepay") {
                             additionalData.df_value = this.getRatePayDeviceIdentToken();
                         }
+                    } else if (self.isSepaDirectDebit()) {
+                        additionalData.ownerName = this.ownerName();
+                        additionalData.ibanNumber = this.ibanNumber();
                     }
 
                     data.additional_data = additionalData;
@@ -459,6 +532,18 @@ define(
                 }
 
                 return true;
+            },
+            /**
+             * Returns the payment method's brand code using the payment method from the response object
+             * (in checkout api it is the type)
+             * @returns {*}
+             */
+            getBrandCodeFromPaymentMethod: function (paymentMethod) {
+                if (typeof paymentMethod.type !== 'undefined') {
+                    return paymentMethod.type;
+                }
+
+                return '';
             },
             getRatePayDeviceIdentToken: function () {
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;

@@ -27,28 +27,13 @@
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">
-                <item name="adyen_generic_config_provider" xsi:type="object">
-                    Adyen\Payment\Model\Ui\AdyenGenericConfigProvider
-                </item>
-                <item name="adyen_cc_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenCcConfigProvider
-                </item>
-                <item name="adyen_oneclick_config_provider" xsi:type="object">
-                    Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider
-                </item>
-                <item name="adyen_hpp_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenHppConfigProvider
-                </item>
-                <item name="adyen_sepa_config_provider" xsi:type="object">
-                    Adyen\Payment\Model\Ui\AdyenSepaConfigProvider
-                </item>
-                <item name="adyen_boleto_config_provider" xsi:type="object">
-                    Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider
-                </item>
-                <item name="adyen_pos_cloud_config_provider" xsi:type="object">
-                    Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider
-                </item>
-                <item name="adyen_apple_pay_config_provider" xsi:type="object">
-                    Adyen\Payment\Model\Ui\AdyenApplePayConfigProvider
-                </item>
+                <item name="adyen_generic_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenGenericConfigProvider</item>
+                <item name="adyen_cc_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenCcConfigProvider</item>
+                <item name="adyen_oneclick_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider</item>
+                <item name="adyen_hpp_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenHppConfigProvider</item>
+                <item name="adyen_boleto_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider</item>
+                <item name="adyen_pos_cloud_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider</item>
+                <item name="adyen_apple_pay_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenApplePayConfigProvider</item>
             </argument>
         </arguments>
     </type>

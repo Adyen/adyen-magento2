@@ -26,7 +26,7 @@ namespace Adyen\Payment\Gateway\Request;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
-class HppAuthorizationDataBuilder implements BuilderInterface
+class CheckoutDataBuilder implements BuilderInterface
 {
 	/**
 	 * @var \Adyen\Payment\Helper\Data
@@ -55,7 +55,7 @@ class HppAuthorizationDataBuilder implements BuilderInterface
 
 
 	/**
-	 * HppAuthorizationDataBuilder constructor.
+	 * CheckoutDataBuilder constructor.
 	 *
 	 * @param \Adyen\Payment\Helper\Data $adyenHelper
 	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
@@ -93,13 +93,14 @@ class HppAuthorizationDataBuilder implements BuilderInterface
 
 		$request['paymentMethod']['type'] = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
 
+		// Additional data for payment methods with issuer list
 		if ($payment->getAdditionalInformation(AdyenHppDataAssignObserver::ISSUER_ID)) {
 			$request['paymentMethod']['issuer'] = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::ISSUER_ID);
 		}
 
 		$request['returnUrl'] = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK) . 'adyen/process/result';
 
-		// update customer based on additionalFields
+		// Additional data for open invoice payment
 		if ($payment->getAdditionalInformation("gender")) {
 			$order->setCustomerGender(\Adyen\Payment\Model\Gender::getMagentoGenderFromAdyenGender(
 				$payment->getAdditionalInformation("gender"))
@@ -116,6 +117,15 @@ class HppAuthorizationDataBuilder implements BuilderInterface
 		if ($payment->getAdditionalInformation("telephone")) {
 			$order->getBillingAddress()->setTelephone($payment->getAdditionalInformation("telephone"));
 			$request['telephoneNumber']= $payment->getAdditionalInformation("telephone");
+		}
+
+		// Additional data for sepa direct debit
+		if ($payment->getAdditionalInformation("ownerName")) {
+			$request['paymentMethod']['sepa.ownerName']= $payment->getAdditionalInformation("ownerName");
+		}
+
+		if ($payment->getAdditionalInformation("ibanNumber")) {
+			$request['paymentMethod']['sepa.ibanNumber']= $payment->getAdditionalInformation("ibanNumber");
 		}
 
 		if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
