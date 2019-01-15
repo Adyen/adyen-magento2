@@ -159,6 +159,10 @@
                         </div>
                         <!--/ko-->
                     <!--/ko-->
+
+                    <!-- ko if: isSepaDirectDebit() -->
+                        <div afterRender="renderSepaDirectDebitComponent()" data-bind="attr: { id: 'sepaDirectDebitContainer'}"></div>
+                    <!--/ko-->
                 </fieldset>
                 </form>
 
