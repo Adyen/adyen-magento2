@@ -38,6 +38,8 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
     const TELEPHONE = 'telephone';
     const DF_VALUE = 'df_value';
     const SSN = 'ssn';
+	const OWNERNAME = 'ownerName';
+	const IBANNUMBER = 'ibanNumber';
 
 
     /**
@@ -50,7 +52,9 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         self::DOB,
         self::TELEPHONE,
         self::DF_VALUE,
-        self::SSN
+        self::SSN,
+		self::OWNERNAME,
+		self::IBANNUMBER
     ];
 
     /**

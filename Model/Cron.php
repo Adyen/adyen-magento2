@@ -1325,9 +1325,7 @@ class Cron
              * if you are using authcap the payment method is manual.
              * There will be a capture send to indicate if payment is successful
              */
-            if (($_paymentCode == "adyen_sepa" || $this->_paymentMethod == "sepadirectdebit") &&
-                $sepaFlow == "authcap"
-            ) {
+            if ($this->_paymentMethod == "sepadirectdebit" && $sepaFlow == "authcap") {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'Manual Capture is applied for sepa because it is in authcap flow'
                 );
@@ -1335,9 +1333,7 @@ class Cron
             }
 
             // payment method ideal, cash adyen_boleto has direct capture
-            if (($_paymentCode == "adyen_sepa" ||
-                    $this->_paymentMethod == "sepadirectdebit") && $sepaFlow != "authcap"
-            ) {
+            if ($this->_paymentMethod == "sepadirectdebit" && $sepaFlow != "authcap") {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'This payment method does not allow manual capture.(2) paymentCode:' .
                     $_paymentCode . ' paymentMethod:' . $this->_paymentMethod . ' sepaFLow:' . $sepaFlow
