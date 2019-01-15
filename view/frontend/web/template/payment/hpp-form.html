@@ -159,6 +159,10 @@
                         </div>
                         <!--/ko-->
                     <!--/ko-->
+
+                    <!-- ko if: isSepaDirectDebit() -->
+                        <div afterRender="renderSepaDirectDebitComponent()" data-bind="attr: { id: 'sepaDirectDebitContainer'}"></div>
+                    <!--/ko-->
                 </fieldset>
                 </form>
 
@@ -171,8 +175,7 @@
                     <div class="primary">
                         <button class="action primary checkout"
                                 type="submit"
-                                data-bind="click: $parent.continueToAdyenBrandCode, enable: (value == $parent.isBrandCodeChecked())"
-                                disabled>
+                                data-bind="click: $parent.continueToAdyenBrandCode, enable: placeOrderAllowed()">
                             <span data-bind="text: $t('Place Order')"></span>
                         </button>
                     </div>

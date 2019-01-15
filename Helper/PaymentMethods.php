@@ -153,20 +153,12 @@ class PaymentMethods extends AbstractHelper
             $store->getCode()
         );
         $ccTypes = array_keys($this->adyenHelper->getCcTypesAltData());
-        $sepaEnabled = $this->config->getValue(
-            'payment/' . \Adyen\Payment\Model\Ui\AdyenSepaConfigProvider::CODE . '/active',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
-            $store->getCode()
-        );
 
         foreach ($this->fetchAlternativeMethods($store, $country) as $methodCode => $methodData) {
             /*
              * skip payment methods if it is a creditcard that is enabled in adyen_cc
-             * or if payment is sepadirectdebit and SEPA api is enabled
              */
             if ($ccEnabled && in_array($methodCode, $ccTypes)) {
-                continue;
-            } elseif ($methodCode == 'sepadirectdebit' && $sepaEnabled) {
                 continue;
             }
 
