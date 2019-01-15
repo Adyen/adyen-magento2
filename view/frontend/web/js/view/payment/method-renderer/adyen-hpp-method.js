@@ -308,12 +308,12 @@ define(
                         var ideal = self.checkoutComponent.create('ideal', {
                             items: result.getIssuers(),
                             onChange: function (state) {
-                                // isValid is not present on start
                                 if (!!state.isValid) {
-                                    result.isPlaceOrderAllowed(false);
-                                } else {
                                     result.issuerId(state.data.issuer);
                                     result.isPlaceOrderAllowed(true);
+
+                                } else {
+                                    result.isPlaceOrderAllowed(false);
                                 }
                             }
                         });
@@ -335,11 +335,11 @@ define(
                             countryCode: self.getLocale(),
                             onChange: function (state) {
                                 if (!!state.isValid) {
-                                    result.isPlaceOrderAllowed(false);
-                                } else {
                                     result.ownerName(state.data["sepa.ownerName"]);
                                     result.ibanNumber(state.data["sepa.ibanNumber"]);
                                     result.isPlaceOrderAllowed(true);
+                                } else {
+                                    result.isPlaceOrderAllowed(false);
                                 }
                             }
                         });
