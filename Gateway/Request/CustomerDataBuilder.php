@@ -51,7 +51,8 @@ class CustomerDataBuilder implements BuilderInterface
         if ($customerId > 0) {
             $result['shopperReference'] = $customerId;
         }
-
+        
+        $result ['telephoneNumber'] = trim($billingAddress->getTelephone());
         $result ['shopperEmail'] = $customerEmail;
 
         return $result;
