@@ -23,7 +23,6 @@
 
 namespace Adyen\Payment\Setup;
 
-use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
