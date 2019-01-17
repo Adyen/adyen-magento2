@@ -68,7 +68,7 @@ class ApplePayAuthorizationDataBuilder implements BuilderInterface
             $paymentData = $parsedToken->token->paymentData;
             try {
                 $paymentData = base64_encode(json_encode($paymentData));
-				$request['additionalData.applepay.token'] = $paymentData;
+				$request['paymentMethod']['applepay.token'] = $paymentData;
             } catch (\Exception $exception) {
                 $this->_adyenLogger->addAdyenDebug("exception: " . $exception->getMessage());
             }
