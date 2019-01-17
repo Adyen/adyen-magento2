@@ -783,65 +783,6 @@ class Data extends AbstractHelper
         }
     }
 
-
-    /**
-     * @return array
-     */
-    public function getSepaCountries()
-    {
-        $sepaCountriesAllowed = [
-            "AT",
-            "BE",
-            "BG",
-            "CH",
-            "CY",
-            "CZ",
-            "DE",
-            "DK",
-            "EE",
-            "ES",
-            "FI",
-            "FR",
-            "GB",
-            "GF",
-            "GI",
-            "GP",
-            "GR",
-            "HR",
-            "HU",
-            "IE",
-            "IS",
-            "IT",
-            "LI",
-            "LT",
-            "LU",
-            "LV",
-            "MC",
-            "MQ",
-            "MT",
-            "NL",
-            "NO",
-            "PL",
-            "PT",
-            "RE",
-            "RO",
-            "SE",
-            "SI",
-            "SK"
-        ];
-
-        $countryList = $this->_country->toOptionArray();
-        $sepaCountries = [];
-
-        foreach ($countryList as $key => $country) {
-            $value = $country['value'];
-            if (in_array($value, $sepaCountriesAllowed)) {
-                $sepaCountries[$value] = $country['label'];
-            }
-        }
-        return $sepaCountries;
-    }
-
     /**
      * Get adyen magento module's name sent to Adyen
      *
