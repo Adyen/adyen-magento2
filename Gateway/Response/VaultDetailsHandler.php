@@ -78,7 +78,6 @@ class VaultDetailsHandler implements HandlerInterface
      *
      * @param array $response
      * @return PaymentTokenInterface|null
-     * @throws \Exception
      */
     private function getVaultPaymentToken(array $response)
     {
@@ -141,7 +140,7 @@ class VaultDetailsHandler implements HandlerInterface
                 ];
 
                 $paymentToken->setTokenDetails(json_encode($details));
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $this->_adyenLogger->error(print_r($e, true));
             }
         }
