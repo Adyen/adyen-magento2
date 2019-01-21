@@ -36,7 +36,6 @@ class AvailabilityChecker implements AvailabilityCheckerInterface
      */
     public function isAvailable(): bool
     {
-
         return true;
     }
 }
