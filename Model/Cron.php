@@ -941,117 +941,124 @@ class Cron
                 break;
 
             case Notification::RECURRING_CONTRACT:
-                // storedReferenceCode
-                $recurringDetailReference = $this->_pspReference;
 
-                $storeId = $this->_order->getStoreId();
-                $customerReference = $this->_order->getCustomerId();
-                $listRecurringContracts = null;
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    __(
-                        'CustomerReference is: %1 and storeId is %2 and RecurringDetailsReference is %3',
-                        $customerReference,
-                        $storeId,
-                        $recurringDetailReference
-                    )
-                );
-                try {
-                    $listRecurringContracts = $this->_adyenPaymentRequest->getRecurringContractsForShopper(
-                        $customerReference,
-                        $storeId
+
+                // only store billing agreements if Vault is disabled
+                if (!$this->_adyenHelper->isCreditCardVaultEnabled()) {
+                    // storedReferenceCode
+                    $recurringDetailReference = $this->_pspReference;
+
+                    $storeId = $this->_order->getStoreId();
+                    $customerReference = $this->_order->getCustomerId();
+                    $listRecurringContracts = null;
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        __(
+                            'CustomerReference is: %1 and storeId is %2 and RecurringDetailsReference is %3',
+                            $customerReference,
+                            $storeId,
+                            $recurringDetailReference
+                        )
                     );
-                    $contractDetail = null;
-                    // get current Contract details and get list of all current ones
-                    $recurringReferencesList = [];
-
-                    if (!$listRecurringContracts) {
-                        throw new \Exception("Empty list recurring contracts");
-                    }
-                    // Find the reference on the list
-                    foreach ($listRecurringContracts as $rc) {
-                        $recurringReferencesList[] = $rc['recurringDetailReference'];
-                        if (isset($rc['recurringDetailReference']) &&
-                            $rc['recurringDetailReference'] == $recurringDetailReference
-                        ) {
-                            $contractDetail = $rc;
-                        }
-                    }
-
-                    if ($contractDetail == null) {
-                        $this->_adyenLogger->addAdyenNotificationCronjob(print_r($listRecurringContracts, 1));
-                        $message = __(
-                            'Failed to create billing agreement for this order ' .
-                            '(listRecurringCall did not contain contract)'
+                    try {
+                        $listRecurringContracts = $this->_adyenPaymentRequest->getRecurringContractsForShopper(
+                            $customerReference,
+                            $storeId
                         );
-                        throw new \Exception($message);
-                    }
+                        $contractDetail = null;
+                        // get current Contract details and get list of all current ones
+                        $recurringReferencesList = [];
 
-                    $billingAgreements = $this->_billingAgreementCollectionFactory->create();
-                    $billingAgreements->addFieldToFilter('customer_id', $customerReference);
-
-                    // Get collection and update existing agreements
-
-                    foreach ($billingAgreements as $updateBillingAgreement) {
-                        if (!in_array($updateBillingAgreement->getReferenceId(), $recurringReferencesList)) {
-                            $updateBillingAgreement->setStatus(
-                                \Adyen\Payment\Model\Billing\Agreement::STATUS_CANCELED
-                            );
-                        } else {
-                            $updateBillingAgreement->setStatus(
-                                \Adyen\Payment\Model\Billing\Agreement::STATUS_ACTIVE
-                            );
+                        if (!$listRecurringContracts) {
+                            throw new \Exception("Empty list recurring contracts");
                         }
-                        $updateBillingAgreement->save();
-                    }
+                        // Find the reference on the list
+                        foreach ($listRecurringContracts as $rc) {
+                            $recurringReferencesList[] = $rc['recurringDetailReference'];
+                            if (isset($rc['recurringDetailReference']) &&
+                                $rc['recurringDetailReference'] == $recurringDetailReference
+                            ) {
+                                $contractDetail = $rc;
+                            }
+                        }
 
-                    // Get or create billing agreement
-                    $billingAgreement = $this->_billingAgreementFactory->create();
-                    $billingAgreement->load($recurringDetailReference, 'reference_id');
-                    // check if BA exists
-                    if (!($billingAgreement && $billingAgreement->getAgreementId() > 0 && $billingAgreement->isValid())) {
-                        // create new
-                        $this->_adyenLogger->addAdyenNotificationCronjob("Creating new Billing Agreement");
-                        $this->_order->getPayment()->setBillingAgreementData(
-                            [
-                                'billing_agreement_id' => $recurringDetailReference,
-                                'method_code' => $this->_order->getPayment()->getMethodCode(),
-                            ]
-                        );
+                        if ($contractDetail == null) {
+                            $this->_adyenLogger->addAdyenNotificationCronjob(print_r($listRecurringContracts, 1));
+                            $message = __(
+                                'Failed to create billing agreement for this order ' .
+                                '(listRecurringCall did not contain contract)'
+                            );
+                            throw new \Exception($message);
+                        }
 
+                        $billingAgreements = $this->_billingAgreementCollectionFactory->create();
+                        $billingAgreements->addFieldToFilter('customer_id', $customerReference);
+
+                        // Get collection and update existing agreements
+
+                        foreach ($billingAgreements as $updateBillingAgreement) {
+                            if (!in_array($updateBillingAgreement->getReferenceId(), $recurringReferencesList)) {
+                                $updateBillingAgreement->setStatus(
+                                    \Adyen\Payment\Model\Billing\Agreement::STATUS_CANCELED
+                                );
+                            } else {
+                                $updateBillingAgreement->setStatus(
+                                    \Adyen\Payment\Model\Billing\Agreement::STATUS_ACTIVE
+                                );
+                            }
+                            $updateBillingAgreement->save();
+                        }
+
+                        // Get or create billing agreement
                         $billingAgreement = $this->_billingAgreementFactory->create();
-                        $billingAgreement->setStoreId($this->_order->getStoreId());
-                        $billingAgreement->importOrderPayment($this->_order->getPayment());
-                        $message = __('Created billing agreement #%1.', $recurringDetailReference);
-                    } else {
-                        $this->_adyenLogger->addAdyenNotificationCronjob("Using existing Billing Agreement");
-                        $billingAgreement->setIsObjectChanged(true);
-                        $message = __('Updated billing agreement #%1.', $recurringDetailReference);
-                    }
+                        $billingAgreement->load($recurringDetailReference, 'reference_id');
+                        // check if BA exists
+                        if (!($billingAgreement && $billingAgreement->getAgreementId() > 0 && $billingAgreement->isValid())) {
+                            // create new
+                            $this->_adyenLogger->addAdyenNotificationCronjob("Creating new Billing Agreement");
+                            $this->_order->getPayment()->setBillingAgreementData(
+                                [
+                                    'billing_agreement_id' => $recurringDetailReference,
+                                    'method_code' => $this->_order->getPayment()->getMethodCode(),
+                                ]
+                            );
 
-                    // Populate billing agreement data
-                    $billingAgreement->parseRecurringContractData($contractDetail);
-                    if ($billingAgreement->isValid()) {
-
-                        if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),
-                            $this->_order->getId())) {
-
-                            // save into sales_billing_agreement_order
-                            $billingAgreement->addOrderRelation($this->_order);
-
-                            // add to order to save agreement
-                            $this->_order->addRelatedObject($billingAgreement);
+                            $billingAgreement = $this->_billingAgreementFactory->create();
+                            $billingAgreement->setStoreId($this->_order->getStoreId());
+                            $billingAgreement->importOrderPayment($this->_order->getPayment());
+                            $message = __('Created billing agreement #%1.', $recurringDetailReference);
+                        } else {
+                            $this->_adyenLogger->addAdyenNotificationCronjob("Using existing Billing Agreement");
+                            $billingAgreement->setIsObjectChanged(true);
+                            $message = __('Updated billing agreement #%1.', $recurringDetailReference);
                         }
-                    } else {
-                        $message = __('Failed to create billing agreement for this order.');
-                        throw new \Exception($message);
-                    }
-                } catch (\Exception $exception) {
-                    $message = $exception->getMessage();
-                }
 
-                $this->_adyenLogger->addAdyenNotificationCronjob($message);
-                $comment = $this->_order->addStatusHistoryComment($message);
-                $this->_order->addRelatedObject($comment);
+                        // Populate billing agreement data
+                        $billingAgreement->parseRecurringContractData($contractDetail);
+                        if ($billingAgreement->isValid()) {
+
+                            if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),
+                                $this->_order->getId())) {
+
+                                // save into sales_billing_agreement_order
+                                $billingAgreement->addOrderRelation($this->_order);
+
+                                // add to order to save agreement
+                                $this->_order->addRelatedObject($billingAgreement);
+                            }
+                        } else {
+                            $message = __('Failed to create billing agreement for this order.');
+                            throw new \Exception($message);
+                        }
+                    } catch (\Exception $exception) {
+                        $message = $exception->getMessage();
+                    }
+
+                    $this->_adyenLogger->addAdyenNotificationCronjob($message);
+                    $comment = $this->_order->addStatusHistoryComment($message);
+                    $this->_order->addRelatedObject($comment);
+                } else {
+                    $this->_adyenLogger->addAdyenNotificationCronjob('Ignore recurring_contract notification because Vault feature is enabled');
+                }
                 break;
             default:
                 $this->_adyenLogger->addAdyenNotificationCronjob(

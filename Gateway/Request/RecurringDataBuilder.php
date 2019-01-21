@@ -61,32 +61,35 @@ class RecurringDataBuilder implements BuilderInterface
     {
         $result = [];
 
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $payment = $paymentDataObject->getPayment();
+        // If the vault feature is on this logic is handled in the VaultDataBuilder
+        if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
+            /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
+            $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+            $payment = $paymentDataObject->getPayment();
 
-        $storeId = null;
-        if ($this->appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
-            $storeId = $payment->getOrder()->getStoreId();
-        }
+            $storeId = null;
+            if ($this->appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
+                $storeId = $payment->getOrder()->getStoreId();
+            }
 
-        $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
-        $enableRecurring = $this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', $storeId);
+            $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
+            $enableRecurring = $this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', $storeId);
 
-        if ($enableOneclick) {
-            $result['enableOneClick'] = true;
-        } else {
-            $result['enableOneClick'] = false;
-        }
+            if ($enableOneclick) {
+                $result['enableOneClick'] = true;
+            } else {
+                $result['enableOneClick'] = false;
+            }
 
-        if ($enableRecurring) {
-            $result['enableRecurring'] = true;
-        } else {
-            $result['enableRecurring'] = false;
-        }
+            if ($enableRecurring) {
+                $result['enableRecurring'] = true;
+            } else {
+                $result['enableRecurring'] = false;
+            }
 
-        if ($payment->getAdditionalInformation('store_cc') === '1') {
-            $result['paymentMethod']['storeDetails'] = true;
+            if ($payment->getAdditionalInformation('store_cc') === '1') {
+                $result['paymentMethod']['storeDetails'] = true;
+            }
         }
 
         return $result;

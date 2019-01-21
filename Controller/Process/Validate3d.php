@@ -22,7 +22,14 @@
  */
 
 namespace Adyen\Payment\Controller\Process;
+
 use Magento\Framework\App\Request\Http as HttpRequest;
+use Magento\Payment\Model\InfoInterface;
+use Magento\Vault\Api\Data\PaymentTokenInterface;
+use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
+use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
+use Magento\Sales\Api\Data\OrderPaymentExtensionInterfaceFactory;
+use Magento\Sales\Model\ResourceModel\Order\Payment as OrderPaymentResource;
 
 class Validate3d extends \Magento\Framework\App\Action\Action
 {
@@ -57,27 +64,50 @@ class Validate3d extends \Magento\Framework\App\Action\Action
     protected $_orderRepository;
 
     /**
+     * @var PaymentTokenFactoryInterface
+     */
+    private $paymentTokenFactory;
+    /**
+     * @var OrderPaymentExtensionInterfaceFactory
+     */
+    private $paymentExtensionFactory;
+    /**
+     * @var OrderPaymentResource
+     */
+    private $orderPaymentResource;
+
+    /**
      * Validate3d constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
+     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+     * @param PaymentTokenFactoryInterface $paymentTokenFactory
+     * @param OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory
+     * @param OrderPaymentResource $orderPaymentResource
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
+        PaymentTokenFactoryInterface $paymentTokenFactory,
+        OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
+        OrderPaymentResource $orderPaymentResource
     ) {
         parent::__construct($context);
         $this->_adyenLogger = $adyenLogger;
         $this->_adyenHelper = $adyenHelper;
         $this->_paymentRequest = $paymentRequest;
         $this->_orderRepository = $orderRepository;
+        $this->paymentTokenFactory = $paymentTokenFactory;
+        $this->paymentExtensionFactory = $paymentExtensionFactory;
+        $this->orderPaymentResource = $orderPaymentResource;
         // Fix for Magento2.3 adding isAjax to the request params
-        if(interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
+        if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
             $request = $this->getRequest();
             if ($request instanceof HttpRequest && $request->isPost()) {
                 $request->setParam('isAjax', true);
@@ -115,15 +145,6 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                     $order->getPayment()->setAdditionalInformation('paResponse', $requestPaRes);
 
                     try {
-                        /**
-                         * Magento should allow this.
-                         * https://github.com/magento/magento2/issues/5819
-                         */
-//                        $result = $order->getPayment()->getMethodInstance()->executeCommand(
-//                            'authorise_3d',
-//                            ['payment' => $order->getPayment(), 'amount' => $order->getGrandTotal()]
-//                        );
-                        // old fashion way:
                         $result = $this->_authorise3d($order->getPayment());
                     } catch (\Exception $e) {
                         $this->_adyenLogger->addAdyenResult("Process 3D secure payment was refused");
@@ -135,10 +156,51 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                     // check if authorise3d was successful
                     if ($result == 'Authorised') {
                         $order->addStatusHistoryComment(__('3D-secure validation was successful'))->save();
-                        // set back to false so when pressed back button on the success page it will reactivate 3D secure
+
+                        /**
+                         * set back to false so when pressed back
+                         * button on the success page it will reactivate 3D secure
+                         */
                         $order->getPayment()->setAdditionalInformation('3dActive', '');
                         $order->getPayment()->setAdditionalInformation('3dSuccess', true);
                         $this->_orderRepository->save($order);
+
+                        // TODO: add better checks if variables are available in the result
+                        if (!$this->_adyenHelper->isCreditCardVaultEnabled()) {
+                            $this->_adyenHelper->createAdyenBillingAgreement($order, $result['additionalData']);
+                        } elseif (!empty($result['additionalData']) &&
+                            !empty($additionalData['recurring.recurringDetailReference'])
+                        ) {
+                            try {
+                                $additionalData = $result['additionalData'];
+                                $token = $additionalData['recurring.recurringDetailReference'];
+                                $expirationDate = $additionalData['expiryDate'];
+                                $cardType = $additionalData['paymentMethod'];
+                                $cardSummary = $additionalData['cardSummary'];
+                                /** @var PaymentTokenInterface $paymentToken */
+                                $paymentToken = $this->paymentTokenFactory->create(
+                                    PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
+                                );
+                                $paymentToken->setGatewayToken($token);
+                                $paymentToken->setExpiresAt($this->getExpirationDate($expirationDate));
+                                $details = [
+                                    'type' => $cardType,
+                                    'maskedCC' => $cardSummary,
+                                    'expirationDate' => $expirationDate
+                                ];
+                                $paymentToken->setTokenDetails(json_encode($details));
+                                $extensionAttributes = $this->getExtensionAttributes($order->getPayment());
+                                $extensionAttributes->setVaultPaymentToken($paymentToken);
+                                $orderPayment = $order->getPayment()->setExtensionAttributes($extensionAttributes);
+                                $add = unserialize($orderPayment->getAdditionalData());
+                                $add['force_save'] = true;
+                                $orderPayment->setAdditionalData(serialize($add));
+                                $this->orderPaymentResource->save($orderPayment);
+                            } catch (\Exception $e) {
+                                $this->_adyenLogger->error((string)$e->getMessage());
+                            }
+                        }
+
 
                         $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
                     } else {
@@ -148,7 +210,7 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                         $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
                         $this->_adyenHelper->cancelOrder($order);
                         $this->messageManager->addErrorMessage("3D-secure validation was unsuccessful");
-                        
+
                         // reactivate the quote
                         $session = $this->_getCheckout();
 
@@ -214,5 +276,44 @@ class Validate3d extends \Magento\Framework\App\Action\Action
     protected function _getCheckout()
     {
         return $this->_objectManager->get('Magento\Checkout\Model\Session');
+    }
+
+    /**
+     * Get payment extension attributes
+     * @param InfoInterface $payment
+     * @return OrderPaymentExtensionInterface
+     */
+    private function getExtensionAttributes(InfoInterface $payment)
+    {
+        $extensionAttributes = $payment->getExtensionAttributes();
+        if (null === $extensionAttributes) {
+            $extensionAttributes = $this->paymentExtensionFactory->create();
+            $payment->setExtensionAttributes($extensionAttributes);
+        }
+        return $extensionAttributes;
+    }
+
+    /**
+     * @param $expirationDate
+     * @return string
+     */
+    private function getExpirationDate($expirationDate)
+    {
+        $expirationDate = explode('/', $expirationDate);
+        //add leading zero to month
+        $month = sprintf("%02d", $expirationDate[0]);
+        $expDate = new \DateTime(
+            $expirationDate[1]
+            . '-'
+            . $month
+            . '-'
+            . '01'
+            . ' '
+            . '00:00:00',
+            new \DateTimeZone('UTC')
+        );
+        // add one month
+        $expDate->add(new \DateInterval('P1M'));
+        return $expDate->format('Y-m-d 00:00:00');
     }
 }

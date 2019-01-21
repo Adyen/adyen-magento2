@@ -34,6 +34,14 @@ We have defined this:
 </group>
 ```
 
+## Vault ##
+For enabling vault you need the following permissions:
+rechargeSynchronousStoreDetails ask adyen support to enable this
+ Toggle one the following API responses. This can be done in the CA of Adyen inside API and Responses (settings -> API and Responses)
+* Card summary
+* Expiry date
+* Variant
+
 ## Support
 You can create issues on our Magento Repository. In case of specific problems with your account, please contact  <a href="mailto:support@adyen.com">support@adyen.com</a>.
 
