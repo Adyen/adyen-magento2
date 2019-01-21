@@ -269,9 +269,8 @@ define(
                                         if (state.isValid) {
                                             self.placeOrderAllowed(true);
                                             isValid(true);
-                                        } else {
-                                            isValid(false);
                                         }
+
                                         return;
                                     },
                                     onError: function (data) {

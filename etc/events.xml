@@ -32,9 +32,6 @@
     <event name="payment_method_assign_data_adyen_hpp">
         <observer name="adyen_hpp_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenHppDataAssignObserver" />
     </event>
-    <event name="payment_method_assign_data_adyen_sepa">
-        <observer name="adyen_sepa_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenSepaDataAssignObserver" />
-    </event>
     <event name="payment_method_assign_data_adyen_boleto">
         <observer name="adyen_boleto_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenBoletoDataAssignObserver" />
     </event>
