@@ -60,8 +60,8 @@ define(
                         'dfValue'
                     ]);
                 return this;
-            },
-            initialize: function () {
+            },initialize: function () {
+
                 var self = this;
                 this._super();
 

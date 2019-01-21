@@ -60,8 +60,18 @@
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
+                <can_authorize_vault>1</can_authorize_vault>
+                <can_capture_vault>1</can_capture_vault>
                 <group>adyen</group>
             </adyen_cc>
+            <adyen_cc_vault>
+                <model>AdyenPaymentCcVaultFacade</model>
+                <title>Stored Cards (Adyen)</title>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\CreditCard\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\CreditCard\TokenFormatter</tokenFormat>
+                </instant_purchase>
+            </adyen_cc_vault>
             <adyen_oneclick>
                 <active>1</active>
                 <model>AdyenPaymentOneclickFacade</model>
