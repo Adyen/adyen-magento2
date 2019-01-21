@@ -15,7 +15,7 @@
   ],
   "require": {
     "adyen/php-api-library": ">=1.5.3",
-    "magento/framework": ">=101.0.*",
+    "magento/framework": ">=101.0.0",
     "magento/module-vault": "101.0.*"
   },
   "autoload": {
