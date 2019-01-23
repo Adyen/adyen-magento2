@@ -42,18 +42,26 @@ class CustomerDataBuilder implements BuilderInterface
 
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-
         $order = $paymentDataObject->getOrder();
-        $billingAddress = $order->getBillingAddress();
-        $customerEmail = $billingAddress->getEmail();
         $customerId = $order->getCustomerId();
 
         if ($customerId > 0) {
             $result['shopperReference'] = $customerId;
         }
 
-		$result['telephoneNumber'] = trim($billingAddress->getTelephone());
-        $result['shopperEmail'] = $customerEmail;
+		$billingAddress = $order->getBillingAddress();
+
+        if (!empty($billingAddress)) {
+			$customerEmail = $billingAddress->getEmail();
+			if ($customerEmail) {
+				$result['shopperEmail'] = $customerEmail;
+			}
+
+			$customerTelephone = trim($billingAddress->getTelephone());
+			if ($customerTelephone) {
+				$result['telephoneNumber'] = $customerTelephone;
+			}
+		}
 
         return $result;
     }
