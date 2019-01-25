@@ -1002,24 +1002,19 @@
 }
 
 
-/*.adyen-checkout__card__form .adyen-checkout__input {*/
-    /*max-height: 40px;*/
-/*}*/
+/*
+    Custom style for ideal component
+ */
 
-/*.adyen-checkout__card__form .adyen-checkout__input img{*/
-    /*display: none;*/
-/*}*/
+#iDealContainer .adyen-checkout__dropdown__button{
+    padding: 0 0 0 8px;
+    max-width: 290px;
+}
 
-/*#adyen-cc-form .fieldset > .field > .label, .fieldset > .fields > .field > .label {*/
-    /*font-weight: 400;*/
-/*}*/
+#iDealContainer .adyen-checkout__dropdown--large{
+    margin-left: 21px;
+}
 
-/*#adyen-cc-form .fieldset > .holdername.field{*/
-    /*margin-bottom: 10px;*/
-/*}*/
-
-/*#adyen-cc-form .helper-text{*/
-    /*font-size: 11px;*/
-    /*color: rgb(144, 162, 189);*/
-    /*font-weight: 100;*/
-/*}*/
+#iDealContainer .adyen-checkout__dropdown__element{
+    margin-bottom: 0;
+}
