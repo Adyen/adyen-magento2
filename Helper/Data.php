@@ -417,6 +417,17 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @desc Gives back adyen_cc configuration values as flag
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenCcVaultConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_cc_vault', $storeId, true);
+    }
+
+    /**
      * @desc Gives back adyen_hpp configuration values
      * @param $field
      * @param null $storeId
@@ -943,7 +954,8 @@ class Data extends AbstractHelper
         return $billingAgreements;
     }
 
-    public function isPerStoreBillingAgreement($storeId) {
+    public function isPerStoreBillingAgreement($storeId)
+    {
         return !$this->getAdyenOneclickConfigDataFlag('share_billing_agreement', $storeId);
     }
 
@@ -1313,7 +1325,9 @@ class Data extends AbstractHelper
     public function initializeAdyenClient($storeId = null, $apiKey = null)
     {
         // initialize client
-        $apiKey = $this->getAPIKey($storeId);
+        if (empty($apiKey)) {
+            $apiKey = $this->getAPIKey($storeId);
+        }
 
         $client = $this->createAdyenClient();
         $client->setApplicationName("Magento 2 plugin");
@@ -1393,16 +1407,15 @@ class Data extends AbstractHelper
         );
 
         $client = $this->initializeAdyenClient($storeId);
-        
+
         try {
             $service = $this->createAdyenCheckoutUtilityService($client);
             $response = $service->originKeys($params);
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             $this->adyenLogger->error($e->getMessage());
         }
 
-		$originKey = "";
+        $originKey = "";
 
         if (!empty($response['originKeys'][$url])) {
             $originKey = $response['originKeys'][$url];
@@ -1494,7 +1507,8 @@ class Data extends AbstractHelper
                     // add to order to save agreement
                     $order->addRelatedObject($billingAgreement);
                 } else {
-                    $message = __('Failed to create billing agreement for this order. Reason(s): ') . join(', ', $billingAgreement->getErrors());
+                    $message = __('Failed to create billing agreement for this order. Reason(s): ') . join(', ',
+                            $billingAgreement->getErrors());
                     throw new \Exception($message);
                 }
 
@@ -1514,7 +1528,8 @@ class Data extends AbstractHelper
      * @param \Magento\Sales\Model\Order $order
      * @return int|null
      */
-    public function getCustomerId(\Magento\Sales\Model\Order $order) {
+    public function getCustomerId(\Magento\Sales\Model\Order $order)
+    {
         return $order->getCustomerId();
     }
 
@@ -1539,4 +1554,34 @@ class Data extends AbstractHelper
             return \Adyen\Payment\Model\RecurringType::NONE;
         }
     }
+
+    /**
+     * Get icon from variant
+     *
+     * @param $variant
+     * @return array
+     */
+    public function getVariantIcon($variant)
+    {
+        $asset = $this->createAsset(sprintf("Adyen_Payment::images/logos/%s_small.png", $variant));
+        list($width, $height) = getimagesize($asset->getSourceFile());
+        $icon = [
+            'url' => $asset->getUrl(),
+            'width' => $width,
+            'height' => $height
+        ];
+        return $icon;
+    }
+
+
+    /**
+     * @desc Check if CreditCard vault is enabled
+     * @param int|null $storeId
+     * @return mixed
+     */
+    public function isCreditCardVaultEnabled($storeId = null)
+    {
+        return $this->getAdyenCcVaultConfigDataFlag('active', $storeId);
+    }
+
 }

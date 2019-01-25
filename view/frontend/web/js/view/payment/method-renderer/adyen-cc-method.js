@@ -29,19 +29,34 @@ define(
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/model/installments',
-        'mage/url'
+        'mage/url',
+        'Magento_Vault/js/view/payment/vault-enabler'
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url, VaultEnabler) {
 
         'use strict';
 
         return Component.extend({
+            // need to duplicate as without the button will never activate on first time page view
+            isPlaceOrderActionAllowed: ko.observable(quote.billingAddress() != null),
+
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
                 creditCardOwner: '',
                 setStoreCc: false,
                 installment: '',
                 creditCardDetailsValid: false
+            },
+            /**
+             * @returns {exports.initialize}
+             */
+            initialize: function () {
+                this._super();
+                this.vaultEnabler = new VaultEnabler();
+                this.vaultEnabler.setPaymentCode(this.getVaultCode());
+                this.vaultEnabler.isActivePaymentTokenEnabler(false);
+
+                return this;
             },
             initObservable: function () {
                 this._super()
@@ -70,7 +85,6 @@ define(
              */
             renderSecureFields: function () {
                 var self = this;
-                self.placeOrderAllowed(false);
                 if (!self.getOriginKey()) {
                     return;
                 }
@@ -162,7 +176,7 @@ define(
                         self.creditCardDetailsValid(true);
                         self.placeOrderAllowed(true);
                     },
-                    onError: function (state) {
+                    onError: function () {
                         self.creditCardDetailsValid(false);
                         self.placeOrderAllowed(false);
                     }
@@ -176,7 +190,7 @@ define(
              * @returns {{method: *, additional_data: {cc_type: *, number: *, cvc, expiryMonth: *, expiryYear: *, holderName: *, store_cc: *, number_of_installments: *}}}
              */
             getData: function () {
-                return {
+                var data = {
                     'method': this.item.method,
                     additional_data: {
                         'card_brand': this.variant(),
@@ -190,6 +204,8 @@ define(
                         'number_of_installments': this.installment()
                     }
                 };
+                this.vaultEnabler.visitAdditionalData(data);
+                return data;
             },
             /**
              * Returns state of place order button
@@ -360,6 +376,18 @@ define(
             },
             context: function () {
                 return this;
+            },
+            /**
+             * @returns {Bool}
+             */
+            isVaultEnabled: function () {
+                return this.vaultEnabler.isVaultEnabled();
+            },
+            /**
+             * @returns {String}
+             */
+            getVaultCode: function () {
+                return window.checkoutConfig.payment[this.getCode()].vaultCode;
             }
         });
     }

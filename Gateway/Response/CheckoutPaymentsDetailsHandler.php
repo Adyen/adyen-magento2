@@ -65,7 +65,8 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             $payment->setTransactionId($response['pspReference']);
         }
 
-        if (!empty($response['additionalData']['recurring.recurringDetailReference'])
+        if (!empty($response['additionalData']['recurring.recurringDetailReference']) &&
+            !$this->adyenHelper->isCreditCardVaultEnabled()
         ) {
             $order = $payment->getOrder();
 

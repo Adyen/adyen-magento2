@@ -72,17 +72,17 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
      */
     private $ccConfig;
 
-	/**
-	 * AdyenOneclickConfigProvider constructor.
-	 *
-	 * @param \Adyen\Payment\Helper\Data $adyenHelper
-	 * @param \Magento\Framework\App\RequestInterface $request
-	 * @param \Magento\Customer\Model\Session $customerSession
-	 * @param \Magento\Checkout\Model\Session $session
-	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-	 * @param \Magento\Framework\UrlInterface $urlBuilder
-	 * @param \Magento\Payment\Model\CcConfig $ccConfig
-	 */
+    /**
+     * AdyenOneclickConfigProvider constructor.
+     *
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Magento\Checkout\Model\Session $session
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param \Magento\Payment\Model\CcConfig $ccConfig
+     */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\App\RequestInterface $request,
@@ -103,6 +103,8 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
 
     /**
      * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getConfig()
     {
@@ -119,12 +121,20 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             ]
         ];
 
+        // don't show this payment method if vault is enabled
+        if ($this->_adyenHelper->isCreditCardVaultEnabled()) {
+            $config['payment']['adyenOneclick']['methodCode'] = self::CODE;
+            $config['payment'][self::CODE]['isActive'] = false;
+            return $config;
+
+        }
+
         $methodCode = self::CODE;
 
         $config = array_merge_recursive($config, [
             'payment' => [
                 'ccform' => [
-                    'availableTypes' => [$methodCode => $this->getCcAvailableTypes($methodCode)],
+                    'availableTypes' => [$methodCode => $this->getCcAvailableTypes()],
                     'months' => [$methodCode => $this->getCcMonths()],
                     'years' => [$methodCode => $this->getCcYears()],
                     'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
@@ -133,10 +143,10 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             ]
         ]);
 
-		$config['payment']['adyenOneclick']['methodCode'] = self::CODE;
-		$config['payment']['adyenOneclick']['originKey'] = $this->_adyenHelper->getOriginKeyForBaseUrl();
-		$config['payment']['adyenOneclick']['checkoutUrl'] = $this->_adyenHelper->getCheckoutContextUrl($this->_storeManager->getStore()->getId());
-		$config['payment']['adyenOneclick']['locale'] = $this->_adyenHelper->getStoreLocale($this->_storeManager->getStore()->getId());
+        $config['payment']['adyenOneclick']['methodCode'] = self::CODE;
+        $config['payment']['adyenOneclick']['originKey'] = $this->_adyenHelper->getOriginKeyForBaseUrl();
+        $config['payment']['adyenOneclick']['checkoutUrl'] = $this->_adyenHelper->getCheckoutContextUrl($this->_storeManager->getStore()->getId());
+        $config['payment']['adyenOneclick']['locale'] = $this->_adyenHelper->getStoreLocale($this->_storeManager->getStore()->getId());
 
         $enableOneclick = $this->_adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
         $canCreateBillingAgreement = false;
@@ -150,9 +160,9 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
 
         $config['payment'] ['adyenOneclick']['billingAgreements'] = $this->getAdyenOneclickPaymentMethods();
         if ($recurringContractType == \Adyen\Payment\Model\RecurringType::ONECLICK) {
-            $config['payment'] ['adyenOneclick']['hasCustomerInteraction'] = true;
+            $config['payment']['adyenOneclick']['hasCustomerInteraction'] = true;
         } else {
-            $config['payment'] ['adyenOneclick']['hasCustomerInteraction'] = false;
+            $config['payment']['adyenOneclick']['hasCustomerInteraction'] = false;
         }
 
         return $config;
@@ -201,10 +211,9 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
     /**
      * Retrieve availables credit card types
      *
-     * @param string $methodCode
      * @return array
      */
-    protected function getCcAvailableTypes($methodCode)
+    protected function getCcAvailableTypes()
     {
         $types = [];
         $ccTypes = $this->_adyenHelper->getAdyenCcTypes();

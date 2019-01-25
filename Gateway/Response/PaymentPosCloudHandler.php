@@ -105,7 +105,10 @@ class PaymentPosCloudHandler implements HandlerInterface
                 $additionalData['paymentMethod'] = $brand;
                 $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
                 $additionalData['pos_payment'] = true;
-                $this->adyenHelper->createAdyenBillingAgreement($payment->getOrder(), $additionalData);
+
+                if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
+                    $this->adyenHelper->createAdyenBillingAgreement($payment->getOrder(), $additionalData);
+                }
             }
         }
 

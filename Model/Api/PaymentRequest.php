@@ -101,25 +101,23 @@ class PaymentRequest extends DataObject
 
         $md = $payment->getAdditionalInformation('md');
         $paResponse = $payment->getAdditionalInformation('paResponse');
-		$paymentData = $payment->getAdditionalInformation('paymentData');
+        $paymentData = $payment->getAdditionalInformation('paymentData');
 
         $request = [
-			"paymentData" => $paymentData,
-			"details" => [
-				"MD" => $md,
-				"PaRes" => $paResponse
-			]
+            "paymentData" => $paymentData,
+            "details" => [
+                "MD" => $md,
+                "PaRes" => $paResponse
+            ]
         ];
 
         try {
             $client = $this->_adyenHelper->initializeAdyenClient($storeId);
             $service = new \Adyen\Service\Checkout($client);
             $result = $service->paymentsDetails($request);
-        } catch(\Adyen\AdyenException $e) {
+        } catch (\Adyen\AdyenException $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure failed'));
         }
-
-        $this->_adyenHelper->createAdyenBillingAgreement($order, $result['additionalData']);
 
         return $result;
     }
@@ -183,8 +181,8 @@ class PaymentRequest extends DataObject
         // rest call to get list of recurring details
         $contract = ['contract' => $recurringType];
         $request = [
-            "merchantAccount"    => $this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId),
-            "shopperReference"   => $shopperReference,
+            "merchantAccount" => $this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId),
+            "shopperReference" => $shopperReference,
             "recurring" => $contract,
         ];
 

@@ -40,7 +40,8 @@
     <div class="payment-method-content">
 
         <!-- ko ifnot: (getOriginKey()) -->
-        <span class="message message-error error"><!-- ko text: $t('Please configure an API Key and a live endpoint prefix(if in Production Mode) in your Adyen Required Settings')--><!-- /ko --></span>
+        <span class="message message-error error"><!-- ko text: $t('Please configure an API Key and a live endpoint prefix(if in Production Mode) in your Adyen Required Settings')-->
+            <!-- /ko --></span>
         <!--/ko-->
 
         <div class="payment-method-billing-address">
@@ -104,8 +105,20 @@
 
                 <!-- /ko -->
 
+                <!-- ko if: (isVaultEnabled())-->
+                <div class="field choice">
+                    <input type="checkbox"
+                           name="vault[is_enabled]"
+                           class="checkbox"
+                           data-bind="attr: {'id': getCode() + '_enable_vault'}, checked: vaultEnabler.isActivePaymentTokenEnabler"/>
+                    <label class="label" data-bind="attr: {'for': getCode() + '_enable_vault'}">
+                        <span><!-- ko i18n: 'Save for later use.'--><!-- /ko --></span>
+                    </label>
+                </div>
+                <!-- /ko -->
 
-                <!-- ko if: (canCreateBillingAgreement())-->
+
+                <!-- ko if: (canCreateBillingAgreement() && !isVaultEnabled())-->
 
                 <div class="field choice">
                     <input type="checkbox"
