@@ -1325,7 +1325,9 @@ class Data extends AbstractHelper
     public function initializeAdyenClient($storeId = null, $apiKey = null)
     {
         // initialize client
-        $apiKey = $this->getAPIKey($storeId);
+        if (empty($apiKey)) {
+            $apiKey = $this->getAPIKey($storeId);
+        }
 
         $client = $this->createAdyenClient();
         $client->setApplicationName("Magento 2 plugin");
