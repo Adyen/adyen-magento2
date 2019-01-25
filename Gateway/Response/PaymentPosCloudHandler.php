@@ -109,7 +109,6 @@ class PaymentPosCloudHandler implements HandlerInterface
                 if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
                     $this->adyenHelper->createAdyenBillingAgreement($payment->getOrder(), $additionalData);
                 }
-                // TODO: add to vault if recurring!!
             }
         }
 
