@@ -731,6 +731,15 @@
 
 .adyen-checkout__input.adyen-checkout__input--large {
     width: 300px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 3px;
+    border: 1px solid #b9c4c9;
+}
+
+.adyen-checkout__input.adyen-checkout__input--large::placeholder {
+    color: rgb(144, 162, 189);
+    font-weight: 400;
 }
 
 .adyen-checkout__input--error {
@@ -1013,4 +1022,8 @@
 
 #iDealContainer .adyen-checkout__dropdown__element{
     margin-bottom: 0;
+}
+
+#adyen_oneclick_installments_div, #adyen_cc_installments_div {
+    max-width: 300px;
 }
