@@ -100,6 +100,20 @@ define(
             getAdyenBillingAgreements: function () {
                 var self = this;
 
+                // shareable adyen checkout component
+                var checkout = new AdyenCheckout({
+                    locale: self.getLocale(),
+                    originKey: self.getOriginKey(),
+                    loadingContext: self.getLoadingContext(),
+                    // Specific for oneClick cards
+                    details: [
+                        {
+                            "key": "cardDetails.cvc",
+                            "type": "cvc"
+                        }
+                    ]
+                });
+
                 // convert to list so you can iterate
                 var paymentList = _.map(window.checkoutConfig.payment.adyenOneclick.billingAgreements, function (value) {
 
@@ -211,10 +225,6 @@ define(
                             }
                             var oneClickCardNode = document.getElementById('cvcContainer-' + self.value);
 
-                            var checkout = new AdyenCheckout({
-                                locale: self.getLocale()
-                            });
-
                             // this should be fixed in new version of checkout card component
                             var hideCVC = false;
                             if (this.hasVerification()) {
@@ -231,19 +241,9 @@ define(
 
                             var oneClickCard = checkout
                                 .create('card', {
-                                    originKey: self.getOriginKey(),
-                                    loadingContext: self.getLoadingContext(),
                                     type: self.agreement_data.variant,
                                     oneClick: true,
                                     hideCVC: hideCVC,
-
-                                    // Specific for oneClick cards
-                                    details: [
-                                        {
-                                            "key": "cardDetails.cvc",
-                                            "type": "cvc"
-                                        }
-                                    ],
                                     storedDetails: {
                                         "card": {
                                             "expiryMonth": self.agreement_data.card.expiryMonth,
@@ -254,6 +254,9 @@ define(
                                     },
                                     onChange: function (state) {
                                         if (state.isValid) {
+                                            self.placeOrderAllowed(true);
+                                            isValid(true);
+
                                             if (typeof state.data !== 'undefined' &&
                                                 typeof state.data.encryptedSecurityCode !== 'undefined'
                                             ) {
@@ -261,25 +264,12 @@ define(
                                             }
                                         } else {
                                             self.encryptedCreditCardVerificationNumber = '';
-                                            // onChange is called on the startup so make sure maestro has always optional cvc field
+
                                             if (self.agreement_data.variant != "maestro") {
                                                 self.placeOrderAllowed(false);
                                                 isValid(false);
                                             }
                                         }
-                                    },
-                                    onValid: function (state) {
-                                        if (state.isValid) {
-                                            self.placeOrderAllowed(true);
-                                            isValid(true);
-                                        }
-
-                                        return;
-                                    },
-                                    onError: function (data) {
-                                        self.placeOrderAllowed(false);
-                                        isValid(false);
-                                        return;
                                     }
                                 })
                                 .mount(oneClickCardNode);
@@ -327,15 +317,6 @@ define(
                         getCode: function () {
                             return self.item.method;
                         },
-                        getLocale: function () {
-                            return window.checkoutConfig.payment.adyenOneclick.locale;
-                        },
-                        getOriginKey: function () {
-                            return window.checkoutConfig.payment.adyenOneclick.originKey;
-                        },
-                        getLoadingContext: function () {
-                            return window.checkoutConfig.payment.adyenOneclick.checkoutUrl;
-                        },
                         hasVerification: function () {
                             return self.hasVerification()
                         },
@@ -344,6 +325,9 @@ define(
                         },
                         getMessageContainer: function () {
                             return messageContainer;
+                        },
+                        getOriginKey:function () {
+                            return self.getOriginKey();
                         },
                         isPlaceOrderActionAllowed: function () {
                             return self.isPlaceOrderActionAllowed(); // needed for placeOrder method
@@ -433,6 +417,15 @@ define(
             },
             hasVerification: function () {
                 return window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction;
+            },
+            getLocale: function () {
+                return window.checkoutConfig.payment.adyenOneclick.locale;
+            },
+            getOriginKey: function () {
+                return window.checkoutConfig.payment.adyenOneclick.originKey;
+            },
+            getLoadingContext: function () {
+                return window.checkoutConfig.payment.adyenOneclick.checkoutUrl;
             }
         });
     }
