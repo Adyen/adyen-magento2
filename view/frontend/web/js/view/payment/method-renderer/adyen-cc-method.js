@@ -89,7 +89,6 @@ define(
                     return;
                 }
 
-
                 installments.setInstallments(0);
 
                 // installments enabled ??
@@ -109,8 +108,16 @@ define(
                     groupTypes: self.getAvailableCardTypeAltCodes(),
 
                     onChange: function (state) {
-                        // isValid is not present on start
-                        if (typeof state.isValid !== 'undefined' && state.isValid === false) {
+                        if (!!state.isValid) {
+                            self.variant(state.brand);
+                            self.creditCardNumber(state.data.encryptedCardNumber);
+                            self.expiryMonth(state.data.encryptedExpiryMonth);
+                            self.expiryYear(state.data.encryptedExpiryYear);
+                            self.securityCode(state.data.encryptedSecurityCode);
+                            self.creditCardOwner(state.data.holderName);
+                            self.creditCardDetailsValid(true);
+                            self.placeOrderAllowed(true);
+                        } else {
                             self.creditCardDetailsValid(false);
                             self.placeOrderAllowed(false);
                         }
@@ -154,7 +161,6 @@ define(
                                 }
                             }
 
-                            // Color the image of the credit card
                             // for BCMC as this is not a core payment method inside magento use maestro as brand detection
                             if (creditCardType == "BCMC") {
                                 self.creditCardType("MI");
@@ -165,20 +171,6 @@ define(
                         } else {
                             self.creditCardType("")
                         }
-                    },
-                    onValid: function (state) {
-                        self.variant(state.brand);
-                        self.creditCardNumber(state.data.encryptedCardNumber);
-                        self.expiryMonth(state.data.encryptedExpiryMonth);
-                        self.expiryYear(state.data.encryptedExpiryYear);
-                        self.securityCode(state.data.encryptedSecurityCode);
-                        self.creditCardOwner(state.data.holderName);
-                        self.creditCardDetailsValid(true);
-                        self.placeOrderAllowed(true);
-                    },
-                    onError: function () {
-                        self.creditCardDetailsValid(false);
-                        self.placeOrderAllowed(false);
                     }
                 });
 
