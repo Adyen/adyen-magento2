@@ -137,8 +137,50 @@ class CheckoutDataBuilder implements BuilderInterface
 			$request = array_merge($request, $openInvoiceFields);
 		}
 
-		return $request;
-	}
+        //Boleto data
+        if ($payment->getAdditionalInformation("social_security_number")) {
+            $request['socialSecurityNumber'] = $payment->getAdditionalInformation("social_security_number");
+        }
+
+        if ($payment->getAdditionalInformation("firstname")) {
+            $request['shopperName']['firstName'] = $payment->getAdditionalInformation("firstname");
+        }
+
+        if ($payment->getAdditionalInformation("lastName")) {
+            $request['shopperName']['lastName'] = $payment->getAdditionalInformation("lastName");
+        }
+
+        if ($payment->getAdditionalInformation(AdyenBoletoDataAssignObserver::BOLETO_TYPE)) {
+            $boletoTypes = $this->adyenHelper->getAdyenBoletoConfigData('boletotypes');
+            $boletoTypes = explode(',', $boletoTypes);
+
+            if (count($boletoTypes) == 1) {
+                $request['selectedBrand'] = $boletoTypes[0];
+                $request['paymentMethod']['type'] = $boletoTypes[0];
+            } else {
+                $request['selectedBrand'] = $payment->getAdditionalInformation("boleto_type");
+                $request['paymentMethod']['type'] = $payment->getAdditionalInformation("boleto_type");
+            }
+
+            $deliveryDays = (int)$this->adyenHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
+            $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
+            $deliveryDate = date(
+                "Y-m-d\TH:i:s ",
+                mktime(
+                    date("H"),
+                    date("i"),
+                    date("s"),
+                    date("m"),
+                    date("j") + $deliveryDays,
+                    date("Y")
+                )
+            );
+
+            $request['deliveryDate'] = $deliveryDate;
+        }
+
+        return $request;
+    }
 
 	/**
 	 * @param $formFields
