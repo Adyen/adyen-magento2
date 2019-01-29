@@ -60,41 +60,41 @@ class CheckoutResponseValidator extends AbstractValidator
 		$isValid = true;
 		$errorMessages = [];
 
-		// validate result
-		if (isset($response['resultCode'])) {
-			switch ($response['resultCode']) {
-				case "Authorised":
-					$payment->setAdditionalInformation('pspReference', $response['pspReference']);
-					break;
-				case "Received":
-					$payment->setAdditionalInformation('pspReference', $response['pspReference']);
-					// set additionalData
-					if (isset($response['additionalData']) && is_array($response['additionalData'])) {
+        // validate result
+        if (isset($response['resultCode'])) {
+            switch ($response['resultCode']) {
+                case "Authorised":
+                    $payment->setAdditionalInformation('pspReference', $response['pspReference']);
+                    break;
+                case "PresentToShopper":
+                    $payment->setAdditionalInformation('pspReference', $response['pspReference']);
+                    // set additionalData
+                    if (isset($response['outputDetails']) && is_array($response['outputDetails'])) {
 
-						$additionalData = $response['additionalData'];
-						if (isset($additionalData['boletobancario.dueDate'])) {
-							$payment->setAdditionalInformation(
-								'dueDate',
-								$additionalData['boletobancario.dueDate']
-							);
-						}
+                        $outputDetails = $response['outputDetails'];
+                        if (isset($outputDetails['boletobancario.dueDate'])) {
+                            $payment->setAdditionalInformation(
+                                'dueDate',
+                                $outputDetails['boletobancario.dueDate']
+                            );
+                        }
 
-						if (isset($additionalData['boletobancario.expirationDate'])) {
-							$payment->setAdditionalInformation(
-								'expirationDate',
-								$additionalData['boletobancario.expirationDate']
-							);
-						}
+                        if (isset($outputDetails['boletobancario.expirationDate'])) {
+                            $payment->setAdditionalInformation(
+                                'expirationDate',
+                                $outputDetails['boletobancario.expirationDate']
+                            );
+                        }
 
-						if (isset($additionalData['boletobancario.url'])) {
-							$payment->setAdditionalInformation(
-								'url',
-								$additionalData['boletobancario.url']
-							);
-						}
-					}
-					break;
-				case "RedirectShopper":
+                        if (isset($outputDetails['boletobancario.url'])) {
+                            $payment->setAdditionalInformation(
+                                'url',
+                                $outputDetails['boletobancario.url']
+                            );
+                        }
+                    }
+                    break;
+                case "RedirectShopper":
 
 					$redirectUrl = null;
 					$paymentData = null;
