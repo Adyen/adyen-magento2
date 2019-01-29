@@ -997,6 +997,18 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodBoletoMethod($paymentMethod)
+    {
+        if (strpos($paymentMethod, 'boleto') !== false) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @return bool
      */
     public function showLogos()
