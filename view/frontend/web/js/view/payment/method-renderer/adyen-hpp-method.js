@@ -164,6 +164,12 @@ define(
                     result.value = value.brandCode;
                     result.name = value;
                     result.method = self.item.method;
+                    /**
+                     * Observable to enable and disable place order buttons for payment methods
+                     * Default value is true to be able to send the real hpp requiests that doesn't require any input
+                     * @type {observable}
+                     */
+                    result.placeOrderAllowed = ko.observable(true);
                     result.getCode = function () {
                         return self.item.method;
                     };
@@ -175,6 +181,17 @@ define(
                     };
                     result.isPlaceOrderActionAllowed = function(bool) {
                         return self.isPlaceOrderActionAllowed(bool);
+                    };
+
+                    /**
+                     * Set and get if the place order action is allowed
+                     * Sets the placeOrderAllowed observable and the original isPlaceOrderActionAllowed as well
+                     * @param bool
+                     * @returns {*}
+                     */
+                    result.isPlaceOrderAllowed = function(bool) {
+                        self.isPlaceOrderActionAllowed(bool);
+                        return result.placeOrderAllowed(bool);
                     };
                     result.afterPlaceOrder = function() {
                         return self.afterPlaceOrder();
@@ -227,7 +244,7 @@ define(
                      * sets up the callbacks for ideal components and
                      */
                     result.renderIdealComponent = function () {
-                        self.isPlaceOrderActionAllowed(false);
+                        result.isPlaceOrderAllowed(false);
 
                         var secureFieldsNode = document.getElementById('iDealContainer');
 
@@ -240,15 +257,15 @@ define(
                             onChange: function (state) {
                                 // isValid is not present on start
                                 if (typeof state.isValid !== 'undefined' && state.isValid === false) {
-                                    self.isPlaceOrderActionAllowed(false);
+                                    result.isPlaceOrderAllowed(false);
                                 }
                             },
                             onValid: function (state) {
                                 result.issuerId(state.data.issuer);
-                                self.isPlaceOrderActionAllowed(true);
+                                result.isPlaceOrderAllowed(true);
                             },
                             onError: function (state) {
-                                self.isPlaceOrderActionAllowed(false);
+                                result.isPlaceOrderAllowed(false);
                             }
                         });
 
@@ -373,18 +390,31 @@ define(
             placeRedirectOrder: function(data) {
                 // Place Order but use our own redirect url after
                 var self = this;
+                fullScreenLoader.startLoader();
 
                 var messageContainer = this.messageContainer;
                 if(brandCode()) {
                     messageContainer = self.messageComponents['messages-' + brandCode()];
                 }
-                
+
+                $('.hpp-message').slideUp();
+
                 this.isPlaceOrderActionAllowed(false);
-                fullScreenLoader.startLoader();
                 $.when(
                     placeOrderAction(data, messageContainer)
                 ).fail(
-                    function () {
+                    function (response) {
+                        fullScreenLoader.stopLoader();
+                        //messageContainer.addErrorMessage((response['responseJSON'].message).replace('%1', response['responseJSON'].parameters[0]));
+                        if (!!response['responseJSON'].parameters) {
+                            $("#messages-" + brandCode()).text((response['responseJSON'].message).replace('%1', response['responseJSON'].parameters[0])).slideDown();
+                        } else {
+                            $("#messages-" + brandCode()).text(response['responseJSON'].message).slideDown();
+                        }
+
+                        setTimeout(function(){
+                            $("#messages-" + brandCode()).slideUp();
+                        }, 10000);
                         self.isPlaceOrderActionAllowed(true);
                     }
                 ).done(

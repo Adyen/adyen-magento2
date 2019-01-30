@@ -173,11 +173,15 @@
                     <!-- ko template: getTemplate() --><!-- /ko -->
                     <!--/ko-->
                 </div>
+                <div>
+                    <span class="message message-error error hpp-message" data-bind="attr: {id: 'messages-' + value}"></span>
+                </div>
+
                 <div class="actions-toolbar">
                     <div class="primary">
                         <button class="action primary checkout"
                                 type="submit"
-                                data-bind="click: $parent.continueToAdyenBrandCode, enable: (value == $parent.isBrandCodeChecked())"
+                                data-bind="click: $parent.continueToAdyenBrandCode, enable: placeOrderAllowed()"
                                 disabled>
                             <span data-bind="text: $t('Place Order')"></span>
                         </button>
