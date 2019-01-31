@@ -158,7 +158,7 @@ class PaymentMethods extends AbstractHelper
             /*
              * skip payment methods if it is a creditcard that is enabled in adyen_cc
              */
-            if ($ccEnabled && in_array($methodCode, $ccTypes)) {
+            if ($ccEnabled && in_array($methodCode, $ccTypes) || (strpos($methodCode, 'boleto') !== false)) {
                 continue;
             }
 
