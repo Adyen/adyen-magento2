@@ -73,10 +73,6 @@
             <label>Elo</label>
             <code_alt>elo</code_alt>
         </type>
-        <type id="AURA" order="120">
-            <label>Aura</label>
-            <code_alt>aura</code_alt>
-        </type>
         <type id="TROY" order="130">
             <label>Troy</label>
             <code_alt>troy</code_alt>
