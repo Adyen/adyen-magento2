@@ -194,7 +194,7 @@ class Redirect extends \Magento\Payment\Block\Form
                     $this->_order->getGrandTotal(),
                     $orderCurrencyCode
                 );
-                $merchantAccount = trim($this->_adyenHelper->getAdyenAbstractConfigData('merchant_account'));
+                $merchantAccount = trim($this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $this->_order->getStoreId()));
                 $shopperEmail = $this->_order->getCustomerEmail();
                 $customerId = $this->_order->getCustomerId();
                 $shopperIP = $this->_order->getRemoteIp();
