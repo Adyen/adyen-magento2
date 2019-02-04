@@ -73,7 +73,17 @@
                         <!--/ko-->
                     <!--/ko-->
 
-                    <!-- ko if: isPaymentMethodOpenInvoiceMethod() -->
+
+
+                    <!-- ko if: isPaymentMethodKlarna() -->
+                        <div afterRender="renderKlarnaComponent()" data-bind="attr: { id: 'klarnaContainer'}"></div>
+                    <!--/ko-->
+
+                    <!-- ko if: isPaymentMethodAfterPay() -->
+                        <div afterRender="renderAfterPayComponent()" data-bind="attr: { id: 'afterPayContainer'}"></div>
+                    <!--/ko-->
+
+                    <!-- ko if: isPaymentMethodOtherOpenInvoiceMethod() -->
 
                         <div class="field gender required">
                                 <label data-bind="attr: {for: getCode() + '_gender_type_' + value}" class="label">
