@@ -195,6 +195,14 @@ class PaymentMethods extends AbstractHelper
 			"shopperLocale" => $this->getCurrentLocaleCode($store)
         ];
 
+		$billingAddress = $this->getQuote()->getBillingAddress();
+
+		if (!empty($billingAddress)) {
+			if ($customerTelephone = trim($billingAddress->getTelephone())) {
+				$adyFields['telephoneNumber'] = $customerTelephone;
+			}
+		}
+
         $responseData = $this->getPaymentMethodsResponse($adyFields, $store);
 
         $paymentMethods = [];

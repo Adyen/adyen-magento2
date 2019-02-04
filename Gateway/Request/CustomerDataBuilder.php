@@ -23,14 +23,31 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
+use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
 /**
  * Class CustomerDataBuilder
  */
 class CustomerDataBuilder implements BuilderInterface
 {
+	/**
+	 * @var \Adyen\Payment\Helper\Data
+	 */
+	private $adyenHelper;
 
-    /**
+	/**
+	 * CustomerDataBuilder constructor.
+	 *
+	 * @param \Adyen\Payment\Helper\Data $adyenHelper
+	 */
+	public function __construct(
+		\Adyen\Payment\Helper\Data $adyenHelper
+	)
+	{
+		$this->adyenHelper = $adyenHelper;
+	}
+
+	/**
      * Add shopper data into request
      *
      * @param array $buildSubject
@@ -43,6 +60,7 @@ class CustomerDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getOrder();
+		$payment = $paymentDataObject->getPayment();
         $customerId = $order->getCustomerId();
 
         if ($customerId > 0) {
@@ -52,21 +70,48 @@ class CustomerDataBuilder implements BuilderInterface
 		$billingAddress = $order->getBillingAddress();
 
         if (!empty($billingAddress)) {
-			$customerEmail = $billingAddress->getEmail();
-			if ($customerEmail) {
-				$result['shopperEmail'] = $customerEmail;
+			if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
+				$payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
+			) && !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod(
+					$payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
+				)) {
+				if ($customerEmail = $billingAddress->getEmail()) {
+					$result['paymentMethod']['personalDetails']['shopperEmail'] = $customerEmail;
+				}
+
+				if ($customerTelephone = trim($billingAddress->getTelephone())) {
+					$result['paymentMethod']['personalDetails']['telephoneNumber'] = $customerTelephone;
+				}
+
+				if ($firstName = $billingAddress->getFirstname()) {
+					$result['paymentMethod']['personalDetails']['firstName'] = $firstName;
+				}
+
+				if ($lastName = $billingAddress->getLastname()) {
+					$result['paymentMethod']['personalDetails']['lastName'] = $lastName;
+				}
+			} else {
+				if ($customerEmail = $billingAddress->getEmail()) {
+					$result['shopperEmail'] = $customerEmail;
+				}
+
+				if ($customerTelephone = trim($billingAddress->getTelephone())) {
+					$result['telephoneNumber'] = $customerTelephone;
+				}
+
+				if ($firstName = $billingAddress->getFirstname()) {
+					$result['shopperName']['firstName'] = $firstName;
+				}
+
+				if ($lastName = $billingAddress->getLastname()) {
+					$result['shopperName']['lastName'] = $lastName;
+				}
 			}
 
-			$customerTelephone = trim($billingAddress->getTelephone());
-			if ($customerTelephone) {
-				$result['telephoneNumber'] = $customerTelephone;
+			if ($countryId = $billingAddress->getCountryId()) {
+				$result['countryCode'] = $countryId;
 			}
 		}
-
-        $result['shopperName']['firstName'] = $order->getBillingAddress()->getFirstname();
-		$result['shopperName']['lastName'] = $order->getBillingAddress()->getLastname();
-
-		$result['countryCode'] = $billingAddress->getCountryId();
 
         return $result;
     }
