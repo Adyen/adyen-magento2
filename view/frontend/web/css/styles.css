@@ -297,6 +297,119 @@
     position:relative;
     transition:opacity .3s ease-out;
     width:100%
+#iDealContainer .adyen-checkout__dropdown--large{
+    margin-left: 21px;
+}
+
+#iDealContainer .adyen-checkout__dropdown__element{
+    margin-bottom: 0;
+}
+
+
+/* Checkout component Adyen styling start */
+.adyen-checkout__spinner__wrapper{
+    align-items:center;
+    display:flex;
+    height:100%;
+    justify-content:center
+}
+.adyen-checkout__spinner__wrapper--inline{
+    display:inline-block;
+    height:auto;
+    margin-right:8px
+}
+.adyen-checkout__spinner{
+    -webkit-animation:rotateSpinner 2s infinite linear;
+    animation:rotateSpinner 2s infinite linear;
+    border:2px solid #00a3ff;
+    border-radius:50%;
+    border-top-color:transparent;
+    height:43px;
+    width:43px
+}
+.adyen-checkout__spinner--large{
+    height:43px;
+    width:43px
+}
+.adyen-checkout__spinner--small{
+    height:16px;
+    width:16px
+}
+.adyen-checkout__spinner--medium{
+    height:28px;
+    width:28px
+}
+@-webkit-keyframes rotateSpinner{
+    0%{
+        -webkit-transform:rotate(0deg);
+        transform:rotate(0deg)
+    }
+    to{
+        -webkit-transform:rotate(1turn);
+        transform:rotate(1turn)
+    }
+}
+@keyframes rotateSpinner{
+    0%{
+        -webkit-transform:rotate(0deg);
+        transform:rotate(0deg)
+    }
+    to{
+        -webkit-transform:rotate(1turn);
+        transform:rotate(1turn)
+    }
+}
+
+.adyen-checkout__pay-button{
+    background:#001b2b;
+    border:0;
+    border-radius:3px;
+    box-shadow:0 3px 4px rgba(0,15,45,.2);
+    color:#fff;
+    cursor:pointer;
+    font-size:1em;
+    font-weight:700;
+    height:48px;
+    padding:15px;
+    transition:background .3s ease-out;
+    width:100%
+}
+.adyen-checkout__pay-button:disabled{
+    -moz-user-select:all;
+    -ms-user-select:all;
+    -webkit-user-select:all;
+    background:#e6e9eb;
+    box-shadow:none;
+    cursor:not-allowed;
+    user-select:all
+}
+.adyen-checkout__pay-button--loading{
+    -moz-user-select:none;
+    -ms-user-select:none;
+    -webkit-user-select:none;
+    background:#4c5f6b;
+    box-shadow:none;
+    outline:0;
+    pointer-events:none;
+    user-select:none
+}
+.adyen-checkout__pay-button .adyen-checkout__spinner{
+    border-color:transparent #fff #fff;
+    border-width:3px
+}
+.adyen-checkout__pay-button__content{
+    align-items:center;
+    display:flex;
+    justify-content:center
+}
+.adyen-checkout__payment-method{
+    background:#fff;
+    border:1px solid #edf0f3;
+    cursor:pointer;
+    margin-top:-1px;
+    position:relative;
+    transition:opacity .3s ease-out;
+    width:100%
 }
 .adyen-checkout__payment-method:focus{
     outline:0
@@ -864,6 +977,12 @@
     font-size:13px;
     line-height:19px;
     margin:0
+}
+.adyen-checkout__open-invoice .adyen-checkout__checkbox--consent-checkbox{
+    max-width:540px
+}
+.adyen-checkout__open-invoice .adyen-checkout__checkbox+.adyen-checkout__open-invoice .adyen-checkout__fieldset{
+    padding-top:30px
 }
 .adyen-checkout__open-invoice .adyen-checkout__checkbox--consent-checkbox{
     max-width:540px

@@ -113,11 +113,6 @@ class CustomerDataBuilder implements BuilderInterface
 			}
 		}
 
-        $result['shopperName']['firstName'] = $order->getBillingAddress()->getFirstname();
-		$result['shopperName']['lastName'] = $order->getBillingAddress()->getLastname();
-
-		$result['countryCode'] = $billingAddress->getCountryId();
-
         return $result;
     }
 }
