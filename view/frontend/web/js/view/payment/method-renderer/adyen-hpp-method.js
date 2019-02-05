@@ -217,8 +217,62 @@ define(
                     result.afterPlaceOrder = function() {
                         return self.afterPlaceOrder();
                     };
+                    /**
+                     * Checks if payment method is open invoice
+                     * @returns {*|isPaymentMethodOpenInvoiceMethod}
+                     */
                     result.isPaymentMethodOpenInvoiceMethod = function () {
                         return value.isPaymentMethodOpenInvoiceMethod;
+                    };
+                    /**
+                     * Checks if payment method is open invoice but not in the list below
+                     * [klarna, afterpay]
+                     * @returns {boolean}
+                     */
+                    result.isPaymentMethodOtherOpenInvoiceMethod = function () {
+                        if (
+                            !result.isPaymentMethodAfterPay() &&
+                            !result.isPaymentMethodKlarna() &&
+                            !result.isPaymentMethodAfterPayTouch() &&
+                            value.isPaymentMethodOpenInvoiceMethod
+                        ) {
+                            return true;
+                        }
+
+                        return false;
+                    };
+                    /**
+                     * Checks if payment method is klarna
+                     * @returns {boolean}
+                     */
+                    result.isPaymentMethodKlarna = function () {
+                        if (result.getBrandCode() === "klarna") {
+                            return true;
+                        }
+
+                        return false;
+                    };
+                    /**
+                     * Checks if payment method is after pay
+                     * @returns {boolean}
+                     */
+                    result.isPaymentMethodAfterPay = function () {
+                        if (result.getBrandCode() === "afterpay_default") {
+                            return true;
+                        }
+
+                        return false;
+                    };
+                    /**
+                     * Checks if payment method is after pay touch
+                     * @returns {boolean}
+                     */
+                    result.isPaymentMethodAfterPayTouch = function () {
+                        if (result.getBrandCode() === "afterpaytouch") {
+                            return true;
+                        }
+
+                        return false;
                     };
                     result.getSsnLength = function () {
                         if (quote.billingAddress().countryId == "NO") {
@@ -311,9 +365,8 @@ define(
                     };
 
                     /**
-                     * Renders the secure fields,
-                     * creates the sepa direct debit component,
-                     * sets up the callbacks for sepa components and
+                     * Creates the sepa direct debit component,
+                     * sets up the callbacks for sepa components
                      */
                     result.renderSepaDirectDebitComponent = function () {
                         result.isPlaceOrderAllowed(false);
@@ -334,6 +387,58 @@ define(
                         });
 
                         sepaDirectDebit.mount(sepaDirectDebitNode);
+                    };
+
+                    /**
+                     * Creates the klarna component,
+                     * sets up the callbacks for klarna components
+                     */
+                    result.renderKlarnaComponent = function () {
+
+                        var klarnaNode = document.getElementById('klarnaContainer');
+
+                        var klarna = self.checkoutComponent.create('klarna', {
+                            countryCode: self.getLocale(),
+                            details: self.filterOutOpenInvoiceComponentDetails(value.details),
+                            visibility: {
+                                personalDetails: "editable"
+                            },
+                            onChange: function (state) {
+                                if (!!state.isValid) {
+                                    result.dob(state.data.personalDetails.dateOfBirth);
+                                    result.telephone(state.data.personalDetails.telephoneNumber);
+                                    result.gender(state.data.personalDetails.gender);
+                                    result.isPlaceOrderAllowed(true);
+                                } else {
+                                    result.isPlaceOrderAllowed(false);
+                                }
+                            }
+                        }).mount(klarnaNode);
+                    };
+
+                    /**
+                     * Creates the afterpay component,
+                     * sets up the callbacks for klarna components
+                     */
+                    result.renderAfterPayComponent = function () {
+
+                        var afterPay = self.checkoutComponent.create('afterpay', {
+                            countryCode: self.getLocale(),
+                            details: self.filterOutOpenInvoiceComponentDetails(value.details),
+                            visibility: {
+                                personalDetails: "editable"
+                            },
+                            onChange: function (state) {
+                                if (!!state.isValid) {
+                                    result.dob(state.data.personalDetails.dateOfBirth);
+                                    result.telephone(state.data.personalDetails.telephoneNumber);
+                                    result.gender(state.data.personalDetails.gender);
+                                    result.isPlaceOrderAllowed(true);
+                                } else {
+                                    result.isPlaceOrderAllowed(false);
+                                }
+                            }
+                        }).mount(document.getElementById('afterPayContainer'));
                     };
 
                     if (result.hasIssuersProperty()) {
@@ -518,6 +623,46 @@ define(
             },
             getLocale: function () {
                 return window.checkoutConfig.payment.adyenHpp.locale;
+            },
+            /**
+             * In the open invoice components we need to validate only the personal details and only the
+             * dateOfBirth, telephoneNumber and gender if it's set in the admin
+             * @param details
+             * @returns {Array}
+             */
+            filterOutOpenInvoiceComponentDetails: function (details) {
+                var self = this;
+                var filteredDetails = _.map(details, function (parentDetail) {
+                    if (parentDetail.key == "personalDetails") {
+                        var detailObject = _.map(parentDetail.details, function (detail) {
+                            if (detail.key == 'dateOfBirth' ||
+                                detail.key == 'telephoneNumber' ||
+                                detail.key == 'gender') {
+                                return detail;
+                            }
+                        });
+
+                        if (!!detailObject) {
+                            return {
+                                "key": parentDetail.key,
+                                "type": parentDetail.type,
+                                "details": self.filterUndefinedItemsInArray(detailObject)
+                            };
+                        }
+                    }
+                });
+
+                return self.filterUndefinedItemsInArray(filteredDetails);
+            },
+            /**
+             * Helper function to filter out the undefined items from an array
+             * @param arr
+             * @returns {*}
+             */
+            filterUndefinedItemsInArray: function(arr) {
+                return arr.filter(function(item){
+                    return typeof item !== 'undefined';
+                });
             }
         });
     }

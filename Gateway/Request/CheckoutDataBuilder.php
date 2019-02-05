@@ -105,18 +105,18 @@ class CheckoutDataBuilder implements BuilderInterface
 			$order->setCustomerGender(\Adyen\Payment\Model\Gender::getMagentoGenderFromAdyenGender(
 				$payment->getAdditionalInformation("gender"))
 			);
-			$request['shopperName']['gender'] = $payment->getAdditionalInformation("gender");
+			$request['paymentMethod']['personalDetails']['gender'] = $payment->getAdditionalInformation("gender");
 		}
 
 		if ($payment->getAdditionalInformation("dob")) {
 			$order->setCustomerDob($payment->getAdditionalInformation("dob"));
 
-			$request['dateOfBirth']= $this->adyenHelper->formatDate($payment->getAdditionalInformation("dob"), 'Y-m-d') ;
+			$request['paymentMethod']['personalDetails']['dateOfBirth']= $this->adyenHelper->formatDate($payment->getAdditionalInformation("dob"), 'Y-m-d') ;
 		}
 
 		if ($payment->getAdditionalInformation("telephone")) {
 			$order->getBillingAddress()->setTelephone($payment->getAdditionalInformation("telephone"));
-			$request['telephoneNumber']= $payment->getAdditionalInformation("telephone");
+			$request['paymentMethod']['personalDetails']['telephoneNumber']= $payment->getAdditionalInformation("telephone");
 		}
 
 		// Additional data for sepa direct debit
@@ -130,7 +130,9 @@ class CheckoutDataBuilder implements BuilderInterface
 
 		if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
 			$payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
-		)) {
+		) || $this->adyenHelper->isPaymentMethodAfterpayTouchMethod(
+				$payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
+			)) {
 			$openInvoiceFields = $this->getOpenInvoiceData($order);
 			$request = array_merge($request, $openInvoiceFields);
 		}
