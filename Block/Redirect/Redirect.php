@@ -113,6 +113,18 @@ class Redirect extends \Magento\Payment\Block\Form
     }
 
 	/**
+	 * @return mixed|string[]
+	 * @throws AdyenException
+	 */
+    public function getRedirectMethod()
+	{
+		if ($redirectMethod = $this->getPayment()->getAdditionalInformation('redirectMethod')) {
+			return $redirectMethod;
+		}
+
+		throw new AdyenException("No redirect method is provided.");
+	}
+	/**
 	 * Retrieves redirect url for the flow of checkout API
 	 *
 	 * @return string[]
@@ -120,17 +132,8 @@ class Redirect extends \Magento\Payment\Block\Form
 	 */
 	public function getRedirectUrl()
 	{
-		try {
-			if ($paymentObject = $this->_order->getPayment()) {
-				if ($redirectUrl = $paymentObject->getAdditionalInformation('redirectUrl')) {
-					return $redirectUrl;
-				} else {
-					return $this->getIssuerUrl();
-				}
-			}
-		} catch (Exception $e) {
-			// do nothing for now
-			throw($e);
+		if ($redirectUrl = $this->getPayment()->getAdditionalInformation('redirectUrl')) {
+			return $redirectUrl;
 		}
 
 		throw new AdyenException("No redirect url is provided.");
@@ -218,7 +221,7 @@ class Redirect extends \Magento\Payment\Block\Form
 	 */
 	private function getBrandCode()
 	{
-		return $this->_order->getPayment()->getAdditionalInformation('brand_code');
+		return $this->getPayment()->getAdditionalInformation('brand_code');
 	}
 
     /**
@@ -599,25 +602,26 @@ class Redirect extends \Magento\Payment\Block\Form
 	/**
 	 * @return mixed
 	 */
-	public function getIssuerUrl()
-	{
-		return $this->_order->getPayment()->getAdditionalInformation('issuerUrl');
-	}
-
-	/**
-	 * @return mixed
-	 */
 	public function getPaReq()
 	{
-		return $this->_order->getPayment()->getAdditionalInformation('paRequest');
+		if ($paReq = $this->getPayment()->getAdditionalInformation('paRequest')) {
+			return $paReq;
+		}
+
+		throw new AdyenException("No paRequest is provided.");
 	}
 
 	/**
-	 * @return mixed
+	 * @return string[]
+	 * @throws AdyenException
 	 */
 	public function getMd()
 	{
-		return $this->_order->getPayment()->getAdditionalInformation('md');
+		if ($md = $this->getPayment()->getAdditionalInformation('md')) {
+			return $md;
+		}
+
+		throw new AdyenException("No MD is provided.");
 	}
 
 	/**
@@ -627,5 +631,25 @@ class Redirect extends \Magento\Payment\Block\Form
 	{
 		return $this->getUrl('adyen/process/redirect',
 			['_secure' => $this->_getRequest()->isSecure()]);
+	}
+
+	/**
+	 * Retrieve payment object if available
+	 *
+	 * @return \Magento\Framework\DataObject|\Magento\Sales\Api\Data\OrderPaymentInterface|mixed|null
+	 * @throws AdyenException
+	 */
+	private function getPayment() {
+		try {
+			$paymentObject = $this->_order->getPayment();
+			if (!empty($paymentObject)) {
+				return $paymentObject;
+			}
+		} catch (Exception $e) {
+			// do nothing for now
+			throw($e);
+		}
+
+		throw new AdyenException("No payment object is found.");
 	}
 }
