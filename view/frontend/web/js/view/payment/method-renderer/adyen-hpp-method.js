@@ -405,7 +405,6 @@ define(
                 ).fail(
                     function (response) {
                         fullScreenLoader.stopLoader();
-                        //messageContainer.addErrorMessage((response['responseJSON'].message).replace('%1', response['responseJSON'].parameters[0]));
                         if (!!response['responseJSON'].parameters) {
                             $("#messages-" + brandCode()).text((response['responseJSON'].message).replace('%1', response['responseJSON'].parameters[0])).slideDown();
                         } else {
