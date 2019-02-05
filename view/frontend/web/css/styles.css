@@ -1011,10 +1011,11 @@
     max-width: 290px;
 }
 
-#iDealContainer .adyen-checkout__dropdown--large{
-    margin-left: 21px;
-}
-
 #iDealContainer .adyen-checkout__dropdown__element{
     margin-bottom: 0;
+}
+
+.message.error.hpp-message{
+    margin-top: 10px;
+    display: none;
 }
