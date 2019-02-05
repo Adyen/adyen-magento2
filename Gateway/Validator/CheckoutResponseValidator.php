@@ -103,6 +103,10 @@ class CheckoutResponseValidator extends AbstractValidator
 						$redirectUrl = $response['redirect']['url'];
 					}
 
+					if (!empty($response['redirect']['method'])) {
+						$redirectMethod = $response['redirect']['method'];
+					}
+
 					if (!empty($response['paymentData'])) {
 						$paymentData = $response['paymentData'];
 					}
@@ -123,8 +127,9 @@ class CheckoutResponseValidator extends AbstractValidator
 							$md = $response['redirect']['data']['MD'];
 						}
 
-						if ($paReq && $md && $redirectUrl && $paymentData) {
-							$payment->setAdditionalInformation('issuerUrl', $redirectUrl);
+						if ($paReq && $md && $redirectUrl && $paymentData && $redirectMethod) {
+							$payment->setAdditionalInformation('redirectUrl', $redirectUrl);
+							$payment->setAdditionalInformation('redirectMethod', $redirectMethod);
 							$payment->setAdditionalInformation('paRequest', $paReq);
 							$payment->setAdditionalInformation('md', $md);
 							$payment->setAdditionalInformation('paymentData', $paymentData);
@@ -139,8 +144,9 @@ class CheckoutResponseValidator extends AbstractValidator
 						// Flag to show we are in the checkoutAPM flow
 						$payment->setAdditionalInformation('checkoutAPM', true);
 
-						if ($redirectUrl && $paymentData) {
+						if ($redirectUrl && $paymentData && $redirectMethod) {
 							$payment->setAdditionalInformation('redirectUrl', $redirectUrl);
+							$payment->setAdditionalInformation('redirectMethod', $redirectMethod);
 							$payment->setAdditionalInformation('paymentData', $paymentData);
 						} else {
 							$isValid = false;
