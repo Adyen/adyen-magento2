@@ -156,9 +156,9 @@ class PaymentMethods extends AbstractHelper
 
         foreach ($this->fetchAlternativeMethods($store, $country) as $methodCode => $methodData) {
             /*
-             * skip payment methods if it is a creditcard that is enabled in adyen_cc
+             * skip payment methods if it is a creditcard that is enabled in adyen_cc or a boleto method
              */
-            if ($ccEnabled && in_array($methodCode, $ccTypes) || (strpos($methodCode, 'boleto') !== false)) {
+            if ($ccEnabled && in_array($methodCode, $ccTypes) || $this->adyenHelper->isPaymentMethodBoletoMethod($methodCode)) {
                 continue;
             }
 
