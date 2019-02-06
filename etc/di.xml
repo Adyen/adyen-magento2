@@ -634,7 +634,7 @@
     <virtualType name="AdyenPaymentCcResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
         <arguments>
             <argument name="handlers" xsi:type="array">
-                <item name="payment_details" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentsDetailsHandler</item>*24
+                <item name="payment_details" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentsDetailsHandler</item>
                 <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentCommentHistoryHandler</item>
             </argument>
         </arguments>
