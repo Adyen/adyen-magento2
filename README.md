@@ -1,8 +1,18 @@
 # Adyen Payment plugin for Magento2
 Use Adyen's plugin for Magento 2 to offer frictionless payments online, in-app, and in-store.
 
+## Integration
+The plugin integrates Adyen Checkout for all card payments. Local/redirect payment methods are integrated with DirectoryLookup and HPP. For Point Of Sale (POS) payments we use Terminal API using Cloud-based communication. Boleto and SEPA are a direct API integration into Adyen.
+
+### Support Vault and Instant Purchase ###
+Inside Adyen toggle the following settings on inside the API and Responses section (settings -> API and Responses)
+* Recurring details
+* Card summary
+* Expiry date
+* Variant
+
 ## Requirements
-This plugin supports Magento2 version 2.1 and higher
+This plugin supports Magento2 version 2.1 and higher.
 
 ## Collaboration
 We commit all our new features directly into our GitHub repository.
@@ -33,14 +43,6 @@ We have defined this:
     </job>
 </group>
 ```
-
-## Vault ##
-For enabling vault you need the following permissions:
-rechargeSynchronousStoreDetails ask adyen support to enable this
- Toggle one the following API responses. This can be done in the CA of Adyen inside API and Responses (settings -> API and Responses)
-* Card summary
-* Expiry date
-* Variant
 
 ## Support
 You can create issues on our Magento Repository. In case of specific problems with your account, please contact  <a href="mailto:support@adyen.com">support@adyen.com</a>.
