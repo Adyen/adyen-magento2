@@ -87,6 +87,7 @@ class CheckoutDataBuilder implements BuilderInterface
 		$paymentDataObject =\Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
 		$payment = $paymentDataObject->getPayment();
 		$order = $payment->getOrder();
+		$storeId = $order->getStoreId();
 		$request = [];
 
         // do not send email
