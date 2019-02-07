@@ -305,6 +305,11 @@
     margin-bottom: 0;
 }
 
+.message.error.hpp-message{
+    margin-top: 10px;
+    display: none;
+}
+
 
 /* Checkout component Adyen styling start */
 .adyen-checkout__spinner__wrapper{
