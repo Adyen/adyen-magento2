@@ -145,7 +145,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
 						// set back to false so when pressed back button on the success page it will reactivate 3D secure
 						$order->getPayment()->setAdditionalInformation('3dActive', '');
 						$order->getPayment()->setAdditionalInformation('3dSuccess', true);
-						$this->_orderRepository->save($order);
 
                         if (!$this->_adyenHelper->isCreditCardVaultEnabled() &&
                             !empty($result['additionalData']['recurring.recurringDetailReference'])) {
@@ -181,6 +180,8 @@ class Redirect extends \Magento\Framework\App\Action\Action
                                 $this->_adyenLogger->error((string)$e->getMessage());
                             }
                         }
+
+                        $this->_orderRepository->save($order);
 
 						$this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
 					} else {
