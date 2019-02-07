@@ -270,6 +270,13 @@ define(
                                                 isValid(false);
                                             }
                                         }
+
+                                        if (self.agreement_data.variant == "maestro" &&
+                                            component.state.errors.encryptedSecurityCode
+                                        ) {
+                                            self.placeOrderAllowed(false);
+                                            isValid(false);
+                                        }
                                     }
                                 })
                                 .mount(oneClickCardNode);
