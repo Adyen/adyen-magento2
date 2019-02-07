@@ -252,7 +252,7 @@ define(
                                             "number": self.agreement_data.card.number
                                         }
                                     },
-                                    onChange: function (state) {
+                                    onChange: function (state, component) {
                                         if (state.isValid) {
                                             self.placeOrderAllowed(true);
                                             isValid(true);
