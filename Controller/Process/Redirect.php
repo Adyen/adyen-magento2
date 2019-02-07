@@ -22,6 +22,7 @@
  */
 
 namespace Adyen\Payment\Controller\Process;
+use Magento\Framework\App\Request\Http as Http;
 
 class Redirect extends \Magento\Framework\App\Action\Action
 {
@@ -87,6 +88,12 @@ class Redirect extends \Magento\Framework\App\Action\Action
 		$this->_adyenHelper = $adyenHelper;
 		$this->_paymentRequest = $paymentRequest;
 		$this->_orderRepository = $orderRepository;
+        if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
+            $request = $this->getRequest();
+            if ($request instanceof Http && $request->isPost()) {
+                $request->setParam('isAjax', true);
+            }
+        }
     }
 
 	/**
