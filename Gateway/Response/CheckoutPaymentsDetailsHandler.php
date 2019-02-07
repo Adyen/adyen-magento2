@@ -69,7 +69,6 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             !$this->adyenHelper->isCreditCardVaultEnabled()
         ) {
             $order = $payment->getOrder();
-
             $this->adyenHelper->createAdyenBillingAgreement($order, $response['additionalData']);
         }
 
