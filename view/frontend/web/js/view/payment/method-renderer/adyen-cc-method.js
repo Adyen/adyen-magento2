@@ -121,11 +121,11 @@ define(
                             self.creditCardDetailsValid(false);
                             self.placeOrderAllowed(false);
                         }
-
+                    },
+                    onBrand: function (state) {
                         // Define the card type
                         // translate adyen card type to magento card type
                         var creditCardType = self.getCcCodeByAltCode(state.brand);
-
                         if (creditCardType) {
                             // If the credit card type is already set, check if it changed or not
                             if (!self.creditCardType() || self.creditCardType() && self.creditCardType() != creditCardType) {
@@ -170,6 +170,7 @@ define(
                             }
                         } else {
                             self.creditCardType("")
+                            installments.setInstallments(0);
                         }
                     }
                 });

@@ -67,7 +67,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
 	 */
 	protected $_orderRepository;
 
-    /**
+	/**
 	 * Redirect constructor.
 	 *
 	 * @param \Magento\Framework\App\Action\Context $context
@@ -146,6 +146,41 @@ class Redirect extends \Magento\Framework\App\Action\Action
 						$order->getPayment()->setAdditionalInformation('3dActive', '');
 						$order->getPayment()->setAdditionalInformation('3dSuccess', true);
 						$this->_orderRepository->save($order);
+
+                        if (!$this->_adyenHelper->isCreditCardVaultEnabled() &&
+                            !empty($result['additionalData']['recurring.recurringDetailReference'])) {
+                            $this->_adyenHelper->createAdyenBillingAgreement($order, $result['additionalData']);
+                        } elseif (!empty($result['additionalData']['recurring.recurringDetailReference'])
+                        ) {
+                            try {
+                                $additionalData = $result['additionalData'];
+                                $token = $additionalData['recurring.recurringDetailReference'];
+                                $expirationDate = $additionalData['expiryDate'];
+                                $cardType = $additionalData['paymentMethod'];
+                                $cardSummary = $additionalData['cardSummary'];
+                                /** @var PaymentTokenInterface $paymentToken */
+                                $paymentToken = $this->paymentTokenFactory->create(
+                                    PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
+                                );
+                                $paymentToken->setGatewayToken($token);
+                                $paymentToken->setExpiresAt($this->getExpirationDate($expirationDate));
+                                $details = [
+                                    'type' => $cardType,
+                                    'maskedCC' => $cardSummary,
+                                    'expirationDate' => $expirationDate
+                                ];
+                                $paymentToken->setTokenDetails(json_encode($details));
+                                $extensionAttributes = $this->getExtensionAttributes($order->getPayment());
+                                $extensionAttributes->setVaultPaymentToken($paymentToken);
+                                $orderPayment = $order->getPayment()->setExtensionAttributes($extensionAttributes);
+                                $add = unserialize($orderPayment->getAdditionalData());
+                                $add['force_save'] = true;
+                                $orderPayment->setAdditionalData(serialize($add));
+                                $this->orderPaymentResource->save($orderPayment);
+                            } catch (\Exception $e) {
+                                $this->_adyenLogger->error((string)$e->getMessage());
+                            }
+                        }
 
 						$this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
 					} else {
@@ -249,6 +284,46 @@ class Redirect extends \Magento\Framework\App\Action\Action
 		} catch(\Exception $e) {
 			throw $e;
 		}
+
 		return $response;
 	}
+
+    /**
+     * @param $expirationDate
+     * @return string
+     */
+    private function getExpirationDate($expirationDate)
+    {
+        $expirationDate = explode('/', $expirationDate);
+        //add leading zero to month
+        $month = sprintf("%02d", $expirationDate[0]);
+        $expDate = new \DateTime(
+            $expirationDate[1]
+            . '-'
+            . $month
+            . '-'
+            . '01'
+            . ' '
+            . '00:00:00',
+            new \DateTimeZone('UTC')
+        );
+        // add one month
+        $expDate->add(new \DateInterval('P1M'));
+        return $expDate->format('Y-m-d 00:00:00');
+    }
+
+    /**
+     * Get payment extension attributes
+     * @param InfoInterface $payment
+     * @return OrderPaymentExtensionInterface
+     */
+    private function getExtensionAttributes(InfoInterface $payment)
+    {
+        $extensionAttributes = $payment->getExtensionAttributes();
+        if (null === $extensionAttributes) {
+            $extensionAttributes = $this->paymentExtensionFactory->create();
+            $payment->setExtensionAttributes($extensionAttributes);
+        }
+        return $extensionAttributes;
+    }
 }
