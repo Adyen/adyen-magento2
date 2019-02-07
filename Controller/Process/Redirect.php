@@ -67,7 +67,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
 	 */
 	protected $_orderRepository;
 
-	/**
+    /**
 	 * Redirect constructor.
 	 *
 	 * @param \Magento\Framework\App\Action\Context $context
@@ -131,15 +131,16 @@ class Redirect extends \Magento\Framework\App\Action\Action
 
 					try {
 						$result = $this->_authorise3d($order->getPayment());
+                        $responseCode = $result['resultCode'];
 					} catch (\Exception $e) {
 						$this->_adyenLogger->addAdyenResult("Process 3D secure payment was refused");
-						$result = 'Refused';
+                        $responseCode = 'Refused';
 					}
 
-					$this->_adyenLogger->addAdyenResult("Process 3D secure payment result is: " . $result);
+					$this->_adyenLogger->addAdyenResult("Process 3D secure payment result is: " . $responseCode);
 
 					// check if authorise3d was successful
-					if ($result == 'Authorised') {
+					if ($responseCode == 'Authorised') {
 						$order->addStatusHistoryComment(__('3D-secure validation was successful'))->save();
 						// set back to false so when pressed back button on the success page it will reactivate 3D secure
 						$order->getPayment()->setAdditionalInformation('3dActive', '');
@@ -248,7 +249,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
 		} catch(\Exception $e) {
 			throw $e;
 		}
-		$responseCode = $response['resultCode'];
-		return $responseCode;
+		return $response;
 	}
 }
