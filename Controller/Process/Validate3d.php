@@ -146,15 +146,16 @@ class Validate3d extends \Magento\Framework\App\Action\Action
 
                     try {
                         $result = $this->_authorise3d($order->getPayment());
+                        $responseCode = $result['resultCode'];
                     } catch (\Exception $e) {
                         $this->_adyenLogger->addAdyenResult("Process 3D secure payment was refused");
-                        $result = 'Refused';
+                        $responseCode = 'Refused';
                     }
 
-                    $this->_adyenLogger->addAdyenResult("Process 3D secure payment result is: " . $result);
+                    $this->_adyenLogger->addAdyenResult("Process 3D secure payment result is: " . $responseCode);
 
                     // check if authorise3d was successful
-                    if ($result == 'Authorised') {
+                    if ($responseCode == 'Authorised') {
                         $order->addStatusHistoryComment(__('3D-secure validation was successful'))->save();
 
                         /**
@@ -163,7 +164,7 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                          */
                         $order->getPayment()->setAdditionalInformation('3dActive', '');
                         $order->getPayment()->setAdditionalInformation('3dSuccess', true);
-                        $this->_orderRepository->save($order);
+
 
                         // TODO: add better checks if variables are available in the result
                         if (!$this->_adyenHelper->isCreditCardVaultEnabled()) {
@@ -200,6 +201,8 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                                 $this->_adyenLogger->error((string)$e->getMessage());
                             }
                         }
+
+                        $this->_orderRepository->save($order);
 
 
                         $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
@@ -251,8 +254,7 @@ class Validate3d extends \Magento\Framework\App\Action\Action
         } catch (\Exception $e) {
             throw $e;
         }
-        $responseCode = $response['resultCode'];
-        return $responseCode;
+        return $response;
     }
 
     /**
