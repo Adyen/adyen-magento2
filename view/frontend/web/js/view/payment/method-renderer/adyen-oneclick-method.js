@@ -104,14 +104,7 @@ define(
                 var checkout = new AdyenCheckout({
                     locale: self.getLocale(),
                     originKey: self.getOriginKey(),
-                    loadingContext: self.getLoadingContext(),
-                    // Specific for oneClick cards
-                    details: [
-                        {
-                            "key": "cardDetails.cvc",
-                            "type": "cvc"
-                        }
-                    ]
+                    loadingContext: self.getLoadingContext()
                 });
 
                 // convert to list so you can iterate
@@ -228,10 +221,7 @@ define(
                             // this should be fixed in new version of checkout card component
                             var hideCVC = false;
                             if (this.hasVerification()) {
-                                if (self.agreement_data.variant == "bcmc") {
-                                    hideCVC = true;
-                                    self.placeOrderAllowed(true);
-                                } else if (self.agreement_data.variant == "maestro") {
+                                if (self.agreement_data.variant == "maestro") {
                                     // for maestro cvc is optional
                                     self.placeOrderAllowed(true);
                                 }
@@ -242,8 +232,8 @@ define(
                             var oneClickCard = checkout
                                 .create('card', {
                                     type: self.agreement_data.variant,
-                                    oneClick: true,
                                     hideCVC: hideCVC,
+                                    details: self.getOneclickDetails(),
                                     storedDetails: {
                                         "card": {
                                             "expiryMonth": self.agreement_data.card.expiryMonth,
@@ -271,6 +261,7 @@ define(
                                             }
                                         }
 
+                                        // When we move to the component v2.2 it should be removed
                                         if (self.agreement_data.variant == "maestro" &&
                                             component.state.errors.encryptedSecurityCode
                                         ) {
@@ -283,6 +274,27 @@ define(
 
 
                             window.adyencheckout = oneClickCard;
+                        },
+                        /**
+                         * We use the billingAgreements to save the oneClick stored payments but we don't store the
+                         * details object that we get from the paymentMethods call. This function is a fix for BCMC.
+                         * When we render the stored payments dynamically from the paymentMethods call response it
+                         * should be removed
+                         * @returns {*}
+                         */
+                        getOneclickDetails: function() {
+                            var self = this;
+
+                            if (self.agreement_data.variant === 'bcmc') {
+                                return [];
+                            } else {
+                                return [
+                                    {
+                                        "key": "cardDetails.cvc",
+                                        "type": "cvc"
+                                    }
+                                ];
+                            }
                         },
                         /**
                          * Builds the payment details part of the payment information reqeust
