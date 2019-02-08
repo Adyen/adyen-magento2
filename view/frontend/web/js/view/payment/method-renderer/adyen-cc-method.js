@@ -107,8 +107,8 @@ define(
                     holderNameRequired: true,
                     groupTypes: self.getAvailableCardTypeAltCodes(),
 
-                    onChange: function (state) {
-                        if (!!state.isValid) {
+                    onChange: function (state, component) {
+                        if (!!state.isValid && !component.state.errors.encryptedSecurityCode) {
                             self.variant(state.brand);
                             self.creditCardNumber(state.data.encryptedCardNumber);
                             self.expiryMonth(state.data.encryptedExpiryMonth);
