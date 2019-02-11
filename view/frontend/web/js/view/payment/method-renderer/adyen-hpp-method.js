@@ -41,7 +41,6 @@ define(
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
-        var dfValue = ko.observable(null);
         var messageComponents;
         /**
          * Shareble adyen checkout component
@@ -63,7 +62,6 @@ define(
                         'gender',
                         'dob',
                         'telephone',
-                        'dfValue',
                         'ownerName',
                         'ibanNumber'
                     ]);
@@ -106,19 +104,6 @@ define(
                     serviceUrl, JSON.stringify(payload)
                 ).done(
                     function (response) {
-                        function waitForDfSet() {
-                            // Wait for dfSet function to be loaded from df.js script
-                            if (typeof dfSet == "undefined") {
-                                setTimeout(waitForDfSet, 500);
-                                return;
-                            }
-
-                            // set device fingerprint value
-                            dfSet('dfValue', 0);
-                            // propagate this manually to knockoutjs otherwise it would not work
-                            dfValue($('#dfValue').val());
-                        }
-
                         adyenPaymentService.setPaymentMethods(response);
                         if (JSON.stringify(response).indexOf("ratepay") > -1) {
                             var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
@@ -136,13 +121,6 @@ define(
                             ratepayScriptTag.type = "text/javascript";
                             document.body.appendChild(ratepayScriptTag);
                         }
-
-                        // Load Adyen df.js script
-                        var dfScriptTag = document.createElement('script');
-                        dfScriptTag.src = "//live.adyen.com/hpp/js/df.js?v=20171130";
-                        dfScriptTag.type = "text/javascript";
-                        document.body.appendChild(dfScriptTag);
-                        waitForDfSet();
 
                         // create component needs to be in initialize method
                         var messageComponents = {};
@@ -517,7 +495,6 @@ define(
 
                     var additionalData = {};
                     additionalData.brand_code = self.value;
-                    additionalData.df_value = dfValue();
 
                     if (self.hasIssuersAvailable()) {
                         additionalData.issuer_id = this.issuerId();
