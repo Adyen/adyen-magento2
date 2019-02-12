@@ -64,8 +64,6 @@ class CheckoutResponseValidator extends AbstractValidator
         if (isset($response['resultCode'])) {
             switch ($response['resultCode']) {
                 case "Authorised":
-                    $payment->setAdditionalInformation('pspReference', $response['pspReference']);
-                    break;
                 case "Received":
                     $payment->setAdditionalInformation('pspReference', $response['pspReference']);
                     break;
