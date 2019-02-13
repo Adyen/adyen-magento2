@@ -77,40 +77,57 @@
 
 
 
-                <!-- ko if: isPaymentMethodKlarna() -->
-
-                    <!-- ko if: showSsn() -->
-                    <div class="field ssn type required">
-                        <label data-bind="attr: {for: getCode() + '_ssn_' + value}" class="adyen-checkout__label__text">
-                            <span><!-- ko text: $t('Personal number')--><!-- /ko --></span>
-                        </label>
-                        <div class="control">
-                            <input type="text" class="input-text"
-                                   name="payment[ssn]"
-                                   data-bind="
-                                               attr: {
-                                                    id: getCode() + '_ssn_' + value,
-                                                    title: $t('Social Security Number'),
-                                                    'data-container': getCode() + '-ssn',
-                                                    maxlength : getSsnLength()
-                                                },
-                                                value: ssn"
-                                   data-validate="{required:true}"
-                            />
-                        </div>
-                    </div>
-                    <!--/ko-->
-
-                    <div afterRender="renderKlarnaComponent()" data-bind="attr: { id: 'klarnaContainer'}"></div>
-                <!--/ko-->
-
-
-
                     <!-- ko if: isPaymentMethodKlarna() -->
+
+                        <!-- ko if: showSsn() -->
+                        <div class="field ssn type required">
+                            <label data-bind="attr: {for: getCode() + '_ssn_' + value}" class="adyen-checkout__label__text">
+                                <span><!-- ko text: $t('Personal number')--><!-- /ko --></span>
+                            </label>
+                            <div class="control">
+                                <input type="text" class="input-text"
+                                       name="payment[ssn]"
+                                       data-bind="
+                                                   attr: {
+                                                        id: getCode() + '_ssn_' + value,
+                                                        title: $t('Social Security Number'),
+                                                        'data-container': getCode() + '-ssn',
+                                                        maxlength : getSsnLength()
+                                                    },
+                                                    value: ssn"
+                                       data-validate="{required:true}"
+                                />
+                            </div>
+                        </div>
+                        <!--/ko-->
+
                         <div afterRender="renderKlarnaComponent()" data-bind="attr: { id: 'klarnaContainer'}"></div>
                     <!--/ko-->
 
                     <!-- ko if: isPaymentMethodAfterPay() -->
+
+                        <!-- ko if: showSsn() -->
+                        <div class="field ssn type required">
+                            <label data-bind="attr: {for: getCode() + '_ssn_' + value}" class="adyen-checkout__label__text">
+                                <span><!-- ko text: $t('Personal number')--><!-- /ko --></span>
+                            </label>
+                            <div class="control">
+                                <input type="text" class="input-text"
+                                       name="payment[ssn]"
+                                       data-bind="
+                                                   attr: {
+                                                        id: getCode() + '_ssn_' + value,
+                                                        title: $t('Social Security Number'),
+                                                        'data-container': getCode() + '-ssn',
+                                                        maxlength : getSsnLength()
+                                                    },
+                                                    value: ssn"
+                                       data-validate="{required:true}"
+                                />
+                            </div>
+                        </div>
+                        <!--/ko-->
+
                         <div afterRender="renderAfterPayComponent()" data-bind="attr: { id: 'afterPayContainer'}"></div>
                     <!--/ko-->
 
