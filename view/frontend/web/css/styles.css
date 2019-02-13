@@ -177,6 +177,16 @@
     margin-bottom: 0;
 }
 
+/* General styling for checkout */
+
+.payment-method-content .field input, .payment-method-content .field select{
+    max-width: 168px;
+}
+
+.adyen-checkout__link adyen-checkout__link--more-information{
+    margin-bottom: 10px;
+}
+
 .message.error.hpp-message{
     margin-top: 10px;
     display: none;
