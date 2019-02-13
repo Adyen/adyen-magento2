@@ -65,10 +65,10 @@
 
                     <div class="field">
                         <select name="payment[issuer_id]" data-bind="
-                                        options: name.issuers,
+                                        options: getIssuers(),
                                         optionsText: 'name',
-                                        optionsValue: 'issuerId',
-                                        value: issuerId,
+                                        optionsValue: 'id',
+                                        value: issuer,
                                         optionsCaption: $t('Choose Your Bank')">
                         </select>
                     </div>
