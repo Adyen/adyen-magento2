@@ -63,7 +63,8 @@ define(
                         'dob',
                         'telephone',
                         'ownerName',
-                        'ibanNumber'
+                        'ibanNumber',
+                        'ssn'
                     ]);
                 return this;
             },initialize: function () {
@@ -265,12 +266,12 @@ define(
                     };
                     result.getSsnLength = function () {
                         if (quote.billingAddress().countryId == "NO") {
-                            //5 digits for Norway
-                            return 5;
+                            //14 digits for Norway ÅÅÅÅMMDD-XXXXX
+                            return 14;
                         }
                         else {
-                            //4 digits for other Nordic countries
-                            return 4;
+                            //13 digits for other Nordic countries ÅÅÅÅMMDD-XXXX
+                            return 13;
                         }
                     };
                     /**
