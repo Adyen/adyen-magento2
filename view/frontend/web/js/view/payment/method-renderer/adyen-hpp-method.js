@@ -267,7 +267,7 @@ define(
                     result.getSsnLength = function () {
                         if (quote.billingAddress().countryId == "NO") {
                             //14 digits for Norway ÅÅÅÅMMDD-XXXXX
-                            return 5;
+                            return 14;
                         }
                         else {
                             //13 digits for other Nordic countries ÅÅÅÅMMDD-XXXX
