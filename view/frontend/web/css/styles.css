@@ -71,7 +71,7 @@
 }
 
 .checkout-payment-method .payment-method-title label div.adyen-sprite.adyen_cc {
-    background-position: 0 -272px;
+    background:url(../images/logos/cc_border.png) no-repeat;
 }
 
 .checkout-payment-method .payment-method-title label div.adyen-sprite.adyen_pos {
