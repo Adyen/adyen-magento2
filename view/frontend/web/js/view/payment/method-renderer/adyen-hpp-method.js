@@ -279,7 +279,11 @@ define(
                      * @returns {boolean}
                      */
                     result.hasIssuersProperty = function () {
-                        if (typeof value.details !== 'undefined' && typeof value.details[0].items !== 'undefined') {
+                        if (
+                            typeof value.details !== 'undefined' &&
+                            typeof value.details[0].items !== 'undefined' &&
+                            value.details[0].key == 'issuer'
+                        ) {
                             return true;
                         }
 
