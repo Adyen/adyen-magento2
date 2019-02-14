@@ -58,7 +58,7 @@ define(
                 this._super()
                     .observe([
                         'brandCode',
-                        'issuerId',
+                        'issuer',
                         'gender',
                         'dob',
                         'telephone',
@@ -342,7 +342,7 @@ define(
                             items: result.getIssuers(),
                             onChange: function (state) {
                                 if (!!state.isValid) {
-                                    result.issuerId(state.data.issuer);
+                                    result.issuer(state.data.issuer);
                                     result.isPlaceOrderAllowed(true);
 
                                 } else {
@@ -437,7 +437,7 @@ define(
                         }
 
                         result.issuerIds = result.getIssuers();
-                        result.issuerId = ko.observable(null);
+                        result.issuer = ko.observable(null);
                     } else if (value.isPaymentMethodOpenInvoiceMethod) {
                         result.telephone = ko.observable(quote.shippingAddress().telephone);
                         result.gender = ko.observable(window.checkoutConfig.payment.adyenHpp.gender);
@@ -498,7 +498,7 @@ define(
                     additionalData.brand_code = self.value;
 
                     if (self.hasIssuersAvailable()) {
-                        additionalData.issuer_id = this.issuerId();
+                        additionalData.issuer_id = this.issuer();
                     } else if (self.isPaymentMethodOpenInvoiceMethod()) {
                         additionalData.gender = this.gender();
                         additionalData.dob = this.dob();
