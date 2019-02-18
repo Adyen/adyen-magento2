@@ -50,10 +50,10 @@ class PaymentMethods extends AbstractHelper
      */
     protected $session;
 
-	/**
-	 * @var \Magento\Framework\Locale\ResolverInterface
-	 */
-	protected $localeResolver;
+    /**
+     * @var \Magento\Framework\Locale\ResolverInterface
+     */
+    protected $localeResolver;
 
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
@@ -92,7 +92,7 @@ class PaymentMethods extends AbstractHelper
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param Data $adyenHelper
      * @param \Magento\Checkout\Model\Session $session
-	 * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
+     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param \Magento\Framework\App\RequestInterface $request
@@ -105,7 +105,7 @@ class PaymentMethods extends AbstractHelper
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $session,
-		\Magento\Framework\Locale\ResolverInterface $localeResolver,
+        \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\App\RequestInterface $request,
@@ -117,7 +117,7 @@ class PaymentMethods extends AbstractHelper
         $this->config = $config;
         $this->adyenHelper = $adyenHelper;
         $this->session = $session;
-		$this->localeResolver = $localeResolver;
+        $this->localeResolver = $localeResolver;
         $this->adyenLogger = $adyenLogger;
         $this->assetRepo = $assetRepo;
         $this->request = $request;
@@ -158,7 +158,10 @@ class PaymentMethods extends AbstractHelper
             /*
              * skip payment methods if it is a creditcard that is enabled in adyen_cc or a boleto method
              */
-            if ($ccEnabled && in_array($methodCode, $ccTypes) || $this->adyenHelper->isPaymentMethodBoletoMethod($methodCode)) {
+            if (($ccEnabled && in_array($methodCode, $ccTypes)) ||
+                $this->adyenHelper->isPaymentMethodBoletoMethod($methodCode) ||
+                $this->adyenHelper->isPaymentMethodBcmcMobileQRMethod($methodCode)
+            ) {
                 continue;
             }
 
@@ -182,26 +185,26 @@ class PaymentMethods extends AbstractHelper
         }
 
         $adyFields = [
-			"merchantAccount" => $merchantAccount,
-			"countryCode" => $this->getCurrentCountryCode($store, $country),
+            "merchantAccount" => $merchantAccount,
+            "countryCode" => $this->getCurrentCountryCode($store, $country),
             "amount" => [
-				"currency" => $this->getCurrentCurrencyCode($store),
-            	"value" => (int)$this->adyenHelper->formatAmount(
-					$this->getCurrentPaymentAmount(),
-					$this->getCurrentCurrencyCode($store)
-				),
-			],
+                "currency" => $this->getCurrentCurrencyCode($store),
+                "value" => (int)$this->adyenHelper->formatAmount(
+                    $this->getCurrentPaymentAmount(),
+                    $this->getCurrentCurrencyCode($store)
+                ),
+            ],
             "shopperReference" => $this->getCurrentShopperReference(),
-			"shopperLocale" => $this->getCurrentLocaleCode($store)
+            "shopperLocale" => $this->getCurrentLocaleCode($store)
         ];
 
-		$billingAddress = $this->getQuote()->getBillingAddress();
+        $billingAddress = $this->getQuote()->getBillingAddress();
 
-		if (!empty($billingAddress)) {
-			if ($customerTelephone = trim($billingAddress->getTelephone())) {
-				$adyFields['telephoneNumber'] = $customerTelephone;
-			}
-		}
+        if (!empty($billingAddress)) {
+            if ($customerTelephone = trim($billingAddress->getTelephone())) {
+                $adyFields['telephoneNumber'] = $customerTelephone;
+            }
+        }
 
         $responseData = $this->getPaymentMethodsResponse($adyFields, $store);
 
@@ -209,9 +212,9 @@ class PaymentMethods extends AbstractHelper
         if (isset($responseData['paymentMethods'])) {
             foreach ($responseData['paymentMethods'] as $paymentMethod) {
 
-            	if ($paymentMethod['type'] == "scheme") {
-            		continue;
-				}
+                if ($paymentMethod['type'] == "scheme") {
+                    continue;
+                }
 
                 $paymentMethodCode = $paymentMethod['type'];
                 $paymentMethod = $this->fieldMapPaymentMethod($paymentMethod);
@@ -403,11 +406,11 @@ class PaymentMethods extends AbstractHelper
         return $this->session->getQuote();
     }
 
-	/**
-	 * @return int
-	 */
+    /**
+     * @return int
+     */
     protected function getCurrentShopperReference()
-	{
-		return $this->getQuote()->getCustomerId();
-	}
+    {
+        return $this->getQuote()->getCustomerId();
+    }
 }

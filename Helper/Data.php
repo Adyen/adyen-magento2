@@ -1007,6 +1007,20 @@ class Data extends AbstractHelper
     /**
      * @return mixed
      */
+    /**
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodBcmcMobileQRMethod($paymentMethod)
+    {
+        if (strpos($paymentMethod, 'bcmc_mobile_QR') !== false) {
+            return true;
+        }
+
+        return false;
+    }
+
+
     public function getRatePayId()
     {
         return $this->getAdyenHppConfigData("ratepay_id");
