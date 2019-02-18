@@ -213,9 +213,11 @@ class CheckoutDataBuilder implements BuilderInterface
             $priceExcludingTax = $item->getPriceInclTax() - $item->getTaxAmount();
             $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($priceExcludingTax, $currency);
 
+            $formattedTaxAmount = $this->adyenHelper->formatAmount($item->getTaxAmount(), $currency);
+
             $formFields['lineItems'][] = [
                 'amountExcludingTax' => $formattedPriceExcludingTax,
-                'taxAmount' => $item->getTaxAmount(),
+                'taxAmount' => $formattedTaxAmount,
                 'description' => $item->getName(),
                 'id' => $item->getId(),
                 'quantity' => $item->getQty(),
@@ -247,13 +249,16 @@ class CheckoutDataBuilder implements BuilderInterface
         if ($this->quote->getShippingAddress()->getShippingAmount() > 0 || $this->quote->getShippingAddress()->getShippingTaxAmount() > 0) {
 
             $priceExcludingTax = $this->quote->getShippingAddress()->getShippingAmount() - $this->quote->getShippingAddress()->getShippingTaxAmount();
+
+            $formattedTaxAmount = $this->adyenHelper->formatAmount($this->quote->getShippingAddress()->getShippingTaxAmount(), $currency);
+
             $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($priceExcludingTax, $currency);
 
             $taxClassId = $this->taxConfig->getShippingTaxClass($this->storeManager->getStore()->getId());
 
             $formFields['lineItems'][] = [
                 'amountExcludingTax' => $formattedPriceExcludingTax,
-                'taxAmount' => $this->quote->getShippingAddress()->getShippingTaxAmount(),
+                'taxAmount' => $formattedTaxAmount,
                 'description' => $order->getShippingDescription(),
                 'quantity' => 1,
                 'taxPercentage' => $this->quote->getShippingAddress()->getShippingTaxAmount()
