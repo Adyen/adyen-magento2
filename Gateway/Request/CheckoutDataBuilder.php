@@ -54,28 +54,26 @@ class CheckoutDataBuilder implements BuilderInterface
 	 */
 	protected $taxConfig;
 
-
-	/**
-	 * CheckoutDataBuilder constructor.
-	 *
-	 * @param \Adyen\Payment\Helper\Data $adyenHelper
-	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-	 * @param \Magento\Checkout\Model\Session $checkoutSession
-	 * @param \Magento\Tax\Model\Config $taxConfig
-	 */
+    /**
+     * CheckoutDataBuilder constructor.
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param \Magento\Tax\Model\Config $taxConfig
+     */
 	public function __construct(
 		\Adyen\Payment\Helper\Data $adyenHelper,
 		\Magento\Store\Model\StoreManagerInterface $storeManager,
 		\Magento\Checkout\Model\Session $checkoutSession,
 		\Magento\Tax\Model\Config $taxConfig
-	)
-	{
-		$this->adyenHelper = $adyenHelper;
-		$this->storeManager = $storeManager;
-		$this->checkoutSession = $checkoutSession;
-		$this->quote = $checkoutSession->getQuote();
-		$this->taxConfig = $taxConfig;
-	}
+    )
+    {
+        $this->adyenHelper = $adyenHelper;
+        $this->storeManager = $storeManager;
+        $this->checkoutSession = $checkoutSession;
+        $this->quote = $checkoutSession->getQuote();
+        $this->taxConfig = $taxConfig;
+    }
 
 	/**
 	 * @param array $buildSubject
@@ -156,7 +154,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $request['shopperName']['lastName'] = $payment->getAdditionalInformation("lastName");
         }
 
-        if ($payment->getAdditionalInformation(AdyenBoletoDataAssignObserver::BOLETO_TYPE)) {
+        if ($payment->getMethod() == \Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider::CODE) {
             $boletoTypes = $this->adyenHelper->getAdyenBoletoConfigData('boletotypes');
             $boletoTypes = explode(',', $boletoTypes);
 
