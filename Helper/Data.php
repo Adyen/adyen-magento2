@@ -807,10 +807,6 @@ class Data extends AbstractHelper
     {
         return [
             [
-                'value' => 'boletobancario_hsbc',
-                'label' => __('boletobancario_hsbc'),
-            ],
-            [
                 'value' => 'boletobancario_itau',
                 'label' => __('boletobancario_itau'),
             ],
@@ -819,13 +815,9 @@ class Data extends AbstractHelper
                 'label' => __('boletobancario_santander'),
             ],
             [
-                'value' => 'boletobancario_bradesco',
-                'label' => __('boletobancario_bradesco'),
-            ],
-            [
-                'value' => 'boletobancario_bancodobrasil',
-                'label' => __('boletobancario_bancodobrasil'),
-            ],
+                'value' => 'primeiropay_boleto',
+                'label' => __('primeiropay_boleto'),
+            ]
         ];
     }
 
