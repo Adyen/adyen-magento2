@@ -221,6 +221,72 @@
                     <!-- ko if: isSepaDirectDebit() -->
                         <div afterRender="renderSepaDirectDebitComponent()" data-bind="attr: { id: 'sepaDirectDebitContainer'}"></div>
                     <!--/ko-->
+
+                    <!-- ko if: isAch() -->
+                        <div class="field ownerName type required">
+                            <label data-bind="attr: {for: getCode() + '_ownerName_' + value}" class="label">
+                                <span><!-- ko text: $t('Owner name')--><!-- /ko --></span>
+                            </label>
+                            <div class="control">
+                                <input type="text" class="input-text"
+                                       name="payment[ownerName]"
+                                       data-bind="
+                                                           attr: {
+                                                                id: getCode() + '_ownerName_' + value,
+                                                                title: $t('Owner name'),
+                                                                'data-container': getCode() + '-ownerName_' + value,
+                                                                'data-validate': JSON.stringify({'required':true})
+                                                            },
+                                                            value: ownerName"
+                                       data-validate="{required:true}"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="field bankAccountNumber type required">
+                            <label data-bind="attr: {for: getCode() + '_bankAccountNumber_' + value}" class="label">
+                                <span><!-- ko text: $t('Bank account number')--><!-- /ko --></span>
+                            </label>
+                            <div class="control">
+                                <input type="number" class="input-text"
+                                       name="payment[bankAccountNumber]"
+                                       data-bind="
+                                               attr: {
+                                                    id: getCode() + '_bankAccountNumber_' + value,
+                                                    title: $t('Bank account number'),
+                                                    'data-container': getCode() + '-bankAccountNumber_' + value,
+                                                    'data-validate': JSON.stringify({'required-number':true}),
+                                                    maxlength : getBankAccountNumberMaxLength()
+                                                },
+                                                value: bankAccountNumber"
+                                       data-validate="{required:true}"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="field bankLocationId type required">
+                            <label data-bind="attr: {for: getCode() + '_bankLocationId_' + value}" class="label">
+                                <span><!-- ko text: $t('Bank location ID')--><!-- /ko --></span>
+                            </label>
+                            <div class="control">
+                                <input type="number" class="input-text"
+                                       name="payment[bankLocationId]"
+                                       data-bind="
+                                                   attr: {
+                                                        id: getCode() + '_bankLocationId_' + value,
+                                                        title: $t('Bank location ID'),
+                                                        'data-container': getCode() + '-bankLocationId_' + value,
+                                                        'data-validate': JSON.stringify({'required-number':true}),
+                                                        minlength: 9,
+                                                        maxlength: 9
+                                                    },
+                                                    value: bankLocationId"
+                                       data-validate="{required:true}"
+                                />
+                            </div>
+                        </div>
+
+                    <!--/ko-->
                 </fieldset>
                 </form>
 
