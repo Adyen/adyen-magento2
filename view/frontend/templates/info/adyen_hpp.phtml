@@ -28,20 +28,51 @@
 $_info = $this->getInfo();
 ?>
 
-<?php $paymentSelectionOnAdyen = $block->isPaymentSelectionOnAdyen();?>
+<?php $paymentSelectionOnAdyen = $block->isPaymentSelectionOnAdyen(); ?>
 
 <dl class="payment-method adyen_hpp">
+    <?php if (!empty($block->getBankTransferData())) : ?>
+        <?php
+        $banktranferData = $block->getBankTransferData();
+        $order = $block->getOrder();
+        ?>
 
-<?php if($paymentSelectionOnAdyen): ?>
-        <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
+        <dt><?php echo $block->escapeHtml(__('Pay using Bank transfer')); ?></dt>
+        <dd><?php echo $block->escapeHtml(__('Please transfer the amount using the reference below to the following bank account')); ?></dd>
+
+        <?php if (!empty($order->getGrandTotal())) : ?>
+            <dt><?php echo $block->escapeHtml(__('Amount')); ?></dt>
+            <dd><?php echo $order->formatPrice($order->getGrandTotal()); ?></dd>
+        <?php endif; ?>
+
+        <?php if (!empty($banktranferData['bankTransfer.reference'])) : ?>
+            <dt><?php echo $block->escapeHtml(__('With reference')); ?></dt>
+            <dd><?php echo $banktranferData['bankTransfer.reference'] ?></dd>
+        <?php endif; ?>
+
+        <?php if (!empty($banktranferData['bankTransfer.owner'])) : ?>
+            <dt><?php echo $block->escapeHtml(__('Beneficiary Name')); ?></dt>
+            <dd><?php echo $banktranferData['bankTransfer.owner'] ?></dd>
+        <?php endif; ?>
+
+        <?php if (!empty($banktranferData['bankTransfer.bankName'])) : ?>
+            <dt><?php echo $block->escapeHtml(__('Bank')); ?></dt>
+            <dd><?php echo $banktranferData['bankTransfer.bankName'] ?></dd>
+        <?php endif; ?>
+
+        <?php if (!empty($banktranferData['bankTransfer.accountCode'])) : ?>
+            <dt><?php echo $block->escapeHtml(__('Bankaccount')); ?></dt>
+            <dd><?php echo $banktranferData['bankTransfer.accountCode'] ?></dd>
+        <?php endif; ?>
     <?php else: ?>
-
-        <?php if ($_methodTitle = $_info->getAdditionalInformation('method_title')):?>
-            <dt class="title"><?php echo $_methodTitle; ?></dt>
-        <?php elseif ($_brandCode = $_info->getAdditionalInformation('brand_code')):?>
-            <dt class="title"><?php echo $_brandCode; ?></dt>
-        <?php endif;?>
-
-<?php endif; ?>
-
+        <?php if ($paymentSelectionOnAdyen): ?>
+            <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
+        <?php else: ?>
+            <?php if ($_methodTitle = $_info->getAdditionalInformation('method_title')): ?>
+                <dt class="title"><?php echo $_methodTitle; ?></dt>
+            <?php elseif ($_brandCode = $_info->getAdditionalInformation('brand_code')): ?>
+                <dt class="title"><?php echo $_brandCode; ?></dt>
+            <?php endif; ?>
+        <?php endif; ?>
+    <?php endif; ?>
 </dl>
