@@ -104,6 +104,16 @@ class Success extends \Magento\Framework\View\Element\Template
         return null;
     }
 
+    public function getBankTransferData()
+    {
+        $result = [];
+        if (!empty($this->getOrder()->getPayment()->getAdditionalInformation('bankTransfer.owner'))) {
+            $result = $this->getOrder()->getPayment()->getAdditionalInformation();
+        }
+
+        return $result;
+    }
+
     /**
      * Get Banktransfer additional data
      *
