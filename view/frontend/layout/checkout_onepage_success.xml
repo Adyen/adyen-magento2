@@ -25,7 +25,7 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
 <body>
     <referenceContainer name="order.success.additional.info">
-        <block class="Adyen\Payment\Block\Checkout\Success" name="onepage.success.adyen_payment" template="checkout/success.phtml"/>
+        <block class="Adyen\Payment\Block\Checkout\Success" name="onepage.success.adyen_payment" template="checkout/success.phtml" cacheable="false"/>
     </referenceContainer>
 </body>
 </page>
