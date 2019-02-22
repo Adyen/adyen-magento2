@@ -100,6 +100,19 @@ class CheckoutDataBuilder implements BuilderInterface
 
         $request['returnUrl'] = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK) . 'adyen/process/result';
 
+        // Additional data for ACH
+        if ($payment->getAdditionalInformation("bankAccountNumber")) {
+            $request['bankAccount']['bankAccountNumber'] = $payment->getAdditionalInformation("bankAccountNumber");
+        }
+
+        if ($payment->getAdditionalInformation("bankLocationId")) {
+            $request['bankAccount']['bankLocationId'] = $payment->getAdditionalInformation("bankLocationId");
+        }
+
+        if ($payment->getAdditionalInformation("bankAccountOwnerName")) {
+            $request['bankAccount']['ownerName'] = $payment->getAdditionalInformation("bankAccountOwnerName");
+        }
+
 		// Additional data for open invoice payment
 		if ($payment->getAdditionalInformation("gender")) {
 			$order->setCustomerGender(\Adyen\Payment\Model\Gender::getMagentoGenderFromAdyenGender(

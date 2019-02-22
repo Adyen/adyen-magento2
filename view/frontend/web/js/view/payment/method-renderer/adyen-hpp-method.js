@@ -64,7 +64,9 @@ define(
                         'telephone',
                         'ownerName',
                         'ibanNumber',
-                        'ssn'
+                        'ssn',
+                        'bankAccountNumber',
+                        'bankLocationId'
                     ]);
                 return this;
             },initialize: function () {
@@ -264,6 +266,10 @@ define(
 
                         return false;
                     };
+                    /**
+                     * Get personal number (SSN) length based on the buyer's country
+                     * @returns {number}
+                     */
                     result.getSsnLength = function () {
                         if (quote.billingAddress().countryId == "NO") {
                             //14 digits for Norway ÅÅÅÅMMDD-XXXXX
@@ -273,6 +279,12 @@ define(
                             //13 digits for other Nordic countries ÅÅÅÅMMDD-XXXX
                             return 13;
                         }
+                    };
+                    /**
+                     * Get max length for the Bank account number
+                     */
+                    result.getBankAccountNumberMaxLength = function () {
+                        return 17;
                     };
                     /**
                      * Checks if the payment method has issuers property available
@@ -317,6 +329,17 @@ define(
                      */
                     result.isIdeal = function () {
                         if (result.getBrandCode().indexOf("ideal") >= 0) {
+                            return true;
+                        }
+
+                        return false;
+                    };
+                    /**
+                     * Checks if payment method is ACH
+                     * @returns {boolean}
+                     */
+                    result.isAch = function () {
+                        if (result.getBrandCode().indexOf("ach") == 0) {
                             return true;
                         }
 
@@ -467,6 +490,10 @@ define(
                     } else if (result.isSepaDirectDebit()) {
                         result.ownerName = ko.observable(null);
                         result.ibanNumber = ko.observable(null);
+                    } else if (result.isAch()) {
+                        result.ownerName = ko.observable(null);
+                        result.bankAccountNumber = ko.observable(null);
+                        result.bankLocationId = ko.observable(null);
                     }
 
                     return result;
@@ -514,6 +541,10 @@ define(
                     } else if (self.isSepaDirectDebit()) {
                         additionalData.ownerName = this.ownerName();
                         additionalData.ibanNumber = this.ibanNumber();
+                    } else if (self.isAch()) {
+                        additionalData.bankAccountOwnerName = this.ownerName();
+                        additionalData.bankAccountNumber = this.bankAccountNumber();
+                        additionalData.bankLocationId = this.bankLocationId();
                     }
 
                     data.additional_data = additionalData;
