@@ -84,7 +84,9 @@ class Hpp extends AbstractInfo
     public function getBankTransferData()
     {
         $result = [];
-        if(!empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('bankTransfer.owner'))) {
+        if (!empty($this->getInfo()->getOrder()->getPayment()) &&
+            !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('bankTransfer.owner'))
+        ) {
             $result = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation();
         }
 
