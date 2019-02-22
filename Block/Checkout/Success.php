@@ -76,9 +76,8 @@ class Success extends \Magento\Framework\View\Element\Template
                     'boleto_pdf_url' => $this->getBoletoPdfUrl()
                 ]
             );
-            return parent::_toHtml();
         }
-        return '';
+        return parent::_toHtml();
     }
 
     /**
@@ -103,6 +102,18 @@ class Success extends \Magento\Framework\View\Element\Template
             return $this->getOrder()->getPayment()->getAdditionalInformation('url');
         }
         return null;
+    }
+
+    public function getBankTransferData()
+    {
+        $result = [];
+        if (!empty($this->getOrder()->getPayment()) &&
+            !empty($this->getOrder()->getPayment()->getAdditionalInformation('bankTransfer.owner'))
+        ) {
+            $result = $this->getOrder()->getPayment()->getAdditionalInformation();
+        }
+
+        return $result;
     }
 
     /**

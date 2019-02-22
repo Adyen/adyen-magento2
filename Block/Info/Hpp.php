@@ -41,6 +41,33 @@ class Hpp extends AbstractInfo
     }
 
     /**
+     * Get all Banktransfer related data
+     *
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getBankTransferData()
+    {
+        $result = [];
+        if (!empty($this->getInfo()->getOrder()->getPayment()) &&
+            !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('bankTransfer.owner'))
+        ) {
+            $result = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation();
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getOrder()
+    {
+        return $this->getInfo()->getOrder();
+    }
+
+    /**
      * @return null
      * @throws \Magento\Framework\Exception\LocalizedException
      */
