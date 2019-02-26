@@ -148,7 +148,7 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                         $result = $this->_authorise3d($order->getPayment());
                         $responseCode = $result['resultCode'];
                     } catch (\Exception $e) {
-                        $this->_adyenLogger->addAdyenResult("Process 3D secure payment was refused");
+                        $this->_adyenLogger->addAdyenResult("Process 3D secure payment was refused with reason: " . $e->getMessage());
                         $responseCode = 'Refused';
                     }
 
@@ -167,10 +167,10 @@ class Validate3d extends \Magento\Framework\App\Action\Action
 
 
                         // TODO: add better checks if variables are available in the result
-                        if (!$this->_adyenHelper->isCreditCardVaultEnabled()) {
+                        if (!empty($result['additionalData']) && !$this->_adyenHelper->isCreditCardVaultEnabled()) {
                             $this->_adyenHelper->createAdyenBillingAgreement($order, $result['additionalData']);
                         } elseif (!empty($result['additionalData']) &&
-                            !empty($additionalData['recurring.recurringDetailReference'])
+                            !empty($result['additionalData']['recurring.recurringDetailReference'])
                         ) {
                             try {
                                 $additionalData = $result['additionalData'];
