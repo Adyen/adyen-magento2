@@ -166,7 +166,6 @@ class Validate3d extends \Magento\Framework\App\Action\Action
                         $order->getPayment()->setAdditionalInformation('3dSuccess', true);
 
 
-                        // TODO: add better checks if variables are available in the result
                         if (!empty($result['additionalData']) && !$this->_adyenHelper->isCreditCardVaultEnabled()) {
                             $this->_adyenHelper->createAdyenBillingAgreement($order, $result['additionalData']);
                         } elseif (!empty($result['additionalData']) &&
