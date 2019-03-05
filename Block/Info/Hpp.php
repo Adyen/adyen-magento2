@@ -31,16 +31,6 @@ class Hpp extends AbstractInfo
     protected $_template = 'Adyen_Payment::info/adyen_hpp.phtml';
 
     /**
-     * Check if Payment method selection is configured on Adyen or Magento
-     *
-     * @return mixed
-     */
-    public function isPaymentSelectionOnAdyen()
-    {
-        return $this->_adyenHelper->getAdyenHppConfigDataFlag('payment_selection_on_adyen');
-    }
-
-    /**
      * Get all Banktransfer related data
      *
      * @return array

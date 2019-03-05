@@ -22,188 +22,72 @@
  */
 -->
 
-<!-- ko ifnot: (isPaymentMethodSelectionOnAdyen())-->
-    <!-- ko foreach: getAdyenHppPaymentMethods() -->
-        <div class="payment-method" data-bind="css: {'_active': (value == $parent.isBrandCodeChecked())}">
-            <div class="payment-method-title field choice">
+<!-- ko foreach: getAdyenHppPaymentMethods() -->
+    <div class="payment-method" data-bind="css: {'_active': (value == $parent.isBrandCodeChecked())}">
+        <div class="payment-method-title field choice">
 
-                <input type="radio"
-                       name="payment[method]"
-                       class="radio"
-                       data-bind="attr: {'id': value}, value: value, checked: $parent.isBrandCodeChecked, click: $parent.selectPaymentMethodBrandCode"/>
-                <label data-bind="attr: {'for': value}" class="label">
+            <input type="radio"
+                   name="payment[method]"
+                   class="radio"
+                   data-bind="attr: {'id': value}, value: value, checked: $parent.isBrandCodeChecked, click: $parent.selectPaymentMethodBrandCode"/>
+            <label data-bind="attr: {'for': value}" class="label">
 
-                    <!-- ko if: name.icon -->
-                    <img data-bind="attr: {
-                                'src': name.icon.url,
-                                'width': name.icon.url.width,
-                                'height': name.icon.url.height
-                                }">
-                    <!--/ko-->
+                <!-- ko if: name.icon -->
+                <img data-bind="attr: {
+                            'src': name.icon.url,
+                            'width': name.icon.url.width,
+                            'height': name.icon.url.height
+                            }">
+                <!--/ko-->
 
-                    <span data-bind="text: name.title"></span>
-                </label>
+                <span data-bind="text: name.title"></span>
+            </label>
+        </div>
+        <div class="payment-method-content">
+
+            <div class="payment-method-billing-address">
+                <!-- ko foreach: $parents[1].getRegion($parent.getBillingAddressFormName()) -->
+                <!-- ko template: getTemplate() --><!-- /ko -->
+                <!--/ko-->
             </div>
-            <div class="payment-method-content">
 
-                <div class="payment-method-billing-address">
-                    <!-- ko foreach: $parents[1].getRegion($parent.getBillingAddressFormName()) -->
-                    <!-- ko template: getTemplate() --><!-- /ko -->
+            <form class="form" data-role="adyen-hpp-form" action="#" method="post" data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + $parent.getCode() + '_' + value}">
+            <fieldset class="fieldset" data-bind='attr: {id: "payment_fieldset_" + $parent.getCode() + "_" + value}'>
+                 <!-- ko if: hasIssuersAvailable() -->
+                    <!-- ko if: isIdeal() -->
+                        <div afterRender="renderIdealComponent()" data-bind="attr: { id: 'iDealContainer'}"></div>
                     <!--/ko-->
+                    <!-- ko ifnot: isIdeal() -->
+                        <label data-bind="attr: {'for': 'issuerId'}" class="label">
+                            <span><!-- ko text: $t('Select Your Bank') --><!-- /ko --></span>
+                        </label>
+
+                <div class="field">
+                    <select name="payment[issuer_id]" data-bind="
+                                    options: getIssuers(),
+                                    optionsText: 'name',
+                                    optionsValue: 'id',
+                                    value: issuer,
+                                    optionsCaption: $t('Choose Your Bank')">
+                    </select>
                 </div>
 
-                <form class="form" data-role="adyen-hpp-form" action="#" method="post" data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + $parent.getCode() + '_' + value}">
-                <fieldset class="fieldset" data-bind='attr: {id: "payment_fieldset_" + $parent.getCode() + "_" + value}'>
-                     <!-- ko if: hasIssuersAvailable() -->
-                        <!-- ko if: isIdeal() -->
-                            <div afterRender="renderIdealComponent()" data-bind="attr: { id: 'iDealContainer'}"></div>
-                        <!--/ko-->
-                        <!-- ko ifnot: isIdeal() -->
-                            <label data-bind="attr: {'for': 'issuerId'}" class="label">
-                                <span><!-- ko text: $t('Select Your Bank') --><!-- /ko --></span>
-                            </label>
-
-                    <div class="field">
-                        <select name="payment[issuer_id]" data-bind="
-                                        options: getIssuers(),
-                                        optionsText: 'name',
-                                        optionsValue: 'id',
-                                        value: issuer,
-                                        optionsCaption: $t('Choose Your Bank')">
-                        </select>
-                    </div>
-
-                        <!--/ko-->
                     <!--/ko-->
+                <!--/ko-->
 
 
 
-                    <!-- ko if: isPaymentMethodKlarna() -->
+                <!-- ko if: isPaymentMethodKlarna() -->
 
-                        <!-- ko if: showSsn() -->
-                        <div class="field ssn type required">
-                            <label data-bind="attr: {for: getCode() + '_ssn_' + value}" class="adyen-checkout__label__text">
-                                <span><!-- ko text: $t('Personal number')--><!-- /ko --></span>
-                            </label>
-                            <div class="control">
-                                <input type="text" class="input-text"
-                                       name="payment[ssn]"
-                                       data-bind="
-                                                   attr: {
-                                                        id: getCode() + '_ssn_' + value,
-                                                        title: $t('Social Security Number'),
-                                                        'data-container': getCode() + '-ssn',
-                                                        maxlength : getSsnLength()
-                                                    },
-                                                    value: ssn"
-                                       data-validate="{required:true}"
-                                />
-                            </div>
-                        </div>
-                        <!--/ko-->
-
-                        <div afterRender="renderKlarnaComponent()" data-bind="attr: { id: 'klarnaContainer'}"></div>
-                    <!--/ko-->
-
-                    <!-- ko if: isPaymentMethodAfterPay() -->
-
-                        <!-- ko if: showSsn() -->
-                        <div class="field ssn type required">
-                            <label data-bind="attr: {for: getCode() + '_ssn_' + value}" class="adyen-checkout__label__text">
-                                <span><!-- ko text: $t('Personal number')--><!-- /ko --></span>
-                            </label>
-                            <div class="control">
-                                <input type="text" class="input-text"
-                                       name="payment[ssn]"
-                                       data-bind="
-                                                   attr: {
-                                                        id: getCode() + '_ssn_' + value,
-                                                        title: $t('Social Security Number'),
-                                                        'data-container': getCode() + '-ssn',
-                                                        maxlength : getSsnLength()
-                                                    },
-                                                    value: ssn"
-                                       data-validate="{required:true}"
-                                />
-                            </div>
-                        </div>
-                        <!--/ko-->
-
-                        <div afterRender="renderAfterPayComponent()" data-bind="attr: { id: 'afterPayContainer'}"></div>
-                    <!--/ko-->
-
-                    <!-- ko if: isPaymentMethodOtherOpenInvoiceMethod() -->
-
-                        <div class="field gender required">
-                                <label data-bind="attr: {for: getCode() + '_gender_type_' + value}" class="label">
-                                    <span><!-- ko text: $t('Gender')--><!-- /ko --></span>
-                                </label>
-                                <div class="control">
-                                    <select class="select select-gender-type"
-                                            name="payment[gender]"
-                                            data-bind="attr: {id: getCode() + '_gender_type_' + value, 'data-container': getCode() + '-gender-type'},
-                                                options: $parent.getGenderTypes(),
-                                                optionsValue: 'key',
-                                                optionsText: 'value',
-                                                optionsCaption: $t('-Please select-'),
-                                                value: gender"
-                                            data-validate="{required:true}">
-                                    </select>
-                                </div>
-                        </div>
-
-                        <div class="field dob type required">
-                            <label data-bind="attr: {for: getCode() + '_dob_' + value}" class="label">
-                                <span><!-- ko text: $t('Date of Birth')--><!-- /ko --></span>
-                            </label>
-                            <div class="control">
-                                <input type="text" class="input-text"
-                                       name="payment[dob]"
-                                       data-bind="
-                                       attr: {
-                                             id: getCode() + '_dob_' + value,
-                                             title: $t('Date of Birth'),
-                                             'data-container': getCode() + '-dob_'  + value,
-                                       },
-                                        datepicker: {
-                                            storage: datepickerValue,
-                                            options: { showOn: 'both', changeYear: true, yearRange: '-99:-1', defaultDate: '-20y' }
-                                       },
-                                       value: dob"
-                                       data-validate="{required:true}"
-                                />
-                            </div>
-                        </div>
-
-                        <div class="field telephone type required">
-                            <label data-bind="attr: {for: getCode() + '_telephone_' + value}" class="label">
-                                <span><!-- ko text: $t('Telephone')--><!-- /ko --></span>
-                            </label>
-                            <div class="control">
-                                <input type="number" class="input-text"
-                                       name="payment[telephone]"
-                                       data-bind="
-                                           attr: {
-                                                id: getCode() + '_telephone_' + value,
-                                                title: $t('Telephone'),
-                                                'data-container': getCode() + '-telephone_' + value,
-                                                'data-validate': JSON.stringify({'required-number':true})
-                                            },
-                                            value: telephone"
-                                       data-validate="{required:true}"
-                                />
-                            </div>
-                        </div>
-
-                        <!-- ko if: showSsn() -->
-                        <div class="field ssn type required">
-                            <label data-bind="attr: {for: getCode() + '_ssn_' + value}" class="adyen-checkout__label__text">
-                                <span><!-- ko text: $t('Personal number')--><!-- /ko --></span>
-                            </label>
-                            <div class="control">
-                                <input type="text" class="input-text"
-                                       name="payment[ssn]"
-                                       data-bind="
+                    <!-- ko if: showSsn() -->
+                    <div class="field ssn type required">
+                        <label data-bind="attr: {for: getCode() + '_ssn_' + value}" class="adyen-checkout__label__text">
+                            <span><!-- ko text: $t('Personal number')--><!-- /ko --></span>
+                        </label>
+                        <div class="control">
+                            <input type="text" class="input-text"
+                                   name="payment[ssn]"
+                                   data-bind="
                                                attr: {
                                                     id: getCode() + '_ssn_' + value,
                                                     title: $t('Social Security Number'),
@@ -211,151 +95,216 @@
                                                     maxlength : getSsnLength()
                                                 },
                                                 value: ssn"
-                                       data-validate="{required:true}"
-                                />
-                            </div>
+                                   data-validate="{required:true}"
+                            />
                         </div>
-                        <!--/ko-->
-                    <!--/ko-->
-
-                    <!-- ko if: isSepaDirectDebit() -->
-                        <div afterRender="renderSepaDirectDebitComponent()" data-bind="attr: { id: 'sepaDirectDebitContainer'}"></div>
-                    <!--/ko-->
-
-                    <!-- ko if: isAch() -->
-                        <div class="field ownerName type required">
-                            <label data-bind="attr: {for: getCode() + '_ownerName_' + value}" class="label">
-                                <span><!-- ko text: $t('Owner name')--><!-- /ko --></span>
-                            </label>
-                            <div class="control">
-                                <input type="text" class="input-text"
-                                       name="payment[ownerName]"
-                                       data-bind="
-                                                           attr: {
-                                                                id: getCode() + '_ownerName_' + value,
-                                                                title: $t('Owner name'),
-                                                                'data-container': getCode() + '-ownerName_' + value,
-                                                                'data-validate': JSON.stringify({'required':true})
-                                                            },
-                                                            value: ownerName"
-                                       data-validate="{required:true}"
-                                />
-                            </div>
-                        </div>
-
-                        <div class="field bankAccountNumber type required">
-                            <label data-bind="attr: {for: getCode() + '_bankAccountNumber_' + value}" class="label">
-                                <span><!-- ko text: $t('Bank account number')--><!-- /ko --></span>
-                            </label>
-                            <div class="control">
-                                <input type="number" class="input-text"
-                                       name="payment[bankAccountNumber]"
-                                       data-bind="
-                                               attr: {
-                                                    id: getCode() + '_bankAccountNumber_' + value,
-                                                    title: $t('Bank account number'),
-                                                    'data-container': getCode() + '-bankAccountNumber_' + value,
-                                                    'data-validate': JSON.stringify({'required-number':true}),
-                                                    maxlength : getBankAccountNumberMaxLength()
-                                                },
-                                                value: bankAccountNumber"
-                                       data-validate="{required:true}"
-                                />
-                            </div>
-                        </div>
-
-                        <div class="field bankLocationId type required">
-                            <label data-bind="attr: {for: getCode() + '_bankLocationId_' + value}" class="label">
-                                <span><!-- ko text: $t('Bank location ID')--><!-- /ko --></span>
-                            </label>
-                            <div class="control">
-                                <input type="number" class="input-text"
-                                       name="payment[bankLocationId]"
-                                       data-bind="
-                                                   attr: {
-                                                        id: getCode() + '_bankLocationId_' + value,
-                                                        title: $t('Bank location ID'),
-                                                        'data-container': getCode() + '-bankLocationId_' + value,
-                                                        'data-validate': JSON.stringify({'required-number':true}),
-                                                        minlength: 9,
-                                                        maxlength: 9
-                                                    },
-                                                    value: bankLocationId"
-                                       data-validate="{required:true}"
-                                />
-                            </div>
-                        </div>
-
-                    <!--/ko-->
-                </fieldset>
-                </form>
-
-                <div class="checkout-agreements-block">
-                    <!-- ko foreach: $parents[1].getRegion('before-place-order') -->
-                    <!-- ko template: getTemplate() --><!-- /ko -->
-                    <!--/ko-->
-                </div>
-                <div>
-                    <span class="message message-error error hpp-message" data-bind="attr: {id: 'messages-' + value}"></span>
-                </div>
-
-                <div class="actions-toolbar">
-                    <div class="primary">
-                        <button class="action primary checkout"
-                                type="submit"
-                                data-bind="click: $parent.continueToAdyenBrandCode, enable: placeOrderAllowed() && (value == $parent.isBrandCodeChecked())"
-                                disabled>
-                            <span data-bind="text: $t('Place Order')"></span>
-                        </button>
                     </div>
-                </div>
-            </div>
-        </div>
-    <!--/ko-->
-<!--/ko-->
+                    <!--/ko-->
 
-
-<!-- ko if: (isPaymentMethodSelectionOnAdyen()) -->
-
-    <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
-        <div class="payment-method-title field choice">
-            <input type="radio"
-                   name="payment[method]"
-                   class="radio"
-                   data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
-            <label data-bind="attr: {'for': getCode()}" class="label">
-
-                <!-- ko if: isIconEnabled() -->
-                    <div data-bind="attr: { 'class': 'adyen-sprite ' + getCode() }"></div>
+                    <div afterRender="renderKlarnaComponent()" data-bind="attr: { id: 'klarnaContainer'}"></div>
                 <!--/ko-->
 
-                <span data-bind="text: getTitle()"></span>
-            </label>
+                <!-- ko if: isPaymentMethodAfterPay() -->
 
-        </div>
-        <div class="payment-method-content">
-            <div class="payment-method-billing-address">
-                <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
-                <!-- ko template: getTemplate() --><!-- /ko -->
+                    <!-- ko if: showSsn() -->
+                    <div class="field ssn type required">
+                        <label data-bind="attr: {for: getCode() + '_ssn_' + value}" class="adyen-checkout__label__text">
+                            <span><!-- ko text: $t('Personal number')--><!-- /ko --></span>
+                        </label>
+                        <div class="control">
+                            <input type="text" class="input-text"
+                                   name="payment[ssn]"
+                                   data-bind="
+                                               attr: {
+                                                    id: getCode() + '_ssn_' + value,
+                                                    title: $t('Social Security Number'),
+                                                    'data-container': getCode() + '-ssn',
+                                                    maxlength : getSsnLength()
+                                                },
+                                                value: ssn"
+                                   data-validate="{required:true}"
+                            />
+                        </div>
+                    </div>
+                    <!--/ko-->
+
+                    <div afterRender="renderAfterPayComponent()" data-bind="attr: { id: 'afterPayContainer'}"></div>
                 <!--/ko-->
-            </div>
-            <fieldset class="fieldset" data-bind='attr: {id: "payment_form_" + getCode()}'>
-                <div class="payment-method-note">
-                    <!-- ko text: $t('You will be redirected to the Adyen website.') --><!-- /ko -->
-                </div>
+
+                <!-- ko if: isPaymentMethodOtherOpenInvoiceMethod() -->
+
+                    <div class="field gender required">
+                            <label data-bind="attr: {for: getCode() + '_gender_type_' + value}" class="label">
+                                <span><!-- ko text: $t('Gender')--><!-- /ko --></span>
+                            </label>
+                            <div class="control">
+                                <select class="select select-gender-type"
+                                        name="payment[gender]"
+                                        data-bind="attr: {id: getCode() + '_gender_type_' + value, 'data-container': getCode() + '-gender-type'},
+                                            options: $parent.getGenderTypes(),
+                                            optionsValue: 'key',
+                                            optionsText: 'value',
+                                            optionsCaption: $t('-Please select-'),
+                                            value: gender"
+                                        data-validate="{required:true}">
+                                </select>
+                            </div>
+                    </div>
+
+                    <div class="field dob type required">
+                        <label data-bind="attr: {for: getCode() + '_dob_' + value}" class="label">
+                            <span><!-- ko text: $t('Date of Birth')--><!-- /ko --></span>
+                        </label>
+                        <div class="control">
+                            <input type="text" class="input-text"
+                                   name="payment[dob]"
+                                   data-bind="
+                                   attr: {
+                                         id: getCode() + '_dob_' + value,
+                                         title: $t('Date of Birth'),
+                                         'data-container': getCode() + '-dob_'  + value,
+                                   },
+                                    datepicker: {
+                                        storage: datepickerValue,
+                                        options: { showOn: 'both', changeYear: true, yearRange: '-99:-1', defaultDate: '-20y' }
+                                   },
+                                   value: dob"
+                                   data-validate="{required:true}"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="field telephone type required">
+                        <label data-bind="attr: {for: getCode() + '_telephone_' + value}" class="label">
+                            <span><!-- ko text: $t('Telephone')--><!-- /ko --></span>
+                        </label>
+                        <div class="control">
+                            <input type="number" class="input-text"
+                                   name="payment[telephone]"
+                                   data-bind="
+                                       attr: {
+                                            id: getCode() + '_telephone_' + value,
+                                            title: $t('Telephone'),
+                                            'data-container': getCode() + '-telephone_' + value,
+                                            'data-validate': JSON.stringify({'required-number':true})
+                                        },
+                                        value: telephone"
+                                   data-validate="{required:true}"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- ko if: showSsn() -->
+                    <div class="field ssn type required">
+                        <label data-bind="attr: {for: getCode() + '_ssn_' + value}" class="adyen-checkout__label__text">
+                            <span><!-- ko text: $t('Personal number')--><!-- /ko --></span>
+                        </label>
+                        <div class="control">
+                            <input type="text" class="input-text"
+                                   name="payment[ssn]"
+                                   data-bind="
+                                           attr: {
+                                                id: getCode() + '_ssn_' + value,
+                                                title: $t('Social Security Number'),
+                                                'data-container': getCode() + '-ssn',
+                                                maxlength : getSsnLength()
+                                            },
+                                            value: ssn"
+                                   data-validate="{required:true}"
+                            />
+                        </div>
+                    </div>
+                    <!--/ko-->
+                <!--/ko-->
+
+                <!-- ko if: isSepaDirectDebit() -->
+                    <div afterRender="renderSepaDirectDebitComponent()" data-bind="attr: { id: 'sepaDirectDebitContainer'}"></div>
+                <!--/ko-->
+
+                <!-- ko if: isAch() -->
+                    <div class="field ownerName type required">
+                        <label data-bind="attr: {for: getCode() + '_ownerName_' + value}" class="label">
+                            <span><!-- ko text: $t('Owner name')--><!-- /ko --></span>
+                        </label>
+                        <div class="control">
+                            <input type="text" class="input-text"
+                                   name="payment[ownerName]"
+                                   data-bind="
+                                                       attr: {
+                                                            id: getCode() + '_ownerName_' + value,
+                                                            title: $t('Owner name'),
+                                                            'data-container': getCode() + '-ownerName_' + value,
+                                                            'data-validate': JSON.stringify({'required':true})
+                                                        },
+                                                        value: ownerName"
+                                   data-validate="{required:true}"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="field bankAccountNumber type required">
+                        <label data-bind="attr: {for: getCode() + '_bankAccountNumber_' + value}" class="label">
+                            <span><!-- ko text: $t('Bank account number')--><!-- /ko --></span>
+                        </label>
+                        <div class="control">
+                            <input type="number" class="input-text"
+                                   name="payment[bankAccountNumber]"
+                                   data-bind="
+                                           attr: {
+                                                id: getCode() + '_bankAccountNumber_' + value,
+                                                title: $t('Bank account number'),
+                                                'data-container': getCode() + '-bankAccountNumber_' + value,
+                                                'data-validate': JSON.stringify({'required-number':true}),
+                                                maxlength : getBankAccountNumberMaxLength()
+                                            },
+                                            value: bankAccountNumber"
+                                   data-validate="{required:true}"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="field bankLocationId type required">
+                        <label data-bind="attr: {for: getCode() + '_bankLocationId_' + value}" class="label">
+                            <span><!-- ko text: $t('Bank location ID')--><!-- /ko --></span>
+                        </label>
+                        <div class="control">
+                            <input type="number" class="input-text"
+                                   name="payment[bankLocationId]"
+                                   data-bind="
+                                               attr: {
+                                                    id: getCode() + '_bankLocationId_' + value,
+                                                    title: $t('Bank location ID'),
+                                                    'data-container': getCode() + '-bankLocationId_' + value,
+                                                    'data-validate': JSON.stringify({'required-number':true}),
+                                                    minlength: 9,
+                                                    maxlength: 9
+                                                },
+                                                value: bankLocationId"
+                                   data-validate="{required:true}"
+                            />
+                        </div>
+                    </div>
+
+                <!--/ko-->
             </fieldset>
+            </form>
+
             <div class="checkout-agreements-block">
-                <!-- ko foreach: $parent.getRegion('before-place-order') -->
+                <!-- ko foreach: $parents[1].getRegion('before-place-order') -->
                 <!-- ko template: getTemplate() --><!-- /ko -->
                 <!--/ko-->
             </div>
+            <div>
+                <span class="message message-error error hpp-message" data-bind="attr: {id: 'messages-' + value}"></span>
+            </div>
+
             <div class="actions-toolbar">
                 <div class="primary">
                     <button class="action primary checkout"
                             type="submit"
-                            data-bind="click: continueToAdyen, enable: (getCode() == isChecked())"
+                            data-bind="click: $parent.continueToAdyenBrandCode, enable: placeOrderAllowed() && (value == $parent.isBrandCodeChecked())"
                             disabled>
-                        <span data-bind="text: $t('Continue to Adyen')"></span>
+                        <span data-bind="text: $t('Place Order')"></span>
                     </button>
                 </div>
             </div>

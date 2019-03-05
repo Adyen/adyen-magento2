@@ -100,10 +100,7 @@
                 <active>0</active>
                 <model>AdyenPaymentHppFacade</model>
                 <order_status>pending</order_status>
-                <title>Adyen HPP</title>
-                <payment_selection_on_adyen>0</payment_selection_on_adyen>
-                <payment_routine>single</payment_routine>
-                <delivery_days>5</delivery_days>
+                <title>Alternative payment methods</title>
                 <allowspecific>0</allowspecific>
                 <ratepay_id>oj9GsQ</ratepay_id>
                 <sort_order>3</sort_order>
