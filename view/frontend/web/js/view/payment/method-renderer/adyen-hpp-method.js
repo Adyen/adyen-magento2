@@ -626,9 +626,6 @@ define(
                 }
                 return null;
             }),
-            isPaymentMethodSelectionOnAdyen: function () {
-                return window.checkoutConfig.payment.adyenHpp.isPaymentMethodSelectionOnAdyen;
-            },
             isIconEnabled: function () {
                 return window.checkoutConfig.payment.adyen.showLogo;
             },

@@ -28,8 +28,6 @@
 $_info = $this->getInfo();
 ?>
 
-<?php $paymentSelectionOnAdyen = $block->isPaymentSelectionOnAdyen(); ?>
-
 <dl class="payment-method adyen_hpp">
     <?php if (!empty($block->getBankTransferData())) : ?>
         <?php
@@ -65,14 +63,10 @@ $_info = $this->getInfo();
             <dd><?php echo $banktranferData['bankTransfer.accountCode'] ?></dd>
         <?php endif; ?>
     <?php else: ?>
-        <?php if ($paymentSelectionOnAdyen): ?>
-            <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
-        <?php else: ?>
-            <?php if ($_methodTitle = $_info->getAdditionalInformation('method_title')): ?>
-                <dt class="title"><?php echo $_methodTitle; ?></dt>
-            <?php elseif ($_brandCode = $_info->getAdditionalInformation('brand_code')): ?>
-                <dt class="title"><?php echo $_brandCode; ?></dt>
-            <?php endif; ?>
+        <?php if ($_methodTitle = $_info->getAdditionalInformation('method_title')): ?>
+            <dt class="title"><?php echo $_methodTitle; ?></dt>
+        <?php elseif ($_brandCode = $_info->getAdditionalInformation('brand_code')): ?>
+            <dt class="title"><?php echo $_brandCode; ?></dt>
         <?php endif; ?>
     <?php endif; ?>
 </dl>
