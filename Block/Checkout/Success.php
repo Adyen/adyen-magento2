@@ -104,6 +104,11 @@ class Success extends \Magento\Framework\View\Element\Template
         return null;
     }
 
+    /**
+     * Get Banktransfer additional data
+     *
+     * @return array|string[]
+     */
     public function getBankTransferData()
     {
         $result = [];
@@ -115,6 +120,25 @@ class Success extends \Magento\Framework\View\Element\Template
 
         return $result;
     }
+
+    /**
+     * Get multibanco additional data
+     *
+     * @return array|string[]
+     */
+    public function getMultibancoData()
+    {
+        $result = [];
+        if (!empty($this->getOrder()->getPayment()) &&
+            !empty($this->getOrder()->getPayment()->getAdditionalInformation('comprafacil.entity'))
+        ) {
+            $result = $this->getOrder()->getPayment()->getAdditionalInformation();
+        }
+
+        return $result;
+    }
+
+
 
     /**
      * @return \Magento\Sales\Model\Order
