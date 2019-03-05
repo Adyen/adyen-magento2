@@ -213,7 +213,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
 				$this->_view->renderLayout();
 			}
 
-		} else if (!empty($checkoutAPM)) {
+		} elseif (!empty($checkoutAPM)) {
 			$this->_view->loadLayout();
 			$this->_view->getLayout()->initMessages();
 			$this->_view->renderLayout();

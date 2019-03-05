@@ -49,6 +49,24 @@ class Hpp extends AbstractInfo
     }
 
     /**
+     * Get all multibanco related data
+     *
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getMultibancoData()
+    {
+        $result = [];
+        if (!empty($this->getInfo()->getOrder()->getPayment()) &&
+            !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('comprafacil.entity'))
+        ) {
+            $result = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation();
+        }
+
+        return $result;
+    }
+
+    /**
      * @return mixed
      * @throws \Magento\Framework\Exception\LocalizedException
      */

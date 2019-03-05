@@ -101,6 +101,46 @@ $_isDemoMode = $block->isDemoMode();
             </tbody>
         </table>
     </div>
+<?php elseif (!empty($block->getMultibancoData())) : ?>
+
+    <?php
+    $multibancoData = $block->getMultibancoData();
+    ?>
+
+    <div>
+        <table class="edit-order-table" style="text-align:left; margin-top:5px; margin-bottom:0;">
+            <tbody>
+            <?php if (!empty($multibancoData['comprafacil.entity'])) : ?>
+                <tr>
+                    <th><?php echo $block->escapeHtml(__('Entity')); ?></th>
+                    <td><?php echo $multibancoData['comprafacil.entity'] ?></td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if (!empty($multibancoData['comprafacil.reference'])) : ?>
+                <tr>
+                    <th><?php echo $block->escapeHtml(__('Reference')); ?></th>
+                    <td><?php echo $multibancoData['comprafacil.reference'] ?></td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if (!empty($multibancoData['comprafacil.amount'])) : ?>
+                <tr>
+                    <th><?php echo $block->escapeHtml(__('Amount')); ?></th>
+                    <td><?php echo $multibancoData['comprafacil.amount'] ?></td>
+                </tr>
+            <?php endif; ?>
+
+            <?php if (!empty($multibancoData['comprafacil.deadline'])) : ?>
+                <tr>
+                    <th><?php echo $block->escapeHtml(__('Deadline')); ?></th>
+                    <td><?php echo $multibancoData['comprafacil.deadline'] ?><?php echo $block->escapeHtml(__('Days')); ?></td>
+                </tr>
+            <?php endif; ?>
+
+            </tbody>
+        </table>
+    </div>
 <?php endif; ?>
 
 <?php if ($_info->getAdditionalInformation('adyen_total_fraud_score') != ""): ?>

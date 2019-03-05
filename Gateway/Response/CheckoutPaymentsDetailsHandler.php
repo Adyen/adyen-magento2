@@ -33,6 +33,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
      */
     protected $adyenHelper;
 
+
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper
     ) {
@@ -40,6 +41,8 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
     }
 
     /**
+     * This is being used for all checkout methods (adyen hpp payment method)
+     *
      * @param array $handlingSubject
      * @param array $response
      */
