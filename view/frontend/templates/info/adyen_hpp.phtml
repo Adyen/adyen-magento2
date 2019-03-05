@@ -64,6 +64,33 @@ $_info = $this->getInfo();
             <dt><?php echo $block->escapeHtml(__('Bankaccount')); ?></dt>
             <dd><?php echo $banktranferData['bankTransfer.accountCode'] ?></dd>
         <?php endif; ?>
+    <?php elseif (!empty($block->getMultibancoData())) : ?>
+        <?php
+        $multibancoData = $block->getMultibancoData();
+        ?>
+
+        <dt><?php echo $block->escapeHtml(__('Pay using Multibanco')); ?></dt>
+        <dd><?php echo $block->escapeHtml(__('Please pay with the provided Multibanco reference and entity before payment deadline in order to complete our payment')); ?></dd>
+
+        <?php if (!empty($multibancoData['comprafacil.entity'])) : ?>
+            <dt><?php echo $block->escapeHtml(__('Entity')); ?></dt>
+            <dd><?php echo $multibancoData['comprafacil.entity'] ?></dd>
+        <?php endif; ?>
+
+        <?php if (!empty($multibancoData['comprafacil.reference'])) : ?>
+            <dt><?php echo $block->escapeHtml(__('Reference')); ?></dt>
+            <dd><?php echo $multibancoData['comprafacil.reference'] ?></dd>
+        <?php endif; ?>
+
+        <?php if (!empty($multibancoData['comprafacil.amount'])) : ?>
+            <dt><?php echo $block->escapeHtml(__('Amount')); ?></dt>
+            <dd><?php echo $multibancoData['comprafacil.amount'] ?></dd>
+        <?php endif; ?>
+
+        <?php if (!empty($multibancoData['comprafacil.deadline'])) : ?>
+            <dt><?php echo $block->escapeHtml(__('Deadline')); ?></dt>
+            <dd><?php echo $multibancoData['comprafacil.deadline'] ?> <?php echo $block->escapeHtml(__('Days')); ?></dd>
+        <?php endif; ?>
     <?php else: ?>
         <?php if ($paymentSelectionOnAdyen): ?>
             <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>

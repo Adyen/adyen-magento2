@@ -65,11 +65,16 @@ class CheckoutResponseValidator extends AbstractValidator
             switch ($response['resultCode']) {
                 case "Authorised":
                 case "Received":
-
                     // For banktransfers store all bankTransfer details
                     if (!empty($response['additionalData']['bankTransfer.owner'])) {
                         foreach ($response['additionalData'] as $key => $value) {
                             if (strpos($key, 'bankTransfer') === 0) {
+                                $payment->setAdditionalInformation($key, $value);
+                            }
+                        }
+                    } elseif (!empty($response['additionalData']['comprafacil.entity'])) {
+                        foreach ($response['additionalData'] as $key => $value) {
+                            if (strpos($key, 'comprafacil') === 0) {
                                 $payment->setAdditionalInformation($key, $value);
                             }
                         }
@@ -147,7 +152,7 @@ class CheckoutResponseValidator extends AbstractValidator
                         } else {
                             $isValid = false;
                             $errorMsg = __('3D secure is not valid.');
-                            $this->adyenLogger->error($errorMsg);;
+                            $this->adyenLogger->error($errorMsg);
                             $errorMessages[] = $errorMsg;
                         }
                         // otherwise it is an alternative payment method which only requires the redirect url to be present
