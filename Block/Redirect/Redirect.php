@@ -155,7 +155,6 @@ class Redirect extends \Magento\Payment\Block\Form
         $url = "";
         try {
             if ($this->_order->getPayment()) {
-                $paymentRoutine = $this->_adyenHelper->getAdyenHppConfigData('payment_routine');
 
                 switch ($this->_adyenHelper->isDemoMode()) {
                     case true:
