@@ -156,11 +156,13 @@ class PaymentMethods extends AbstractHelper
 
         foreach ($this->fetchAlternativeMethods($store, $country) as $methodCode => $methodData) {
             /*
-             * skip payment methods if it is a creditcard that is enabled in adyen_cc or a boleto method
+             * skip payment methods if it is a creditcard that is enabled in adyen_cc or a boleto method or wechat but
+             * not wechatpay
              */
             if (($ccEnabled && in_array($methodCode, $ccTypes)) ||
                 $this->adyenHelper->isPaymentMethodBoletoMethod($methodCode) ||
-                $this->adyenHelper->isPaymentMethodBcmcMobileQRMethod($methodCode)
+                $this->adyenHelper->isPaymentMethodBcmcMobileQRMethod($methodCode) ||
+                !$this->adyenHelper->isPaymentMethodOnlyWechatpayWeb($methodCode)
             ) {
                 continue;
             }
