@@ -986,13 +986,13 @@ class Data extends AbstractHelper
      * @param $paymentMethod
      * @return bool
      */
-    public function isPaymentMethodOnlyWechatpayWeb($paymentMethod)
+    public function isPaymentMethodWechatpayExceptWeb($paymentMethod)
     {
-        if (strpos($paymentMethod, 'wechatpayWeb') !== false
-            && (strpos($paymentMethod, 'wechatpayMiniProgram') == false
-            || strpos($paymentMethod, 'wechatpayQR') == false
-            || strpos($paymentMethod, 'wechatpaySDK') == false)
-        ) {
+        if (strpos($paymentMethod, 'wechatpay') !== false) {
+            if (strpos($paymentMethod, 'wechatpayWeb') !== false) {
+                return false;
+            }
+
             return true;
         }
 

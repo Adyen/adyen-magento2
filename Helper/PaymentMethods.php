@@ -162,7 +162,7 @@ class PaymentMethods extends AbstractHelper
             if (($ccEnabled && in_array($methodCode, $ccTypes)) ||
                 $this->adyenHelper->isPaymentMethodBoletoMethod($methodCode) ||
                 $this->adyenHelper->isPaymentMethodBcmcMobileQRMethod($methodCode) ||
-                !$this->adyenHelper->isPaymentMethodOnlyWechatpayWeb($methodCode)
+                $this->adyenHelper->isPaymentMethodWechatpayExceptWeb($methodCode)
             ) {
                 continue;
             }
