@@ -84,7 +84,6 @@ class Json extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-
         // if version is in the notification string show the module version
         $response = $this->getRequest()->getParams();
         if (isset($response['version'])) {
@@ -99,14 +98,10 @@ class Json extends \Magento\Framework\App\Action\Action
         try {
             $notificationItems = json_decode(file_get_contents('php://input'), true);
 
-            // log the notification
-            $this->_adyenLogger->addAdyenNotification(
-                "The content of the notification is: " . print_r($notificationItems, 1)
-            );
-
             $notificationMode = isset($notificationItems['live']) ? $notificationItems['live'] : "";
 
             if ($notificationMode !== "" && $this->_validateNotificationMode($notificationMode)) {
+
                 foreach ($notificationItems['notificationItems'] as $notificationItem) {
                     $status = $this->_processNotification(
                         $notificationItem['NotificationRequestItem'],
@@ -178,6 +173,12 @@ class Json extends \Magento\Framework\App\Action\Action
     {
         // validate the notification
         if ($this->authorised($response)) {
+
+            // log the notification
+            $this->_adyenLogger->addAdyenNotification(
+                "The content of the notification item is: " . print_r($response, 1)
+            );
+
             // check if notification already exists
             if (!$this->_isDuplicate($response)) {
                 try {
