@@ -962,6 +962,26 @@ class Data extends AbstractHelper
         return false;
     }
 
+    /**
+     * The payment method for wechat should be only wechatweb until we support the others too.
+     *
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodOnlyWechatpayWeb($paymentMethod)
+    {
+        if (strpos($paymentMethod, 'wechatpayWeb') !== false
+            && (strpos($paymentMethod, 'wechatpayMiniProgram') == false
+            || strpos($paymentMethod, 'wechatpayQR') == false
+            || strpos($paymentMethod, 'wechatpaySDK') == false)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+
 
     public function getRatePayId()
     {
