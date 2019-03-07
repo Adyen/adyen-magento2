@@ -92,9 +92,7 @@ class OneclickAuthorizationDataBuilder implements BuilderInterface
         }
 
         // if installments is set add it into the request
-        if ($payment->getAdditionalInformation(AdyenOneclickDataAssignObserver::NUMBER_OF_INSTALLMENTS) &&
-            $payment->getAdditionalInformation(AdyenOneclickDataAssignObserver::NUMBER_OF_INSTALLMENTS) > 0
-        ) {
+        if ($payment->getAdditionalInformation(AdyenOneclickDataAssignObserver::NUMBER_OF_INSTALLMENTS) > 0) {
             $request['installments']['value'] = $payment->getAdditionalInformation(AdyenOneclickDataAssignObserver::NUMBER_OF_INSTALLMENTS);
         }
 
