@@ -60,8 +60,8 @@ define(
                         'dfValue'
                     ]);
                 return this;
-            },
-            initialize: function () {
+            },initialize: function () {
+
                 var self = this;
                 this._super();
 
@@ -164,6 +164,12 @@ define(
                     result.value = value.brandCode;
                     result.name = value;
                     result.method = self.item.method;
+                    /**
+                     * Observable to enable and disable place order buttons for payment methods
+                     * Default value is true to be able to send the real hpp requiests that doesn't require any input
+                     * @type {observable}
+                     */
+                    result.placeOrderAllowed = ko.observable(true);
                     result.getCode = function () {
                         return self.item.method;
                     };
@@ -175,6 +181,17 @@ define(
                     };
                     result.isPlaceOrderActionAllowed = function(bool) {
                         return self.isPlaceOrderActionAllowed(bool);
+                    };
+
+                    /**
+                     * Set and get if the place order action is allowed
+                     * Sets the placeOrderAllowed observable and the original isPlaceOrderActionAllowed as well
+                     * @param bool
+                     * @returns {*}
+                     */
+                    result.isPlaceOrderAllowed = function(bool) {
+                        self.isPlaceOrderActionAllowed(bool);
+                        return result.placeOrderAllowed(bool);
                     };
                     result.afterPlaceOrder = function() {
                         return self.afterPlaceOrder();
@@ -198,6 +215,61 @@ define(
                         }
 
                         return false;
+                    };
+                    // Can be removed after checkout api feature branch goes live since the issuerId key is changed to
+                    // id there and just use the value.issuers in the component
+                    result.getIssuerListForComponent = function() {
+                        if (result.isIssuerListAvailable()) {
+                            return _.map(value.issuers, function (issuer, key) {
+                                return {
+                                    "id": issuer.issuerId,
+                                    "name": issuer.name
+                                };
+                            });
+                        }
+
+                        return [];
+                    };
+                    result.isIdeal = function () {
+                        if (value.brandCode.indexOf("ideal") >= 0) {
+                            return true;
+                        }
+
+                        return false;
+                    };
+
+                    /**
+                     * Renders the secure fields,
+                     * creates the ideal component,
+                     * sets up the callbacks for ideal components and
+                     */
+                    result.renderIdealComponent = function () {
+                        result.isPlaceOrderAllowed(false);
+
+                        var secureFieldsNode = document.getElementById('iDealContainer');
+
+                        var checkout = new AdyenCheckout({
+                            locale: self.getLocale()
+                        });
+
+                        var ideal = checkout.create('ideal', {
+                            items: result.getIssuerListForComponent(),
+                            onChange: function (state) {
+                                // isValid is not present on start
+                                if (typeof state.isValid !== 'undefined' && state.isValid === false) {
+                                    result.isPlaceOrderAllowed(false);
+                                }
+                            },
+                            onValid: function (state) {
+                                result.issuerId(state.data.issuer);
+                                result.isPlaceOrderAllowed(true);
+                            },
+                            onError: function (state) {
+                                result.isPlaceOrderAllowed(false);
+                            }
+                        });
+
+                        ideal.mount(secureFieldsNode);
                     };
 
                     if (value.hasOwnProperty("issuers")) {
@@ -318,18 +390,30 @@ define(
             placeRedirectOrder: function(data) {
                 // Place Order but use our own redirect url after
                 var self = this;
+                fullScreenLoader.startLoader();
 
                 var messageContainer = this.messageContainer;
                 if(brandCode()) {
                     messageContainer = self.messageComponents['messages-' + brandCode()];
                 }
-                
+
+                $('.hpp-message').slideUp();
+
                 this.isPlaceOrderActionAllowed(false);
-                fullScreenLoader.startLoader();
                 $.when(
                     placeOrderAction(data, messageContainer)
                 ).fail(
-                    function () {
+                    function (response) {
+                        fullScreenLoader.stopLoader();
+                        if (!!response['responseJSON'].parameters) {
+                            $("#messages-" + brandCode()).text((response['responseJSON'].message).replace('%1', response['responseJSON'].parameters[0])).slideDown();
+                        } else {
+                            $("#messages-" + brandCode()).text(response['responseJSON'].message).slideDown();
+                        }
+
+                        setTimeout(function(){
+                            $("#messages-" + brandCode()).slideUp();
+                        }, 10000);
                         self.isPlaceOrderActionAllowed(true);
                     }
                 ).done(
@@ -370,6 +454,9 @@ define(
             },
             getRatePayDeviceIdentToken: function () {
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
+            },
+            getLocale: function () {
+                return window.checkoutConfig.payment.adyenHpp.locale;
             }
         });
     }

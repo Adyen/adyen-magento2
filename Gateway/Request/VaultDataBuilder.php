@@ -15,54 +15,49 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
+use Magento\Vault\Model\Ui\VaultConfigProvider;
+use \Magento\Payment\Gateway\Helper\SubjectReader;
 
-/**
- * Class CustomerDataBuilder
- */
-class CustomerDataBuilder implements BuilderInterface
+class VaultDataBuilder implements BuilderInterface
 {
 
     /**
-     * Add shopper data into request
-     *
+     * Recurring variable
+     * @var string
+     */
+    private static $enableRecurring = 'enableRecurring';
+
+    /**
      * @param array $buildSubject
      * @return array
      */
     public function build(array $buildSubject)
     {
-        $result = [];
+        // vault is enabled and shopper provided consent to store card this logic is triggered
+        $request = [];
+        $paymentDO = SubjectReader::readPayment($buildSubject);
 
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $order = $paymentDataObject->getOrder();
-        $customerId = $order->getCustomerId();
+        $payment = $paymentDO->getPayment();
+        $data = $payment->getAdditionalInformation();
 
-        if ($customerId > 0) {
-            $result['shopperReference'] = $customerId;
+        if (!empty($data[VaultConfigProvider::IS_ACTIVE_CODE]) &&
+            $data[VaultConfigProvider::IS_ACTIVE_CODE] === true
+        ) {
+            // store it only as oneclick otherwise we store oneclick tokens (maestro+bcmc) that will fail
+            $request[self::$enableRecurring] = true;
+        } else {
+            // explicity turn this off as merchants have recurring on by default
+            $request[self::$enableRecurring] = false;
         }
-
-		$billingAddress = $order->getBillingAddress();
-
-        if (!empty($billingAddress)) {
-			$customerEmail = $billingAddress->getEmail();
-			if ($customerEmail) {
-				$result['shopperEmail'] = $customerEmail;
-			}
-
-			$customerTelephone = trim($billingAddress->getTelephone());
-			if ($customerTelephone) {
-				$result['telephoneNumber'] = $customerTelephone;
-			}
-		}
-
-        return $result;
+        return $request;
     }
 }

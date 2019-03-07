@@ -31,8 +31,9 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
      */
     protected $_installmentRenderer = null;
 
+
     /**
-     * @var \Magento\Braintree\Block\Adminhtml\Form\Field\CcTypes
+     * @var \Adyen\Payment\Block\Adminhtml\System\Config\Field\Cctypes
      */
     protected $_ccTypesRenderer = null;
 
@@ -57,7 +58,8 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
     /**
      * Returns renderer for country element
      *
-     * @return \Magento\Braintree\Block\Adminhtml\Form\Field\Cctypes
+     * @return \Magento\Framework\View\Element\BlockInterface|null
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function getCcTypesRenderer()
     {
@@ -106,7 +108,7 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
      * Prepare existing row data object
      *
      * @param \Magento\Framework\DataObject $row
-     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function _prepareArrayRow(\Magento\Framework\DataObject $row)
     {
@@ -127,6 +129,5 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
             }
         }
         $row->setData('option_extra_attrs', $options);
-        return;
     }
 }

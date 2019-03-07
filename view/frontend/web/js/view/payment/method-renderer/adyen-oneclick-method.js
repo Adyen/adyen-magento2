@@ -261,8 +261,11 @@ define(
                                             }
                                         } else {
                                             self.encryptedCreditCardVerificationNumber = '';
-                                            self.placeOrderAllowed(false);
-                                            isValid(false);
+                                            // onChange is called on the startup so make sure maestro has always optional cvc field
+                                            if (self.agreement_data.variant != "maestro") {
+                                                self.placeOrderAllowed(false);
+                                                isValid(false);
+                                            }
                                         }
                                     },
                                     onValid: function (state) {

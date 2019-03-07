@@ -191,7 +191,7 @@ class RefundDataBuilder implements BuilderInterface
 
         foreach ($creditMemo->getAllItems() as $refundItem) {
             ++$count;
-            $numberOfItems = $refundItem->getQty();
+            $numberOfItems = (int)$refundItem->getQty();
 
             $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
                 $formFields,
