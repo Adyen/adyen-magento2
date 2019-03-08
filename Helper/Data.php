@@ -214,19 +214,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @desc return recurring types for configuration setting
-     * @return array
-     */
-    public function getPaymentRoutines()
-    {
-        return [
-            'single' => 'Single Page Payment Routine',
-            'multi' => 'Multi-page Payment Routine'
-        ];
-    }
-
-
-    /**
      * Return the formatted currency. Adyen accepts the currency in multiple formats.
      * @param $amount
      * @param $currency
