@@ -202,7 +202,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * eturn recurring types for configuration setting
+     * return recurring types for configuration setting
      * @return array
      */
     public function getCaptureModes()
