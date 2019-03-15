@@ -13,30 +13,25 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2019 Adyen B.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model;
+namespace Adyen\Payment\Api;
 
-use Adyen\Payment\Api\AdyenInitiatePaymentsInterface;
-
-class AdyenInitiatePayments implements AdyenInitiatePaymentsInterface
+interface Adyen3DS2ProcessInterface
 {
-    public function __construct()
-    {
-
-    }
-
-    public function initiate($payload)
-    {
-        $payload = json_decode($payload);
-        $paymentMethod = $payload;
-
-        return $payload;
-    }
+    /**
+     * Returns string
+     *
+     * @api
+     * @param string $payload
+     * @return string
+     */
+    public function initiate($payload);
 }

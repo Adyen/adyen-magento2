@@ -202,7 +202,7 @@ define(
                         'java_enabled': navigator.javaEnabled(),
                         'screen_color_depth': screen.colorDepth,
                         'screen_width': screen.width,
-                        'screen_hegiht': screen.height,
+                        'screen_height': screen.height,
                         'timezone_offset': new Date().getTimezoneOffset()
                     }
                 };
@@ -237,7 +237,7 @@ define(
 
                     fullScreenLoader.startLoader();
 
-                    var serviceUrl = urlBuilder.createUrl('/adyen/payments', {});
+                    var serviceUrl = urlBuilder.createUrl('/adyen/3ds2Process', {});
 
                     var payload = {
                         "payload": JSON.stringify(self.getData()),

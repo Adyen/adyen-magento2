@@ -883,8 +883,8 @@
                 type="Adyen\Payment\Model\AdyenRequestMerchantSession"/>
     <preference for="Adyen\Payment\Api\AdyenInitiateTerminalApiInterface"
                 type="Adyen\Payment\Model\AdyenInitiateTerminalApi"/>
-    <preference for="Adyen\Payment\Api\AdyenInitiatePaymentsInterface"
-                type="Adyen\Payment\Model\AdyenInitiatePayments"/>
+    <preference for="Adyen\Payment\Api\Adyen3DS2ProcessInterface"
+                type="Adyen\Payment\Model\Adyen3DS2Process"/>
     <preference for="Magento\Checkout\Api\PaymentInformationManagementInterface"
                 type="Adyen\Payment\Model\AdyenPaymentInformationManagement"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">

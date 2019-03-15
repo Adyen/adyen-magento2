@@ -43,7 +43,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     const JAVA_ENABLED = 'java_enabled';
     const SCREEN_COLOR_DEPTH = 'screen_color_depth';
     const SCREEN_WIDTH = 'screen_width';
-    const SCREEN_HEIGHT = 'screen_hegiht';
+    const SCREEN_HEIGHT = 'screen_height';
     const TIMEZONE_OFFSET = 'timezone_offset';
 
     /**
