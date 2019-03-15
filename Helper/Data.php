@@ -118,6 +118,8 @@ class Data extends AbstractHelper
      */
     private $agreementResourceModel;
 
+    private $localeResolver;
+
     /**
      * Data constructor.
      * @param \Magento\Framework\App\Helper\Context $context
@@ -155,7 +157,8 @@ class Data extends AbstractHelper
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\App\CacheInterface $cache,
         \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory,
-        \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel
+        \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel,
+        \Magento\Framework\Locale\ResolverInterface $localeResolver
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -174,6 +177,7 @@ class Data extends AbstractHelper
         $this->cache = $cache;
         $this->billingAgreementFactory = $billingAgreementFactory;
         $this->agreementResourceModel = $agreementResourceModel;
+        $this->localeResolver = $localeResolver;
     }
 
     /**
@@ -1065,6 +1069,32 @@ class Data extends AbstractHelper
         return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
     }
 
+    /**
+     * @param $store
+     * @return mixed|string
+     */
+    public function getCurrentLocaleCode($store)
+    {
+        $localeCode = $this->getAdyenAbstractConfigData('shopper_locale', $store->getId());
+        if ($localeCode != "") {
+            return $localeCode;
+        }
+
+        $locale = $this->localeResolver->getLocale();
+        if ($locale) {
+            return $locale;
+        }
+
+        // should have the value if not fall back to default
+        $localeCode = $this->scopeConfig->getValue(
+            \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
+            $store->getCode()
+        );
+
+        return $localeCode;
+    }
+
     public function getApplePayShippingTypes()
     {
         return [
@@ -1291,11 +1321,15 @@ class Data extends AbstractHelper
      * return the merchant account name defined in required settings.
      *
      * @param $paymentMethod
-     * @param int $storeId
+     * @param int|null $storeId
      * @return string
      */
-    public function getAdyenMerchantAccount($paymentMethod, $storeId)
+    public function getAdyenMerchantAccount($paymentMethod, $storeId = null)
     {
+        if (!$storeId) {
+            $storeId = $this->storeManager->getStore()->getId();
+        }
+
         $merchantAccount = $this->getAdyenAbstractConfigData("merchant_account", $storeId);
         $merchantAccountPos = $this->getAdyenPosCloudConfigData('pos_merchant_account', $storeId);
 
@@ -1392,6 +1426,16 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @return string
+     */
+    public function getOrigin() {
+        $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
+        $parsed = parse_url($baseUrl);
+        $origin = $parsed['scheme'] . "://" . $parsed['host'];
+        return $origin;
+    }
+
+    /**
      * Retrieve origin keys for platform's base url
      *
      * @return string
@@ -1399,14 +1443,12 @@ class Data extends AbstractHelper
      */
     public function getOriginKeyForBaseUrl()
     {
-        $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
-        $parsed = parse_url($baseUrl);
-        $domain = $parsed['scheme'] . "://" . $parsed['host'];
+        $origin = $this->getOrigin();
         $storeId = $this->storeManager->getStore()->getId();
-        $cacheKey = 'Adyen_origin_key_for_' . $domain . '_' . $storeId;
+        $cacheKey = 'Adyen_origin_key_for_' . $origin . '_' . $storeId;
 
         if (!$originKey = $this->cache->load($cacheKey)) {
-            if ($originKey = $this->getOriginKeyForUrl($domain, $storeId)) {
+            if ($originKey = $this->getOriginKeyForOrigin($origin, $storeId)) {
                 $this->cache->save($originKey, $cacheKey, array(), 60 * 60 * 24);
             }
         }
@@ -1415,14 +1457,14 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Get origin key for a specific url using the adyen api library client
+     * Get origin key for a specific origin using the adyen api library client
      *
-     * @param $url
+     * @param $origin
      * @param int|null $storeId
      * @return string
      * @throws \Adyen\AdyenException
      */
-    private function getOriginKeyForUrl($url, $storeId = null)
+    private function getOriginKeyForOrigin($origin, $storeId = null)
     {
         $params = array(
             "originDomains" => array(
