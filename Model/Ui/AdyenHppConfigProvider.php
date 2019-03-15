@@ -134,7 +134,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
             }
         }
 
-		$config['payment']['adyenHpp']['locale'] = $this->adyenHelper->getStoreLocale($this->storeManager->getStore()->getId());
+		$config['payment']['adyenHpp']['locale'] = $this->adyenHelper->getCurrentLocaleCode($this->storeManager->getStore());
 
         // add to config
         $config['payment'] ['adyenHpp']['gender'] = $gender;

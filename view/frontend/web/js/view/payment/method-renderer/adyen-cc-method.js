@@ -30,9 +30,13 @@ define(
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/model/installments',
         'mage/url',
-        'Magento_Vault/js/view/payment/vault-enabler'
+        'Magento_Vault/js/view/payment/vault-enabler',
+        'Magento_Checkout/js/model/url-builder',
+        'mage/storage',
+        'Magento_Checkout/js/model/full-screen-loader',
+        'Magento_Paypal/js/action/set-payment-method',
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url, VaultEnabler) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction) {
 
         'use strict';
 
@@ -194,7 +198,12 @@ define(
                         'expiryYear': this.expiryYear(),
                         'holderName': this.creditCardOwner(),
                         'store_cc': this.setStoreCc(),
-                        'number_of_installments': this.installment()
+                        'number_of_installments': this.installment(),
+                        'java_enabled': navigator.javaEnabled(),
+                        'screen_color_depth': screen.colorDepth,
+                        'screen_width': screen.width,
+                        'screen_hegiht': screen.height,
+                        'timezone_offset': new Date().getTimezoneOffset()
                     }
                 };
                 this.vaultEnabler.visitAdditionalData(data);
@@ -224,9 +233,39 @@ define(
                 }
 
                 if (this.validate() && additionalValidators.validate()) {
-                    this.isPlaceOrderActionAllowed(false);
+                    //this.isPlaceOrderActionAllowed(false);
 
-                    this.getPlaceOrderDeferredObject()
+                    fullScreenLoader.startLoader();
+
+                    var serviceUrl = urlBuilder.createUrl('/adyen/payments', {});
+
+                    var payload = {
+                        "payload": JSON.stringify(self.getData()),
+                    };
+
+                    //update payment method information if additional data was changed
+                    self.selectPaymentMethod();
+                    setPaymentMethodAction(this.messageContainer).done(
+                        function (response) {
+                            console.log(response);
+                            fullScreenLoader.stopLoader();
+                        }
+                    );
+
+                    return false;
+
+
+                    /*storage.post(
+                        serviceUrl,
+                        JSON.stringify(payload),
+                        true
+                    ).done(function(response) {
+                        console.log(response);
+                        fullScreenLoader.stopLoader();
+                        //this.isPlaceOrderActionAllowed(true);
+                    });*/
+
+                    /*this.getPlaceOrderDeferredObject()
                         .fail(
                             function () {
                                 self.isPlaceOrderActionAllowed(true);
@@ -240,7 +279,7 @@ define(
                                 window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
                             }
                         }
-                    );
+                    );*/
 
                     return true;
                 }

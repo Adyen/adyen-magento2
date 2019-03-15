@@ -198,7 +198,7 @@ class PaymentMethods extends AbstractHelper
                 ),
             ],
             "shopperReference" => $this->getCurrentShopperReference(),
-            "shopperLocale" => $this->getCurrentLocaleCode($store)
+            "shopperLocale" => $this->adyenHelper->getCurrentLocaleCode($store)
         ];
 
         $billingAddress = $this->getQuote()->getBillingAddress();
@@ -323,32 +323,6 @@ class PaymentMethods extends AbstractHelper
         }
 
         return "";
-    }
-
-    /**
-     * @param $store
-     * @return mixed|string
-     */
-    protected function getCurrentLocaleCode($store)
-    {
-        $localeCode = $this->adyenHelper->getAdyenAbstractConfigData('shopper_locale', $store->getId());
-        if ($localeCode != "") {
-            return $localeCode;
-        }
-
-        $locale = $this->localeResolver->getLocale();
-        if ($locale) {
-            return $locale;
-        }
-
-        // should have the value if not fall back to default
-        $localeCode = $this->config->getValue(
-            \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
-            $store->getCode()
-        );
-
-        return $localeCode;
     }
 
     /**
