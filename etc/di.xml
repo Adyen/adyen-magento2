@@ -396,6 +396,8 @@
     <!-- Authorization command  -->
     <virtualType name="AdyenPaymentCcAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
+            <argument name="requestBuilder" xsi:type="object">AdyenPaymentCcAuthorizeRequest</argument>
+            <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
             <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentCcResponseHandlerComposite</argument>
@@ -487,16 +489,8 @@
     <virtualType name="AdyenPaymentCcAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
-                <item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantAccountDataBuilder</item>
-                <item name="customer" xsi:type="string">Adyen\Payment\Gateway\Request\CustomerDataBuilder</item>
-                <item name="customerip" xsi:type="string">Adyen\Payment\Gateway\Request\CustomerIpDataBuilder</item>
-                <item name="address" xsi:type="string">Adyen\Payment\Gateway\Request\AddressDataBuilder</item>
-                <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
-                <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
-                <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CcAuthorizationDataBuilder
                 </item>
-                <item name="vault" xsi:type="string">Adyen\Payment\Gateway\Request\VaultDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -883,8 +877,8 @@
                 type="Adyen\Payment\Model\AdyenRequestMerchantSession"/>
     <preference for="Adyen\Payment\Api\AdyenInitiateTerminalApiInterface"
                 type="Adyen\Payment\Model\AdyenInitiateTerminalApi"/>
-    <preference for="Adyen\Payment\Api\Adyen3DS2ProcessInterface"
-                type="Adyen\Payment\Model\Adyen3DS2Process"/>
+    <preference for="Adyen\Payment\Api\AdyenThreeDS2ProcessInterface"
+                type="Adyen\Payment\Model\AdyenThreeDS2Process"/>
     <preference for="Magento\Checkout\Api\PaymentInformationManagementInterface"
                 type="Adyen\Payment\Model\AdyenPaymentInformationManagement"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">

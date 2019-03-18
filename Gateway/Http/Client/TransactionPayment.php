@@ -55,6 +55,13 @@ class TransactionPayment implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
+
+        // If the payments call is already done return the
+        if (!empty($request['resultCode'])) {
+            //Initiate has already a response
+            return $request;
+        }
+
         $client = $this->adyenHelper->initializeAdyenClient();
 
         $service = new \Adyen\Service\Checkout($client);

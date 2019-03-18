@@ -35,8 +35,9 @@ define(
         'mage/storage',
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Paypal/js/action/set-payment-method',
+        'Magento_Checkout/js/action/select-payment-method'
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction) {
 
         'use strict';
 
@@ -59,6 +60,10 @@ define(
                 this.vaultEnabler = new VaultEnabler();
                 this.vaultEnabler.setPaymentCode(this.getVaultCode());
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
+
+                this.checkout = new AdyenCheckout({
+                    locale: this.getLocale()
+                });
 
                 return this;
             },
@@ -99,11 +104,7 @@ define(
                 var allInstallments = self.getAllInstallments();
                 var cardNode = document.getElementById('cardContainer');
 
-                var checkout = new AdyenCheckout({
-                    locale: self.getLocale()
-                });
-
-                var card = checkout.create('card', {
+                var card = self.checkout.create('card', {
                     originKey: self.getOriginKey(),
                     loadingContext: self.getLoadingContext(),
                     type: 'card',
@@ -182,6 +183,73 @@ define(
                 card.mount(cardNode);
             },
             /**
+             * Rendering the 3DS2.0 components
+             *
+             * @param type
+             * @param token
+             */
+            renderThreeDS2Component: function(type, token) {
+                console.log("ati 2");
+                var self = this;
+
+                // hide card component
+                var cardNode = document.getElementById('cardContainer');
+                $(cardNode).slideUp();
+
+                var threeDS2Node = document.getElementById('threeDS2Container');
+                
+                if (type == "IdentifyShopper") {
+                    var threeDS2Component = self.checkout
+                        .create('threeDS2DeviceFingerprint', {
+                            fingerprintToken: token,
+                            onComplete: function(result) {
+                                self.processThreeDS2(result.data);
+                            },
+                            onError: function(result) {
+                                // TODO error handling show error message
+                                console.log(result);
+                            }
+                        });
+                } else if (type == "ChallengeShopper") {
+                    var threeDS2Component = self.checkout
+                        .create('threeDS2Challenge', {
+                            challengeToken: token,
+                            onComplete: function(result) {
+                                console.log(result);
+                                //self.processThreeDS2(result);
+                            },
+                            onError: function(result) {
+                                // TODO error handling show error message
+                                console.log(result);
+                            }
+                        });
+                }
+
+                threeDS2Component.mount(threeDS2Node);
+            },
+            /**
+             *
+             * @param response
+             */
+            processThreeDS2: function(data) {
+                var self = this;
+
+                var payload = {
+                    "payload": JSON.stringify(data)
+                };
+
+                var serviceUrl = urlBuilder.createUrl('/adyen/threeDS2Process', {});
+
+                storage.post(
+                    serviceUrl,
+                    JSON.stringify(payload),
+                    true
+                ).done(function(responseJSON) {
+                    fullScreenLoader.stopLoader();
+                    self.validateThreeDS2OrPlaceOrder(responseJSON)
+                });
+            },
+            /**
              * Builds the payment details part of the payment information reqeust
              *
              * @returns {{method: *, additional_data: {cc_type: *, number: *, cvc, expiryMonth: *, expiryYear: *, holderName: *, store_cc: *, number_of_installments: *}}}
@@ -237,35 +305,34 @@ define(
 
                     fullScreenLoader.startLoader();
 
-                    var serviceUrl = urlBuilder.createUrl('/adyen/3ds2Process', {});
-
-                    var payload = {
-                        "payload": JSON.stringify(self.getData()),
-                    };
-
                     //update payment method information if additional data was changed
-                    self.selectPaymentMethod();
+                    selectPaymentMethodAction(this.getData());
                     setPaymentMethodAction(this.messageContainer).done(
-                        function (response) {
-                            console.log(response);
+                        function (responseJSON) {
                             fullScreenLoader.stopLoader();
-                        }
-                    );
-
+                            self.validateThreeDS2OrPlaceOrder(responseJSON);
+                        });
                     return false;
+                }
 
+                return false;
+            },
+            /**
+             *
+             * @param responseJSON
+             */
+            validateThreeDS2OrPlaceOrder: function(responseJSON) {
+                var self = this;
 
-                    /*storage.post(
-                        serviceUrl,
-                        JSON.stringify(payload),
-                        true
-                    ).done(function(response) {
-                        console.log(response);
-                        fullScreenLoader.stopLoader();
-                        //this.isPlaceOrderActionAllowed(true);
-                    });*/
+                console.log(responseJSON);
 
-                    /*this.getPlaceOrderDeferredObject()
+                var response = JSON.parse(responseJSON);
+
+                if (!!response.threeDS2) {
+                    // render component
+                    self.renderThreeDS2Component(response.type, response.token);
+                } else {
+                    self.getPlaceOrderDeferredObject()
                         .fail(
                             function () {
                                 self.isPlaceOrderActionAllowed(true);
@@ -279,12 +346,8 @@ define(
                                 window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
                             }
                         }
-                    );*/
-
-                    return true;
+                    );
                 }
-
-                return false;
             },
             /**
              * Validates the payment date when clicking the pay button

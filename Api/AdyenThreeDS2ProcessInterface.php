@@ -13,30 +13,22 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2019 Adyen B.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Helper;
+namespace Adyen\Payment\Api;
 
-use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Framework\App\Helper\Context;
-
-class Payments extends AbstractHelper
+interface AdyenThreeDS2ProcessInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @param mixed $payload
+     * @return mixed
      */
-    private $adyenHelper;
-
-    public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
-    )
-    {
-        $this->adyenHelper = $adyenHelper;
-    }
+    public function initiate($payload);
 }

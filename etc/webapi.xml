@@ -58,8 +58,8 @@
         </resources>
     </route>
 
-    <route url="/V1/adyen/3ds2Process" method="POST">
-        <service class="Adyen\Payment\Api\Adyen3DS2ProcessInterface" method="initiate"/>
+    <route url="/V1/adyen/threeDS2Process" method="POST">
+        <service class="Adyen\Payment\Api\AdyenThreeDS2ProcessInterface" method="initiate"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>

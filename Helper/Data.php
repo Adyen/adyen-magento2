@@ -35,8 +35,8 @@ class Data extends AbstractHelper
     const LIVE = 'live';
     const CHECKOUT_CONTEXT_URL_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/';
     const CHECKOUT_CONTEXT_URL_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/';
-    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.1.0/adyen.js';
-    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.1.0/adyen.js';
+    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.2.0/adyen.js';
+    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.2.0/adyen.js';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -439,7 +439,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Gives back adyen_cc configuration values as flag
+     * Gives back adyen_cc_vault configuration values as flag
      *
      * @param $field
      * @param null $storeId
@@ -448,6 +448,18 @@ class Data extends AbstractHelper
     public function getAdyenCcVaultConfigDataFlag($field, $storeId = null)
     {
         return $this->getConfigData($field, 'adyen_cc_vault', $storeId, true);
+    }
+
+    /**
+     * Gives back adyen_cc_threeds2 configuration values as flag
+     *
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenCcThreeDS2ConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_cc_threeds2', $storeId, true);
     }
 
     /**
@@ -1515,7 +1527,7 @@ class Data extends AbstractHelper
     {
         $params = array(
             "originDomains" => array(
-                $url
+                $origin
             )
         );
 
@@ -1530,8 +1542,8 @@ class Data extends AbstractHelper
 
         $originKey = "";
 
-        if (!empty($response['originKeys'][$url])) {
-            $originKey = $response['originKeys'][$url];
+        if (!empty($response['originKeys'][$origin])) {
+            $originKey = $response['originKeys'][$origin];
         }
 
         return $originKey;
@@ -1686,7 +1698,6 @@ class Data extends AbstractHelper
         return $icon;
     }
 
-
     /**
      * Check if CreditCard vault is enabled
      *
@@ -1709,6 +1720,16 @@ class Data extends AbstractHelper
         $countryList = ["nl", "de", "se", "no", "at", "fi", "dk"];
 
         return in_array(strtolower($country), $countryList);
+    }
+    /**
+     * Check if 3DS2.0 is enabled for credit cards
+     *
+     * @param int|null $storeId
+     * @return mixed
+     */
+    public function isCreditCardThreeDS2Enabled($storeId = null)
+    {
+        return $this->getAdyenCcThreeDS2ConfigDataFlag('active', $storeId);
     }
 
 	/**
