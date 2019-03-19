@@ -77,7 +77,6 @@ define(
                         'securityCode',
                         'expiryMonth',
                         'expiryYear',
-                        'setStoreCc',
                         'installment',
                         'creditCardDetailsValid',
                         'variant',
@@ -95,6 +94,7 @@ define(
              */
             renderSecureFields: function () {
                 var self = this;
+
                 if (!self.getOriginKey()) {
                     return;
                 }
@@ -105,16 +105,23 @@ define(
                 var allInstallments = self.getAllInstallments();
                 var cardNode = document.getElementById('cardContainer');
 
+                var enableStoreDetails = false;
+                if (self.canCreateBillingAgreement() && !self.isVaultEnabled())  {
+                    enableStoreDetails = true;
+                }
+
                 self.cardComponent = self.checkout.create('card', {
                     originKey: self.getOriginKey(),
                     loadingContext: self.getLoadingContext(),
                     type: 'card',
                     hasHolderName: true,
                     holderNameRequired: true,
+                    enableStoreDetails: enableStoreDetails,
                     groupTypes: self.getAvailableCardTypeAltCodes(),
 
                     onChange: function (state, component) {
                         if (!!state.isValid && !component.state.errors.encryptedSecurityCode) {
+                            self.setStoreCc = !!state.data.storeDetails;
                             self.variant(state.brand);
                             self.creditCardNumber(state.data.encryptedCardNumber);
                             self.expiryMonth(state.data.encryptedExpiryMonth);
@@ -190,7 +197,7 @@ define(
             renderThreeDS2Component: function(type, token) {
                 var self = this;
 
-                var cardNode = document.getElementById('cardContainer');
+                var threeDS2Node = document.getElementById('threeDS2Container');
                 
                 if (type == "IdentifyShopper") {
                     self.threeDS2Component = self.checkout
@@ -198,6 +205,7 @@ define(
                             fingerprintToken: token,
                             onComplete: function(result) {
                                 self.processThreeDS2(result.data);
+                                $('#modal_content').modal("closeModal");
                             },
                             onError: function(result) {
                                 // TODO error handling show error message
@@ -205,7 +213,7 @@ define(
                             }
                         });
                 } else if (type == "ChallengeShopper") {
-                    self.cardComponent.unmount(cardNode);
+                    self.threeDS2Component.unmount(threeDS2Node);
                     if (self.threeDS2Component) {
                         self.threeDS2Component.unmount(cardNode);
                     }
@@ -215,6 +223,7 @@ define(
                             challengeToken: token,
                             onComplete: function(result) {
                                 self.processThreeDS2(result.data);
+                                $('#modal_content').modal("closeModal");
                             },
                             onError: function(result) {
                                 // TODO error handling show error message
@@ -223,7 +232,7 @@ define(
                         });
                 }
 
-                self.threeDS2Component.mount(cardNode);
+                self.threeDS2Component.mount(threeDS2Node);
             },
             /**
              *
@@ -231,6 +240,8 @@ define(
              */
             processThreeDS2: function(data) {
                 var self = this;
+
+                fullScreenLoader.startLoader();
 
                 var payload = {
                     "payload": JSON.stringify(data)
@@ -263,7 +274,7 @@ define(
                         'expiryMonth': this.expiryMonth(),
                         'expiryYear': this.expiryYear(),
                         'holderName': this.creditCardOwner(),
-                        'store_cc': this.setStoreCc(),
+                        'store_cc': this.setStoreCc,
                         'number_of_installments': this.installment(),
                         'java_enabled': navigator.javaEnabled().toString(),
                         'screen_color_depth': screen.colorDepth,
@@ -327,8 +338,17 @@ define(
                 var response = JSON.parse(responseJSON);
 
                 if (!!response.threeDS2) {
+
+                    $('#modal_content').modal({
+                        // disable user to hide popup
+                        clickableOverlay: false,
+                        // empty buttons, we don't need that
+                        buttons: []
+                    });
+
+                    $('#modal_content').modal("openModal");
+
                     // render component
-                    self.cardComponent.unmount();
                     self.renderThreeDS2Component(response.type, response.token);
                 } else {
                     self.getPlaceOrderDeferredObject()

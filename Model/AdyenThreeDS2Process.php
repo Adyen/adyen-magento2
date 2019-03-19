@@ -110,7 +110,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
 
         // Payment can get back to the original flow
         $payment->setAdditionalInformation("paymentsResponse", $result);
-        $payment->setAdditionalInformation('3ds2Active', false);
+        $payment->setAdditionalInformation('placeOrder', true);
         $quote->save();
 
         // 3DS2 flow is done, original place order flow can continue from frontend

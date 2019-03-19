@@ -73,7 +73,10 @@ class PaymentInformationManagement
         $payment = $quote->getPayment();
 
         // in case payments response is already there we don't need to perform another payments call
-        if ($payment->getAdditionalInformation('paymentsResponse')) {
+        // we indicate it with the placeOrder additionalInformation
+        if ($payment->getAdditionalInformation('placeOrder')) {
+            $payment->unsAdditionalInformation('placeOrder');
+            $quote->save();
             return true;
         }
 
@@ -137,7 +140,6 @@ class PaymentInformationManagement
         ) {
 
             if ($this->threeDS2ResponseValidator->validate(array("response" => $paymentsResponse, "payment" => $payment))->isValid()) {
-                $payment->setAdditionalInformation('3ds2Active', true);
                 $quote->save();
                 return json_encode(
                     array(
@@ -154,6 +156,8 @@ class PaymentInformationManagement
             $quote->save();
         }
 
+        $payment->setAdditionalInformation('placeOrder', true);
+        $quote->save();
         // Original flow can continue, return to frontend and place the order
         return json_encode(
             array(
