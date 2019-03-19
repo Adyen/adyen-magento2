@@ -250,7 +250,7 @@ class Requests extends AbstractHelper
     {
         $request['amount'] = [
             'currency' => $currencyCode,
-            'value' =>$this->adyenHelper->formatAmount($amount, $currencyCode)
+            'value' => $this->adyenHelper->formatAmount($amount, $currencyCode)
         ];
 
 
@@ -291,6 +291,13 @@ class Requests extends AbstractHelper
         $request['browserInfo']['timeZoneOffset'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::TIMEZONE_OFFSET);
         $request['browserInfo']['language'] = $this->adyenHelper->getCurrentLocaleCode($store);
         $request['browserInfo']['javaEnabled'] = true; //$payment->getAdditionalInformation(AdyenCcDataAssignObserver::JAVA_ENABLED);
+
+        // uset browser related data from additional information
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_WIDTH);
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_HEIGHT);
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH);
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::TIMEZONE_OFFSET);
+        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::JAVA_ENABLED);
 
         return $request;
     }

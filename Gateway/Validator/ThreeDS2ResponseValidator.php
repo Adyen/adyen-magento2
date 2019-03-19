@@ -60,7 +60,6 @@ class ThreeDS2ResponseValidator extends AbstractValidator
             throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
         }
 
-        $payment->setAdditionalInformation('3ds2Active', false);
         $isValid = true;
         $errorMessages = [];
 
