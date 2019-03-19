@@ -75,10 +75,13 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             "paymentData" => $payment->getAdditionalInformation("threeDS2PaymentData")
         ];
 
+        // unset payment data from additional information
+        $payment->unsAdditionalInformation("threeDS2PaymentData");
+
         // Depends on the component's response we send a fingerprint or the challenge result
         if (!empty($payload['details']['threeds2.fingerprint'])) {
             $request['details']['threeds2.fingerprint'] = $payload['details']['threeds2.fingerprint'];
-        } elseif (!empty($payload['threeds2.challengeResult'])) {
+        } elseif (!empty($payload['details']['threeds2.challengeResult'])) {
             $request['details']['threeds2.challengeResult'] = $payload['details']['threeds2.challengeResult'];
         }
 
@@ -94,19 +97,20 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         // Check if result is challenge shopper, if yes return the token
         if (!empty($result['resultCode']) &&
             $result['resultCode'] === 'ChallengeShopper' &&
-            !empty(result['authentication']['threeds2.fingerprintToken'])
+            !empty($result['authentication']['threeds2.challengeToken'])
         ) {
             return json_encode(
                 array(
                     'threeDS2' => true,
-                    'type' => 'ChallengeShopper',
-                    'token' => $result['authentication']['threeds2.challengeResult']
+                    'type' => $result['resultCode'],
+                    'token' => $result['authentication']['threeds2.challengeToken']
                 )
             );
         }
 
         // Payment can get back to the original flow
         $payment->setAdditionalInformation("paymentsResponse", $result);
+        $payment->setAdditionalInformation('3ds2Active', false);
         $quote->save();
 
         // 3DS2 flow is done, original place order flow can continue from frontend

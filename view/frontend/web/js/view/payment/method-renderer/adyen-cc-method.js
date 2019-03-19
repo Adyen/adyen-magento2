@@ -61,6 +61,7 @@ define(
                 this.vaultEnabler.setPaymentCode(this.getVaultCode());
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
 
+                // initialize adyen component for general use
                 this.checkout = new AdyenCheckout({
                     locale: this.getLocale()
                 });
@@ -104,7 +105,7 @@ define(
                 var allInstallments = self.getAllInstallments();
                 var cardNode = document.getElementById('cardContainer');
 
-                var card = self.checkout.create('card', {
+                self.cardComponent = self.checkout.create('card', {
                     originKey: self.getOriginKey(),
                     loadingContext: self.getLoadingContext(),
                     type: 'card',
@@ -178,9 +179,7 @@ define(
                             installments.setInstallments(0);
                         }
                     }
-                });
-
-                card.mount(cardNode);
+                }).mount(cardNode);
             },
             /**
              * Rendering the 3DS2.0 components
@@ -189,17 +188,12 @@ define(
              * @param token
              */
             renderThreeDS2Component: function(type, token) {
-                console.log("ati 2");
                 var self = this;
 
-                // hide card component
                 var cardNode = document.getElementById('cardContainer');
-                $(cardNode).slideUp();
-
-                var threeDS2Node = document.getElementById('threeDS2Container');
                 
                 if (type == "IdentifyShopper") {
-                    var threeDS2Component = self.checkout
+                    self.threeDS2Component = self.checkout
                         .create('threeDS2DeviceFingerprint', {
                             fingerprintToken: token,
                             onComplete: function(result) {
@@ -211,12 +205,16 @@ define(
                             }
                         });
                 } else if (type == "ChallengeShopper") {
-                    var threeDS2Component = self.checkout
+                    self.cardComponent.unmount(cardNode);
+                    if (self.threeDS2Component) {
+                        self.threeDS2Component.unmount(cardNode);
+                    }
+
+                    self.threeDS2Component = self.checkout
                         .create('threeDS2Challenge', {
                             challengeToken: token,
                             onComplete: function(result) {
-                                console.log(result);
-                                //self.processThreeDS2(result);
+                                self.processThreeDS2(result.data);
                             },
                             onError: function(result) {
                                 // TODO error handling show error message
@@ -225,7 +223,7 @@ define(
                         });
                 }
 
-                threeDS2Component.mount(threeDS2Node);
+                self.threeDS2Component.mount(cardNode);
             },
             /**
              *
@@ -267,7 +265,7 @@ define(
                         'holderName': this.creditCardOwner(),
                         'store_cc': this.setStoreCc(),
                         'number_of_installments': this.installment(),
-                        'java_enabled': navigator.javaEnabled(),
+                        'java_enabled': navigator.javaEnabled().toString(),
                         'screen_color_depth': screen.colorDepth,
                         'screen_width': screen.width,
                         'screen_height': screen.height,
@@ -330,6 +328,7 @@ define(
 
                 if (!!response.threeDS2) {
                     // render component
+                    self.cardComponent.unmount();
                     self.renderThreeDS2Component(response.type, response.token);
                 } else {
                     self.getPlaceOrderDeferredObject()
