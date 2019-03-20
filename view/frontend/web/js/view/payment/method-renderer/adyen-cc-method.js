@@ -35,9 +35,10 @@ define(
         'mage/storage',
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Paypal/js/action/set-payment-method',
-        'Magento_Checkout/js/action/select-payment-method'
+        'Magento_Checkout/js/action/select-payment-method',
+        'Adyen_Payment/js/threeds2-js-utils'
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils) {
 
         'use strict';
 
@@ -48,7 +49,7 @@ define(
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
                 creditCardOwner: '',
-                setStoreCc: false,
+                storeCc: false,
                 installment: '',
                 creditCardDetailsValid: false
             },
@@ -121,7 +122,7 @@ define(
 
                     onChange: function (state, component) {
                         if (!!state.isValid && !component.state.errors.encryptedSecurityCode) {
-                            self.setStoreCc = !!state.data.storeDetails;
+                            self.storeCc = !!state.data.storeDetails;
                             self.variant(state.brand);
                             self.creditCardNumber(state.data.encryptedCardNumber);
                             self.expiryMonth(state.data.encryptedExpiryMonth);
@@ -190,6 +191,11 @@ define(
             },
             /**
              * Rendering the 3DS2.0 components
+             * To do the device fingerprint at the response of IdentifyShopper render the threeDS2DeviceFingerprint
+             * component
+             * To render the challenge for the customer at the response of ChallengeShopper render the
+             * threeDS2Challenge component
+             * Both of them is going to be rendered in a Magento dialog popup
              *
              * @param type
              * @param token
@@ -205,7 +211,7 @@ define(
                             fingerprintToken: token,
                             onComplete: function(result) {
                                 self.processThreeDS2(result.data);
-                                $('#modal_content').modal("closeModal");
+                                $('#threeDS2Modal').modal("closeModal");
                             },
                             onError: function(result) {
                                 // TODO error handling show error message
@@ -223,7 +229,7 @@ define(
                             challengeToken: token,
                             onComplete: function(result) {
                                 self.processThreeDS2(result.data);
-                                $('#modal_content').modal("closeModal");
+                                $('#threeDS2Modal').modal("closeModal");
                             },
                             onError: function(result) {
                                 // TODO error handling show error message
@@ -235,7 +241,9 @@ define(
                 self.threeDS2Component.mount(threeDS2Node);
             },
             /**
-             *
+             * The results that the 3DS2 components returns in the onComplete callback needs to be sent to the
+             * backend to the /adyen/threeDS2Process endpoint and based on the response render a new threeDS2
+             * component or place the order (validateThreeDS2OrPlaceOrder)
              * @param response
              */
             processThreeDS2: function(data) {
@@ -264,6 +272,8 @@ define(
              * @returns {{method: *, additional_data: {cc_type: *, number: *, cvc, expiryMonth: *, expiryYear: *, holderName: *, store_cc: *, number_of_installments: *}}}
              */
             getData: function () {
+                var browserInfo = threeDS2Utils.getBrowserInfo();
+
                 var data = {
                     'method': this.item.method,
                     additional_data: {
@@ -274,13 +284,13 @@ define(
                         'expiryMonth': this.expiryMonth(),
                         'expiryYear': this.expiryYear(),
                         'holderName': this.creditCardOwner(),
-                        'store_cc': this.setStoreCc,
+                        'store_cc': this.storeCc,
                         'number_of_installments': this.installment(),
-                        'java_enabled': navigator.javaEnabled().toString(),
-                        'screen_color_depth': screen.colorDepth,
-                        'screen_width': screen.width,
-                        'screen_height': screen.height,
-                        'timezone_offset': new Date().getTimezoneOffset()
+                        'java_enabled': browserInfo.javaEnabled,
+                        'screen_color_depth': browserInfo.colorDepth,
+                        'screen_width': browserInfo.screenWidth,
+                        'screen_height': browserInfo.screenHeight,
+                        'timezone_offset': browserInfo.timeZoneOffset
                     }
                 };
                 this.vaultEnabler.visitAdditionalData(data);
@@ -310,15 +320,20 @@ define(
                 }
 
                 if (this.validate() && additionalValidators.validate()) {
-                    //this.isPlaceOrderActionAllowed(false);
-
                     fullScreenLoader.startLoader();
+                    self.isPlaceOrderActionAllowed(false);
 
                     //update payment method information if additional data was changed
                     selectPaymentMethodAction(this.getData());
+
+                    // here I can remove all the data collected from the card component
+                    // OR I should create a new getData function which just retrieves the data necessary for the 3ds2 flow
+
+
                     setPaymentMethodAction(this.messageContainer).done(
                         function (responseJSON) {
                             fullScreenLoader.stopLoader();
+                            self.isPlaceOrderActionAllowed(true);
                             self.validateThreeDS2OrPlaceOrder(responseJSON);
                         });
                     return false;
@@ -327,26 +342,24 @@ define(
                 return false;
             },
             /**
-             *
+             * Based on the response we can start a 3DS2 validation or place the order
              * @param responseJSON
              */
             validateThreeDS2OrPlaceOrder: function(responseJSON) {
                 var self = this;
 
-                console.log(responseJSON);
-
                 var response = JSON.parse(responseJSON);
 
                 if (!!response.threeDS2) {
 
-                    $('#modal_content').modal({
+                    $('#threeDS2Modal').modal({
                         // disable user to hide popup
                         clickableOverlay: false,
                         // empty buttons, we don't need that
                         buttons: []
                     });
 
-                    $('#modal_content').modal("openModal");
+                    $('#threeDS2Modal').modal("openModal");
 
                     // render component
                     self.renderThreeDS2Component(response.type, response.token);

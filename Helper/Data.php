@@ -35,8 +35,8 @@ class Data extends AbstractHelper
     const LIVE = 'live';
     const CHECKOUT_CONTEXT_URL_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/';
     const CHECKOUT_CONTEXT_URL_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/';
-    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.2.0/adyen.js';
-    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.2.0/adyen.js';
+    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.2.1/adyen.js';
+    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.2.1/adyen.js';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -118,6 +118,9 @@ class Data extends AbstractHelper
      */
     private $agreementResourceModel;
 
+    /**
+     * @var \Magento\Framework\Locale\ResolverInterface
+     */
     private $localeResolver;
 
     /**
@@ -442,7 +445,7 @@ class Data extends AbstractHelper
      * Gives back adyen_cc_vault configuration values as flag
      *
      * @param $field
-     * @param null $storeId
+     * @param int|null $storeId
      * @return mixed
      */
     public function getAdyenCcVaultConfigDataFlag($field, $storeId = null)

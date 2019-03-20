@@ -29,15 +29,58 @@ use Magento\Vault\Model\Ui\VaultConfigProvider;
 
 class PaymentInformationManagement
 {
+    /**
+     * @var \Magento\Checkout\Model\Session
+     */
     private $checkoutSession;
+
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
     private $adyenHelper;
+
+    /**
+     * @var \Adyen\Payment\Helper\Requests
+     */
     private $adyenRequestHelper;
+
+    /**
+     * @var \Magento\Framework\Model\Context
+     */
     private $context;
+
+    /**
+     * @var \Adyen\Payment\Gateway\Http\TransferFactory
+     */
     private $transferFactory;
+
+    /**
+     * @var \Adyen\Payment\Gateway\Http\Client\TransactionPayment
+     */
     private $transactionPayment;
+
+    /**
+     * @var \Adyen\Payment\Gateway\Validator\CheckoutResponseValidator
+     */
     private $checkoutResponseValidator;
+
+    /**
+     * @var \Adyen\Payment\Gateway\Validator\ThreeDS2ResponseValidator
+     */
     private $threeDS2ResponseValidator;
 
+    /**
+     * PaymentInformationManagement constructor.
+     *
+     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Helper\Requests $adyenRequestHelper
+     * @param \Magento\Framework\Model\Context $context
+     * @param \Adyen\Payment\Gateway\Http\TransferFactory $transferFactory
+     * @param \Adyen\Payment\Gateway\Http\Client\TransactionPayment $transactionPayment
+     * @param \Adyen\Payment\Gateway\Validator\CheckoutResponseValidator $checkoutResponseValidator
+     * @param \Adyen\Payment\Gateway\Validator\ThreeDS2ResponseValidator $threeDS2ResponseValidator
+     */
     public function __construct(
         \Magento\Checkout\Model\Session $checkoutSession,
         \Adyen\Payment\Helper\Data $adyenHelper,
@@ -77,7 +120,12 @@ class PaymentInformationManagement
         if ($payment->getAdditionalInformation('placeOrder')) {
             $payment->unsAdditionalInformation('placeOrder');
             $quote->save();
-            return true;
+
+            return json_encode(
+                array(
+                    'threeDS2' => false
+                )
+            );
         }
 
         // Init request array
@@ -148,16 +196,19 @@ class PaymentInformationManagement
                         "token" => $payment->getAdditionalInformation('threeDS2Token')
                     )
                 );
-            } else {
-                // TODO Handle error
             }
-        } else {
-            $payment->setAdditionalInformation('paymentsResponse', $paymentsResponse);
-            $quote->save();
         }
 
+        // Save the payments response because we are going to need it during the place order flow
+        $payment->setAdditionalInformation("paymentsResponse", $paymentsResponse);
+
+        // Setting the placeOrder to true enables the process to skip the payments call because the paymentsResponse
+        // is already in place - only set placeOrder to true when you have the paymentsResponse
         $payment->setAdditionalInformation('placeOrder', true);
+
+        // To actually save the additional info changes into the quote
         $quote->save();
+
         // Original flow can continue, return to frontend and place the order
         return json_encode(
             array(

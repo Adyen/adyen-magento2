@@ -28,21 +28,13 @@ use Magento\Payment\Gateway\Validator\AbstractValidator;
 class ThreeDS2ResponseValidator extends AbstractValidator
 {
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
-     */
-    private $adyenLogger;
-
-    /**
      * GeneralResponseValidator constructor.
      *
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
     public function __construct(
-        \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+        \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
     ) {
-        $this->adyenLogger = $adyenLogger;
         parent::__construct($resultFactory);
     }
 

@@ -44,6 +44,7 @@ class AddressDataBuilder implements BuilderInterface
      * AddressDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
      */
     public function __construct(
     	\Adyen\Payment\Helper\Data $adyenHelper,

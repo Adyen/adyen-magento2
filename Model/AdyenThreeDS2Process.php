@@ -54,14 +54,15 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
 
     /**
      * @api
-     * @param mixed $payload
-     * @return mixed
+     * @param string $payload
+     * @return string
      */
     public function initiate($payload)
     {
         // Decode payload from frontend
         $payload = json_decode($payload, true);
 
+        // Validate JSON that has just been parsed if it was in a valid format
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed because the request was not a valid JSON'));
         }
@@ -71,12 +72,19 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         $payment = $quote->getPayment();
 
         // Init payments/details request
-        $request = [
-            "paymentData" => $payment->getAdditionalInformation("threeDS2PaymentData")
-        ];
+        $result = [];
 
-        // unset payment data from additional information
-        $payment->unsAdditionalInformation("threeDS2PaymentData");
+        if ($paymentData = $payment->getAdditionalInformation("threeDS2PaymentData")) {
+            // Add payment data into the request object
+            $request = [
+                "paymentData" => $payment->getAdditionalInformation("threeDS2PaymentData")
+            ];
+
+            // unset payment data from additional information
+            $payment->unsAdditionalInformation("threeDS2PaymentData");
+        } else {
+            throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed, payment data not found'));
+        }
 
         // Depends on the component's response we send a fingerprint or the challenge result
         if (!empty($payload['details']['threeds2.fingerprint'])) {
@@ -109,8 +117,15 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         }
 
         // Payment can get back to the original flow
+
+        // Save the payments response because we are going to need it during the place order flow
         $payment->setAdditionalInformation("paymentsResponse", $result);
+
+        // Setting the placeOrder to true enables the process to skip the payments call because the paymentsResponse
+        // is already in place - only set placeOrder to true when you have the paymentsResponse
         $payment->setAdditionalInformation('placeOrder', true);
+
+        // To actually save the additional info changes into the quote
         $quote->save();
 
         // 3DS2 flow is done, original place order flow can continue from frontend
