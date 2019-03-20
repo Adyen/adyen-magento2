@@ -56,7 +56,7 @@ class TransactionPayment implements ClientInterface
     {
         $request = $transferObject->getBody();
 
-        // If the payments call is already done return the
+        // If the payments call is already done return the request
         if (!empty($request['resultCode'])) {
             //Initiate has already a response
             return $request;

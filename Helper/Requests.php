@@ -155,8 +155,7 @@ class Requests extends AbstractHelper
             // Save the defaults for later to compare if anything has changed
             $requestBilling = $requestBillingDefaults;
 
-            // Parse address into street and house number where possible
-            $address = $this->adyenHelper->getStreetFromString($billingAddress->getStreetFull());
+            $address = $this->getStreetStringFromBillingAddress($billingAddress);
 
             if (!empty($address["name"])) {
                 $requestBilling["street"] = $address["name"];
@@ -290,7 +289,7 @@ class Requests extends AbstractHelper
         $request['browserInfo']['colorDepth'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH);
         $request['browserInfo']['timeZoneOffset'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::TIMEZONE_OFFSET);
         $request['browserInfo']['language'] = $this->adyenHelper->getCurrentLocaleCode($store);
-        $request['browserInfo']['javaEnabled'] = true; //$payment->getAdditionalInformation(AdyenCcDataAssignObserver::JAVA_ENABLED);
+        $request['browserInfo']['javaEnabled'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::JAVA_ENABLED);
 
         // uset browser related data from additional information
         $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_WIDTH);
@@ -415,5 +414,25 @@ class Requests extends AbstractHelper
         }
 
         return $request;
+    }
+
+    /**
+     * The billing address retrieved from the Quote and the one retrieved from the Order has some differences
+     * Therefore we need to check if the getStreetFull function exists and use that if yes, otherwise use the more
+     * commont getStreetLine1
+     *
+     * @param $billingAddress
+     * @return array
+     */
+    private function getStreetStringFromBillingAddress($billingAddress)
+    {
+        if (method_exists($billingAddress, 'getStreetFull')) {
+            // Parse address into street and house number where possible
+            $address = $this->adyenHelper->getStreetFromString($billingAddress->getStreetFull());
+        } else {
+            $address = $this->adyenHelper->getStreetFromString($billingAddress->getStreetLine1());
+        }
+
+        return $address;
     }
 }

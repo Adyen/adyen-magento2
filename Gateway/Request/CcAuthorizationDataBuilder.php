@@ -24,7 +24,6 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 
 class CcAuthorizationDataBuilder implements BuilderInterface
 {
@@ -57,9 +56,14 @@ class CcAuthorizationDataBuilder implements BuilderInterface
         // retrieve payments response which we already got and saved in the
         // Adyen\Payment\Plugin\PaymentInformationManagement::afterSavePaymentInformation
         if ($response = $payment->getAdditionalInformation("paymentsResponse")) {
+            // the payments response needs to be passed to the next process because after this point we don't have
+            // access to the payment object therefore to the additionalInformation array
             $request = $response;
             // Remove from additional data
             $payment->unsAdditionalInformation("paymentsResponse");
+
+            // TODO check if qoupte needs to be saved or not
+
         } else {
             $errorMsg = __('Error with payment method please select different payment method.');
             throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
