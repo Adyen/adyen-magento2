@@ -99,8 +99,8 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
                     'date_added' => date('Y-m-d'),
                     'title' => $title,
                     'description' => $this->getText(),
-                    'url' => 'https://docs.adyen.com/developers/plug-ins-and-partners/magento-2/' .
-                        'set-up-the-plugin-in-magento#step3configuretheplugininmagento',
+                    'url' => 'https://docs.adyen.com/developers/plugins/magento-2/' .
+                        'set-up-adyen-customer-area#step1generateanapikey',
                 ];
 
                 /*

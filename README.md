@@ -25,10 +25,10 @@ composer require adyen/module-payment
 bin/magento module:enable Adyen_Payment
 bin/magento setup:upgrade
 ```
-For more information see our [installation section](https://docs.adyen.com/developers/plug-ins-and-partners/magento-2/set-up-the-plugin-in-magento#step1installtheplugin)
+For more information see our [installation section](https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento?redirect#step1installtheplugin)
 
  ## Documentation
-[Magento 2 documentation](https://docs.adyen.com/developers/plug-ins-and-partners/magento-2)
+[Magento 2 documentation](https://docs.adyen.com/developers/plugins/magento-2)
 
 
 ## Setup Cron
