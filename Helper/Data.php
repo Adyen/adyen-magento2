@@ -1767,4 +1767,30 @@ class Data extends AbstractHelper
 		$timeStamp = new \DateTime($date);
 		return $timeStamp->format($format);
 	}
+
+    /**
+     * @param string|null $type
+     * @param string|null $token
+     * @return string
+     */
+    public function buildThreeDS2ProcessResponseJson($type = null, $token = null)
+    {
+        $response = json_encode(
+            array(
+                'threeDS2' => false
+            )
+        );
+
+        if ($type && $token) {
+            $response = json_encode(
+                array(
+                    "threeDS2" => true,
+                    "type" => $type,
+                    "token" => $token
+                )
+            );
+        }
+
+        return $response;
+    }
 }
