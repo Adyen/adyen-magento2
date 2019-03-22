@@ -206,23 +206,24 @@ define(
                 var threeDS2Node = document.getElementById('threeDS2Container');
                 
                 if (type == "IdentifyShopper") {
+                    fullScreenLoader.startLoader();
                     self.threeDS2Component = self.checkout
                         .create('threeDS2DeviceFingerprint', {
                             fingerprintToken: token,
                             onComplete: function(result) {
+                                fullScreenLoader.stopLoader();
                                 self.processThreeDS2(result.data);
-                                $('#threeDS2Modal').modal("closeModal");
-                            },
-                            onError: function(result) {
-                                // TODO error handling show error message
-                                console.log(result);
                             }
                         });
                 } else if (type == "ChallengeShopper") {
-                    self.threeDS2Component.unmount(threeDS2Node);
-                    if (self.threeDS2Component) {
-                        self.threeDS2Component.unmount(cardNode);
-                    }
+                    $('#threeDS2Modal').modal({
+                        // disable user to hide popup
+                        clickableOverlay: false,
+                        // empty buttons, we don't need that
+                        buttons: []
+                    });
+
+                    $('#threeDS2Modal').modal("openModal");
 
                     self.threeDS2Component = self.checkout
                         .create('threeDS2Challenge', {
@@ -230,10 +231,6 @@ define(
                             onComplete: function(result) {
                                 self.processThreeDS2(result.data);
                                 $('#threeDS2Modal').modal("closeModal");
-                            },
-                            onError: function(result) {
-                                // TODO error handling show error message
-                                console.log(result);
                             }
                         });
                 }
@@ -269,9 +266,9 @@ define(
             /**
              * Builds the payment details part of the payment information reqeust
              *
-             * @returns {{method: *, additional_data: {cc_type: *, number: *, cvc, expiryMonth: *, expiryYear: *, holderName: *, store_cc: *, number_of_installments: *}}}
+             * @returns {{method: *, additional_data: {card_brand: *, cc_type: *, number: *, cvc: *, expiryMonth: *, expiryYear: *, holderName: *, store_cc: (boolean|*), number_of_installments: *, java_enabled: boolean, screen_color_depth: number, screen_width, screen_height, timezone_offset: *}}}
              */
-            getData: function () {
+            getCcData: function () {
                 var browserInfo = threeDS2Utils.getBrowserInfo();
 
                 var data = {
@@ -294,6 +291,16 @@ define(
                     }
                 };
                 this.vaultEnabler.visitAdditionalData(data);
+                return data;
+            },
+            /**
+             * Get data for place order
+             * @returns {{method: *}}
+             */
+            getData: function() {
+                var data = {
+                    'method': this.item.method
+                };
                 return data;
             },
             /**
@@ -324,12 +331,7 @@ define(
                     self.isPlaceOrderActionAllowed(false);
 
                     //update payment method information if additional data was changed
-                    selectPaymentMethodAction(this.getData());
-
-                    // here I can remove all the data collected from the card component
-                    // OR I should create a new getData function which just retrieves the data necessary for the 3ds2 flow
-
-
+                    selectPaymentMethodAction(this.getCcData());
                     setPaymentMethodAction(this.messageContainer).done(
                         function (responseJSON) {
                             fullScreenLoader.stopLoader();
@@ -351,16 +353,6 @@ define(
                 var response = JSON.parse(responseJSON);
 
                 if (!!response.threeDS2) {
-
-                    $('#threeDS2Modal').modal({
-                        // disable user to hide popup
-                        clickableOverlay: false,
-                        // empty buttons, we don't need that
-                        buttons: []
-                    });
-
-                    $('#threeDS2Modal').modal("openModal");
-
                     // render component
                     self.renderThreeDS2Component(response.type, response.token);
                 } else {

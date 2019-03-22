@@ -90,8 +90,7 @@ class PaymentInformationManagement
         \Adyen\Payment\Gateway\Http\Client\TransactionPayment $transactionPayment,
         \Adyen\Payment\Gateway\Validator\CheckoutResponseValidator $checkoutResponseValidator,
         \Adyen\Payment\Gateway\Validator\ThreeDS2ResponseValidator $threeDS2ResponseValidator
-    )
-    {
+    ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
         $this->adyenRequestHelper = $adyenRequestHelper;
@@ -109,8 +108,7 @@ class PaymentInformationManagement
     public function afterSavePaymentInformation(
         \Magento\Checkout\Model\PaymentInformationManagement $subject,
         $response
-    )
-    {
+    ) {
         // Get payment and cart information from session
         $quote = $this->checkoutSession->getQuote();
         $payment = $quote->getPayment();
@@ -121,11 +119,7 @@ class PaymentInformationManagement
             $payment->unsAdditionalInformation('placeOrder');
             $quote->save();
 
-            return json_encode(
-                array(
-                    'threeDS2' => false
-                )
-            );
+            return $this->adyenHelper->buildThreeDS2ProcessResponseJson();
         }
 
         // Init request array
@@ -181,21 +175,17 @@ class PaymentInformationManagement
         // Check if 3DS2.0 validation is needed or not
         // In case 3DS2.0 validation is necessary send the type and token back to the frontend
         if (!empty($paymentsResponse['resultCode']) &&
-            (
-                $paymentsResponse['resultCode'] == 'IdentifyShopper' ||
-                $paymentsResponse['resultCode'] == 'ChallengeShopper'
-            )
+            ($paymentsResponse['resultCode'] == 'IdentifyShopper' ||
+                $paymentsResponse['resultCode'] == 'ChallengeShopper')
         ) {
 
-            if ($this->threeDS2ResponseValidator->validate(array("response" => $paymentsResponse, "payment" => $payment))->isValid()) {
+            if ($this->threeDS2ResponseValidator->validate(array(
+                "response" => $paymentsResponse,
+                "payment" => $payment
+            ))->isValid()) {
                 $quote->save();
-                return json_encode(
-                    array(
-                        "threeDS2" => true,
-                        "type" => $payment->getAdditionalInformation('threeDS2Type'),
-                        "token" => $payment->getAdditionalInformation('threeDS2Token')
-                    )
-                );
+                return $this->adyenHelper->buildThreeDS2ProcessResponseJson($payment->getAdditionalInformation('threeDS2Type'),
+                    $payment->getAdditionalInformation('threeDS2Token'));
             }
         }
 
@@ -210,10 +200,6 @@ class PaymentInformationManagement
         $quote->save();
 
         // Original flow can continue, return to frontend and place the order
-        return json_encode(
-            array(
-                'threeDS2' => false
-            )
-        );
+        return $this->adyenHelper->buildThreeDS2ProcessResponseJson();
     }
 }

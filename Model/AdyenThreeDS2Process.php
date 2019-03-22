@@ -107,13 +107,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             $result['resultCode'] === 'ChallengeShopper' &&
             !empty($result['authentication']['threeds2.challengeToken'])
         ) {
-            return json_encode(
-                array(
-                    'threeDS2' => true,
-                    'type' => $result['resultCode'],
-                    'token' => $result['authentication']['threeds2.challengeToken']
-                )
-            );
+            return $this->adyenHelper->buildThreeDS2ProcessResponseJson($result['resultCode'], $result['authentication']['threeds2.challengeToken']);
         }
 
         // Payment can get back to the original flow
@@ -129,10 +123,6 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         $quote->save();
 
         // 3DS2 flow is done, original place order flow can continue from frontend
-        return json_encode(
-            array(
-                'threeDS2' => false
-            )
-        );
+        return $this->adyenHelper->buildThreeDS2ProcessResponseJson();
     }
 }
