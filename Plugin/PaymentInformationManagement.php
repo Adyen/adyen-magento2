@@ -146,7 +146,7 @@ class PaymentInformationManagement
         // PaymentDataBuilder
         $currencyCode = $quote->getQuoteCurrencyCode();
         $amount = $quote->getGrandTotal();
-        $reference = $quote->getId();
+        $reference = $quote->reserveOrderId()->getReservedOrderId();
         $request = $this->adyenRequestHelper->buildPaymentData($request, $amount, $currencyCode, $reference);
 
         // Browser data builder
