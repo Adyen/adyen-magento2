@@ -23,12 +23,13 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Vault\Model\Ui\VaultConfigProvider;
 
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
-
+//TODO: enable stateOrProvince field if no issues with empty values
 class Requests extends AbstractHelper
 {
     /**
@@ -148,14 +149,14 @@ class Requests extends AbstractHelper
                 "postalCode" => '',
                 "city" => "N/A",
                 "houseNumberOrName" => '',
-                "stateOrProvince" => '',
+//                "stateOrProvince" => '',
                 "country" => "ZZ"
             ];
 
             // Save the defaults for later to compare if anything has changed
             $requestBilling = $requestBillingDefaults;
 
-            $address = $this->getStreetStringFromBillingAddress($billingAddress);
+            $address = $this->getStreetStringFromAddress($billingAddress);
 
             if (!empty($address["name"])) {
                 $requestBilling["street"] = $address["name"];
@@ -173,9 +174,9 @@ class Requests extends AbstractHelper
                 $requestBilling["city"] = $billingAddress->getCity();
             }
 
-            if (!empty($billingAddress->getRegionCode())) {
-                $requestBilling["stateOrProvince"] = $billingAddress->getRegionCode();
-            }
+//            if (!empty($billingAddress->getRegionCode())) {
+//                $requestBilling["stateOrProvince"] = $billingAddress->getRegionCode();
+//            }
 
             if (!empty($billingAddress->getCountryId())) {
                 $requestBilling["country"] = $billingAddress->getCountryId();
@@ -195,7 +196,7 @@ class Requests extends AbstractHelper
                 "postalCode" => '',
                 "city" => "N/A",
                 "houseNumberOrName" => '',
-                "stateOrProvince" => '',
+//                "stateOrProvince" => '',
                 "country" => "ZZ"
             ];
 
@@ -203,7 +204,7 @@ class Requests extends AbstractHelper
             $requestDelivery = $requestDeliveryDefaults;
 
             // Parse address into street and house number where possible
-            $address = $this->adyenHelper->getStreetFromString($shippingAddress->getStreetFull());
+            $address = $this->getStreetStringFromAddress($shippingAddress);
 
             if (!empty($address['name'])) {
                 $requestDelivery["street"] = $address["name"];
@@ -221,9 +222,9 @@ class Requests extends AbstractHelper
                 $requestDelivery["city"] = $shippingAddress->getCity();
             }
 
-            if (!empty($shippingAddress->getRegionCode())) {
-                $requestDelivery["stateOrProvince"] = $shippingAddress->getRegionCode();
-            }
+//            if (!empty($shippingAddress->getRegionCode())) {
+//                $requestDelivery["stateOrProvince"] = $shippingAddress->getRegionCode();
+//            }
 
             if (!empty($shippingAddress->getCountryId())) {
                 $requestDelivery["country"] = $shippingAddress->getCountryId();
@@ -288,8 +289,8 @@ class Requests extends AbstractHelper
         $request['browserInfo']['screenHeight'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_HEIGHT);
         $request['browserInfo']['colorDepth'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH);
         $request['browserInfo']['timeZoneOffset'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::TIMEZONE_OFFSET);
-        $request['browserInfo']['language'] = $this->adyenHelper->getCurrentLocaleCode($store);
-        $request['browserInfo']['javaEnabled'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::JAVA_ENABLED);
+        $request['browserInfo']['language'] = "nl-NL";//$this->adyenHelper->getCurrentLocaleCode($store); TODO change format to nl-NL instead of nl_NL
+        $request['browserInfo']['javaEnabled'] = false; //$payment->getAdditionalInformation(AdyenCcDataAssignObserver::JAVA_ENABLED);TODO make sure it is not passed as null
 
         // uset browser related data from additional information
         $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_WIDTH);
@@ -370,6 +371,10 @@ class Requests extends AbstractHelper
             $request['paymentMethod']['encryptedSecurityCode'] = $securityCode;
         }
 
+        if ($recurringDetailReference = $payment->getAdditionalInformation(AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE)) {
+            $request['paymentMethod']['recurringDetailReference'] = $recurringDetailReference;
+        }
+
         // Remove from additional information
         $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER);
         $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH);
@@ -424,13 +429,13 @@ class Requests extends AbstractHelper
      * @param $billingAddress
      * @return array
      */
-    private function getStreetStringFromBillingAddress($billingAddress)
+    private function getStreetStringFromAddress($address)
     {
-        if (method_exists($billingAddress, 'getStreetFull')) {
+        if (method_exists($address, 'getStreetFull')) {
             // Parse address into street and house number where possible
-            $address = $this->adyenHelper->getStreetFromString($billingAddress->getStreetFull());
+            $address = $this->adyenHelper->getStreetFromString($address->getStreetFull());
         } else {
-            $address = $this->adyenHelper->getStreetFromString($billingAddress->getStreetLine1());
+            $address = $this->adyenHelper->getStreetFromString($address->getStreetLine1());
         }
 
         return $address;
