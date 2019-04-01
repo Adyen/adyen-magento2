@@ -29,7 +29,7 @@ use Magento\Vault\Model\Ui\VaultConfigProvider;
 
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
-//TODO: enable stateOrProvince field if no issues with empty values
+
 class Requests extends AbstractHelper
 {
     /**
@@ -149,7 +149,6 @@ class Requests extends AbstractHelper
                 "postalCode" => '',
                 "city" => "N/A",
                 "houseNumberOrName" => '',
-//                "stateOrProvince" => '',
                 "country" => "ZZ"
             ];
 
@@ -174,9 +173,9 @@ class Requests extends AbstractHelper
                 $requestBilling["city"] = $billingAddress->getCity();
             }
 
-//            if (!empty($billingAddress->getRegionCode())) {
-//                $requestBilling["stateOrProvince"] = $billingAddress->getRegionCode();
-//            }
+            if (!empty($billingAddress->getRegionCode())) {
+                $requestBilling["stateOrProvince"] = $billingAddress->getRegionCode();
+            }
 
             if (!empty($billingAddress->getCountryId())) {
                 $requestBilling["country"] = $billingAddress->getCountryId();
@@ -196,7 +195,6 @@ class Requests extends AbstractHelper
                 "postalCode" => '',
                 "city" => "N/A",
                 "houseNumberOrName" => '',
-//                "stateOrProvince" => '',
                 "country" => "ZZ"
             ];
 
@@ -222,9 +220,9 @@ class Requests extends AbstractHelper
                 $requestDelivery["city"] = $shippingAddress->getCity();
             }
 
-//            if (!empty($shippingAddress->getRegionCode())) {
-//                $requestDelivery["stateOrProvince"] = $shippingAddress->getRegionCode();
-//            }
+            if (!empty($shippingAddress->getRegionCode())) {
+                $requestDelivery["stateOrProvince"] = $shippingAddress->getRegionCode();
+            }
 
             if (!empty($shippingAddress->getCountryId())) {
                 $requestDelivery["country"] = $shippingAddress->getCountryId();
@@ -289,8 +287,13 @@ class Requests extends AbstractHelper
         $request['browserInfo']['screenHeight'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_HEIGHT);
         $request['browserInfo']['colorDepth'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH);
         $request['browserInfo']['timeZoneOffset'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::TIMEZONE_OFFSET);
-        $request['browserInfo']['language'] = "nl-NL";//$this->adyenHelper->getCurrentLocaleCode($store); TODO change format to nl-NL instead of nl_NL
-        $request['browserInfo']['javaEnabled'] = false; //$payment->getAdditionalInformation(AdyenCcDataAssignObserver::JAVA_ENABLED);TODO make sure it is not passed as null
+        $request['browserInfo']['language'] = $this->adyenHelper->getCurrentLocaleCode($store);
+
+        if ($javaEnabled = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::JAVA_ENABLED)) {
+            $request['browserInfo']['javaEnabled'] = $javaEnabled;
+        } else {
+            $request['browserInfo']['javaEnabled'] = false;
+        }
 
         // uset browser related data from additional information
         $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_WIDTH);
