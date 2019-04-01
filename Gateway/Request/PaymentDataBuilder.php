@@ -29,20 +29,19 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
  */
 class PaymentDataBuilder implements BuilderInterface
 {
-
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var \Adyen\Payment\Helper\Requests
      */
-    private $adyenHelper;
+    private $adyenRequestsHelper;
 
     /**
      * PaymentDataBuilder constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
+    public function __construct(\Adyen\Payment\Helper\Requests $adyenRequestsHelper)
     {
-        $this->adyenHelper = $adyenHelper;
+        $this->adyenRequestsHelper = $adyenRequestsHelper;
     }
     
     /**
@@ -60,14 +59,8 @@ class PaymentDataBuilder implements BuilderInterface
 
         $currencyCode = $fullOrder->getOrderCurrencyCode();
         $amount = $fullOrder->getGrandTotal();
+        $reference = $order->getOrderIncrementId();
 
-        $amount = ['currency' => $currencyCode,
-            'value' => $this->adyenHelper->formatAmount($amount, $currencyCode)];
-
-        return [
-            "amount" => $amount,
-            "reference" => $order->getOrderIncrementId(),
-            "fraudOffset" => "0"
-        ];
+        return $this->adyenRequestsHelper->buildPaymentData([], $amount, $currencyCode, $reference);
     }
 }

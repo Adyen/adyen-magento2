@@ -174,19 +174,21 @@ class PaymentInformationManagement
 
         // Check if 3DS2.0 validation is needed or not
         // In case 3DS2.0 validation is necessary send the type and token back to the frontend
-        if (!empty($paymentsResponse['resultCode']) &&
-            ($paymentsResponse['resultCode'] == 'IdentifyShopper' ||
-                $paymentsResponse['resultCode'] == 'ChallengeShopper')
-        ) {
-
-            if ($this->threeDS2ResponseValidator->validate(array(
-                "response" => $paymentsResponse,
-                "payment" => $payment
-            ))->isValid()) {
-                $quote->save();
-                return $this->adyenHelper->buildThreeDS2ProcessResponseJson($payment->getAdditionalInformation('threeDS2Type'),
-                    $payment->getAdditionalInformation('threeDS2Token'));
+        if (!empty($paymentsResponse['resultCode'])) {
+            if ($paymentsResponse['resultCode'] == 'IdentifyShopper' ||
+                $paymentsResponse['resultCode'] == 'ChallengeShopper') {
+                if ($this->threeDS2ResponseValidator->validate(array(
+                    "response" => $paymentsResponse,
+                    "payment" => $payment
+                ))->isValid()) {
+                    $quote->save();
+                    return $this->adyenHelper->buildThreeDS2ProcessResponseJson($payment->getAdditionalInformation('threeDS2Type'),
+                        $payment->getAdditionalInformation('threeDS2Token'));
+                }
             }
+        } else {
+            $errorMsg = __('Error with payment method please select different payment method.');
+            throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
         }
 
         // Save the payments response because we are going to need it during the place order flow

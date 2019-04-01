@@ -28,24 +28,9 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 class CcAuthorizationDataBuilder implements BuilderInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    private $adyenHelper;
-
-    /**
-     * CcAuthorizationDataBuilder constructor.
-     *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     */
-    public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
-    ) {
-        $this->adyenHelper = $adyenHelper;
-    }
-
-    /**
      * @param array $buildSubject
-     * @return mixed
+     * @return array|mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function build(array $buildSubject)
     {
