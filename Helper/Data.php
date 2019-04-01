@@ -1123,12 +1123,12 @@ class Data extends AbstractHelper
     {
         $localeCode = $this->getAdyenAbstractConfigData('shopper_locale', $store->getId());
         if ($localeCode != "") {
-            return $localeCode;
+            return $this->formatLocaleCode($localeCode);
         }
 
-        $locale = $this->localeResolver->getLocale();
-        if ($locale) {
-            return $locale;
+        $localeCode = $this->localeResolver->getLocale();
+        if ($localeCode) {
+            return $this->formatLocaleCode($localeCode);
         }
 
         // should have the value if not fall back to default
@@ -1138,7 +1138,16 @@ class Data extends AbstractHelper
             $store->getCode()
         );
 
-        return $localeCode;
+        return $this->formatLocaleCode($localeCode);
+    }
+
+    /**
+     * Format Magento locale codes with undersocre to ISO locale codes with dash
+     * @param $localeCode
+     */
+    public function formatLocaleCode($localeCode)
+    {
+        return str_replace("_", "-", $localeCode);
     }
 
     public function getApplePayShippingTypes()

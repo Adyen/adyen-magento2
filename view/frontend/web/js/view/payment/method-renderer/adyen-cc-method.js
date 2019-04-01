@@ -261,6 +261,8 @@ define(
                 ).done(function(responseJSON) {
                     fullScreenLoader.stopLoader();
                     self.validateThreeDS2OrPlaceOrder(responseJSON)
+                }).error(function(responseJSON) {
+                    fullScreenLoader.stopLoader();
                 });
             },
             /**
