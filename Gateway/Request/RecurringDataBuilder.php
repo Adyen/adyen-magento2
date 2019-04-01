@@ -28,27 +28,27 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 class RecurringDataBuilder implements BuilderInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    private $adyenHelper;
-
-    /**
      * @var \Magento\Framework\App\State
      */
     private $appState;
 
     /**
+     * @var \Adyen\Payment\Helper\Requests
+     */
+    private $adyenRequestsHelper;
+
+    /**
      * RecurringDataBuilder constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Framework\Model\Context $context
+     * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\Model\Context $context
+        \Magento\Framework\Model\Context $context,
+        \Adyen\Payment\Helper\Requests $adyenRequestsHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
         $this->appState = $context->getAppState();
+        $this->adyenRequestsHelper = $adyenRequestsHelper;
     }
 
 
@@ -59,39 +59,12 @@ class RecurringDataBuilder implements BuilderInterface
      */
     public function build(array $buildSubject)
     {
-        $result = [];
+        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
+        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        $payment = $paymentDataObject->getPayment();
+        $storeId = $payment->getOrder()->getStoreId();
+        $areaCode = $this->appState->getAreaCode();
 
-        // If the vault feature is on this logic is handled in the VaultDataBuilder
-        if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
-            /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-            $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-            $payment = $paymentDataObject->getPayment();
-
-            $storeId = null;
-            if ($this->appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
-                $storeId = $payment->getOrder()->getStoreId();
-            }
-
-            $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
-            $enableRecurring = $this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', $storeId);
-
-            if ($enableOneclick) {
-                $result['enableOneClick'] = true;
-            } else {
-                $result['enableOneClick'] = false;
-            }
-
-            if ($enableRecurring) {
-                $result['enableRecurring'] = true;
-            } else {
-                $result['enableRecurring'] = false;
-            }
-
-            if ($payment->getAdditionalInformation('store_cc') === '1') {
-                $result['paymentMethod']['storeDetails'] = true;
-            }
-        }
-
-        return $result;
+        return $this->adyenRequestsHelper->buildRecurringData([], $areaCode, $storeId, $payment);
     }
 }

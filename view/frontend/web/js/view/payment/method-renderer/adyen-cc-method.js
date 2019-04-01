@@ -339,7 +339,11 @@ define(
                             fullScreenLoader.stopLoader();
                             self.isPlaceOrderActionAllowed(true);
                             self.validateThreeDS2OrPlaceOrder(responseJSON);
-                        });
+                        }).error(function() {
+                            fullScreenLoader.stopLoader();
+                            self.isPlaceOrderActionAllowed(true);
+                    });
+
                     return false;
                 }
 

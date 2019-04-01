@@ -31,11 +31,6 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 class AddressDataBuilder implements BuilderInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    private $adyenHelper;
-
-    /**
      * @var \Adyen\Payment\Helper\Requests
      */
     private $adyenRequestsHelper;
@@ -43,18 +38,15 @@ class AddressDataBuilder implements BuilderInterface
     /**
      * AddressDataBuilder constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
      */
     public function __construct(
-    	\Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Helper\Requests $adyenRequestsHelper
 	)
     {
-        $this->adyenHelper = $adyenHelper;
         $this->adyenRequestsHelper = $adyenRequestsHelper;
     }
-    
+
     /**
      * Add delivery\billing details into request
      *
@@ -69,9 +61,6 @@ class AddressDataBuilder implements BuilderInterface
 		$billingAddress = $order->getBillingAddress();
         $shippingAddress = $order->getShippingAddress();
 
-        $result = [];
-		$result = $this->adyenRequestsHelper->buildAddressData($result, $billingAddress, $shippingAddress);
-
-        return $result;
+		return $this->adyenRequestsHelper->buildAddressData([], $billingAddress, $shippingAddress);
     }
 }

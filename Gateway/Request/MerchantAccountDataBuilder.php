@@ -28,19 +28,19 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 class MerchantAccountDataBuilder implements BuilderInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var \Adyen\Payment\Helper\Requests
      */
-    private $adyenHelper;
+    private $adyenRequestsHelper;
 
     /**
-     * RecurringDataBuilder constructor.
+     * MerchantAccountDataBuilder constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Requests $adyenRequestsHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
+        $this->adyenRequestsHelper = $adyenRequestsHelper;
     }
 
     /**
@@ -52,12 +52,10 @@ class MerchantAccountDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getOrder();
-        $storeId = $order->getStoreId();
         $payment = $paymentDataObject->getPayment();
+        $storeId = $order->getStoreId();
         $method = $payment->getMethod();
 
-        $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
-
-        return ["merchantAccount" => $merchantAccount];
+        return $this->adyenRequestsHelper->buildMerchantAccountData([], $method, $storeId);
     }
 }

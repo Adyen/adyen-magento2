@@ -52,7 +52,6 @@ class BrowserInfoDataBuilder implements BuilderInterface
      */
     public function build(array $buildSubject)
     {
-        $result = $this->adyenRequestsHelper->buildBrowserData();
-        return $result;
+        return $this->adyenRequestsHelper->buildBrowserData();
     }
 }
