@@ -66,7 +66,7 @@ class Requests extends AbstractHelper
      * @param $billingAddress
      * @return mixed
      */
-    public function buildCustomerData($request = [], $customerId = 0, $billingAddress, \Magento\Quote\Model\Quote\Payment $payment)
+    public function buildCustomerData($request = [], $customerId = 0, $billingAddress, $payment)
     {
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
@@ -311,7 +311,7 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringData($request = [], $areaCode, int $storeId, \Magento\Quote\Model\Quote\Payment $payment)
+    public function buildRecurringData($request = [], $areaCode, int $storeId, $payment)
     {
         // If the vault feature is on this logic is handled in the VaultDataBuilder
         if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
