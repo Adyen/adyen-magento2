@@ -364,7 +364,7 @@ class Data extends AbstractHelper
 	 */
 	public function getStreetFromString($streetLine)
 	{
-		$street = self::formatStreet(array($streetLine));
+		$street = self::formatStreet([$streetLine]);
 		$streetName = $street['0'];
 		unset($street['0']);
 		$streetNr = implode(' ', $street);
@@ -1520,7 +1520,7 @@ class Data extends AbstractHelper
 
         if (!$originKey = $this->cache->load($cacheKey)) {
             if ($originKey = $this->getOriginKeyForOrigin($origin, $storeId)) {
-                $this->cache->save($originKey, $cacheKey, array(), 60 * 60 * 24);
+                $this->cache->save($originKey, $cacheKey, [], 60 * 60 * 24);
             }
         }
 
@@ -1537,11 +1537,11 @@ class Data extends AbstractHelper
      */
     private function getOriginKeyForOrigin($origin, $storeId = null)
     {
-        $params = array(
-            "originDomains" => array(
+        $params = [
+            "originDomains" => [
                 $origin
-            )
-        );
+            ]
+        ];
 
         $client = $this->initializeAdyenClient($storeId);
 
@@ -1785,18 +1785,18 @@ class Data extends AbstractHelper
     public function buildThreeDS2ProcessResponseJson($type = null, $token = null)
     {
         $response = json_encode(
-            array(
+            [
                 'threeDS2' => false
-            )
+            ]
         );
 
         if ($type && $token) {
             $response = json_encode(
-                array(
+                [
                     "threeDS2" => true,
                     "type" => $type,
                     "token" => $token
-                )
+                ]
             );
         }
 

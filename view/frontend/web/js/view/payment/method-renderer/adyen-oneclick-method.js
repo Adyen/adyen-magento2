@@ -180,7 +180,6 @@ define(
                          */
                         placeOrder: function (data, event) {
                             var self = this;
-                            console.log("placeorder");
 
                             if (event) {
                                 event.preventDefault();

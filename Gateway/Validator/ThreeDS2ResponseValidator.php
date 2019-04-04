@@ -58,25 +58,21 @@ class ThreeDS2ResponseValidator extends AbstractValidator
         // validate result
         if (!empty($response['resultCode'])) {
             // 3DS2.0 should have IdentifyShopper or ChallengeShopper as a resultCode
-            switch ($response['resultCode']) {
-                case "IdentifyShopper":
-                    if (!empty($response['authentication']['threeds2.fingerprintToken'])) {
-                        $payment->setAdditionalInformation('threeDS2Type', $response['resultCode']);
-                        $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.fingerprintToken']);
-                        $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
-                    }
-                    break;
-                case "ChallengeShopper":
-                    if (!empty($response['authentication']['threeds2.challengeToken'])) {
-                        $payment->setAdditionalInformation('threeDS2Type', $response['resultCode']);
-                        $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.challengeToken']);
-                        $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
-                    }
-                    break;
-                default:
-                    $errorMsg = __('Error with payment method please select different payment method.');
-                    throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
-                    break;
+            if ($response['resultCode'] == "IdentifyShopper" &&
+                !empty($response['authentication']['threeds2.fingerprintToken'])
+            ) {
+                $payment->setAdditionalInformation('threeDS2Type', $response['resultCode']);
+                $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.fingerprintToken']);
+                $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
+            } elseif ($response['resultCode'] == "ChallengeShopper" &&
+                !empty($response['authentication']['threeds2.challengeToken'])
+            ) {
+                $payment->setAdditionalInformation('threeDS2Type', $response['resultCode']);
+                $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.challengeToken']);
+                $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
+            } else {
+                $errorMsg = __('Error with payment method please select different payment method.');
+                throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
             }
         } else {
             $errorMsg = __('Error with payment method please select different payment method.');

@@ -46,9 +46,6 @@ class CcAuthorizationDataBuilder implements BuilderInterface
             $request = $response;
             // Remove from additional data
             $payment->unsAdditionalInformation("paymentsResponse");
-
-            // TODO check if qoupte needs to be saved or not
-
         } else {
             $errorMsg = __('Error with payment method please select different payment method.');
             throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
