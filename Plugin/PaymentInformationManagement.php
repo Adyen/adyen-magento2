@@ -109,6 +109,7 @@ class PaymentInformationManagement
         \Magento\Checkout\Model\PaymentInformationManagement $subject,
         $response
     ) {
+
         // Get payment and cart information from session
         $quote = $this->checkoutSession->getQuote();
         $payment = $quote->getPayment();
@@ -121,7 +122,10 @@ class PaymentInformationManagement
 
             return $this->adyenHelper->buildThreeDS2ProcessResponseJson();
         }
-
+        if (strpos($payment->getMethod(), "adyen_cc") !== 0 &&
+            strpos($payment->getMethod(), "adyen_oneclick") !== 0) {
+            return $response;
+        }
         // Init request array
         $request = [];
 
