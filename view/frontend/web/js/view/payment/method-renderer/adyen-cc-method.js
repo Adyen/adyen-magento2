@@ -88,6 +88,13 @@ define(
             },
             getInstallments: installments.getInstallments(),
             /**
+             * Returns true if card details can be stored
+             * @returns {*|boolean}
+             */
+            getEnableStoreDetails: function() {
+                return this.canCreateBillingAgreement() && !this.isVaultEnabled();
+            },
+            /**
              * Renders the secure fields,
              * creates the card component,
              * sets up the callbacks for card components and
@@ -106,18 +113,13 @@ define(
                 var allInstallments = self.getAllInstallments();
                 var cardNode = document.getElementById('cardContainer');
 
-                var enableStoreDetails = false;
-                if (self.canCreateBillingAgreement() && !self.isVaultEnabled())  {
-                    enableStoreDetails = true;
-                }
-
                 self.cardComponent = self.checkout.create('card', {
                     originKey: self.getOriginKey(),
                     loadingContext: self.getLoadingContext(),
                     type: 'card',
                     hasHolderName: true,
                     holderNameRequired: true,
-                    enableStoreDetails: enableStoreDetails,
+                    enableStoreDetails: self.getEnableStoreDetails(),
                     groupTypes: self.getAvailableCardTypeAltCodes(),
 
                     onChange: function (state, component) {
@@ -271,9 +273,9 @@ define(
              * @returns {{method: *, additional_data: {card_brand: *, cc_type: *, number: *, cvc: *, expiryMonth: *, expiryYear: *, holderName: *, store_cc: (boolean|*), number_of_installments: *, java_enabled: boolean, screen_color_depth: number, screen_width, screen_height, timezone_offset: *}}}
              */
             getCcData: function () {
-                var browserInfo = threeDS2Utils.getBrowserInfo();
+                const browserInfo = threeDS2Utils.getBrowserInfo();
 
-                var data = {
+                let data = {
                     'method': this.item.method,
                     additional_data: {
                         'card_brand': this.variant(),
@@ -292,6 +294,7 @@ define(
                         'timezone_offset': browserInfo.timeZoneOffset
                     }
                 };
+
                 this.vaultEnabler.visitAdditionalData(data);
                 return data;
             },
@@ -300,10 +303,9 @@ define(
              * @returns {{method: *}}
              */
             getData: function() {
-                var data = {
+                return {
                     'method': this.item.method
                 };
-                return data;
             },
             /**
              * Returns state of place order button

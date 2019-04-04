@@ -72,13 +72,12 @@ class Requests extends AbstractHelper
             $request['shopperReference'] = $customerId;
         }
 
+        $paymentMethod = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+
         if (!empty($billingAddress)) {
-            // Openinvoice and afterpayTouch methods requires different request format
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
-                    $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
-                ) && !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod(
-                    $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
-                )
+            // Openinvoice (klarna and afterpay BUT not afterpay touch) methods requires different request format
+            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
+                !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
             ) {
                 if ($customerEmail = $billingAddress->getEmail()) {
                     $request['paymentMethod']['personalDetails']['shopperEmail'] = $customerEmail;
