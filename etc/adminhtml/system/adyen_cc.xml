@@ -59,6 +59,12 @@
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_cc_vault/active</config_path>
         </field>
+        <field id="adyen_cc_threeds2" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>3DS2.0 Enabled</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_cc_threeds2/active</config_path>
+        </field>
 
         <group id="adyen_cc_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1"
                sortOrder="150">

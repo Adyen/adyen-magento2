@@ -32,10 +32,15 @@ define(
         'Magento_Checkout/js/action/redirect-on-success',
         'uiLayout',
         'Magento_Ui/js/model/messages',
-        'Magento_Checkout/js/action/place-order',
-        'mage/url'
+        'mage/url',
+        'Adyen_Payment/js/threeds2-js-utils',
+        'Magento_Checkout/js/model/full-screen-loader',
+        'Magento_Paypal/js/action/set-payment-method',
+        'Magento_Checkout/js/model/url-builder',
+        'mage/storage',
+        'Magento_Checkout/js/action/place-order'
     ],
-    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, placeOrderAction, url) {
+    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, url, threeDS2Utils, fullScreenLoader, setPaymentMethodAction, urlBuilder, storage, placeOrderAction) {
 
         'use strict';
 
@@ -59,7 +64,7 @@ define(
                     .observe([
                         'recurringDetailReference',
                         'creditCardType',
-                        'creditCardVerificationNumber',
+                        'encryptedCreditCardVerificationNumber',
                         'variant',
                         'numberOfInstallments'
                     ]);
@@ -165,7 +170,13 @@ define(
                             return self.isActive() && this.getCode() == self.isChecked() && self.isBillingAgreementChecked() && this.placeOrderAllowed();
                         },
                         /**
+                         * Custom place order function
+                         *
                          * @override
+                         *
+                         * @param data
+                         * @param event
+                         * @returns {boolean}
                          */
                         placeOrder: function (data, event) {
                             var self = this;
@@ -173,38 +184,35 @@ define(
                             if (event) {
                                 event.preventDefault();
                             }
-
                             // only use installments for cards
-                            if (self.agreement_data.card) {
-                                if (self.hasVerification()) {
-                                    var options = {enableValidations: false};
+                                if (self.agreement_data.card) {
+                                    if (self.hasVerification()) {
+                                        var options = {enableValidations: false};
+                                    }
+
+                                    // set payment method to adyen_hpp
+                                    // TODO can observer in front-end this not needed
+                                    numberOfInstallments(self.installment);
                                 }
 
-                                // set payment method to adyen_hpp
-                                // TODO can observer in front-end this not needed
-                                numberOfInstallments(self.installment);
-                            }
-
-                            // in different context so need custom place order logic
                             if (this.validate() && additionalValidators.validate()) {
+                                fullScreenLoader.startLoader();
                                 self.isPlaceOrderActionAllowed(false);
 
-                                this.getPlaceOrderDeferredObject()
-                                    .fail(
-                                        function () {
-                                            self.isPlaceOrderActionAllowed(true);
-                                        }
-                                    ).done(
-                                    function () {
-                                        self.afterPlaceOrder();
-                                        // use custom redirect Link for supporting 3D secure
-                                        window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
-                                    }
-                                );
-                                return true;
+                                //update payment method information if additional data was changed
+                                selectPaymentMethodAction(this.getCcData());
+                                setPaymentMethodAction(this.messageContainer).done(
+                                    function (responseJSON) {
+                                        fullScreenLoader.stopLoader();
+                                        self.isPlaceOrderActionAllowed(true);
+                                        self.validateThreeDS2OrPlaceOrder(responseJSON);
+                                    });
+                                return false;
                             }
+
                             return false;
                         },
+
                         /**
                          * Renders the secure CVC field,
                          * creates the card component,
@@ -274,6 +282,131 @@ define(
 
 
                             window.adyencheckout = oneClickCard;
+                        },
+                        /**
+                         * Builds the payment details part of the payment information reqeust
+                         *
+                         * @returns {{method: *, additional_data: {card_brand: *, cc_type: *, number: *, cvc: *, expiryMonth: *, expiryYear: *, holderName: *, store_cc: (boolean|*), number_of_installments: *, java_enabled: boolean, screen_color_depth: number, screen_width, screen_height, timezone_offset: *}}}
+                         */
+                        getCcData: function () {
+                            var self = this;
+                            var browserInfo = threeDS2Utils.getBrowserInfo();
+                            var data = {
+                                'method': self.method,
+                                additional_data: {
+                                    'variant': variant(),
+                                    'recurring_detail_reference': recurringDetailReference(),
+                                    'number_of_installments': numberOfInstallments(),
+                                    'cvc': self.encryptedCreditCardVerificationNumber,
+                                    'expiryMonth': self.creditCardExpMonth(),
+                                    'expiryYear': self.creditCardExpYear(),
+
+                                    'java_enabled': browserInfo.javaEnabled,
+                                    'screen_color_depth': browserInfo.colorDepth,
+                                    'screen_width': browserInfo.screenWidth,
+                                    'screen_height': browserInfo.screenHeight,
+                                    'timezone_offset': browserInfo.timeZoneOffset
+                                }
+                            };
+                            return data;
+                        },
+                        /**
+                         * Based on the response we can start a 3DS2 validation or place the order
+                         * @param responseJSON
+                         */
+                        validateThreeDS2OrPlaceOrder: function(responseJSON) {
+                            var self = this;
+                            var response = JSON.parse(responseJSON);
+
+                            if (!!response.threeDS2) {
+                                // render component
+                                self.renderThreeDS2Component(response.type, response.token);
+                            } else {
+                                this.getPlaceOrderDeferredObject()
+                                    .fail(
+                                        function () {
+                                            self.isPlaceOrderActionAllowed(true);
+                                        }
+                                    ).done(
+                                    function () {
+                                        self.afterPlaceOrder();
+                                        window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
+                                    }
+                                );
+                            }
+                        },
+                        /**
+                         * The results that the 3DS2 components returns in the onComplete callback needs to be sent to the
+                         * backend to the /adyen/threeDS2Process endpoint and based on the response render a new threeDS2
+                         * component or place the order (validateThreeDS2OrPlaceOrder)
+                         * @param response
+                         */
+                        processThreeDS2: function(data) {
+                            var self = this;
+
+                            fullScreenLoader.startLoader();
+
+                            var payload = {
+                                "payload": JSON.stringify(data)
+                            };
+
+                            var serviceUrl = urlBuilder.createUrl('/adyen/threeDS2Process', {});
+
+                            storage.post(
+                                serviceUrl,
+                                JSON.stringify(payload),
+                                true
+                            ).done(function(responseJSON) {
+                                fullScreenLoader.stopLoader();
+                                self.validateThreeDS2OrPlaceOrder(responseJSON)
+                            });
+                        },
+                        /**
+                         * Rendering the 3DS2.0 components
+                         * To do the device fingerprint at the response of IdentifyShopper render the threeDS2DeviceFingerprint
+                         * component
+                         * To render the challenge for the customer at the response of ChallengeShopper render the
+                         * threeDS2Challenge component
+                         * Both of them is going to be rendered in a Magento dialog popup
+                         *
+                         * @param type
+                         * @param token
+                         */
+                        renderThreeDS2Component: function(type, token) {
+                            var self = this;
+
+                            var threeDS2Node = document.getElementById('threeDS2ContainerOneClick');
+
+                            if (type == "IdentifyShopper") {
+                                fullScreenLoader.startLoader();
+                                self.threeDS2Component = checkout.create('threeDS2DeviceFingerprint', {
+                                        fingerprintToken: token,
+                                        onComplete: function(result) {
+                                            fullScreenLoader.stopLoader();
+                                            self.processThreeDS2(result.data);
+                                        }
+                                    });
+                            } else if (type == "ChallengeShopper") {
+                                $('#threeDS2ModalOneClick').modal({
+                                    // disable user to hide popup
+                                    clickableOverlay: false,
+                                    // empty buttons, we don't need that
+                                    buttons: []
+                                });
+
+                                $('#threeDS2ModalOneClick').modal("openModal");
+
+                                self.threeDS2Component = checkout
+                                    .create('threeDS2Challenge', {
+                                        challengeToken: token,
+                                        onComplete: function(result) {
+                                            self.processThreeDS2(result.data);
+                                            $('#threeDS2ModalOneClick').modal("closeModal");
+                                        }
+                                    });
+                            }
+
+                            self.threeDS2Component.mount(threeDS2Node);
                         },
                         /**
                          * We use the billingAgreements to save the oneClick stored payments but we don't store the

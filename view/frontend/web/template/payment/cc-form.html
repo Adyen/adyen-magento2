@@ -77,6 +77,9 @@
                     <div afterRender="renderSecureFields()" data-bind="attr: { id: 'cardContainer'}"></div>
                 </div>
 
+                <div id="threeDS2Modal">
+                    <div id="threeDS2Container"></div>
+                </div>
 
                 <!-- ko if: (hasInstallments())-->
 
@@ -115,23 +118,6 @@
                         <span><!-- ko i18n: 'Save for later use.'--><!-- /ko --></span>
                     </label>
                 </div>
-                <!-- /ko -->
-
-
-                <!-- ko if: (canCreateBillingAgreement() && !isVaultEnabled())-->
-
-                <div class="field choice">
-                    <input type="checkbox"
-                           name="payment[store_cc]"
-                           autocomplete="off"
-                           class="checkbox"
-                           data-bind="attr: {title: $t('Remember Me')}, checked: setStoreCc"
-                    />
-                    <label data-bind="attr: {for: getCode() + '_remember_details'}" class="label">
-                        <span><!-- ko text: $t('Remember these details')--><!-- /ko --></span>
-                    </label>
-                </div>
-
                 <!-- /ko -->
 
             </fieldset>

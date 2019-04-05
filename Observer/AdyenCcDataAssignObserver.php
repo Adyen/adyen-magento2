@@ -40,6 +40,11 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     const ENCRYPTED_EXPIRY_YEAR = 'expiryYear';
     const HOLDER_NAME = 'holderName';
     const VARIANT = 'variant';
+    const JAVA_ENABLED = 'java_enabled';
+    const SCREEN_COLOR_DEPTH = 'screen_color_depth';
+    const SCREEN_WIDTH = 'screen_width';
+    const SCREEN_HEIGHT = 'screen_height';
+    const TIMEZONE_OFFSET = 'timezone_offset';
 
     /**
      * @var array
@@ -53,7 +58,12 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         self::ENCRYPTED_EXPIRY_MONTH,
         self::ENCRYPTED_EXPIRY_YEAR,
         self::HOLDER_NAME,
-        self::VARIANT
+        self::VARIANT,
+        self::JAVA_ENABLED,
+        self::SCREEN_COLOR_DEPTH,
+        self::SCREEN_WIDTH,
+        self::SCREEN_HEIGHT,
+        self::TIMEZONE_OFFSET
     ];
 
     /**
