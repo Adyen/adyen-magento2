@@ -42,9 +42,12 @@ class TransactionPayment implements ClientInterface
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->adyenHelper = $adyenHelper;
+        $storeId = $storeManager->getStore()->getId();
+        $this->_client = $this->adyenHelper->initializeAdyenClient($storeId);
     }
 
     /**
@@ -55,7 +58,6 @@ class TransactionPayment implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
-
         $client = $this->adyenHelper->initializeAdyenClient();
 
         $service = new \Adyen\Service\Checkout($client);
