@@ -215,7 +215,13 @@ class Cron
     private $agreementResourceModel;
 
     /**
+     * @var \Magento\Sales\Model\Order\Payment\Transaction\Builder
+     */
+    private $transactionBuilder;
+
+    /**
      * Cron constructor.
+     *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param ResourceModel\Notification\CollectionFactory $notificationFactory
@@ -235,6 +241,7 @@ class Cron
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param OrderRepository $orderRepository
      * @param ResourceModel\Billing\Agreement $agreementResourceModel
+     * @param \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -255,7 +262,8 @@ class Cron
         \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollection,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         OrderRepository $orderRepository,
-        \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel
+        \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel,
+        \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -276,6 +284,7 @@ class Cron
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->orderRepository = $orderRepository;
         $this->agreementResourceModel = $agreementResourceModel;
+        $this->transactionBuilder = $transactionBuilder;
     }
 
     /**
@@ -1234,6 +1243,16 @@ class Cron
 
         // set transaction
         $paymentObj->setTransactionId($this->_pspReference);
+
+        // Prepare transaction
+        $transaction = $this->transactionBuilder->setPayment($paymentObj)
+            ->setOrder($this->_order)
+            ->setTransactionId($this->_pspReference)
+            ->build(\Magento\Sales\Api\Data\TransactionInterface::TYPE_AUTH);
+
+        $transaction->setIsClosed(false);
+
+        $transaction->save();
 
         //capture mode
         if (!$this->_isAutoCapture()) {
