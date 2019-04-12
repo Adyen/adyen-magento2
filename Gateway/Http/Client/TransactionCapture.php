@@ -47,7 +47,6 @@ class TransactionCapture implements ClientInterface
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Model\RecurringType $recurringType,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
         array $data = []
     ) {
         $this->_encryptor = $encryptor;
@@ -55,8 +54,8 @@ class TransactionCapture implements ClientInterface
         $this->_adyenLogger = $adyenLogger;
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
-        $storeId = $storeManager->getStore()->getId();
-        $this->_client = $this->_adyenHelper->initializeAdyenClient($storeId);
+
+        $this->_client = $this->_adyenHelper->initializeAdyenClient();
     }
 
     /**

@@ -46,8 +46,6 @@ class TransactionPayment implements ClientInterface
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->adyenHelper = $adyenHelper;
-        $storeId = $storeManager->getStore()->getId();
-        $this->_client = $this->adyenHelper->initializeAdyenClient($storeId);
     }
 
     /**
