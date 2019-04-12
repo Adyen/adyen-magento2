@@ -42,8 +42,7 @@ class TransactionPayment implements ClientInterface
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Adyen\Payment\Helper\Data $adyenHelper
     ) {
         $this->adyenHelper = $adyenHelper;
     }
