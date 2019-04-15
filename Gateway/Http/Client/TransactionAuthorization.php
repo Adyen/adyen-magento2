@@ -50,13 +50,11 @@ class TransactionAuthorization implements ClientInterface
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Model\RecurringType $recurringType,
         array $data = []
     ) {
         $this->_encryptor = $encryptor;
         $this->_adyenHelper = $adyenHelper;
-        $this->_adyenLogger = $adyenLogger;
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
 

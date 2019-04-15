@@ -1343,6 +1343,10 @@ class Data extends AbstractHelper
     public function initializeAdyenClient($storeId = null, $apiKey = null)
     {
         // initialize client
+        if (empty($storeId)) {
+            $storeId = $this->storeManager->getStore()->getId();
+        }
+
         if (empty($apiKey)) {
             $apiKey = $this->getAPIKey($storeId);
         }
