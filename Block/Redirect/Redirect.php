@@ -432,7 +432,9 @@ class Redirect extends \Magento\Payment\Block\Form
         $count = 0;
         $currency = $this->_order->getOrderCurrencyCode();
 
+
         foreach ($this->_order->getAllVisibleItems() as $item) {
+            /** @var $item \Magento\Sales\Model\Order\Item */
             ++$count;
             $numberOfItems = (int)$item->getQtyOrdered();
 
@@ -446,7 +448,8 @@ class Redirect extends \Magento\Payment\Block\Form
                 $item->getPriceInclTax(),
                 $item->getTaxPercent(),
                 $numberOfItems,
-                $this->_order->getPayment()
+                $this->_order->getPayment(),
+                $item->getId()
             );
         }
 
@@ -469,7 +472,8 @@ class Redirect extends \Magento\Payment\Block\Form
                 $itemVatAmount,
                 $itemVatPercentage,
                 $numberOfItems,
-                $this->_order->getPayment()
+                $this->_order->getPayment(),
+                "discount"
             );
         }
 

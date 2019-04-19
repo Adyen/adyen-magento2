@@ -1099,6 +1099,7 @@ class Data extends AbstractHelper
      * @param $taxPercent
      * @param $numberOfItems
      * @param $payment
+     * @param null $itemId
      * @return mixed
      */
     public function createOpenInvoiceLineItem(
@@ -1111,7 +1112,8 @@ class Data extends AbstractHelper
         $priceInclTax,
         $taxPercent,
         $numberOfItems,
-        $payment
+        $payment,
+        $itemId = null
     ) {
         $description = str_replace("\n", '', trim($name));
         $itemAmount = $this->formatAmount($price, $currency);
@@ -1135,7 +1137,8 @@ class Data extends AbstractHelper
             $itemVatAmount,
             $itemVatPercentage,
             $numberOfItems,
-            $payment
+            $payment,
+            $itemId
         );
     }
 
@@ -1187,7 +1190,8 @@ class Data extends AbstractHelper
             $itemVatAmount,
             $itemVatPercentage,
             $numberOfItems,
-            $payment
+            $payment,
+            "shipping"
         );
     }
 
@@ -1222,7 +1226,8 @@ class Data extends AbstractHelper
      * @param $itemVatPercentage
      * @param $numberOfItems
      * @param $payment
-     * @return
+     * @param null|int $itemId optional
+     * @return mixed
      */
     public function getOpenInvoiceLineData(
         $formFields,
@@ -1233,9 +1238,16 @@ class Data extends AbstractHelper
         $itemVatAmount,
         $itemVatPercentage,
         $numberOfItems,
-        $payment
+        $payment,
+        $itemId = null
     ) {
         $linename = "line" . $count;
+
+        // item id is optional
+        if ($itemId) {
+            $formFields['openinvoicedata.' . $linename . '.itemId '] = $itemId;
+        }
+
         $formFields['openinvoicedata.' . $linename . '.currencyCode'] = $currencyCode;
         $formFields['openinvoicedata.' . $linename . '.description'] = $description;
         $formFields['openinvoicedata.' . $linename . '.itemAmount'] = $itemAmount;
