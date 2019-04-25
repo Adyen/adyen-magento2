@@ -335,16 +335,23 @@ class Redirect extends \Magento\Payment\Block\Form
 
             $formFields['shopper.lastName'] = trim($billingAddress->getLastname());
             $formFields['shopper.telephoneNumber'] = trim($billingAddress->getTelephone());
-            $street = $this->_adyenHelper->getStreet($billingAddress);
 
-            if (isset($street['name']) && $street['name'] != "") {
-                $formFields['billingAddress.street'] = $street['name'];
-            }
+            if ($this->_adyenHelper->isSeparateHouseNumberRequired($billingAddress->getCountryId())) {
+                $this->_adyenLogger->addAdyenDebug("separate house number required");
+                $street = $this->_adyenHelper->getStreet($billingAddress);
 
-            if (isset($street['house_number']) && $street['house_number'] != "") {
-                $formFields['billingAddress.houseNumberOrName'] = $street['house_number'];
+                if (isset($street['name']) && $street['name'] != "") {
+                    $formFields['billingAddress.street'] = $street['name'];
+                }
+
+                if (isset($street['house_number']) && $street['house_number'] != "") {
+                    $formFields['billingAddress.houseNumberOrName'] = $street['house_number'];
+                } else {
+                    $formFields['billingAddress.houseNumberOrName'] = "NA";
+                }
             } else {
-                $formFields['billingAddress.houseNumberOrName'] = "NA";
+                $this->_adyenLogger->addAdyenDebug("separate house number NOT required");
+                $formFields['billingAddress.street'] = implode(" ", $billingAddress->getStreet());
             }
 
             if (trim($billingAddress->getCity()) == "") {
@@ -382,19 +389,26 @@ class Redirect extends \Magento\Payment\Block\Form
     protected function setShippingAddressData($formFields)
     {
         $shippingAddress = $this->_order->getShippingAddress();
-
+        $this->_adyenLogger->addAdyenDebug($shippingAddress->getCountryId());
         if ($shippingAddress) {
-            $street = $this->_adyenHelper->getStreet($shippingAddress);
+            if ($this->_adyenHelper->isSeparateHouseNumberRequired($shippingAddress->getCountryId())) {
+                $this->_adyenLogger->addAdyenDebug("separate house number required");
+                $street = $this->_adyenHelper->getStreet($shippingAddress);
 
-            if (isset($street['name']) && $street['name'] != "") {
-                $formFields['deliveryAddress.street'] = $street['name'];
-            }
+                if (isset($street['name']) && $street['name'] != "") {
+                    $formFields['deliveryAddress.street'] = $street['name'];
+                }
 
-            if (isset($street['house_number']) && $street['house_number'] != "") {
-                $formFields['deliveryAddress.houseNumberOrName'] = $street['house_number'];
+                if (isset($street['house_number']) && $street['house_number'] != "") {
+                    $formFields['deliveryAddress.houseNumberOrName'] = $street['house_number'];
+                } else {
+                    $formFields['deliveryAddress.houseNumberOrName'] = "NA";
+                }
             } else {
-                $formFields['deliveryAddress.houseNumberOrName'] = "NA";
+                $this->_adyenLogger->addAdyenDebug("separate house number NOT required");
+                $formFields['deliveryAddress.street'] = implode(" ", $shippingAddress->getStreet());
             }
+
 
             if (trim($shippingAddress->getCity()) == "") {
                 $formFields['deliveryAddress.city'] = "NA";
@@ -420,6 +434,7 @@ class Redirect extends \Magento\Payment\Block\Form
                 $formFields['deliveryAddress.country'] = trim($shippingAddress->getCountryId());
             }
         }
+
         return $formFields;
     }
 

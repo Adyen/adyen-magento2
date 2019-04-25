@@ -1607,4 +1607,16 @@ class Data extends AbstractHelper
         return $this->getAdyenCcVaultConfigDataFlag('active', $storeId);
     }
 
+    /**
+     * Checks if the house number needs to be sent to the Adyen API separately or as it is in the street field
+     *
+     * @param $country
+     * @return bool
+     */
+    public function isSeparateHouseNumberRequired($country)
+    {
+        $countryList = ["nl", "de", "se", "no", "at", "fi", "dk"];
+
+        return in_array(strtolower($country), $countryList);
+    }
 }
