@@ -150,6 +150,8 @@ class PaymentInformationManagement
         // PaymentDataBuilder
         $currencyCode = $quote->getQuoteCurrencyCode();
         $amount = $quote->getGrandTotal();
+        // Setting the orderid to null, so that we generate a new one for each /payments call
+        $quote->setReservedOrderId(null);
         $reference = $quote->reserveOrderId()->getReservedOrderId();
         $request = $this->adyenRequestHelper->buildPaymentData($request, $amount, $currencyCode, $reference);
 
