@@ -271,7 +271,7 @@ define(
                                 });
                             }
                         });
-                    self.threeDS2ChallangeComponent.mount(threeDS2Node);
+                    self.threeDS2ChallengeComponent.mount(threeDS2Node);
                 }
             },
             /**
