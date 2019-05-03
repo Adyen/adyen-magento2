@@ -128,11 +128,9 @@ class Redirect extends \Magento\Payment\Block\Form
                             if ($this->getPaymentMethodSelectionOnAdyen()) {
                                 $url = 'https://test.adyen.com/hpp/select.shtml';
                             } else {
-                                if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
-                                    $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                                ) || $this->_adyenHelper->isPaymentMethodMolpayMethod(
-                                    $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                                )
+                                if ($this->_adyenHelper->doesPaymentMethodSkipDetails(
+                                        $this->_order->getPayment()->getAdditionalInformation('brand_code')
+                                    )
                                 ) {
                                     $url = "https://test.adyen.com/hpp/skipDetails.shtml";
                                 } else {
@@ -148,11 +146,9 @@ class Redirect extends \Magento\Payment\Block\Form
                             if ($this->getPaymentMethodSelectionOnAdyen()) {
                                 $url = 'https://live.adyen.com/hpp/select.shtml';
                             } else {
-                                if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
-                                    $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                                ) || $this->_adyenHelper->isPaymentMethodMolpayMethod(
-                                    $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                                )
+                                if ($this->_adyenHelper->doesPaymentMethodSkipDetails(
+                                        $this->_order->getPayment()->getAdditionalInformation('brand_code')
+                                    )
                                 ) {
                                     $url = "https://live.adyen.com/hpp/skipDetails.shtml";
                                 } else {
@@ -431,7 +427,6 @@ class Redirect extends \Magento\Payment\Block\Form
     {
         $count = 0;
         $currency = $this->_order->getOrderCurrencyCode();
-
 
         foreach ($this->_order->getAllVisibleItems() as $item) {
             /** @var $item \Magento\Sales\Model\Order\Item */

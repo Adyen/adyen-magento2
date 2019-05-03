@@ -1007,6 +1007,38 @@ class Data extends AbstractHelper
         return false;
     }
 
+    /**
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodOneyMethod($paymentMethod)
+    {
+        if (strpos($paymentMethod, 'facilypay_') !== false) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function doesPaymentMethodSkipDetails($paymentMethod)
+    {
+        if ($this->isPaymentMethodOpenInvoiceMethod($paymentMethod) ||
+            $this->isPaymentMethodMolpayMethod($paymentMethod) ||
+            $this->isPaymentMethodOneyMethod($paymentMethod)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getRatePayId()
     {
         return $this->getAdyenHppConfigData("ratepay_id");
@@ -1245,7 +1277,7 @@ class Data extends AbstractHelper
 
         // item id is optional
         if ($itemId) {
-            $formFields['openinvoicedata.' . $linename . '.itemId '] = $itemId;
+            $formFields['openinvoicedata.' . $linename . '.itemId'] = $itemId;
         }
 
         $formFields['openinvoicedata.' . $linename . '.currencyCode'] = $currencyCode;
