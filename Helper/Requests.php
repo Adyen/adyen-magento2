@@ -29,6 +29,7 @@ use Magento\Vault\Model\Ui\VaultConfigProvider;
 
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
+use Magento\Quote\Api\Data\PaymentInterface;
 
 class Requests extends AbstractHelper
 {
@@ -66,13 +67,16 @@ class Requests extends AbstractHelper
      * @param $billingAddress
      * @return mixed
      */
-    public function buildCustomerData($request = [], $customerId = 0, $billingAddress, $payment)
+    public function buildCustomerData($request = [], $customerId = 0, $billingAddress, $payment = null)
     {
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
         }
 
-        $paymentMethod = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+        $paymentMethod = '';
+        if ($payment) {
+            $paymentMethod = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+        }
 
         if (!empty($billingAddress)) {
             // Openinvoice (klarna and afterpay BUT not afterpay touch) methods requires different request format
@@ -277,29 +281,22 @@ class Requests extends AbstractHelper
      * @param $store
      * @return array
      */
-    public function buildThreeDS2Data($request = [], \Magento\Quote\Model\Quote\Payment $payment, $store)
+    public function buildThreeDS2Data($request = [], $payload, $store)
     {
         $request['additionalData']['allow3DS2'] = true;
         $request['origin'] = $this->adyenHelper->getOrigin();
         $request['channel'] = 'web';
-        $request['browserInfo']['screenWidth'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_WIDTH);
-        $request['browserInfo']['screenHeight'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_HEIGHT);
-        $request['browserInfo']['colorDepth'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH);
-        $request['browserInfo']['timeZoneOffset'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::TIMEZONE_OFFSET);
+        $request['browserInfo']['screenWidth'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::SCREEN_WIDTH];
+        $request['browserInfo']['screenHeight'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::SCREEN_HEIGHT];
+        $request['browserInfo']['colorDepth'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH];
+        $request['browserInfo']['timeZoneOffset'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::TIMEZONE_OFFSET];
         $request['browserInfo']['language'] = $this->adyenHelper->getCurrentLocaleCode($store);
 
-        if ($javaEnabled = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::JAVA_ENABLED)) {
+        if ($javaEnabled = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::JAVA_ENABLED]) {
             $request['browserInfo']['javaEnabled'] = $javaEnabled;
         } else {
             $request['browserInfo']['javaEnabled'] = false;
         }
-
-        // uset browser related data from additional information
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_WIDTH);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_HEIGHT);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::TIMEZONE_OFFSET);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::JAVA_ENABLED);
 
         return $request;
     }
@@ -310,7 +307,7 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringData($request = [], $areaCode, int $storeId, $payment)
+    public function buildRecurringData($request = [], $areaCode, int $storeId, $payload)
     {
         // If the vault feature is on this logic is handled in the VaultDataBuilder
         if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
@@ -334,7 +331,7 @@ class Requests extends AbstractHelper
                 $request['enableRecurring'] = false;
             }
 
-            if ($payment->getAdditionalInformation('store_cc') === '1') {
+            if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::STORE_CC]) && $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::STORE_CC] === true) {
                 $request['paymentMethod']['storeDetails'] = true;
             }
         }
@@ -348,41 +345,48 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @return mixed
      */
-    public function buildCCData($request = [], \Magento\Quote\Model\Quote\Payment $payment, $storeId, $areaCode)
+    public function buildCCData($request = [], $payload, $storeId, $areaCode)
     {
         // If ccType is set use this. For bcmc you need bcmc otherwise it will fail
-        $request['paymentMethod']['type'] = "scheme";
 
-        if ($cardNumber = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER)) {
+        if (!empty($payload['method']) && $payload['method'] == 'adyen_oneclick' &&
+            !empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]['variant'])
+        ) {
+            $request['paymentMethod']['type'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]['variant'];
+        } else {
+            $request['paymentMethod']['type'] = 'scheme';
+        }
+
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) &&
+            $cardNumber = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) {
             $request['paymentMethod']['encryptedCardNumber'] = $cardNumber;
         }
 
-        if ($expiryMonth = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH)) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) &&
+            $expiryMonth = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) {
             $request['paymentMethod']['encryptedExpiryMonth'] = $expiryMonth;
         }
 
-        if ($expiryYear = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR)) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) &&
+            $expiryYear = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) {
             $request['paymentMethod']['encryptedExpiryYear'] = $expiryYear;
         }
 
-        if ($holderName = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME)) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::HOLDER_NAME]) && $holderName =
+                $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::HOLDER_NAME]) {
             $request['paymentMethod']['holderName'] = $holderName;
         }
 
-        if ($securityCode = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE)) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) &&
+            $securityCode = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) {
             $request['paymentMethod']['encryptedSecurityCode'] = $securityCode;
         }
 
-        if ($recurringDetailReference = $payment->getAdditionalInformation(AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE)) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]) &&
+            $recurringDetailReference = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]
+        ) {
             $request['paymentMethod']['recurringDetailReference'] = $recurringDetailReference;
         }
-
-        // Remove from additional information
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME);
 
         /**
          * if MOTO for backend is enabled use MOTO as shopper interaction type
@@ -395,8 +399,8 @@ class Requests extends AbstractHelper
         }
 
         // if installments is set add it into the request
-        if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) > 0) {
-            $request['installments']['value'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS);
+        if (($numberOfInstallment = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS]) > 0) {
+            $request['installments']['value'] = $numberOfInstallment;
         }
 
         return $request;
@@ -408,10 +412,10 @@ class Requests extends AbstractHelper
      * @param $additionalInformation
      * @return mixed
      */
-    public function buildVaultData($request = [], $additionalInformation)
+    public function buildVaultData($request = [], $payload)
     {
-        if (!empty($additionalInformation[VaultConfigProvider::IS_ACTIVE_CODE]) &&
-            $additionalInformation[VaultConfigProvider::IS_ACTIVE_CODE] === true
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE]) &&
+            $payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE] === true
         ) {
             // store it only as oneclick otherwise we store oneclick tokens (maestro+bcmc) that will fail
             $request['enableRecurring'] = true;

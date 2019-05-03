@@ -38,9 +38,10 @@ define(
         'Magento_Paypal/js/action/set-payment-method',
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
-        'Magento_Checkout/js/action/place-order'
+        'Magento_Checkout/js/action/place-order',
+        'Adyen_Payment/js/model/threeds2'
     ],
-    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, url, threeDS2Utils, fullScreenLoader, setPaymentMethodAction, urlBuilder, storage, placeOrderAction) {
+    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, url, threeDS2Utils, fullScreenLoader, setPaymentMethodAction, urlBuilder, storage, placeOrderAction, threeds2) {
 
         'use strict';
 
@@ -109,7 +110,10 @@ define(
                 var checkout = new AdyenCheckout({
                     locale: self.getLocale(),
                     originKey: self.getOriginKey(),
-                    loadingContext: self.getLoadingContext()
+                    loadingContext: self.getLoadingContext(),
+                    risk: {
+                        enabled: false
+                    }
                 });
 
                 // convert to list so you can iterate
@@ -185,28 +189,24 @@ define(
                                 event.preventDefault();
                             }
                             // only use installments for cards
-                                if (self.agreement_data.card) {
-                                    if (self.hasVerification()) {
-                                        var options = {enableValidations: false};
-                                    }
-
-                                    // set payment method to adyen_hpp
-                                    // TODO can observer in front-end this not needed
-                                    numberOfInstallments(self.installment);
+                            if (self.agreement_data.card) {
+                                if (self.hasVerification()) {
+                                    var options = {enableValidations: false};
                                 }
+                                numberOfInstallments(self.installment);
+                            }
 
                             if (this.validate() && additionalValidators.validate()) {
                                 fullScreenLoader.startLoader();
                                 self.isPlaceOrderActionAllowed(false);
 
-                                //update payment method information if additional data was changed
-                                selectPaymentMethodAction(this.getCcData());
-                                setPaymentMethodAction(this.messageContainer).done(
-                                    function (responseJSON) {
-                                        fullScreenLoader.stopLoader();
-                                        self.isPlaceOrderActionAllowed(true);
-                                        self.validateThreeDS2OrPlaceOrder(responseJSON);
-                                    });
+                                threeds2.processPayment(this.getCcData()).done(function (responseJSON) {
+                                    self.validateThreeDS2OrPlaceOrder(responseJSON);
+                                }).error(function () {
+                                    fullScreenLoader.stopLoader();
+                                    self.isPlaceOrderActionAllowed(true);
+                                });
+
                                 return false;
                             }
 
@@ -296,11 +296,9 @@ define(
                                 additional_data: {
                                     'variant': variant(),
                                     'recurring_detail_reference': recurringDetailReference(),
+                                    'store_cc': true,
                                     'number_of_installments': numberOfInstallments(),
                                     'cvc': self.encryptedCreditCardVerificationNumber,
-                                    'expiryMonth': self.creditCardExpMonth(),
-                                    'expiryYear': self.creditCardExpYear(),
-
                                     'java_enabled': browserInfo.javaEnabled,
                                     'screen_color_depth': browserInfo.colorDepth,
                                     'screen_width': browserInfo.screenWidth,
@@ -314,7 +312,7 @@ define(
                          * Based on the response we can start a 3DS2 validation or place the order
                          * @param responseJSON
                          */
-                        validateThreeDS2OrPlaceOrder: function(responseJSON) {
+                        validateThreeDS2OrPlaceOrder: function (responseJSON) {
                             var self = this;
                             var response = JSON.parse(responseJSON);
 
@@ -336,32 +334,6 @@ define(
                             }
                         },
                         /**
-                         * The results that the 3DS2 components returns in the onComplete callback needs to be sent to the
-                         * backend to the /adyen/threeDS2Process endpoint and based on the response render a new threeDS2
-                         * component or place the order (validateThreeDS2OrPlaceOrder)
-                         * @param response
-                         */
-                        processThreeDS2: function(data) {
-                            var self = this;
-
-                            fullScreenLoader.startLoader();
-
-                            var payload = {
-                                "payload": JSON.stringify(data)
-                            };
-
-                            var serviceUrl = urlBuilder.createUrl('/adyen/threeDS2Process', {});
-
-                            storage.post(
-                                serviceUrl,
-                                JSON.stringify(payload),
-                                true
-                            ).done(function(responseJSON) {
-                                fullScreenLoader.stopLoader();
-                                self.validateThreeDS2OrPlaceOrder(responseJSON)
-                            });
-                        },
-                        /**
                          * Rendering the 3DS2.0 components
                          * To do the device fingerprint at the response of IdentifyShopper render the threeDS2DeviceFingerprint
                          * component
@@ -372,36 +344,53 @@ define(
                          * @param type
                          * @param token
                          */
-                        renderThreeDS2Component: function(type, token) {
+                        renderThreeDS2Component: function (type, token) {
                             var self = this;
 
                             var threeDS2Node = document.getElementById('threeDS2ContainerOneClick');
 
                             if (type == "IdentifyShopper") {
-                                fullScreenLoader.startLoader();
                                 self.threeDS2Component = checkout.create('threeDS2DeviceFingerprint', {
-                                        fingerprintToken: token,
-                                        onComplete: function(result) {
+                                    fingerprintToken: token,
+                                    onComplete: function (result) {
+                                        threeds2.processThreeDS2(result.data).done(function (responseJSON) {
+                                            self.validateThreeDS2OrPlaceOrder(responseJSON)
+                                        }).error(function () {
                                             fullScreenLoader.stopLoader();
-                                            self.processThreeDS2(result.data);
-                                        }
-                                    });
+                                        });
+                                    },
+                                    onError: function () {
+                                        fullScreenLoader.stopLoader();
+                                    }
+                                });
                             } else if (type == "ChallengeShopper") {
-                                $('#threeDS2ModalOneClick').modal({
+                                fullScreenLoader.stopLoader();
+
+
+                                var popupModal = $('#threeDS2ModalOneClick').modal({
                                     // disable user to hide popup
                                     clickableOverlay: false,
                                     // empty buttons, we don't need that
-                                    buttons: []
+                                    buttons: [],
+                                    modalClass: 'threeDS2Modal'
                                 });
 
-                                $('#threeDS2ModalOneClick').modal("openModal");
+                                popupModal.modal("openModal");
 
                                 self.threeDS2Component = checkout
                                     .create('threeDS2Challenge', {
                                         challengeToken: token,
-                                        onComplete: function(result) {
-                                            self.processThreeDS2(result.data);
-                                            $('#threeDS2ModalOneClick').modal("closeModal");
+                                        onComplete: function (result) {
+                                            popupModal.modal("closeModal");
+                                            fullScreenLoader.startLoader();
+                                            threeds2.processThreeDS2(result.data).done(function (responseJSON) {
+                                                self.validateThreeDS2OrPlaceOrder(responseJSON)
+                                            }).error(function () {
+                                                fullScreenLoader.stopLoader();
+                                            });
+                                        },
+                                        onError: function () {
+                                            fullScreenLoader.stopLoader();
                                         }
                                     });
                             }
@@ -415,7 +404,7 @@ define(
                          * should be removed
                          * @returns {*}
                          */
-                        getOneclickDetails: function() {
+                        getOneclickDetails: function () {
                             var self = this;
 
                             if (self.agreement_data.variant === 'bcmc') {
@@ -443,9 +432,7 @@ define(
                                     variant: variant(),
                                     recurring_detail_reference: recurringDetailReference(),
                                     number_of_installments: numberOfInstallments(),
-                                    cvc: self.encryptedCreditCardVerificationNumber,
-                                    expiryMonth: self.creditCardExpMonth(),
-                                    expiryYear: self.creditCardExpYear()
+                                    cvc: self.encryptedCreditCardVerificationNumber
                                 }
                             };
                         },
@@ -478,7 +465,7 @@ define(
                         getMessageContainer: function () {
                             return messageContainer;
                         },
-                        getOriginKey:function () {
+                        getOriginKey: function () {
                             return self.getOriginKey();
                         },
                         isPlaceOrderActionAllowed: function () {
