@@ -901,7 +901,7 @@ class Cron
                 $previousSuccess = $this->_order->getData('adyen_notification_event_code_success');
 
                 // Order is already Authorised
-                if ($previousSuccess) {
+                if (!empty($previousSuccess)) {
                     $this->_adyenLogger->addAdyenNotificationCronjob("Order is already authorised, skipping OFFER_CLOSED");
                     break;
                 }
