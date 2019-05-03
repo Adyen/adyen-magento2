@@ -249,7 +249,7 @@ define(
 
                     popupModal.modal("openModal");
 
-                    self.threeDS2ChallangeComponent = self.checkout
+                    self.threeDS2ChallengeComponent = self.checkout
                         .create('threeDS2Challenge', {
                             challengeToken: token,
                             onComplete: function (result) {
