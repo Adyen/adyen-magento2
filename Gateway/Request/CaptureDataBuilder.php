@@ -115,7 +115,8 @@ class CaptureDataBuilder implements BuilderInterface
                 $invoiceItem->getPriceInclTax(),
                 $invoiceItem->getTaxPercent(),
                 $numberOfItems,
-                $payment
+                $payment,
+                $invoiceItem->getId()
             );
         }
 

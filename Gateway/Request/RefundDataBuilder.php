@@ -203,7 +203,8 @@ class RefundDataBuilder implements BuilderInterface
                 $refundItem->getPriceInclTax(),
                 $refundItem->getTaxPercent(),
                 $numberOfItems,
-                $payment
+                $payment,
+                $refundItem->getId()
             );
         }
 
