@@ -21,13 +21,11 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Plugin;
+namespace Adyen\Payment\Model;
 
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
-use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
-use Magento\Vault\Model\Ui\VaultConfigProvider;
+use \Adyen\Payment\Api\AdyenPaymentProcessInterface;
 
-class PaymentInformationManagement
+class AdyenPaymentProcess implements AdyenPaymentProcessInterface
 {
     /**
      * @var \Magento\Checkout\Model\Session
@@ -70,31 +68,26 @@ class PaymentInformationManagement
     private $threeDS2ResponseValidator;
 
     /**
-     * PaymentInformationManagement constructor.
+     * AdyenThreeDS2Process constructor.
      *
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Adyen\Payment\Helper\Requests $adyenRequestHelper
-     * @param \Magento\Framework\Model\Context $context
-     * @param \Adyen\Payment\Gateway\Http\TransferFactory $transferFactory
-     * @param \Adyen\Payment\Gateway\Http\Client\TransactionPayment $transactionPayment
-     * @param \Adyen\Payment\Gateway\Validator\CheckoutResponseValidator $checkoutResponseValidator
-     * @param \Adyen\Payment\Gateway\Validator\ThreeDS2ResponseValidator $threeDS2ResponseValidator
      */
     public function __construct(
+        \Magento\Framework\Model\Context $context,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Helper\Requests $adyenRequestHelper,
-        \Magento\Framework\Model\Context $context,
         \Adyen\Payment\Gateway\Http\TransferFactory $transferFactory,
         \Adyen\Payment\Gateway\Http\Client\TransactionPayment $transactionPayment,
         \Adyen\Payment\Gateway\Validator\CheckoutResponseValidator $checkoutResponseValidator,
         \Adyen\Payment\Gateway\Validator\ThreeDS2ResponseValidator $threeDS2ResponseValidator
-    ) {
+    )
+    {
+        $this->context = $context;
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
         $this->adyenRequestHelper = $adyenRequestHelper;
-        $this->context = $context;
         $this->transferFactory = $transferFactory;
         $this->transactionPayment = $transactionPayment;
         $this->checkoutResponseValidator = $checkoutResponseValidator;
@@ -102,30 +95,20 @@ class PaymentInformationManagement
     }
 
     /**
-     * @param \Magento\Checkout\Model\PaymentInformationManagement $subject
-     * @param $response
+     * @api
+     * @param string $payload
+     * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function afterSavePaymentInformation(
-        \Magento\Checkout\Model\PaymentInformationManagement $subject,
-        $response
-    ) {
+    public function initiate($payload)
+    {
+        // Decode payload from frontend
+        $payload = json_decode($payload, true);
 
         // Get payment and cart information from session
         $quote = $this->checkoutSession->getQuote();
         $payment = $quote->getPayment();
 
-        // in case payments response is already there we don't need to perform another payments call
-        // we indicate it with the placeOrder additionalInformation
-        if ($payment->getAdditionalInformation('placeOrder')) {
-            $payment->unsAdditionalInformation('placeOrder');
-            $quote->save();
-
-            return $this->adyenHelper->buildThreeDS2ProcessResponseJson();
-        }
-        if (strpos($payment->getMethod(), "adyen_cc") !== 0 &&
-            strpos($payment->getMethod(), "adyen_oneclick") !== 0) {
-            return $response;
-        }
         // Init request array
         $request = [];
 
@@ -137,7 +120,7 @@ class PaymentInformationManagement
         // Customer data builder
         $customerId = $quote->getCustomerId();
         $billingAddress = $quote->getBillingAddress();
-        $request = $this->adyenRequestHelper->buildCustomerData($request, $customerId, $billingAddress, $payment);
+        $request = $this->adyenRequestHelper->buildCustomerData($request, $customerId, $billingAddress);
 
         // Customer Ip data builder
         $shopperIp = $quote->getRemoteIp();
@@ -150,6 +133,9 @@ class PaymentInformationManagement
         // PaymentDataBuilder
         $currencyCode = $quote->getQuoteCurrencyCode();
         $amount = $quote->getGrandTotal();
+
+        // Setting the orderid to null, so that we generate a new one for each /payments call
+        $quote->setReservedOrderId(null);
         $reference = $quote->reserveOrderId()->getReservedOrderId();
         $request = $this->adyenRequestHelper->buildPaymentData($request, $amount, $currencyCode, $reference);
 
@@ -159,18 +145,18 @@ class PaymentInformationManagement
         // 3DS2.0 data builder
         $isThreeDS2Enabled = $this->adyenHelper->isCreditCardThreeDS2Enabled($storeId);
         if ($isThreeDS2Enabled) {
-            $request = $this->adyenRequestHelper->buildThreeDS2Data($request, $payment, $quote->getStore());
+            $request = $this->adyenRequestHelper->buildThreeDS2Data($request, $payload, $quote->getStore());
         }
 
         // RecurringDataBuilder
         $areaCode = $this->context->getAppState()->getAreaCode();
-        $request = $this->adyenRequestHelper->buildRecurringData($request, $areaCode, $storeId, $payment);
+        $request = $this->adyenRequestHelper->buildRecurringData($request, $areaCode, $storeId, $payload);
 
         // CcAuthorizationDataBuilder
-        $request = $this->adyenRequestHelper->buildCCData($request, $payment, $storeId, $areaCode);
+        $request = $this->adyenRequestHelper->buildCCData($request, $payload, $storeId, $areaCode);
 
-        // Valut data builder
-        $request = $this->adyenRequestHelper->buildVaultData($request, $payment->getAdditionalInformation());
+        // Vault data builder
+        $request = $this->adyenRequestHelper->buildVaultData($request, $payload);
 
         // Create and send request
         $transferObject = $this->transferFactory->create($request);
@@ -197,10 +183,6 @@ class PaymentInformationManagement
 
         // Save the payments response because we are going to need it during the place order flow
         $payment->setAdditionalInformation("paymentsResponse", $paymentsResponse);
-
-        // Setting the placeOrder to true enables the process to skip the payments call because the paymentsResponse
-        // is already in place - only set placeOrder to true when you have the paymentsResponse
-        $payment->setAdditionalInformation('placeOrder', true);
 
         // To actually save the additional info changes into the quote
         $quote->save();
