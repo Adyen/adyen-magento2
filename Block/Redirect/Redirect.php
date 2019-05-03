@@ -128,11 +128,9 @@ class Redirect extends \Magento\Payment\Block\Form
                             if ($this->getPaymentMethodSelectionOnAdyen()) {
                                 $url = 'https://test.adyen.com/hpp/select.shtml';
                             } else {
-                                if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
-                                    $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                                ) || $this->_adyenHelper->isPaymentMethodMolpayMethod(
-                                    $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                                )
+                                if ($this->_adyenHelper->doesPaymentMethodSkipDetails(
+                                        $this->_order->getPayment()->getAdditionalInformation('brand_code')
+                                    )
                                 ) {
                                     $url = "https://test.adyen.com/hpp/skipDetails.shtml";
                                 } else {
@@ -148,11 +146,9 @@ class Redirect extends \Magento\Payment\Block\Form
                             if ($this->getPaymentMethodSelectionOnAdyen()) {
                                 $url = 'https://live.adyen.com/hpp/select.shtml';
                             } else {
-                                if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
-                                    $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                                ) || $this->_adyenHelper->isPaymentMethodMolpayMethod(
-                                    $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                                )
+                                if ($this->_adyenHelper->doesPaymentMethodSkipDetails(
+                                        $this->_order->getPayment()->getAdditionalInformation('brand_code')
+                                    )
                                 ) {
                                     $url = "https://live.adyen.com/hpp/skipDetails.shtml";
                                 } else {
@@ -335,16 +331,21 @@ class Redirect extends \Magento\Payment\Block\Form
 
             $formFields['shopper.lastName'] = trim($billingAddress->getLastname());
             $formFields['shopper.telephoneNumber'] = trim($billingAddress->getTelephone());
-            $street = $this->_adyenHelper->getStreet($billingAddress);
 
-            if (isset($street['name']) && $street['name'] != "") {
-                $formFields['billingAddress.street'] = $street['name'];
-            }
+            if ($this->_adyenHelper->isSeparateHouseNumberRequired($billingAddress->getCountryId())) {
+                $street = $this->_adyenHelper->getStreet($billingAddress);
 
-            if (isset($street['house_number']) && $street['house_number'] != "") {
-                $formFields['billingAddress.houseNumberOrName'] = $street['house_number'];
+                if (isset($street['name']) && $street['name'] != "") {
+                    $formFields['billingAddress.street'] = $street['name'];
+                }
+
+                if (isset($street['house_number']) && $street['house_number'] != "") {
+                    $formFields['billingAddress.houseNumberOrName'] = $street['house_number'];
+                } else {
+                    $formFields['billingAddress.houseNumberOrName'] = "NA";
+                }
             } else {
-                $formFields['billingAddress.houseNumberOrName'] = "NA";
+                $formFields['billingAddress.street'] = implode(" ", $billingAddress->getStreet());
             }
 
             if (trim($billingAddress->getCity()) == "") {
@@ -384,17 +385,22 @@ class Redirect extends \Magento\Payment\Block\Form
         $shippingAddress = $this->_order->getShippingAddress();
 
         if ($shippingAddress) {
-            $street = $this->_adyenHelper->getStreet($shippingAddress);
+            if ($this->_adyenHelper->isSeparateHouseNumberRequired($shippingAddress->getCountryId())) {
+                $street = $this->_adyenHelper->getStreet($shippingAddress);
 
-            if (isset($street['name']) && $street['name'] != "") {
-                $formFields['deliveryAddress.street'] = $street['name'];
-            }
+                if (isset($street['name']) && $street['name'] != "") {
+                    $formFields['deliveryAddress.street'] = $street['name'];
+                }
 
-            if (isset($street['house_number']) && $street['house_number'] != "") {
-                $formFields['deliveryAddress.houseNumberOrName'] = $street['house_number'];
+                if (isset($street['house_number']) && $street['house_number'] != "") {
+                    $formFields['deliveryAddress.houseNumberOrName'] = $street['house_number'];
+                } else {
+                    $formFields['deliveryAddress.houseNumberOrName'] = "NA";
+                }
             } else {
-                $formFields['deliveryAddress.houseNumberOrName'] = "NA";
+                $formFields['deliveryAddress.street'] = implode(" ", $shippingAddress->getStreet());
             }
+
 
             if (trim($shippingAddress->getCity()) == "") {
                 $formFields['deliveryAddress.city'] = "NA";
@@ -420,6 +426,7 @@ class Redirect extends \Magento\Payment\Block\Form
                 $formFields['deliveryAddress.country'] = trim($shippingAddress->getCountryId());
             }
         }
+
         return $formFields;
     }
 
@@ -433,6 +440,7 @@ class Redirect extends \Magento\Payment\Block\Form
         $currency = $this->_order->getOrderCurrencyCode();
 
         foreach ($this->_order->getAllVisibleItems() as $item) {
+            /** @var $item \Magento\Sales\Model\Order\Item */
             ++$count;
             $numberOfItems = (int)$item->getQtyOrdered();
 
@@ -446,7 +454,8 @@ class Redirect extends \Magento\Payment\Block\Form
                 $item->getPriceInclTax(),
                 $item->getTaxPercent(),
                 $numberOfItems,
-                $this->_order->getPayment()
+                $this->_order->getPayment(),
+                $item->getId()
             );
         }
 
@@ -469,7 +478,8 @@ class Redirect extends \Magento\Payment\Block\Form
                 $itemVatAmount,
                 $itemVatPercentage,
                 $numberOfItems,
-                $this->_order->getPayment()
+                $this->_order->getPayment(),
+                "discount"
             );
         }
 

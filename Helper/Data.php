@@ -1007,6 +1007,38 @@ class Data extends AbstractHelper
         return false;
     }
 
+    /**
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodOneyMethod($paymentMethod)
+    {
+        if (strpos($paymentMethod, 'facilypay_') !== false) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function doesPaymentMethodSkipDetails($paymentMethod)
+    {
+        if ($this->isPaymentMethodOpenInvoiceMethod($paymentMethod) ||
+            $this->isPaymentMethodMolpayMethod($paymentMethod) ||
+            $this->isPaymentMethodOneyMethod($paymentMethod)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getRatePayId()
     {
         return $this->getAdyenHppConfigData("ratepay_id");
@@ -1099,6 +1131,7 @@ class Data extends AbstractHelper
      * @param $taxPercent
      * @param $numberOfItems
      * @param $payment
+     * @param null $itemId
      * @return mixed
      */
     public function createOpenInvoiceLineItem(
@@ -1111,7 +1144,8 @@ class Data extends AbstractHelper
         $priceInclTax,
         $taxPercent,
         $numberOfItems,
-        $payment
+        $payment,
+        $itemId = null
     ) {
         $description = str_replace("\n", '', trim($name));
         $itemAmount = $this->formatAmount($price, $currency);
@@ -1135,7 +1169,8 @@ class Data extends AbstractHelper
             $itemVatAmount,
             $itemVatPercentage,
             $numberOfItems,
-            $payment
+            $payment,
+            $itemId
         );
     }
 
@@ -1187,7 +1222,8 @@ class Data extends AbstractHelper
             $itemVatAmount,
             $itemVatPercentage,
             $numberOfItems,
-            $payment
+            $payment,
+            "shipping"
         );
     }
 
@@ -1222,7 +1258,8 @@ class Data extends AbstractHelper
      * @param $itemVatPercentage
      * @param $numberOfItems
      * @param $payment
-     * @return
+     * @param null|int $itemId optional
+     * @return mixed
      */
     public function getOpenInvoiceLineData(
         $formFields,
@@ -1233,9 +1270,16 @@ class Data extends AbstractHelper
         $itemVatAmount,
         $itemVatPercentage,
         $numberOfItems,
-        $payment
+        $payment,
+        $itemId = null
     ) {
         $linename = "line" . $count;
+
+        // item id is optional
+        if ($itemId) {
+            $formFields['openinvoicedata.' . $linename . '.itemId'] = $itemId;
+        }
+
         $formFields['openinvoicedata.' . $linename . '.currencyCode'] = $currencyCode;
         $formFields['openinvoicedata.' . $linename . '.description'] = $description;
         $formFields['openinvoicedata.' . $linename . '.itemAmount'] = $itemAmount;
@@ -1607,4 +1651,16 @@ class Data extends AbstractHelper
         return $this->getAdyenCcVaultConfigDataFlag('active', $storeId);
     }
 
+    /**
+     * Checks if the house number needs to be sent to the Adyen API separately or as it is in the street field
+     *
+     * @param $country
+     * @return bool
+     */
+    public function isSeparateHouseNumberRequired($country)
+    {
+        $countryList = ["nl", "de", "se", "no", "at", "fi", "dk"];
+
+        return in_array(strtolower($country), $countryList);
+    }
 }
