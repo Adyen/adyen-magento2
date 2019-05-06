@@ -254,7 +254,8 @@
                                                 id: getCode() + '_bankAccountNumber_' + value,
                                                 title: $t('Bank account number'),
                                                 'data-container': getCode() + '-bankAccountNumber_' + value,
-                                                'data-validate': JSON.stringify({'required-number':true}),
+                                                'data-validate': JSON.stringify({'required':true}),
+                                                minlength: 3,
                                                 maxlength : getBankAccountNumberMaxLength()
                                             },
                                             value: bankAccountNumber"

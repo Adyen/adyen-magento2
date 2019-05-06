@@ -187,6 +187,7 @@ class PaymentMethods extends AbstractHelper
         }
 
         $adyFields = [
+            "channel" => "Web",
             "merchantAccount" => $merchantAccount,
             "countryCode" => $this->getCurrentCountryCode($store, $country),
             "amount" => [
