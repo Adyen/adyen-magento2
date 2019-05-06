@@ -898,6 +898,41 @@ class Cron
                 }
                 break;
             case Notification::OFFER_CLOSED:
+                $previousSuccess = $this->_order->getData('adyen_notification_event_code_success');
+
+                // Order is already Authorised
+                if (!empty($previousSuccess)) {
+                    $this->_adyenLogger->addAdyenNotificationCronjob("Order is already authorised, skipping OFFER_CLOSED");
+                    break;
+                }
+
+                /*
+                 * For cards, it can be 'visa', 'maestro',...
+                 * For alternatives, it can be 'ideal', 'directEbanking',...
+                 */
+                $notificationPaymentMethod = $this->_paymentMethod;
+
+                /*
+                * For cards, it can be 'VI', 'MI',...
+                * For alternatives, it can be 'ideal', 'directEbanking',...
+                */
+                $orderPaymentMethod = $this->_order->getPayment()->getCcType();
+
+                $isOrderCc = strcmp($this->_paymentMethodCode(),
+                        'adyen_cc') == 0 || strcmp($this->_paymentMethodCode(), 'adyen_oneclick') == 0;
+
+                /*
+                 * If the order was made with an Alternative payment method,
+                 * continue with the cancellation only if the payment method of
+                 * the notification matches the payment method of the order.
+                 */
+                if (!$isOrderCc && strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
+                    $this->_adyenLogger->addAdyenNotificationCronjob("Order is not a credit card, 
+                    or the payment method in the notification does not match the payment method of the order, 
+                    skipping OFFER_CLOSED");
+                    break;
+                }
+
                 if (!$this->_order->canCancel()) {
                     // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
                     $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
@@ -1139,9 +1174,14 @@ class Cron
     protected function _authorizePayment()
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Authorisation of the order');
+
+        // Set adyen_notification_event_code_success to true so that we ignore a possible OFFER_CLOSED
+        if (strcmp($this->_success, 'true') == 0) {
+            $this->_order->setData('adyen_notification_event_code_success', 1);
+        }
         $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
 
-        // If manual review is active and a seperate status is used then ignore the pre authorized status
+        // If manual review is active and a separate status is used then ignore the pre authorized status
         if ($this->_fraudManualReview != true || $fraudManualReviewStatus == "") {
             $this->_setPrePaymentAuthorized();
         } else {
