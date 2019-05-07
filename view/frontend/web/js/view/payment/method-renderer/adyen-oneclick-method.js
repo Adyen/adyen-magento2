@@ -39,9 +39,10 @@ define(
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
         'Magento_Checkout/js/action/place-order',
-        'Adyen_Payment/js/model/threeds2'
+        'Adyen_Payment/js/model/threeds2',
+        'mage/translate'
     ],
-    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, url, threeDS2Utils, fullScreenLoader, setPaymentMethodAction, urlBuilder, storage, placeOrderAction, threeds2) {
+    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, url, threeDS2Utils, fullScreenLoader, setPaymentMethodAction, urlBuilder, storage, placeOrderAction, threeds2, $t) {
 
         'use strict';
 
@@ -361,6 +362,10 @@ define(
                                     },
                                     onError: function () {
                                         fullScreenLoader.stopLoader();
+                                        self.isPlaceOrderActionAllowed(true);
+                                        self.getMessageContainer().addErrorMessage({
+                                            message: $t('Something went wrong. Please try again.')
+                                        });
                                     }
                                 });
                             } else if (type == "ChallengeShopper") {
@@ -391,6 +396,10 @@ define(
                                         },
                                         onError: function () {
                                             fullScreenLoader.stopLoader();
+                                            self.isPlaceOrderActionAllowed(true);
+                                            self.getMessageContainer().addErrorMessage({
+                                                message: $t('Something went wrong. Please try again.')
+                                            });
                                         }
                                     });
                             }
