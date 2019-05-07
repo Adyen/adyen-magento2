@@ -35,8 +35,8 @@ class Data extends AbstractHelper
     const LIVE = 'live';
     const CHECKOUT_CONTEXT_URL_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/';
     const CHECKOUT_CONTEXT_URL_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/';
-    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.2.1/adyen.js';
-    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.2.1/adyen.js';
+    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.4.2/adyen.js';
+    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.4.2/adyen.js';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -1632,7 +1632,8 @@ class Data extends AbstractHelper
 
                 // Populate billing agreement data
                 $storeOneClick = $order->getPayment()->getAdditionalInformation('store_cc');
-                $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick);
+
+                $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick, $order->getStoreId());
                 if ($billingAgreement->isValid()) {
 
                     if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),

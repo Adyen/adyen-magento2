@@ -869,14 +869,11 @@
                 type="Adyen\Payment\Model\AdyenRequestMerchantSession"/>
     <preference for="Adyen\Payment\Api\AdyenInitiateTerminalApiInterface"
                 type="Adyen\Payment\Model\AdyenInitiateTerminalApi"/>
+    <preference for="Adyen\Payment\Api\AdyenPaymentProcessInterface"
+                type="Adyen\Payment\Model\AdyenPaymentProcess"/>
     <preference for="Adyen\Payment\Api\AdyenThreeDS2ProcessInterface"
                 type="Adyen\Payment\Model\AdyenThreeDS2Process"/>
-    <preference for="Magento\Checkout\Api\PaymentInformationManagementInterface"
-                type="Adyen\Payment\Model\AdyenPaymentInformationManagement"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10"/>
-    </type>
-    <type name="\Magento\Checkout\Model\PaymentInformationManagement">
-        <plugin name="AdyenPaymentInformationManagement" type="Adyen\Payment\Plugin\PaymentInformationManagement" sortOrder="20" disabled="false"/>
     </type>
 </config>

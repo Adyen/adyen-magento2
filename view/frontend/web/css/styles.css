@@ -1214,5 +1214,7 @@
     font-size: 13px;
     text-decoration: underline
 }
-
+/* never show the close button as this will result in errors */
+.threeDS2Modal .action-close {display:none; }
 /* Checkout component Adyen styling end */
+
