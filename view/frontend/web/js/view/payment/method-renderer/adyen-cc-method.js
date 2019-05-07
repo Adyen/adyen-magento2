@@ -36,9 +36,11 @@ define(
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Paypal/js/action/set-payment-method',
         'Magento_Checkout/js/action/select-payment-method',
-        'Adyen_Payment/js/threeds2-js-utils'
+        'Adyen_Payment/js/threeds2-js-utils',
+        'Adyen_Payment/js/model/threeds2',
+        'mage/translate'
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2, $t) {
 
         'use strict';
 
@@ -64,7 +66,10 @@ define(
 
                 // initialize adyen component for general use
                 this.checkout = new AdyenCheckout({
-                    locale: this.getLocale()
+                    locale: this.getLocale(),
+                    risk: {
+                        enabled: false
+                    }
                 });
 
                 return this;
@@ -91,7 +96,7 @@ define(
              * Returns true if card details can be stored
              * @returns {*|boolean}
              */
-            getEnableStoreDetails: function() {
+            getEnableStoreDetails: function () {
                 return this.canCreateBillingAgreement() && !this.isVaultEnabled();
             },
             /**
@@ -202,70 +207,72 @@ define(
              * @param type
              * @param token
              */
-            renderThreeDS2Component: function(type, token) {
+            renderThreeDS2Component: function (type, token) {
                 var self = this;
 
                 var threeDS2Node = document.getElementById('threeDS2Container');
-                
+
                 if (type == "IdentifyShopper") {
-                    fullScreenLoader.startLoader();
-                    self.threeDS2Component = self.checkout
+                    self.threeDS2IdentifyComponent = self.checkout
                         .create('threeDS2DeviceFingerprint', {
                             fingerprintToken: token,
-                            onComplete: function(result) {
+                            onComplete: function (result) {
+                                threeds2.processThreeDS2(result.data).done(function (responseJSON) {
+                                    self.validateThreeDS2OrPlaceOrder(responseJSON)
+                                }).error(function () {
+                                    fullScreenLoader.stopLoader();
+                                });
+                            },
+                            onError: function () {
+                                self.isPlaceOrderActionAllowed(true);
                                 fullScreenLoader.stopLoader();
-                                self.processThreeDS2(result.data);
+                                this.messageContainer.addErrorMessage({
+                                    message: $t('Something went wrong. Please try again.')
+                                });
                             }
                         });
+
+                    self.threeDS2IdentifyComponent.mount(threeDS2Node);
+
+
                 } else if (type == "ChallengeShopper") {
-                    $('#threeDS2Modal').modal({
+                    fullScreenLoader.stopLoader();
+
+                    var popupModal = $('#threeDS2Modal').modal({
                         // disable user to hide popup
                         clickableOverlay: false,
                         // empty buttons, we don't need that
-                        buttons: []
+                        buttons: [],
+                        modalClass: 'threeDS2Modal'
                     });
 
-                    $('#threeDS2Modal').modal("openModal");
 
-                    self.threeDS2Component = self.checkout
+                    popupModal.modal("openModal");
+
+                    self.threeDS2ChallengeComponent = self.checkout
                         .create('threeDS2Challenge', {
                             challengeToken: token,
-                            onComplete: function(result) {
-                                self.processThreeDS2(result.data);
-                                $('#threeDS2Modal').modal("closeModal");
+                            onComplete: function (result) {
+                                popupModal.modal("closeModal");
+                                fullScreenLoader.startLoader();
+                                threeds2.processThreeDS2(result.data).done(function (responseJSON) {
+                                    self.validateThreeDS2OrPlaceOrder(responseJSON);
+                                }).error(function () {
+                                    popupModal.modal("closeModal");
+                                    fullScreenLoader.stopLoader();
+                                });
+
+                            },
+                            onError: function () {
+                                fullScreenLoader.stopLoader();
+                                self.isPlaceOrderActionAllowed(true);
+                                this.messageContainer.addErrorMessage({
+                                    message: $t('Something went wrong. Please try again.')
+                                });
                             }
                         });
+                    self.threeDS2ChallengeComponent.mount(threeDS2Node);
                 }
-
-                self.threeDS2Component.mount(threeDS2Node);
-            },
-            /**
-             * The results that the 3DS2 components returns in the onComplete callback needs to be sent to the
-             * backend to the /adyen/threeDS2Process endpoint and based on the response render a new threeDS2
-             * component or place the order (validateThreeDS2OrPlaceOrder)
-             * @param response
-             */
-            processThreeDS2: function(data) {
-                var self = this;
-
-                fullScreenLoader.startLoader();
-
-                var payload = {
-                    "payload": JSON.stringify(data)
-                };
-
-                var serviceUrl = urlBuilder.createUrl('/adyen/threeDS2Process', {});
-
-                storage.post(
-                    serviceUrl,
-                    JSON.stringify(payload),
-                    true
-                ).done(function(responseJSON) {
-                    fullScreenLoader.stopLoader();
-                    self.validateThreeDS2OrPlaceOrder(responseJSON)
-                }).error(function(responseJSON) {
-                    fullScreenLoader.stopLoader();
-                });
             },
             /**
              * Builds the payment details part of the payment information reqeust
@@ -275,7 +282,7 @@ define(
             getCcData: function () {
                 const browserInfo = threeDS2Utils.getBrowserInfo();
 
-                let data = {
+                var data = {
                     'method': this.item.method,
                     additional_data: {
                         'card_brand': this.variant(),
@@ -302,9 +309,15 @@ define(
              * Get data for place order
              * @returns {{method: *}}
              */
-            getData: function() {
+            getData: function () {
                 return {
-                    'method': this.item.method
+                    'method': this.item.method,
+                    additional_data: {
+                        'card_brand': this.variant(),
+                        'cc_type': this.creditCardType(),
+                        'store_cc': this.storeCc,
+                        'number_of_installments': this.installment()
+                    }
                 };
             },
             /**
@@ -334,28 +347,19 @@ define(
                     fullScreenLoader.startLoader();
                     self.isPlaceOrderActionAllowed(false);
 
-                    //update payment method information if additional data was changed
-                    selectPaymentMethodAction(this.getCcData());
-                    setPaymentMethodAction(this.messageContainer).done(
-                        function (responseJSON) {
-                            fullScreenLoader.stopLoader();
-                            self.isPlaceOrderActionAllowed(true);
-                            self.validateThreeDS2OrPlaceOrder(responseJSON);
-                        }).error(function() {
-                            fullScreenLoader.stopLoader();
-                            self.isPlaceOrderActionAllowed(true);
+                    threeds2.processPayment(this.getCcData()).done(function (responseJSON) {
+                        self.validateThreeDS2OrPlaceOrder(responseJSON);
+                    }).error(function () {
+                        fullScreenLoader.stopLoader();
+                        self.isPlaceOrderActionAllowed(true);
                     });
-
-                    return false;
                 }
-
-                return false;
             },
             /**
              * Based on the response we can start a 3DS2 validation or place the order
              * @param responseJSON
              */
-            validateThreeDS2OrPlaceOrder: function(responseJSON) {
+            validateThreeDS2OrPlaceOrder: function (responseJSON) {
                 var self = this;
 
                 var response = JSON.parse(responseJSON);
@@ -367,6 +371,7 @@ define(
                     self.getPlaceOrderDeferredObject()
                         .fail(
                             function () {
+                                fullScreenLoader.stopLoader();
                                 self.isPlaceOrderActionAllowed(true);
                             }
                         ).done(

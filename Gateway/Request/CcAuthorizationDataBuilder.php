@@ -38,8 +38,7 @@ class CcAuthorizationDataBuilder implements BuilderInterface
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
 
-        // retrieve payments response which we already got and saved in the
-        // Adyen\Payment\Plugin\PaymentInformationManagement::afterSavePaymentInformation
+        // retrieve payments response which we already got and saved in the payment controller
         if ($response = $payment->getAdditionalInformation("paymentsResponse")) {
             // the payments response needs to be passed to the next process because after this point we don't have
             // access to the payment object therefore to the additionalInformation array
