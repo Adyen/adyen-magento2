@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -65,7 +65,7 @@ class CcBackendAuthorizationDataBuilder implements BuilderInterface
         $storeId = $order->getStoreId();
         $request = [];
         // If ccType is set use this. For bcmc you need bcmc otherwise it will fail
-        $request['paymentMethod']['type'] = "scheme";
+        $request['paymentMethod']['type'] = 'scheme';
         if ($cardNumber = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER)) {
             $request['paymentMethod']['encryptedCardNumber'] = $cardNumber;
         }
