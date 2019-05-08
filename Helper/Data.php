@@ -932,9 +932,7 @@ class Data extends AbstractHelper
     {
         if (strpos($paymentMethod, 'afterpay') !== false ||
             strpos($paymentMethod, 'klarna') !== false ||
-            strpos($paymentMethod, 'ratepay') !== false ||
-            $this->isPaymentMethodAfterpayTouchMethod($paymentMethod) ||
-            $this->isPaymentMethodOneyMethod($paymentMethod)
+            strpos($paymentMethod, 'ratepay') !== false
         ) {
             return true;
         }

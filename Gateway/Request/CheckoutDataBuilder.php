@@ -147,7 +147,11 @@ class CheckoutDataBuilder implements BuilderInterface
 
 		if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
 			    $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
-		    )
+		    ) || $this->adyenHelper->isPaymentMethodAfterpayTouchMethod(
+                $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
+            ) || $this->adyenHelper->isPaymentMethodOneyMethod(
+                $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
+            )
         ) {
 			$openInvoiceFields = $this->getOpenInvoiceData($order);
 			$request = array_merge($request, $openInvoiceFields);
