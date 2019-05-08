@@ -23,6 +23,12 @@
 
 namespace Adyen\Payment\Controller\Process;
 use Magento\Framework\App\Request\Http as Http;
+use Magento\Vault\Api\Data\PaymentTokenInterface;
+use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
+use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
+use Magento\Sales\Api\Data\OrderPaymentExtensionInterfaceFactory;
+use Magento\Sales\Model\ResourceModel\Order\Payment as OrderPaymentResource;
+use Magento\Payment\Model\InfoInterface;
 
 class Redirect extends \Magento\Framework\App\Action\Action
 {
@@ -67,6 +73,19 @@ class Redirect extends \Magento\Framework\App\Action\Action
 	 */
 	protected $_orderRepository;
 
+    /**
+     * @var PaymentTokenFactoryInterface
+     */
+    private $paymentTokenFactory;
+    /**
+     * @var OrderPaymentExtensionInterfaceFactory
+     */
+    private $paymentExtensionFactory;
+    /**
+     * @var OrderPaymentResource
+     */
+    private $orderPaymentResource;
+
 	/**
 	 * Redirect constructor.
 	 *
@@ -81,13 +100,19 @@ class Redirect extends \Magento\Framework\App\Action\Action
 		\Adyen\Payment\Logger\AdyenLogger $adyenLogger,
 		\Adyen\Payment\Helper\Data $adyenHelper,
 		\Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
-		\Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+		\Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
+        PaymentTokenFactoryInterface $paymentTokenFactory,
+        OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
+        OrderPaymentResource $orderPaymentResource
     ) {
         parent::__construct($context);
 		$this->_adyenLogger = $adyenLogger;
 		$this->_adyenHelper = $adyenHelper;
 		$this->_paymentRequest = $paymentRequest;
 		$this->_orderRepository = $orderRepository;
+        $this->paymentTokenFactory = $paymentTokenFactory;
+        $this->paymentExtensionFactory = $paymentExtensionFactory;
+        $this->orderPaymentResource = $orderPaymentResource;
         if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
             $request = $this->getRequest();
             if ($request instanceof Http && $request->isPost()) {
