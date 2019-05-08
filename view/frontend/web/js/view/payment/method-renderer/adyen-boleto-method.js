@@ -29,12 +29,18 @@ define(
     function (_, $, quote, Component) {
         'use strict';
         var billingAddress = quote.billingAddress();
+        var firstname = '';
+        var lastname = '';
+        if (!!billingAddress) {
+            firstname = billingAddress.firstname;
+            lastname = billingAddress.lastname;
+        }
         return Component.extend({
             self: this,
             defaults: {
                 template: 'Adyen_Payment/payment/boleto-form',
-                firstname: billingAddress.firstname,
-                lastname: billingAddress.lastname
+                firstname: self.firstname,
+                lastname: self.lastname
             },
             initObservable: function () {
                 this._super()

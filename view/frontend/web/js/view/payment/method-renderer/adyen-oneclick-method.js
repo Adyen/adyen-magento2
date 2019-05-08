@@ -100,6 +100,13 @@ define(
             getAdyenBillingAgreements: function () {
                 var self = this;
 
+                // shareable adyen checkout component
+                var checkout = new AdyenCheckout({
+                    locale: self.getLocale(),
+                    originKey: self.getOriginKey(),
+                    loadingContext: self.getLoadingContext()
+                });
+
                 // convert to list so you can iterate
                 var paymentList = _.map(window.checkoutConfig.payment.adyenOneclick.billingAgreements, function (value) {
 
@@ -211,17 +218,10 @@ define(
                             }
                             var oneClickCardNode = document.getElementById('cvcContainer-' + self.value);
 
-                            var checkout = new AdyenCheckout({
-                                locale: self.getLocale()
-                            });
-
                             // this should be fixed in new version of checkout card component
                             var hideCVC = false;
                             if (this.hasVerification()) {
-                                if (self.agreement_data.variant == "bcmc") {
-                                    hideCVC = true;
-                                    self.placeOrderAllowed(true);
-                                } else if (self.agreement_data.variant == "maestro") {
+                                if (self.agreement_data.variant == "maestro") {
                                     // for maestro cvc is optional
                                     self.placeOrderAllowed(true);
                                 }
@@ -231,19 +231,9 @@ define(
 
                             var oneClickCard = checkout
                                 .create('card', {
-                                    originKey: self.getOriginKey(),
-                                    loadingContext: self.getLoadingContext(),
                                     type: self.agreement_data.variant,
-                                    oneClick: true,
                                     hideCVC: hideCVC,
-
-                                    // Specific for oneClick cards
-                                    details: [
-                                        {
-                                            "key": "cardDetails.cvc",
-                                            "type": "cvc"
-                                        }
-                                    ],
+                                    details: self.getOneclickDetails(),
                                     storedDetails: {
                                         "card": {
                                             "expiryMonth": self.agreement_data.card.expiryMonth,
@@ -252,8 +242,11 @@ define(
                                             "number": self.agreement_data.card.number
                                         }
                                     },
-                                    onChange: function (state) {
+                                    onChange: function (state, component) {
                                         if (state.isValid) {
+                                            self.placeOrderAllowed(true);
+                                            isValid(true);
+
                                             if (typeof state.data !== 'undefined' &&
                                                 typeof state.data.encryptedSecurityCode !== 'undefined'
                                             ) {
@@ -261,32 +254,47 @@ define(
                                             }
                                         } else {
                                             self.encryptedCreditCardVerificationNumber = '';
-                                            // onChange is called on the startup so make sure maestro has always optional cvc field
+
                                             if (self.agreement_data.variant != "maestro") {
                                                 self.placeOrderAllowed(false);
                                                 isValid(false);
                                             }
                                         }
-                                    },
-                                    onValid: function (state) {
-                                        if (state.isValid) {
-                                            self.placeOrderAllowed(true);
-                                            isValid(true);
-                                        } else {
+
+                                        // When we move to the component v2.2 it should be removed
+                                        if (self.agreement_data.variant == "maestro" &&
+                                            component.state.errors.encryptedSecurityCode
+                                        ) {
+                                            self.placeOrderAllowed(false);
                                             isValid(false);
                                         }
-                                        return;
-                                    },
-                                    onError: function (data) {
-                                        self.placeOrderAllowed(false);
-                                        isValid(false);
-                                        return;
                                     }
                                 })
                                 .mount(oneClickCardNode);
 
 
                             window.adyencheckout = oneClickCard;
+                        },
+                        /**
+                         * We use the billingAgreements to save the oneClick stored payments but we don't store the
+                         * details object that we get from the paymentMethods call. This function is a fix for BCMC.
+                         * When we render the stored payments dynamically from the paymentMethods call response it
+                         * should be removed
+                         * @returns {*}
+                         */
+                        getOneclickDetails: function() {
+                            var self = this;
+
+                            if (self.agreement_data.variant === 'bcmc') {
+                                return [];
+                            } else {
+                                return [
+                                    {
+                                        "key": "cardDetails.cvc",
+                                        "type": "cvc"
+                                    }
+                                ];
+                            }
                         },
                         /**
                          * Builds the payment details part of the payment information reqeust
@@ -328,15 +336,6 @@ define(
                         getCode: function () {
                             return self.item.method;
                         },
-                        getLocale: function () {
-                            return window.checkoutConfig.payment.adyenOneclick.locale;
-                        },
-                        getOriginKey: function () {
-                            return window.checkoutConfig.payment.adyenOneclick.originKey;
-                        },
-                        getLoadingContext: function () {
-                            return window.checkoutConfig.payment.adyenOneclick.checkoutUrl;
-                        },
                         hasVerification: function () {
                             return self.hasVerification()
                         },
@@ -345,6 +344,9 @@ define(
                         },
                         getMessageContainer: function () {
                             return messageContainer;
+                        },
+                        getOriginKey:function () {
+                            return self.getOriginKey();
                         },
                         isPlaceOrderActionAllowed: function () {
                             return self.isPlaceOrderActionAllowed(); // needed for placeOrder method
@@ -434,6 +436,15 @@ define(
             },
             hasVerification: function () {
                 return window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction;
+            },
+            getLocale: function () {
+                return window.checkoutConfig.payment.adyenOneclick.locale;
+            },
+            getOriginKey: function () {
+                return window.checkoutConfig.payment.adyenOneclick.originKey;
+            },
+            getLoadingContext: function () {
+                return window.checkoutConfig.payment.adyenOneclick.checkoutUrl;
             }
         });
     }

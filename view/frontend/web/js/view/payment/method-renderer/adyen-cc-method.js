@@ -89,7 +89,6 @@ define(
                     return;
                 }
 
-
                 installments.setInstallments(0);
 
                 // installments enabled ??
@@ -108,17 +107,25 @@ define(
                     holderNameRequired: true,
                     groupTypes: self.getAvailableCardTypeAltCodes(),
 
-                    onChange: function (state) {
-                        // isValid is not present on start
-                        if (typeof state.isValid !== 'undefined' && state.isValid === false) {
+                    onChange: function (state, component) {
+                        if (!!state.isValid && !component.state.errors.encryptedSecurityCode) {
+                            self.variant(state.brand);
+                            self.creditCardNumber(state.data.encryptedCardNumber);
+                            self.expiryMonth(state.data.encryptedExpiryMonth);
+                            self.expiryYear(state.data.encryptedExpiryYear);
+                            self.securityCode(state.data.encryptedSecurityCode);
+                            self.creditCardOwner(state.data.holderName);
+                            self.creditCardDetailsValid(true);
+                            self.placeOrderAllowed(true);
+                        } else {
                             self.creditCardDetailsValid(false);
                             self.placeOrderAllowed(false);
                         }
-
+                    },
+                    onBrand: function (state) {
                         // Define the card type
                         // translate adyen card type to magento card type
                         var creditCardType = self.getCcCodeByAltCode(state.brand);
-
                         if (creditCardType) {
                             // If the credit card type is already set, check if it changed or not
                             if (!self.creditCardType() || self.creditCardType() && self.creditCardType() != creditCardType) {
@@ -154,7 +161,6 @@ define(
                                 }
                             }
 
-                            // Color the image of the credit card
                             // for BCMC as this is not a core payment method inside magento use maestro as brand detection
                             if (creditCardType == "BCMC") {
                                 self.creditCardType("MI");
@@ -164,21 +170,8 @@ define(
                             }
                         } else {
                             self.creditCardType("")
+                            installments.setInstallments(0);
                         }
-                    },
-                    onValid: function (state) {
-                        self.variant(state.brand);
-                        self.creditCardNumber(state.data.encryptedCardNumber);
-                        self.expiryMonth(state.data.encryptedExpiryMonth);
-                        self.expiryYear(state.data.encryptedExpiryYear);
-                        self.securityCode(state.data.encryptedSecurityCode);
-                        self.creditCardOwner(state.data.holderName);
-                        self.creditCardDetailsValid(true);
-                        self.placeOrderAllowed(true);
-                    },
-                    onError: function () {
-                        self.creditCardDetailsValid(false);
-                        self.placeOrderAllowed(false);
                     }
                 });
 

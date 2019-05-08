@@ -41,8 +41,13 @@ define(
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
-        var dfValue = ko.observable(null);
         var messageComponents;
+        /**
+         * Shareble adyen checkout component
+         * @type {AdyenCheckout}
+         */
+        var checkoutComponent;
+
         return Component.extend({
             self: this,
             defaults: {
@@ -53,11 +58,15 @@ define(
                 this._super()
                     .observe([
                         'brandCode',
-                        'issuerId',
+                        'issuer',
                         'gender',
                         'dob',
                         'telephone',
-                        'dfValue'
+                        'ownerName',
+                        'ibanNumber',
+                        'ssn',
+                        'bankAccountNumber',
+                        'bankLocationId'
                     ]);
                 return this;
             },initialize: function () {
@@ -66,6 +75,14 @@ define(
                 this._super();
 
                 fullScreenLoader.startLoader();
+
+                /**
+                 * Create sherable checkout component
+                 * @type {AdyenCheckout}
+                 */
+                self.checkoutComponent = new AdyenCheckout({
+                    locale: self.getLocale()
+                });
 
                 // reset variable:
                 adyenPaymentService.setPaymentMethods();
@@ -90,19 +107,6 @@ define(
                     serviceUrl, JSON.stringify(payload)
                 ).done(
                     function (response) {
-                        function waitForDfSet() {
-                            // Wait for dfSet function to be loaded from df.js script
-                            if (typeof dfSet == "undefined") {
-                                setTimeout(waitForDfSet, 500);
-                                return;
-                            }
-
-                            // set device fingerprint value
-                            dfSet('dfValue', 0);
-                            // propagate this manually to knockoutjs otherwise it would not work
-                            dfValue($('#dfValue').val());
-                        }
-
                         adyenPaymentService.setPaymentMethods(response);
                         if (JSON.stringify(response).indexOf("ratepay") > -1) {
                             var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
@@ -121,23 +125,16 @@ define(
                             document.body.appendChild(ratepayScriptTag);
                         }
 
-                        // Load Adyen df.js script
-                        var dfScriptTag = document.createElement('script');
-                        dfScriptTag.src = "//live.adyen.com/hpp/js/df.js?v=20171130";
-                        dfScriptTag.type = "text/javascript";
-                        document.body.appendChild(dfScriptTag);
-                        waitForDfSet();
-
                         // create component needs to be in initialize method
                         var messageComponents = {};
                         _.map(response, function (value) {
 
                             var messageContainer = new Messages();
-                            var name = 'messages-' + value.brandCode;
+                            var name = 'messages-' + self.getBrandCodeFromPaymentMethod(value);
                             var messagesComponent = {
                                 parent: self.name,
-                                name: 'messages-' + value.brandCode,
-                                displayArea: 'messages-' + value.brandCode,
+                                name: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
+                                displayArea: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
                                 component: 'Magento_Ui/js/view/messages',
                                 config: {
                                     messageContainer: messageContainer
@@ -161,7 +158,16 @@ define(
 
                 var paymentList = _.map(paymentMethods, function (value) {
                     var result = {};
-                    result.value = value.brandCode;
+
+                    /**
+                     * Returns the payment method's brand code (in checkout api it is the type)
+                     * @returns {*}
+                     */
+                    result.getBrandCode = function() {
+                        return self.getBrandCodeFromPaymentMethod(value);
+                    };
+
+                    result.value = result.getBrandCode();
                     result.name = value;
                     result.method = self.item.method;
                     /**
@@ -174,13 +180,20 @@ define(
                         return self.item.method;
                     };
                     result.validate = function () {
-                        return self.validate(value.brandCode);
+                        return self.validate(result.getBrandCode());
                     };
                     result.placeRedirectOrder = function placeRedirectOrder(data) {
                         return self.placeRedirectOrder(data);
                     };
-                    result.isPlaceOrderActionAllowed = function(bool) {
-                        return self.isPlaceOrderActionAllowed(bool);
+                    /**
+                     * Set and get if the place order action is allowed
+                     * Sets the placeOrderAllowed observable and the original isPlaceOrderActionAllowed as well
+                     * @param bool
+                     * @returns {*}
+                     */
+                    result.isPlaceOrderAllowed = function(bool) {
+                        self.isPlaceOrderActionAllowed(bool);
+                        return result.placeOrderAllowed(bool);
                     };
 
                     /**
@@ -196,48 +209,152 @@ define(
                     result.afterPlaceOrder = function() {
                         return self.afterPlaceOrder();
                     };
+                    /**
+                     * Checks if payment method is open invoice
+                     * @returns {*|isPaymentMethodOpenInvoiceMethod}
+                     */
                     result.isPaymentMethodOpenInvoiceMethod = function () {
                         return value.isPaymentMethodOpenInvoiceMethod;
                     };
-                    result.getSsnLength = function () {
-                        if (quote.billingAddress().countryId == "NO") {
-                            //5 digits for Norway
-                            return 5;
-                        }
-                        else {
-                            //4 digits for other Nordic countries
-                            return 4;
-                        }
-                    };
-                    result.isIssuerListAvailable = function () {
-                        if (value.hasOwnProperty("issuers") && value.issuers.length > 0) {
+                    /**
+                     * Checks if payment method is open invoice but not in the list below
+                     * [klarna, afterpay]
+                     * @returns {boolean}
+                     */
+                    result.isPaymentMethodOtherOpenInvoiceMethod = function () {
+                        if (
+                            !result.isPaymentMethodAfterPay() &&
+                            !result.isPaymentMethodKlarna() &&
+                            !result.isPaymentMethodAfterPayTouch() &&
+                            value.isPaymentMethodOpenInvoiceMethod
+                        ) {
                             return true;
                         }
 
                         return false;
                     };
-                    // Can be removed after checkout api feature branch goes live since the issuerId key is changed to
-                    // id there and just use the value.issuers in the component
-                    result.getIssuerListForComponent = function() {
-                        if (result.isIssuerListAvailable()) {
-                            return _.map(value.issuers, function (issuer, key) {
-                                return {
-                                    "id": issuer.issuerId,
-                                    "name": issuer.name
-                                };
-                            });
+                    /**
+                     * Checks if payment method is klarna
+                     * @returns {boolean}
+                     */
+                    result.isPaymentMethodKlarna = function () {
+                        if (result.getBrandCode() === "klarna") {
+                            return true;
+                        }
+
+                        return false;
+                    };
+                    /**
+                     * Checks if payment method is after pay
+                     * @returns {boolean}
+                     */
+                    result.isPaymentMethodAfterPay = function () {
+                        if (result.getBrandCode() === "afterpay_default") {
+                            return true;
+                        }
+
+                        return false;
+                    };
+                    /**
+                     * Checks if payment method is after pay touch
+                     * @returns {boolean}
+                     */
+                    result.isPaymentMethodAfterPayTouch = function () {
+                        if (result.getBrandCode() === "afterpaytouch") {
+                            return true;
+                        }
+
+                        return false;
+                    };
+                    /**
+                     * Get personal number (SSN) length based on the buyer's country
+                     * @returns {number}
+                     */
+                    result.getSsnLength = function () {
+                        if (quote.billingAddress().countryId == "NO") {
+                            //14 digits for Norway ÅÅÅÅMMDD-XXXXX
+                            return 14;
+                        }
+                        else {
+                            //13 digits for other Nordic countries ÅÅÅÅMMDD-XXXX
+                            return 13;
+                        }
+                    };
+                    /**
+                     * Get max length for the Bank account number
+                     */
+                    result.getBankAccountNumberMaxLength = function () {
+                        return 17;
+                    };
+                    /**
+                     * Checks if the payment method has issuers property available
+                     * @returns {boolean}
+                     */
+                    result.hasIssuersProperty = function () {
+                        if (
+                            typeof value.details !== 'undefined' &&
+                            typeof value.details[0].items !== 'undefined' &&
+                            value.details[0].key == 'issuer'
+                        ) {
+                            return true;
+                        }
+
+                        return false;
+                    };
+                    /**
+                     * Checks if the payment method has issuer(s) available
+                     * @returns {boolean}
+                     */
+                    result.hasIssuersAvailable = function () {
+                        if (result.hasIssuersProperty() && value.details[0].items.length > 0) {
+                            return true;
+                        }
+
+                        return false;
+                    };
+                    /**
+                     * Returns the issuers for a payment method
+                     * @returns {*}
+                     */
+                    result.getIssuers = function() {
+                        if (result.hasIssuersAvailable()) {
+                            return value.details[0].items;
                         }
 
                         return [];
                     };
+                    /**
+                     * Checks if payment method is iDeal
+                     * @returns {boolean}
+                     */
                     result.isIdeal = function () {
-                        if (value.brandCode.indexOf("ideal") >= 0) {
+                        if (result.getBrandCode().indexOf("ideal") >= 0) {
                             return true;
                         }
 
                         return false;
                     };
+                    /**
+                     * Checks if payment method is ACH
+                     * @returns {boolean}
+                     */
+                    result.isAch = function () {
+                        if (result.getBrandCode().indexOf("ach") == 0) {
+                            return true;
+                        }
 
+                        return false;
+                    };
+                    /**
+                     * Checks if payment method is sepa direct debit
+                     */
+                    result.isSepaDirectDebit = function () {
+                        if (result.getBrandCode().indexOf("sepadirectdebit") >= 0) {
+                            return true;
+                        }
+
+                        return false;
+                    };
                     /**
                      * Renders the secure fields,
                      * creates the ideal component,
@@ -246,39 +363,108 @@ define(
                     result.renderIdealComponent = function () {
                         result.isPlaceOrderAllowed(false);
 
-                        var secureFieldsNode = document.getElementById('iDealContainer');
+                        var idealNode = document.getElementById('iDealContainer');
 
-                        var checkout = new AdyenCheckout({
-                            locale: self.getLocale()
-                        });
-
-                        var ideal = checkout.create('ideal', {
-                            items: result.getIssuerListForComponent(),
+                        var ideal = self.checkoutComponent.create('ideal', {
+                            items: result.getIssuers(),
                             onChange: function (state) {
-                                // isValid is not present on start
-                                if (typeof state.isValid !== 'undefined' && state.isValid === false) {
+                                if (!!state.isValid) {
+                                    result.issuer(state.data.issuer);
+                                    result.isPlaceOrderAllowed(true);
+
+                                } else {
                                     result.isPlaceOrderAllowed(false);
                                 }
-                            },
-                            onValid: function (state) {
-                                result.issuerId(state.data.issuer);
-                                result.isPlaceOrderAllowed(true);
-                            },
-                            onError: function (state) {
-                                result.isPlaceOrderAllowed(false);
                             }
                         });
 
-                        ideal.mount(secureFieldsNode);
+                        ideal.mount(idealNode);
                     };
 
-                    if (value.hasOwnProperty("issuers")) {
-                        if (value.issuers.length == 0) {
+                    /**
+                     * Creates the sepa direct debit component,
+                     * sets up the callbacks for sepa components
+                     */
+                    result.renderSepaDirectDebitComponent = function () {
+                        result.isPlaceOrderAllowed(false);
+
+                        var sepaDirectDebitNode = document.getElementById('sepaDirectDebitContainer');
+
+                        var sepaDirectDebit = self.checkoutComponent.create('sepadirectdebit', {
+                            countryCode: self.getLocale(),
+                            onChange: function (state) {
+                                if (!!state.isValid) {
+                                    result.ownerName(state.data["sepa.ownerName"]);
+                                    result.ibanNumber(state.data["sepa.ibanNumber"]);
+                                    result.isPlaceOrderAllowed(true);
+                                } else {
+                                    result.isPlaceOrderAllowed(false);
+                                }
+                            }
+                        });
+
+                        sepaDirectDebit.mount(sepaDirectDebitNode);
+                    };
+
+                    /**
+                     * Creates the klarna component,
+                     * sets up the callbacks for klarna components
+                     */
+                    result.renderKlarnaComponent = function () {
+
+                        var klarnaNode = document.getElementById('klarnaContainer');
+
+                        var klarna = self.checkoutComponent.create('klarna', {
+                            countryCode: self.getLocale(),
+                            details: self.filterOutOpenInvoiceComponentDetails(value.details),
+                            visibility: {
+                                personalDetails: "editable"
+                            },
+                            onChange: function (state) {
+                                if (!!state.isValid) {
+                                    result.dob(state.data.personalDetails.dateOfBirth);
+                                    result.telephone(state.data.personalDetails.telephoneNumber);
+                                    result.gender(state.data.personalDetails.gender);
+                                    result.isPlaceOrderAllowed(true);
+                                } else {
+                                    result.isPlaceOrderAllowed(false);
+                                }
+                            }
+                        }).mount(klarnaNode);
+                    };
+
+                    /**
+                     * Creates the afterpay component,
+                     * sets up the callbacks for klarna components
+                     */
+                    result.renderAfterPayComponent = function () {
+
+                        var afterPay = self.checkoutComponent.create('afterpay', {
+                            countryCode: self.getLocale(),
+                            details: self.filterOutOpenInvoiceComponentDetails(value.details),
+                            visibility: {
+                                personalDetails: "editable"
+                            },
+                            onChange: function (state) {
+                                if (!!state.isValid) {
+                                    result.dob(state.data.personalDetails.dateOfBirth);
+                                    result.telephone(state.data.personalDetails.telephoneNumber);
+                                    result.gender(state.data.personalDetails.gender);
+                                    result.isPlaceOrderAllowed(true);
+                                } else {
+                                    result.isPlaceOrderAllowed(false);
+                                }
+                            }
+                        }).mount(document.getElementById('afterPayContainer'));
+                    };
+
+                    if (result.hasIssuersProperty()) {
+                        if (!result.hasIssuersAvailable()) {
                             return false;
                         }
 
-                        result.issuerIds = value.issuers;
-                        result.issuerId = ko.observable(null);
+                        result.issuerIds = result.getIssuers();
+                        result.issuer = ko.observable(null);
                     } else if (value.isPaymentMethodOpenInvoiceMethod) {
                         result.telephone = ko.observable(quote.shippingAddress().telephone);
                         result.gender = ko.observable(window.checkoutConfig.payment.adyenHpp.gender);
@@ -289,17 +475,8 @@ define(
                         result.getRatePayDeviceIdentToken = function () {
                             return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
                         };
-                        result.showGender = function () {
-                            return window.checkoutConfig.payment.adyenHpp.showGender;
-                        };
-                        result.showDob = function () {
-                            return window.checkoutConfig.payment.adyenHpp.showDob;
-                        };
-                        result.showTelephone = function () {
-                            return window.checkoutConfig.payment.adyenHpp.showTelephone;
-                        };
                         result.showSsn = function () {
-                            if (value.brandCode.indexOf("klarna") >= 0) {
+                            if (result.getBrandCode().indexOf("klarna") >= 0) {
                                 var ba = quote.billingAddress();
                                 if (ba != null) {
                                     var nordicCountriesList = window.checkoutConfig.payment.adyenHpp.nordicCountries;
@@ -310,6 +487,13 @@ define(
                             }
                             return false;
                         };
+                    } else if (result.isSepaDirectDebit()) {
+                        result.ownerName = ko.observable(null);
+                        result.ibanNumber = ko.observable(null);
+                    } else if (result.isAch()) {
+                        result.ownerName = ko.observable(null);
+                        result.bankAccountNumber = ko.observable(null);
+                        result.bankLocationId = ko.observable(null);
                     }
 
                     return result;
@@ -343,12 +527,10 @@ define(
 
                     var additionalData = {};
                     additionalData.brand_code = self.value;
-                    additionalData.df_value = dfValue();
 
-                    if (self.isIssuerListAvailable()) {
-                        additionalData.issuer_id = this.issuerId();
-                    }
-                    else if (self.isPaymentMethodOpenInvoiceMethod()) {
+                    if (self.hasIssuersAvailable()) {
+                        additionalData.issuer_id = this.issuer();
+                    } else if (self.isPaymentMethodOpenInvoiceMethod()) {
                         additionalData.gender = this.gender();
                         additionalData.dob = this.dob();
                         additionalData.telephone = this.telephone();
@@ -356,6 +538,13 @@ define(
                         if (brandCode() == "ratepay") {
                             additionalData.df_value = this.getRatePayDeviceIdentToken();
                         }
+                    } else if (self.isSepaDirectDebit()) {
+                        additionalData.ownerName = this.ownerName();
+                        additionalData.ibanNumber = this.ibanNumber();
+                    } else if (self.isAch()) {
+                        additionalData.bankAccountOwnerName = this.ownerName();
+                        additionalData.bankAccountNumber = this.bankAccountNumber();
+                        additionalData.bankLocationId = this.bankLocationId();
                     }
 
                     data.additional_data = additionalData;
@@ -415,6 +604,7 @@ define(
                             $("#messages-" + brandCode()).slideUp();
                         }, 10000);
                         self.isPlaceOrderActionAllowed(true);
+                        fullScreenLoader.stopLoader();
                     }
                 ).done(
                     function () {
@@ -436,9 +626,6 @@ define(
                 }
                 return null;
             }),
-            isPaymentMethodSelectionOnAdyen: function () {
-                return window.checkoutConfig.payment.adyenHpp.isPaymentMethodSelectionOnAdyen;
-            },
             isIconEnabled: function () {
                 return window.checkoutConfig.payment.adyen.showLogo;
             },
@@ -452,11 +639,63 @@ define(
 
                 return true;
             },
+            /**
+             * Returns the payment method's brand code using the payment method from the response object
+             * (in checkout api it is the type)
+             * @returns {*}
+             */
+            getBrandCodeFromPaymentMethod: function (paymentMethod) {
+                if (typeof paymentMethod.type !== 'undefined') {
+                    return paymentMethod.type;
+                }
+
+                return '';
+            },
             getRatePayDeviceIdentToken: function () {
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
             },
             getLocale: function () {
                 return window.checkoutConfig.payment.adyenHpp.locale;
+            },
+            /**
+             * In the open invoice components we need to validate only the personal details and only the
+             * dateOfBirth, telephoneNumber and gender if it's set in the admin
+             * @param details
+             * @returns {Array}
+             */
+            filterOutOpenInvoiceComponentDetails: function (details) {
+                var self = this;
+                var filteredDetails = _.map(details, function (parentDetail) {
+                    if (parentDetail.key == "personalDetails") {
+                        var detailObject = _.map(parentDetail.details, function (detail) {
+                            if (detail.key == 'dateOfBirth' ||
+                                detail.key == 'telephoneNumber' ||
+                                detail.key == 'gender') {
+                                return detail;
+                            }
+                        });
+
+                        if (!!detailObject) {
+                            return {
+                                "key": parentDetail.key,
+                                "type": parentDetail.type,
+                                "details": self.filterUndefinedItemsInArray(detailObject)
+                            };
+                        }
+                    }
+                });
+
+                return self.filterUndefinedItemsInArray(filteredDetails);
+            },
+            /**
+             * Helper function to filter out the undefined items from an array
+             * @param arr
+             * @returns {*}
+             */
+            filterUndefinedItemsInArray: function(arr) {
+                return arr.filter(function(item){
+                    return typeof item !== 'undefined';
+                });
             }
         });
     }

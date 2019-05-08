@@ -97,12 +97,12 @@ class GeneralResponseValidator extends AbstractValidator
                     $payment->setAdditionalInformation('3dActive', true);
                     $payment->setAdditionalInformation('pspReference', $response['pspReference']);
 
-                    $issuerUrl = $response['issuerUrl'];
+                    $redirectUrl = $response['issuerUrl'];
                     $paReq = $response['paRequest'];
                     $md = $response['md'];
 
-                    if (!empty($paReq) && !empty($md) && !empty($issuerUrl)) {
-                        $payment->setAdditionalInformation('issuerUrl', $response['issuerUrl']);
+                    if (!empty($paReq) && !empty($md) && !empty($redirectUrl)) {
+                        $payment->setAdditionalInformation('redirectUrl', $redirectUrl);
                         $payment->setAdditionalInformation('paRequest', $response['paRequest']);
                         $payment->setAdditionalInformation('md', $response['md']);
                     } else {
