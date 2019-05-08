@@ -146,10 +146,9 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
 		if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
-			$payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
-		) || $this->adyenHelper->isPaymentMethodAfterpayTouchMethod(
-				$payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
-			)) {
+			    $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
+		    )
+        ) {
 			$openInvoiceFields = $this->getOpenInvoiceData($order);
 			$request = array_merge($request, $openInvoiceFields);
 		}
@@ -227,10 +226,11 @@ class CheckoutDataBuilder implements BuilderInterface
             $formattedTaxAmount = $this->adyenHelper->formatAmount($item->getTaxAmount(), $currency);
 
             $formFields['lineItems'][] = [
+                'id' => $item->getId(),
+                'itemId' => $item->getId(),
                 'amountExcludingTax' => $formattedPriceExcludingTax,
                 'taxAmount' => $formattedTaxAmount,
                 'description' => $item->getName(),
-                'id' => $item->getId(),
                 'quantity' => $item->getQty(),
                 'taxCategory' => $item->getProduct()->getAttributeText('tax_class_id'),
                 'taxPercentage' => $item->getTaxPercent()
@@ -247,6 +247,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $numberOfItems = 1;
 
             $formFields['lineItems'][] = [
+                'itemId' => 'totalDiscount',
                 'amountExcludingTax' => $itemAmount,
                 'taxAmount' => $itemVatAmount,
                 'description' => $description,
@@ -268,6 +269,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $taxClassId = $this->taxConfig->getShippingTaxClass($this->storeManager->getStore()->getId());
 
             $formFields['lineItems'][] = [
+                'itemId' => 'shippingCost',
                 'amountExcludingTax' => $formattedPriceExcludingTax,
                 'taxAmount' => $formattedTaxAmount,
                 'description' => $order->getShippingDescription(),

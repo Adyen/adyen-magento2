@@ -383,7 +383,7 @@ class Redirect extends \Magento\Payment\Block\Form
                 $itemVatPercentage,
                 $numberOfItems,
                 $this->_order->getPayment(),
-                "discount"
+                "totalDiscount"
             );
         }
 

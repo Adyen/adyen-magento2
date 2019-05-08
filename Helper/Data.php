@@ -930,11 +930,12 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'afterpay') !== false) {
-            return true;
-        } elseif (strpos($paymentMethod, 'klarna') !== false) {
-            return true;
-        } elseif (strpos($paymentMethod, 'ratepay') !== false) {
+        if (strpos($paymentMethod, 'afterpay') !== false ||
+            strpos($paymentMethod, 'klarna') !== false ||
+            strpos($paymentMethod, 'ratepay') !== false ||
+            $this->isPaymentMethodAfterpayTouchMethod($paymentMethod) ||
+            $this->isPaymentMethodOneyMethod($paymentMethod)
+        ) {
             return true;
         }
 
@@ -1229,7 +1230,7 @@ class Data extends AbstractHelper
             $itemVatPercentage,
             $numberOfItems,
             $payment,
-            "shipping"
+            "shippingCost"
         );
     }
 
