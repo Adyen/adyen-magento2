@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Block\Redirect;
 
+use Adyen\AdyenException;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 class Redirect extends \Magento\Payment\Block\Form
@@ -63,17 +64,29 @@ class Redirect extends \Magento\Payment\Block\Form
      */
     protected $_taxConfig;
 
+	/**
+	 * @var \Magento\Tax\Model\Calculation
+	 */
     protected $_taxCalculation;
 
-    /**
-     * Redirect constructor.
-     *
-     * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param array $data
-     * @param \Magento\Sales\Model\OrderFactory $orderFactory
-     * @param \Magento\Checkout\Model\Session $checkoutSession
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     */
+	/**
+	 * Request object
+	 */
+	protected $_request;
+
+	/**
+	 * Redirect constructor.
+	 *
+	 * @param \Magento\Framework\View\Element\Template\Context $context
+	 * @param array $data
+	 * @param \Magento\Sales\Model\OrderFactory $orderFactory
+	 * @param \Magento\Checkout\Model\Session $checkoutSession
+	 * @param \Adyen\Payment\Helper\Data $adyenHelper
+	 * @param \Magento\Framework\Locale\ResolverInterface $resolver
+	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+	 * @param \Magento\Tax\Model\Config $taxConfig
+	 * @param \Magento\Tax\Model\Calculation $taxCalculation
+	 */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         array $data = [],
@@ -93,14 +106,61 @@ class Redirect extends \Magento\Payment\Block\Form
         $this->_resolver = $resolver;
         $this->_adyenLogger = $adyenLogger;
 
-        if (!$this->_order) {
-            $incrementId = $this->_getCheckout()->getLastRealOrderId();
-            $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
-        }
+		$this->_getOrder();
         $this->_taxConfig = $taxConfig;
         $this->_taxCalculation = $taxCalculation;
+		$this->_request = $context->getRequest();
     }
 
+	/**
+	 * Returns if the payment should follow the old HPP or the new Checkout flow
+	 *  - hpp will submit a form with all the additional information that the API requests\
+	 *  - checkout will redirect to a url without form submission
+	 *
+	 * @return bool
+	 * @throws \Exception
+	 */
+    public function isCheckoutAPM() {
+		try {
+			if ($paymentObject = $this->_order->getPayment()) {
+				if ($paymentObject->getAdditionalInformation('CheckoutAPM')) {
+					return true;
+				}
+			}
+		} catch (Exception $e) {
+			// do nothing for now
+			throw($e);
+		}
+
+		return false;
+	}
+
+	/**
+	 * @return mixed|string[]
+	 * @throws AdyenException
+	 */
+    public function getRedirectMethod()
+	{
+		if ($redirectMethod = $this->getPayment()->getAdditionalInformation('redirectMethod')) {
+			return $redirectMethod;
+		}
+
+		throw new AdyenException("No redirect method is provided.");
+	}
+	/**
+	 * Retrieves redirect url for the flow of checkout API
+	 *
+	 * @return string[]
+	 * @throws AdyenException
+	 */
+	public function getRedirectUrl()
+	{
+		if ($redirectUrl = $this->getPayment()->getAdditionalInformation('redirectUrl')) {
+			return $redirectUrl;
+		}
+
+		throw new AdyenException("No redirect url is provided.");
+	}
 
     /**
      * @return $this
@@ -118,43 +178,26 @@ class Redirect extends \Magento\Payment\Block\Form
         $url = "";
         try {
             if ($this->_order->getPayment()) {
-                $paymentRoutine = $this->_adyenHelper->getAdyenHppConfigData('payment_routine');
 
                 switch ($this->_adyenHelper->isDemoMode()) {
                     case true:
-                        if ($paymentRoutine == 'single' && $this->getPaymentMethodSelectionOnAdyen()) {
-                            $url = 'https://test.adyen.com/hpp/pay.shtml';
+                        if ($this->_adyenHelper->doesPaymentMethodSkipDetails(
+                                $this->_order->getPayment()->getAdditionalInformation('brand_code')
+                            )
+                        ) {
+                            $url = "https://test.adyen.com/hpp/skipDetails.shtml";
                         } else {
-                            if ($this->getPaymentMethodSelectionOnAdyen()) {
-                                $url = 'https://test.adyen.com/hpp/select.shtml';
-                            } else {
-                                if ($this->_adyenHelper->doesPaymentMethodSkipDetails(
-                                        $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                                    )
-                                ) {
-                                    $url = "https://test.adyen.com/hpp/skipDetails.shtml";
-                                } else {
-                                    $url = "https://test.adyen.com/hpp/details.shtml";
-                                }
-                            }
+                            $url = "https://test.adyen.com/hpp/details.shtml";
                         }
                         break;
                     default:
-                        if ($paymentRoutine == 'single' && $this->getPaymentMethodSelectionOnAdyen()) {
-                            $url = 'https://live.adyen.com/hpp/pay.shtml';
+                        if ($this->_adyenHelper->doesPaymentMethodSkipDetails(
+                                $this->_order->getPayment()->getAdditionalInformation('brand_code')
+                            )
+                        ) {
+                            $url = "https://live.adyen.com/hpp/skipDetails.shtml";
                         } else {
-                            if ($this->getPaymentMethodSelectionOnAdyen()) {
-                                $url = 'https://live.adyen.com/hpp/select.shtml';
-                            } else {
-                                if ($this->_adyenHelper->doesPaymentMethodSkipDetails(
-                                        $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                                    )
-                                ) {
-                                    $url = "https://live.adyen.com/hpp/skipDetails.shtml";
-                                } else {
-                                    $url = "https://live.adyen.com/hpp/details.shtml";
-                                }
-                            }
+                            $url = "https://live.adyen.com/hpp/details.shtml";
                         }
                         break;
                 }
@@ -167,152 +210,13 @@ class Redirect extends \Magento\Payment\Block\Form
         return $url;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getPaymentMethodSelectionOnAdyen()
-    {
-        return $this->_adyenHelper->getAdyenHppConfigDataFlag('payment_selection_on_adyen');
-    }
-
-    /**
-     * @return array
-     */
-    public function getFormFields()
-    {
-        $formFields = [];
-        try {
-            if ($this->_order->getPayment()) {
-                $realOrderId = $this->_order->getRealOrderId();
-                $orderCurrencyCode = $this->_order->getOrderCurrencyCode();
-                $skinCode = trim($this->_adyenHelper->getAdyenHppConfigData('skin_code'));
-                $amount = $this->_adyenHelper->formatAmount(
-                    $this->_order->getGrandTotal(),
-                    $orderCurrencyCode
-                );
-                $merchantAccount = trim($this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $this->_order->getStoreId()));
-                $shopperEmail = $this->_order->getCustomerEmail();
-                $customerId = $this->_order->getCustomerId();
-                $shopperIP = $this->_order->getRemoteIp();
-                $browserInfo = $_SERVER['HTTP_USER_AGENT'];
-                $deliveryDays = $this->_adyenHelper->getAdyenHppConfigData('delivery_days');
-                $shopperLocale = trim($this->_adyenHelper->getAdyenHppConfigData('shopper_locale'));
-                $shopperLocale = (!empty($shopperLocale)) ? $shopperLocale : $this->_resolver->getLocale();
-                $countryCode = trim($this->_adyenHelper->getAdyenHppConfigData('country_code'));
-                $countryCode = (!empty($countryCode)) ? $countryCode : false;
-
-                // if directory lookup is enabled use the billingaddress as countrycode
-                if ($countryCode == false) {
-                    if ($this->_order->getBillingAddress() &&
-                        $this->_order->getBillingAddress()->getCountryId() != ""
-                    ) {
-                        $countryCode = $this->_order->getBillingAddress()->getCountryId();
-                    }
-                }
-
-                $formFields = [];
-
-                $formFields['merchantAccount'] = $merchantAccount;
-                $formFields['merchantReference'] = $realOrderId;
-                $formFields['paymentAmount'] = (int)$amount;
-                $formFields['currencyCode'] = $orderCurrencyCode;
-                $formFields['shipBeforeDate'] = date(
-                    "Y-m-d",
-                    mktime(date("H"), date("i"), date("s"), date("m"), date("j") + $deliveryDays, date("Y"))
-                );
-                $formFields['skinCode'] = $skinCode;
-                $formFields['shopperLocale'] = $shopperLocale;
-                $formFields['countryCode'] = $countryCode;
-                $formFields['shopperIP'] = $shopperIP;
-                $formFields['browserInfo'] = $browserInfo;
-                $formFields['sessionValidity'] = date(
-                    DATE_ATOM,
-                    mktime(date("H") + 1, date("i"), date("s"), date("m"), date("j"), date("Y"))
-                );
-                $formFields['shopperEmail'] = $shopperEmail;
-                // recurring
-                $recurringType = $this->_adyenHelper->getRecurringTypeFromOneclickRecurringSetting();
-                $brandCode = $this->_order->getPayment()->getAdditionalInformation(
-                    \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
-                );
-
-                // Paypal does not allow ONECLICK,RECURRING only RECURRING
-                if ($brandCode == "paypal" && $recurringType == 'ONECLICK,RECURRING') {
-                    $recurringType = "RECURRING";
-                }
-
-                if ($customerId > 0) {
-                    $formFields['recurringContract'] = $recurringType;
-                    $formFields['shopperReference'] = $customerId;
-                } else {
-                    // required for openinvoice payment methods use unique id
-                    $uniqueReference = "guest_" . $realOrderId . "_" . $this->_order->getStoreId();
-                    $formFields['shopperReference'] = $uniqueReference;
-                }
-
-                //blocked methods
-                $formFields['blockedMethods'] = "";
-
-                $baseUrl = $this->_storeManager->getStore($this->getStore())
-                    ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK);
-
-                $formFields['resURL'] = $baseUrl . 'adyen/process/result';
-
-                if ($brandCode) {
-                    $formFields['brandCode'] = $brandCode;
-                }
-
-                $issuerId = $this->_order->getPayment()->getAdditionalInformation("issuer_id");
-                if ($issuerId) {
-                    $formFields['issuerId'] = $issuerId;
-                }
-
-                $formFields = $this->setBillingAddressData($formFields);
-                $formFields = $this->setShippingAddressData($formFields);
-                $formFields = $this->setOpenInvoiceData($formFields);
-
-                $formFields['shopper.gender'] = $this->getGenderText($this->_order->getCustomerGender());
-                $dob = $this->_order->getCustomerDob();
-                if ($dob) {
-                    $formFields['shopper.dateOfBirthDayOfMonth'] = trim($this->_getDate($dob, 'd'));
-                    $formFields['shopper.dateOfBirthMonth'] = trim($this->_getDate($dob, 'm'));
-                    $formFields['shopper.dateOfBirthYear'] = trim($this->_getDate($dob, 'Y'));
-                }
-
-                // For klarna acceptPrivacyPolicy to skip HPP page
-                if ($brandCode == "klarna") {
-                    $ssn = $this->_order->getPayment()->getAdditionalInformation('ssn');
-                    if (!empty($ssn)) {
-                        $formFields['shopper.socialSecurityNumber'] = $ssn;
-                    }
-                    //  // needed for DE and AT
-                    $formFields['klarna.acceptPrivacyPolicy'] = 'true';
-                }
-
-                // OpenInvoice don't allow to edit billing and delivery items
-
-                if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
-                    // don't allow editable shipping/delivery address
-                    $formFields['billingAddressType'] = "1";
-                    $formFields['deliveryAddressType'] = "1";
-                }
-
-                if ($this->_order->getPayment()->getAdditionalInformation("df_value") != "") {
-                    $formFields['dfValue'] = $this->_order->getPayment()->getAdditionalInformation("df_value");
-                }
-
-                // Sign request using secret key
-                $hmacKey = $this->_adyenHelper->getHmac();
-                $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $formFields);
-                $formFields['merchantSig'] = $merchantSig;
-
-                $this->_adyenLogger->addAdyenDebug(print_r($formFields, true));
-            }
-        } catch (Exception $e) {
-            // do nothing for now
-        }
-        return $formFields;
-    }
+	/**
+	 * @return mixed
+	 */
+	private function getBrandCode()
+	{
+		return $this->getPayment()->getAdditionalInformation('brand_code');
+	}
 
     /**
      * Set Billing Address data
@@ -322,6 +226,7 @@ class Redirect extends \Magento\Payment\Block\Form
     protected function setBillingAddressData($formFields)
     {
         $billingAddress = $this->_order->getBillingAddress();
+
         if ($billingAddress) {
             $formFields['shopper.firstName'] = trim($billingAddress->getFirstname());
             $middleName = trim($billingAddress->getMiddlename());
@@ -355,19 +260,19 @@ class Redirect extends \Magento\Payment\Block\Form
             }
 
             if (trim($billingAddress->getPostcode()) == "") {
-                $formFields['billingAddress.postalCode'] = "NA";
+                $formFields['billingAddress.postalCode'] = "";
             } else {
                 $formFields['billingAddress.postalCode'] = trim($billingAddress->getPostcode());
             }
 
             if (trim($billingAddress->getRegionCode()) == "") {
-                $formFields['billingAddress.stateOrProvince'] = "NA";
+                $formFields['billingAddress.stateOrProvince'] = "";
             } else {
                 $formFields['billingAddress.stateOrProvince'] = trim($billingAddress->getRegionCode());
             }
 
             if (trim($billingAddress->getCountryId()) == "") {
-                $formFields['billingAddress.country'] = "NA";
+                $formFields['billingAddress.country'] = "ZZ";
             } else {
                 $formFields['billingAddress.country'] = trim($billingAddress->getCountryId());
             }
@@ -401,7 +306,6 @@ class Redirect extends \Magento\Payment\Block\Form
                 $formFields['deliveryAddress.street'] = implode(" ", $shippingAddress->getStreet());
             }
 
-
             if (trim($shippingAddress->getCity()) == "") {
                 $formFields['deliveryAddress.city'] = "NA";
             } else {
@@ -409,19 +313,19 @@ class Redirect extends \Magento\Payment\Block\Form
             }
 
             if (trim($shippingAddress->getPostcode()) == "") {
-                $formFields['deliveryAddress.postalCode'] = "NA";
+                $formFields['deliveryAddress.postalCode'] = "";
             } else {
                 $formFields['deliveryAddress.postalCode'] = trim($shippingAddress->getPostcode());
             }
 
             if (trim($shippingAddress->getRegionCode()) == "") {
-                $formFields['deliveryAddress.stateOrProvince'] = "NA";
+                $formFields['deliveryAddress.stateOrProvince'] = "";
             } else {
                 $formFields['deliveryAddress.stateOrProvince'] = trim($shippingAddress->getRegionCode());
             }
 
             if (trim($shippingAddress->getCountryId()) == "") {
-                $formFields['deliveryAddress.country'] = "NA";
+                $formFields['deliveryAddress.country'] = "ZZ";
             } else {
                 $formFields['deliveryAddress.country'] = trim($shippingAddress->getCountryId());
             }
@@ -479,7 +383,7 @@ class Redirect extends \Magento\Payment\Block\Form
                 $itemVatPercentage,
                 $numberOfItems,
                 $this->_order->getPayment(),
-                "discount"
+                "totalDiscount"
             );
         }
 
@@ -519,21 +423,6 @@ class Redirect extends \Magento\Payment\Block\Form
     }
 
     /**
-     * @param null $date
-     * @param string $format
-     * @return mixed
-     */
-    protected function _getDate($date = null, $format = 'Y-m-d H:i:s')
-    {
-        if (strlen($date) < 0) {
-            $date = date('d-m-Y H:i:s');
-        }
-        $timeStamp = new \DateTime($date);
-        return $timeStamp->format($format);
-    }
-
-
-    /**
      * The character escape function is called from the array_map function in _signRequestParams
      *
      * @param $val
@@ -553,4 +442,82 @@ class Redirect extends \Magento\Payment\Block\Form
     {
         return $this->_checkoutSession;
     }
+
+	/**
+	 * Retrieve request object
+	 *
+	 * @return \Magento\Framework\App\RequestInterface
+	 */
+	protected function _getRequest()
+	{
+		return $this->_request;
+	}
+
+	/**
+	 * Get order object
+	 *
+	 * @return \Magento\Sales\Model\Order
+	 */
+	protected function _getOrder()
+	{
+		if (!$this->_order) {
+			$incrementId = $this->_getCheckout()->getLastRealOrderId();
+			$this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
+		}
+		return $this->_order;
+	}
+
+	/**
+	 * @return mixed
+	 */
+	public function getPaReq()
+	{
+		if ($paReq = $this->getPayment()->getAdditionalInformation('paRequest')) {
+			return $paReq;
+		}
+
+		throw new AdyenException("No paRequest is provided.");
+	}
+
+	/**
+	 * @return string[]
+	 * @throws AdyenException
+	 */
+	public function getMd()
+	{
+		if ($md = $this->getPayment()->getAdditionalInformation('md')) {
+			return $md;
+		}
+
+		throw new AdyenException("No MD is provided.");
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getTermUrl()
+	{
+		return $this->getUrl('adyen/process/redirect',
+			['_secure' => $this->_getRequest()->isSecure()]);
+	}
+
+	/**
+	 * Retrieve payment object if available
+	 *
+	 * @return \Magento\Framework\DataObject|\Magento\Sales\Api\Data\OrderPaymentInterface|mixed|null
+	 * @throws AdyenException
+	 */
+	private function getPayment() {
+		try {
+			$paymentObject = $this->_order->getPayment();
+			if (!empty($paymentObject)) {
+				return $paymentObject;
+			}
+		} catch (Exception $e) {
+			// do nothing for now
+			throw($e);
+		}
+
+		throw new AdyenException("No payment object is found.");
+	}
 }

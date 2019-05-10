@@ -40,7 +40,9 @@ class AddressDataBuilder implements BuilderInterface
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
+    public function __construct(
+    	\Adyen\Payment\Helper\Data $adyenHelper
+	)
     {
         $this->adyenHelper = $adyenHelper;
     }
@@ -56,12 +58,14 @@ class AddressDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getOrder();
+		$billingAddress = $order->getBillingAddress();
 
         $result = [];
 
-        $billingAddress = $order->getBillingAddress();
         if ($billingAddress) {
-            $requestBilling = ["street" => "N/A",
+
+            $requestBilling = [
+            	"street" => "N/A",
                 "postalCode" => '',
                 "city" => "N/A",
                 "houseNumberOrName" => '',
@@ -69,9 +73,12 @@ class AddressDataBuilder implements BuilderInterface
                 "country" => "ZZ"
             ];
 
-            if ($billingAddress->getStreetLine1()) {
-                $requestBilling["street"] = $billingAddress->getStreetLine1();
-            }
+			$address = $this->adyenHelper->getStreetFromString($billingAddress->getStreetLine1());
+
+			if ($address) {
+				$requestBilling["street"] = $address["name"];
+				$requestBilling["houseNumberOrName"] = $address["house_number"];
+			}
 
             if ($billingAddress->getPostcode()) {
                 $requestBilling["postalCode"] = $billingAddress->getPostcode();
@@ -93,16 +100,31 @@ class AddressDataBuilder implements BuilderInterface
         }
         
         $shippingAddress = $order->getShippingAddress();
-        if ($shippingAddress) {
-            // filter housenumber from streetLine1
-            $requestDelivery = ["street" => $shippingAddress->getStreetLine1(),
-                "postalCode" => $shippingAddress->getPostcode(),
-                "city" => $shippingAddress->getCity(),
-                "houseNumberOrName" => '',
-                "stateOrProvince" => $shippingAddress->getRegionCode(),
-                "country" => $shippingAddress->getCountryId()
-            ];
 
+        if ($shippingAddress) {
+
+			$address = $this->adyenHelper->getStreetFromString($shippingAddress->getStreetLine1());
+
+			if ($address) {
+				$requestDelivery["street"] = $address["name"];
+				$requestDelivery["houseNumberOrName"] = $address["house_number"];
+			}
+
+			if ($shippingAddress->getPostcode()) {
+				$requestDelivery["postalCode"] = $shippingAddress->getPostcode();
+			}
+
+			if ($shippingAddress->getCity()) {
+				$requestDelivery["city"] = $shippingAddress->getCity();
+			}
+
+			if ($shippingAddress->getRegionCode()) {
+				$requestDelivery["stateOrProvince"] = $shippingAddress->getRegionCode();
+			}
+
+			if ($shippingAddress->getCountryId()) {
+				$requestDelivery["country"] = $shippingAddress->getCountryId();
+			}
 
             $result['deliveryAddress'] = $requestDelivery;
         }

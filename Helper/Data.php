@@ -35,8 +35,8 @@ class Data extends AbstractHelper
     const LIVE = 'live';
     const CHECKOUT_CONTEXT_URL_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/';
     const CHECKOUT_CONTEXT_URL_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/';
-    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.0.0/adyen.js';
-    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.0.0/adyen.js';
+    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.1.0/adyen.js';
+    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.1.0/adyen.js';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -202,7 +202,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * eturn recurring types for configuration setting
+     * return recurring types for configuration setting
      * @return array
      */
     public function getCaptureModes()
@@ -349,6 +349,20 @@ class Data extends AbstractHelper
         $streetNr = implode(' ', $street);
         return (['name' => trim($streetName), 'house_number' => $streetNr]);
     }
+
+	/**
+	 * Street format
+	 * @param string $streetLine
+	 * @return array
+	 */
+	public function getStreetFromString($streetLine)
+	{
+		$street = self::formatStreet(array($streetLine));
+		$streetName = $street['0'];
+		unset($street['0']);
+		$streetNr = implode(' ', $street);
+		return (['name' => trim($streetName), 'house_number' => $streetNr]);
+	}
 
     /**
      * Fix this one string street + number
@@ -769,65 +783,6 @@ class Data extends AbstractHelper
         }
     }
 
-
-    /**
-     * @return array
-     */
-    public function getSepaCountries()
-    {
-        $sepaCountriesAllowed = [
-            "AT",
-            "BE",
-            "BG",
-            "CH",
-            "CY",
-            "CZ",
-            "DE",
-            "DK",
-            "EE",
-            "ES",
-            "FI",
-            "FR",
-            "GB",
-            "GF",
-            "GI",
-            "GP",
-            "GR",
-            "HR",
-            "HU",
-            "IE",
-            "IS",
-            "IT",
-            "LI",
-            "LT",
-            "LU",
-            "LV",
-            "MC",
-            "MQ",
-            "MT",
-            "NL",
-            "NO",
-            "PL",
-            "PT",
-            "RE",
-            "RO",
-            "SE",
-            "SI",
-            "SK"
-        ];
-
-        $countryList = $this->_country->toOptionArray();
-        $sepaCountries = [];
-
-        foreach ($countryList as $key => $country) {
-            $value = $country['value'];
-            if (in_array($value, $sepaCountriesAllowed)) {
-                $sepaCountries[$value] = $country['label'];
-            }
-        }
-        return $sepaCountries;
-    }
-
     /**
      * Get adyen magento module's name sent to Adyen
      *
@@ -852,10 +807,6 @@ class Data extends AbstractHelper
     {
         return [
             [
-                'value' => 'boletobancario_hsbc',
-                'label' => __('boletobancario_hsbc'),
-            ],
-            [
                 'value' => 'boletobancario_itau',
                 'label' => __('boletobancario_itau'),
             ],
@@ -864,13 +815,9 @@ class Data extends AbstractHelper
                 'label' => __('boletobancario_santander'),
             ],
             [
-                'value' => 'boletobancario_bradesco',
-                'label' => __('boletobancario_bradesco'),
-            ],
-            [
-                'value' => 'boletobancario_bancodobrasil',
-                'label' => __('boletobancario_bancodobrasil'),
-            ],
+                'value' => 'primeiropay_boleto',
+                'label' => __('primeiropay_boleto'),
+            ]
         ];
     }
 
@@ -983,16 +930,28 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'afterpay') !== false) {
-            return true;
-        } elseif (strpos($paymentMethod, 'klarna') !== false) {
-            return true;
-        } elseif (strpos($paymentMethod, 'ratepay') !== false) {
+        if (strpos($paymentMethod, 'afterpay') !== false ||
+            strpos($paymentMethod, 'klarna') !== false ||
+            strpos($paymentMethod, 'ratepay') !== false
+        ) {
             return true;
         }
 
         return false;
     }
+
+	/**
+	 * @param $paymentMethod
+	 * @return bool
+	 */
+	public function isPaymentMethodAfterpayTouchMethod($paymentMethod)
+	{
+		if (strpos($paymentMethod, 'afterpaytouch') !== false) {
+			return true;
+		}
+
+		return false;
+	}
 
     /**
      * @param $paymentMethod
@@ -1039,6 +998,40 @@ class Data extends AbstractHelper
     /**
      * @return mixed
      */
+    /**
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodBcmcMobileQRMethod($paymentMethod)
+    {
+        if (strpos($paymentMethod, 'bcmc_mobile_QR') !== false) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * The payment method for wechat should be only wechatweb until we support the others too.
+     *
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodWechatpayExceptWeb($paymentMethod)
+    {
+        if (strpos($paymentMethod, 'wechatpay') !== false) {
+            if (strpos($paymentMethod, 'wechatpayWeb') !== false) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+
+
     public function getRatePayId()
     {
         return $this->getAdyenHppConfigData("ratepay_id");
@@ -1055,6 +1048,18 @@ class Data extends AbstractHelper
         if ($paymentMethod == "klarna" ||
             strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_'
         ) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodBoletoMethod($paymentMethod)
+    {
+        if (strpos($paymentMethod, 'boleto') !== false) {
             return true;
         }
         return false;
@@ -1223,7 +1228,7 @@ class Data extends AbstractHelper
             $itemVatPercentage,
             $numberOfItems,
             $payment,
-            "shipping"
+            "shippingCost"
         );
     }
 
@@ -1663,4 +1668,37 @@ class Data extends AbstractHelper
 
         return in_array(strtolower($country), $countryList);
     }
+
+	/**
+	 * @param $client
+	 * @return \Adyen\Service\Checkout
+	 */
+	public function createAdyenCheckoutService($client)
+	{
+		return new \Adyen\Service\Checkout($client);
+	}
+
+	/**
+	 * @param $client
+	 * @return \Adyen\Service\Recurring
+	 * @throws \Adyen\AdyenException
+	 */
+	public function createAdyenRecurringService($client)
+	{
+		return new \Adyen\Service\Recurring($client);
+	}
+
+	/**
+	 * @param string $date
+	 * @param string $format
+	 * @return mixed
+	 */
+	public function formatDate($date = null, $format = 'Y-m-d H:i:s')
+	{
+		if (strlen($date) < 0) {
+			$date = date('d-m-Y H:i:s');
+		}
+		$timeStamp = new \DateTime($date);
+		return $timeStamp->format($format);
+	}
 }

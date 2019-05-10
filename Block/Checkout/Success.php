@@ -76,9 +76,8 @@ class Success extends \Magento\Framework\View\Element\Template
                     'boleto_pdf_url' => $this->getBoletoPdfUrl()
                 ]
             );
-            return parent::_toHtml();
         }
-        return '';
+        return parent::_toHtml();
     }
 
     /**
@@ -104,6 +103,42 @@ class Success extends \Magento\Framework\View\Element\Template
         }
         return null;
     }
+
+    /**
+     * Get Banktransfer additional data
+     *
+     * @return array|string[]
+     */
+    public function getBankTransferData()
+    {
+        $result = [];
+        if (!empty($this->getOrder()->getPayment()) &&
+            !empty($this->getOrder()->getPayment()->getAdditionalInformation('bankTransfer.owner'))
+        ) {
+            $result = $this->getOrder()->getPayment()->getAdditionalInformation();
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get multibanco additional data
+     *
+     * @return array|string[]
+     */
+    public function getMultibancoData()
+    {
+        $result = [];
+        if (!empty($this->getOrder()->getPayment()) &&
+            !empty($this->getOrder()->getPayment()->getAdditionalInformation('comprafacil.entity'))
+        ) {
+            $result = $this->getOrder()->getPayment()->getAdditionalInformation();
+        }
+
+        return $result;
+    }
+
+
 
     /**
      * @return \Magento\Sales\Model\Order

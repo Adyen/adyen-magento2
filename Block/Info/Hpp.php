@@ -31,13 +31,48 @@ class Hpp extends AbstractInfo
     protected $_template = 'Adyen_Payment::info/adyen_hpp.phtml';
 
     /**
-     * Check if Payment method selection is configured on Adyen or Magento
+     * Get all Banktransfer related data
      *
-     * @return mixed
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function isPaymentSelectionOnAdyen()
+    public function getBankTransferData()
     {
-        return $this->_adyenHelper->getAdyenHppConfigDataFlag('payment_selection_on_adyen');
+        $result = [];
+        if (!empty($this->getInfo()->getOrder()->getPayment()) &&
+            !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('bankTransfer.owner'))
+        ) {
+            $result = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation();
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get all multibanco related data
+     *
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getMultibancoData()
+    {
+        $result = [];
+        if (!empty($this->getInfo()->getOrder()->getPayment()) &&
+            !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('comprafacil.entity'))
+        ) {
+            $result = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation();
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getOrder()
+    {
+        return $this->getInfo()->getOrder();
     }
 
     /**
