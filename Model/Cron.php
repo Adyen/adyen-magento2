@@ -867,13 +867,7 @@ class Cron
                 break;
             case Notification::HANDLED_EXTERNALLY:
             case Notification::AUTHORISATION:
-            if ($this->_paymentMethod == 'alipay_hk_web'
-                && $this->_order->getStatus() == $this->_adyenHelper->getAdyenAbstractConfigData('payment_cancelled')) {
                 $this->_authorizePayment();
-                $this->_refundOrder();
-            } else {
-            $this->_authorizePayment();
-            }
                 break;
             case Notification::MANUAL_REVIEW_REJECT:
                 // don't do anything it will send a CANCEL_OR_REFUND notification when this payment is captured
