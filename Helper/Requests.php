@@ -399,8 +399,10 @@ class Requests extends AbstractHelper
         }
 
         // if installments is set add it into the request
-        if (($numberOfInstallment = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS]) > 0) {
-            $request['installments']['value'] = $numberOfInstallment;
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS])) {
+            if (($numberOfInstallment = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS]) > 0) {
+                $request['installments']['value'] = $numberOfInstallment;
+            }
         }
 
         return $request;
