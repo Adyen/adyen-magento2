@@ -353,7 +353,7 @@ class Result extends \Magento\Framework\App\Action\Action
             if (!is_null($incrementId)) {
                 $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
             } else {
-                $this->_order  = $this->_session->getLastRealOrder();
+                $this->_order = $this->_session->getLastRealOrder();
             }
         }
 
