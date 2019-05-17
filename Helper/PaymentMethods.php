@@ -198,7 +198,7 @@ class PaymentMethods extends AbstractHelper
                 ),
             ],
             "shopperReference" => $this->getCurrentShopperReference(),
-            "shopperLocale" => $this->adyenHelper->getCurrentLocaleCode($store)
+            "shopperLocale" => $this->adyenHelper->getCurrentLocaleCode($store->getId())
         ];
 
         $billingAddress = $this->getQuote()->getBillingAddress();

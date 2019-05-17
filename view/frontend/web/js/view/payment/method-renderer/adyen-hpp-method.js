@@ -415,6 +415,11 @@ define(
                      */
                     result.renderKlarnaComponent = function () {
 
+                        /* The new Klarna integration doesn't return details and the component does not handle it */
+                        if (!value.details) {
+                            return;
+                        }
+
                         var klarnaNode = document.getElementById('klarnaContainer');
 
                         var klarna = self.checkoutComponent.create('klarna', {

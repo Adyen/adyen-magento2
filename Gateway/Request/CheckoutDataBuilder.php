@@ -225,6 +225,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($priceExcludingTax, $currency);
 
             $formattedTaxAmount = $this->adyenHelper->formatAmount($item->getTaxAmount(), $currency);
+            $formattedTaxPercentage = $item->getTaxPercent() * 100;
 
             $formFields['lineItems'][] = [
                 'amountExcludingTax' => $formattedPriceExcludingTax,
@@ -233,7 +234,7 @@ class CheckoutDataBuilder implements BuilderInterface
                 'id' => $item->getId(),
                 'quantity' => $item->getQty(),
                 'taxCategory' => $item->getProduct()->getAttributeText('tax_class_id'),
-                'taxPercentage' => $item->getTaxPercent()
+                'taxPercentage' => $formattedTaxPercentage
             ];
         }
 
@@ -267,12 +268,18 @@ class CheckoutDataBuilder implements BuilderInterface
 
             $taxClassId = $this->taxConfig->getShippingTaxClass($this->storeManager->getStore()->getId());
 
+            $formattedTaxPercentage = 0;
+
+            if ($priceExcludingTax !== 0) {
+                $formattedTaxPercentage = $this->quote->getShippingAddress()->getShippingTaxAmount() / $priceExcludingTax * 100 * 100;
+            }
+            
             $formFields['lineItems'][] = [
                 'amountExcludingTax' => $formattedPriceExcludingTax,
                 'taxAmount' => $formattedTaxAmount,
                 'description' => $order->getShippingDescription(),
                 'quantity' => 1,
-                'taxPercentage' => $this->quote->getShippingAddress()->getShippingTaxAmount()
+                'taxPercentage' => $formattedTaxPercentage
             ];
         }
 
