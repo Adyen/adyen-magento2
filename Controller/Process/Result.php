@@ -173,36 +173,35 @@ class Result extends \Magento\Framework\App\Action\Action
 			$response = $this->validatePayloadAndReturnResponse($response);
 		}
 
-        $incrementId = $response['merchantReference'];
+        $incrementId = null;
 
-        if ($incrementId) {
-            $order = $this->_getOrder($incrementId);
-            if ($order->getId()) {
-                $this->_eventManager->dispatch('adyen_payment_process_resulturl_before', [
-                    'order' => $order,
-                    'adyen_response' => $response
-                ]);
-                if (isset($response['handled'])) {
-                    return $response['handled_response'];
-                }
+        if (!empty($response['merchantReference'])) {
+            $incrementId = $response['merchantReference'];
+        }
 
-                // update the order
-                $result = $this->_validateUpdateOrder($order, $response);
-
-                $this->_eventManager->dispatch('adyen_payment_process_resulturl_after', [
-                    'order' => $order,
-                    'adyen_response' => $response
-                ]);
-            } else {
-                throw new \Magento\Framework\Exception\LocalizedException(
-                    __('Order does not exists with increment_id: %1', $incrementId)
-                );
+        $order = $this->_getOrder($incrementId);
+        if ($order->getId()) {
+            $this->_eventManager->dispatch('adyen_payment_process_resulturl_before', [
+                'order' => $order,
+                'adyen_response' => $response
+            ]);
+            if (isset($response['handled'])) {
+                return $response['handled_response'];
             }
+
+            // update the order
+            $result = $this->_validateUpdateOrder($order, $response);
+
+            $this->_eventManager->dispatch('adyen_payment_process_resulturl_after', [
+                'order' => $order,
+                'adyen_response' => $response
+            ]);
         } else {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __('Empty merchantReference')
+                __('Order does not exists with increment_id: %1', $incrementId)
             );
         }
+
         return $result;
     }
 
@@ -245,6 +244,9 @@ class Result extends \Magento\Framework\App\Action\Action
                 break;
 			case Notification::RECEIVED:
 				$result = true;
+                if (strpos($paymentMethod, "alipay_hk_web") !== false) {
+                    $result = false;
+                }
 				$this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
 				break;
             case Notification::PENDING:
@@ -348,11 +350,16 @@ class Result extends \Magento\Framework\App\Action\Action
      * @param $incrementId
      * @return \Magento\Sales\Model\Order
      */
-    protected function _getOrder($incrementId)
+    protected function _getOrder($incrementId = null)
     {
         if (!$this->_order) {
-            $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
+            if (!is_null($incrementId)) {
+                $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
+            } else {
+                $this->_order = $this->_session->getLastRealOrder();
+            }
         }
+
         return $this->_order;
     }
 
@@ -368,11 +375,13 @@ class Result extends \Magento\Framework\App\Action\Action
 		$client = $this->_adyenHelper->initializeAdyenClient($this->storeManager->getStore()->getId());
 		$service = $this->_adyenHelper->createAdyenCheckoutService($client);
 
-		$request = array(
-			"details" => array(
-				"payload" => $response["payload"]
-			)
-		);
+        $request = [];
+
+		if (!empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("paymentData"))) {
+            $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("paymentData");
+        }
+
+		$request["details"] = $response;
 
 		try {
 			$response = $service->paymentsDetails($request);

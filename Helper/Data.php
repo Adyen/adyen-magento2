@@ -119,6 +119,16 @@ class Data extends AbstractHelper
     private $agreementResourceModel;
 
     /**
+     * @var \Magento\Framework\Locale\ResolverInterface
+     */
+    private $localeResolver;
+
+    /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
+    private $config;
+
+    /**
      * Data constructor.
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
@@ -155,7 +165,9 @@ class Data extends AbstractHelper
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\App\CacheInterface $cache,
         \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory,
-        \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel
+        \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel,
+        \Magento\Framework\Locale\ResolverInterface $localeResolver,
+        \Magento\Framework\App\Config\ScopeConfigInterface $config
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -174,6 +186,8 @@ class Data extends AbstractHelper
         $this->cache = $cache;
         $this->billingAgreementFactory = $billingAgreementFactory;
         $this->agreementResourceModel = $agreementResourceModel;
+        $this->localeResolver = $localeResolver;
+        $this->config = $config;
     }
 
     /**
@@ -1701,4 +1715,30 @@ class Data extends AbstractHelper
 		$timeStamp = new \DateTime($date);
 		return $timeStamp->format($format);
 	}
+
+    /**
+     * @param int $storeId
+     * @return mixed|string
+     */
+    public function getCurrentLocaleCode($storeId)
+    {
+        $localeCode = $this->getAdyenAbstractConfigData('shopper_locale', $storeId);
+        if ($localeCode != "") {
+            return $localeCode;
+        }
+
+        $locale = $this->localeResolver->getLocale();
+        if ($locale) {
+            return $locale;
+        }
+
+        // should have the value if not fall back to default
+        $localeCode = $this->config->getValue(
+            \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
+            $store->getCode()
+        );
+
+        return $localeCode;
+    }
 }

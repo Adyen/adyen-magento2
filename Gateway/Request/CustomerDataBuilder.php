@@ -111,6 +111,11 @@ class CustomerDataBuilder implements BuilderInterface
 			if ($countryId = $billingAddress->getCountryId()) {
 				$result['countryCode'] = $countryId;
 			}
+
+			if ($shopperLocale = $this->adyenHelper->getCurrentLocaleCode($order->getStoreId())) {
+                $result['shopperLocale'] = $shopperLocale;
+            }
+
 		}
 
         return $result;
