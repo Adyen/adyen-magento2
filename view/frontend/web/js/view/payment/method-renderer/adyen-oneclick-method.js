@@ -304,7 +304,8 @@ define(
                                     'screen_color_depth': browserInfo.colorDepth,
                                     'screen_width': browserInfo.screenWidth,
                                     'screen_height': browserInfo.screenHeight,
-                                    'timezone_offset': browserInfo.timeZoneOffset
+                                    'timezone_offset': browserInfo.timeZoneOffset,
+                                    'language': browserInfo.language
                                 }
                             };
                             return data;

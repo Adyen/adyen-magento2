@@ -1123,32 +1123,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param $store
-     * @return mixed|string
-     */
-    public function getCurrentLocaleCode($store)
-    {
-        $localeCode = $this->getAdyenAbstractConfigData('shopper_locale', $store->getId());
-        if ($localeCode != "") {
-            return $this->formatLocaleCode($localeCode);
-        }
-
-        $localeCode = $this->localeResolver->getLocale();
-        if ($localeCode) {
-            return $this->formatLocaleCode($localeCode);
-        }
-
-        // should have the value if not fall back to default
-        $localeCode = $this->scopeConfig->getValue(
-            \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
-            $store->getCode()
-        );
-
-        return $this->formatLocaleCode($localeCode);
-    }
-
-    /**
      * Format Magento locale codes with undersocre to ISO locale codes with dash
      * @param $localeCode
      */
@@ -1792,24 +1766,20 @@ class Data extends AbstractHelper
      */
     public function buildThreeDS2ProcessResponseJson($type = null, $token = null)
     {
-        $response = json_encode(
-            [
-                'threeDS2' => false
-            ]
-        );
+        $response = ['threeDS2' => false];
 
         if ($type && $token) {
-            $response = json_encode(
-                [
-                    "threeDS2" => true,
-                    "type" => $type,
-                    "token" => $token
-                ]
-            );
+            $response = [
+                "threeDS2" => true,
+                "type" => $type,
+                "token" => $token
+            ];
         }
 
-        return $response;
+        return json_encode($response);
+    }
 
+    /**
      * @param int $storeId
      * @return mixed|string
      */

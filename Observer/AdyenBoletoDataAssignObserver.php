@@ -51,6 +51,11 @@ class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
      */
     private $adyenHelper;
 
+    /**
+     * AdyenBoletoDataAssignObserver constructor.
+     *
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper
     ) {

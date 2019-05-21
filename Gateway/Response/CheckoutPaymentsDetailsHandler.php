@@ -50,7 +50,6 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
     {
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
-        /** @var  $payment */
         $payment = $paymentDataObject->getPayment();
 
         // set transaction not to processing by default wait for notification

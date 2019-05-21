@@ -38,6 +38,11 @@ class Requests extends AbstractHelper
      */
     private $adyenHelper;
 
+    /**
+     * Requests constructor.
+     *
+     * @param Data $adyenHelper
+     */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper
     ) {
@@ -67,7 +72,7 @@ class Requests extends AbstractHelper
      * @param $billingAddress
      * @return mixed
      */
-    public function buildCustomerData($request = [], $customerId = 0, $billingAddress, $payment = null)
+    public function buildCustomerData($request = [], $customerId = 0, $billingAddress, $storeId, $payment = null)
     {
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
@@ -119,6 +124,8 @@ class Requests extends AbstractHelper
             if ($countryId = $billingAddress->getCountryId()) {
                 $request['countryCode'] = $countryId;
             }
+
+            $request['shopperLocale'] = $this->adyenHelper->getCurrentLocaleCode($storeId);
         }
 
         return $request;
@@ -290,7 +297,7 @@ class Requests extends AbstractHelper
         $request['browserInfo']['screenHeight'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::SCREEN_HEIGHT];
         $request['browserInfo']['colorDepth'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH];
         $request['browserInfo']['timeZoneOffset'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::TIMEZONE_OFFSET];
-        $request['browserInfo']['language'] = $this->adyenHelper->getCurrentLocaleCode($store);
+        $request['browserInfo']['language'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::LANGUAGE];
 
         if ($javaEnabled = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::JAVA_ENABLED]) {
             $request['browserInfo']['javaEnabled'] = $javaEnabled;

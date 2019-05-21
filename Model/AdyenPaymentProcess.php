@@ -68,10 +68,16 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
     private $threeDS2ResponseValidator;
 
     /**
-     * AdyenThreeDS2Process constructor.
+     * AdyenPaymentProcess constructor.
      *
+     * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Helper\Requests $adyenRequestHelper
+     * @param \Adyen\Payment\Gateway\Http\TransferFactory $transferFactory
+     * @param \Adyen\Payment\Gateway\Http\Client\TransactionPayment $transactionPayment
+     * @param \Adyen\Payment\Gateway\Validator\CheckoutResponseValidator $checkoutResponseValidator
+     * @param \Adyen\Payment\Gateway\Validator\ThreeDS2ResponseValidator $threeDS2ResponseValidator
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -105,6 +111,11 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         // Decode payload from frontend
         $payload = json_decode($payload, true);
 
+        // Validate JSON that has just been parsed if it was in a valid format
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Magento\Framework\Exception\LocalizedException(__('Error with payment method please select different payment method.'));
+        }
+
         // Get payment and cart information from session
         $quote = $this->checkoutSession->getQuote();
         $payment = $quote->getPayment();
@@ -120,7 +131,7 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         // Customer data builder
         $customerId = $quote->getCustomerId();
         $billingAddress = $quote->getBillingAddress();
-        $request = $this->adyenRequestHelper->buildCustomerData($request, $customerId, $billingAddress);
+        $request = $this->adyenRequestHelper->buildCustomerData($request, $customerId, $billingAddress, $storeId);
 
         // Customer Ip data builder
         $shopperIp = $quote->getRemoteIp();

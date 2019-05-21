@@ -87,6 +87,7 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->_orderHistoryFactory = $orderHistoryFactory;
         $this->_session = $session;
         $this->_adyenLogger = $adyenLogger;
+        $this->storeManager = $storeManager;
         parent::__construct($context);
     }
 

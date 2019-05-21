@@ -57,10 +57,11 @@ class CustomerDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getOrder();
-		    $payment = $paymentDataObject->getPayment();
+        $payment = $paymentDataObject->getPayment();
         $customerId = $order->getCustomerId();
-		    $billingAddress = $order->getBillingAddress();
+        $billingAddress = $order->getBillingAddress();
+        $storeId = $order->getStoreId();
 
-        return $this->adyenRequestsHelper->buildCustomerData([], $customerId, $billingAddress, $payment);
+        return $this->adyenRequestsHelper->buildCustomerData([], $customerId, $billingAddress, $storeId, $payment);
     }
 }

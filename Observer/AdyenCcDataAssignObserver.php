@@ -45,6 +45,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     const SCREEN_WIDTH = 'screen_width';
     const SCREEN_HEIGHT = 'screen_height';
     const TIMEZONE_OFFSET = 'timezone_offset';
+    const LANGUAGE = 'language';
 
     /**
      * @var array
@@ -63,7 +64,8 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         self::SCREEN_COLOR_DEPTH,
         self::SCREEN_WIDTH,
         self::SCREEN_HEIGHT,
-        self::TIMEZONE_OFFSET
+        self::TIMEZONE_OFFSET,
+        self::LANGUAGE
     ];
 
     /**
