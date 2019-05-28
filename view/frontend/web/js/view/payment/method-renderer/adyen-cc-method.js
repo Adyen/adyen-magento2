@@ -37,10 +37,9 @@ define(
         'Magento_Paypal/js/action/set-payment-method',
         'Magento_Checkout/js/action/select-payment-method',
         'Adyen_Payment/js/threeds2-js-utils',
-        'Adyen_Payment/js/model/threeds2',
-        'mage/translate'
+        'Adyen_Payment/js/model/threeds2'
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2, $t) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2) {
 
         'use strict';
 
@@ -220,15 +219,12 @@ define(
                                 threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON)
                                 }).error(function () {
+                                    self.isPlaceOrderActionAllowed(true);
                                     fullScreenLoader.stopLoader();
                                 });
                             },
-                            onError: function () {
-                                self.isPlaceOrderActionAllowed(true);
-                                fullScreenLoader.stopLoader();
-                                this.messageContainer.addErrorMessage({
-                                    message: $t('Something went wrong. Please try again.')
-                                });
+                            onError: function (error) {
+                                console.log(JSON.stringify(error));
                             }
                         });
 
@@ -259,16 +255,12 @@ define(
                                     self.validateThreeDS2OrPlaceOrder(responseJSON);
                                 }).error(function () {
                                     popupModal.modal("closeModal");
+                                    self.isPlaceOrderActionAllowed(true);
                                     fullScreenLoader.stopLoader();
                                 });
-
                             },
-                            onError: function () {
-                                fullScreenLoader.stopLoader();
-                                self.isPlaceOrderActionAllowed(true);
-                                this.messageContainer.addErrorMessage({
-                                    message: $t('Something went wrong. Please try again.')
-                                });
+                            onError: function (error) {
+                                cconsole.log(JSON.stringify(error));
                             }
                         });
                     self.threeDS2ChallengeComponent.mount(threeDS2Node);

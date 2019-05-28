@@ -39,10 +39,9 @@ define(
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
         'Magento_Checkout/js/action/place-order',
-        'Adyen_Payment/js/model/threeds2',
-        'mage/translate'
+        'Adyen_Payment/js/model/threeds2'
     ],
-    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, url, threeDS2Utils, fullScreenLoader, setPaymentMethodAction, urlBuilder, storage, placeOrderAction, threeds2, $t) {
+    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, url, threeDS2Utils, fullScreenLoader, setPaymentMethodAction, urlBuilder, storage, placeOrderAction, threeds2) {
 
         'use strict';
 
@@ -304,8 +303,7 @@ define(
                                     'screen_color_depth': browserInfo.colorDepth,
                                     'screen_width': browserInfo.screenWidth,
                                     'screen_height': browserInfo.screenHeight,
-                                    'timezone_offset': browserInfo.timeZoneOffset,
-                                    'language': browserInfo.language
+                                    'timezone_offset': browserInfo.timeZoneOffset
                                 }
                             };
                             return data;
@@ -358,15 +356,12 @@ define(
                                         threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                             self.validateThreeDS2OrPlaceOrder(responseJSON)
                                         }).error(function () {
+                                            self.isPlaceOrderActionAllowed(true);
                                             fullScreenLoader.stopLoader();
                                         });
                                     },
-                                    onError: function () {
-                                        fullScreenLoader.stopLoader();
-                                        self.isPlaceOrderActionAllowed(true);
-                                        self.getMessageContainer().addErrorMessage({
-                                            message: $t('Something went wrong. Please try again.')
-                                        });
+                                    onError: function (error) {
+                                        console.log(JSON.stringify(error));
                                     }
                                 });
                             } else if (type == "ChallengeShopper") {
@@ -392,15 +387,12 @@ define(
                                             threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                                 self.validateThreeDS2OrPlaceOrder(responseJSON)
                                             }).error(function () {
+                                                self.isPlaceOrderActionAllowed(true);
                                                 fullScreenLoader.stopLoader();
                                             });
                                         },
-                                        onError: function () {
-                                            fullScreenLoader.stopLoader();
-                                            self.isPlaceOrderActionAllowed(true);
-                                            self.getMessageContainer().addErrorMessage({
-                                                message: $t('Something went wrong. Please try again.')
-                                            });
+                                        onError: function (error) {
+                                            console.log(JSON.stringify(error));
                                         }
                                     });
                             }
