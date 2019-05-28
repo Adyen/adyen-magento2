@@ -219,15 +219,15 @@ class CheckoutDataBuilder implements BuilderInterface
 
         foreach ($this->quote->getAllVisibleItems() as $item) {
 
-            $numberOfItems = (int)$item->getQtyOrdered();
+            $numberOfItems = (int)$item->getQty();
 
             // Summarize the discount amount item by item
             $discountAmount += $item->getDiscountAmount();
 
-            $priceExcludingTax = $item->getPriceInclTax() - $item->getTaxAmount();
-            $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($priceExcludingTax, $currency);
+            $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($item->getPrice(), $currency);
 
-            $formattedTaxAmount = $this->adyenHelper->formatAmount($item->getTaxAmount(), $currency);
+            $taxAmount = $item->getPrice() * ($item->getTaxPercent() / 100);
+            $formattedTaxAmount = $this->adyenHelper->formatAmount($taxAmount, $currency);
             $formattedTaxPercentage = $item->getTaxPercent() * 100;
 
             $formFields['lineItems'][] = [
@@ -236,7 +236,7 @@ class CheckoutDataBuilder implements BuilderInterface
                 'amountExcludingTax' => $formattedPriceExcludingTax,
                 'taxAmount' => $formattedTaxAmount,
                 'description' => $item->getName(),
-                'quantity' => $item->getQty(),
+                'quantity' => $numberOfItems,
                 'taxCategory' => $item->getProduct()->getAttributeText('tax_class_id'),
                 'taxPercentage' => $formattedTaxPercentage
             ];
