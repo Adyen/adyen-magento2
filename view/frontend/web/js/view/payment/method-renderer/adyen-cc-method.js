@@ -260,7 +260,7 @@ define(
                                 });
                             },
                             onError: function (error) {
-                                cconsole.log(JSON.stringify(error));
+                                console.log(JSON.stringify(error));
                             }
                         });
                     self.threeDS2ChallengeComponent.mount(threeDS2Node);
