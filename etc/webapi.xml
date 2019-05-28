@@ -57,4 +57,18 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+
+    <route url="/V1/adyen/payment" method="POST">
+        <service class="Adyen\Payment\Api\AdyenPaymentProcessInterface" method="initiate"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/adyen/threeDS2Process" method="POST">
+        <service class="Adyen\Payment\Api\AdyenThreeDS2ProcessInterface" method="initiate"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>

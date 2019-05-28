@@ -30,17 +30,28 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 class BrowserInfoDataBuilder implements BuilderInterface
 {
     /**
+     * @var \Adyen\Payment\Helper\Requests
+     */
+    private $adyenRequestsHelper;
+
+    /**
+     * BrowserInfoDataBuilder constructor.
+     *
+     * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+     */
+    public function __construct(
+        \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+    )
+    {
+        $this->adyenRequestsHelper = $adyenRequestsHelper;
+    }
+
+    /**
      * @param array $buildSubject
      * @return array
      */
     public function build(array $buildSubject)
     {
-        return [
-            'browserInfo' =>
-                [
-                    'userAgent' => $_SERVER['HTTP_USER_AGENT'],
-                    'acceptHeader' => $_SERVER['HTTP_ACCEPT']
-                ]
-        ];
+        return $this->adyenRequestsHelper->buildBrowserData();
     }
 }

@@ -82,6 +82,9 @@ class CheckoutResponseValidator extends AbstractValidator
 
                     $payment->setAdditionalInformation('pspReference', $response['pspReference']);
                     break;
+                case "Received":
+                    $payment->setAdditionalInformation('pspReference', $response['pspReference']);
+                    break;
                 case "PresentToShopper":
                     $payment->setAdditionalInformation('pspReference', $response['pspReference']);
                     // set additionalData

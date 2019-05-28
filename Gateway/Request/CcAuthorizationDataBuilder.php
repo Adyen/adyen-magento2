@@ -24,91 +24,30 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 
 class CcAuthorizationDataBuilder implements BuilderInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    private $adyenHelper;
-
-    /**
-     * @var \Magento\Framework\App\State
-     */
-    private $appState;
-
-    /**
-     * CcAuthorizationDataBuilder constructor.
-     *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Framework\Model\Context $context
-     */
-    public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\Model\Context $context
-    ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->appState = $context->getAppState();
-    }
-
-    /**
      * @param array $buildSubject
-     * @return mixed
+     * @return array|mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function build(array $buildSubject)
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        $order = $paymentDataObject->getOrder();
-        $storeId = $order->getStoreId();
-        $request = [];
 
-        // If ccType is set use this. For bcmc you need bcmc otherwise it will fail
-        $request['paymentMethod']['type'] = "scheme";
-
-        if ($cardNumber = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER)) {
-            $request['paymentMethod']['encryptedCardNumber'] = $cardNumber;
-        }
-
-        if ($expiryMonth = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH)) {
-            $request['paymentMethod']['encryptedExpiryMonth'] = $expiryMonth;
-        }
-
-        if ($expiryYear = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR)) {
-            $request['paymentMethod']['encryptedExpiryYear'] = $expiryYear;
-        }
-
-        if ($holderName = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME)) {
-            $request['paymentMethod']['holderName'] = $holderName;
-        }
-
-        if ($securityCode = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE)) {
-            $request['paymentMethod']['encryptedSecurityCode'] = $securityCode;
-        }
-
-        // Remove from additional data
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE);
-        $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME);
-
-        /**
-         * if MOTO for backend is enabled use MOTO as shopper interaction type
-         */
-        $enableMoto = $this->adyenHelper->getAdyenCcConfigDataFlag('enable_moto', $storeId);
-        if ($this->appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE &&
-            $enableMoto
-        ) {
-            $request['shopperInteraction'] = "Moto";
-        }
-        // if installments is set add it into the request
-        if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) &&
-            $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) > 0
-        ) {
-            $request['installments']['value'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS);
+        // retrieve payments response which we already got and saved in the payment controller
+        if ($response = $payment->getAdditionalInformation("paymentsResponse")) {
+            // the payments response needs to be passed to the next process because after this point we don't have
+            // access to the payment object therefore to the additionalInformation array
+            $request = $response;
+            // Remove from additional data
+            $payment->unsAdditionalInformation("paymentsResponse");
+        } else {
+            $errorMsg = __('Error with payment method please select different payment method.');
+            throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
         }
 
         return $request;

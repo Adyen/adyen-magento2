@@ -30,6 +30,21 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 class CustomerIpDataBuilder implements BuilderInterface
 {
     /**
+     * @var \Adyen\Payment\Helper\Requests
+     */
+    private $adyenRequestsHelper;
+
+    /**
+     * CustomerIpDataBuilder constructor.
+     *
+     * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+     */
+    public function __construct(\Adyen\Payment\Helper\Requests $adyenRequestsHelper)
+    {
+        $this->adyenRequestsHelper = $adyenRequestsHelper;
+    }
+
+    /**
      * @param array $buildSubject
      * @return array
      */
@@ -38,6 +53,7 @@ class CustomerIpDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getOrder();
-        return ['shopperIP' => $order->getRemoteIp()];
+
+        return $this->adyenRequestsHelper->buildCustomerIpData([], $order->getRemoteIp());
     }
 }

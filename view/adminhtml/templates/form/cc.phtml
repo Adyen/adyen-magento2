@@ -104,7 +104,10 @@ echo $code; ?>" style="display:none">
                     var cardNode = document.getElementById("cardContainer-<?php /* @noEscape */ echo $code; ?>");
 
                     var checkout = new AdyenCheckout({
-                        locale: "<?php echo $block->getLocale(); ?>"
+                        locale: "<?php echo $block->getLocale(); ?>",
+                        risk: {
+                            enabled: false
+                        }
                     });
                     var hideCVC = "<?php echo !$block->hasVerification(); ?>";
 
