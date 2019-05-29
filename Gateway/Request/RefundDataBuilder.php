@@ -177,7 +177,10 @@ class RefundDataBuilder implements BuilderInterface
         return $result;
     }
 
-
+    /**
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @return array|mixed
+     */
     protected function getOpenInvoiceData($payment)
     {
         $formFields = [];
@@ -185,11 +188,11 @@ class RefundDataBuilder implements BuilderInterface
         $currency = $payment->getOrder()->getOrderCurrencyCode();
 
         /**
-         * Magento\Sales\Model\Order\Creditmemo
+         * @var \Magento\Sales\Model\Order\Creditmemo $creditMemo
          */
         $creditMemo = $payment->getCreditMemo();
 
-        foreach ($creditMemo->getAllItems() as $refundItem) {
+        foreach ($creditMemo->getItems() as $refundItem) {
             ++$count;
             $numberOfItems = (int)$refundItem->getQty();
 
@@ -201,7 +204,7 @@ class RefundDataBuilder implements BuilderInterface
                 $currency,
                 $refundItem->getTaxAmount(),
                 $refundItem->getPriceInclTax(),
-                $refundItem->getTaxPercent(),
+                $refundItem->getOrderItem()->getTaxPercent(),
                 $numberOfItems,
                 $payment,
                 $refundItem->getId()

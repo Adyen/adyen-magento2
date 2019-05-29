@@ -35,6 +35,12 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
 	const ENCRYPTED_SECURITY_CODE = 'cvc';
     const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
     const VARIANT = 'variant';
+    const JAVA_ENABLED = 'java_enabled';
+    const SCREEN_COLOR_DEPTH = 'screen_color_depth';
+    const SCREEN_WIDTH = 'screen_width';
+    const SCREEN_HEIGHT = 'screen_height';
+    const TIMEZONE_OFFSET = 'timezone_offset';
+    const LANGUAGE = 'language';
 
     /**
      * @var array
@@ -43,7 +49,13 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
         self::RECURRING_DETAIL_REFERENCE,
 		self::ENCRYPTED_SECURITY_CODE,
         self::NUMBER_OF_INSTALLMENTS,
-        self::VARIANT
+        self::VARIANT,
+        self::JAVA_ENABLED,
+        self::SCREEN_COLOR_DEPTH,
+        self::SCREEN_WIDTH,
+        self::SCREEN_HEIGHT,
+        self::TIMEZONE_OFFSET,
+        self::LANGUAGE
     ];
 
     /**

@@ -113,29 +113,6 @@ class Redirect extends \Magento\Payment\Block\Form
     }
 
 	/**
-	 * Returns if the payment should follow the old HPP or the new Checkout flow
-	 *  - hpp will submit a form with all the additional information that the API requests\
-	 *  - checkout will redirect to a url without form submission
-	 *
-	 * @return bool
-	 * @throws \Exception
-	 */
-    public function isCheckoutAPM() {
-		try {
-			if ($paymentObject = $this->_order->getPayment()) {
-				if ($paymentObject->getAdditionalInformation('CheckoutAPM')) {
-					return true;
-				}
-			}
-		} catch (Exception $e) {
-			// do nothing for now
-			throw($e);
-		}
-
-		return false;
-	}
-
-	/**
 	 * @return mixed|string[]
 	 * @throws AdyenException
 	 */

@@ -35,8 +35,8 @@ class Data extends AbstractHelper
     const LIVE = 'live';
     const CHECKOUT_CONTEXT_URL_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/';
     const CHECKOUT_CONTEXT_URL_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/';
-    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.1.0/adyen.js';
-    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.1.0/adyen.js';
+    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.5.0/adyen.js';
+    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.5.0/adyen.js';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -371,7 +371,7 @@ class Data extends AbstractHelper
 	 */
 	public function getStreetFromString($streetLine)
 	{
-		$street = self::formatStreet(array($streetLine));
+		$street = self::formatStreet([$streetLine]);
 		$streetName = $street['0'];
 		unset($street['0']);
 		$streetNr = implode(' ', $street);
@@ -449,15 +449,27 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Gives back adyen_cc configuration values as flag
+     * Gives back adyen_cc_vault configuration values as flag
      *
      * @param $field
-     * @param null $storeId
+     * @param int|null $storeId
      * @return mixed
      */
     public function getAdyenCcVaultConfigDataFlag($field, $storeId = null)
     {
         return $this->getConfigData($field, 'adyen_cc_vault', $storeId, true);
+    }
+
+    /**
+     * Gives back adyen_cc_threeds2 configuration values as flag
+     *
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenCcThreeDS2ConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_cc_threeds2', $storeId, true);
     }
 
     /**
@@ -1110,6 +1122,15 @@ class Data extends AbstractHelper
         return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
     }
 
+    /**
+     * Format Magento locale codes with undersocre to ISO locale codes with dash
+     * @param $localeCode
+     */
+    public function formatLocaleCode($localeCode)
+    {
+        return str_replace("_", "-", $localeCode);
+    }
+
     public function getApplePayShippingTypes()
     {
         return [
@@ -1348,11 +1369,15 @@ class Data extends AbstractHelper
      * return the merchant account name defined in required settings.
      *
      * @param $paymentMethod
-     * @param int $storeId
+     * @param int|null $storeId
      * @return string
      */
-    public function getAdyenMerchantAccount($paymentMethod, $storeId)
+    public function getAdyenMerchantAccount($paymentMethod, $storeId = null)
     {
+        if (!$storeId) {
+            $storeId = $this->storeManager->getStore()->getId();
+        }
+
         $merchantAccount = $this->getAdyenAbstractConfigData("merchant_account", $storeId);
         $merchantAccountPos = $this->getAdyenPosCloudConfigData('pos_merchant_account', $storeId);
 
@@ -1453,6 +1478,16 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @return string
+     */
+    public function getOrigin() {
+        $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
+        $parsed = parse_url($baseUrl);
+        $origin = $parsed['scheme'] . "://" . $parsed['host'];
+        return $origin;
+    }
+
+    /**
      * Retrieve origin keys for platform's base url
      *
      * @return string
@@ -1460,15 +1495,13 @@ class Data extends AbstractHelper
      */
     public function getOriginKeyForBaseUrl()
     {
-        $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
-        $parsed = parse_url($baseUrl);
-        $domain = $parsed['scheme'] . "://" . $parsed['host'];
+        $origin = $this->getOrigin();
         $storeId = $this->storeManager->getStore()->getId();
-        $cacheKey = 'Adyen_origin_key_for_' . $domain . '_' . $storeId;
+        $cacheKey = 'Adyen_origin_key_for_' . $origin . '_' . $storeId;
 
         if (!$originKey = $this->cache->load($cacheKey)) {
-            if ($originKey = $this->getOriginKeyForUrl($domain, $storeId)) {
-                $this->cache->save($originKey, $cacheKey, array(), 60 * 60 * 24);
+            if ($originKey = $this->getOriginKeyForOrigin($origin, $storeId)) {
+                $this->cache->save($originKey, $cacheKey, [], 60 * 60 * 24);
             }
         }
 
@@ -1476,20 +1509,20 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Get origin key for a specific url using the adyen api library client
+     * Get origin key for a specific origin using the adyen api library client
      *
-     * @param $url
+     * @param $origin
      * @param int|null $storeId
      * @return string
      * @throws \Adyen\AdyenException
      */
-    private function getOriginKeyForUrl($url, $storeId = null)
+    private function getOriginKeyForOrigin($origin, $storeId = null)
     {
-        $params = array(
-            "originDomains" => array(
-                $url
-            )
-        );
+        $params = [
+            "originDomains" => [
+                $origin
+            ]
+        ];
 
         $client = $this->initializeAdyenClient($storeId);
 
@@ -1502,8 +1535,8 @@ class Data extends AbstractHelper
 
         $originKey = "";
 
-        if (!empty($response['originKeys'][$url])) {
-            $originKey = $response['originKeys'][$url];
+        if (!empty($response['originKeys'][$origin])) {
+            $originKey = $response['originKeys'][$origin];
         }
 
         return $originKey;
@@ -1580,7 +1613,8 @@ class Data extends AbstractHelper
 
                 // Populate billing agreement data
                 $storeOneClick = $order->getPayment()->getAdditionalInformation('store_cc');
-                $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick);
+
+                $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick, $order->getStoreId());
                 if ($billingAgreement->isValid()) {
 
                     if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),
@@ -1658,7 +1692,6 @@ class Data extends AbstractHelper
         return $icon;
     }
 
-
     /**
      * Check if CreditCard vault is enabled
      *
@@ -1681,6 +1714,16 @@ class Data extends AbstractHelper
         $countryList = ["nl", "de", "se", "no", "at", "fi", "dk"];
 
         return in_array(strtolower($country), $countryList);
+    }
+    /**
+     * Check if 3DS2.0 is enabled for credit cards
+     *
+     * @param int|null $storeId
+     * @return mixed
+     */
+    public function isCreditCardThreeDS2Enabled($storeId = null)
+    {
+        return $this->getAdyenCcThreeDS2ConfigDataFlag('active', $storeId);
     }
 
 	/**
@@ -1715,6 +1758,26 @@ class Data extends AbstractHelper
 		$timeStamp = new \DateTime($date);
 		return $timeStamp->format($format);
 	}
+
+    /**
+     * @param string|null $type
+     * @param string|null $token
+     * @return string
+     */
+    public function buildThreeDS2ProcessResponseJson($type = null, $token = null)
+    {
+        $response = ['threeDS2' => false];
+
+        if ($type && $token) {
+            $response = [
+                "threeDS2" => true,
+                "type" => $type,
+                "token" => $token
+            ];
+        }
+
+        return json_encode($response);
+    }
 
     /**
      * @param int $storeId

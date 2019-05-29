@@ -173,7 +173,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
      * @param $contractDetail
      * @return $this
      */
-    public function setCcBillingAgreement($contractDetail, $storeOneClick)
+    public function setCcBillingAgreement($contractDetail, $storeOneClick, $storeId)
     {
         $this
             ->setMethodCode('adyen_oneclick')
@@ -212,9 +212,9 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         $expiryDate = explode('/', $contractDetail['expiryDate']);
 
         if (!empty($contractDetail['pos_payment'])) {
-            $recurringType = $this->adyenHelper->getAdyenPosCloudConfigData('recurring_type');
+            $recurringType = $this->adyenHelper->getAdyenPosCloudConfigData('recurring_type', $storeId);
         } else {
-            $recurringType = $this->adyenHelper->getRecurringTypeFromOneclickRecurringSetting();
+            $recurringType = $this->adyenHelper->getRecurringTypeFromOneclickRecurringSetting($storeId);
 
             // for bcmc and maestro recurring is not allowed so don't set this
             if ($recurringType === \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING &&
