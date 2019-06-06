@@ -38,19 +38,27 @@ class VaultDetailsHandler implements HandlerInterface
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
-    private $_adyenLogger;
+    private $adyenLogger;
+
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    private $adyenHelper;
 
     /**
      * VaultDetailsHandler constructor.
      *
      * @param PaymentTokenFactoryInterface $paymentTokenFactory
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         PaymentTokenFactoryInterface $paymentTokenFactory,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Adyen\Payment\Helper\Data $adyenHelper
     ) {
-        $this->_adyenLogger = $adyenLogger;
+        $this->adyenLogger = $adyenLogger;
+        $this->adyenHelper = $adyenHelper;
         $this->paymentTokenFactory = $paymentTokenFactory;
     }
 
@@ -61,15 +69,17 @@ class VaultDetailsHandler implements HandlerInterface
     {
         $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
-        /** @var OrderPaymentInterface $payment */
+        /** @var \Adyen\Payment\Api\Data\OrderPaymentInterface $payment */
         $payment = $payment->getPayment();
 
-        // add vault payment token entity to extension attributes
-        $paymentToken = $this->getVaultPaymentToken($response);
+        if ($this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId())) {
+            // add vault payment token entity to extension attributes
+            $paymentToken = $this->getVaultPaymentToken($response);
 
-        if (null !== $paymentToken) {
-            $extensionAttributes = $this->getExtensionAttributes($payment);
-            $extensionAttributes->setVaultPaymentToken($paymentToken);
+            if (null !== $paymentToken) {
+                $extensionAttributes = $this->getExtensionAttributes($payment);
+                $extensionAttributes->setVaultPaymentToken($paymentToken);
+            }
         }
     }
 
@@ -88,7 +98,7 @@ class VaultDetailsHandler implements HandlerInterface
 
 
             if (empty($additionalData['recurring.recurringDetailReference'])) {
-                $this->_adyenLogger->error(
+                $this->adyenLogger->error(
                     'Missing Token in Result please enable in ' .
                     'Settings -> API URLs and Response menu in the Adyen Customer Area Recurring details setting'
                 );
@@ -98,7 +108,7 @@ class VaultDetailsHandler implements HandlerInterface
 
 
             if (empty($additionalData['cardSummary'])) {
-                $this->_adyenLogger->error(
+                $this->adyenLogger->error(
                     'Missing cardSummary in Result please login to the adyen portal ' .
                     'and go to Settings -> API URLs and Response and enable the Card summary property'
                 );
@@ -107,7 +117,7 @@ class VaultDetailsHandler implements HandlerInterface
             $cardSummary = $additionalData['cardSummary'];
 
             if (empty($additionalData['expiryDate'])) {
-                $this->_adyenLogger->error(
+                $this->adyenLogger->error(
                     'Missing expiryDate in Result please login to the adyen portal and go to ' .
                     'Settings -> API URLs and Response and enable the Expiry date property'
                 );
@@ -116,7 +126,7 @@ class VaultDetailsHandler implements HandlerInterface
             $expirationDate = $additionalData['expiryDate'];
 
             if (empty($additionalData['paymentMethod'])) {
-                $this->_adyenLogger->error(
+                $this->adyenLogger->error(
                     'Missing paymentMethod in Result please login to the adyen portal and go to ' .
                     'Settings -> API URLs and Response and enable the Variant property'
                 );
@@ -141,7 +151,7 @@ class VaultDetailsHandler implements HandlerInterface
 
                 $paymentToken->setTokenDetails(json_encode($details));
             } catch (\Exception $e) {
-                $this->_adyenLogger->error(print_r($e, true));
+                $this->adyenLogger->error(print_r($e, true));
             }
         }
 
