@@ -1595,7 +1595,6 @@ class Data extends AbstractHelper
                 // check if BA exists
                 if (!($billingAgreement && $billingAgreement->getAgreementId() > 0 && $billingAgreement->isValid())) {
                     // create new BA
-                    $this->adyenLogger->addAdyenDebug("Creating new Billing Agreement");
                     $billingAgreement = $this->billingAgreementFactory->create();
                     $billingAgreement->setStoreId($order->getStoreId());
                     $billingAgreement->importOrderPayment($order->getPayment());
@@ -1615,7 +1614,9 @@ class Data extends AbstractHelper
                 $storeOneClick = $order->getPayment()->getAdditionalInformation('store_cc');
 
                 $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick, $order->getStoreId());
-                if ($billingAgreement->isValid()) {
+                $billingAgreementErrors = $billingAgreement->getErrors();
+
+                if ($billingAgreement->isValid() && empty($billingAgreementErrors)) {
 
                     if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),
                         $order->getId())) {
@@ -1627,7 +1628,7 @@ class Data extends AbstractHelper
                     $order->addRelatedObject($billingAgreement);
                 } else {
                     $message = __('Failed to create billing agreement for this order. Reason(s): ') . join(', ',
-                            $billingAgreement->getErrors());
+                            $billingAgreementErrors);
                     throw new \Exception($message);
                 }
 
@@ -1799,7 +1800,7 @@ class Data extends AbstractHelper
         $localeCode = $this->config->getValue(
             \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
-            $store->getCode()
+            $this->storeManager->getStore($storeId)->getCode()
         );
 
         return $localeCode;
