@@ -71,6 +71,13 @@
             </tr>
         <?php endif; ?>
 
+        <?php if (!empty($banktranferData['bankTransfer.iban'])) : ?>
+            <tr>
+                <th><?php echo $block->escapeHtml(__('IBAN')); ?></th>
+                <td><?php echo $banktranferData['bankTransfer.iban'] ?></td>
+            </tr>
+        <?php endif; ?>
+
         <?php if (!empty($banktranferData['bankTransfer.accountCode'])) : ?>
             <tr>
                 <th><?php echo $block->escapeHtml(__('Bankaccount')); ?></th>
