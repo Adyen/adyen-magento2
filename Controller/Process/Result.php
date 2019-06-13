@@ -214,13 +214,18 @@ class Result extends \Magento\Framework\App\Action\Action
     {
         $result = false;
 
-        $this->_adyenLogger->addAdyenResult('Updating the order');
-
         if (!empty($response['authResult'])) {
 			$authResult = $response['authResult'];
 		} elseif (!empty($response['resultCode'])) {
 			$authResult = $response['resultCode'];
-		}
+        } else {
+            // In case the result is unknown we log the request and don't update the history
+            $this->_adyenLogger->addError("Unexpected result query parameter. Response: " . json_encode($response));
+
+            return $result;
+        }
+
+        $this->_adyenLogger->addAdyenResult('Updating the order');
 
         $paymentMethod = isset($response['paymentMethod']) ? trim($response['paymentMethod']) : '';
         $pspReference = isset($response['pspReference']) ? trim($response['pspReference']) : '';

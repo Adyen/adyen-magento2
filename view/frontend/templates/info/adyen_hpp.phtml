@@ -58,6 +58,11 @@ $_info = $this->getInfo();
             <dd><?php echo $banktranferData['bankTransfer.bankName'] ?></dd>
         <?php endif; ?>
 
+        <?php if (!empty($banktranferData['bankTransfer.iban'])) : ?>
+            <dt><?php echo $block->escapeHtml(__('IBAN')); ?></dt>
+            <dd><?php echo $banktranferData['bankTransfer.iban'] ?></dd>
+        <?php endif; ?>
+
         <?php if (!empty($banktranferData['bankTransfer.accountCode'])) : ?>
             <dt><?php echo $block->escapeHtml(__('Bankaccount')); ?></dt>
             <dd><?php echo $banktranferData['bankTransfer.accountCode'] ?></dd>

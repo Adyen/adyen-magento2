@@ -179,36 +179,41 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
             ->setMethodCode('adyen_oneclick')
             ->setReferenceId($contractDetail['recurring.recurringDetailReference']);
 
-        // Billing agreement is CC
-        if (isset($contractDetail['cardBin']) &&
-            isset($contractDetail['cardHolderName']) &&
-            isset($contractDetail['cardSummary']) &&
-            isset($contractDetail['expiryDate']) &&
-            isset($contractDetail['paymentMethod'])) {
-            $ccType = $contractDetail['paymentMethod'];
-            $ccTypes = $this->adyenHelper->getCcTypesAltData();
-
-            if (isset($ccTypes[$ccType])) {
-                $ccType = $ccTypes[$ccType]['name'];
-            }
-
-            if ($contractDetail['cardHolderName']) {
-                $label = __(
-                    '%1, %2, **** %3',
-                    $ccType,
-                    $contractDetail['cardHolderName'],
-                    $contractDetail['cardSummary']
-                );
-            } else {
-                $label = __(
-                    '%1, **** %2',
-                    $ccType,
-                    $contractDetail['cardSummary']
-                );
-            }
-
-            $this->setAgreementLabel($label);
+        if (!isset($contractDetail['cardBin']) ||
+            !isset($contractDetail['cardHolderName']) ||
+            !isset($contractDetail['cardSummary']) ||
+            !isset($contractDetail['expiryDate']) ||
+            !isset($contractDetail['paymentMethod'])
+        ) {
+            $this->_errors[] = __('"In the Additional data in API response section, select: Card summary, Expiry Date, Cardholder name, Recurring details and Variant to create billing agreements immediately after the payment is authorized."');
+            return $this;
         }
+        // Billing agreement is CC
+
+        $ccType = $contractDetail['paymentMethod'];
+        $ccTypes = $this->adyenHelper->getCcTypesAltData();
+
+        if (isset($ccTypes[$ccType])) {
+            $ccType = $ccTypes[$ccType]['name'];
+        }
+
+        if ($contractDetail['cardHolderName']) {
+            $label = __(
+                '%1, %2, **** %3',
+                $ccType,
+                $contractDetail['cardHolderName'],
+                $contractDetail['cardSummary']
+            );
+        } else {
+            $label = __(
+                '%1, **** %2',
+                $ccType,
+                $contractDetail['cardSummary']
+            );
+        }
+
+        $this->setAgreementLabel($label);
+
         $expiryDate = explode('/', $contractDetail['expiryDate']);
 
         if (!empty($contractDetail['pos_payment'])) {
