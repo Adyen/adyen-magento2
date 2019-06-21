@@ -41,24 +41,25 @@
             <frontend_class>validate-number</frontend_class>
             <config_path>payment/adyen_pos_cloud/sort_order</config_path>
         </field>
-        <field id="pos_terminal_id" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Unique Terminal ID for Cloud API</label>
-            <tooltip>Copy this from the Adyen Customer Area => Point of sale => Terminal Fleet Manager => Unique Terminal Id </tooltip>
-            <config_path>payment/adyen_pos_cloud/pos_terminal_id</config_path>
-        </field>
         <field id="pos_merchant_account" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Merchant Account for Cloud API</label>
             <can_be_empty>1</can_be_empty>
             <tooltip>Please insert your Merchant Account name used by the Cloud API. Please leave it blank if the Merchant Account is the same as the one configured in the Required Settings</tooltip>
             <config_path>payment/adyen_pos_cloud/pos_merchant_account</config_path>
         </field>
-        <field id="api_key_test" translate="label" type="obscure" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+        <field id="pos_store_id" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Store ID for Cloud API</label>
+            <can_be_empty>1</can_be_empty>
+            <tooltip>Please insert your store ID used by the Cloud API. Please leave it blank if you want to retrieve all the terminals connected to your merchant account</tooltip>
+            <config_path>payment/adyen_pos_cloud/pos_store_id</config_path>
+        </field>
+        <field id="api_key_test" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>API key for Cloud API TEST</label>
             <tooltip>Copy this from the Test Adyen Customer Area => Settings => Users => System => [web service user]=> Checkout API Key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_pos_cloud/api_key_test</config_path>
         </field>
-        <field id="api_key_live" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+        <field id="api_key_live" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>API key for Cloud API LIVE</label>
             <tooltip>Copy this from the Live Adyen Customer Area => Settings => Users => System => [web service user]=> Checkout API Key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>

@@ -24,6 +24,7 @@
 
 namespace Adyen\Payment\Model;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Api\AdyenInitiateTerminalApiInterface;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Adyen\Util\Util;
@@ -102,7 +103,13 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
         $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
         $transactionType = \Adyen\TransactionType::NORMAL;
-        $poiId = $this->adyenHelper->getPoiId($this->storeId);
+
+        if (empty($payment->getAdditionalInformation('terminal_id'))) {
+            throw new AdyenException("Terminal ID is empty in initiate request");
+        }
+
+        $poiId = $payment->getAdditionalInformation('terminal_id');
+
         $serviceID = date("dHis");
         $initiateDate = date("U");
         $timeStamper = date("Y-m-d") . "T" . date("H:i:s+00:00");

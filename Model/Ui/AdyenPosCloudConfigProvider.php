@@ -44,6 +44,11 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
     protected $urlBuilder;
 
     /**
+     * @var \Adyen\Payment\Helper\PaymentMethods
+     */
+    protected $paymentMethodsHelper;
+
+    /**
      * AdyenHppConfigProvider constructor.
      *
      * @param PaymentHelper $paymentHelper
@@ -51,10 +56,12 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
      */
     public function __construct(
         \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\UrlInterface $urlBuilder
+        \Magento\Framework\UrlInterface $urlBuilder,
+        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
     ) {
         $this->request = $request;
         $this->urlBuilder = $urlBuilder;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -77,6 +84,8 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
             ]
         ];
 
+        $config['payment']['adyenPos']['connectedTerminals'] = $this->getConnectedTerminals();
+
         return $config;
     }
 
@@ -88,5 +97,20 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
     protected function getRequest()
     {
         return $this->request;
+    }
+
+    /**
+     * @return array|mixed
+     * @throws \Adyen\AdyenException
+     */
+    protected function getConnectedTerminals()
+    {
+        $connectedTerminals = $this->paymentMethodsHelper->getConnectedTerminals();
+
+        if (!empty($connectedTerminals['uniqueTerminalIds'])) {
+            return $connectedTerminals['uniqueTerminalIds'];
+        }
+
+        return [];
     }
 }

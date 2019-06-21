@@ -1353,14 +1353,14 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Return the Terminal ID for the current store/mode
+     * Return the Store ID for the current store/mode
      *
      * @param int|null $storeId
      * @return mixed
      */
-    public function getPoiId($storeId = null)
+    public function getPosStoreId($storeId = null)
     {
-        return $this->getAdyenPosCloudConfigData('pos_terminal_id', $storeId);
+        return $this->getAdyenPosCloudConfigData('pos_store_id', $storeId);
     }
 
     /**

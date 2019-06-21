@@ -50,6 +50,25 @@
             <!--/ko-->
         </div>
 
+        <div class="field required"
+             data-bind="attr: {id: getCode() + '_connected_terminals_div'}, visible: getConnectedTerminals().length > 0">
+            <label data-bind="attr: {for: getCode() + '_connected_terminals'}" class="label">
+                <span><!-- ko text: $t('Connected terminals')--><!-- /ko --></span>
+            </label>
+            <div class="control">
+
+                <select class="select"
+                        name="paymentMethod[connected_terminals]"
+                        data-bind="attr: {id: getCode() + '_connected_terminals', 'data-container': getCode() + '-connected-terminals', 'data-validate': JSON.stringify({required:true})},
+                                        options: getConnectedTerminals(),
+                                        optionsValue: 'value',
+                                        optionsText: 'key',
+                                        value: terminalId"
+                        >
+                </select>
+            </div>
+        </div>
+
         <div class="checkout-agreements-block">
             <!-- ko foreach: $parent.getRegion('before-place-order') -->
             <!-- ko template: getTemplate() --><!-- /ko -->
@@ -72,4 +91,3 @@
         </div>
     </div>
 </div>
-

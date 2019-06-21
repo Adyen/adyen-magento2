@@ -53,6 +53,10 @@ define(
                     serviceUrl,
                     paymentData = quote.paymentMethod();
 
+                if (this.getConnectedTerminals().length > 0) {
+                    this.isPlaceOrderActionAllowed(true);
+                }
+
                 // use core code to assign the agreement
                 agreementsAssigner(paymentData);
                 serviceUrl = urlBuilder.createUrl('/adyen/initiate', {});
@@ -62,6 +66,14 @@ define(
                 ).always(function(){
                     self.placeOrderPos()});
                 return false;
+            },
+            initObservable: function () {
+                this._super()
+                    .observe([
+                        'terminalId'
+                    ]);
+
+                return this;
             },
             posComplete: function () {
                 this.afterPlaceOrder();
@@ -90,6 +102,33 @@ define(
                         self.posComplete();
                     }
                 )
+            },
+            getConnectedTerminals: function() {
+                let connectedTerminals = [];
+                const connectedTerminalsList = window.checkoutConfig.payment.adyenPos.connectedTerminals;
+
+                for (let i = 0; i < connectedTerminalsList.length; i++) {
+                    connectedTerminals.push(
+                        {
+                            key: connectedTerminalsList[i],
+                            value: connectedTerminalsList[i]
+                        }
+                    );
+                }
+
+                return connectedTerminals;
+            },
+            /**
+             * Get data for place order
+             * @returns {{method: *}}
+             */
+            getData: function () {
+                return {
+                    'method': this.item.method,
+                    additional_data: {
+                        'terminal_id': this.terminalId()
+                    }
+                };
             },
             showLogo: function () {
                 return window.checkoutConfig.payment.adyen.showLogo;
