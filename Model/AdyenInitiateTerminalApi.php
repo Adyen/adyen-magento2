@@ -24,7 +24,6 @@
 
 namespace Adyen\Payment\Model;
 
-use Adyen\AdyenException;
 use Adyen\Payment\Api\AdyenInitiateTerminalApiInterface;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Adyen\Util\Util;
@@ -94,8 +93,22 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
      * @return mixed
      * @throws \Exception
      */
-    public function initiate()
+    public function initiate($payload)
     {
+        // Decode payload from frontend
+        $payload = json_decode($payload, true);
+
+        // Validate JSON that has just been parsed if it was in a valid format
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Magento\Framework\Exception\LocalizedException(__('Terminal API initiate request was not a valid JSON'));
+        }
+
+        if (empty($payload['terminal_id'])) {
+            throw new \Adyen\AdyenException("Terminal ID is empty in initiate request");
+        }
+
+        $poiId = $payload['terminal_id'];
+
         $quote = $this->checkoutSession->getQuote();
         $payment = $quote->getPayment();
         $payment->setMethod(AdyenPosCloudConfigProvider::CODE);
@@ -103,12 +116,6 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
         $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
         $transactionType = \Adyen\TransactionType::NORMAL;
-
-        if (empty($payment->getAdditionalInformation('terminal_id'))) {
-            throw new AdyenException("Terminal ID is empty in initiate request");
-        }
-
-        $poiId = $payment->getAdditionalInformation('terminal_id');
 
         $serviceID = date("dHis");
         $initiateDate = date("U");

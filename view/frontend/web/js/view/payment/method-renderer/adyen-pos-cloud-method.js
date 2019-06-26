@@ -53,16 +53,18 @@ define(
                     serviceUrl,
                     paymentData = quote.paymentMethod();
 
-                if (this.getConnectedTerminals().length > 0) {
-                    this.isPlaceOrderActionAllowed(true);
-                }
-
                 // use core code to assign the agreement
                 agreementsAssigner(paymentData);
                 serviceUrl = urlBuilder.createUrl('/adyen/initiate', {});
                 fullScreenLoader.startLoader();
+
+                let payload = {
+                    "payload": JSON.stringify({terminal_id: self.terminalId()})
+                }
+
                 return storage.post(
-                    serviceUrl
+                    serviceUrl,
+                    JSON.stringify(payload)
                 ).always(function(){
                     self.placeOrderPos()});
                 return false;

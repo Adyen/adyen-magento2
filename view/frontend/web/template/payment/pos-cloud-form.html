@@ -81,8 +81,7 @@
                         data-bind="
                             click: initiate,
                             attr: {title: $t('Place Order')},
-                            enable: (getCode() == isChecked()),
-                            css: {disabled: !isPlaceOrderActionAllowed()}
+                            enable: getConnectedTerminals().length > 0
                             "
                         disabled>
                     <span data-bind="text: $t('Place Order')"></span>
