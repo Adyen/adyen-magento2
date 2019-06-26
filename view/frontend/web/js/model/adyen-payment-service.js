@@ -32,7 +32,7 @@ define(
             /**
              * Retrieve the list of available payment methods from the server
              */
-            retrieveAvailablePaymentMethods: function (callback) {
+            retrieveAvailablePaymentMethods: function (callback = null) {
                 var self = this;
 
                 // retrieve payment methods
@@ -56,7 +56,9 @@ define(
                 ).done(
                     function (response) {
                         self.setPaymentMethods(response);
-                        callback();
+                        if (callback !== null) {
+                            callback();
+                        }
                     }
                 ).fail(
                     function (response) {

@@ -130,8 +130,17 @@ define(
                     });
                     self.messageComponents = messageComponents;
 
-                    quote.shippingAddress.subscribe( function(address) {
-                        adyenPaymentService.retrieveAvailablePaymentMethods();
+                    var shippingAddressCopuntryCode = quote.shippingAddress().countryId;
+                    console.log(shippingAddressCopuntryCode);
+
+                    quote.shippingAddress.subscribe( function(shippingAddress) {
+                        console.log(shippingAddressCopuntryCode);
+                        console.log(shippingAddress.countryId);
+
+                        if (shippingAddressCopuntryCode != shippingAddress.countryId) {
+                            adyenPaymentService.retrieveAvailablePaymentMethods();
+                            shippingAddressCopuntryCode = shippingAddress.countryId;
+                        }
                     });
 
                     fullScreenLoader.stopLoader();
