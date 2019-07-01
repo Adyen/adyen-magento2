@@ -92,7 +92,7 @@ class TransactionPosCloudSync implements ClientInterface
         //always do status call and return the response of the status call
         $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
 
-        $poiId = $this->adyenHelper->getPoiId($this->storeId);
+        $poiId = $request['terminalID'];
         $newServiceID = date("dHis");
 
         $statusDate = date("U");

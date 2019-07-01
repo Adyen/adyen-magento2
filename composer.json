@@ -14,7 +14,7 @@
     }
   ],
   "require": {
-    "adyen/php-api-library": ">=2.0.0",
+    "adyen/php-api-library": ">=2.1.0",
     "magento/framework": ">=101.0.8 <102 || >=102.0.1",
     "magento/module-vault": "101.*"
   },
