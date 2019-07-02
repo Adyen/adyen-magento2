@@ -42,6 +42,7 @@ define(
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
         var messageComponents;
+        var shippingAddressCountryCode = quote.shippingAddress().countryId;
         /**
          * Shareble adyen checkout component
          * @type {AdyenCheckout}
@@ -89,7 +90,7 @@ define(
 
                 // reset variable:
                 adyenPaymentService.setPaymentMethods();
-
+                
                 adyenPaymentService.retrieveAvailablePaymentMethods(function() {
                     let paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
                     if (JSON.stringify(paymentMethods).indexOf("ratepay") > -1) {
@@ -130,23 +131,21 @@ define(
                     });
                     self.messageComponents = messageComponents;
 
-                    var billingAddressCountryCode = quote.billingAddress().countryId;
-
-                    // subscribe to the billing address changes
-                    quote.billingAddress.subscribe( function(billingAddress) {
-                        if (billingAddress) {
-                            if (billingAddressCountryCode != billingAddress.countryId) {
-                                adyenPaymentService.retrieveAvailablePaymentMethods();
-                                billingAddressCountryCode = billingAddress.countryId;
-                            }
-                        }
-                    });
-
                     fullScreenLoader.stopLoader();
                 });
             },
             getAdyenHppPaymentMethods: function () {
                 var self = this;
+                let currentShippingAddressCountryCode = quote.shippingAddress().countryId;
+
+                // retrieve new payment methods if country code changed
+                if (shippingAddressCountryCode != currentShippingAddressCountryCode) {
+                    fullScreenLoader.startLoader();
+                    adyenPaymentService.retrieveAvailablePaymentMethods();
+                    shippingAddressCountryCode = currentShippingAddressCountryCode;
+                    fullScreenLoader.stopLoader();
+                }
+
                 var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
 
                 var paymentList = _.map(paymentMethods, function (value) {
