@@ -42,6 +42,7 @@ define(
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
         var messageComponents;
+        var shippingAddressCountryCode = quote.shippingAddress().countryId;
         /**
          * Shareble adyen checkout component
          * @type {AdyenCheckout}
@@ -89,74 +90,62 @@ define(
 
                 // reset variable:
                 adyenPaymentService.setPaymentMethods();
+                
+                adyenPaymentService.retrieveAvailablePaymentMethods(function() {
+                    let paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
+                    if (JSON.stringify(paymentMethods).indexOf("ratepay") > -1) {
+                        var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
+                        var dfValueRatePay = self.getRatePayDeviceIdentToken();
 
-                // retrieve payment methods
-                var serviceUrl,
-                    payload;
-                if (customer.isLoggedIn()) {
-                    serviceUrl = urlBuilder.createUrl('/carts/mine/retrieve-adyen-payment-methods', {});
-                } else {
-                    serviceUrl = urlBuilder.createUrl('/guest-carts/:cartId/retrieve-adyen-payment-methods', {
-                        cartId: quote.getQuoteId()
-                    });
-                }
+                        window.di = {
+                            t: dfValueRatePay.replace(':', ''),
+                            v: ratePayId,
+                            l: 'Checkout'
+                        };
 
-                payload = {
-                    cartId: quote.getQuoteId(),
-                    shippingAddress: quote.shippingAddress()
-                };
-
-                storage.post(
-                    serviceUrl, JSON.stringify(payload)
-                ).done(
-                    function (response) {
-                        adyenPaymentService.setPaymentMethods(response);
-                        if (JSON.stringify(response).indexOf("ratepay") > -1) {
-                            var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
-                            var dfValueRatePay = self.getRatePayDeviceIdentToken();
-
-                            window.di = {
-                                t: dfValueRatePay.replace(':', ''),
-                                v: ratePayId,
-                                l: 'Checkout'
-                            };
-
-                            // Load Ratepay script
-                            var ratepayScriptTag = document.createElement('script');
-                            ratepayScriptTag.src = "//d.ratepay.com/" + ratePayId + "/di.js";
-                            ratepayScriptTag.type = "text/javascript";
-                            document.body.appendChild(ratepayScriptTag);
-                        }
-
-                        // create component needs to be in initialize method
-                        var messageComponents = {};
-                        _.map(response, function (value) {
-
-                            var messageContainer = new Messages();
-                            var name = 'messages-' + self.getBrandCodeFromPaymentMethod(value);
-                            var messagesComponent = {
-                                parent: self.name,
-                                name: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
-                                displayArea: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
-                                component: 'Magento_Ui/js/view/messages',
-                                config: {
-                                    messageContainer: messageContainer
-                                }
-                            };
-                            layout([messagesComponent]);
-
-                            messageComponents[name] = messageContainer;
-                        });
-                        self.messageComponents = messageComponents;
-
-                        fullScreenLoader.stopLoader();
+                        // Load Ratepay script
+                        var ratepayScriptTag = document.createElement('script');
+                        ratepayScriptTag.src = "//d.ratepay.com/" + ratePayId + "/di.js";
+                        ratepayScriptTag.type = "text/javascript";
+                        document.body.appendChild(ratepayScriptTag);
                     }
-                ).fail(function (error) {
+
+                    // create component needs to be in initialize method
+                    var messageComponents = {};
+                    _.map(paymentMethods, function (value) {
+
+                        var messageContainer = new Messages();
+                        var name = 'messages-' + self.getBrandCodeFromPaymentMethod(value);
+                        var messagesComponent = {
+                            parent: self.name,
+                            name: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
+                            displayArea: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
+                            component: 'Magento_Ui/js/view/messages',
+                            config: {
+                                messageContainer: messageContainer
+                            }
+                        };
+                        layout([messagesComponent]);
+
+                        messageComponents[name] = messageContainer;
+                    });
+                    self.messageComponents = messageComponents;
+
                     fullScreenLoader.stopLoader();
                 });
             },
             getAdyenHppPaymentMethods: function () {
                 var self = this;
+                let currentShippingAddressCountryCode = quote.shippingAddress().countryId;
+
+                // retrieve new payment methods if country code changed
+                if (shippingAddressCountryCode != currentShippingAddressCountryCode) {
+                    fullScreenLoader.startLoader();
+                    adyenPaymentService.retrieveAvailablePaymentMethods();
+                    shippingAddressCountryCode = currentShippingAddressCountryCode;
+                    fullScreenLoader.stopLoader();
+                }
+
                 var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
 
                 var paymentList = _.map(paymentMethods, function (value) {
