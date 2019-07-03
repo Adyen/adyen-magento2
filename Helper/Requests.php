@@ -450,7 +450,7 @@ class Requests extends AbstractHelper
             // Parse address into street and house number where possible
             $address = $this->adyenHelper->getStreetFromString($address->getStreetFull());
         } else {
-            $address = $this->adyenHelper->getStreetFromString($address->getStreetLine1());
+            $address = $this->adyenHelper->getStreetFromString(implode(' ', [$address->getStreetLine1(), $address->getStreetLine2()]));
         }
 
         return $address;
