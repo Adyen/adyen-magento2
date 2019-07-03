@@ -384,7 +384,7 @@ define(
                             items: result.getIssuers(),
                             onChange: function (state) {
                                 if (!!state.isValid) {
-                                    result.issuer(state.data.issuer);
+                                    result.issuer(state.data.paymentMethod.issuer);
                                     result.isPlaceOrderAllowed(true);
 
                                 } else {
@@ -409,8 +409,8 @@ define(
                             countryCode: self.getLocale(),
                             onChange: function (state) {
                                 if (!!state.isValid) {
-                                    result.ownerName(state.data["sepa.ownerName"]);
-                                    result.ibanNumber(state.data["sepa.ibanNumber"]);
+                                    result.ownerName(state.data.paymentMethod["sepa.ownerName"]);
+                                    result.ibanNumber(state.data.paymentMethod["sepa.ibanNumber"]);
                                     result.isPlaceOrderAllowed(true);
                                 } else {
                                     result.isPlaceOrderAllowed(false);
@@ -442,9 +442,9 @@ define(
                             },
                             onChange: function (state) {
                                 if (!!state.isValid) {
-                                    result.dob(state.data.personalDetails.dateOfBirth);
-                                    result.telephone(state.data.personalDetails.telephoneNumber);
-                                    result.gender(state.data.personalDetails.gender);
+                                    result.dob(state.data.paymentMethod.personalDetails.dateOfBirth);
+                                    result.telephone(state.data.paymentMethod.personalDetails.telephoneNumber);
+                                    result.gender(state.data.paymentMethod.personalDetails.gender);
                                     result.isPlaceOrderAllowed(true);
                                 } else {
                                     result.isPlaceOrderAllowed(false);
@@ -467,9 +467,9 @@ define(
                             },
                             onChange: function (state) {
                                 if (!!state.isValid) {
-                                    result.dob(state.data.personalDetails.dateOfBirth);
-                                    result.telephone(state.data.personalDetails.telephoneNumber);
-                                    result.gender(state.data.personalDetails.gender);
+                                    result.dob(state.data.paymentMethod.personalDetails.dateOfBirth);
+                                    result.telephone(state.data.paymentMethod.personalDetails.telephoneNumber);
+                                    result.gender(state.data.paymentMethod.personalDetails.gender);
                                     result.isPlaceOrderAllowed(true);
                                 } else {
                                     result.isPlaceOrderAllowed(false);

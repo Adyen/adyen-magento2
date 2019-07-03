@@ -87,9 +87,9 @@ class Cc extends \Magento\Payment\Block\Form\Cc
 	/**
 	 * @return string
 	 */
-	public function getCheckoutContextUrl()
+	public function getCheckoutEnvironment()
 	{
-		return $this->adyenHelper->getCheckoutContextUrl($this->checkoutSession->getQuote()->getStore()->getId());
+		return $this->adyenHelper->getCheckoutEnvironment($this->checkoutSession->getQuote()->getStore()->getId());
 	}
 
     /**

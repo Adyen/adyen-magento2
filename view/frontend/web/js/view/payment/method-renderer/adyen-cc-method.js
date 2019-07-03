@@ -119,7 +119,7 @@ define(
 
                 self.cardComponent = self.checkout.create('card', {
                     originKey: self.getOriginKey(),
-                    loadingContext: self.getLoadingContext(),
+                    environment: self.getCheckoutEnvironment(),
                     type: 'card',
                     hasHolderName: true,
                     holderNameRequired: true,
@@ -128,13 +128,13 @@ define(
 
                     onChange: function (state, component) {
                         if (!!state.isValid && !component.state.errors.encryptedSecurityCode) {
-                            self.storeCc = !!state.data.storeDetails;
+                            self.storeCc = !!state.data.storePaymentMethod;
                             self.variant(state.brand);
-                            self.creditCardNumber(state.data.encryptedCardNumber);
-                            self.expiryMonth(state.data.encryptedExpiryMonth);
-                            self.expiryYear(state.data.encryptedExpiryYear);
-                            self.securityCode(state.data.encryptedSecurityCode);
-                            self.creditCardOwner(state.data.holderName);
+                            self.creditCardNumber(state.data.paymentMethod.encryptedCardNumber);
+                            self.expiryMonth(state.data.paymentMethod.encryptedExpiryMonth);
+                            self.expiryYear(state.data.paymentMethod.encryptedExpiryYear);
+                            self.securityCode(state.data.paymentMethod.encryptedSecurityCode);
+                            self.creditCardOwner(state.data.paymentMethod.holderName);
                             self.creditCardDetailsValid(true);
                             self.placeOrderAllowed(true);
                         } else {
@@ -454,7 +454,7 @@ define(
             getOriginKey: function () {
                 return window.checkoutConfig.payment.adyenCc.originKey;
             },
-            getLoadingContext: function () {
+            getCheckoutEnvironment: function () {
                 return window.checkoutConfig.payment.adyenCc.checkoutUrl;
             },
             getLocale: function () {

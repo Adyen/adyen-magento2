@@ -110,7 +110,7 @@ define(
                 var checkout = new AdyenCheckout({
                     locale: self.getLocale(),
                     originKey: self.getOriginKey(),
-                    loadingContext: self.getLoadingContext(),
+                    environment: self.getCheckoutEnvironment(),
                     risk: {
                         enabled: false
                     }
@@ -256,9 +256,10 @@ define(
                                             isValid(true);
 
                                             if (typeof state.data !== 'undefined' &&
-                                                typeof state.data.encryptedSecurityCode !== 'undefined'
+                                                typeof state.data.paymentMethod !== 'undefined' &&
+                                                typeof state.data.paymentMethod.encryptedSecurityCode !== 'undefined'
                                             ) {
-                                                self.encryptedCreditCardVerificationNumber = state.data.encryptedSecurityCode;
+                                                self.encryptedCreditCardVerificationNumber = state.data.paymentMethod.encryptedSecurityCode;
                                             }
                                         } else {
                                             self.encryptedCreditCardVerificationNumber = '';
@@ -267,14 +268,6 @@ define(
                                                 self.placeOrderAllowed(false);
                                                 isValid(false);
                                             }
-                                        }
-
-                                        // When we move to the component v2.2 it should be removed
-                                        if (self.agreement_data.variant == "maestro" &&
-                                            component.state.errors.encryptedSecurityCode
-                                        ) {
-                                            self.placeOrderAllowed(false);
-                                            isValid(false);
                                         }
                                     }
                                 })
@@ -566,7 +559,7 @@ define(
             getOriginKey: function () {
                 return window.checkoutConfig.payment.adyenOneclick.originKey;
             },
-            getLoadingContext: function () {
+            getCheckoutEnvironment: function () {
                 return window.checkoutConfig.payment.adyenOneclick.checkoutUrl;
             }
         });
