@@ -290,15 +290,27 @@ define(
                         return 17;
                     };
                     /**
+                     * Finds the issuer property in the payment method's response and if available returns it's index
+                     * @returns
+                     */
+                    result.findIssuersProperty = function () {
+                        var issuerKey = false;
+                        if (typeof value.details !== 'undefined') {
+                            $.each(value.details, function(key, detail) {
+                                if (typeof detail.items !== 'undefined' && detail.key == 'issuer') {
+                                    issuerKey = key;
+                                }
+                            });
+                        }
+
+                        return issuerKey;
+                    }
+                    /**
                      * Checks if the payment method has issuers property available
                      * @returns {boolean}
                      */
                     result.hasIssuersProperty = function () {
-                        if (
-                            typeof value.details !== 'undefined' &&
-                            typeof value.details[0].items !== 'undefined' &&
-                            value.details[0].key == 'issuer'
-                        ) {
+                        if (result.findIssuersProperty() !== false) {
                             return true;
                         }
 
@@ -309,7 +321,7 @@ define(
                      * @returns {boolean}
                      */
                     result.hasIssuersAvailable = function () {
-                        if (result.hasIssuersProperty() && value.details[0].items.length > 0) {
+                        if (result.hasIssuersProperty() && value.details[result.findIssuersProperty()].items.length > 0) {
                             return true;
                         }
 
@@ -321,7 +333,7 @@ define(
                      */
                     result.getIssuers = function() {
                         if (result.hasIssuersAvailable()) {
-                            return value.details[0].items;
+                            return value.details[result.findIssuersProperty()].items;
                         }
 
                         return [];
