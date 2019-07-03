@@ -455,7 +455,7 @@ define(
                 return window.checkoutConfig.payment.adyenCc.originKey;
             },
             getCheckoutEnvironment: function () {
-                return window.checkoutConfig.payment.adyenCc.checkoutUrl;
+                return window.checkoutConfig.payment.adyenCc.checkoutEnvironment;
             },
             getLocale: function () {
                 return window.checkoutConfig.payment.adyenCc.locale;

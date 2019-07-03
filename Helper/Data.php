@@ -33,8 +33,6 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
-    const CHECKOUT_ENVIRONMENT_URL_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/';
-    const CHECKOUT_ENVIRONMENT_URL_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/';
     const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.0.0/adyen.js';
     const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.0.0/adyen.js';
 
@@ -1552,10 +1550,10 @@ class Data extends AbstractHelper
     public function getCheckoutEnvironment($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            return self::CHECKOUT_ENVIRONMENT_URL_TEST;
+            return self::TEST;
         }
 
-        return self::CHECKOUT_ENVIRONMENT_URL_LIVE;
+        return self::LIVE;
     }
 
     /**

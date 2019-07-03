@@ -560,7 +560,7 @@ define(
                 return window.checkoutConfig.payment.adyenOneclick.originKey;
             },
             getCheckoutEnvironment: function () {
-                return window.checkoutConfig.payment.adyenOneclick.checkoutUrl;
+                return window.checkoutConfig.payment.adyenOneclick.checkoutEnvironment;
             }
         });
     }
