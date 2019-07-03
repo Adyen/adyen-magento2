@@ -382,7 +382,10 @@ class Result extends \Magento\Framework\App\Action\Action
 
         $request = [];
 
-		if (!empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("paymentData"))) {
+        if (!empty($this->_session->getLastRealOrder()) &&
+            !empty($this->_session->getLastRealOrder()->getPayment()) &&
+            !empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("paymentData"))
+        ) {
             $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("paymentData");
         }
 
