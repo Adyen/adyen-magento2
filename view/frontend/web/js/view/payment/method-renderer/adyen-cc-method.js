@@ -84,7 +84,6 @@ define(
                         'expiryYear',
                         'installment',
                         'creditCardDetailsValid',
-                        'variant',
                         'placeOrderAllowed'
                     ]);
 
@@ -129,7 +128,6 @@ define(
                     onChange: function (state, component) {
                         if (!!state.isValid && !component.state.errors.encryptedSecurityCode) {
                             self.storeCc = !!state.data.storePaymentMethod;
-                            self.variant(state.brand);
                             self.creditCardNumber(state.data.paymentMethod.encryptedCardNumber);
                             self.expiryMonth(state.data.paymentMethod.encryptedExpiryMonth);
                             self.expiryYear(state.data.paymentMethod.encryptedExpiryYear);
@@ -269,7 +267,7 @@ define(
             /**
              * Builds the payment details part of the payment information reqeust
              *
-             * @returns {{method: *, additional_data: {card_brand: *, cc_type: *, number: *, cvc: *, expiryMonth: *, expiryYear: *, holderName: *, store_cc: (boolean|*), number_of_installments: *, java_enabled: boolean, screen_color_depth: number, screen_width, screen_height, timezone_offset: *}}}
+             * @returns {{method: *, additional_data: {cc_type: *, number: *, cvc: *, expiryMonth: *, expiryYear: *, holderName: *, store_cc: (boolean|*), number_of_installments: *, java_enabled: () => boolean, screen_color_depth: number, screen_width, screen_height, timezone_offset: *, language: *}}}
              */
             getCcData: function () {
                 const browserInfo = threeDS2Utils.getBrowserInfo();
@@ -277,7 +275,6 @@ define(
                 var data = {
                     'method': this.item.method,
                     additional_data: {
-                        'card_brand': this.variant(),
                         'cc_type': this.creditCardType(),
                         'number': this.creditCardNumber(),
                         'cvc': this.securityCode(),
@@ -306,7 +303,6 @@ define(
                 return {
                     'method': this.item.method,
                     additional_data: {
-                        'card_brand': this.variant(),
                         'cc_type': this.creditCardType(),
                         'store_cc': this.storeCc,
                         'number_of_installments': this.installment()

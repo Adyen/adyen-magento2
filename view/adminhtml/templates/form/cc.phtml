@@ -126,9 +126,13 @@ echo $code; ?>" style="display:none">
                                 jQuery("#<?php /* @noEscape */ echo $code; ?>-expiryMonth").val(state.data.paymentMethod.encryptedExpiryMonth);
                                 jQuery("#<?php /* @noEscape */ echo $code; ?>-expiryYear").val(state.data.paymentMethod.encryptedExpiryYear);
                                 jQuery("#<?php /* @noEscape */ echo $code; ?>-cvc").val(state.data.paymentMethod.encryptedSecurityCode);
-                                jQuery("#<?php /* @noEscape */ echo $code; ?>-cc_type").val(getCcCodeByAltCode(state.brand));
                             }
                         },
+                        onBrand: function (state) {
+                            if (state.isValid) {
+                                jQuery("#<?php /* @noEscape */ echo $code; ?>-cc_type").val(getCcCodeByAltCode(state.brand));
+                            }
+                        }
                         onError: function () {
                         }
                     });
