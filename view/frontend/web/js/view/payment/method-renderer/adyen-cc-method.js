@@ -84,7 +84,6 @@ define(
                         'expiryYear',
                         'installment',
                         'creditCardDetailsValid',
-                        'variant',
                         'placeOrderAllowed'
                     ]);
 
@@ -119,7 +118,7 @@ define(
 
                 self.cardComponent = self.checkout.create('card', {
                     originKey: self.getOriginKey(),
-                    loadingContext: self.getLoadingContext(),
+                    environment: self.getCheckoutEnvironment(),
                     type: 'card',
                     hasHolderName: true,
                     holderNameRequired: true,
@@ -128,13 +127,12 @@ define(
 
                     onChange: function (state, component) {
                         if (!!state.isValid && !component.state.errors.encryptedSecurityCode) {
-                            self.storeCc = !!state.data.storeDetails;
-                            self.variant(state.brand);
-                            self.creditCardNumber(state.data.encryptedCardNumber);
-                            self.expiryMonth(state.data.encryptedExpiryMonth);
-                            self.expiryYear(state.data.encryptedExpiryYear);
-                            self.securityCode(state.data.encryptedSecurityCode);
-                            self.creditCardOwner(state.data.holderName);
+                            self.storeCc = !!state.data.storePaymentMethod;
+                            self.creditCardNumber(state.data.paymentMethod.encryptedCardNumber);
+                            self.expiryMonth(state.data.paymentMethod.encryptedExpiryMonth);
+                            self.expiryYear(state.data.paymentMethod.encryptedExpiryYear);
+                            self.securityCode(state.data.paymentMethod.encryptedSecurityCode);
+                            self.creditCardOwner(state.data.paymentMethod.holderName);
                             self.creditCardDetailsValid(true);
                             self.placeOrderAllowed(true);
                         } else {
@@ -269,7 +267,7 @@ define(
             /**
              * Builds the payment details part of the payment information reqeust
              *
-             * @returns {{method: *, additional_data: {card_brand: *, cc_type: *, number: *, cvc: *, expiryMonth: *, expiryYear: *, holderName: *, store_cc: (boolean|*), number_of_installments: *, java_enabled: boolean, screen_color_depth: number, screen_width, screen_height, timezone_offset: *}}}
+             * @returns {{method: *, additional_data: {cc_type: *, number: *, cvc: *, expiryMonth: *, expiryYear: *, holderName: *, store_cc: (boolean|*), number_of_installments: *, java_enabled: () => boolean, screen_color_depth: number, screen_width, screen_height, timezone_offset: *, language: *}}}
              */
             getCcData: function () {
                 const browserInfo = threeDS2Utils.getBrowserInfo();
@@ -277,7 +275,6 @@ define(
                 var data = {
                     'method': this.item.method,
                     additional_data: {
-                        'card_brand': this.variant(),
                         'cc_type': this.creditCardType(),
                         'number': this.creditCardNumber(),
                         'cvc': this.securityCode(),
@@ -306,7 +303,6 @@ define(
                 return {
                     'method': this.item.method,
                     additional_data: {
-                        'card_brand': this.variant(),
                         'cc_type': this.creditCardType(),
                         'store_cc': this.storeCc,
                         'number_of_installments': this.installment()
@@ -454,8 +450,8 @@ define(
             getOriginKey: function () {
                 return window.checkoutConfig.payment.adyenCc.originKey;
             },
-            getLoadingContext: function () {
-                return window.checkoutConfig.payment.adyenCc.checkoutUrl;
+            getCheckoutEnvironment: function () {
+                return window.checkoutConfig.payment.adyenCc.checkoutEnvironment;
             },
             getLocale: function () {
                 return window.checkoutConfig.payment.adyenCc.locale;
