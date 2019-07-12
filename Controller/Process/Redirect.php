@@ -29,8 +29,11 @@ use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterfaceFactory;
 use Magento\Sales\Model\ResourceModel\Order\Payment as OrderPaymentResource;
 use Magento\Payment\Model\InfoInterface;
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\App\RequestInterface;
 
-class Redirect extends \Magento\Framework\App\Action\Action
+class Redirect extends \Magento\Framework\App\Action\Action implements CsrfAwareActionInterface
 {
 
     /**
@@ -351,5 +354,21 @@ class Redirect extends \Magento\Framework\App\Action\Action
             $payment->setExtensionAttributes($extensionAttributes);
         }
         return $extensionAttributes;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createCsrfValidationException(
+        RequestInterface $request
+    ): ?InvalidRequestException {
+        return null;
+    }
+    /**
+     * @inheritDoc
+     */
+    public function validateForCsrf(RequestInterface $request): ?bool
+    {
+        return true;
     }
 }
