@@ -37,7 +37,7 @@ If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com
 
 We have defined this:
 ```
-<group id="index">
+<group id="adyen_payment">
     <job name="adyen_payment_process_notification" instance="Adyen\Payment\Model\Cron" method="processNotification">
         <schedule>*/1 * * * *</schedule>
     </job>
