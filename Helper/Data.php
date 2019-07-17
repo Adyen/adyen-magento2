@@ -382,6 +382,9 @@ class Data extends AbstractHelper
         if (count($street) != 1) {
             return $street;
         }
+
+        $street['0'] = trim($street['0']);
+
         preg_match('/((\s\d{0,10})|(\s\d{0,10}\w{1,3}))$/i', $street['0'], $houseNumber, PREG_OFFSET_CAPTURE);
         if (!empty($houseNumber['0'])) {
             $_houseNumber = trim($houseNumber['0']['0']);

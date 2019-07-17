@@ -217,11 +217,11 @@ class Redirect extends \Magento\Payment\Block\Form
             if ($this->_adyenHelper->isSeparateHouseNumberRequired($billingAddress->getCountryId())) {
                 $street = $this->_adyenHelper->getStreet($billingAddress);
 
-                if (isset($street['name']) && $street['name'] != "") {
+                if (!empty($street['name'])) {
                     $formFields['billingAddress.street'] = $street['name'];
                 }
 
-                if (isset($street['house_number']) && $street['house_number'] != "") {
+                if (!empty($street['house_number'])) {
                     $formFields['billingAddress.houseNumberOrName'] = $street['house_number'];
                 } else {
                     $formFields['billingAddress.houseNumberOrName'] = "NA";
