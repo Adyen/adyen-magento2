@@ -73,9 +73,13 @@
             <label>Elo</label>
             <code_alt>elo</code_alt>
         </type>
-        <type id="TROY" order="130">
+        <type id="TROY" order="120">
             <label>Troy</label>
             <code_alt>troy</code_alt>
+        </type>
+        <type id="DANKORT" order="130">
+            <label>Dankort</label>
+            <code_alt>dankort</code_alt>
         </type>
     </adyen_credit_cards>
 </payment>

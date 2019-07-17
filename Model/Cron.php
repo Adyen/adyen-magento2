@@ -1495,6 +1495,9 @@ class Cron
             case 'laser':
             case 'paypal':
             case 'sepadirectdebit':
+            case 'dankort':
+            case 'elo':
+            case 'hipercard':
                 $manualCaptureAllowed = true;
                 break;
             default:
