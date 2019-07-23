@@ -127,6 +127,12 @@ class Data extends AbstractHelper
     private $config;
 
     /**
+     * @var \Magento\Backend\Helper\Data $helperBackend
+     */
+    private $helperBackend;
+
+
+    /**
      * Data constructor.
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
@@ -145,6 +151,9 @@ class Data extends AbstractHelper
      * @param \Magento\Framework\App\CacheInterface $cache
      * @param \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory
      * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel
+     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
+     * @param \Magento\Backend\Helper\Data $helperBackend
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -165,7 +174,8 @@ class Data extends AbstractHelper
         \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory,
         \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel,
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
-        \Magento\Framework\App\Config\ScopeConfigInterface $config
+        \Magento\Framework\App\Config\ScopeConfigInterface $config,
+        \Magento\Backend\Helper\Data $helperBackend
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -186,6 +196,7 @@ class Data extends AbstractHelper
         $this->agreementResourceModel = $agreementResourceModel;
         $this->localeResolver = $localeResolver;
         $this->config = $config;
+        $this->helperBackend = $helperBackend;
     }
 
     /**
@@ -1477,7 +1488,12 @@ class Data extends AbstractHelper
      * @return string
      */
     public function getOrigin() {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $state = $objectManager->get('Magento\Framework\App\State');
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
+        if ('adminhtml' === $state->getAreaCode()) {
+            $baseUrl =  $this->helperBackend->getHomePageUrl();
+        }
         $parsed = parse_url($baseUrl);
         $origin = $parsed['scheme'] . "://" . $parsed['host'];
         if (!empty($parsed['port'])) {
