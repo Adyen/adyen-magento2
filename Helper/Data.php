@@ -636,6 +636,32 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Gives back adyen_google_pay configuration values
+     *
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenGooglePayConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_google_pay', $storeId);
+    }
+
+    /**
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenGooglePayMerchantIdentifier($storeId = null)
+    {
+        $demoMode = $this->getAdyenAbstractConfigDataFlag('demo_mode');
+        if ($demoMode) {
+            return $this->getAdyenGooglePayConfigData('merchant_identifier_test', $storeId);
+        } else {
+            return $this->getAdyenGooglePayConfigData('merchant_identifier_live', $storeId);
+        }
+    }
+
+    /**
      * Retrieve decrypted hmac key
      *
      * @return string
