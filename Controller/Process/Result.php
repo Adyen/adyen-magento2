@@ -249,7 +249,7 @@ class Result extends \Magento\Framework\App\Action\Action
                 break;
 			case Notification::RECEIVED:
 				$result = true;
-                if (strpos($paymentMethod, "alipay_hk_web") !== false) {
+                if (strpos($paymentMethod, "alipay_hk") !== false) {
                     $result = false;
                 }
 				$this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
