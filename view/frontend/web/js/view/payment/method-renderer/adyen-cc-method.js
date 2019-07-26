@@ -246,23 +246,39 @@ define(
                     self.threeDS2ChallengeComponent = self.checkout
                         .create('threeDS2Challenge', {
                             challengeToken: token,
+                            size: '05',
                             onComplete: function (result) {
-                                popupModal.modal("closeModal");
+                                self.closeModal(popupModal);
+
                                 fullScreenLoader.startLoader();
                                 threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON);
                                 }).error(function () {
-                                    popupModal.modal("closeModal");
                                     self.isPlaceOrderActionAllowed(true);
                                     fullScreenLoader.stopLoader();
                                 });
                             },
                             onError: function (error) {
+                                self.closeModal(popupModal);
                                 console.log(JSON.stringify(error));
                             }
                         });
                     self.threeDS2ChallengeComponent.mount(threeDS2Node);
                 }
+            },
+            /**
+             * This method is a workaround to close the modal in the right way and reconstruct the threeDS2Modal.
+             * This will solve issues when you cancel the 3DS2 challenge and retry the payment
+             */
+            closeModal: function (popupModal) {
+                popupModal.modal("closeModal");
+                $('.threeDS2Modal').remove();
+                $('.modals-overlay').remove();
+
+                // reconstruct the threeDS2Modal container again otherwise component can not find the threeDS2Modal
+                $('#threeDS2Wrapper').append("<div id=\"threeDS2Modal\">" +
+                    "<div id=\"threeDS2Container\"></div>" +
+                    "</div>");
             },
             /**
              * Builds the payment details part of the payment information reqeust
@@ -369,7 +385,9 @@ define(
 
                             if (self.redirectAfterPlaceOrder) {
                                 // use custom redirect Link for supporting 3D secure
-                                window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
+                                window.location.replace(url.build(
+                                    window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl)
+                                );
                             }
                         }
                     );
