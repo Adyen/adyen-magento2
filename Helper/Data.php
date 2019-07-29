@@ -648,6 +648,18 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Gives back adyen_google_pay configuration values
+     *
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function isAdyenGooglePayEnabled($storeId = null)
+    {
+        return $this->getAdyenGooglePayConfigData('active', $storeId);
+    }
+
+    /**
      * @param null $storeId
      * @return mixed
      */

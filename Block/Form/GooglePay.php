@@ -32,7 +32,7 @@ class GooglePay extends \Magento\Payment\Block\Form
     protected $adyenHelper;
 
     /**
-     * ApplePay constructor.
+     * GooglePay constructor.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Adyen\Payment\Helper\Data $adyenHelper
