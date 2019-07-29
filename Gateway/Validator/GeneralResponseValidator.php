@@ -33,6 +33,11 @@ class GeneralResponseValidator extends AbstractValidator
     private $adyenLogger;
 
     /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    private $adyenHelper;
+
+    /**
      * GeneralResponseValidator constructor.
      *
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
@@ -40,9 +45,11 @@ class GeneralResponseValidator extends AbstractValidator
      */
     public function __construct(
         \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Adyen\Payment\Helper\Data $adyenHelper
     ) {
         $this->adyenLogger = $adyenLogger;
+        $this->adyenHelper = $adyenHelper;
         parent::__construct($resultFactory);
     }
 
@@ -65,6 +72,14 @@ class GeneralResponseValidator extends AbstractValidator
             switch ($response['resultCode']) {
                 case "Authorised":
                     $payment->setAdditionalInformation('pspReference', $response['pspReference']);
+
+                    // Save cc_type if available in the response
+                    if (!empty($response['additionalData']['paymentMethod'])) {
+                        $ccType = $this->adyenHelper->getMagentoCreditCartType($response['additionalData']['paymentMethod']);
+                        $payment->setAdditionalInformation('cc_type', $ccType);
+                        $payment->setCcType($ccType);
+                    }
+
                     break;
                 case "Received":
                     $payment->setAdditionalInformation('pspReference', $response['pspReference']);
