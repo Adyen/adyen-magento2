@@ -63,7 +63,7 @@
                showInStore="1">
             <label>3DS2.0 Enabled</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/adyen_cc_threeds2/active</config_path>
+            <config_path>payment/adyen_cc/threeds2_enabled</config_path>
         </field>
 
         <group id="adyen_cc_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1"

@@ -1221,3 +1221,12 @@
 .threeDS2Modal .action-close {display:none; }
 
 
+
+.threeDS2Modal #threeDS2Container {
+    height: 100vh;
+}
+
+.adyen-checkout__threeds2, .adyen-checkout__threeds2__challenge {
+    height:100%;
+}
+

@@ -468,18 +468,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Gives back adyen_cc_threeds2 configuration values as flag
-     *
-     * @param $field
-     * @param null $storeId
-     * @return mixed
-     */
-    public function getAdyenCcThreeDS2ConfigDataFlag($field, $storeId = null)
-    {
-        return $this->getConfigData($field, 'adyen_cc_threeds2', $storeId, true);
-    }
-
-    /**
      * Gives back adyen_hpp configuration values
      *
      * @param $field
@@ -1739,7 +1727,7 @@ class Data extends AbstractHelper
      */
     public function isCreditCardThreeDS2Enabled($storeId = null)
     {
-        return $this->getAdyenCcThreeDS2ConfigDataFlag('active', $storeId);
+        return $this->getAdyenCcConfigDataFlag('threeds2_enabled', $storeId);
     }
 
 	/**
