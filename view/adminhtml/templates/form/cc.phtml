@@ -113,7 +113,7 @@ echo $code; ?>" style="display:none">
 
                     var card = checkout.create('card', {
                         originKey: "<?php echo $block->getCheckoutOriginKeys(); ?>",
-                        loadingContext: "<?php echo $block->getCheckoutContextUrl(); ?>",
+                        environment: "<?php echo $block->getCheckoutEnvironment(); ?>",
                         type: 'card',
                         groupTypes: ccTypes,
                         hideCVC: hideCVC,
@@ -122,10 +122,14 @@ echo $code; ?>" style="display:none">
                             // When the state is valid update the input fields
                             if (state.isValid) {
                                 // Here we enable the button if the component is now valid
-                                jQuery("#<?php /* @noEscape */ echo $code; ?>-number").val(state.data.encryptedCardNumber);
-                                jQuery("#<?php /* @noEscape */ echo $code; ?>-expiryMonth").val(state.data.encryptedExpiryMonth);
-                                jQuery("#<?php /* @noEscape */ echo $code; ?>-expiryYear").val(state.data.encryptedExpiryYear);
-                                jQuery("#<?php /* @noEscape */ echo $code; ?>-cvc").val(state.data.encryptedSecurityCode);
+                                jQuery("#<?php /* @noEscape */ echo $code; ?>-number").val(state.data.paymentMethod.encryptedCardNumber);
+                                jQuery("#<?php /* @noEscape */ echo $code; ?>-expiryMonth").val(state.data.paymentMethod.encryptedExpiryMonth);
+                                jQuery("#<?php /* @noEscape */ echo $code; ?>-expiryYear").val(state.data.paymentMethod.encryptedExpiryYear);
+                                jQuery("#<?php /* @noEscape */ echo $code; ?>-cvc").val(state.data.paymentMethod.encryptedSecurityCode);
+                            }
+                        },
+                        onBrand: function (state) {
+                            if (state.isValid) {
                                 jQuery("#<?php /* @noEscape */ echo $code; ?>-cc_type").val(getCcCodeByAltCode(state.brand));
                             }
                         },

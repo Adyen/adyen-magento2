@@ -33,10 +33,8 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
-    const CHECKOUT_CONTEXT_URL_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/';
-    const CHECKOUT_CONTEXT_URL_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/';
-    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/2.5.0/adyen.js';
-    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.5.0/adyen.js';
+    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.0.0/adyen.js';
+    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.0.0/adyen.js';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -129,6 +127,12 @@ class Data extends AbstractHelper
     private $config;
 
     /**
+     * @var \Magento\Backend\Helper\Data $helperBackend
+     */
+    private $helperBackend;
+
+
+    /**
      * Data constructor.
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
@@ -147,6 +151,9 @@ class Data extends AbstractHelper
      * @param \Magento\Framework\App\CacheInterface $cache
      * @param \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory
      * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel
+     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
+     * @param \Magento\Backend\Helper\Data $helperBackend
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -167,7 +174,8 @@ class Data extends AbstractHelper
         \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory,
         \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel,
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
-        \Magento\Framework\App\Config\ScopeConfigInterface $config
+        \Magento\Framework\App\Config\ScopeConfigInterface $config,
+        \Magento\Backend\Helper\Data $helperBackend
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -188,6 +196,7 @@ class Data extends AbstractHelper
         $this->agreementResourceModel = $agreementResourceModel;
         $this->localeResolver = $localeResolver;
         $this->config = $config;
+        $this->helperBackend = $helperBackend;
     }
 
     /**
@@ -249,39 +258,34 @@ class Data extends AbstractHelper
     public function formatAmount($amount, $currency)
     {
         switch ($currency) {
-            case "JPY":
-            case "IDR":
-            case "KRW":
-            case "BYR":
-            case "VND":
             case "CVE":
             case "DJF":
             case "GNF":
+            case "IDR":
+            case "JPY":
+            case "KMF":
+            case "KRW":
             case "PYG":
             case "RWF":
             case "UGX":
+            case "VND":
             case "VUV":
             case "XAF":
             case "XOF":
             case "XPF":
-            case "GHC":
-            case "KMF":
                 $format = 0;
                 break;
-            case "MRO":
-                $format = 1;
-                break;
             case "BHD":
+            case "IQD":
             case "JOD":
             case "KWD":
-            case "OMR":
             case "LYD":
+            case "OMR":
             case "TND":
                 $format = 3;
                 break;
             default:
                 $format = 2;
-                break;
         }
 
         return (int)number_format($amount, $format, '', '');
@@ -389,6 +393,9 @@ class Data extends AbstractHelper
         if (count($street) != 1) {
             return $street;
         }
+
+        $street['0'] = trim($street['0']);
+
         preg_match('/((\s\d{0,10})|(\s\d{0,10}\w{1,3}))$/i', $street['0'], $houseNumber, PREG_OFFSET_CAPTURE);
         if (!empty($houseNumber['0'])) {
             $_houseNumber = trim($houseNumber['0']['0']);
@@ -458,18 +465,6 @@ class Data extends AbstractHelper
     public function getAdyenCcVaultConfigDataFlag($field, $storeId = null)
     {
         return $this->getConfigData($field, 'adyen_cc_vault', $storeId, true);
-    }
-
-    /**
-     * Gives back adyen_cc_threeds2 configuration values as flag
-     *
-     * @param $field
-     * @param null $storeId
-     * @return mixed
-     */
-    public function getAdyenCcThreeDS2ConfigDataFlag($field, $storeId = null)
-    {
-        return $this->getConfigData($field, 'adyen_cc_threeds2', $storeId, true);
     }
 
     /**
@@ -1353,14 +1348,14 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Return the Terminal ID for the current store/mode
+     * Return the Store ID for the current store/mode
      *
      * @param int|null $storeId
      * @return mixed
      */
-    public function getPoiId($storeId = null)
+    public function getPosStoreId($storeId = null)
     {
-        return $this->getAdyenPosCloudConfigData('pos_terminal_id', $storeId);
+        return $this->getAdyenPosCloudConfigData('pos_store_id', $storeId);
     }
 
     /**
@@ -1481,9 +1476,17 @@ class Data extends AbstractHelper
      * @return string
      */
     public function getOrigin() {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $state = $objectManager->get('Magento\Framework\App\State');
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
+        if ('adminhtml' === $state->getAreaCode()) {
+            $baseUrl =  $this->helperBackend->getHomePageUrl();
+        }
         $parsed = parse_url($baseUrl);
         $origin = $parsed['scheme'] . "://" . $parsed['host'];
+        if (!empty($parsed['port'])) {
+            $origin .= ":" . $parsed['port'];
+        }
         return $origin;
     }
 
@@ -1546,13 +1549,13 @@ class Data extends AbstractHelper
      * @param int|null $storeId
      * @return string
      */
-    public function getCheckoutContextUrl($storeId = null)
+    public function getCheckoutEnvironment($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            return self::CHECKOUT_CONTEXT_URL_TEST;
+            return self::TEST;
         }
 
-        return self::CHECKOUT_CONTEXT_URL_LIVE;
+        return self::LIVE;
     }
 
     /**
@@ -1724,7 +1727,7 @@ class Data extends AbstractHelper
      */
     public function isCreditCardThreeDS2Enabled($storeId = null)
     {
-        return $this->getAdyenCcThreeDS2ConfigDataFlag('active', $storeId);
+        return $this->getAdyenCcConfigDataFlag('threeds2_enabled', $storeId);
     }
 
 	/**

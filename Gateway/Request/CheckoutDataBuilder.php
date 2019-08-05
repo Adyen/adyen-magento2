@@ -25,7 +25,6 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
-use Adyen\Payment\Observer\AdyenBoletoDataAssignObserver;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
@@ -40,39 +39,23 @@ class CheckoutDataBuilder implements BuilderInterface
     private $storeManager;
 
     /**
-     * @var \Magento\Checkout\Model\Session
+     * @var \Magento\Quote\Api\CartRepositoryInterface
      */
-    private $checkoutSession;
+    private $cartRepository;
 
     /**
-     * @var \Magento\Quote\Model\Quote
-     */
-    private $quote;
-
-	/**
-	 * @var \Magento\Tax\Model\Config
-	 */
-	protected $taxConfig;
-
-    /**
-     * CheckoutDataBuilder constructor.
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Helper\Data                 $adyenHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Checkout\Model\Session $checkoutSession
-     * @param \Magento\Tax\Model\Config $taxConfig
+     * @param \Magento\Quote\Api\CartRepositoryInterface $cartRepository
      */
 	public function __construct(
-		\Adyen\Payment\Helper\Data $adyenHelper,
-		\Magento\Store\Model\StoreManagerInterface $storeManager,
-		\Magento\Checkout\Model\Session $checkoutSession,
-		\Magento\Tax\Model\Config $taxConfig
-    )
-    {
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Quote\Api\CartRepositoryInterface $cartRepository
+    ) {
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
-        $this->checkoutSession = $checkoutSession;
-        $this->quote = $checkoutSession->getQuote();
-        $this->taxConfig = $taxConfig;
+        $this->cartRepository = $cartRepository;
     }
 
 	/**
@@ -204,21 +187,24 @@ class CheckoutDataBuilder implements BuilderInterface
     }
 
     /**
-     * @param $formFields
-     * @return mixed
+     * @param \Magento\Sales\Model\Order $order
+     *
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     *
+     * @return array
      */
-    protected function getOpenInvoiceData($order)
+    protected function getOpenInvoiceData($order): array
     {
         $formFields = [
             'lineItems' => []
         ];
 
-        $currency = $this->quote->getCurrency();
-
+        /** @var \Magento\Quote\Model\Quote $cart */
+        $cart = $this->cartRepository->get($order->getQuoteId());
+        $currency = $cart->getCurrency();
         $discountAmount = 0;
 
-        foreach ($this->quote->getAllVisibleItems() as $item) {
-
+        foreach ($cart->getAllVisibleItems() as $item) {
             $numberOfItems = (int)$item->getQty();
 
             // Summarize the discount amount item by item
@@ -263,20 +249,18 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         // Shipping cost
-        if ($this->quote->getShippingAddress()->getShippingAmount() > 0 || $this->quote->getShippingAddress()->getShippingTaxAmount() > 0) {
+        if ($cart->getShippingAddress()->getShippingAmount() > 0 || $cart->getShippingAddress()->getShippingTaxAmount() > 0) {
 
-            $priceExcludingTax = $this->quote->getShippingAddress()->getShippingAmount() - $this->quote->getShippingAddress()->getShippingTaxAmount();
+            $priceExcludingTax = $cart->getShippingAddress()->getShippingAmount() - $cart->getShippingAddress()->getShippingTaxAmount();
 
-            $formattedTaxAmount = $this->adyenHelper->formatAmount($this->quote->getShippingAddress()->getShippingTaxAmount(), $currency);
+            $formattedTaxAmount = $this->adyenHelper->formatAmount($cart->getShippingAddress()->getShippingTaxAmount(), $currency);
 
             $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($priceExcludingTax, $currency);
-
-            $taxClassId = $this->taxConfig->getShippingTaxClass($this->storeManager->getStore()->getId());
 
             $formattedTaxPercentage = 0;
 
             if ($priceExcludingTax !== 0) {
-                $formattedTaxPercentage = $this->quote->getShippingAddress()->getShippingTaxAmount() / $priceExcludingTax * 100 * 100;
+                $formattedTaxPercentage = $cart->getShippingAddress()->getShippingTaxAmount() / $priceExcludingTax * 100 * 100;
             }
             
             $formFields['lineItems'][] = [

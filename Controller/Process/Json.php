@@ -75,6 +75,7 @@ class Json extends \Magento\Framework\App\Action\Action
             $request = $this->getRequest();
             if ($request instanceof Http && $request->isPost()) {
                 $request->setParam('isAjax', true);
+                $request->getHeaders()->addHeaderLine('X_REQUESTED_WITH', 'XMLHttpRequest');
             }
         }
     }

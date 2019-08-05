@@ -42,6 +42,7 @@ define(
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
         var messageComponents;
+        var shippingAddressCountryCode = quote.shippingAddress().countryId;
         /**
          * Shareble adyen checkout component
          * @type {AdyenCheckout}
@@ -89,74 +90,62 @@ define(
 
                 // reset variable:
                 adyenPaymentService.setPaymentMethods();
+                
+                adyenPaymentService.retrieveAvailablePaymentMethods(function() {
+                    let paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
+                    if (JSON.stringify(paymentMethods).indexOf("ratepay") > -1) {
+                        var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
+                        var dfValueRatePay = self.getRatePayDeviceIdentToken();
 
-                // retrieve payment methods
-                var serviceUrl,
-                    payload;
-                if (customer.isLoggedIn()) {
-                    serviceUrl = urlBuilder.createUrl('/carts/mine/retrieve-adyen-payment-methods', {});
-                } else {
-                    serviceUrl = urlBuilder.createUrl('/guest-carts/:cartId/retrieve-adyen-payment-methods', {
-                        cartId: quote.getQuoteId()
-                    });
-                }
+                        window.di = {
+                            t: dfValueRatePay.replace(':', ''),
+                            v: ratePayId,
+                            l: 'Checkout'
+                        };
 
-                payload = {
-                    cartId: quote.getQuoteId(),
-                    shippingAddress: quote.shippingAddress()
-                };
-
-                storage.post(
-                    serviceUrl, JSON.stringify(payload)
-                ).done(
-                    function (response) {
-                        adyenPaymentService.setPaymentMethods(response);
-                        if (JSON.stringify(response).indexOf("ratepay") > -1) {
-                            var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
-                            var dfValueRatePay = self.getRatePayDeviceIdentToken();
-
-                            window.di = {
-                                t: dfValueRatePay.replace(':', ''),
-                                v: ratePayId,
-                                l: 'Checkout'
-                            };
-
-                            // Load Ratepay script
-                            var ratepayScriptTag = document.createElement('script');
-                            ratepayScriptTag.src = "//d.ratepay.com/" + ratePayId + "/di.js";
-                            ratepayScriptTag.type = "text/javascript";
-                            document.body.appendChild(ratepayScriptTag);
-                        }
-
-                        // create component needs to be in initialize method
-                        var messageComponents = {};
-                        _.map(response, function (value) {
-
-                            var messageContainer = new Messages();
-                            var name = 'messages-' + self.getBrandCodeFromPaymentMethod(value);
-                            var messagesComponent = {
-                                parent: self.name,
-                                name: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
-                                displayArea: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
-                                component: 'Magento_Ui/js/view/messages',
-                                config: {
-                                    messageContainer: messageContainer
-                                }
-                            };
-                            layout([messagesComponent]);
-
-                            messageComponents[name] = messageContainer;
-                        });
-                        self.messageComponents = messageComponents;
-
-                        fullScreenLoader.stopLoader();
+                        // Load Ratepay script
+                        var ratepayScriptTag = document.createElement('script');
+                        ratepayScriptTag.src = "//d.ratepay.com/" + ratePayId + "/di.js";
+                        ratepayScriptTag.type = "text/javascript";
+                        document.body.appendChild(ratepayScriptTag);
                     }
-                ).fail(function (error) {
+
+                    // create component needs to be in initialize method
+                    var messageComponents = {};
+                    _.map(paymentMethods, function (value) {
+
+                        var messageContainer = new Messages();
+                        var name = 'messages-' + self.getBrandCodeFromPaymentMethod(value);
+                        var messagesComponent = {
+                            parent: self.name,
+                            name: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
+                            displayArea: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
+                            component: 'Magento_Ui/js/view/messages',
+                            config: {
+                                messageContainer: messageContainer
+                            }
+                        };
+                        layout([messagesComponent]);
+
+                        messageComponents[name] = messageContainer;
+                    });
+                    self.messageComponents = messageComponents;
+
                     fullScreenLoader.stopLoader();
                 });
             },
             getAdyenHppPaymentMethods: function () {
                 var self = this;
+                let currentShippingAddressCountryCode = quote.shippingAddress().countryId;
+
+                // retrieve new payment methods if country code changed
+                if (shippingAddressCountryCode != currentShippingAddressCountryCode) {
+                    fullScreenLoader.startLoader();
+                    adyenPaymentService.retrieveAvailablePaymentMethods();
+                    shippingAddressCountryCode = currentShippingAddressCountryCode;
+                    fullScreenLoader.stopLoader();
+                }
+
                 var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
 
                 var paymentList = _.map(paymentMethods, function (value) {
@@ -290,15 +279,27 @@ define(
                         return 17;
                     };
                     /**
+                     * Finds the issuer property in the payment method's response and if available returns it's index
+                     * @returns
+                     */
+                    result.findIssuersProperty = function () {
+                        var issuerKey = false;
+                        if (typeof value.details !== 'undefined') {
+                            $.each(value.details, function(key, detail) {
+                                if (typeof detail.items !== 'undefined' && detail.key == 'issuer') {
+                                    issuerKey = key;
+                                }
+                            });
+                        }
+
+                        return issuerKey;
+                    }
+                    /**
                      * Checks if the payment method has issuers property available
                      * @returns {boolean}
                      */
                     result.hasIssuersProperty = function () {
-                        if (
-                            typeof value.details !== 'undefined' &&
-                            typeof value.details[0].items !== 'undefined' &&
-                            value.details[0].key == 'issuer'
-                        ) {
+                        if (result.findIssuersProperty() !== false) {
                             return true;
                         }
 
@@ -309,7 +310,7 @@ define(
                      * @returns {boolean}
                      */
                     result.hasIssuersAvailable = function () {
-                        if (result.hasIssuersProperty() && value.details[0].items.length > 0) {
+                        if (result.hasIssuersProperty() && value.details[result.findIssuersProperty()].items.length > 0) {
                             return true;
                         }
 
@@ -321,7 +322,7 @@ define(
                      */
                     result.getIssuers = function() {
                         if (result.hasIssuersAvailable()) {
-                            return value.details[0].items;
+                            return value.details[result.findIssuersProperty()].items;
                         }
 
                         return [];
@@ -372,7 +373,7 @@ define(
                             items: result.getIssuers(),
                             onChange: function (state) {
                                 if (!!state.isValid) {
-                                    result.issuer(state.data.issuer);
+                                    result.issuer(state.data.paymentMethod.issuer);
                                     result.isPlaceOrderAllowed(true);
 
                                 } else {
@@ -397,8 +398,8 @@ define(
                             countryCode: self.getLocale(),
                             onChange: function (state) {
                                 if (!!state.isValid) {
-                                    result.ownerName(state.data["sepa.ownerName"]);
-                                    result.ibanNumber(state.data["sepa.ibanNumber"]);
+                                    result.ownerName(state.data.paymentMethod["sepa.ownerName"]);
+                                    result.ibanNumber(state.data.paymentMethod["sepa.ibanNumber"]);
                                     result.isPlaceOrderAllowed(true);
                                 } else {
                                     result.isPlaceOrderAllowed(false);
@@ -430,9 +431,9 @@ define(
                             },
                             onChange: function (state) {
                                 if (!!state.isValid) {
-                                    result.dob(state.data.personalDetails.dateOfBirth);
-                                    result.telephone(state.data.personalDetails.telephoneNumber);
-                                    result.gender(state.data.personalDetails.gender);
+                                    result.dob(state.data.paymentMethod.personalDetails.dateOfBirth);
+                                    result.telephone(state.data.paymentMethod.personalDetails.telephoneNumber);
+                                    result.gender(state.data.paymentMethod.personalDetails.gender);
                                     result.isPlaceOrderAllowed(true);
                                 } else {
                                     result.isPlaceOrderAllowed(false);
@@ -455,9 +456,9 @@ define(
                             },
                             onChange: function (state) {
                                 if (!!state.isValid) {
-                                    result.dob(state.data.personalDetails.dateOfBirth);
-                                    result.telephone(state.data.personalDetails.telephoneNumber);
-                                    result.gender(state.data.personalDetails.gender);
+                                    result.dob(state.data.paymentMethod.personalDetails.dateOfBirth);
+                                    result.telephone(state.data.paymentMethod.personalDetails.telephoneNumber);
+                                    result.gender(state.data.paymentMethod.personalDetails.gender);
                                     result.isPlaceOrderAllowed(true);
                                 } else {
                                     result.isPlaceOrderAllowed(false);
