@@ -500,7 +500,7 @@
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPayment</argument>
             <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
-            <argument name="handler" xsi:type="object">AdyenPaymentResponseHandlerComposite</argument>
+            <argument name="handler" xsi:type="object">AdyenPaymentGooglePayResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
 
@@ -646,6 +646,7 @@
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
                 <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\GooglePayAuthorizationDataBuilder</item>
+                <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -689,6 +690,15 @@
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentBoletoResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="payment_details" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentsDetailsHandler</item>
+                <item name="vault_details" xsi:type="string">Adyen\Payment\Gateway\Response\VaultDetailsHandler</item>
+                <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentCommentHistoryHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentGooglePayResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="payment_details" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentsDetailsHandler</item>

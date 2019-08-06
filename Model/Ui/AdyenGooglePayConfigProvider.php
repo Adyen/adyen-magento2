@@ -72,13 +72,15 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Checkout\Model\Session $checkoutSession
     ) {
         $this->paymentHelper = $paymentHelper;
         $this->adyenHelper = $adyenHelper;
         $this->_request = $request;
         $this->urlBuilder = $urlBuilder;
         $this->storeManager = $storeManager;
+        $this->checkoutSession = $checkoutSession;
     }
 
     /**
@@ -104,6 +106,13 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
         $config['payment']['adyenGooglePay']['active'] = (bool)$this->adyenHelper->isAdyenGooglePayEnabled($this->storeManager->getStore()->getId());
         $config['payment']['adyenGooglePay']['checkoutEnvironment'] = $this->adyenHelper->getCheckoutEnvironment($this->storeManager->getStore()->getId());
         $config['payment']['adyenGooglePay']['locale'] = $this->adyenHelper->getStoreLocale($this->storeManager->getStore()->getId());
+        $config['payment']['adyenGooglePay']['merchantAccount'] = $this->adyenHelper->getAdyenMerchantAccount("adyen_google_pay", $this->storeManager->getStore()->getId());
+
+        $quote = $this->checkoutSession->getQuote();
+        $currency = $quote->getCurrency();
+        $config['payment']['adyenGooglePay']['format'] = $this->adyenHelper->formatAmount(0, $currency, true);
+
+        $config['payment']['adyenGooglePay']['merchantIdentifier'] = $this->adyenHelper->getAdyenGooglePayMerchantIdentifier($this->storeManager->getStore()->getId());
 
         return $config;
     }

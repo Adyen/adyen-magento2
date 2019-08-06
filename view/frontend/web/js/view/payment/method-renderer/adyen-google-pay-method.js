@@ -37,9 +37,10 @@ define(
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Checkout/js/model/error-processor',
         'Magento_Ui/js/model/messages',
-        'Magento_Checkout/js/action/redirect-on-success'
+        'Magento_Checkout/js/action/redirect-on-success',
+        'mage/url'
     ],
-    function (ko, $, Component, additionalValidators, placeOrderAction, quote, agreementsAssigner, customer, urlBuilder, storage, fullScreenLoader, errorProcessor, Messages, redirectOnSuccessAction) {
+    function (ko, $, Component, additionalValidators, placeOrderAction, quote, agreementsAssigner, customer, urlBuilder, storage, fullScreenLoader, errorProcessor, Messages, redirectOnSuccessAction, url) {
         'use strict';
 
         /**
@@ -51,7 +52,8 @@ define(
         return Component.extend({
             self: this,
             defaults: {
-                template: 'Adyen_Payment/payment/google-pay-form'
+                template: 'Adyen_Payment/payment/google-pay-form',
+                googlePayToken: null
             },
             /**
              * @returns {Boolean}
@@ -80,25 +82,16 @@ define(
             initObservable: function () {
                 this._super()
                     .observe([
-                        'brandCode',
-                        'issuer',
-                        'gender',
-                        'dob',
-                        'telephone',
-                        'ownerName',
-                        'ibanNumber',
-                        'ssn',
-                        'bankAccountNumber',
-                        'bankLocationId'
+                        'googlePayToken'
                     ]);
                 return this;
-            },initialize: function () {
+            }, initialize: function () {
                 var self = this;
                 this._super();
 
             },
 
-            renderGooglePay: function() {
+            renderGooglePay: function () {
                 var self = this;
                 var googlePayNode = document.getElementById('googlePay');
                 self.checkoutComponent = new AdyenCheckout({
@@ -109,69 +102,48 @@ define(
                     }
                 });
                 const googlepay = self.checkoutComponent.create('paywithgoogle', {
-                    // environment: 'PRODUCTION',
                     environment: self.getCheckoutEnvironment().toUpperCase(),
 
                     configuration: {
                         // Adyen's merchant account
-                        gatewayMerchantId: 'MagentoMerchantAlessio2',
+                        gatewayMerchantId: self.getMerchantAccount(),
 
                         // https://developers.google.com/pay/api/web/reference/object#MerchantInfo
-                        merchantIdentifier: '123123123123123',
-                        merchantName: 'MagentoMerchantAlessio2'
+                        merchantIdentifier: self.getMerchantIdentifier(),
+                        merchantName: self.getMerchantAccount()
                     },
 
                     // Payment
-                    amount: self.formatAmount(quote.totals().grand_total, quote.totals().quote_currency_code),
+                    amount: self.formatAmount(quote.totals().grand_total, self.getFormat()),
                     currency: quote.totals().quote_currency_code,
                     totalPriceStatus: 'FINAL',
 
-                    //     // Callbacks
-                    onError: function (error) {
-                        console.log("err");
-                        console.log(error)
-                    },
-                    onAuthorized: function (state) {
-                        console.log("onauth");
-
-                    },
                     onChange: function (state) {
-                        console.log("onchange");
-                        console.log(state);
                         if (!!state.isValid) {
-                            var data = {
-                                'method': "adyen_google_pay",
-                                'additional_data': {
-                                    'token': state.data.paymentMethod["paywithgoogle.token"]
+                            self.googlePayToken(state.data.paymentMethod["paywithgoogle.token"]);
+                            self.getPlaceOrderDeferredObject()
+                                .fail(
+                                    function () {
+                                        fullScreenLoader.stopLoader();
+                                        self.isPlaceOrderActionAllowed(true);
+                                    }
+                                ).done(
+                                function () {
+                                    self.afterPlaceOrder();
+                                    window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
+
+                                }
+                            );
+                            // placeOrderAction(data, new Messages())
                         }
-                        }
-                            ;
-                            self.isPlaceOrderActionAllowed(true);
-                            console.log(data);
-                                placeOrderAction(data, new Messages())
-                        }
-                        console.log(state);
                     },
                     // ButtonOptions
                     // https://developers.google.com/pay/api/web/reference/object#ButtonOptions
-                    buttonColor: 'default', // default/black/white
+                    buttonColor: 'black', // default/black/white
                     buttonType: 'short', // long/short
                     showButton: true, // show or hide the Google Pay button
 
-                    // CardParameters
-                    // https://developers.google.com/pay/api/web/reference/object#CardParameters
-                    allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-                    allowedCardNetworks: ['AMEX', 'DISCOVER', 'JCB', 'MASTERCARD', 'VISA'],
-                    existingPaymentMethodRequired: true,
-                    allowPrepaidCards: true, // Set to false if you don't support prepaid cards.
-                    billingAddressRequired: false, // A billing address should only be requested if it's required to process the transaction.
-                    billingAddressParameters: {}, // The expected fields returned if billingAddressRequired is set to true.
-
-                    emailRequired: false,
-                    shippingAddressRequired: false,
-                    shippingAddressParameters: {} // https://developers.google.com/pay/api/web/reference/object#ShippingAddressParameters
-            }).mount(googlePayNode);
-console.log(googlepay);
+                }).mount(googlePayNode);
             },
             getCheckoutEnvironment: function () {
                 return window.checkoutConfig.payment.adyenGooglePay.checkoutEnvironment;
@@ -182,11 +154,20 @@ console.log(googlepay);
                 }
                 return false;
             },
+            getMerchantAccount: function () {
+                return window.checkoutConfig.payment.adyenGooglePay.merchantAccount;
+            },
             showLogo: function () {
                 return window.checkoutConfig.payment.adyen.showLogo;
             },
             getLocale: function () {
                 return window.checkoutConfig.payment.adyenGooglePay.locale;
+            },
+            getFormat: function () {
+                return window.checkoutConfig.payment.adyenGooglePay.format;
+            },
+            getMerchantIdentifier: function () {
+                return window.checkoutConfig.payment.adyenGooglePay.merchantIdentifier;
             },
             context: function () {
                 return this;
@@ -200,17 +181,18 @@ console.log(googlepay);
             getPlaceOrderUrl: function () {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
             },
-            // /**
-            //  * Get available card types translated to the Adyen card type codes
-            //  * (The card type alt code is the Adyen card type code)
-            //  *
-            //  * @returns {string[]}
-            //  */
-            // getAvailableCardTypeAltCodes: function () {
-            //     var ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
-            //     return Object.keys(ccTypes);
-            // }
-
+            /**
+             * Get data for place order
+             * @returns {{method: *}}
+             */
+            getData: function () {
+                return {
+                    'method': "adyen_google_pay",
+                    'additional_data': {
+                        'token': this.googlePayToken()
+                    }
+                };
+            },
 
             /**
              * Return the formatted currency. Adyen accepts the currency in multiple formats.
@@ -218,37 +200,7 @@ console.log(googlepay);
              * @param $currency
              * @return string
              */
-            formatAmount: function (amount, currency) {
-                switch (currency) {
-                    case "CVE":
-                    case "DJF":
-                    case "GNF":
-                    case "IDR":
-                    case "JPY":
-                    case "KMF":
-                    case "KRW":
-                    case "PYG":
-                    case "RWF":
-                    case "UGX":
-                    case "VND":
-                    case "VUV":
-                    case "XAF":
-                    case "XOF":
-                    case "XPF":
-                        var format = 0;
-                        break;
-                    case "BHD":
-                    case "IQD":
-                    case "JOD":
-                    case "KWD":
-                    case "LYD":
-                    case "OMR":
-                    case "TND":
-                        var format = 3;
-                        break;
-                    default:
-                        var format = 2;
-                }
+            formatAmount: function (amount, format) {
                 return Math.round(amount * (Math.pow(10, format)))
             }
         });

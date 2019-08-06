@@ -255,7 +255,7 @@ class Data extends AbstractHelper
      * @param $currency
      * @return string
      */
-    public function formatAmount($amount, $currency)
+    public function formatAmount($amount, $currency, $returnFormat = false)
     {
         switch ($currency) {
             case "CVE":
@@ -288,8 +288,13 @@ class Data extends AbstractHelper
                 $format = 2;
         }
 
+        if ($returnFormat) {
+            return $format;
+        }
+
         return (int)number_format($amount, $format, '', '');
     }
+
 
     /**
      * Tax Percentage needs to be in minor units for Adyen
