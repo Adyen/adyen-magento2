@@ -46,17 +46,4 @@ class GooglePay extends \Magento\Payment\Block\Form
         parent::__construct($context, $data);
         $this->adyenHelper = $adyenHelper;
     }
-
-//    /**
-//     * @return array
-//     */
-//    public function getApplePayShippingTypes()
-//    {
-//        $applePayShippingTypes = $this->_adyenHelper->getApplePayShippingTypes();
-//        $types = [];
-//        foreach ($applePayShippingTypes as $applePayShippingType) {
-//            $types[$applePayShippingType['value']] = $applePayShippingType['label'];
-//        }
-//        return $types;
-//    }
 }
