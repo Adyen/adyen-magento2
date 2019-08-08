@@ -42,6 +42,7 @@
         <arguments>
             <argument name="tokenUiComponentProviders" xsi:type="array">
                 <item name="adyen_cc" xsi:type="object">Adyen\Payment\Model\Ui\TokenUiComponentProvider</item>
+                <item name="adyen_google_pay" xsi:type="object">Adyen\Payment\Model\Ui\TokenGooglePayUiComponentProvider</item>
             </argument>
         </arguments>
     </type>

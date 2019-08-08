@@ -53,6 +53,16 @@
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentCcFacade</argument>
         </arguments>
     </virtualType>
+    <virtualType name="AdyenPaymentGooglePayVaultFacade" type="Magento\Vault\Model\Method\Vault">
+        <arguments>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGooglePayConfigProvider::GOOGLE_PAY_VAULT_CODE
+            </argument>
+            <argument name="config" xsi:type="object">AdyenPaymentCcVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentCcVaultPaymentValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">AdyenPaymentGooglePayFacade</argument>
+        </arguments>
+    </virtualType>
+
     <virtualType name="AdyenPaymentOneclickFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE</argument>
@@ -334,6 +344,7 @@
         <arguments>
             <argument name="executors" xsi:type="array">
                 <item name="adyen_cc" xsi:type="string">AdyenPaymentCcCommandManager</item>
+                <item name="adyen_google_pay" xsi:type="string">AdyenPaymentCcCommandManager</item>
             </argument>
         </arguments>
     </type>

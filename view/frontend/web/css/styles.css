@@ -181,6 +181,11 @@
     min-height: 42px; /* override magento min-height */
 }
 
+.gpay-button:hover, .gpay-button:active, .gpay-button:focus{
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
 /*
     Custom style for ideal component
  */

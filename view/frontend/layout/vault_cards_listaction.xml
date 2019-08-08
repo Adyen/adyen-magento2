@@ -28,7 +28,7 @@
         <referenceContainer name="content">
             <referenceBlock name="vault.cards.list">
                 <block class="Adyen\Payment\Block\Customer\CardRenderer" name="adyen.card.renderer"
-                       template="Magento_Vault::customer_account/credit_card.phtml"/>
+                       template="Magento_Vault::customer_account/credit_card.phtml" cacheable="false"/>
             </referenceBlock>
         </referenceContainer>
     </body>

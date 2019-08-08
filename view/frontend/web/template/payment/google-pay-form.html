@@ -20,7 +20,6 @@
   ~
   ~ Author: Adyen <magento@adyen.com>
   -->
-<!-- ko if: isGooglePayAllowed() -->
 <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
     <div class="payment-method-title field choice">
         <input type="radio"
@@ -52,7 +51,10 @@
             <!--/ko-->
         </div>
         <div class="field number googlePay">
-            <div afterRender="renderGooglePay()" data-bind="attr: { id: 'googlePay'}"></div>
+            <div afterRender="renderGooglePay()" data-bind="attr: { id: 'googlePay'}">
+                <!-- ko ifnot: isGooglePayAllowed() -->
+                Google Pay is not available
+                <!--/ko--></div>
         </div>
 
         <div id="adyen-google-pay-button" class="google-pay-button-with-text google-pay-button-black-with-text"
@@ -60,7 +62,5 @@
             <span class="logo"></span>
         </div>
 
-
     </div>
 </div>
-<!--/ko-->

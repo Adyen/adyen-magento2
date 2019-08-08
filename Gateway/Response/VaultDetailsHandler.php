@@ -135,6 +135,10 @@ class VaultDetailsHandler implements HandlerInterface
 
             $cardType = $additionalData['paymentMethod'];
 
+            if (strpos($cardType, "paywithgoogle") !== false && !empty($additionalData['paymentMethodVariant'])) {
+                $cardType = $additionalData['paymentMethodVariant'];
+            }
+
             try {
                 /** @var PaymentTokenInterface $paymentToken */
                 $paymentToken = $this->paymentTokenFactory->create(

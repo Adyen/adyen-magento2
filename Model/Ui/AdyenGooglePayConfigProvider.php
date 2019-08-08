@@ -32,6 +32,8 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
 
     const CODE = 'adyen_google_pay';
 
+    const GOOGLE_PAY_VAULT_CODE = 'adyen_google_pay_vault';
+
     /**
      * @var PaymentHelper
      */
