@@ -32,12 +32,14 @@ use Magento\Quote\Api\Data\PaymentInterface;
 class AdyenPosCloudDataAssignObserver extends AbstractDataAssignObserver
 {
     const TERMINAL_ID = 'terminal_id';
+    const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
 
     /**
      * @var array
      */
     protected $additionalInformationList = [
-        self::TERMINAL_ID
+        self::TERMINAL_ID,
+        self::NUMBER_OF_INSTALLMENTS
     ];
 
     /**

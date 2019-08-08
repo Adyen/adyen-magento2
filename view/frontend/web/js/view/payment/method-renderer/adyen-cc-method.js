@@ -39,7 +39,7 @@ define(
         'Adyen_Payment/js/threeds2-js-utils',
         'Adyen_Payment/js/model/threeds2'
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installments, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installmentsHelper, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2) {
 
         'use strict';
 
@@ -83,13 +83,13 @@ define(
                         'expiryMonth',
                         'expiryYear',
                         'installment',
+                        'installments',
                         'creditCardDetailsValid',
                         'placeOrderAllowed'
                     ]);
 
                 return this;
             },
-            getInstallments: installments.getInstallments(),
             /**
              * Returns true if card details can be stored
              * @returns {*|boolean}
@@ -104,17 +104,17 @@ define(
              * set up the installments
              */
             renderSecureFields: function () {
-                var self = this;
+                let self = this;
 
                 if (!self.getOriginKey()) {
                     return;
                 }
 
-                installments.setInstallments(0);
+                self.installments(0);
 
-                // installments enabled ??
-                var allInstallments = self.getAllInstallments();
-                var cardNode = document.getElementById('cardContainer');
+                // installments
+                let allInstallments = self.getAllInstallments();
+                let cardNode = document.getElementById('cardContainer');
 
                 self.cardComponent = self.checkout.create('card', {
                     originKey: self.getOriginKey(),
@@ -147,35 +147,24 @@ define(
                         if (creditCardType) {
                             // If the credit card type is already set, check if it changed or not
                             if (!self.creditCardType() || self.creditCardType() && self.creditCardType() != creditCardType) {
+                                let numberOfInstallments = [];
+
                                 if (creditCardType in allInstallments) {
 
                                     // get for the creditcard the installments
-                                    var installmentCreditcard = allInstallments[creditCardType];
-                                    var grandTotal = quote.totals().grand_total;
+                                    let installmentCreditcard = allInstallments[creditCardType];
+                                    let grandTotal = quote.totals().grand_total;
+                                    let precision = quote.getPriceFormat().precision;
+                                    let currencyCode = quote.totals().quote_currency_code;
 
-                                    var numberOfInstallments = [];
-                                    var dividedAmount = 0;
-                                    var dividedString = "";
-                                    $.each(installmentCreditcard, function (amount, installment) {
-
-                                        if (grandTotal >= amount) {
-                                            dividedAmount = (grandTotal / installment).toFixed(quote.getPriceFormat().precision);
-                                            dividedString = installment + " x " + dividedAmount + " " + quote.totals().quote_currency_code;
-                                            numberOfInstallments.push({
-                                                key: [dividedString],
-                                                value: installment
-                                            });
-                                        }
-                                        else {
-                                            return false;
-                                        }
-                                    });
+                                    numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(installmentCreditcard, grandTotal, precision, currencyCode);
                                 }
+
                                 if (numberOfInstallments) {
-                                    installments.setInstallments(numberOfInstallments);
+                                    self.installments(numberOfInstallments);
                                 }
                                 else {
-                                    installments.setInstallments(0);
+                                    self.installments(0);
                                 }
                             }
 
@@ -188,7 +177,7 @@ define(
                             }
                         } else {
                             self.creditCardType("")
-                            installments.setInstallments(0);
+                            self.installments(0);
                         }
                     }
                 }).mount(cardNode);
