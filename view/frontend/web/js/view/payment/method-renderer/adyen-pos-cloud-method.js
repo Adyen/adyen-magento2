@@ -176,7 +176,7 @@ define(
              * @returns {boolean}
              */
             isButtonActive: function () {
-                return this.isActive() && this.getCode() == this.isChecked();
+                return this.isActive() && this.getCode() == this.isChecked() && this.getConnectedTerminals().length > 0 && this.validate();
             },
         });
     }

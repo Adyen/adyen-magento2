@@ -158,7 +158,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         ];
 
         if (!empty($payload['number_of_installments'])) {
-            $request['SaleToPOIRequest']['PaymentData'] = [
+            $request['SaleToPOIRequest']['PaymentRequest']['PaymentData'] = [
                 "PaymentType" => "Instalment",
                 "Instalment" => [
                     "InstalmentType" => "EqualInstalments",
