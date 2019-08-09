@@ -1223,7 +1223,7 @@
 
 
 .threeDS2Modal #threeDS2Container {
-    height: 100vh;
+    margin-bottom: 5rem;
 }
 
 .adyen-checkout__threeds2, .adyen-checkout__threeds2__challenge {
