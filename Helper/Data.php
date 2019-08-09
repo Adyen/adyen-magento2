@@ -248,14 +248,12 @@ class Data extends AbstractHelper
         ];
     }
 
-
     /**
-     * Return the formatted currency. Adyen accepts the currency in multiple formats.
-     * @param $amount
+     * Return the number of decimals for the specified currency
      * @param $currency
-     * @return string
+     * @return int
      */
-    public function formatAmount($amount, $currency, $returnFormat = false)
+    public function decimalNumbers($currency)
     {
         switch ($currency) {
             case "CVE":
@@ -287,12 +285,18 @@ class Data extends AbstractHelper
             default:
                 $format = 2;
         }
+        return $format;
+    }
 
-        if ($returnFormat) {
-            return $format;
-        }
-
-        return (int)number_format($amount, $format, '', '');
+    /**
+     * Return the formatted amount. Adyen accepts the currency in multiple formats.
+     * @param $amount
+     * @param $currency
+     * @return int
+     */
+    public function formatAmount($amount, $currency)
+    {
+        return (int)number_format($amount, $this->decimalNumbers($currency), '', '');
     }
 
 
