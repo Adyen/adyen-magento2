@@ -674,12 +674,7 @@ class Data extends AbstractHelper
      */
     public function getAdyenGooglePayMerchantIdentifier($storeId = null)
     {
-        $demoMode = $this->getAdyenAbstractConfigDataFlag('demo_mode');
-        if ($demoMode) {
-            return $this->getAdyenGooglePayConfigData('merchant_identifier_test', $storeId);
-        } else {
-            return $this->getAdyenGooglePayConfigData('merchant_identifier_live', $storeId);
-        }
+        return $this->getAdyenGooglePayConfigData('merchant_identifier', $storeId);
     }
 
     /**

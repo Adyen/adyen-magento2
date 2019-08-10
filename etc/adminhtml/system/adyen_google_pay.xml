@@ -41,15 +41,10 @@
             <frontend_class>validate-number</frontend_class>
             <config_path>payment/adyen_google_pay/sort_order</config_path>
         </field>
-        <field id="merchant_identifier_test" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Test: Google Merchant Identifier</label>
-            <tooltip>You can retrieve this from your Google Account.</tooltip>
-            <config_path>payment/adyen_google_pay/merchant_identifier_test</config_path>
-        </field>
-        <field id="merchant_identifier_live" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Live: Google Merchant Identifier</label>
-            <tooltip>You can retrieve this from your Google Account.</tooltip>
-            <config_path>payment/adyen_google_pay/merchant_identifier_live</config_path>
+        <field id="merchant_identifier" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Google Merchant Identifier</label>
+            <comment><![CDATA[Your Google Merchant ID from Google Pay Developer Profile. For more information refer to <a href="https://developers.google.com/pay/api/web/guides/test-and-deploy/deploy-production-environment#obtain-your-merchantID">Obtain your merchantID</a>.]]></comment>
+            <config_path>payment/adyen_google_pay/merchant_identifier</config_path>
         </field>
     </group>
 </include>
