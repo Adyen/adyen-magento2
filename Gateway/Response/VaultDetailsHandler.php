@@ -140,6 +140,11 @@ class VaultDetailsHandler implements HandlerInterface
                 $paymentToken = $this->paymentTokenFactory->create(
                     PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
                 );
+
+                if (strpos($cardType, "paywithgoogle") !== false && !empty($additionalData['paymentMethodVariant'])) {
+                    $cardType = $additionalData['paymentMethodVariant'];
+                    $paymentToken->setIsVisible(false);
+                }
                 $paymentToken->setGatewayToken($token);
                 $paymentToken->setExpiresAt($this->getExpirationDate($expirationDate));
 
