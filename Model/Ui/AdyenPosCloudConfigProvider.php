@@ -49,6 +49,11 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
     protected $paymentMethodsHelper;
 
     /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    protected $adyenHelper;
+
+    /**
      * AdyenHppConfigProvider constructor.
      *
      * @param PaymentHelper $paymentHelper
@@ -57,11 +62,13 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
     public function __construct(
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
+        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper,
+        \Adyen\Payment\Helper\Data $adyenHelper
     ) {
         $this->request = $request;
         $this->urlBuilder = $urlBuilder;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -85,6 +92,20 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
         ];
 
         $config['payment']['adyenPos']['connectedTerminals'] = $this->getConnectedTerminals();
+
+        // has installments by default false
+        $config['payment']['adyenPos']['hasInstallments'] = false;
+
+        // get Installments
+        $installmentsEnabled = $this->adyenHelper->getAdyenPosCloudConfigData('enable_installments');
+        $installments = $this->adyenHelper->getAdyenPosCloudConfigData('installments');
+
+        if ($installmentsEnabled && $installments) {
+            $config['payment']['adyenPos']['installments'] = unserialize($installments);
+            $config['payment']['adyenPos']['hasInstallments'] = true;
+        } else {
+            $config['payment']['adyenPos']['installments'] = [];
+        }
 
         return $config;
     }
