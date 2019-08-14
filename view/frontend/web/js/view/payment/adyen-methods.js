@@ -55,6 +55,10 @@ define(
             {
                 type: 'adyen_pos_cloud',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-pos-cloud-method'
+            },
+            {
+                type: 'adyen_google_pay',
+                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-google-pay-method'
             }
         );
         /** Add view logic here if needed */
@@ -69,10 +73,19 @@ define(
                 checkoutCardComponentScriptTag.src = self.getCheckoutCardComponentSource();
                 checkoutCardComponentScriptTag.type = "text/javascript";
                 document.body.appendChild(checkoutCardComponentScriptTag);
+                if (this.isGooglePayEnabled()) {
+                    var googlepayscript = document.createElement('script');
+                    googlepayscript.src = "https://pay.google.com/gp/p/js/pay.js";
+                    googlepayscript.type = "text/javascript";
+                    document.body.appendChild(googlepayscript);
+                }
             },
             getCheckoutCardComponentSource: function() {
                 return window.checkoutConfig.payment.checkoutCardComponentSource;
             },
+            isGooglePayEnabled: function() {
+                return window.checkoutConfig.payment.adyenGooglePay.active;
+            }
         });
     }
 );

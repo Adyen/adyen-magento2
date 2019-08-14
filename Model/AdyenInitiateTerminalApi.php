@@ -153,13 +153,31 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                                             'RequestedAmount' => doubleval($quote->getGrandTotal()),
                                         ],
                                 ],
-                            'PaymentData' =>
-                                [
-                                    'PaymentType' => $transactionType,
-                                ],
                         ],
                 ],
         ];
+
+        if (!empty($payload['number_of_installments'])) {
+            $request['SaleToPOIRequest']['PaymentRequest']['PaymentData'] = [
+                "PaymentType" => "Instalment",
+                "Instalment" => [
+                    "InstalmentType" => "EqualInstalments",
+                    "SequenceNumber" => 1,
+                    "Period" => 1,
+                    "PeriodUnit" => "Monthly",
+                    "TotalNbOfPayments" => (int)$payload['number_of_installments']
+                ]
+            ];
+
+            $request['SaleToPOIRequest']['PaymentRequest']['PaymentTransaction']['TransactionConditions'] = [
+                "DebitPreferredFlag" => false
+            ];
+        } else {
+            $request['SaleToPOIRequest']['PaymentData'] = [
+                'PaymentType' => $transactionType,
+            ];
+
+        }
 
         $customerId = $this->getCustomerId($quote);
 

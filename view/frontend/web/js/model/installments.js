@@ -5,35 +5,36 @@
 define(
     [
         'ko',
+        'jquery',
     ],
-    function (ko) {
+    function (ko, $) {
         'use strict';
-        var installments = ko.observableArray(['key', 'value']);
         return {
             /**
-             * Populate the list of installments
-             * @param {Array} methods
-             */
-            setInstallments: function (installmentData) {
-                // remove everything from the current list
-                installments.removeAll();
-                var i;
-                for (i = 0; i < installmentData.length; i++) {
-                    installments.push(
-                        {
-                            key: installmentData[i].key,
-                            value: installmentData[i].value
-
-                        }
-                    );
-                }
-            },
-            /**
-             * Get the list of available installments.
+             *
+             * @param installments
+             * @param grandTotal
+             * @param precision
+             * @param currencyCode
              * @returns {Array}
              */
-            getInstallments: function () {
-                return installments;
+            getInstallmentsWithPrices: function (installments, grandTotal, precision, currencyCode) {
+                let numberOfInstallments = [];
+                let dividedAmount = 0;
+                let dividedString = "";
+
+                $.each(installments, function (amount, installment) {
+                    if (grandTotal >= amount) {
+                        dividedAmount = (grandTotal / installment).toFixed(precision);
+                        dividedString = installment + " x " + dividedAmount + " " + currencyCode;
+                        numberOfInstallments.push({
+                            key: [dividedString],
+                            value: installment
+                        });
+                    }
+                });
+
+                return numberOfInstallments;
             }
         };
     }

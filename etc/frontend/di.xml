@@ -34,6 +34,7 @@
                 <item name="adyen_boleto_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider</item>
                 <item name="adyen_pos_cloud_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider</item>
                 <item name="adyen_apple_pay_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenApplePayConfigProvider</item>
+                <item name="adyen_google_pay_config_provider" xsi:type="object">Adyen\Payment\Model\Ui\AdyenGooglePayConfigProvider</item>
             </argument>
         </arguments>
     </type>
@@ -41,6 +42,7 @@
         <arguments>
             <argument name="tokenUiComponentProviders" xsi:type="array">
                 <item name="adyen_cc" xsi:type="object">Adyen\Payment\Model\Ui\TokenUiComponentProvider</item>
+                <item name="adyen_google_pay" xsi:type="object">Adyen\Payment\Model\Ui\TokenGooglePayUiComponentProvider</item>
             </argument>
         </arguments>
     </type>

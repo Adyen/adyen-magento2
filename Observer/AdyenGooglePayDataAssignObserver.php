@@ -13,10 +13,11 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2019 Adyen B.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
@@ -27,19 +28,17 @@ use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 
 /**
- * Class DataAssignObserver
+ * Class AdyenGooglePayDataAssignObserver
  */
-class AdyenPosCloudDataAssignObserver extends AbstractDataAssignObserver
+class AdyenGooglePayDataAssignObserver extends AbstractDataAssignObserver
 {
-    const TERMINAL_ID = 'terminal_id';
-    const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
+    const TOKEN = 'token';
 
     /**
      * @var array
      */
     protected $additionalInformationList = [
-        self::TERMINAL_ID,
-        self::NUMBER_OF_INSTALLMENTS
+        self::TOKEN
     ];
 
     /**
@@ -57,8 +56,11 @@ class AdyenPosCloudDataAssignObserver extends AbstractDataAssignObserver
 
         $paymentInfo = $this->readPaymentModelArgument($observer);
 
+        // set ccType
+        $paymentInfo->setCcType('google_pay');
+
         foreach ($this->additionalInformationList as $additionalInformationKey) {
-            if (!empty($additionalData[$additionalInformationKey])) {
+            if (isset($additionalData[$additionalInformationKey])) {
                 $paymentInfo->setAdditionalInformation(
                     $additionalInformationKey,
                     $additionalData[$additionalInformationKey]

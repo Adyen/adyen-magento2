@@ -248,14 +248,12 @@ class Data extends AbstractHelper
         ];
     }
 
-
     /**
-     * Return the formatted currency. Adyen accepts the currency in multiple formats.
-     * @param $amount
+     * Return the number of decimals for the specified currency
      * @param $currency
-     * @return string
+     * @return int
      */
-    public function formatAmount($amount, $currency)
+    public function decimalNumbers($currency)
     {
         switch ($currency) {
             case "CVE":
@@ -287,9 +285,20 @@ class Data extends AbstractHelper
             default:
                 $format = 2;
         }
-
-        return (int)number_format($amount, $format, '', '');
+        return $format;
     }
+
+    /**
+     * Return the formatted amount. Adyen accepts the currency in multiple formats.
+     * @param $amount
+     * @param $currency
+     * @return int
+     */
+    public function formatAmount($amount, $currency)
+    {
+        return (int)number_format($amount, $this->decimalNumbers($currency), '', '');
+    }
+
 
     /**
      * Tax Percentage needs to be in minor units for Adyen
@@ -621,6 +630,39 @@ class Data extends AbstractHelper
         } else {
             return $this->getAdyenApplePayConfigData('full_path_location_pem_file_live', $storeId);
         }
+    }
+
+    /**
+     * Gives back adyen_google_pay configuration values
+     *
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenGooglePayConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_google_pay', $storeId);
+    }
+
+    /**
+     * Gives back adyen_google_pay configuration values
+     *
+     * @param $field
+     * @param null $storeId
+     * @return mixed
+     */
+    public function isAdyenGooglePayEnabled($storeId = null)
+    {
+        return $this->getAdyenGooglePayConfigData('active', $storeId);
+    }
+
+    /**
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenGooglePayMerchantIdentifier($storeId = null)
+    {
+        return $this->getAdyenGooglePayConfigData('merchant_identifier', $storeId);
     }
 
     /**

@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -14,22 +13,17 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2019 Adyen B.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <body>
-        <referenceContainer name="content">
-            <referenceBlock name="vault.cards.list">
-                <block class="Adyen\Payment\Block\Customer\CardRenderer" name="adyen.card.renderer"
-                       template="Magento_Vault::customer_account/credit_card.phtml" cacheable="false"/>
-            </referenceBlock>
-        </referenceContainer>
-    </body>
-</page>
+
+namespace Adyen\Payment\Block\Info;
+
+class GooglePay extends Cc
+{
+}

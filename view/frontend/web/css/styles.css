@@ -103,6 +103,11 @@
     height: 43px;
 }
 
+.checkout-payment-method .payment-method-title label div.adyen-sprite.adyen_google_pay {
+    background: url(../images/logos/Google-Pay-Mark.png) no-repeat;
+    height: 43px;
+}
+
 .checkout-payment-method .input-text._has-datepicker {
     width: 20%;
     margin-right: 10px;
@@ -174,6 +179,11 @@
     border: none;
     min-width: 0px; /* override magento min-width */
     min-height: 42px; /* override magento min-height */
+}
+
+.gpay-button:hover, .gpay-button:active, .gpay-button:focus{
+    background-repeat: no-repeat;
+    background-position: center center;
 }
 
 /*
@@ -1223,7 +1233,7 @@
 
 
 .threeDS2Modal #threeDS2Container {
-    height: 100vh;
+    margin-bottom: 5rem;
 }
 
 .adyen-checkout__threeds2, .adyen-checkout__threeds2__challenge {

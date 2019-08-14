@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!--
+  ~                       ######
+  ~                       ######
+  ~ ############    ####( ######  #####. ######  ############   ############
+  ~ #############  #####( ######  #####. ######  #############  #############
+  ~        ######  #####( ######  #####. ######  #####  ######  #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####          #####  ######
+  ~ #############  #############  #############  #############  #####  ######
+  ~  ############   ############  #############   ############  #####  ######
+  ~                                      ######
+  ~                               #############
+  ~                               ############
+  ~
+  ~ Adyen Payment Module
+  ~
+  ~ Copyright (c) 2019 Adyen B.V.
+  ~ This file is open source and available under the MIT license.
+  ~ See the LICENSE file for more info.
+  ~
+  ~ Author: Adyen <magento@adyen.com>
+  -->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_google_pay" translate="label" type="text" sortOrder="460" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Google Pay integration]]></label>
+        <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
+        <fieldset_css>adyen-method-adyen-cc</fieldset_css>
+        <comment>Process Google Pay transactions</comment>
+        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Enabled</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_google_pay/active</config_path>
+        </field>
+        <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Title</label>
+            <config_path>payment/adyen_google_pay/title</config_path>
+        </field>
+        <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Sort Order</label>
+            <frontend_class>validate-number</frontend_class>
+            <config_path>payment/adyen_google_pay/sort_order</config_path>
+        </field>
+        <field id="merchant_identifier" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Google Merchant Identifier</label>
+            <comment><![CDATA[Your Google Merchant ID from Google Pay Developer Profile. For more information refer to <a href="https://developers.google.com/pay/api/web/guides/test-and-deploy/deploy-production-environment#obtain-your-merchantID">Obtain your merchantID</a>.]]></comment>
+            <config_path>payment/adyen_google_pay/merchant_identifier</config_path>
+        </field>
+    </group>
+</include>

@@ -1,0 +1,66 @@
+<!--
+  ~                       ######
+  ~                       ######
+  ~ ############    ####( ######  #####. ######  ############   ############
+  ~ #############  #####( ######  #####. ######  #############  #############
+  ~        ######  #####( ######  #####. ######  #####  ######  #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####          #####  ######
+  ~ #############  #############  #############  #############  #####  ######
+  ~  ############   ############  #############   ############  #####  ######
+  ~                                      ######
+  ~                               #############
+  ~                               ############
+  ~
+  ~ Adyen Payment Module
+  ~
+  ~ Copyright (c) 2019 Adyen B.V.
+  ~ This file is open source and available under the MIT license.
+  ~ See the LICENSE file for more info.
+  ~
+  ~ Author: Adyen <magento@adyen.com>
+  -->
+<div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+    <div class="payment-method-title field choice">
+        <input type="radio"
+               name="payment[method]"
+               class="radio"
+               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+        <label data-bind="attr: {'for': getCode()}" class="label">
+
+            <!-- ko if: showLogo() -->
+
+            <div data-bind="attr: { 'class': 'adyen-sprite ' + getCode() }"></div>
+
+            <!--/ko-->
+
+            <span data-bind="text: getTitle()"></span>
+        </label>
+    </div>
+
+    <div class="payment-method-content">
+        <div class="payment-method-billing-address">
+            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+
+        <div class="checkout-agreements-block">
+            <!-- ko foreach: $parent.getRegion('before-place-order') -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+        <div class="field number googlePay">
+            <div afterRender="renderGooglePay()" data-bind="attr: { id: 'googlePay'}">
+                <!-- ko ifnot: isGooglePayAllowed() -->
+                Google Pay is not available
+                <!--/ko--></div>
+        </div>
+
+        <div id="adyen-google-pay-button" class="google-pay-button-with-text google-pay-button-black-with-text"
+             data-bind= "click: placeOrder">
+            <span class="logo"></span>
+        </div>
+
+    </div>
+</div>

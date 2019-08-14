@@ -50,30 +50,61 @@
             <!--/ko-->
         </div>
 
-        <div class="field required"
-             data-bind="attr: {id: getCode() + '_connected_terminals_div'}, visible: getConnectedTerminals().length > 0">
-            <label data-bind="attr: {for: getCode() + '_connected_terminals'}" class="label">
-                <span><!-- ko text: $t('Connected terminals')--><!-- /ko --></span>
-            </label>
-            <div class="control">
+        <!-- ko if: (getConnectedTerminals().length > 0) -->
 
-                <select class="select"
-                        name="paymentMethod[connected_terminals]"
-                        data-bind="attr: {id: getCode() + '_connected_terminals', 'data-container': getCode() + '-connected-terminals', 'data-validate': JSON.stringify({required:true})},
-                                        options: getConnectedTerminals(),
-                                        optionsValue: 'value',
-                                        optionsText: 'key',
-                                        value: terminalId"
-                        >
-                </select>
+            <div class="field required"
+                 data-bind="attr: {id: getCode() + '_connected_terminals_div'}, visible: getConnectedTerminals().length > 0">
+                <label data-bind="attr: {for: getCode() + '_connected_terminals'}" class="label">
+                    <span><!-- ko text: $t('Connected terminals')--><!-- /ko --></span>
+                </label>
+                <div class="control">
+
+                    <select class="select"
+                            name="paymentMethod[connected_terminals]"
+                            data-bind="attr: {id: getCode() + '_connected_terminals', 'data-container': getCode() + '-connected-terminals', 'data-validate': JSON.stringify({required:true})},
+                                            options: getConnectedTerminals(),
+                                            optionsValue: 'value',
+                                            optionsText: 'key',
+                                            value: terminalId"
+                            >
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <div class="checkout-agreements-block">
-            <!-- ko foreach: $parent.getRegion('before-place-order') -->
-            <!-- ko template: getTemplate() --><!-- /ko -->
-            <!--/ko-->
-        </div>
+            <!-- ko if: (hasInstallments())-->
+            <div class="field required"
+                 data-bind="attr: {id: getCode() + '_installments_div'}, visible: installments().length > 0">
+                <label data-bind="attr: {for: getCode() + '_installments'}" class="label">
+                    <span><!-- ko text: $t('Installments')--><!-- /ko --></span>
+                </label>
+                <div class="control">
+
+                    <select class="select"
+                            name="payment[number_of_installments]"
+                            data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
+
+                                            enable: isActive($parents),
+                                            options: installments,
+                                            optionsValue: 'value',
+                                            optionsText: 'key',
+                                            optionsCaption: $t('Do not use Installments'),
+                                            value: installment"
+                            data-validate="{required:true}">
+                    </select>
+                </div>
+            </div>
+            <!-- /ko -->
+
+            <div class="checkout-agreements-block">
+                <!-- ko foreach: $parent.getRegion('before-place-order') -->
+                <!-- ko template: getTemplate() --><!-- /ko -->
+                <!--/ko-->
+            </div>
+        <!--/ko-->
+        <!-- ko ifnot: (getConnectedTerminals().length > 0) -->
+            <p><!-- ko text: $t('Please connect at least 1 terminal')--><!-- /ko --></p>
+        <!--/ko-->
+
         <div class="actions-toolbar">
             <div class="primary">
                 <button class="action primary checkout"
@@ -81,7 +112,7 @@
                         data-bind="
                             click: initiate,
                             attr: {title: $t('Place Order')},
-                            enable: getConnectedTerminals().length > 0
+                            enable: isButtonActive()
                             "
                         disabled>
                     <span data-bind="text: $t('Place Order')"></span>
