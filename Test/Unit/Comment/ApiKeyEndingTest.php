@@ -25,7 +25,7 @@ class ApiKeyEndingTest extends \PHPUnit\Framework\TestCase
         $this->apiKeyEndingComment = new ApiKeyEnding($encryptor);
     }
 
-    public function testSomething()
+    public function testCommentReturnsJustTheEnding()
     {
         $this->assertEquals('API key ending with: <strong>1234</strong>', $this->apiKeyEndingComment->getCommentText('4321'));
         $this->assertEquals('API key ending with: <strong>qwer</strong>', $this->apiKeyEndingComment->getCommentText('asdfasdfasdf'));
