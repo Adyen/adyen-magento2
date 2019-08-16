@@ -58,12 +58,14 @@
             <tooltip>Copy this from the Test Adyen Customer Area => Settings => Users => System => [web service user]=> Checkout API Key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_pos_cloud/api_key_test</config_path>
+            <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
         </field>
         <field id="api_key_live" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>API key for Cloud API LIVE</label>
             <tooltip>Copy this from the Live Adyen Customer Area => Settings => Users => System => [web service user]=> Checkout API Key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_pos_cloud/api_key_live</config_path>
+            <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
         </field>
         <field id="capture_mode_pos" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Capture Delay</label>

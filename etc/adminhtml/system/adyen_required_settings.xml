@@ -54,12 +54,14 @@
             <tooltip>If you don't know your Api-Key, log in to your Test Customer Area. Navigate to Settings > Users > System, and click on your webservice user, normally this will be ws@Company.YourCompanyAccount. Under Checkout token is your API Key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/api_key_test</config_path>
+            <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
         </field>
         <field id="api_key_live" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>API key for Live</label>
             <tooltip>If you don't know your Api-Key, log in to your Live Customer Area. Navigate to Settings > Users > System, and click on your webservice user, normally this will be ws@Company.YourCompanyAccount. Under Checkout token is your API Key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/api_key_live</config_path>
+            <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
         </field>
         <field id="live_endpoint_url_prefix" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Live endpoint prefix</label>
