@@ -280,6 +280,7 @@ define(
                 var data = {
                     'method': this.item.method,
                     additional_data: {
+                        'guestEmail': quote.guestEmail,
                         'cc_type': this.creditCardType(),
                         'number': this.creditCardNumber(),
                         'cvc': this.securityCode(),
