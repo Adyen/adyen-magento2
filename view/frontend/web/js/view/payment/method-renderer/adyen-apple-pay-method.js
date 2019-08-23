@@ -24,6 +24,7 @@
 define(
     [
         'jquery',
+        'ko',
         'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/view/payment/default',
         'Magento_Checkout/js/action/place-order',
@@ -34,8 +35,9 @@ define(
         'Magento_Ui/js/model/messages',
         'mage/translate',
     ],
-    function ($, quote, Component, placeOrderAction, additionalValidators, urlBuilder, storage, url, Messages, $t) {
+    function ($, ko, quote, Component, placeOrderAction, additionalValidators, urlBuilder, storage, url, Messages, $t) {
         'use strict';
+        var canMakeApplePayPayments = ko.observable(false);
         return Component.extend({
             self: this,
             defaults: {
@@ -78,7 +80,7 @@ define(
                 var request = {
                     countryCode: quote.billingAddress().countryId,
                     currencyCode: quote.totals().quote_currency_code,
-                    supportedNetworks: ['visa', 'masterCard', 'amex', 'discover'],
+                    supportedNetworks: ['visa', 'masterCard', 'amex', 'discover', 'maestro', 'vPay', 'jcb', 'elo'],
                     merchantCapabilities: ['supports3DS'],
                     total: {label: $t('Grand Total'), amount: quote.totals().base_grand_total}
                 };
@@ -139,6 +141,15 @@ define(
                 return window.checkoutConfig.payment.adyen.showLogo;
             },
             isApplePayAllowed: function () {
+                var self = this;
+
+                var promise = window.ApplePaySession.canMakePaymentsWithActiveCard(self.getMerchantIdentifier());
+                promise.then(function (canMakePayments) {
+                    if (canMakePayments)
+                        canMakeApplePayPayments(true);
+                });
+
+
                 if (window.ApplePaySession) {
                     return true;
                 }
@@ -177,6 +188,12 @@ define(
                         deferred.resolve(true);
                     }
                 );
+            },
+            isApplePayVisible: function() {
+                return canMakeApplePayPayments();
+            },
+            getMerchantIdentifier: function() {
+                return window.checkoutConfig.payment.adyen_apple_pay.merchant_identifier;
             }
         });
     }
