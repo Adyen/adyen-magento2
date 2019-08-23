@@ -31,6 +31,9 @@ class ApiKeyEnding implements CommentInterface
     public function getCommentText($elementValue)
     {
         $apiKeyEnding = substr($this->encryptor->decrypt(trim($elementValue)), -4);
-        return "API key ending with: <strong>$apiKeyEnding</strong>";
+        if (!$apiKeyEnding) {
+            return '';
+        }
+        return "Key stored ending in <strong>$apiKeyEnding</strong>";
     }
 }
