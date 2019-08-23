@@ -82,7 +82,7 @@ define(
                     merchantCapabilities: ['supports3DS'],
                     total: {label: $t('Grand Total'), amount: quote.totals().base_grand_total}
                 };
-                var session = new ApplePaySession(2, request);
+                var session = new ApplePaySession(6, request);
                 session.onvalidatemerchant = function (event) {
                     var promise = self.performValidation(event.validationURL);
                     promise.then(function (merchantSession) {
