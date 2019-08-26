@@ -38,6 +38,7 @@ define(
     function ($, ko, quote, Component, placeOrderAction, additionalValidators, urlBuilder, storage, url, Messages, $t) {
         'use strict';
         var canMakeApplePayPayments = ko.observable(false);
+        var applePayVersion = 6;
         return Component.extend({
             self: this,
             defaults: {
@@ -84,7 +85,8 @@ define(
                     merchantCapabilities: ['supports3DS'],
                     total: {label: $t('Grand Total'), amount: quote.totals().base_grand_total}
                 };
-                var session = new ApplePaySession(6, request);
+                var session = new ApplePaySession(applePayVersion, request);
+
                 session.onvalidatemerchant = function (event) {
                     var promise = self.performValidation(event.validationURL);
                     promise.then(function (merchantSession) {
@@ -143,14 +145,14 @@ define(
             isApplePayAllowed: function () {
                 var self = this;
 
+                // validate if applepay is allowed, it will be picked up by the isApplePayVisible method
                 var promise = window.ApplePaySession.canMakePaymentsWithActiveCard(self.getMerchantIdentifier());
                 promise.then(function (canMakePayments) {
                     if (canMakePayments)
                         canMakeApplePayPayments(true);
                 });
 
-
-                if (window.ApplePaySession) {
+                if (window.ApplePaySession && window.ApplePaySession.supportsVersion(applePayVersion) ) {
                     return true;
                 }
                 return false;
