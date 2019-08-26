@@ -67,12 +67,15 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param $request
+     * @param array $request
      * @param int $customerId
      * @param $billingAddress
-     * @return mixed
+     * @param $storeId
+     * @param null $payment
+     * @param null $payload
+     * @return array
      */
-    public function buildCustomerData($request = [], $customerId = 0, $billingAddress, $storeId, $payment = null)
+    public function buildCustomerData($request = [], $customerId = 0, $billingAddress, $storeId, $payment = null, $payload = null)
     {
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
@@ -81,6 +84,17 @@ class Requests extends AbstractHelper
         $paymentMethod = '';
         if ($payment) {
             $paymentMethod = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+        }
+
+        // In case of virtual product and guest checkout there is a workaround to get the guest's email address
+        if (!empty($payload['additional_data']['guestEmail'])) {
+            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
+                !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
+            ) {
+                $request['paymentMethod']['personalDetails']['shopperEmail'] = $payload['additional_data']['guestEmail'];
+            } else {
+                $request['shopperEmail'] = $payload['additional_data']['guestEmail'];
+            }
         }
 
         if (!empty($billingAddress)) {
