@@ -50,6 +50,15 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $notificationFactory = $this->getSimpleMock(\Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory::class);
         $taxConfig = $this->getSimpleMock(\Magento\Tax\Model\Config::class);
         $taxCalculation = $this->getSimpleMock(\Magento\Tax\Model\Calculation::class);
+        $productMetadata = $this->getSimpleMock(\Magento\Framework\App\ProductMetadata::class);
+        $adyenLogger = $this->getSimpleMock(\Adyen\Payment\Logger\AdyenLogger::class);
+        $storeManager = $this->getSimpleMock(\Magento\Store\Model\StoreManager::class);
+        $cache = $this->getSimpleMock(\Magento\Framework\App\CacheInterface::class);
+        $billingAgreementFactory = $this->getSimpleMock(\Adyen\Payment\Model\Billing\AgreementFactory::class);
+        $agreementResourceModel = $this->getSimpleMock(\Adyen\Payment\Model\ResourceModel\Billing\Agreement::class);
+        $localeResolver = $this->getSimpleMock(\Magento\Framework\Locale\ResolverInterface::class);
+        $config = $this->getSimpleMock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
+        $helperBackend = $this->getSimpleMock(\Magento\Backend\Helper\Data::class);
 
         $this->dataHelper = new \Adyen\Payment\Helper\Data(
             $context,
@@ -62,7 +71,16 @@ class DataTest extends \PHPUnit\Framework\TestCase
             $assetSource,
             $notificationFactory,
             $taxConfig,
-            $taxCalculation
+            $taxCalculation,
+            $productMetadata,
+            $adyenLogger,
+            $storeManager,
+            $cache,
+            $billingAgreementFactory,
+            $agreementResourceModel,
+            $localeResolver,
+            $config,
+            $helperBackend
         );
     }
 
