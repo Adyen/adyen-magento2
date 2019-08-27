@@ -972,8 +972,6 @@
                 type="Adyen\Payment\Model\AdyenPaymentProcess"/>
     <preference for="Adyen\Payment\Api\AdyenThreeDS2ProcessInterface"
                 type="Adyen\Payment\Model\AdyenThreeDS2Process"/>
-    <preference for="Adyen\Payment\Api\AdyenOriginKeyInterface"
-                type="Adyen\Payment\Model\AdyenOriginKey"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10"/>
     </type>
