@@ -17,7 +17,7 @@
     "adyen/php-api-library": "~2.1",
     "magento/framework": ">=101.0.8 <102 || >=102.0.1",
     "magento/module-vault": "101.*",
-    "php": "~7.1.3||~7.2.0||~7.3.0"
+    "php": "~7.0.13|~7.1.0"
   },
   "require-dev": {
     "phpunit/phpunit": "~6.5.0"
