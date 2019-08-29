@@ -31,6 +31,11 @@ class Installments extends \Magento\Framework\App\Config\Value
     protected $mathRandom;
 
     /**
+     * @var \Magento\Framework\Serialize\SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
@@ -46,11 +51,13 @@ class Installments extends \Magento\Framework\App\Config\Value
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Magento\Framework\App\Cache\TypeListInterface $cacheTypeList,
         \Magento\Framework\Math\Random $mathRandom,
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->mathRandom = $mathRandom;
+        $this->serializer = $serializer;
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
 
@@ -62,8 +69,7 @@ class Installments extends \Magento\Framework\App\Config\Value
     public function beforeSave()
     {
         $value = $this->getValue();
-        $unserialized = @unserialize($value);
-        if ($unserialized !== false) {
+        if (!is_array($value)) {
             return $this;
         }
         $result = [];
@@ -94,7 +100,7 @@ class Installments extends \Magento\Framework\App\Config\Value
             $finalResult[$key] = $installments;
         }
 
-        $this->setValue(serialize($finalResult));
+        $this->setValue($this->serializer->serialize($finalResult));
         return $this;
     }
 
@@ -106,7 +112,7 @@ class Installments extends \Magento\Framework\App\Config\Value
     protected function _afterLoad()
     {
         $value = $this->getValue();
-        $value = unserialize($value);
+        $value = $this->serializer->unserialize($value);
         if (is_array($value)) {
             $value = $this->encodeArrayFieldValue($value);
             $this->setValue($value);

@@ -960,6 +960,26 @@
             <argument name="dataStorage" xsi:type="object">adyenPaymentConfigDataStorage</argument>
         </arguments>
     </type>
+    <type name="Adyen\Payment\Model\Config\Backend\Installments">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Model\Config\Backend\InstallmentsPosCloud">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Gateway\Validator\InstallmentValidator">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
     <preference for="Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface"
                 type="Adyen\Payment\Model\GuestAdyenPaymentMethodManagement"/>
     <preference for="Adyen\Payment\Api\AdyenPaymentMethodManagementInterface"

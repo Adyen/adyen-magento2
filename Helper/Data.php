@@ -131,6 +131,10 @@ class Data extends AbstractHelper
      */
     private $helperBackend;
 
+    /**
+     * @var \Magento\Framework\Serialize\SerializerInterface
+     */
+    private $serializer;
 
     /**
      * Data constructor.
@@ -154,6 +158,7 @@ class Data extends AbstractHelper
      * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param \Magento\Backend\Helper\Data $helperBackend
+     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -175,7 +180,8 @@ class Data extends AbstractHelper
         \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel,
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
-        \Magento\Backend\Helper\Data $helperBackend
+        \Magento\Backend\Helper\Data $helperBackend,
+        \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -197,6 +203,7 @@ class Data extends AbstractHelper
         $this->localeResolver = $localeResolver;
         $this->config = $config;
         $this->helperBackend = $helperBackend;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -955,7 +962,7 @@ class Data extends AbstractHelper
                     $installments = null;
                     $installmentsValue = $this->getAdyenCcConfigData('installments');
                     if ($installmentsValue) {
-                        $installments = unserialize($installmentsValue);
+                        $installments = $this->serializer->unserialize($installmentsValue);
                     }
 
                     if ($installments) {

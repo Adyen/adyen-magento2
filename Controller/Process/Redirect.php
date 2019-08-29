@@ -77,24 +77,35 @@ class Redirect extends \Magento\Framework\App\Action\Action
      * @var PaymentTokenFactoryInterface
      */
     private $paymentTokenFactory;
+
     /**
      * @var OrderPaymentExtensionInterfaceFactory
      */
     private $paymentExtensionFactory;
+
     /**
      * @var OrderPaymentResource
      */
     private $orderPaymentResource;
 
-	/**
-	 * Redirect constructor.
-	 *
-	 * @param \Magento\Framework\App\Action\Context $context
-	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-	 * @param \Adyen\Payment\Helper\Data $adyenHelper
-	 * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
-	 * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
-	 */
+    /**
+     * @var \Magento\Framework\Serialize\SerializerInterface
+     */
+    private $serializer;
+
+    /**
+     * Redirect constructor.
+     *
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
+     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+     * @param PaymentTokenFactoryInterface $paymentTokenFactory
+     * @param OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory
+     * @param OrderPaymentResource $orderPaymentResource
+     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
 		\Adyen\Payment\Logger\AdyenLogger $adyenLogger,
@@ -103,7 +114,8 @@ class Redirect extends \Magento\Framework\App\Action\Action
 		\Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         PaymentTokenFactoryInterface $paymentTokenFactory,
         OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
-        OrderPaymentResource $orderPaymentResource
+        OrderPaymentResource $orderPaymentResource,
+        \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         parent::__construct($context);
 		$this->_adyenLogger = $adyenLogger;
@@ -113,6 +125,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
         $this->paymentTokenFactory = $paymentTokenFactory;
         $this->paymentExtensionFactory = $paymentExtensionFactory;
         $this->orderPaymentResource = $orderPaymentResource;
+        $this->serializer = $serializer;
         if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
             $request = $this->getRequest();
             if ($request instanceof Http && $request->isPost()) {
@@ -198,9 +211,9 @@ class Redirect extends \Magento\Framework\App\Action\Action
                                 $extensionAttributes = $this->getExtensionAttributes($order->getPayment());
                                 $extensionAttributes->setVaultPaymentToken($paymentToken);
                                 $orderPayment = $order->getPayment()->setExtensionAttributes($extensionAttributes);
-                                $add = unserialize($orderPayment->getAdditionalData());
+                                $add = $this->serializer->unserialize($orderPayment->getAdditionalData());
                                 $add['force_save'] = true;
-                                $orderPayment->setAdditionalData(serialize($add));
+                                $orderPayment->setAdditionalData($this->serializer->serialize($add));
                                 $this->orderPaymentResource->save($orderPayment);
                             } catch (\Exception $e) {
                                 $this->_adyenLogger->error((string)$e->getMessage());
