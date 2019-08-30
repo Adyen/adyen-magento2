@@ -437,14 +437,16 @@ class Requests extends AbstractHelper
      */
     public function buildVaultData($request = [], $payload)
     {
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE]) &&
-            $payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE] === true
-        ) {
-            // store it only as oneclick otherwise we store oneclick tokens (maestro+bcmc) that will fail
-            $request['enableRecurring'] = true;
-        } else {
-            // explicity turn this off as merchants have recurring on by default
-            $request['enableRecurring'] = false;
+        if ($this->adyenHelper->isCreditCardVaultEnabled()) {
+            if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE]) &&
+                $payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE] === true
+            ) {
+                // store it only as oneclick otherwise we store oneclick tokens (maestro+bcmc) that will fail
+                $request['enableRecurring'] = true;
+            } else {
+                // explicity turn this off as merchants have recurring on by default
+                $request['enableRecurring'] = false;
+            }
         }
 
         return $request;
