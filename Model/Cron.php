@@ -220,6 +220,11 @@ class Cron
     private $transactionBuilder;
 
     /**
+     * @var \Magento\Framework\Serialize\SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -263,7 +268,8 @@ class Cron
         SearchCriteriaBuilder $searchCriteriaBuilder,
         OrderRepository $orderRepository,
         \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel,
-        \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder
+        \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder,
+        \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -285,6 +291,7 @@ class Cron
         $this->orderRepository = $orderRepository;
         $this->agreementResourceModel = $agreementResourceModel;
         $this->transactionBuilder = $transactionBuilder;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -501,8 +508,7 @@ class Cron
         $this->_reason = $notification->getPaymentMethod();
         $this->_value = $notification->getAmountValue();
 
-
-        $additionalData = unserialize($notification->getAdditionalData());
+        $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : "";
 
         // boleto data
         if ($this->_paymentMethodCode() == "adyen_boleto") {
@@ -672,7 +678,8 @@ class Cron
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Updating the Adyen attributes of the order');
 
-        $additionalData = unserialize($notification->getAdditionalData());
+        $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : "";
+
         $_paymentCode = $this->_paymentMethodCode();
 
         if ($this->_eventCode == Notification::AUTHORISATION

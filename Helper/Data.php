@@ -1010,6 +1010,19 @@ class Data extends AbstractHelper
         return false;
     }
 
+    /**
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodRatepayMethod($paymentMethod)
+    {
+        if (strpos($paymentMethod, 'ratepay') !== false) {
+            return true;
+        }
+
+        return false;
+    }
+
 	/**
 	 * @param $paymentMethod
 	 * @return bool

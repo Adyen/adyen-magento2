@@ -222,7 +222,7 @@ class Json extends \Magento\Framework\App\Action\Action
                     $notification->setLive($notificationMode);
 
                     if (isset($response['additionalData'])) {
-                        $notification->setAddtionalData($this->serializer->serialize($response['additionalData']));
+                        $notification->setAdditionalData($this->serializer->serialize($response['additionalData']));
                     }
                     if (isset($response['done'])) {
                         $notification->setDone($response['done']);
