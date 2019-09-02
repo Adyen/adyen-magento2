@@ -144,7 +144,6 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $config['payment'] ['adyenHpp']['genderTypes'] = \Adyen\Payment\Model\Gender::getGenderTypes();
 
         $config['payment'] ['adyenHpp']['ratePayId'] = $this->adyenHelper->getRatePayId();
-        // TODO: change the algorithm
         $config['payment'] ['adyenHpp']['deviceIdentToken'] = hash("sha256",$this->session->getQuoteId() . date('c'));
         $config['payment'] ['adyenHpp']['nordicCountries'] = ['SE', 'NO', 'DK', 'FI'];
 
