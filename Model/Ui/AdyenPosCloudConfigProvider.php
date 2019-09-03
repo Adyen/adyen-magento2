@@ -91,7 +91,9 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
             ]
         ];
 
-        $config['payment']['adyenPos']['connectedTerminals'] = $this->getConnectedTerminals();
+        if ($this->adyenHelper->getAdyenPosCloudConfigDataFlag("active")) {
+            $config['payment']['adyenPos']['connectedTerminals'] = $this->getConnectedTerminals();
+        }
 
         // has installments by default false
         $config['payment']['adyenPos']['hasInstallments'] = false;
