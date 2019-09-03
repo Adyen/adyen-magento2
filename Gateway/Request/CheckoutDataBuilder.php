@@ -140,6 +140,13 @@ class CheckoutDataBuilder implements BuilderInterface
 			$request = array_merge($request, $openInvoiceFields);
 		}
 
+        // Ratepay specific Fingerprint
+        if ($payment->getAdditionalInformation("df_value") && $this->adyenHelper->isPaymentMethodRatepayMethod(
+                $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
+            )) {
+            $request['deviceFingerprint'] = $payment->getAdditionalInformation("df_value");
+        }
+
         //Boleto data
         if ($payment->getAdditionalInformation("social_security_number")) {
             $request['socialSecurityNumber'] = $payment->getAdditionalInformation("social_security_number");

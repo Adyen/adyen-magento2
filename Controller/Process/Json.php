@@ -53,22 +53,30 @@ class Json extends \Magento\Framework\App\Action\Action
     protected $_adyenLogger;
 
     /**
+     * @var \Magento\Framework\Serialize\SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * Json constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         parent::__construct($context);
         $this->_objectManager = $context->getObjectManager();
         $this->_resultFactory = $context->getResultFactory();
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
+        $this->serializer = $serializer;
         
         // Fix for Magento2.3 adding isAjax to the request params
         if(interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
@@ -214,7 +222,7 @@ class Json extends \Magento\Framework\App\Action\Action
                     $notification->setLive($notificationMode);
 
                     if (isset($response['additionalData'])) {
-                        $notification->setAddtionalData(serialize($response['additionalData']));
+                        $notification->setAdditionalData($this->serializer->serialize($response['additionalData']));
                     }
                     if (isset($response['done'])) {
                         $notification->setDone($response['done']);

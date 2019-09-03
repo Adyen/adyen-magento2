@@ -255,7 +255,7 @@ interface NotificationInterface
      * @param string $additionalData
      * @return $this
      */
-    public function setAddtionalData($additionalData);
+    public function setAdditionalData($additionalData);
 
     /**
      * Gets the Done for the notification.

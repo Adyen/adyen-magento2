@@ -54,21 +54,31 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
     protected $adyenHelper;
 
     /**
+     * @var \Magento\Framework\Serialize\SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * AdyenHppConfigProvider constructor.
      *
-     * @param PaymentHelper $paymentHelper
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      */
     public function __construct(
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\UrlInterface $urlBuilder,
         \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         $this->request = $request;
         $this->urlBuilder = $urlBuilder;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->adyenHelper = $adyenHelper;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -103,7 +113,7 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
         $installments = $this->adyenHelper->getAdyenPosCloudConfigData('installments');
 
         if ($installmentsEnabled && $installments) {
-            $config['payment']['adyenPos']['installments'] = unserialize($installments);
+            $config['payment']['adyenPos']['installments'] = $this->serializer->unserialize($installments);
             $config['payment']['adyenPos']['hasInstallments'] = true;
         } else {
             $config['payment']['adyenPos']['installments'] = [];
