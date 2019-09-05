@@ -112,8 +112,8 @@ class Installments extends \Magento\Framework\App\Config\Value
     protected function _afterLoad()
     {
         $value = $this->getValue();
-        $value = $this->serializer->unserialize($value);
-        if (is_array($value)) {
+        if (!empty($value) && is_array($value)) {
+            $value = $this->serializer->unserialize($value);
             $value = $this->encodeArrayFieldValue($value);
             $this->setValue($value);
         }
