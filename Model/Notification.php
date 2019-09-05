@@ -333,7 +333,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
      * @param string $additionalData
      * @return $this
      */
-    public function setAddtionalData($additionalData)
+    public function setAdditionalData($additionalData)
     {
         return $this->setData(self::ADDITIONAL_DATA, $additionalData);
     }

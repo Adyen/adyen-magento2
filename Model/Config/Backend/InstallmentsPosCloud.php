@@ -31,11 +31,17 @@ class InstallmentsPosCloud extends \Magento\Framework\App\Config\Value
     protected $mathRandom;
 
     /**
+     * @var \Magento\Framework\Serialize\SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param \Magento\Framework\App\Cache\TypeListInterface $cacheTypeList
      * @param \Magento\Framework\Math\Random $mathRandom
+     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
@@ -46,11 +52,13 @@ class InstallmentsPosCloud extends \Magento\Framework\App\Config\Value
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Magento\Framework\App\Cache\TypeListInterface $cacheTypeList,
         \Magento\Framework\Math\Random $mathRandom,
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->mathRandom = $mathRandom;
+        $this->serializer = $serializer;
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
 
@@ -62,9 +70,7 @@ class InstallmentsPosCloud extends \Magento\Framework\App\Config\Value
     public function beforeSave()
     {
         $value = $this->getValue();
-
-        $unserialized = @unserialize($value);
-        if ($unserialized !== false) {
+        if (!is_array($value)) {
             return $this;
         }
         $result = [];
@@ -87,7 +93,7 @@ class InstallmentsPosCloud extends \Magento\Framework\App\Config\Value
 
         asort($result);
 
-        $this->setValue(serialize($result));
+        $this->setValue($this->serializer->serialize($result));
 
         return $this;
     }
@@ -100,11 +106,12 @@ class InstallmentsPosCloud extends \Magento\Framework\App\Config\Value
     protected function _afterLoad()
     {
         $value = $this->getValue();
-        $value = unserialize($value);
-
-        if (is_array($value)) {
-            $value = $this->encodeArrayFieldValue($value);
-            $this->setValue($value);
+        if(!empty($value)) {
+            $value = $this->serializer->unserialize($value);
+            if (is_array($value)) {
+                $value = $this->encodeArrayFieldValue($value);
+                $this->setValue($value);
+            }
         }
         return $this;
     }

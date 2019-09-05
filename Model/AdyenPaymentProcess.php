@@ -131,10 +131,10 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         // Customer data builder
         $customerId = $quote->getCustomerId();
         $billingAddress = $quote->getBillingAddress();
-        $request = $this->adyenRequestHelper->buildCustomerData($request, $customerId, $billingAddress, $storeId);
+        $request = $this->adyenRequestHelper->buildCustomerData($request, $customerId, $billingAddress, $storeId, null, $payload);
 
         // Customer Ip data builder
-        $shopperIp = $quote->getRemoteIp();
+        $shopperIp = $quote->getXForwardedFor();
         $request = $this->adyenRequestHelper->buildCustomerIpData($request, $shopperIp);
 
         // AddressDataBuilder

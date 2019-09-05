@@ -958,8 +958,45 @@
     <type name="Adyen\Payment\Helper\Data">
         <arguments>
             <argument name="dataStorage" xsi:type="object">adyenPaymentConfigDataStorage</argument>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
+    <type name="Adyen\Payment\Model\Config\Backend\Installments">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Model\Config\Backend\InstallmentsPosCloud">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Gateway\Validator\InstallmentValidator">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Model\Ui\AdyenCcConfigProvider">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Model\Cron">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Controller\Process\Json">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+
     <preference for="Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface"
                 type="Adyen\Payment\Model\GuestAdyenPaymentMethodManagement"/>
     <preference for="Adyen\Payment\Api\AdyenPaymentMethodManagementInterface"
@@ -972,6 +1009,8 @@
                 type="Adyen\Payment\Model\AdyenPaymentProcess"/>
     <preference for="Adyen\Payment\Api\AdyenThreeDS2ProcessInterface"
                 type="Adyen\Payment\Model\AdyenThreeDS2Process"/>
+    <preference for="Adyen\Payment\Api\AdyenOriginKeyInterface"
+                type="Adyen\Payment\Model\AdyenOriginKey"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10"/>
     </type>
