@@ -47,13 +47,18 @@
             <tooltip>
                 <![CDATA[ In the test mode you must use test cards. See section Documentation & Support for the link to the test cards]]></tooltip>
         </field>
-        <field id="code" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" canRestore="1"
+        <field id="shopper_locale" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Locale</label>
+            <tooltip>This will override the default shopper locale of the Magento store (e.g. nl_NL). Leave empty to let
+                Magento decide.
+            </tooltip>
+            <config_path>payment/adyen_hpp/shopper_locale</config_path>
             <source_model>Magento\Config\Model\Config\Source\Locale</source_model>
+            <backend_model>Adyen\Payment\Model\Config\Backend\Locale</backend_model>
         </field>
         <field id="version" translate="label" type="label" sortOrder="40" showInDefault="1" showInWebsite="1"
-               showInStore="0">
+               showInStore="1">
             <label>Plugin version</label>
             <frontend_model>\Adyen\Payment\Block\Adminhtml\System\Config\Field\Version</frontend_model>
         </field>
