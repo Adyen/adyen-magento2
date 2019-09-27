@@ -32,6 +32,7 @@
                 <fieldset_css>complex</fieldset_css>
                 <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
                 <include path="Adyen_Payment::system/adyen_getting_started.xml"/>
+                <include path="Adyen_Payment::system/adyen_global_settings.xml"/>
                 <include path="Adyen_Payment::system/adyen_required_settings.xml"/>
                 <include path="Adyen_Payment::system/adyen_advanced_order_processing.xml"/>
                 <include path="Adyen_Payment::system/adyen_advanced_notifications.xml"/>
