@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<!--
+  ~                       ######
+  ~                       ######
+  ~ ############    ####( ######  #####. ######  ############   ############
+  ~ #############  #####( ######  #####. ######  #############  #############
+  ~        ######  #####( ######  #####. ######  #####  ######  #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####          #####  ######
+  ~ #############  #############  #############  #############  #####  ######
+  ~  ############   ############  #############   ############  #####  ######
+  ~                                      ######
+  ~                               #############
+  ~                               ############
+  ~
+  ~ Adyen Payment Module
+  ~
+  ~ Copyright (c) 2019 Adyen B.V.
+  ~ This file is open source and available under the MIT license.
+  ~ See the LICENSE file for more info.
+  ~
+  ~ Author: Adyen <magento@adyen.com>
+  -->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_settings_ecommerce_payments" translate="label" type="text" sortOrder="10" showInDefault="1"
+           showInWebsite="1"
+           showInStore="1">
+        <label><![CDATA[Adyen settings for ecommerce payments]]></label>
+        <comment><![CDATA[These settings need to be copied over from your Adyen Customer Area]]></comment>
+
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <field id="merchant_account" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>Merchant Account</label>
+            <config_path>payment/adyen_abstract/merchant_account</config_path>
+        </field>
+        <field id="api_key_test" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1"
+               showInStore="0">
+            <label>API key for Test</label>
+            <tooltip>If value exists, display: "Key stored ending in ****", showing the last 4 values of the stored key.
+            </tooltip>
+            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <config_path>payment/adyen_abstract/api_key_test</config_path>
+            <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding"/>
+        </field>
+        <field id="api_key_live" translate="label" type="obscure" sortOrder="30" showInDefault="1" showInWebsite="1"
+               showInStore="0">
+            <label>API key for Live</label>
+            <tooltip>If value exists, display: "Key stored ending in ****", showing the last 4 values of the stored key.
+            </tooltip>
+            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <config_path>payment/adyen_abstract/api_key_live</config_path>
+            <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding"/>
+        </field>
+        <field id="notification_username" translate="label" type="text" sortOrder="40" showInDefault="1"
+               showInWebsite="1" showInStore="0">
+            <label>Standard notification username</label>
+            <config_path>payment/adyen_abstract/notification_username</config_path>
+        </field>
+        <field id="notification_password" translate="label" type="obscure" sortOrder="50" showInDefault="1"
+               showInWebsite="1" showInStore="0">
+            <label>Standard notification password</label>
+            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <config_path>payment/adyen_abstract/notification_password</config_path>
+        </field>
+        <field id="live_endpoint_url_prefix" translate="label" type="text" sortOrder="60" showInDefault="1"
+               showInWebsite="1" showInStore="0">
+            <label>Live endpoint prefix</label>
+            <config_path>payment/adyen_abstract/live_endpoint_url_prefix</config_path>
+        </field>
+        <field id="advanced_settings" translate="label" sortOrder="70" showInDefault="1" showInWebsite="1">
+            <label>Advanced settings</label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Field\Heading</frontend_model>
+            <attribute type="shared">1</attribute>
+        </field>
+        <field id="support_link" translate="label" sortOrder="80" showInDefault="1" showInWebsite="1">
+            <label><![CDATA[Before changing these setting, make sure to contact our <a target="_blank" href="https://support.adyen.com/hc/en-us/requests/new">support team</a>]]></label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Field\Heading</frontend_model>
+            <attribute type="shared">0</attribute>
+        </field>
+        <field id="capture_mode" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Capture delay</label>
+            <tooltip>Immediate is the default. Set to manual if you want to perform the capture of funds manually later (only affects credit cards and a few alternative payment methods). You need to change this setting as well in Adyen Customer Area => Settings => Merchant Settings => Capture Delay. If you have selected a capture delay of a couple of days in Adyen keep it here on immediate</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
+            <config_path>payment/adyen_abstract/capture_mode</config_path>
+        </field>
+        <field id="auto_capture_openinvoice" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Open invoice capture delay</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/auto_capture_openinvoice</config_path>
+        </field>
+        <field id="paypal_capture_mode" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>PayPal capture delay</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/paypal_capture_mode</config_path>
+        </field>
+        <field id="payment_link_settings" translate="label" sortOrder="120" showInDefault="1" showInWebsite="1">
+            <label>Payment link settings</label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Field\Heading</frontend_model>
+            <attribute type="shared">1</attribute>
+        </field>
+        <field id="payment_link_settings_subtitle" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1">
+            <label>These settings are required if you want to use the Payment link payment method.</label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Field\Heading</frontend_model>
+            <attribute type="shared">0</attribute>
+        </field>
+        <field id="skin_code" translate="label" type="text" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Skin code</label>
+            <config_path>payment/adyen_pay_by_mail/skin_code</config_path>
+        </field>
+        <field id="hmac_test" translate="label" type="obscure" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>HMAC Key for Test</label>
+            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <config_path>payment/adyen_pay_by_mail/hmac_test</config_path>
+        </field>
+        <field id="hmac_live" translate="label" type="obscure" sortOrder="160" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>HMAC Key for Live</label>
+            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <config_path>payment/adyen_pay_by_mail/hmac_live</config_path>
+        </field>
+    </group>
+</include>
