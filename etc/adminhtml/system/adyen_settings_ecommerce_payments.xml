@@ -75,7 +75,7 @@
             <attribute type="shared">1</attribute>
         </field>
         <field id="support_link" translate="label" sortOrder="80" showInDefault="1" showInWebsite="1">
-            <label><![CDATA[Before changing these setting, make sure to contact our <a target="_blank" href="https://support.adyen.com/hc/en-us/requests/new">support team</a>]]></label>
+            <label><![CDATA[Before changing these settings, make sure to contact our <a target="_blank" href="https://support.adyen.com/hc/en-us/requests/new">support team</a>]]></label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Field\Heading</frontend_model>
             <attribute type="shared">0</attribute>
         </field>
