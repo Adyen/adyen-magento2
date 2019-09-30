@@ -16,7 +16,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -39,7 +39,7 @@
                             ]]>
         </comment>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-        <field id="demo_mode" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
+        <field id="demo_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Environment</label>
             <source_model>Adyen\Payment\Model\Config\Source\DemoMode</source_model>
@@ -47,7 +47,7 @@
             <tooltip>
                 <![CDATA[ In the test mode you must use test cards. See section Documentation & Support for the link to the test cards]]></tooltip>
         </field>
-        <field id="shopper_locale" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1"
+        <field id="shopper_locale" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Locale</label>
             <tooltip>This will override the default shopper locale of the Magento store (e.g. nl_NL). Leave empty to let
@@ -57,7 +57,7 @@
             <source_model>Magento\Config\Model\Config\Source\Locale</source_model>
             <backend_model>Adyen\Payment\Model\Config\Backend\Locale</backend_model>
         </field>
-        <field id="version" translate="label" type="label" sortOrder="40" showInDefault="1" showInWebsite="1"
+        <field id="version" translate="label" type="label" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Plugin version</label>
             <frontend_model>\Adyen\Payment\Block\Adminhtml\System\Config\Field\Version</frontend_model>
