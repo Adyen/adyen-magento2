@@ -33,5 +33,5 @@ $_info = $this->getInfo();
     <dt class="title"><?php echo $_info->getAdditionalInformation('boleto_type'); ?></dt>
     <dt class="title"><?php echo $_info->getAdditionalInformation('firstname'); ?></dt>
     <dt class="title"><?php echo $_info->getAdditionalInformation('lastname'); ?></dt>
-    <dt class="title">><a target="_blank" href="<?php echo $this->getMethod()->getInfoInstance()->getAdditionalInformation('url'); ?>"><?php echo __("Click here to download Boleto PDF."); ?></a></dt>
+    <dt class="title"><a target="_blank" href="<?php echo $this->getMethod()->getInfoInstance()->getAdditionalInformation('url'); ?>"><?php echo __("Click here to download Boleto PDF."); ?></a></dt>
 </dl>
