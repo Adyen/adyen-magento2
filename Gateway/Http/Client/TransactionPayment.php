@@ -65,9 +65,10 @@ class TransactionPayment implements ClientInterface
         $client = $this->adyenHelper->initializeAdyenClient();
 
         $service = new \Adyen\Service\Checkout($client);
+        $requestOptions['idempotencyKey'] = $request['reference'];
 
         try {
-            $response = $service->payments($request);
+            $response = $service->payments($request, $requestOptions);
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
