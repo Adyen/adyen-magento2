@@ -518,13 +518,6 @@ define(
                     }
                 });
             },
-            /** Redirect to adyen */
-            continueToAdyen: function () {
-                if (this.validate() && additionalValidators.validate()) {
-                    this.placeRedirectOrder(this.getData());
-                    return false;
-                }
-            },
             continueToAdyenBrandCode: function () {
                 // set payment method to adyen_hpp
                 var self = this;
@@ -616,7 +609,9 @@ define(
                         fullScreenLoader.stopLoader();
                     }
                 ).done(
-                    function () {
+                    function (orderId) {
+                        // todo: redirect directly to HPP
+                        debugger;
                         self.afterPlaceOrder();
                         $.mage.redirect(
                             window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl

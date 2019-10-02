@@ -145,16 +145,19 @@ define(
             isApplePayAllowed: function () {
                 var self = this;
 
-                // validate if applepay is allowed, it will be picked up by the isApplePayVisible method
-                var promise = window.ApplePaySession.canMakePaymentsWithActiveCard(self.getMerchantIdentifier());
-                promise.then(function (canMakePayments) {
-                    if (canMakePayments)
-                        canMakeApplePayPayments(true);
-                });
+                if (!!window.ApplePaySession) {
+                    // validate if applepay is allowed, it will be picked up by the isApplePayVisible method
+                    var promise = window.ApplePaySession.canMakePaymentsWithActiveCard(self.getMerchantIdentifier());
+                    promise.then(function (canMakePayments) {
+                        if (canMakePayments)
+                            canMakeApplePayPayments(true);
+                    });
 
-                if (window.ApplePaySession && window.ApplePaySession.supportsVersion(applePayVersion) ) {
-                    return true;
+                    if (window.ApplePaySession && window.ApplePaySession.supportsVersion(applePayVersion)) {
+                        return true;
+                    }
                 }
+
                 return false;
             },
             performValidation: function (validationURL) {
@@ -191,10 +194,10 @@ define(
                     }
                 );
             },
-            isApplePayVisible: function() {
+            isApplePayVisible: function () {
                 return canMakeApplePayPayments();
             },
-            getMerchantIdentifier: function() {
+            getMerchantIdentifier: function () {
                 return window.checkoutConfig.payment.adyen_apple_pay.merchant_identifier;
             }
         });
