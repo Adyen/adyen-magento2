@@ -609,9 +609,7 @@ define(
                         fullScreenLoader.stopLoader();
                     }
                 ).done(
-                    function (orderId) {
-                        // todo: redirect directly to HPP
-                        debugger;
+                    function () {
                         self.afterPlaceOrder();
                         $.mage.redirect(
                             window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
