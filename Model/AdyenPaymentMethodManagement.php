@@ -52,6 +52,6 @@ class AdyenPaymentMethodManagement implements \Adyen\Payment\Api\AdyenPaymentMet
             $country = $shippingAddress->getCountryId();
         }
 
-        return $this->_paymentMethodsHelper->getPaymentMethods($cartId, $country);
+        return $this->_paymentMethodsHelper->getPaymentMethods($quoteId, $country, $includeSchemeType = true);
     }
 }

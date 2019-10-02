@@ -63,6 +63,6 @@ class GuestAdyenPaymentMethodManagement implements \Adyen\Payment\Api\GuestAdyen
             $country = $shippingAddress->getCountryId();
         }
 
-        return $this->_paymentMethodsHelper->getPaymentMethods($quoteId, $country);
+        return $this->_paymentMethodsHelper->getPaymentMethods($quoteId, $country, $includeSchemeType = true);
     }
 }

@@ -129,13 +129,13 @@ class PaymentMethods extends AbstractHelper
     /**
      * {@inheritDoc}
      */
-    public function getPaymentMethods($quoteId, $country = null)
+    public function getPaymentMethods($quoteId, $country = null, $includeSchemeType = false)
     {
         // get quote from quoteId
         $quote = $this->quoteRepository->getActive($quoteId);
         $store = $quote->getStore();
 
-        $paymentMethods = $this->addHppMethodsToConfig($store, $country);
+        $paymentMethods = $this->addHppMethodsToConfig($store, $country, $includeSchemeType);
         return $paymentMethods;
     }
 
@@ -143,7 +143,7 @@ class PaymentMethods extends AbstractHelper
      * @param $store
      * @return array
      */
-    protected function addHppMethodsToConfig($store, $country)
+    protected function addHppMethodsToConfig($store, $country, $includeSchemeType = false)
     {
         $paymentMethods = [];
 
@@ -154,7 +154,7 @@ class PaymentMethods extends AbstractHelper
         );
         $ccTypes = array_keys($this->adyenHelper->getCcTypesAltData());
 
-        foreach ($this->fetchAlternativeMethods($store, $country) as $methodCode => $methodData) {
+        foreach ($this->fetchAlternativeMethods($store, $country, $includeSchemeType) as $methodCode => $methodData) {
             /*
              * skip payment methods if it is a creditcard that is enabled in adyen_cc or a boleto method or wechat but
              * not wechatpay
@@ -178,7 +178,7 @@ class PaymentMethods extends AbstractHelper
      * @param $country
      * @return array
      */
-    protected function fetchAlternativeMethods($store, $country)
+    protected function fetchAlternativeMethods($store, $country, $includeSchemeType = false)
     {
         $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData('merchant_account');
 
@@ -215,7 +215,7 @@ class PaymentMethods extends AbstractHelper
         if (isset($responseData['paymentMethods'])) {
             foreach ($responseData['paymentMethods'] as $paymentMethod) {
 
-                if ($paymentMethod['type'] == "scheme") {
+                if ($paymentMethod['type'] == "scheme" && $includeSchemeType == false) {
                     continue;
                 }
 
