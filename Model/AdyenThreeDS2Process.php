@@ -97,6 +97,8 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         try {
             $client = $this->adyenHelper->initializeAdyenClient($quote->getStoreId());
             $service = $this->adyenHelper->createAdyenCheckoutService($client);
+            $requestOptions['idempotencyKey'] = $quote->reserveOrderId()->getReservedOrderId();
+
             $result = $service->paymentsDetails($request);
         } catch (\Adyen\AdyenException $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed'));

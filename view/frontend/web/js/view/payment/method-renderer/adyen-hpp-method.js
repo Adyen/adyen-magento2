@@ -518,13 +518,6 @@ define(
                     }
                 });
             },
-            /** Redirect to adyen */
-            continueToAdyen: function () {
-                if (this.validate() && additionalValidators.validate()) {
-                    this.placeRedirectOrder(this.getData());
-                    return false;
-                }
-            },
             continueToAdyenBrandCode: function () {
                 // set payment method to adyen_hpp
                 var self = this;

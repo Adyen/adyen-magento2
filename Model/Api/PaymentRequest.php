@@ -118,7 +118,8 @@ class PaymentRequest extends DataObject
         try {
             $client = $this->_adyenHelper->initializeAdyenClient($storeId);
             $service = $this->_adyenHelper->createAdyenCheckoutService($client);
-            $result = $service->paymentsDetails($request);
+            $requestOptions['idempotencyKey'] = $order->getIncrementId();
+            $result = $service->paymentsDetails($request, $requestOptions);
         } catch (\Adyen\AdyenException $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure failed'));
         }
