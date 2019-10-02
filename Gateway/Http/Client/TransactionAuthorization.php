@@ -69,12 +69,14 @@ class TransactionAuthorization implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
+
+        $requestOptions['idempotencyKey'] = $request['reference'];
         
         // call lib
         $service = new \Adyen\Service\Payment($this->_client);
 
         try {
-            $response = $service->authorise($request);
+            $response = $service->authorise($request, $requestOptions);
         } catch (\Adyen\AdyenException $e) {
             $response['error'] =  $e->getMessage();
         }
