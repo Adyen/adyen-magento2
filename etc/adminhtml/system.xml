@@ -26,13 +26,15 @@
     <system>
         <section id="payment" translate="label" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
             <group id="adyen_group_all_in_one" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Adyen All-in-One Payment Solutions</label>
-                <comment><![CDATA[Adyen All-in-One Payment Solutions]]></comment>
+                <label><![CDATA[<div class="adyen-payment-logo"></div><div class="adyen-payment-byline">Adyen All-in-One Payment Solutions<br/></div>]]></label>
+                <!--<label>Adyen All-in-One Payment Solutions</label>-->
+                <comment><![CDATA[<p>Offer key payment methods anywhere in the world at the flick of a switch.</p>
+                 <p>Easy integration with our in-house built Magento Plugin, no set-up fee.</p>]]></comment>
                 <attribute type="expanded">1</attribute>
                 <fieldset_css>complex</fieldset_css>
-                <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
-                <include path="Adyen_Payment::system/adyen_getting_started.xml"/>
+                <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
                 <include path="Adyen_Payment::system/adyen_global_settings.xml"/>
+                <include path="Adyen_Payment::system/adyen_getting_started.xml"/>
                 <include path="Adyen_Payment::system/adyen_settings_ecommerce_payments.xml"/>
                 <include path="Adyen_Payment::system/adyen_required_settings.xml"/>
                 <include path="Adyen_Payment::system/adyen_advanced_order_processing.xml"/>
