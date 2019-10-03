@@ -27,7 +27,7 @@
     <group id="adyen_cc" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1"
            showInStore="1">
         <label><![CDATA[CreditCard API integration]]></label>
-        <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
+        <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment>Process creditcard payments inside your checkout.</comment>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
