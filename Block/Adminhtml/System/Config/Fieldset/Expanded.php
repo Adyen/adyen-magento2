@@ -1,3 +1,4 @@
+<?php
 /**
  *                       ######
  *                       ######
@@ -14,31 +15,23 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
-.adyen-method-adyen-cc > .entry-edit-head > .config-heading .heading strong {
-    padding-left: 90px;
-    background: url(images/adyen-logo.png) no-repeat 0 0;
-    background-size: 83px 24px;
-    line-height: 23px;
-}
 
-ul.adyen-list {
-    margin: 0 20px 10px;
-}
+namespace Adyen\Payment\Block\Adminhtml\System\Config\Fieldset;
 
-#payment_other_adyen_group_all_in_one_adyen_global_settings-head {
-    display: none;
-}
-
-#row_payment_other_adyen_group_all_in_one .heading {
-    background: url("images/adyen-logo.png") no-repeat 0 50% / 18rem auto;
-    padding-left: 20rem;
-}
-
-#row_payment_other_adyen_group_all_in_one .button-container {
-    float: right;
+/**
+ * Fieldset renderer which expanded by default
+ */
+class Expanded extends \Magento\Config\Block\System\Config\Form\Fieldset
+{
+    /**
+     * Whether is collapsed by default
+     *
+     * @var bool
+     */
+    protected $isCollapsedDefault = true;
 }

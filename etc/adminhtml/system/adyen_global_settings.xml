@@ -29,16 +29,16 @@
         <label><![CDATA[Global Settings]]></label>
         <comment><![CDATA[
                             <b>
-                                <a target="_blank" href="https://docs.adyen.com/plugins/magento-2">Docs</a>|
-                                <a target="_blank" href="https://support.adyen.com/hc/en-us/sections/360000809984-Plugins">FAQs</a>|
-                                <a target="_blank" href="https://support.adyen.com/hc/en-us/requests/new">Support</a>|
-                                <a target="_blank" href="https://www.adyen.com/status">Platform status</a>|
-                                <a target="_blank" href="https://github.com/Adyen/adyen-magento2/releases">GitHub</a>|
-                                <a target="_blank" href="https://marketplace.magento.com/adyen-module-payment.html">Magento Marketplace</a>|
+                                <a target="_blank" href="https://docs.adyen.com/plugins/magento-2">Docs</a>&nbsp;|&nbsp;
+                                <a target="_blank" href="https://support.adyen.com/hc/en-us/sections/360000809984-Plugins">FAQs</a>&nbsp;|&nbsp;
+                                <a target="_blank" href="https://support.adyen.com/hc/en-us/requests/new">Support</a>&nbsp;|&nbsp;
+                                <a target="_blank" href="https://www.adyen.com/status">Platform status</a>&nbsp;|&nbsp;
+                                <a target="_blank" href="https://github.com/Adyen/adyen-magento2/releases">GitHub</a>&nbsp;|&nbsp;
+                                <a target="_blank" href="https://marketplace.magento.com/adyen-module-payment.html">Magento Marketplace</a>
                             </b>
                             ]]>
         </comment>
-        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Fieldset\Expanded</frontend_model>
         <field id="demo_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Environment</label>
