@@ -32,7 +32,7 @@ define(
             /**
              * Retrieve the list of available payment methods from the server
              */
-            retrieveAvailablePaymentMethods: function (callback = null) {
+            retrieveAvailablePaymentMethods: function (callback) {
                 var self = this;
 
                 // retrieve payment methods
