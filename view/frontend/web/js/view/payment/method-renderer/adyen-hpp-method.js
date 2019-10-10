@@ -141,7 +141,7 @@ define(
                 // retrieve new payment methods if country code changed
                 if (shippingAddressCountryCode != currentShippingAddressCountryCode) {
                     fullScreenLoader.startLoader();
-                    adyenPaymentService.retrieveAvailablePaymentMethods(null);
+                    adyenPaymentService.retrieveAvailablePaymentMethods();
                     shippingAddressCountryCode = currentShippingAddressCountryCode;
                     fullScreenLoader.stopLoader();
                 }

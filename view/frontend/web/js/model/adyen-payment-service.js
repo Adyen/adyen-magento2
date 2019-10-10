@@ -56,7 +56,7 @@ define(
                 ).done(
                     function (response) {
                         self.setPaymentMethods(response);
-                        if (callback !== null) {
+                        if (callback) {
                             callback();
                         }
                     }
