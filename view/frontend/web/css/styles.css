@@ -206,10 +206,15 @@
 /* General styling for checkout */
 
 .payment-method-content .field input, .payment-method-content .field select {
-    max-width: 168px;
+    max-width: 250px;
 }
 
 .adyen-checkout__link adyen-checkout__link--more-information {
+    margin-bottom: 10px;
+}
+
+.checkout-component-dock {
+    max-width: 250px;
     margin-bottom: 10px;
 }
 
@@ -217,7 +222,6 @@
     margin-top: 10px;
     display: none;
 }
-
 
 /* Checkout component Adyen v3.2.0 styling start */
 .adyen-checkout__field{
