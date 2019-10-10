@@ -97,7 +97,6 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         try {
             $client = $this->adyenHelper->initializeAdyenClient($quote->getStoreId());
             $service = $this->adyenHelper->createAdyenCheckoutService($client);
-            $requestOptions['idempotencyKey'] = $quote->reserveOrderId()->getReservedOrderId();
 
             $result = $service->paymentsDetails($request);
         } catch (\Adyen\AdyenException $e) {
