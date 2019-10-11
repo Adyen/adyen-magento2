@@ -72,12 +72,13 @@ define(
                 checkoutCardComponentScriptTag.id = "AdyenCheckoutCardComponentScript";
                 checkoutCardComponentScriptTag.src = self.getCheckoutCardComponentSource();
                 checkoutCardComponentScriptTag.type = "text/javascript";
-                document.body.appendChild(checkoutCardComponentScriptTag);
+                document.head.appendChild(checkoutCardComponentScriptTag);
+
                 if (this.isGooglePayEnabled()) {
                     var googlepayscript = document.createElement('script');
                     googlepayscript.src = "https://pay.google.com/gp/p/js/pay.js";
                     googlepayscript.type = "text/javascript";
-                    document.body.appendChild(googlepayscript);
+                    document.head.appendChild(googlepayscript);
                 }
             },
             getCheckoutCardComponentSource: function() {

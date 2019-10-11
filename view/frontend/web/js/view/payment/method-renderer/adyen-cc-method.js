@@ -65,10 +65,7 @@ define(
 
                 // initialize adyen component for general use
                 this.checkout = new AdyenCheckout({
-                    locale: this.getLocale(),
-                    risk: {
-                        enabled: false
-                    }
+                    locale: this.getLocale()
                 });
 
                 return this;
