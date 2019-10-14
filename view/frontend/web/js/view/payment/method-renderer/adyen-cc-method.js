@@ -37,9 +37,11 @@ define(
         'Magento_Paypal/js/action/set-payment-method',
         'Magento_Checkout/js/action/select-payment-method',
         'Adyen_Payment/js/threeds2-js-utils',
-        'Adyen_Payment/js/model/threeds2'
+        'Adyen_Payment/js/model/threeds2',
+        'Adyen_Payment/js/action/set-billing-address',
+        'Magento_Ui/js/model/messageList'
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installmentsHelper, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installmentsHelper, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2, setBillingAddressAction, globalMessageList) {
 
         'use strict';
 
@@ -335,17 +337,19 @@ define(
                     event.preventDefault();
                 }
 
-                if (this.validate() && additionalValidators.validate()) {
-                    fullScreenLoader.startLoader();
-                    self.isPlaceOrderActionAllowed(false);
+                setBillingAddressAction(globalMessageList).then(function() {
+                    if (self.validate() && additionalValidators.validate()) {
+                        fullScreenLoader.startLoader();
+                        self.isPlaceOrderActionAllowed(false);
 
-                    threeds2.processPayment(this.getCcData()).done(function (responseJSON) {
-                        self.validateThreeDS2OrPlaceOrder(responseJSON);
-                    }).error(function () {
-                        fullScreenLoader.stopLoader();
-                        self.isPlaceOrderActionAllowed(true);
-                    });
-                }
+                        threeds2.processPayment(self.getCcData()).done(function (responseJSON) {
+                            self.validateThreeDS2OrPlaceOrder(responseJSON);
+                        }).error(function () {
+                            fullScreenLoader.stopLoader();
+                            self.isPlaceOrderActionAllowed(true);
+                        });
+                    }
+                });
             },
             /**
              * Based on the response we can start a 3DS2 validation or place the order
