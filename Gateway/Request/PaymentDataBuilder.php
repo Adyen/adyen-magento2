@@ -60,7 +60,8 @@ class PaymentDataBuilder implements BuilderInterface
         $currencyCode = $fullOrder->getOrderCurrencyCode();
         $amount = $fullOrder->getGrandTotal();
         $reference = $order->getOrderIncrementId();
+        $paymentMethod = $payment->getMethod();
 
-        return $this->adyenRequestsHelper->buildPaymentData([], $amount, $currencyCode, $reference);
+        return $this->adyenRequestsHelper->buildPaymentData([], $amount, $currencyCode, $reference, $paymentMethod);
     }
 }

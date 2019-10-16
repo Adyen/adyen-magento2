@@ -65,7 +65,13 @@ class TransactionPayment implements ClientInterface
         $client = $this->adyenHelper->initializeAdyenClient();
 
         $service = new \Adyen\Service\Checkout($client);
-        $requestOptions['idempotencyKey'] = $request['reference'];
+
+        $requestOptions = [];
+
+        if (!empty($request['idempotencyKeyRequired']) && $request['idempotencyKeyRequired'] === true) {
+            $requestOptions['idempotencyKey'] = $request['reference'];
+            unset($requestOptions['idempotencyKey']);
+        }
 
         try {
             $response = $service->payments($request, $requestOptions);

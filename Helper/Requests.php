@@ -262,22 +262,24 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param $request
+     * @param array $request
      * @param $amount
      * @param $currencyCode
      * @param $reference
-     * @return mixed
+     * @param $paymentMethod
+     * @return array
      */
-    public function buildPaymentData($request = [], $amount, $currencyCode, $reference)
+    public function buildPaymentData($request = [], $amount, $currencyCode, $reference, $paymentMethod)
     {
         $request['amount'] = [
             'currency' => $currencyCode,
             'value' => $this->adyenHelper->formatAmount($amount, $currencyCode)
         ];
 
-
         $request["reference"] = $reference;
         $request["fraudOffset"] = "0";
+
+        $request = $this->addIdempotencyKeyFlag($request, $paymentMethod);
 
         return $request;
     }
@@ -481,5 +483,23 @@ class Requests extends AbstractHelper
         }
 
         return $address;
+    }
+
+    /**
+     * Adds a parameter: idempotencyKeyRequired to the payment request object with a value true
+     * We are checking this flag before creating the client to add or not the idempotency key and then we remove this
+     * flag
+     *
+     * @param array $request
+     * @param $paymentMethod
+     * @return array
+     */
+    private function addIdempotencyKeyFlag($request = [], $paymentMethod)
+    {
+        if (!empty($paymentMethod) && $paymentMethod == 'adyen_hpp') {
+            $request['idempotencyKeyRequired'] = true;
+        }
+
+        return $request;
     }
 }

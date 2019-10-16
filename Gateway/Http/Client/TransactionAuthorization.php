@@ -70,7 +70,12 @@ class TransactionAuthorization implements ClientInterface
     {
         $request = $transferObject->getBody();
 
-        $requestOptions['idempotencyKey'] = $request['reference'];
+        $requestOptions = [];
+
+        if (!empty($request['idempotencyKeyRequired']) && $request['idempotencyKeyRequired'] === true) {
+            $requestOptions['idempotencyKey'] = $request['reference'];
+            unset($requestOptions['idempotencyKey']);
+        }
         
         // call lib
         $service = new \Adyen\Service\Payment($this->_client);

@@ -148,7 +148,7 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         // Setting the orderid to null, so that we generate a new one for each /payments call
         $quote->setReservedOrderId(null);
         $reference = $quote->reserveOrderId()->getReservedOrderId();
-        $request = $this->adyenRequestHelper->buildPaymentData($request, $amount, $currencyCode, $reference);
+        $request = $this->adyenRequestHelper->buildPaymentData($request, $amount, $currencyCode, $reference, $paymentMethod);
 
         // Browser data builder
         $request = $this->adyenRequestHelper->buildBrowserData($request);
