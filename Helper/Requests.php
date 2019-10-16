@@ -439,7 +439,9 @@ class Requests extends AbstractHelper
     {
         if ($this->adyenHelper->isCreditCardVaultEnabled()) {
             if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE]) &&
-                $payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE] === true
+                $payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE] === true ||
+                !empty($payload[VaultConfigProvider::IS_ACTIVE_CODE]) &&
+                $payload[VaultConfigProvider::IS_ACTIVE_CODE] === true
             ) {
                 // store it only as oneclick otherwise we store oneclick tokens (maestro+bcmc) that will fail
                 $request['enableRecurring'] = true;
