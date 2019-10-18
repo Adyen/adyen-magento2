@@ -317,6 +317,7 @@ define(
                                 this.getPlaceOrderDeferredObject()
                                     .fail(
                                         function () {
+                                            fullScreenLoader.stopLoader();
                                             self.isPlaceOrderActionAllowed(true);
                                         }
                                     ).done(
