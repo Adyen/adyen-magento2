@@ -126,7 +126,7 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         }
 
         $maskedQuote = $this->quoteMaskFactory->create()->load($payload["quote_id"], 'masked_id');
-        $quote = $quoteRepo->get($maskedQuote->getQuoteId());
+        $quote = $this->quoteRepo->get($maskedQuote->getQuoteId());
 
         // Get payment and cart information from session
         //$quote = $this->checkoutSession->getQuote();
