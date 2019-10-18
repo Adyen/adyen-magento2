@@ -27,7 +27,7 @@ namespace Adyen\Payment\Api;
 interface AdyenPaymentProcessInterface
 {
     /**
-     * @param string $payload
+     * @param mixed $payload
      * @return string
      */
     public function initiate($payload);

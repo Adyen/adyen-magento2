@@ -67,6 +67,10 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
      */
     private $threeDS2ResponseValidator;
 
+    private $quoteRepo;
+    private $qutoeMaskFactory;
+
+
     /**
      * AdyenPaymentProcess constructor.
      *
@@ -87,7 +91,9 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         \Adyen\Payment\Gateway\Http\TransferFactory $transferFactory,
         \Adyen\Payment\Gateway\Http\Client\TransactionPayment $transactionPayment,
         \Adyen\Payment\Gateway\Validator\CheckoutResponseValidator $checkoutResponseValidator,
-        \Adyen\Payment\Gateway\Validator\ThreeDS2ResponseValidator $threeDS2ResponseValidator
+        \Adyen\Payment\Gateway\Validator\ThreeDS2ResponseValidator $threeDS2ResponseValidator,
+        \Magento\Quote\Model\QuoteIdMaskFactory $qutoeMaskFactory,
+        \Magento\Quote\Model\QuoteRepository $quoteRepo
     )
     {
         $this->context = $context;
@@ -98,6 +104,8 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         $this->transactionPayment = $transactionPayment;
         $this->checkoutResponseValidator = $checkoutResponseValidator;
         $this->threeDS2ResponseValidator = $threeDS2ResponseValidator;
+        $this->quoteRepo = $quoteRepo;
+        $this->quoteMaskFactory = $qutoeMaskFactory;
     }
 
     /**
@@ -108,16 +116,20 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
      */
     public function initiate($payload)
     {
-        // Decode payload from frontend
-        $payload = json_decode($payload, true);
-
-        // Validate JSON that has just been parsed if it was in a valid format
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Error with payment method please select different payment method.'));
+        // When payload is not an array then why assume its a jsonstring so we try to decode 
+        if(!is_array($payload)){
+            $payload = json_decode($payload, true);
+            // Validate JSON that has just been parsed if it was in a valid format
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Magento\Framework\Exception\LocalizedException('Error with payment method please select different payment method.');
+            }
         }
 
+        $maskedQuote = $this->quoteMaskFactory->create()->load($payload["quote_id"], 'masked_id');
+        $quote = $quoteRepo->get($maskedQuote->getQuoteId());
+
         // Get payment and cart information from session
-        $quote = $this->checkoutSession->getQuote();
+        //$quote = $this->checkoutSession->getQuote();
         $payment = $quote->getPayment();
 
         // Init request array
@@ -188,7 +200,7 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
                 }
             }
         } else {
-            $errorMsg = __('Error with payment method please select different payment method.');
+            $errorMsg = $paymentsResponse['error'];
             throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
         }
 
