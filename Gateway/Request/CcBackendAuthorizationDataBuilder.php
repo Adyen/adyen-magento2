@@ -101,10 +101,8 @@ class CcBackendAuthorizationDataBuilder implements BuilderInterface
         if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
             if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::STORE_CC)) {
                 $request['enableRecurring'] = true;
-                $request['paymentMethod']['storeDetails'] = true;
             } else {
                 $request['enableRecurring'] = false;
-                $request['paymentMethod']['storeDetails'] = false;
             }
         }
 

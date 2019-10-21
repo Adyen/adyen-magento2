@@ -445,11 +445,9 @@ class Requests extends AbstractHelper
             ) {
                 // store it only as oneclick otherwise we store oneclick tokens (maestro+bcmc) that will fail
                 $request['enableRecurring'] = true;
-                $request['paymentMethod']['storeDetails'] = true;
             } else {
                 // explicity turn this off as merchants have recurring on by default
                 $request['enableRecurring'] = false;
-                $request['paymentMethod']['storeDetails'] = false;
             }
         }
 
