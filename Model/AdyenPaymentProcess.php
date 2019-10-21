@@ -124,9 +124,13 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
                 throw new \Magento\Framework\Exception\LocalizedException('Error with payment method please select different payment method.');
             }
         }
-
-        $maskedQuote = $this->quoteMaskFactory->create()->load($payload["quote_id"], 'masked_id');
-        $quote = $this->quoteRepo->get($maskedQuote->getQuoteId());
+        $quoteId = $payload['quote_id'];
+        //if the quoteId is not an nummeric value then we assume that its a maked quote id from a guest card 
+        if(!is_numeric($payload[$quoteId])){
+            $maskedQuote = $this->quoteMaskFactory->create()->load($quoteId, 'masked_id');
+            $quoteId =  $maskedQuote->getQuoteId();
+        } 
+        $quote = $this->quoteRepo->get($quoteId);
 
         // Get payment and cart information from session
         //$quote = $this->checkoutSession->getQuote();

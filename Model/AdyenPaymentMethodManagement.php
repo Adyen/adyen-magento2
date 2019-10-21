@@ -29,6 +29,7 @@ class AdyenPaymentMethodManagement implements \Adyen\Payment\Api\AdyenPaymentMet
      * @var \Adyen\Payment\Helper\PaymentMethods
      */
     protected $_paymentMethodsHelper;
+    protected $_quoteRepo;
 
     /**
      * AdyenPaymentMethodManagement constructor.
@@ -36,17 +37,22 @@ class AdyenPaymentMethodManagement implements \Adyen\Payment\Api\AdyenPaymentMet
      * @param \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
      */
     public function __construct(
+         \Magento\Quote\Api\CartRepositoryInterface $quoteRepo,    
         \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
     ) {
         $this->_paymentMethodsHelper = $paymentMethodsHelper;
+        $this->_quoteRepo = $quoteRepo;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function getPaymentMethods($cartId, \Magento\Quote\Api\Data\AddressInterface $shippingAddress = null)
+    public function getPaymentMethods($customerId, \Magento\Quote\Api\Data\AddressInterface $shippingAddress = null)
     {
         // if shippingAddress is provided use this country
+        $quote = $this->_quoteRepo->getActiveForCustomer($customerId);
+        $quoteId = $quote->getId();
+        
         $country = null;
         if ($shippingAddress) {
             $country = $shippingAddress->getCountryId();
