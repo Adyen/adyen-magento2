@@ -40,7 +40,7 @@
             <resource ref="self"/>
         </resources>
         <data>
-            <parameter name="customerId" force="true">%customer_id%</parameter>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
         </data>
     </route>
 
