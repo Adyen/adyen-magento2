@@ -126,7 +126,7 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         }
         $quoteId = $payload['quote_id'];
         //if the quoteId is not an nummeric value then we assume that its a maked quote id from a guest card 
-        if(!is_numeric($payload[$quoteId])){
+        if(!is_numeric($quoteId)){
             $maskedQuote = $this->quoteMaskFactory->create()->load($quoteId, 'masked_id');
             $quoteId =  $maskedQuote->getQuoteId();
         } 
