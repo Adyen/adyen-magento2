@@ -363,7 +363,7 @@ class Requests extends AbstractHelper
     /**
      * @param $request
      * @param $payment
-     * @param $storeId
+     * @param $storeIdbuildCCData
      * @return mixed
      */
     public function buildCCData($request = [], $payload, $storeId, $areaCode)
@@ -407,6 +407,15 @@ class Requests extends AbstractHelper
             $recurringDetailReference = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]
         ) {
             $request['paymentMethod']['recurringDetailReference'] = $recurringDetailReference;
+        }
+
+        // set customerInteraction
+        $recurringContractType = $this->adyenHelper->getAdyenOneclickConfigData('recurring_payment_type');
+        if (!empty($payload['method']) && $payload['method'] == 'adyen_oneclick'
+            && $recurringContractType == \Adyen\Payment\Model\RecurringType::RECURRING) {
+            $request['shopperInteraction'] = "ContAuth";
+        } else {
+            $request['shopperInteraction'] = "Ecommerce";
         }
 
         /**
