@@ -70,14 +70,6 @@
                sortOrder="150">
             <label>Advanced Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-            <field id="enable_moto" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
-                   showInStore="1">
-                <label>Enable MOTO</label>
-                <tooltip>
-                    <![CDATA[Important you have to activate MOTO for your account contact magento@adyen.com.]]></tooltip>
-                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                <config_path>payment/adyen_cc/enable_moto</config_path>
-            </field>
             <field id="enable_installments" translate="label" type="select" sortOrder="219" showInDefault="1"
                    showInWebsite="1" showInStore="1">
                 <label>Enable Installments</label>

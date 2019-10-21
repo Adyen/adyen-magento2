@@ -61,9 +61,8 @@ class CcBackendAuthorizationDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        $order = $paymentDataObject->getOrder();
-        $storeId = $order->getStoreId();
         $request = [];
+
         // If ccType is set use this. For bcmc you need bcmc otherwise it will fail
         $request['paymentMethod']['type'] = 'scheme';
         if ($cardNumber = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER)) {
@@ -88,20 +87,25 @@ class CcBackendAuthorizationDataBuilder implements BuilderInterface
         $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE);
         $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME);
         /**
-         * if MOTO for backend is enabled use MOTO as shopper interaction type
+         * On Backend always use MOTO
          */
-        $enableMoto = $this->adyenHelper->getAdyenCcConfigDataFlag('enable_moto', $storeId);
-        if ($this->appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE &&
-            $enableMoto
-        ) {
-            $request['shopperInteraction'] = "Moto";
-        }
+        $request['shopperInteraction'] = "Moto";
         // if installments is set add it into the request
         if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) &&
             $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) > 0
         ) {
             $request['installments']['value'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS);
         }
+
+        // Flow for Billing agreements, for Vault check VaultDataBuilder
+        if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
+            if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::STORE_CC)) {
+                $request['enableRecurring'] = true;
+            } else {
+                $request['enableRecurring'] = false;
+            }
+        }
+
         return $request;
     }
 }
