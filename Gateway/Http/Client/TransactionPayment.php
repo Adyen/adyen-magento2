@@ -55,6 +55,7 @@ class TransactionPayment implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
+        $headers = $transferObject->getHeaders();
 
         // If the payments call is already done return the request
         if (!empty($request['resultCode'])) {
@@ -68,9 +69,8 @@ class TransactionPayment implements ClientInterface
 
         $requestOptions = [];
 
-        if (!empty($request['idempotencyKeyRequired']) && $request['idempotencyKeyRequired'] === true) {
-            $requestOptions['idempotencyKey'] = $request['reference'];
-            unset($requestOptions['idempotencyKey']);
+        if (!empty($headers['idempotencyKey'])) {
+            $requestOptions['idempotencyKey'] = $headers['idempotencyKey'];
         }
 
         try {
