@@ -69,12 +69,12 @@ class TransactionAuthorization implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
+        $headers = $transferObject->getHeaders();
 
         $requestOptions = [];
 
-        if (!empty($request['idempotencyKeyRequired']) && $request['idempotencyKeyRequired'] === true) {
-            $requestOptions['idempotencyKey'] = $request['reference'];
-            unset($requestOptions['idempotencyKey']);
+        if (!empty($headers['idempotencyKey'])) {
+            $requestOptions['idempotencyKey'] = $headers['idempotencyKey'];
         }
         
         // call lib

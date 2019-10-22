@@ -62,6 +62,10 @@ class PaymentDataBuilder implements BuilderInterface
         $reference = $order->getOrderIncrementId();
         $paymentMethod = $payment->getMethod();
 
-        return $this->adyenRequestsHelper->buildPaymentData([], $amount, $currencyCode, $reference, $paymentMethod);
+        $request['body'] = $this->adyenRequestsHelper->buildPaymentData([], $amount, $currencyCode, $reference, $paymentMethod);
+
+        $request['headers'] = $this->adyenRequestsHelper->addIdempotencyKey([], $paymentMethod, $reference);
+
+        return $request;
     }
 }

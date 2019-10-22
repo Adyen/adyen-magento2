@@ -279,8 +279,6 @@ class Requests extends AbstractHelper
         $request["reference"] = $reference;
         $request["fraudOffset"] = "0";
 
-        $request = $this->addIdempotencyKeyFlag($request, $paymentMethod);
-
         return $request;
     }
 
@@ -486,18 +484,17 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * Adds a parameter: idempotencyKeyRequired to the payment request object with a value true
-     * We are checking this flag before creating the client to add or not the idempotency key and then we remove this
-     * flag
+     * Only adds idempotency key if payment method is adyen_hpp for now
      *
      * @param array $request
      * @param $paymentMethod
+     * @param $idempotencyKey
      * @return array
      */
-    private function addIdempotencyKeyFlag($request = [], $paymentMethod)
+    public function addIdempotencyKey($request = [], $paymentMethod, $idempotencyKey)
     {
         if (!empty($paymentMethod) && $paymentMethod == 'adyen_hpp') {
-            $request['idempotencyKeyRequired'] = true;
+            $request['idempotencyKey'] = $idempotencyKey;
         }
 
         return $request;

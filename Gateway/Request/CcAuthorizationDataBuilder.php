@@ -42,7 +42,7 @@ class CcAuthorizationDataBuilder implements BuilderInterface
         if ($response = $payment->getAdditionalInformation("paymentsResponse")) {
             // the payments response needs to be passed to the next process because after this point we don't have
             // access to the payment object therefore to the additionalInformation array
-            $request = $response;
+            $request['body'] = $response;
             // Remove from additional data
             $payment->unsAdditionalInformation("paymentsResponse");
         } else {

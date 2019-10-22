@@ -55,12 +55,12 @@ class ApplePayAuthorizationDataBuilder implements BuilderInterface
 
     public function build(array $buildSubject)
     {
-        $request = [];
+        $requestBody = [];
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         $token = $payment->getAdditionalInformation('token');
 
-        $request['paymentMethod']['type'] = 'applepay';
+        $requestBody['paymentMethod']['type'] = 'applepay';
 
         // get payment data
         if ($token) {
@@ -68,13 +68,15 @@ class ApplePayAuthorizationDataBuilder implements BuilderInterface
             $paymentData = $parsedToken->token->paymentData;
             try {
                 $paymentData = base64_encode(json_encode($paymentData));
-				$request['paymentMethod']['applepay.token'] = $paymentData;
+                $requestBody['paymentMethod']['applepay.token'] = $paymentData;
             } catch (\Exception $exception) {
                 $this->_adyenLogger->addAdyenDebug("exception: " . $exception->getMessage());
             }
         } else {
             $this->_adyenLogger->addAdyenDebug("PaymentToken is empty");
         }
+
+        $request['body'] = $requestBody;
 
         return $request;
     }
