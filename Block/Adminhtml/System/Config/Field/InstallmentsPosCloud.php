@@ -82,11 +82,11 @@ class InstallmentsPosCloud extends \Magento\Config\Block\System\Config\Form\Fiel
      */
     protected function _prepareArrayRow(\Magento\Framework\DataObject $row)
     {
-        $installlments = $row->getInstallments();
+        $installments = $row->getInstallments();
 
         $options = [];
-        if ($installlments) {
-            $options['option_' . $this->getNumberOfInstallmentsRenderer()->calcOptionHash($installlments)]
+        if ($installments) {
+            $options['option_' . $this->getNumberOfInstallmentsRenderer()->calcOptionHash($installments)]
                 = 'selected="selected"';
         }
         $row->setData('option_extra_attrs', $options);

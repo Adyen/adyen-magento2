@@ -112,11 +112,11 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
      */
     protected function _prepareArrayRow(\Magento\Framework\DataObject $row)
     {
-        $installlments = $row->getInstallments();
+        $installments = $row->getInstallments();
 
         $options = [];
-        if ($installlments) {
-            $options['option_' . $this->getNumberOfInstallmentsRenderer()->calcOptionHash($installlments)]
+        if ($installments) {
+            $options['option_' . $this->getNumberOfInstallmentsRenderer()->calcOptionHash($installments)]
                 = 'selected="selected"';
 
             $ccTypes = $row->getCcTypes();

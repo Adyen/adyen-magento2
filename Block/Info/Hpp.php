@@ -49,7 +49,7 @@ class Hpp extends AbstractInfo
     }
 
     /**
-     * Get all multibanco related data
+     * Get all Multibanco related data
      *
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException

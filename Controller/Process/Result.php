@@ -301,7 +301,7 @@ class Result extends \Magento\Framework\App\Action\Action
     }
     
     /**
-     * Authenticate using sha1 Merchant signature
+     * Authenticate using sha256 Merchant signature
      *
      * @param $response
      * @return bool

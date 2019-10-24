@@ -25,10 +25,10 @@ namespace Adyen\Payment\Api\Data;
 
 interface NotificationInterface
 {
-
-    /**#@+
+    /**
      * Constants for keys of data array. Identical to the name of the getter in snake case.
      */
+
     /*
      * Entity ID.
      */
@@ -66,15 +66,15 @@ interface NotificationInterface
      */
     const AMOUNT_CURRENCY = 'amount_currency';
     /*
-    * reason
-    */
+     * Reason
+     */
     const REASON = 'reason';
     /*
      * Live
      */
     const LIVE = 'live';
     /*
-     * Live
+     * Done
      */
     const DONE = 'done';
     /*
@@ -109,7 +109,7 @@ interface NotificationInterface
     /**
      * Gets the Pspreference for the notification.
      *
-     * @return int|null Pspreference.
+     * @return string|null Pspreference.
      */
     public function getPspreference();
 
@@ -133,14 +133,14 @@ interface NotificationInterface
     /**
      * Gets the OriginalReference for the notification.
      *
-     * @return int|null OriginalReference.
+     * @return string|null OriginalReference.
      */
     public function getOriginalReference();
 
     /**
      * Gets the Merchantreference for the notification.
      *
-     * @return int|null MerchantReference.
+     * @return string|null MerchantReference.
      */
     public function getMerchantReference();
 
@@ -155,7 +155,7 @@ interface NotificationInterface
     /**
      * Gets the Eventcode for the notification.
      *
-     * @return int|null Eventcode.
+     * @return string|null Eventcode.
      */
     public function getEventCode();
 
@@ -172,7 +172,7 @@ interface NotificationInterface
      *
      * @return int|null Success.
      */
-    public function getSucess();
+    public function getSuccess();
 
     /**
      * Sets Success.
@@ -185,7 +185,7 @@ interface NotificationInterface
     /**
      * Gets the Paymentmethod for the notification.
      *
-     * @return int|null PaymentMethod.
+     * @return string|null PaymentMethod.
      */
     public function getPaymentMethod();
 
@@ -217,7 +217,7 @@ interface NotificationInterface
      *
      * @return int|null AmountValue.
      */
-    public function getAmountCurency();
+    public function getAmountCurrency();
 
     /**
      * Sets AmountCurrency.
