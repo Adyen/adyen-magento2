@@ -213,9 +213,9 @@ interface NotificationInterface
     public function setAmountValue($amountValue);
 
     /**
-     * Gets the AmountValue for the notification.
+     * Gets the AmountCurrency for the notification.
      *
-     * @return int|null AmountValue.
+     * @return string|null AmountCurrency.
      */
     public function getAmountCurrency();
 
