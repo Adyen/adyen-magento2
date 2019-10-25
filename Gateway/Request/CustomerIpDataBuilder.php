@@ -54,7 +54,7 @@ class CustomerIpDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getPayment()->getOrder();
-        $shopperIp = $order->getXForwardedFor();
+        $shopperIp = $order-> getRemoteIp();
 
         if (empty($shopperIp)) {
             $shopperIp = $order->getRemoteIp();
