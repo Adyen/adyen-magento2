@@ -36,7 +36,7 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
     protected $_sessionQuote;
 
     /**
-     * Cc constructor.
+     * Oneclick constructor.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
