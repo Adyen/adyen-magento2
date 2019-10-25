@@ -68,6 +68,11 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
     private $threeDS2ResponseValidator;
 
     /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
      * AdyenPaymentProcess constructor.
      *
      * @param \Magento\Framework\Model\Context $context
@@ -87,7 +92,8 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         \Adyen\Payment\Gateway\Http\TransferFactory $transferFactory,
         \Adyen\Payment\Gateway\Http\Client\TransactionPayment $transactionPayment,
         \Adyen\Payment\Gateway\Validator\CheckoutResponseValidator $checkoutResponseValidator,
-        \Adyen\Payment\Gateway\Validator\ThreeDS2ResponseValidator $threeDS2ResponseValidator
+        \Adyen\Payment\Gateway\Validator\ThreeDS2ResponseValidator $threeDS2ResponseValidator,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
     )
     {
         $this->context = $context;
@@ -98,6 +104,7 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         $this->transactionPayment = $transactionPayment;
         $this->checkoutResponseValidator = $checkoutResponseValidator;
         $this->threeDS2ResponseValidator = $threeDS2ResponseValidator;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -148,6 +155,9 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         // Setting the orderid to null, so that we generate a new one for each /payments call
         $quote->setReservedOrderId(null);
         $reference = $quote->reserveOrderId()->getReservedOrderId();
+
+        $this->adyenLogger->addAdyenDebug("CC payment started for order: " . $reference);
+
         $request = $this->adyenRequestHelper->buildPaymentData($request, $amount, $currencyCode, $reference);
 
         // Browser data builder
@@ -197,6 +207,11 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
 
         // To actually save the additional info changes into the quote
         $quote->save();
+
+        $this->adyenLogger->addAdyenDebug("CC payment finished for order: " . $quote->getReservedOrderId());
+        if (!empty($paymentsResponse['resultCode'])) {
+            $this->adyenLogger->addAdyenDebug('Result code: ' . $paymentsResponse['resultCode']);
+        }
 
         // Original flow can continue, return to frontend and place the order
         return $this->adyenHelper->buildThreeDS2ProcessResponseJson();
