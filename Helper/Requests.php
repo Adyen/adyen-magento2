@@ -262,19 +262,19 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param $request
+     * @param array $request
      * @param $amount
      * @param $currencyCode
      * @param $reference
-     * @return mixed
+     * @param $paymentMethod
+     * @return array
      */
-    public function buildPaymentData($request = [], $amount, $currencyCode, $reference)
+    public function buildPaymentData($request = [], $amount, $currencyCode, $reference, $paymentMethod)
     {
         $request['amount'] = [
             'currency' => $currencyCode,
             'value' => $this->adyenHelper->formatAmount($amount, $currencyCode)
         ];
-
 
         $request["reference"] = $reference;
         $request["fraudOffset"] = "0";
@@ -481,5 +481,22 @@ class Requests extends AbstractHelper
         }
 
         return $address;
+    }
+
+    /**
+     * Only adds idempotency key if payment method is adyen_hpp for now
+     *
+     * @param array $request
+     * @param $paymentMethod
+     * @param $idempotencyKey
+     * @return array
+     */
+    public function addIdempotencyKey($request = [], $paymentMethod, $idempotencyKey)
+    {
+        if (!empty($paymentMethod) && $paymentMethod == 'adyen_hpp') {
+            $request['idempotencyKey'] = $idempotencyKey;
+        }
+
+        return $request;
     }
 }

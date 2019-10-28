@@ -60,9 +60,11 @@ class CancelDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $pspReference = $payment->getCcTransId();
 
-        return [
+        $request['body'] = [
             "reference" => $order->getOrderIncrementId(),
             "originalReference" => $pspReference
         ];
+
+        return $request;
     }
 }
