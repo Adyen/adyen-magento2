@@ -81,7 +81,7 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
             "displayName":"' . $displayName . '"
         }';
 
-        $this->_adyenLogger->addAdyenDebug("JSON Requesst is: " . print_r($data, true));
+        $this->_adyenLogger->addAdyenDebug("JSON Request is: " . print_r($data, true));
 
         curl_setopt($ch, CURLOPT_URL, $validationUrl);
 
