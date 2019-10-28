@@ -38,11 +38,13 @@ class PosCloudBuilder implements BuilderInterface
 
         $payment = $paymentDataObject->getPayment();
 
-        return [
+        $request['body'] = [
             "response" => $payment->getAdditionalInformation("terminalResponse"),
             "serviceID" => $payment->getAdditionalInformation("serviceID"),
             "initiateDate" => $payment->getAdditionalInformation("initiateDate"),
             "terminalID" => $payment->getAdditionalInformation("terminal_id")
         ];
+
+        return $request;
     }
 }

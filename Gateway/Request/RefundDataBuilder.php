@@ -107,7 +107,7 @@ class RefundDataBuilder implements BuilderInterface
             }
 
             // loop over payment methods and refund them all
-            $result = [];
+            $requestBody = [];
             foreach ($orderPaymentCollection as $splitPayment) {
                 // could be that not all the split payments need a refund
                 if ($amount > 0) {
@@ -140,7 +140,7 @@ class RefundDataBuilder implements BuilderInterface
                         'value' => $this->adyenHelper->formatAmount($modificationAmount, $currency)
                     ];
 
-                    $result[] = [
+                    $requestBody[] = [
                         "modificationAmount" => $modificationAmountObject,
                         "reference" => $payment->getOrder()->getIncrementId(),
                         "originalReference" => $splitPayment->getPspreference(),
@@ -153,7 +153,7 @@ class RefundDataBuilder implements BuilderInterface
             $amount = $this->adyenHelper->formatAmount($amount, $currency);
             $modificationAmount = ['currency' => $currency, 'value' => $amount];
 
-            $result = [
+            $requestBody = [
                 [
                     "modificationAmount" => $modificationAmount,
                     "reference" => $payment->getOrder()->getIncrementId(),
@@ -170,11 +170,13 @@ class RefundDataBuilder implements BuilderInterface
                 $openInvoiceFields = $this->getOpenInvoiceData($payment);
 
                 //There is only one payment, so we add the fields to the first(and only) result
-                $result[0]["additionalData"] = $openInvoiceFields;
+                $requestBody[0]["additionalData"] = $openInvoiceFields;
             }
         }
 
-        return $result;
+        $request['body'] = $requestBody;
+
+        return $request;
     }
 
     /**

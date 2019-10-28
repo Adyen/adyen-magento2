@@ -52,8 +52,14 @@ class TransferFactory implements TransferFactoryInterface
      */
     public function create(array $request)
     {
-        return $this->transferBuilder
-            ->setBody($request)
+        if (!empty($request['headers'])) {
+            $this->transferBuilder->setHeaders($request['headers']);
+        }
+
+        $transfer = $this->transferBuilder
+            ->setBody($request['body'])
             ->build();
+
+        return $transfer;
     }
 }

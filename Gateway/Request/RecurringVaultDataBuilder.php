@@ -33,17 +33,20 @@ class RecurringVaultDataBuilder implements BuilderInterface
      */
     public function build(array $buildSubject)
     {
-        $result = [];
+        $requestBody = [];
         $recurring = ['contract' => \Adyen\Payment\Model\RecurringType::RECURRING];
-        $result['recurring'] = $recurring;
+        $requestBody['recurring'] = $recurring;
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         $extensionAttributes = $payment->getExtensionAttributes();
         $paymentToken = $extensionAttributes->getVaultPaymentToken();
 
-        $result['selectedRecurringDetailReference'] = $paymentToken->getGatewayToken();
-        $result['shopperInteraction'] = 'ContAuth';
-        return $result;
+        $requestBody['selectedRecurringDetailReference'] = $paymentToken->getGatewayToken();
+        $requestBody['shopperInteraction'] = 'ContAuth';
+
+        $request['body'] = $requestBody;
+
+        return $request;
     }
 }

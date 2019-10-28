@@ -121,25 +121,25 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         $payment = $quote->getPayment();
 
         // Init request array
-        $request = [];
+        $requestBody = [];
 
         // Merchant account data builder
         $paymentMethod = $payment->getMethod();
         $storeId = $quote->getStoreId();
-        $request = $this->adyenRequestHelper->buildMerchantAccountData($request, $paymentMethod, $storeId);
+        $requestBody = $this->adyenRequestHelper->buildMerchantAccountData($requestBody, $paymentMethod, $storeId);
 
         // Customer data builder
         $customerId = $quote->getCustomerId();
         $billingAddress = $quote->getBillingAddress();
-        $request = $this->adyenRequestHelper->buildCustomerData($request, $customerId, $billingAddress, $storeId, null, $payload);
+        $requestBody = $this->adyenRequestHelper->buildCustomerData($requestBody, $customerId, $billingAddress, $storeId, null, $payload);
 
         // Customer Ip data builder
         $shopperIp = $quote->getXForwardedFor();
-        $request = $this->adyenRequestHelper->buildCustomerIpData($request, $shopperIp);
+        $requestBody = $this->adyenRequestHelper->buildCustomerIpData($requestBody, $shopperIp);
 
         // AddressDataBuilder
         $shippingAddress = $quote->getShippingAddress();
-        $request = $this->adyenRequestHelper->buildAddressData($request, $billingAddress, $shippingAddress);
+        $requestBody = $this->adyenRequestHelper->buildAddressData($requestBody, $billingAddress, $shippingAddress);
 
         // PaymentDataBuilder
         $currencyCode = $quote->getQuoteCurrencyCode();
@@ -148,26 +148,32 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         // Setting the orderid to null, so that we generate a new one for each /payments call
         $quote->setReservedOrderId(null);
         $reference = $quote->reserveOrderId()->getReservedOrderId();
-        $request = $this->adyenRequestHelper->buildPaymentData($request, $amount, $currencyCode, $reference);
+        $requestBody = $this->adyenRequestHelper->buildPaymentData($requestBody, $amount, $currencyCode, $reference, $paymentMethod);
 
         // Browser data builder
-        $request = $this->adyenRequestHelper->buildBrowserData($request);
+        $requestBody = $this->adyenRequestHelper->buildBrowserData($requestBody);
 
         // 3DS2.0 data builder
         $isThreeDS2Enabled = $this->adyenHelper->isCreditCardThreeDS2Enabled($storeId);
         if ($isThreeDS2Enabled) {
-            $request = $this->adyenRequestHelper->buildThreeDS2Data($request, $payload, $quote->getStore());
+            $requestBody = $this->adyenRequestHelper->buildThreeDS2Data($requestBody, $payload, $quote->getStore());
         }
 
         // RecurringDataBuilder
         $areaCode = $this->context->getAppState()->getAreaCode();
-        $request = $this->adyenRequestHelper->buildRecurringData($request, $areaCode, $storeId, $payload);
+        $requestBody = $this->adyenRequestHelper->buildRecurringData($requestBody, $areaCode, $storeId, $payload);
 
         // CcAuthorizationDataBuilder
-        $request = $this->adyenRequestHelper->buildCCData($request, $payload, $storeId, $areaCode);
+        $requestBody = $this->adyenRequestHelper->buildCCData($requestBody, $payload, $storeId, $areaCode);
 
         // Vault data builder
-        $request = $this->adyenRequestHelper->buildVaultData($request, $payload);
+        $requestBody = $this->adyenRequestHelper->buildVaultData($requestBody, $payload);
+
+        // Add idempotency key if applicable
+        $requestHeaders = $this->adyenRequestHelper->addIdempotencyKey([], $paymentMethod, $reference);
+
+        $request['body'] = $requestBody;
+        $request['headers'] = $requestHeaders;
 
         // Create and send request
         $transferObject = $this->transferFactory->create($request);
