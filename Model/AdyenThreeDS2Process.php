@@ -38,6 +38,11 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
     private $adyenHelper;
 
     /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
      * AdyenThreeDS2Process constructor.
      *
      * @param \Magento\Checkout\Model\Session $checkoutSession
@@ -45,11 +50,13 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
      */
     public function __construct(
         \Magento\Checkout\Model\Session $checkoutSession,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
     )
     {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -122,6 +129,11 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
 
         // To actually save the additional info changes into the quote
         $quote->save();
+
+        $this->adyenLogger->addAdyenDebug("CC payment finished for order: " . $quote->getReservedOrderId());
+        if (!empty($result['resultCode'])) {
+            $this->adyenLogger->addAdyenDebug('Result code: ' . $result['resultCode']);
+        }
 
         // 3DS2 flow is done, original place order flow can continue from frontend
         return $this->adyenHelper->buildThreeDS2ProcessResponseJson();

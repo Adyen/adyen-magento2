@@ -27,6 +27,24 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class CcAuthorizationDataBuilder implements BuilderInterface
 {
+
+    /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
+     * CcAuthorizationDataBuilder constructor.
+     *
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     */
+    public function __construct(
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+    )
+    {
+        $this->adyenLogger = $adyenLogger;
+    }
+    
     /**
      * @param array $buildSubject
      * @return array|mixed
@@ -49,6 +67,8 @@ class CcAuthorizationDataBuilder implements BuilderInterface
             $errorMsg = __('Error with payment method please select different payment method.');
             throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
         }
+
+        $this->adyenLogger->addAdyenDebug("Place order started for order: " . $request['merchantReference']);
 
         return $request;
     }
