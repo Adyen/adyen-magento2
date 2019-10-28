@@ -39,7 +39,6 @@ class AdyenPaymentMethodManagement implements \Adyen\Payment\Api\AdyenPaymentMet
         \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
     ) {
         $this->_paymentMethodsHelper = $paymentMethodsHelper;
-        $this->_quoteRepo = $quoteRepo;
     }
 
     /**
