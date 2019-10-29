@@ -39,9 +39,10 @@ define(
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
         'Magento_Checkout/js/action/place-order',
-        'Adyen_Payment/js/model/threeds2'
+        'Adyen_Payment/js/model/threeds2',
+        'Magento_Checkout/js/model/error-processor'
     ],
-    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, url, threeDS2Utils, fullScreenLoader, setPaymentMethodAction, urlBuilder, storage, placeOrderAction, threeds2) {
+    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, url, threeDS2Utils, fullScreenLoader, setPaymentMethodAction, urlBuilder, storage, placeOrderAction, threeds2, errorProcessor) {
 
         'use strict';
 
@@ -342,7 +343,8 @@ define(
                                     onComplete: function (result) {
                                         threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                             self.validateThreeDS2OrPlaceOrder(responseJSON)
-                                        }).error(function () {
+                                        }).fail(function (result) {
+                                            errorProcessor.process(result, self.getMessageContainer());
                                             self.isPlaceOrderActionAllowed(true);
                                             fullScreenLoader.stopLoader();
                                         });
@@ -373,7 +375,8 @@ define(
                                             fullScreenLoader.startLoader();
                                             threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                                 self.validateThreeDS2OrPlaceOrder(responseJSON)
-                                            }).error(function () {
+                                            }).fail(function (result) {
+                                                errorProcessor.process(result, self.getMessageContainer());
                                                 self.isPlaceOrderActionAllowed(true);
                                                 fullScreenLoader.stopLoader();
                                             });

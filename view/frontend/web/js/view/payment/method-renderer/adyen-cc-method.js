@@ -38,7 +38,7 @@ define(
         'Magento_Checkout/js/action/select-payment-method',
         'Adyen_Payment/js/threeds2-js-utils',
         'Adyen_Payment/js/model/threeds2',
-        'Magento_Checkout/js/model/error-processor',
+        'Magento_Checkout/js/model/error-processor'
     ],
     function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installmentsHelper, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2, errorProcessor) {
 
