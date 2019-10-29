@@ -34,7 +34,7 @@ class OneclickAuthorizationDataBuilder implements BuilderInterface
     private $adyenHelper;
 
     /**
-     * CaptureDataBuilder constructor.
+     * OneclickAuthorizationDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
