@@ -351,7 +351,7 @@ class Requests extends AbstractHelper
                 $request['enableRecurring'] = false;
             }
 
-            // value cna be 0,1 or true
+            // value can be 0,1 or true
             if (!empty($additionalData[AdyenCcDataAssignObserver::STORE_CC])) {
                 $request['paymentMethod']['storeDetails'] = true;
             }
