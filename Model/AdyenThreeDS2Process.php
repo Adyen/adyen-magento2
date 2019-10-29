@@ -68,7 +68,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
     {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
-        $this->orderFactory =  $orderFactory;
+        $this->orderFactory = $orderFactory;
         $this->adyenLogger = $adyenLogger;
     }
 
