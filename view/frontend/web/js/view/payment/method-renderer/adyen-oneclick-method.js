@@ -200,16 +200,19 @@ define(
                                 fullScreenLoader.startLoader();
                                 self.isPlaceOrderActionAllowed(false);
 
-                                threeds2.processPayment(this.getCcData()).done(function (responseJSON) {
-                                    self.validateThreeDS2OrPlaceOrder(responseJSON);
-                                }).error(function () {
-                                    fullScreenLoader.stopLoader();
-                                    self.isPlaceOrderActionAllowed(true);
-                                });
-
-                                return false;
+                                self.getPlaceOrderDeferredObject()
+                                    .fail(
+                                        function () {
+                                            fullScreenLoader.stopLoader();
+                                            self.isPlaceOrderActionAllowed(true);
+                                        }
+                                    ).done(
+                                    function (response) {
+                                        self.afterPlaceOrder();
+                                        self.validateThreeDS2OrPlaceOrder(response);
+                                    }
+                                );
                             }
-
                             return false;
                         },
 
@@ -314,18 +317,7 @@ define(
                                 // render component
                                 self.renderThreeDS2Component(response.type, response.token);
                             } else {
-                                this.getPlaceOrderDeferredObject()
-                                    .fail(
-                                        function () {
-                                            fullScreenLoader.stopLoader();
-                                            self.isPlaceOrderActionAllowed(true);
-                                        }
-                                    ).done(
-                                    function () {
-                                        self.afterPlaceOrder();
-                                        window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
-                                    }
-                                );
+                                window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
                             }
                         },
                         /**
@@ -422,14 +414,22 @@ define(
                          */
                         getData: function () {
                             var self = this;
+                            var browserInfo = threeDS2Utils.getBrowserInfo();
 
                             return {
                                 "method": self.method,
                                 additional_data: {
                                     variant: variant(),
                                     recurring_detail_reference: recurringDetailReference(),
+                                    store_cc: true,
                                     number_of_installments: numberOfInstallments(),
-                                    cvc: self.encryptedCreditCardVerificationNumber
+                                    cvc: self.encryptedCreditCardVerificationNumber,
+                                    java_enabled: browserInfo.javaEnabled,
+                                    screen_color_depth: browserInfo.colorDepth,
+                                    screen_width: browserInfo.screenWidth,
+                                    screen_height: browserInfo.screenHeight,
+                                    timezone_offset: browserInfo.timeZoneOffset,
+                                    language: browserInfo.language
                                 }
                             };
                         },

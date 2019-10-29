@@ -37,10 +37,21 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
      */
     private $adyenHelper;
 
+
+    /**
+     * @var \Magento\Sales\Model\OrderFactory
+     */
+    protected $orderFactory;
+
+    /**
+     * @var
+     */
+    protected $order;
+
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
-    private $adyenLogger;
+    protected $adyenLogger;
 
     /**
      * AdyenThreeDS2Process constructor.
@@ -51,11 +62,13 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
     public function __construct(
         \Magento\Checkout\Model\Session $checkoutSession,
         \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Sales\Model\OrderFactory $orderFactory,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger
     )
     {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
+        $this->orderFactory =  $orderFactory;
         $this->adyenLogger = $adyenLogger;
     }
 
@@ -75,8 +88,8 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         }
 
         // Get payment and cart information from session
-        $quote = $this->checkoutSession->getQuote();
-        $payment = $quote->getPayment();
+        $order = $this->getOrder();
+        $payment = $order->getPayment();
 
         // Init payments/details request
         $result = [];
@@ -90,6 +103,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             // unset payment data from additional information
             $payment->unsAdditionalInformation("threeDS2PaymentData");
         } else {
+            $this->adyenLogger->addAdyenDebug("3D secure 2.0 failed, payment data not found");
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed, payment data not found'));
         }
 
@@ -102,11 +116,12 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
 
         // Send the request
         try {
-            $client = $this->adyenHelper->initializeAdyenClient($quote->getStoreId());
+            $client = $this->adyenHelper->initializeAdyenClient($order->getStoreId());
             $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
             $result = $service->paymentsDetails($request);
         } catch (\Adyen\AdyenException $e) {
+            $this->adyenLogger->addAdyenDebug("3D secure 2.0 failed" . $e->getMessage());
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed'));
         }
 
@@ -128,14 +143,23 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         $payment->setAdditionalInformation('placeOrder', true);
 
         // To actually save the additional info changes into the quote
-        $quote->save();
-
-        $this->adyenLogger->addAdyenDebug("CC payment finished for order: " . $quote->getReservedOrderId());
-        if (!empty($result['resultCode'])) {
-            $this->adyenLogger->addAdyenDebug('Result code: ' . $result['resultCode']);
-        }
+        $order->save();
 
         // 3DS2 flow is done, original place order flow can continue from frontend
         return $this->adyenHelper->buildThreeDS2ProcessResponseJson();
+    }
+
+    /**
+     * Get order object
+     *
+     * @return \Magento\Sales\Model\Order
+     */
+    protected function getOrder()
+    {
+        if (!$this->order) {
+            $incrementId = $this->checkoutSession->getLastRealOrderId();
+            $this->order = $this->orderFactory->create()->loadByIncrementId($incrementId);
+        }
+        return $this->order;
     }
 }

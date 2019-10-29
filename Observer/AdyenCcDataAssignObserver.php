@@ -46,6 +46,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     const SCREEN_HEIGHT = 'screen_height';
     const TIMEZONE_OFFSET = 'timezone_offset';
     const LANGUAGE = 'language';
+    const GUEST_EMAIL = 'guestEmail';
 
     /**
      * @var array
@@ -65,7 +66,8 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         self::SCREEN_WIDTH,
         self::SCREEN_HEIGHT,
         self::TIMEZONE_OFFSET,
-        self::LANGUAGE
+        self::LANGUAGE,
+        self::GUEST_EMAIL
     ];
 
     /**
@@ -89,7 +91,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         }
 
         foreach ($this->additionalInformationList as $additionalInformationKey) {
-            if (!empty($additionalData[$additionalInformationKey])) {
+            if (isset($additionalData[$additionalInformationKey])) {
                 $paymentInfo->setAdditionalInformation(
                     $additionalInformationKey,
                     $additionalData[$additionalInformationKey]
