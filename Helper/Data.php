@@ -1834,12 +1834,13 @@ class Data extends AbstractHelper
     {
         $response = ['threeDS2' => false];
 
+        if(!empty($type)) {
+            $response['type'] =  $type;
+        }
+
         if ($type && $token) {
-            $response = [
-                "threeDS2" => true,
-                "type" => $type,
-                "token" => $token
-            ];
+            $response['threeDS2'] = true;
+            $response['token'] = $token;
         }
 
         return json_encode($response);

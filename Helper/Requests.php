@@ -72,10 +72,10 @@ class Requests extends AbstractHelper
      * @param $billingAddress
      * @param $storeId
      * @param null $payment
-     * @param null $payload
+     * @param null $additionalData
      * @return array
      */
-    public function buildCustomerData($request = [], $customerId = 0, $billingAddress, $storeId, $payment = null, $payload = null)
+    public function buildCustomerData($request = [], $customerId = 0, $billingAddress, $storeId, $payment = null, $additionalData = null)
     {
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
@@ -87,13 +87,13 @@ class Requests extends AbstractHelper
         }
 
         // In case of virtual product and guest checkout there is a workaround to get the guest's email address
-        if (!empty($payload['additional_data']['guestEmail'])) {
+        if (!empty($additionalData['guestEmail'])) {
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
                 !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
             ) {
-                $request['paymentMethod']['personalDetails']['shopperEmail'] = $payload['additional_data']['guestEmail'];
+                $request['paymentMethod']['personalDetails']['shopperEmail'] = $additionalData['guestEmail'];
             } else {
-                $request['shopperEmail'] = $payload['additional_data']['guestEmail'];
+                $request['shopperEmail'] = $additionalData['guestEmail'];
             }
         }
 
@@ -302,23 +302,22 @@ class Requests extends AbstractHelper
      * @param $store
      * @return array
      */
-    public function buildThreeDS2Data($request = [], $payload, $store)
+    public function buildThreeDS2Data($request = [], $additionalData)
     {
         $request['additionalData']['allow3DS2'] = true;
         $request['origin'] = $this->adyenHelper->getOrigin();
         $request['channel'] = 'web';
-        $request['browserInfo']['screenWidth'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::SCREEN_WIDTH];
-        $request['browserInfo']['screenHeight'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::SCREEN_HEIGHT];
-        $request['browserInfo']['colorDepth'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH];
-        $request['browserInfo']['timeZoneOffset'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::TIMEZONE_OFFSET];
-        $request['browserInfo']['language'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::LANGUAGE];
+        $request['browserInfo']['screenWidth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_WIDTH];
+        $request['browserInfo']['screenHeight'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_HEIGHT];
+        $request['browserInfo']['colorDepth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH];
+        $request['browserInfo']['timeZoneOffset'] = $additionalData[AdyenCcDataAssignObserver::TIMEZONE_OFFSET];
+        $request['browserInfo']['language'] = $additionalData[AdyenCcDataAssignObserver::LANGUAGE];
 
-        if ($javaEnabled = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::JAVA_ENABLED]) {
+        if ($javaEnabled = $additionalData[AdyenCcDataAssignObserver::JAVA_ENABLED]) {
             $request['browserInfo']['javaEnabled'] = $javaEnabled;
         } else {
             $request['browserInfo']['javaEnabled'] = false;
         }
-
         return $request;
     }
 
@@ -328,7 +327,7 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringData($request = [], $areaCode, int $storeId, $payload)
+    public function buildRecurringData($request = [], $areaCode, int $storeId, $additionalData)
     {
         // If the vault feature is on this logic is handled in the VaultDataBuilder
         if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
@@ -352,7 +351,8 @@ class Requests extends AbstractHelper
                 $request['enableRecurring'] = false;
             }
 
-            if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::STORE_CC]) && $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::STORE_CC] === true) {
+            // value can be 0,1 or true
+            if (!empty($additionalData[AdyenCcDataAssignObserver::STORE_CC])) {
                 $request['paymentMethod']['storeDetails'] = true;
             }
         }

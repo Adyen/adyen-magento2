@@ -61,13 +61,13 @@ class ThreeDS2ResponseValidator extends AbstractValidator
             if ($response['resultCode'] == "IdentifyShopper" &&
                 !empty($response['authentication']['threeds2.fingerprintToken'])
             ) {
-                $payment->setAdditionalInformation('threeDS2Type', $response['resultCode']);
+                $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
                 $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.fingerprintToken']);
                 $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
             } elseif ($response['resultCode'] == "ChallengeShopper" &&
                 !empty($response['authentication']['threeds2.challengeToken'])
             ) {
-                $payment->setAdditionalInformation('threeDS2Type', $response['resultCode']);
+                $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
                 $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.challengeToken']);
                 $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
             } else {

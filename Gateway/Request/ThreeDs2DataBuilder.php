@@ -20,49 +20,51 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-/**
- * Class CustomerDataBuilder
- */
-class CustomerDataBuilder implements BuilderInterface
+class RecurringDataBuilder implements BuilderInterface
 {
+    /**
+     * @var \Magento\Framework\App\State
+     */
+    private $appState;
+
     /**
      * @var \Adyen\Payment\Helper\Requests
      */
     private $adyenRequestsHelper;
 
     /**
-     * CustomerDataBuilder constructor.
+     * RecurringDataBuilder constructor.
      *
+     * @param \Magento\Framework\Model\Context $context
      * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
      */
-	public function __construct(
+    public function __construct(
+        \Magento\Framework\Model\Context $context,
         \Adyen\Payment\Helper\Requests $adyenRequestsHelper
-	)
-	{
+    ) {
+        $this->appState = $context->getAppState();
         $this->adyenRequestsHelper = $adyenRequestsHelper;
-	}
+    }
 
-	/**
-     * Add shopper data into request
-     *
+
+    /**
      * @param array $buildSubject
      * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function build(array $buildSubject)
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
-        $customerId = $order->getCustomerId();
-        $billingAddress = $order->getBillingAddress();
-        $storeId = $order->getStoreId();
-        $additionalInformation = $payment->getAdditionalInformation();
-        $request['body'] = $this->adyenRequestsHelper->buildCustomerData([], $customerId, $billingAddress, $storeId, $payment, $additionalInformation);
-        return $request;
+        $storeId = $payment->getOrder()->getStoreId();
+        $areaCode = $this->appState->getAreaCode();
+
+        return $this->adyenRequestsHelper->buildRecurringData([], $areaCode, $storeId, $payment);
     }
 }

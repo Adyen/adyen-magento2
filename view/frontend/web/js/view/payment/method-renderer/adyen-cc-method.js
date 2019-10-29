@@ -37,9 +37,10 @@ define(
         'Magento_Paypal/js/action/set-payment-method',
         'Magento_Checkout/js/action/select-payment-method',
         'Adyen_Payment/js/threeds2-js-utils',
-        'Adyen_Payment/js/model/threeds2'
+        'Adyen_Payment/js/model/threeds2',
+        'Magento_Checkout/js/model/error-processor'
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installmentsHelper, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installmentsHelper, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2, errorProcessor) {
 
         'use strict';
 
@@ -192,7 +193,6 @@ define(
              */
             renderThreeDS2Component: function (type, token) {
                 var self = this;
-
                 var threeDS2Node = document.getElementById('threeDS2Container');
 
                 if (type == "IdentifyShopper") {
@@ -202,7 +202,8 @@ define(
                             onComplete: function (result) {
                                 threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON)
-                                }).error(function () {
+                                }).fail(function (result) {
+                                    errorProcessor.process(result, self.messageContainer);
                                     self.isPlaceOrderActionAllowed(true);
                                     fullScreenLoader.stopLoader();
                                 });
@@ -239,7 +240,8 @@ define(
                                 fullScreenLoader.startLoader();
                                 threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON);
-                                }).error(function () {
+                                }).fail(function (result) {
+                                    errorProcessor.process(result, self.messageContainer);
                                     self.isPlaceOrderActionAllowed(true);
                                     fullScreenLoader.stopLoader();
                                 });
@@ -267,11 +269,10 @@ define(
                     "</div>");
             },
             /**
-             * Builds the payment details part of the payment information reqeust
-             *
-             * @returns {{method: *, additional_data: {cc_type: *, number: *, cvc: *, expiryMonth: *, expiryYear: *, holderName: *, store_cc: (boolean|*), number_of_installments: *, java_enabled: () => boolean, screen_color_depth: number, screen_width, screen_height, timezone_offset: *, language: *}}}
+             * Get data for place order
+             * @returns {{method: *}}
              */
-            getCcData: function () {
+            getData: function () {
                 const browserInfo = threeDS2Utils.getBrowserInfo();
 
                 var data = {
@@ -294,23 +295,8 @@ define(
                         'language': browserInfo.language
                     }
                 };
-
                 this.vaultEnabler.visitAdditionalData(data);
                 return data;
-            },
-            /**
-             * Get data for place order
-             * @returns {{method: *}}
-             */
-            getData: function () {
-                return {
-                    'method': this.item.method,
-                    additional_data: {
-                        'cc_type': this.creditCardType(),
-                        'store_cc': this.storeCc,
-                        'number_of_installments': this.installment()
-                    }
-                };
             },
             /**
              * Returns state of place order button
@@ -339,27 +325,6 @@ define(
                     fullScreenLoader.startLoader();
                     self.isPlaceOrderActionAllowed(false);
 
-                    threeds2.processPayment(this.getCcData()).done(function (responseJSON) {
-                        self.validateThreeDS2OrPlaceOrder(responseJSON);
-                    }).error(function () {
-                        fullScreenLoader.stopLoader();
-                        self.isPlaceOrderActionAllowed(true);
-                    });
-                }
-            },
-            /**
-             * Based on the response we can start a 3DS2 validation or place the order
-             * @param responseJSON
-             */
-            validateThreeDS2OrPlaceOrder: function (responseJSON) {
-                var self = this;
-
-                var response = JSON.parse(responseJSON);
-
-                if (!!response.threeDS2) {
-                    // render component
-                    self.renderThreeDS2Component(response.type, response.token);
-                } else {
                     self.getPlaceOrderDeferredObject()
                         .fail(
                             function () {
@@ -367,16 +332,28 @@ define(
                                 self.isPlaceOrderActionAllowed(true);
                             }
                         ).done(
-                        function () {
+                        function (response) {
                             self.afterPlaceOrder();
-
-                            if (self.redirectAfterPlaceOrder) {
-                                // use custom redirect Link for supporting 3D secure
-                                window.location.replace(url.build(
-                                    window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl)
-                                );
-                            }
+                            self.validateThreeDS2OrPlaceOrder(response);
                         }
+                    );
+                }
+                return false;
+            },
+            /**
+             * Based on the response we can start a 3DS2 validation or place the order
+             * @param responseJSON
+             */
+            validateThreeDS2OrPlaceOrder: function (responseJSON) {
+                var self = this;
+                var response = JSON.parse(responseJSON);
+
+                if (!!response.threeDS2) {
+                    // render component
+                    self.renderThreeDS2Component(response.type, response.token);
+                } else {
+                    window.location.replace(url.build(
+                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl)
                     );
                 }
             },
