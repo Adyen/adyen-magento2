@@ -352,7 +352,7 @@ class Requests extends AbstractHelper
             }
 
             // value cna be 0,1 or true
-            if (!empty($additionalData[AdyenCcDataAssignObserver::STORE_CC]) && $additionalData[AdyenCcDataAssignObserver::STORE_CC] == true) {
+            if (!empty($additionalData[AdyenCcDataAssignObserver::STORE_CC])) {
                 $request['paymentMethod']['storeDetails'] = true;
             }
         }
