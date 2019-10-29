@@ -15,37 +15,20 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Gateway\Request;
+
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
+
 class CcAuthorizationDataBuilder implements BuilderInterface
 {
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    private $adyenHelper;
-    /**
-     * @var \Magento\Framework\App\State
-     */
-    private $appState;
-    /**
-     * CcAuthorizationDataBuilder constructor.
-     *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Framework\Model\Context $context
-     */
-    public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\Model\Context $context
-    ) {
-        $this->adyenHelper = $adyenHelper;
-        $this->appState = $context->getAppState();
-    }
+
     /**
      * @param array $buildSubject
      * @return mixed
@@ -55,7 +38,6 @@ class CcAuthorizationDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        $order = $paymentDataObject->getOrder();
         $requestBody = [];
         // If ccType is set use this. For bcmc you need bcmc otherwise it will fail
         $requestBody['paymentMethod']['type'] = "scheme";

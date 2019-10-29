@@ -41,17 +41,17 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
     /**
      * @var \Magento\Sales\Model\OrderFactory
      */
-    protected $orderFactory;
+    private $orderFactory;
 
     /**
      * @var
      */
-    protected $order;
+    private $order;
 
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
-    protected $adyenLogger;
+    private $adyenLogger;
 
     /**
      * AdyenThreeDS2Process constructor.
