@@ -606,7 +606,6 @@
                 <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="oneclick" xsi:type="string">Adyen\Payment\Gateway\Request\OneclickAuthorizationDataBuilder</item>
-                <item name="vault" xsi:type="string">Adyen\Payment\Gateway\Request\VaultDataBuilder</item>
                 <item name="threeds2" xsi:type="string">Adyen\Payment\Gateway\Request\ThreeDS2DataBuilder</item>
             </argument>
         </arguments>
