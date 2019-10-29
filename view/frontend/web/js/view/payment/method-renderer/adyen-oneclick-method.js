@@ -281,31 +281,6 @@ define(
                             window.adyencheckout = oneClickCard;
                         },
                         /**
-                         * Builds the payment details part of the payment information reqeust
-                         *
-                         * @returns {{method: *, additional_data: {card_brand: *, cc_type: *, number: *, cvc: *, expiryMonth: *, expiryYear: *, holderName: *, number_of_installments: *, java_enabled: boolean, screen_color_depth: number, screen_width, screen_height, timezone_offset: *}}}
-                         */
-                        getCcData: function () {
-                            var self = this;
-                            var browserInfo = threeDS2Utils.getBrowserInfo();
-                            var data = {
-                                'method': self.method,
-                                additional_data: {
-                                    'variant': variant(),
-                                    'recurring_detail_reference': recurringDetailReference(),
-                                    'number_of_installments': numberOfInstallments(),
-                                    'cvc': self.encryptedCreditCardVerificationNumber,
-                                    'java_enabled': browserInfo.javaEnabled,
-                                    'screen_color_depth': browserInfo.colorDepth,
-                                    'screen_width': browserInfo.screenWidth,
-                                    'screen_height': browserInfo.screenHeight,
-                                    'timezone_offset': browserInfo.timeZoneOffset,
-                                    'language': browserInfo.language
-                                }
-                            };
-                            return data;
-                        },
-                        /**
                          * Based on the response we can start a 3DS2 validation or place the order
                          * @param responseJSON
                          */

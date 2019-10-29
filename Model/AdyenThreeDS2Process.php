@@ -121,7 +121,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
 
             $result = $service->paymentsDetails($request);
         } catch (\Adyen\AdyenException $e) {
-            $this->adyenLogger->addAdyenDebug("3D secure 2.0 failed" . $e->getMessage());
+            $this->adyenLogger->error("3D secure 2.0 failed" . $e->getMessage());
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed'));
         }
 

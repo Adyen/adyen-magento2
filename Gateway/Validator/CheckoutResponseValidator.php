@@ -102,10 +102,6 @@ class CheckoutResponseValidator extends AbstractValidator
                         $payment->setAdditionalInformation('cc_type', $ccType);
                         $payment->setCcType($ccType);
                     }
-
-                    $payment->setAdditionalInformation('pspReference', $response['pspReference']);
-                    break;
-                case "Received":
                     $payment->setAdditionalInformation('pspReference', $response['pspReference']);
                     break;
                 case "PresentToShopper":
