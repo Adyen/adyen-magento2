@@ -70,12 +70,12 @@ class CheckoutResponseValidator extends AbstractValidator
         if (isset($response['resultCode'])) {
             switch ($response['resultCode']) {
                 case "IdentifyShopper":
-                    $payment->setAdditionalInformation('threeDS2Type', $response['resultCode']);
+                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
                     $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.fingerprintToken']);
                     $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
                     break;
                 case "ChallengeShopper":
-                    $payment->setAdditionalInformation('threeDS2Type', $response['resultCode']);
+                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
                     $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.challengeToken']);
                     $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
                     break;
@@ -137,6 +137,8 @@ class CheckoutResponseValidator extends AbstractValidator
                     }
                     break;
                 case "RedirectShopper":
+
+                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
 
                     $redirectUrl = null;
                     $paymentData = null;

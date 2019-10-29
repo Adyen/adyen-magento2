@@ -37,9 +37,10 @@ define(
         'Magento_Paypal/js/action/set-payment-method',
         'Magento_Checkout/js/action/select-payment-method',
         'Adyen_Payment/js/threeds2-js-utils',
-        'Adyen_Payment/js/model/threeds2'
+        'Adyen_Payment/js/model/threeds2',
+        'Magento_Checkout/js/model/error-processor',
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installmentsHelper, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installmentsHelper, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2, errorProcessor) {
 
         'use strict';
 
@@ -192,7 +193,6 @@ define(
              */
             renderThreeDS2Component: function (type, token) {
                 var self = this;
-
                 var threeDS2Node = document.getElementById('threeDS2Container');
 
                 if (type == "IdentifyShopper") {
@@ -202,7 +202,8 @@ define(
                             onComplete: function (result) {
                                 threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON)
-                                }).error(function () {
+                                }).fail(function (result) {
+                                    errorProcessor.process(result, self.messageContainer);
                                     self.isPlaceOrderActionAllowed(true);
                                     fullScreenLoader.stopLoader();
                                 });
@@ -239,7 +240,8 @@ define(
                                 fullScreenLoader.startLoader();
                                 threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON);
-                                }).error(function () {
+                                }).fail(function (result) {
+                                    errorProcessor.process(result, self.messageContainer);
                                     self.isPlaceOrderActionAllowed(true);
                                     fullScreenLoader.stopLoader();
                                 });
@@ -344,7 +346,6 @@ define(
              */
             validateThreeDS2OrPlaceOrder: function (responseJSON) {
                 var self = this;
-
                 var response = JSON.parse(responseJSON);
 
                 if (!!response.threeDS2) {

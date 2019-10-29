@@ -75,7 +75,7 @@ class PaymentInformationManagement
             throw new \Magento\Framework\Exception\LocalizedException(__('This order no longer exists.'));
         }
 
-        return $this->adyenHelper->buildThreeDS2ProcessResponseJson($payment->getAdditionalInformation('threeDS2Type'),
+        return $this->adyenHelper->buildThreeDS2ProcessResponseJson($payment->getAdditionalInformation('threeDSType'),
             $payment->getAdditionalInformation('threeDS2Token'));
     }
 }
