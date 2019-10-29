@@ -283,7 +283,7 @@ define(
                         /**
                          * Builds the payment details part of the payment information reqeust
                          *
-                         * @returns {{method: *, additional_data: {card_brand: *, cc_type: *, number: *, cvc: *, expiryMonth: *, expiryYear: *, holderName: *, store_cc: (boolean|*), number_of_installments: *, java_enabled: boolean, screen_color_depth: number, screen_width, screen_height, timezone_offset: *}}}
+                         * @returns {{method: *, additional_data: {card_brand: *, cc_type: *, number: *, cvc: *, expiryMonth: *, expiryYear: *, holderName: *, number_of_installments: *, java_enabled: boolean, screen_color_depth: number, screen_width, screen_height, timezone_offset: *}}}
                          */
                         getCcData: function () {
                             var self = this;
@@ -293,7 +293,6 @@ define(
                                 additional_data: {
                                     'variant': variant(),
                                     'recurring_detail_reference': recurringDetailReference(),
-                                    'store_cc': true,
                                     'number_of_installments': numberOfInstallments(),
                                     'cvc': self.encryptedCreditCardVerificationNumber,
                                     'java_enabled': browserInfo.javaEnabled,
