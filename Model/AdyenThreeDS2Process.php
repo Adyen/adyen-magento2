@@ -103,7 +103,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             // unset payment data from additional information
             $payment->unsAdditionalInformation("threeDS2PaymentData");
         } else {
-            $this->adyenLogger->addAdyenDebug("3D secure 2.0 failed, payment data not found");
+            $this->adyenLogger->error("3D secure 2.0 failed, payment data not found");
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed, payment data not found'));
         }
 
