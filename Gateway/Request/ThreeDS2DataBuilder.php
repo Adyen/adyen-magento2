@@ -38,7 +38,7 @@ class ThreeDS2DataBuilder implements BuilderInterface
     private $adyenRequestsHelper;
 
     /**
-     * RecurringDataBuilder constructor.
+     * ThreeDS2DataBuilder constructor.
      *
      * @param \Magento\Framework\Model\Context $context
      * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
