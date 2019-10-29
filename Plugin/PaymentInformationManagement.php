@@ -54,7 +54,7 @@ class PaymentInformationManagement
         \Adyen\Payment\Helper\Data $adyenHelper
     ) {
         $this->orderRepository = $orderRepository;
-        $this->adyenLogger =  $adyenLogger;
+        $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
     }
 
