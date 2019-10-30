@@ -200,6 +200,7 @@ define(
                         .create('threeDS2DeviceFingerprint', {
                             fingerprintToken: token,
                             onComplete: function (result) {
+                                self.threeDS2IdentifyComponent.unmount();
                                 threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON)
                                 }).fail(function (result) {
@@ -235,6 +236,7 @@ define(
                             challengeToken: token,
                             size: '05',
                             onComplete: function (result) {
+                                self.threeDS2ChallengeComponent.unmount();
                                 self.closeModal(popupModal);
 
                                 fullScreenLoader.startLoader();
@@ -247,7 +249,6 @@ define(
                                 });
                             },
                             onError: function (error) {
-                                self.closeModal(popupModal);
                                 console.log(JSON.stringify(error));
                             }
                         });
@@ -262,6 +263,7 @@ define(
                 popupModal.modal("closeModal");
                 $('.threeDS2Modal').remove();
                 $('.modals-overlay').remove();
+                $('body').removeClass('_has-modal');
 
                 // reconstruct the threeDS2Modal container again otherwise component can not find the threeDS2Modal
                 $('#threeDS2Wrapper').append("<div id=\"threeDS2Modal\">" +

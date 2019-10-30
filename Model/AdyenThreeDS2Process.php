@@ -145,11 +145,12 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         if($result['resultCode'] != 'Authorised') {
             $this->checkoutSession->restoreQuote();
 
-            if ($order->canCancel()) {
-                $order->cancel();
-            } else {
-                $this->adyenLogger->addDebug('Order ' . $order->getId() . ' can not be canceled');
+            // Always cancel the order if the paymenth has failed
+            if (!$order->canCancel()) {
+                $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
             }
+
+            $order->cancel()->save();
 
             throw new \Magento\Framework\Exception\LocalizedException(__('The payment is REFUSED.'));
         }
