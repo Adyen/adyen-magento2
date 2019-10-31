@@ -24,6 +24,9 @@
 namespace Adyen\Payment\Plugin;
 
 
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
+
 class PaymentInformationManagement
 {
 
@@ -71,11 +74,20 @@ class PaymentInformationManagement
         try {
             $order = $this->orderRepository->get($result);
             $payment = $order->getPayment();
+
+            if ($payment->getMethod() === AdyenCcConfigProvider::CODE ||
+                $payment->getMethod() === AdyenOneclickConfigProvider::CODE
+            ) {
+                return $this->adyenHelper->buildThreeDS2ProcessResponseJson($payment->getAdditionalInformation('threeDSType'),
+                    $payment->getAdditionalInformation('threeDS2Token'));
+            } else {
+                return $result;
+            }
         } catch (NoSuchEntityException $e) {
+            $this->adyenLogger->error("Exception: " . $e->getMessage());
             throw new \Magento\Framework\Exception\LocalizedException(__('This order no longer exists.'));
         }
 
-        return $this->adyenHelper->buildThreeDS2ProcessResponseJson($payment->getAdditionalInformation('threeDSType'),
-            $payment->getAdditionalInformation('threeDS2Token'));
+        return $result;
     }
 }
