@@ -47,8 +47,8 @@ interface InvoiceInterface
      */
     const ACQUIRER_REFERENCE = 'acquirer_reference';
     /*
-    * Invoice ID.
-    */
+     * Invoice ID.
+     */
     const INVOICE_ID = 'invoice_id';
 
     /**

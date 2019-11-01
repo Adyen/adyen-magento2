@@ -55,7 +55,7 @@
             <fieldset class="fieldset" data-bind='attr: {id: "payment_fieldset_" + $parent.getCode() + "_" + value}'>
                  <!-- ko if: hasIssuersAvailable() -->
                     <!-- ko if: isIdeal() -->
-                        <div afterRender="renderIdealComponent()" data-bind="attr: { id: 'iDealContainer'}"></div>
+                        <div class="checkout-component-dock" afterRender="renderIdealComponent()" data-bind="attr: { id: 'iDealContainer'}"></div>
                     <!--/ko-->
                     <!-- ko ifnot: isIdeal() -->
                         <label data-bind="attr: {'for': 'issuerId'}" class="label">
@@ -101,7 +101,7 @@
                     </div>
                     <!--/ko-->
 
-                    <div afterRender="renderKlarnaComponent()" data-bind="attr: { id: 'klarnaContainer'}"></div>
+                    <div class="checkout-component-dock" afterRender="renderKlarnaComponent()" data-bind="attr: { id: 'klarnaContainer'}"></div>
                 <!--/ko-->
 
                 <!-- ko if: isPaymentMethodAfterPay() -->
@@ -128,7 +128,7 @@
                     </div>
                     <!--/ko-->
 
-                    <div afterRender="renderAfterPayComponent()" data-bind="attr: { id: 'afterPayContainer'}"></div>
+                    <div class="checkout-component-dock" afterRender="renderAfterPayComponent()" data-bind="attr: { id: 'afterPayContainer'}"></div>
                 <!--/ko-->
 
                 <!-- ko if: isPaymentMethodOtherOpenInvoiceMethod() -->
@@ -218,7 +218,7 @@
                 <!--/ko-->
 
                 <!-- ko if: isSepaDirectDebit() -->
-                    <div afterRender="renderSepaDirectDebitComponent()" data-bind="attr: { id: 'sepaDirectDebitContainer'}"></div>
+                    <div class="checkout-component-dock" afterRender="renderSepaDirectDebitComponent()" data-bind="attr: { id: 'sepaDirectDebitContainer'}"></div>
                 <!--/ko-->
 
                 <!-- ko if: isAch() -->

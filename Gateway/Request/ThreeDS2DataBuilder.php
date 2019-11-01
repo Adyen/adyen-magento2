@@ -25,37 +25,45 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-class VaultDataBuilder implements BuilderInterface
+class ThreeDS2DataBuilder implements BuilderInterface
 {
+    /**
+     * @var \Magento\Framework\App\State
+     */
+    private $appState;
+
     /**
      * @var \Adyen\Payment\Helper\Requests
      */
     private $adyenRequestsHelper;
 
     /**
-     * VaultDataBuilder constructor.
+     * ThreeDS2DataBuilder constructor.
      *
+     * @param \Magento\Framework\Model\Context $context
      * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
      */
-    public function __construct(\Adyen\Payment\Helper\Requests $adyenRequestsHelper)
-    {
+    public function __construct(
+        \Magento\Framework\Model\Context $context,
+        \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+    ) {
+        $this->appState = $context->getAppState();
         $this->adyenRequestsHelper = $adyenRequestsHelper;
     }
+
 
     /**
      * @param array $buildSubject
      * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function build(array $buildSubject)
     {
-        // vault is enabled and shopper provided consent to store card this logic is triggered
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         $additionalInformation = $payment->getAdditionalInformation();
-
-        $request['body'] = $this->adyenRequestsHelper->buildVaultData([], $additionalInformation);
-
+        $request['body'] = $this->adyenRequestsHelper->buildThreeDS2Data([], $additionalInformation);
         return $request;
     }
 }

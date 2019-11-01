@@ -55,23 +55,25 @@ class GooglePayAuthorizationDataBuilder implements BuilderInterface
 
     public function build(array $buildSubject)
     {
-        $request = [];
+        $requestBody = [];
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         $token = $payment->getAdditionalInformation('token');
 
-        $request['paymentMethod']['type'] = 'paywithgoogle';
+        $requestBody['paymentMethod']['type'] = 'paywithgoogle';
         // get payment data
         if ($token) {
             $parsedToken = json_decode($token);
             try {
-				$request['paymentMethod']['paywithgoogle.token'] = $parsedToken;
+                $requestBody['paymentMethod']['paywithgoogle.token'] = $parsedToken;
             } catch (\Exception $exception) {
                 $this->adyenLogger->addAdyenDebug("exception: " . $exception->getMessage());
             }
         } else {
             $this->adyenLogger->addAdyenDebug("PaymentToken is empty");
         }
+
+        $request['body'] = $requestBody;
 
         return $request;
     }

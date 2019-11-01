@@ -61,6 +61,23 @@ echo $code; ?>" style="display:none">
     echo $code; ?>-expiryYear" type="hidden" name="payment[expiryYear]">
     <input id="<?php /* @noEscape */
     echo $code; ?>-cc_type" type="hidden" name="payment[cc_type]">
+    <input id="<?php /* @noEscape */
+    echo $code; ?>-store_cc" type="hidden" name="payment[store_cc]">
+
+    <?php if ($block->isVaultEnabled()): ?>
+        <div class="field choice">
+            <input type="checkbox"
+                   id="<?php /* @noEscape */
+                   echo $code; ?>_vault"
+                   name="payment[is_active_payment_token_enabler]"
+                   class="checkbox"/>
+            <label class="label" for="<?php /* @noEscape */
+            echo $code; ?>_vault">
+                <span><?php echo $block->escapeHtml('Save for later use.'); ?></span>
+            </label>
+        </div>
+    <?php endif; ?>
+
 
     <script>
         require(
@@ -93,7 +110,7 @@ echo $code; ?>" style="display:none">
                 /*
                  * Initialize secure fields and set up the onChange callback to
                  *  - fill the input fields with the encrypted data
-                 *  - show the heklper text when necessary
+                 *  - show the helper text when necessary
                  */
                 var secureFieldsInitialize = function () {
 
@@ -117,7 +134,8 @@ echo $code; ?>" style="display:none">
                         type: 'card',
                         groupTypes: ccTypes,
                         hideCVC: hideCVC,
-                        
+                        enableStoreDetails: "<?php echo $block->allowRecurring() && !$block->isVaultEnabled();?>",
+
                         onChange: function (state) {
                             // When the state is valid update the input fields
                             if (state.isValid) {
@@ -126,6 +144,7 @@ echo $code; ?>" style="display:none">
                                 jQuery("#<?php /* @noEscape */ echo $code; ?>-expiryMonth").val(state.data.paymentMethod.encryptedExpiryMonth);
                                 jQuery("#<?php /* @noEscape */ echo $code; ?>-expiryYear").val(state.data.paymentMethod.encryptedExpiryYear);
                                 jQuery("#<?php /* @noEscape */ echo $code; ?>-cvc").val(state.data.paymentMethod.encryptedSecurityCode);
+                                jQuery("#<?php /* @noEscape */ echo $code; ?>-store_cc").val(state.data.storePaymentMethod);
                             }
                         },
                         onBrand: function (state) {

@@ -39,9 +39,10 @@ define(
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
         'Magento_Checkout/js/action/place-order',
-        'Adyen_Payment/js/model/threeds2'
+        'Adyen_Payment/js/model/threeds2',
+        'Magento_Checkout/js/model/error-processor'
     ],
-    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, url, threeDS2Utils, fullScreenLoader, setPaymentMethodAction, urlBuilder, storage, placeOrderAction, threeds2) {
+    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, url, threeDS2Utils, fullScreenLoader, setPaymentMethodAction, urlBuilder, storage, placeOrderAction, threeds2, errorProcessor) {
 
         'use strict';
 
@@ -200,16 +201,19 @@ define(
                                 fullScreenLoader.startLoader();
                                 self.isPlaceOrderActionAllowed(false);
 
-                                threeds2.processPayment(this.getCcData()).done(function (responseJSON) {
-                                    self.validateThreeDS2OrPlaceOrder(responseJSON);
-                                }).error(function () {
-                                    fullScreenLoader.stopLoader();
-                                    self.isPlaceOrderActionAllowed(true);
-                                });
-
-                                return false;
+                                self.getPlaceOrderDeferredObject()
+                                    .fail(
+                                        function () {
+                                            fullScreenLoader.stopLoader();
+                                            self.isPlaceOrderActionAllowed(true);
+                                        }
+                                    ).done(
+                                    function (response) {
+                                        self.afterPlaceOrder();
+                                        self.validateThreeDS2OrPlaceOrder(response);
+                                    }
+                                );
                             }
-
                             return false;
                         },
 
@@ -277,32 +281,6 @@ define(
                             window.adyencheckout = oneClickCard;
                         },
                         /**
-                         * Builds the payment details part of the payment information reqeust
-                         *
-                         * @returns {{method: *, additional_data: {card_brand: *, cc_type: *, number: *, cvc: *, expiryMonth: *, expiryYear: *, holderName: *, store_cc: (boolean|*), number_of_installments: *, java_enabled: boolean, screen_color_depth: number, screen_width, screen_height, timezone_offset: *}}}
-                         */
-                        getCcData: function () {
-                            var self = this;
-                            var browserInfo = threeDS2Utils.getBrowserInfo();
-                            var data = {
-                                'method': self.method,
-                                additional_data: {
-                                    'variant': variant(),
-                                    'recurring_detail_reference': recurringDetailReference(),
-                                    'store_cc': true,
-                                    'number_of_installments': numberOfInstallments(),
-                                    'cvc': self.encryptedCreditCardVerificationNumber,
-                                    'java_enabled': browserInfo.javaEnabled,
-                                    'screen_color_depth': browserInfo.colorDepth,
-                                    'screen_width': browserInfo.screenWidth,
-                                    'screen_height': browserInfo.screenHeight,
-                                    'timezone_offset': browserInfo.timeZoneOffset,
-                                    'language': browserInfo.language
-                                }
-                            };
-                            return data;
-                        },
-                        /**
                          * Based on the response we can start a 3DS2 validation or place the order
                          * @param responseJSON
                          */
@@ -314,17 +292,7 @@ define(
                                 // render component
                                 self.renderThreeDS2Component(response.type, response.token);
                             } else {
-                                this.getPlaceOrderDeferredObject()
-                                    .fail(
-                                        function () {
-                                            self.isPlaceOrderActionAllowed(true);
-                                        }
-                                    ).done(
-                                    function () {
-                                        self.afterPlaceOrder();
-                                        window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
-                                    }
-                                );
+                                window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
                             }
                         },
                         /**
@@ -349,7 +317,8 @@ define(
                                     onComplete: function (result) {
                                         threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                             self.validateThreeDS2OrPlaceOrder(responseJSON)
-                                        }).error(function () {
+                                        }).fail(function (result) {
+                                            errorProcessor.process(result, self.getMessageContainer());
                                             self.isPlaceOrderActionAllowed(true);
                                             fullScreenLoader.stopLoader();
                                         });
@@ -380,7 +349,8 @@ define(
                                             fullScreenLoader.startLoader();
                                             threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                                 self.validateThreeDS2OrPlaceOrder(responseJSON)
-                                            }).error(function () {
+                                            }).fail(function (result) {
+                                                errorProcessor.process(result, self.getMessageContainer());
                                                 self.isPlaceOrderActionAllowed(true);
                                                 fullScreenLoader.stopLoader();
                                             });
@@ -421,14 +391,22 @@ define(
                          */
                         getData: function () {
                             var self = this;
+                            var browserInfo = threeDS2Utils.getBrowserInfo();
 
                             return {
                                 "method": self.method,
                                 additional_data: {
                                     variant: variant(),
                                     recurring_detail_reference: recurringDetailReference(),
+                                    store_cc: true,
                                     number_of_installments: numberOfInstallments(),
-                                    cvc: self.encryptedCreditCardVerificationNumber
+                                    cvc: self.encryptedCreditCardVerificationNumber,
+                                    java_enabled: browserInfo.javaEnabled,
+                                    screen_color_depth: browserInfo.colorDepth,
+                                    screen_width: browserInfo.screenWidth,
+                                    screen_height: browserInfo.screenHeight,
+                                    timezone_offset: browserInfo.timeZoneOffset,
+                                    language: browserInfo.language
                                 }
                             };
                         },

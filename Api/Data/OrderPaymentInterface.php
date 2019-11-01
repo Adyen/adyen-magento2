@@ -25,10 +25,10 @@ namespace Adyen\Payment\Api\Data;
 
 interface OrderPaymentInterface
 {
-
-    /**#@+
+    /**
      * Constants for keys of data array. Identical to the name of the getter in snake case.
      */
+
     /*
      * Entity ID.
      */

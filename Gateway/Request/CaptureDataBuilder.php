@@ -67,7 +67,7 @@ class CaptureDataBuilder implements BuilderInterface
         $amount = $this->adyenHelper->formatAmount($amount, $currency);
 
         $modificationAmount = ['currency' => $currency, 'value' => $amount];
-        $request = [
+        $requestBody = [
             "modificationAmount" => $modificationAmount,
             "reference" => $payment->getOrder()->getIncrementId(),
             "originalReference" => $pspReference
@@ -79,8 +79,10 @@ class CaptureDataBuilder implements BuilderInterface
 
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
             $openInvoiceFields = $this->getOpenInvoiceData($payment);
-            $request["additionalData"] = $openInvoiceFields;
+            $requestBody["additionalData"] = $openInvoiceFields;
         }
+
+        $request['body'] = $requestBody;
 
         return $request;
     }

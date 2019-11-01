@@ -37,6 +37,22 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
      */
     private $adyenHelper;
 
+
+    /**
+     * @var \Magento\Sales\Model\OrderFactory
+     */
+    private $orderFactory;
+
+    /**
+     * @var
+     */
+    private $order;
+
+    /**
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    private $adyenLogger;
+
     /**
      * AdyenThreeDS2Process constructor.
      *
@@ -45,11 +61,15 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
      */
     public function __construct(
         \Magento\Checkout\Model\Session $checkoutSession,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Sales\Model\OrderFactory $orderFactory,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
     )
     {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
+        $this->orderFactory = $orderFactory;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -68,8 +88,8 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         }
 
         // Get payment and cart information from session
-        $quote = $this->checkoutSession->getQuote();
-        $payment = $quote->getPayment();
+        $order = $this->getOrder();
+        $payment = $order->getPayment();
 
         // Init payments/details request
         $result = [];
@@ -83,6 +103,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             // unset payment data from additional information
             $payment->unsAdditionalInformation("threeDS2PaymentData");
         } else {
+            $this->adyenLogger->error("3D secure 2.0 failed, payment data not found");
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed, payment data not found'));
         }
 
@@ -95,11 +116,12 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
 
         // Send the request
         try {
-            $client = $this->adyenHelper->initializeAdyenClient($quote->getStoreId());
+            $client = $this->adyenHelper->initializeAdyenClient($order->getStoreId());
             $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
             $result = $service->paymentsDetails($request);
         } catch (\Adyen\AdyenException $e) {
+            $this->adyenLogger->error("3D secure 2.0 failed" . $e->getMessage());
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed'));
         }
 
@@ -111,19 +133,43 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             return $this->adyenHelper->buildThreeDS2ProcessResponseJson($result['resultCode'], $result['authentication']['threeds2.challengeToken']);
         }
 
-        // Payment can get back to the original flow
-
         // Save the payments response because we are going to need it during the place order flow
         $payment->setAdditionalInformation("paymentsResponse", $result);
 
-        // Setting the placeOrder to true enables the process to skip the payments call because the paymentsResponse
-        // is already in place - only set placeOrder to true when you have the paymentsResponse
-        $payment->setAdditionalInformation('placeOrder', true);
-
         // To actually save the additional info changes into the quote
-        $quote->save();
+        $order->save();
 
-        // 3DS2 flow is done, original place order flow can continue from frontend
-        return $this->adyenHelper->buildThreeDS2ProcessResponseJson();
+
+        $response = [];
+
+        if($result['resultCode'] != 'Authorised') {
+            $this->checkoutSession->restoreQuote();
+
+            // Always cancel the order if the paymenth has failed
+            if (!$order->canCancel()) {
+                $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+            }
+
+            $order->cancel()->save();
+
+            throw new \Magento\Framework\Exception\LocalizedException(__('The payment is REFUSED.'));
+        }
+
+        $response['result'] = $result['resultCode'];
+        return json_encode($response);
+    }
+
+    /**
+     * Get order object
+     *
+     * @return \Magento\Sales\Model\Order
+     */
+    protected function getOrder()
+    {
+        if (!$this->order) {
+            $incrementId = $this->checkoutSession->getLastRealOrderId();
+            $this->order = $this->orderFactory->create()->loadByIncrementId($incrementId);
+        }
+        return $this->order;
     }
 }

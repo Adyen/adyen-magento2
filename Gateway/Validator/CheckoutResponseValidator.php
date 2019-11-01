@@ -66,10 +66,19 @@ class CheckoutResponseValidator extends AbstractValidator
         $payment->setAdditionalInformation('3dActive', false);
         $isValid = true;
         $errorMessages = [];
-
         // validate result
         if (isset($response['resultCode'])) {
             switch ($response['resultCode']) {
+                case "IdentifyShopper":
+                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
+                    $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.fingerprintToken']);
+                    $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
+                    break;
+                case "ChallengeShopper":
+                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
+                    $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.challengeToken']);
+                    $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
+                    break;
                 case "Authorised":
                 case "Received":
                     // For banktransfers store all bankTransfer details
@@ -93,10 +102,6 @@ class CheckoutResponseValidator extends AbstractValidator
                         $payment->setAdditionalInformation('cc_type', $ccType);
                         $payment->setCcType($ccType);
                     }
-
-                    $payment->setAdditionalInformation('pspReference', $response['pspReference']);
-                    break;
-                case "Received":
                     $payment->setAdditionalInformation('pspReference', $response['pspReference']);
                     break;
                 case "PresentToShopper":
@@ -128,6 +133,8 @@ class CheckoutResponseValidator extends AbstractValidator
                     }
                     break;
                 case "RedirectShopper":
+
+                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
 
                     $redirectUrl = null;
                     $paymentData = null;

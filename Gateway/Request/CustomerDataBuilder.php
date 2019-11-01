@@ -61,7 +61,8 @@ class CustomerDataBuilder implements BuilderInterface
         $customerId = $order->getCustomerId();
         $billingAddress = $order->getBillingAddress();
         $storeId = $order->getStoreId();
-
-        return $this->adyenRequestsHelper->buildCustomerData([], $customerId, $billingAddress, $storeId, $payment);
+        $additionalInformation = $payment->getAdditionalInformation();
+        $request['body'] = $this->adyenRequestsHelper->buildCustomerData([], $customerId, $billingAddress, $storeId, $payment, $additionalInformation);
+        return $request;
     }
 }

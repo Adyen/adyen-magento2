@@ -56,6 +56,8 @@ class MerchantAccountDataBuilder implements BuilderInterface
         $storeId = $order->getStoreId();
         $method = $payment->getMethod();
 
-        return $this->adyenRequestsHelper->buildMerchantAccountData([], $method, $storeId);
+        $request['body'] = $this->adyenRequestsHelper->buildMerchantAccountData([], $method, $storeId);
+
+        return $request;
     }
 }

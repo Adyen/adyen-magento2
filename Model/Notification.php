@@ -197,7 +197,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
      *
      * @return int|null Success.
      */
-    public function getSucess()
+    public function getSuccess()
     {
         return $this->getData(self::SUCCESS);
     }
@@ -259,9 +259,9 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Gets the AmountValue for the notification.
      *
-     * @return int|null AmountValue.
+     * @return string|null AmountValue.
      */
-    public function getAmountCurency()
+    public function getAmountCurrency()
     {
         return $this->getData(self::AMOUNT_CURRENCY);
     }
@@ -280,7 +280,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Gets the Reason for the notification.
      *
-     * @return int|null Reason.
+     * @return string|null Reason.
      */
     public function getReason()
     {

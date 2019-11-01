@@ -32,9 +32,10 @@ class Cc extends AbstractInfo
     protected $_template = 'Adyen_Payment::info/adyen_cc.phtml';
 
     /**
-     * Return credit cart type
+     * Return credit card type
      *
      * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getCcTypeName()
     {

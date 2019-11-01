@@ -82,10 +82,7 @@ define(
                  * @type {AdyenCheckout}
                  */
                 self.checkoutComponent = new AdyenCheckout({
-                    locale: self.getLocale(),
-                    risk: {
-                        enabled: false
-                    }
+                    locale: self.getLocale()
                 });
 
                 // reset variable:

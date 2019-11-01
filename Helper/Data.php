@@ -33,8 +33,8 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
-    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.0.0/adyen.js';
-    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.0.0/adyen.js';
+    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
+    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -1834,12 +1834,13 @@ class Data extends AbstractHelper
     {
         $response = ['threeDS2' => false];
 
+        if(!empty($type)) {
+            $response['type'] =  $type;
+        }
+
         if ($type && $token) {
-            $response = [
-                "threeDS2" => true,
-                "type" => $type,
-                "token" => $token
-            ];
+            $response['threeDS2'] = true;
+            $response['token'] = $token;
         }
 
         return json_encode($response);
