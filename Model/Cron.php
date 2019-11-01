@@ -1512,6 +1512,12 @@ class Cron
             case 'dankort':
             case 'elo':
             case 'hipercard':
+            case 'mc_applepay':
+            case 'visa_applepay':
+            case 'amex_applepay':
+            case 'discover_applepay':
+            case 'maestro_applepay':
+            case 'paywithgoogle':
                 $manualCaptureAllowed = true;
                 break;
             default:
