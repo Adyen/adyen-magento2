@@ -69,7 +69,7 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
 
     private $quoteRepo;
     private $qutoeMaskFactory;
-
+    private $logger;
 
     /**
      * AdyenPaymentProcess constructor.
@@ -93,7 +93,8 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         \Adyen\Payment\Gateway\Validator\CheckoutResponseValidator $checkoutResponseValidator,
         \Adyen\Payment\Gateway\Validator\ThreeDS2ResponseValidator $threeDS2ResponseValidator,
         \Magento\Quote\Model\QuoteIdMaskFactory $qutoeMaskFactory,
-        \Magento\Quote\Model\QuoteRepository $quoteRepo
+        \Magento\Quote\Model\QuoteRepository $quoteRepo,
+        \Psr\Log\LoggerInterface $logger
     )
     {
         $this->context = $context;
@@ -106,6 +107,7 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
         $this->threeDS2ResponseValidator = $threeDS2ResponseValidator;
         $this->quoteRepo = $quoteRepo;
         $this->quoteMaskFactory = $qutoeMaskFactory;
+        $this->logger = $logger;
     }
 
     /**
@@ -116,6 +118,8 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
      */
     public function initiate($payload)
     {
+        
+        
         // When payload is not an array then why assume its a jsonstring so we try to decode 
         if(!is_array($payload)){
             $payload = json_decode($payload, true);
@@ -124,16 +128,20 @@ class AdyenPaymentProcess implements AdyenPaymentProcessInterface
                 throw new \Magento\Framework\Exception\LocalizedException('Error with payment method please select different payment method.');
             }
         }
-        $quoteId = $payload['quote_id'];
-        //if the quoteId is not an nummeric value then we assume that its a maked quote id from a guest card 
-        if(!is_numeric($quoteId)){
-            $maskedQuote = $this->quoteMaskFactory->create()->load($quoteId, 'masked_id');
-            $quoteId =  $maskedQuote->getQuoteId();
-        } 
-        $quote = $this->quoteRepo->get($quoteId);
-
-        // Get payment and cart information from session
-        //$quote = $this->checkoutSession->getQuote();
+        //if payload contains a customer Id, then get the cart by the customer_id
+        if(isset($payload['customer_id'])){
+            $quote = $this->checkoutSession->getQuote()->loadByCustomer($payload['customer_id']);
+        } else {
+            $quoteId = $payload['quote_id'];
+            //if the quoteId is not an nummeric value then we assume that its a maked quote id from a guest card 
+            if(!is_numeric($quoteId)){
+                $maskedQuote = $this->quoteMaskFactory->create()->load($quoteId, 'masked_id');
+                $quoteId =  $maskedQuote->getQuoteId();
+            } 
+            $quote = $this->quoteRepo->get($quoteId);
+        }
+        
+        $this->logger->info('Adyen PaymentProcess found quote',['quoteID'=>$quote->getId()]); 
         $payment = $quote->getPayment();
 
         // Init request array
