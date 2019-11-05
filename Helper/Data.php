@@ -137,6 +137,11 @@ class Data extends AbstractHelper
     private $serializer;
 
     /**
+     * @var \Magento\Framework\Component\ComponentRegistrarInterface
+     */
+    private $componentRegistrar;
+
+    /**
      * Data constructor.
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
@@ -181,7 +186,8 @@ class Data extends AbstractHelper
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Magento\Backend\Helper\Data $helperBackend,
-        \Magento\Framework\Serialize\SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
+        \Magento\Framework\Component\ComponentRegistrarInterface $componentRegistrar
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -204,6 +210,7 @@ class Data extends AbstractHelper
         $this->config = $config;
         $this->helperBackend = $helperBackend;
         $this->serializer = $serializer;
+        $this->componentRegistrar = $componentRegistrar;
     }
 
     /**
@@ -864,13 +871,22 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Get adyen magento module's version
+     * Get adyen magento module's version from composer.json
      *
      * @return string
      */
     public function getModuleVersion()
     {
-        return (string)$this->_moduleList->getOne("Adyen_Payment")['setup_version'];
+        $moduleDir = $this->componentRegistrar->getPath(\Magento\Framework\Component\ComponentRegistrar::MODULE, 'Adyen_Payment');
+
+        $composerJson = file_get_contents($moduleDir . '/composer.json');
+        $composerJson = json_decode($composerJson, true);
+
+        if (empty($composerJson['version'])) {
+            return "Version is not available in composer.json";
+        }
+
+        return $composerJson['version'];
     }
 
     public function getBoletoTypes()
