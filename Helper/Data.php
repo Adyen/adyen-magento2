@@ -137,6 +137,11 @@ class Data extends AbstractHelper
     private $serializer;
 
     /**
+     * @var \Magento\Framework\Component\ComponentRegistrarInterface
+     */
+    private $componentRegistrar;
+
+    /**
      * Data constructor.
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
@@ -181,7 +186,8 @@ class Data extends AbstractHelper
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Magento\Backend\Helper\Data $helperBackend,
-        \Magento\Framework\Serialize\SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
+        \Magento\Framework\Component\ComponentRegistrarInterface $componentRegistrar
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -204,6 +210,7 @@ class Data extends AbstractHelper
         $this->config = $config;
         $this->helperBackend = $helperBackend;
         $this->serializer = $serializer;
+        $this->componentRegistrar = $componentRegistrar;
     }
 
     /**
@@ -384,19 +391,19 @@ class Data extends AbstractHelper
         return (['name' => trim($streetName), 'house_number' => $streetNr]);
     }
 
-	/**
-	 * Street format
-	 * @param string $streetLine
-	 * @return array
-	 */
-	public function getStreetFromString($streetLine)
-	{
-		$street = self::formatStreet([$streetLine]);
-		$streetName = $street['0'];
-		unset($street['0']);
-		$streetNr = implode(' ', $street);
-		return (['name' => trim($streetName), 'house_number' => $streetNr]);
-	}
+    /**
+     * Street format
+     * @param string $streetLine
+     * @return array
+     */
+    public function getStreetFromString($streetLine)
+    {
+        $street = self::formatStreet([$streetLine]);
+        $streetName = $street['0'];
+        unset($street['0']);
+        $streetNr = implode(' ', $street);
+        return (['name' => trim($streetName), 'house_number' => $streetNr]);
+    }
 
     /**
      * Fix this one string street + number
@@ -733,11 +740,15 @@ class Data extends AbstractHelper
     public function getAPIKey($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('api_key_test',
-                $storeId)));
+            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData(
+                'api_key_test',
+                $storeId
+            )));
         } else {
-            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('api_key_live',
-                $storeId)));
+            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData(
+                'api_key_live',
+                $storeId
+            )));
         }
         return $apiKey;
     }
@@ -864,13 +875,22 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Get adyen magento module's version
+     * Get adyen magento module's version from composer.json
      *
      * @return string
      */
     public function getModuleVersion()
     {
-        return (string)$this->_moduleList->getOne("Adyen_Payment")['setup_version'];
+        $moduleDir = $this->componentRegistrar->getPath(\Magento\Framework\Component\ComponentRegistrar::MODULE, 'Adyen_Payment');
+
+        $composerJson = file_get_contents($moduleDir . '/composer.json');
+        $composerJson = json_decode($composerJson, true);
+
+        if (empty($composerJson['version'])) {
+            return "Version is not available in composer.json";
+        }
+
+        return $composerJson['version'];
     }
 
     public function getBoletoTypes()
@@ -1023,18 +1043,18 @@ class Data extends AbstractHelper
         return false;
     }
 
-	/**
-	 * @param $paymentMethod
-	 * @return bool
-	 */
-	public function isPaymentMethodAfterpayTouchMethod($paymentMethod)
-	{
-		if (strpos($paymentMethod, 'afterpaytouch') !== false) {
-			return true;
-		}
+    /**
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodAfterpayTouchMethod($paymentMethod)
+    {
+        if (strpos($paymentMethod, 'afterpaytouch') !== false) {
+            return true;
+        }
 
-		return false;
-	}
+        return false;
+    }
 
     /**
      * @param $paymentMethod
@@ -1537,7 +1557,8 @@ class Data extends AbstractHelper
     /**
      * @return string
      */
-    public function getOrigin() {
+    public function getOrigin()
+    {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $state = $objectManager->get('Magento\Framework\App\State');
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
@@ -1666,13 +1687,17 @@ class Data extends AbstractHelper
                     if ($billingAgreement->getCustomerId() === null) {
                         $billingAgreement->setCustomerId($this->getCustomerId($order));
                     }
-                    $message = __('Created billing agreement #%1.',
-                        $additionalData['recurring.recurringDetailReference']);
+                    $message = __(
+                        'Created billing agreement #%1.',
+                        $additionalData['recurring.recurringDetailReference']
+                    );
                 } else {
 
                     $billingAgreement->setIsObjectChanged(true);
-                    $message = __('Updated billing agreement #%1.',
-                        $additionalData['recurring.recurringDetailReference']);
+                    $message = __(
+                        'Updated billing agreement #%1.',
+                        $additionalData['recurring.recurringDetailReference']
+                    );
                 }
 
                 // Populate billing agreement data
@@ -1683,8 +1708,10 @@ class Data extends AbstractHelper
 
                 if ($billingAgreement->isValid() && empty($billingAgreementErrors)) {
 
-                    if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),
-                        $order->getId())) {
+                    if (!$this->agreementResourceModel->getOrderRelation(
+                        $billingAgreement->getAgreementId(),
+                        $order->getId()
+                    )) {
 
                         // save into sales_billing_agreement_order
                         $billingAgreement->addOrderRelation($order);
@@ -1692,8 +1719,10 @@ class Data extends AbstractHelper
                     // add to order to save agreement
                     $order->addRelatedObject($billingAgreement);
                 } else {
-                    $message = __('Failed to create billing agreement for this order. Reason(s): ') . join(', ',
-                            $billingAgreementErrors);
+                    $message = __('Failed to create billing agreement for this order. Reason(s): ') . join(
+                        ', ',
+                        $billingAgreementErrors
+                    );
                     throw new \Exception($message);
                 }
 
@@ -1792,38 +1821,38 @@ class Data extends AbstractHelper
         return $this->getAdyenCcConfigDataFlag('threeds2_enabled', $storeId);
     }
 
-	/**
-	 * @param $client
-	 * @return \Adyen\Service\Checkout
-	 */
-	public function createAdyenCheckoutService($client)
-	{
-		return new \Adyen\Service\Checkout($client);
-	}
+    /**
+     * @param $client
+     * @return \Adyen\Service\Checkout
+     */
+    public function createAdyenCheckoutService($client)
+    {
+        return new \Adyen\Service\Checkout($client);
+    }
 
-	/**
-	 * @param $client
-	 * @return \Adyen\Service\Recurring
-	 * @throws \Adyen\AdyenException
-	 */
-	public function createAdyenRecurringService($client)
-	{
-		return new \Adyen\Service\Recurring($client);
-	}
+    /**
+     * @param $client
+     * @return \Adyen\Service\Recurring
+     * @throws \Adyen\AdyenException
+     */
+    public function createAdyenRecurringService($client)
+    {
+        return new \Adyen\Service\Recurring($client);
+    }
 
-	/**
-	 * @param string $date
-	 * @param string $format
-	 * @return mixed
-	 */
-	public function formatDate($date = null, $format = 'Y-m-d H:i:s')
-	{
-		if (strlen($date) < 0) {
-			$date = date('d-m-Y H:i:s');
-		}
-		$timeStamp = new \DateTime($date);
-		return $timeStamp->format($format);
-	}
+    /**
+     * @param string $date
+     * @param string $format
+     * @return mixed
+     */
+    public function formatDate($date = null, $format = 'Y-m-d H:i:s')
+    {
+        if (strlen($date) < 0) {
+            $date = date('d-m-Y H:i:s');
+        }
+        $timeStamp = new \DateTime($date);
+        return $timeStamp->format($format);
+    }
 
     /**
      * @param string|null $type
@@ -1834,7 +1863,7 @@ class Data extends AbstractHelper
     {
         $response = ['threeDS2' => false];
 
-        if(!empty($type)) {
+        if (!empty($type)) {
             $response['type'] =  $type;
         }
 
