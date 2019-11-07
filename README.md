@@ -20,7 +20,7 @@ We strongly encourage you to join us in contributing to this repository so every
 * Resolved bug fixes and issues
 * Any general improvements
 
-Read our [**contribution guidelines**](contribute) to find out how.
+Read our [**contribution guidelines**](docs/CONTRIBUTING.md) to find out how.
 
 
 ## Installation

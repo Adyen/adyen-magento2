@@ -1,6 +1,6 @@
 # Contribution guidelines
 
-## How to contribute step-by-step
+### How to contribute step-by-step
 
 1. Fork the `Adyen/adyen-magento2` repository.
 2. Create a new branch from `develop` in your fork. This makes it easier for you to keep track of your changes.
@@ -16,4 +16,5 @@
 8. Create the pull request.
 9. Ensure that all checks have passed.
 
-After you create your pull request, one of the code owners will review your code. We aim to review your request within 2-3 business days.
+After you create your pull request, one of the code owners will review your code.
+We aim to review your request within 2-3 business days.
