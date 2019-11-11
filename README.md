@@ -14,9 +14,14 @@ Inside Adyen toggle the following settings on inside the API and Responses secti
 ## Requirements
 This plugin supports Magento2 version 2.2.8 and higher.
 
-## Collaboration
-We commit all our new features directly into our GitHub repository.
-But you can also request or suggest new features or code changes yourself!
+## Contributing
+We strongly encourage you to join us in contributing to this repository so everyone can benefit from:
+* New features and functionality
+* Resolved bug fixes and issues
+* Any general improvements
+
+Read our [**contribution guidelines**](CONTRIBUTING.md) to find out how.
+
 
 ## Installation
 You can install our plugin through Composer:
