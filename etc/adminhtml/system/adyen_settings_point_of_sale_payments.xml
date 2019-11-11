@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!--
+  ~                       ######
+  ~                       ######
+  ~ ############    ####( ######  #####. ######  ############   ############
+  ~ #############  #####( ######  #####. ######  #############  #############
+  ~        ######  #####( ######  #####. ######  #####  ######  #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####          #####  ######
+  ~ #############  #############  #############  #############  #####  ######
+  ~  ############   ############  #############   ############  #####  ######
+  ~                                      ######
+  ~                               #############
+  ~                               ############
+  ~
+  ~ Adyen Payment Module
+  ~
+  ~ Copyright (c) 2019 Adyen B.V.
+  ~ This file is open source and available under the MIT license.
+  ~ See the LICENSE file for more info.
+  ~
+  ~ Author: Adyen <magento@adyen.com>
+  -->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_settings_pos_payments" translate="label" type="text" sortOrder="10" showInDefault="1"
+           showInWebsite="1"
+           showInStore="1">
+        <label><![CDATA[Adyen settings for point-of-sale payments]]></label>
+        <comment><![CDATA[These settings need to be copied over from your Adyen Customer Area]]></comment>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <field id="pos_merchant_account" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Merchant account</label>
+            <can_be_empty>1</can_be_empty>
+            <tooltip>This field currently picks up off of the merchant account configured under Required Settings if left blank. I would like to remove this linking, and if the value is blank, its blank.</tooltip>
+            <config_path>payment/adyen_pos_cloud/pos_merchant_account</config_path>
+        </field>
+        <field id="api_key_test" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>API Key for test</label>
+            <tooltip>If value exists, display: "Key stored ending in ****", showing the last 4 values of the stored key.</tooltip>
+            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <config_path>payment/adyen_pos_cloud/api_key_test</config_path>
+            <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
+        </field>
+        <field id="api_key_live" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>API Key for live</label>
+            <tooltip>If value exists, display: "Key stored ending in ****", showing the last 4 values of the stored key.</tooltip>
+            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <config_path>payment/adyen_pos_cloud/api_key_live</config_path>
+            <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
+        </field>
+        <group id="adyen_pos_advanced_options" translate="label" showInDefault="1" showInWebsite="1" sortOrder="210">
+            <label>Advanced options</label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+            <field id="pos_store_id" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="1">
+                <label>Store ID</label>
+                <can_be_empty>1</can_be_empty>
+                <config_path>payment/adyen_pos_cloud/pos_store_id</config_path>
+            </field>
+            <field id="capture_mode_pos" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="1">
+                <label>Pos capture delay</label>
+                <tooltip>1 min - 2 days should map to manual in the background</tooltip>
+                <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
+                <config_path>payment/adyen_pos_cloud/capture_mode_pos</config_path>
+            </field>
+        </group>
+    </group>
+</include>

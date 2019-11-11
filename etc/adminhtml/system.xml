@@ -35,6 +35,7 @@
                 <include path="Adyen_Payment::system/adyen_global_settings.xml"/>
                 <include path="Adyen_Payment::system/adyen_getting_started.xml"/>
                 <include path="Adyen_Payment::system/adyen_settings_ecommerce_payments.xml"/>
+                <include path="Adyen_Payment::system/adyen_settings_point_of_sale_payments.xml"/>
                 <include path="Adyen_Payment::system/adyen_required_settings.xml"/>
                 <include path="Adyen_Payment::system/adyen_advanced_order_processing.xml"/>
                 <include path="Adyen_Payment::system/adyen_advanced_notifications.xml"/>
