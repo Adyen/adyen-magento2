@@ -44,7 +44,8 @@ class GuestPaymentInformationManagement
     protected $adyenHelper;
 
     /**
-     * PaymentInformationManagement constructor.
+     * GuestPaymentInformationManagement constructor.
+     *
      * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -60,7 +61,7 @@ class GuestPaymentInformationManagement
     }
 
     /**
-     * @param \Magento\Checkout\Api\PaymentInformationManagementInterface $subject
+     * @param \Magento\Checkout\Api\GuestPaymentInformationManagementInterface $subject
      * @param $result
      * @return string
      * @throws \Magento\Framework\Exception\LocalizedException
