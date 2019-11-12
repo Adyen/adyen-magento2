@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<!--
+  ~                       ######
+  ~                       ######
+  ~ ############    ####( ######  #####. ######  ############   ############
+  ~ #############  #####( ######  #####. ######  #############  #############
+  ~        ######  #####( ######  #####. ######  #####  ######  #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+  ~ ###### ######  #####( ######  #####. ######  #####          #####  ######
+  ~ #############  #############  #############  #############  #####  ######
+  ~  ############   ############  #############   ############  #####  ######
+  ~                                      ######
+  ~                               #############
+  ~                               ############
+  ~
+  ~ Adyen Payment Module
+  ~
+  ~ Copyright (c) 2018 Adyen B.V.
+  ~ This file is open source and available under the MIT license.
+  ~ See the LICENSE file for more info.
+  ~
+  ~ Author: Adyen <magento@adyen.com>
+  -->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_pos_cloud" translate="label" type="text" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Point of Sale (POS) integration with Cloud API]]></label>
+        <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
+        <fieldset_css>adyen-method-adyen-cc</fieldset_css>
+        <comment>Process Point of Sales transactions</comment>
+        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Enabled</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_pos_cloud/active</config_path>
+        </field>
+        <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Title</label>
+            <config_path>payment/adyen_pos_cloud/title</config_path>
+        </field>
+        <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Sort Order</label>
+            <frontend_class>validate-number</frontend_class>
+            <config_path>payment/adyen_pos_cloud/sort_order</config_path>
+        </field>
+        <field id="pos_merchant_account" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Merchant Account for Cloud API</label>
+            <can_be_empty>1</can_be_empty>
+            <tooltip>Please insert your Merchant Account name used by the Cloud API. Please leave it blank if the Merchant Account is the same as the one configured in the Required Settings</tooltip>
+            <config_path>payment/adyen_pos_cloud/pos_merchant_account</config_path>
+        </field>
+        <field id="pos_store_id" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Store ID for Cloud API</label>
+            <can_be_empty>1</can_be_empty>
+            <tooltip>Please insert your store ID used by the Cloud API. Please leave it blank if you want to retrieve all the terminals connected to your merchant account</tooltip>
+            <config_path>payment/adyen_pos_cloud/pos_store_id</config_path>
+        </field>
+        <field id="api_key_test" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>API key for Cloud API TEST</label>
+            <tooltip>Copy this from the Test Adyen Customer Area => Settings => Users => System => [web service user]=> Checkout API Key.</tooltip>
+            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <config_path>payment/adyen_pos_cloud/api_key_test</config_path>
+            <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
+        </field>
+        <field id="api_key_live" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>API key for Cloud API LIVE</label>
+            <tooltip>Copy this from the Live Adyen Customer Area => Settings => Users => System => [web service user]=> Checkout API Key.</tooltip>
+            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <config_path>payment/adyen_pos_cloud/api_key_live</config_path>
+            <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
+        </field>
+        <field id="capture_mode_pos" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Capture Delay</label>
+            <tooltip>Please set your Capture Delay for POS transactions. Immediate is the default. Set to manual if you want to perform the capture of funds manually later. You need to change this setting as well in Adyen Customer Area => Settings => Merchant Settings => POS Capture Delay. If you have selected a capture delay of a couple of days in Adyen keep it here on immediate</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
+            <config_path>payment/adyen_pos_cloud/capture_mode_pos</config_path>
+        </field>
+        <field id="recurring_type" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Agreement Type</label>
+            <tooltip>You can set different value for POS because you have to have the permission of the customer</tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\RecurringType</source_model>
+            <config_path>payment/adyen_pos_cloud/recurring_type</config_path>
+            <comment>If you want to store the credentials for ONECLICK or RECURRING or combination of these two you need to contact support@adyen.com and ask if they can enable to store cards on company level. Changing this setting without doing this will lead to failed payments!</comment>
+        </field>
+        <field id="enable_installments" translate="label" type="select" sortOrder="219" showInDefault="1"
+               showInWebsite="1" showInStore="1">
+            <label>Enable Installments</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <tooltip>Enable installments for each credit card type.</tooltip>
+            <config_path>payment/adyen_pos_cloud/enable_installments</config_path>
+        </field>
+        <field id="installments" translate="label" sortOrder="220" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>Installments</label>
+            <depends>
+                <field id="enable_installments">1</field>
+            </depends>
+            <tooltip>Configure your installment: Insert the minimum amount required to
+                make the configured installment available in the amount range column.
+                Example: if the amount range is configured to 100 and the number of installments to 4x, the shopper
+                will see the 4x option only if the payment total is higher or equal than 100.
+            </tooltip>
+            <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\InstallmentsPosCloud</frontend_model>
+            <backend_model>Adyen\Payment\Model\Config\Backend\InstallmentsPosCloud</backend_model>
+            <config_path>payment/adyen_pos_cloud/installments</config_path>
+        </field>
+        <group id="adyen_pos_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="210">
+            <label>Country Specific Settings</label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+            <field id="allowspecific" translate="label" type="allowspecific" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Payment from Applicable Countries</label>
+                <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                <config_path>payment/adyen_pos_cloud/allowspecific</config_path>
+            </field>
+            <field id="specificcountry" translate="label" type="multiselect" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Payment from Specific Countries</label>
+                <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                <can_be_empty>1</can_be_empty>
+                <config_path>payment/adyen_pos_cloud/specificcountry</config_path>
+            </field>
+        </group>
+    </group>
+</include>
