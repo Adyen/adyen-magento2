@@ -75,7 +75,6 @@ class GuestPaymentInformationManagement
             $payment = $order->getPayment();
 
             if ($payment->getMethod() === AdyenCcConfigProvider::CODE ||
-                $payment->getMethod() === AdyenOneclickConfigProvider::CODE
             ) {
                 return $this->adyenHelper->buildThreeDS2ProcessResponseJson($payment->getAdditionalInformation('threeDSType'),
                     $payment->getAdditionalInformation('threeDS2Token'));
