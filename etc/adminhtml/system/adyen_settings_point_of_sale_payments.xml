@@ -37,14 +37,12 @@
         </field>
         <field id="api_key_test" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>API Key for test</label>
-            <tooltip>If value exists, display: "Key stored ending in ****", showing the last 4 values of the stored key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_pos_cloud/api_key_test</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
         </field>
         <field id="api_key_live" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>API Key for live</label>
-            <tooltip>If value exists, display: "Key stored ending in ****", showing the last 4 values of the stored key.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_pos_cloud/api_key_live</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
@@ -59,7 +57,6 @@
             </field>
             <field id="capture_mode_pos" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="1">
                 <label>Pos capture delay</label>
-                <tooltip>1 min - 2 days should map to manual in the background</tooltip>
                 <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
                 <config_path>payment/adyen_pos_cloud/capture_mode_pos</config_path>
             </field>
