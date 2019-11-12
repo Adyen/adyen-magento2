@@ -32,7 +32,6 @@
         <field id="pos_merchant_account" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Merchant account</label>
             <can_be_empty>1</can_be_empty>
-            <tooltip>This field currently picks up off of the merchant account configured under Required Settings if left blank. I would like to remove this linking, and if the value is blank, its blank.</tooltip>
             <config_path>payment/adyen_pos_cloud/pos_merchant_account</config_path>
         </field>
         <field id="api_key_test" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
