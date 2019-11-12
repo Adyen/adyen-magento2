@@ -25,6 +25,7 @@
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_advanced_order_processing" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
         <label><![CDATA[Magento order management]]></label>
+        <comment><![CDATA[To learn how order statuses in Magento are mapped to payment statuses in Adyen, refer to our <a href="https://docs.adyen.com/plugins/magento-2/order-management-in-magento">docs</a>]]></comment>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <field id="order_status" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Order creation</label>
