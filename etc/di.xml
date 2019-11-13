@@ -1032,4 +1032,7 @@
     <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
         <plugin name="AdyenPaymentInformationManagementAddPaymentInfo" type="Adyen\Payment\Plugin\PaymentInformationManagement"/>
     </type>
+    <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
+        <plugin name="AdyenGuestPaymentInformationManagementAddPaymentInfo" type="Adyen\Payment\Plugin\GuestPaymentInformationManagement" sortOrder="10"/>
+    </type>
 </config>
