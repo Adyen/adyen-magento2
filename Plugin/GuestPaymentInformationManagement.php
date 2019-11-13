@@ -74,10 +74,11 @@ class GuestPaymentInformationManagement
             $order = $this->orderRepository->get($result);
             $payment = $order->getPayment();
 
-            if ($payment->getMethod() === AdyenCcConfigProvider::CODE 
-            ) {
-                return $this->adyenHelper->buildThreeDS2ProcessResponseJson($payment->getAdditionalInformation('threeDSType'),
-                    $payment->getAdditionalInformation('threeDS2Token'));
+            if ($payment->getMethod() === AdyenCcConfigProvider::CODE) {
+                return $this->adyenHelper->buildThreeDS2ProcessResponseJson(
+                    $payment->getAdditionalInformation('threeDSType'),
+                    $payment->getAdditionalInformation('threeDS2Token')
+                );
             } else {
                 return $result;
             }
