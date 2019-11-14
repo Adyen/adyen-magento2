@@ -24,7 +24,6 @@
 namespace Adyen\Payment\Plugin;
 
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 
 class GuestPaymentInformationManagement
 {
