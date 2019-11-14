@@ -220,9 +220,9 @@ class Data extends AbstractHelper
     public function getRecurringTypes()
     {
         return [
-            \Adyen\Payment\Model\RecurringType::ONECLICK => 'ONECLICK',
-            \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING => 'ONECLICK,RECURRING',
-            \Adyen\Payment\Model\RecurringType::RECURRING => 'RECURRING'
+            \Adyen\Payment\Model\RecurringType::ONECLICK => 'One-click',
+            \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING => 'One-click,Recurring',
+            \Adyen\Payment\Model\RecurringType::RECURRING => 'Recurring'
         ];
     }
 
