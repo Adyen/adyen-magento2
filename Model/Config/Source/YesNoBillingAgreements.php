@@ -24,7 +24,7 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
-class YesNoBa extends \Magento\Config\Model\Config\Source\YesNo
+class YesNoBillingAgreements extends \Magento\Config\Model\Config\Source\YesNo
 {
 
     /**
