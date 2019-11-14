@@ -44,7 +44,7 @@ class SplitPaymentRefundStrategy implements \Magento\Framework\Option\ArrayInter
     {
         return [
             self::REFUND_FIRST_PAYEMENT_FIRST => __('Refund from first payment first'),
-            self::REFUND_LAST_PAYEMENT_FIRST => ('Refund from last payment first'),
+            self::REFUND_LAST_PAYEMENT_FIRST => __('Refund from last payment first'),
             self::REFUND_ON_RATIO => __('Refund based on ratio')
         ];
     }
