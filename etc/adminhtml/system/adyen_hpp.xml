@@ -50,7 +50,7 @@
             <field id="enable_recurring" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
                    showInStore="1">
                 <label>Store recurring contracts</label>
-                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <source_model>Adyen\Payment\Model\Config\Source\YesNoBa</source_model>
                 <config_path>payment/adyen_hpp/enable_recurring</config_path>
             </field>
         </group>
