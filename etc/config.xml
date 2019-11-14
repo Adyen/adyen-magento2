@@ -37,6 +37,10 @@
                 <return_path>checkout/cart</return_path>
                 <enable_oneclick>1</enable_oneclick>
                 <enable_recurring>0</enable_recurring>
+                <payment_pre_authorized>pending</payment_pre_authorized>
+                <fraud_manual_review_accept_status>pending</fraud_manual_review_accept_status>
+                <fraud_manual_review_status>pending</fraud_manual_review_status>
+                <send_email_bank_sepa_on_pending>No</send_email_bank_sepa_on_pending>
                 <group>adyen</group>
             </adyen_abstract>
             <adyen_cc>
