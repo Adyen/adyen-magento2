@@ -113,7 +113,7 @@
                 <active>0</active>
                 <model>AdyenPaymentHppFacade</model>
                 <order_status>pending</order_status>
-                <title>Alternative payment methods</title>
+                <title>Local payment methods</title>
                 <allowspecific>0</allowspecific>
                 <ratepay_id>oj9GsQ</ratepay_id>
                 <sort_order>3</sort_order>
