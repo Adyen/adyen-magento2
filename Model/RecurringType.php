@@ -27,9 +27,9 @@ class RecurringType
 {
 
     const NONE = '';
-    const ONECLICK = 'ONECLICK';
-    const ONECLICK_RECURRING = 'ONECLICK,RECURRING';
-    const RECURRING = 'RECURRING';
+    const ONECLICK = 'One-click';
+    const ONECLICK_RECURRING = 'One-click,Recurring';
+    const RECURRING = 'Recurring';
 
     /**
      * @var array
