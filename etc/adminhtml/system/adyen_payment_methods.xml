@@ -94,6 +94,9 @@
                    showInWebsite="1" showInStore="0">
                 <label>Payment from Specific Countries</label>
                 <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                <depends>
+                    <field id="allowspecific">1</field>
+                </depends>
                 <can_be_empty>1</can_be_empty>
                 <config_path>payment/adyen_cc/specificcountry</config_path>
             </field>
