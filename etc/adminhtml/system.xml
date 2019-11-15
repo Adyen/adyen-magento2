@@ -37,6 +37,7 @@
                 <include path="Adyen_Payment::system/adyen_settings_ecommerce_payments.xml"/>
                 <include path="Adyen_Payment::system/adyen_settings_point_of_sale_payments.xml"/>
                 <include path="Adyen_Payment::system/adyen_magento_order_management.xml"/>
+                <include path="Adyen_Payment::system/adyen_payment_methods.xml"/>
                 <include path="Adyen_Payment::system/adyen_advanced_notifications.xml"/>
                 <include path="Adyen_Payment::system/adyen_billing_agreements.xml"/>
                 <include path="Adyen_Payment::system/adyen_checkout_experience.xml"/>
