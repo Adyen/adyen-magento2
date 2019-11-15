@@ -35,7 +35,7 @@
                 <sepa_flow>sale</sepa_flow>
                 <split_payments_refund_strategy>1</split_payments_refund_strategy>
                 <return_path>checkout/cart</return_path>
-                <enable_oneclick>1</enable_oneclick>
+                <enable_oneclick>0</enable_oneclick>
                 <enable_recurring>0</enable_recurring>
                 <payment_pre_authorized>pending</payment_pre_authorized>
                 <fraud_manual_review_accept_status>pending</fraud_manual_review_accept_status>
@@ -44,9 +44,9 @@
                 <group>adyen</group>
             </adyen_abstract>
             <adyen_cc>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentCcFacade</model>
-                <title>Credit Card</title>
+                <title>Adyen Credit Card</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>2</sort_order>
                 <cctypes>AE,VI,MC,DI</cctypes>
@@ -85,7 +85,7 @@
                 </instant_purchase>
             </adyen_google_pay_vault>
             <adyen_oneclick>
-                <active>1</active>
+                <active>0</active>
                 <model>AdyenPaymentOneclickFacade</model>
                 <title>Adyen stored billing agreements</title>
                 <allowspecific>0</allowspecific>
