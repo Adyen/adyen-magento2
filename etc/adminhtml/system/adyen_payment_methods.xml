@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="payment_methods" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Payment methods]]></label>
+
+        <group id="credit_cards" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label><![CDATA[Credit cards]]></label>
+            <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <label>Enabled</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>payment/adyen_cc/active</config_path>
+            </field>
+            <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <label>Title</label>
+                <config_path>payment/adyen_cc/title</config_path>
+            </field>
+            <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
+                   showInStore="0">
+                <label>Sort Order</label>
+                <frontend_class>validate-number</frontend_class>
+                <config_path>payment/adyen_cc/sort_order</config_path>
+            </field>
+            <field id="cctypes" translate="label" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="1"
+                   showInStore="0">
+                <label>Credit Card Types</label>
+                <source_model>Adyen\Payment\Model\Config\Source\CcType</source_model>
+                <config_path>payment/adyen_cc/cctypes</config_path>
+            </field>
+        </group>
+
+        <group id="store_shopper_details_options" translate="label" type="text" sortOrder="20" showInDefault="1"
+               showInWebsite="1" showInStore="1">
+            <label><![CDATA[Store shopper details options]]></label>
+            <comment><![CDATA[Adyen can securely store the credit card payment details of your shoppers, allowing you to offer recurring payments.
+            For more information please visit our <a target="_blank" href="https://docs.adyen.com/">docs.</a>]]></comment>
+            <field id="store_oneclick" translate="label" type="select" sortOrder="10" showInDefault="1"
+                   showInWebsite="1"
+                   showInStore="1">
+                <label>Store one-click contracts</label>
+                <tooltip>"To complete the transaction, the shopper needs to enter their CVC/CVV"</tooltip>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>payment/adyen_abstract/enable_oneclick</config_path>
+            </field>
+            <field id="store_recurring" translate="label" type="select" sortOrder="20" showInDefault="1"
+                   showInWebsite="1"
+                   showInStore="1">
+                <label>Sotre recurring contracts</label>
+                <tooltip>"You can complete the transaction without the shopper being present"</tooltip>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>payment/adyen_abstract/enable_recurring</config_path>
+            </field>
+        </group>
+
+        <group id="advanced_options" translate="label" showInDefault="1" showInWebsite="1" sortOrder="30">
+            <label>Advanced options</label>
+            <field id="enable_installments" translate="label" type="select" sortOrder="10" showInDefault="1"
+                   showInWebsite="1" showInStore="1">
+                <label>Enable Installments</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>payment/adyen_cc/enable_installments</config_path>
+            </field>
+            <field id="allowspecific" translate="label" type="allowspecific" sortOrder="20" showInDefault="1"
+                   showInWebsite="1" showInStore="0">
+                <label>Payment from Applicable Countries</label>
+                <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                <config_path>payment/adyen_cc/allowspecific</config_path>
+            </field>
+            <field id="specificcountry" translate="label" type="multiselect" sortOrder="30" showInDefault="1"
+                   showInWebsite="1" showInStore="0">
+                <label>Payment from Specific Countries</label>
+                <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                <can_be_empty>1</can_be_empty>
+                <config_path>payment/adyen_cc/specificcountry</config_path>
+            </field>
+        </group>
+    </group>
+</include>
