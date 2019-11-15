@@ -177,11 +177,11 @@
             <adyen_boleto>
                 <active>0</active>
                 <model>AdyenPaymentBoletoFacade</model>
-                <title>Boleto</title>
+                <title></title>
                 <allowspecific>0</allowspecific>
-                <sort_order>8</sort_order>
+                <sort_order></sort_order>
                 <payment_action>authorize</payment_action>
-                <delivery_days>5</delivery_days>
+                <delivery_days></delivery_days>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>1</can_use_checkout>
                 <can_authorize>1</can_authorize>
