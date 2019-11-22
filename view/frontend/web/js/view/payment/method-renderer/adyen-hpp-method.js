@@ -508,7 +508,7 @@ define(
                         result.bankLocationId = ko.observable(null);
                     }
 
-                    acc.push(result);
+                    accumulator.push(result);
                     return acc;
                 }, []);
 
