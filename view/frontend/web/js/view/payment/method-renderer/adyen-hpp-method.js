@@ -43,6 +43,7 @@ define(
         var paymentMethod = ko.observable(null);
         var messageComponents;
         var shippingAddressCountryCode = quote.shippingAddress().countryId;
+        var unsupportedPaymentMethods = ['scheme', 'boleto', 'bcmc_mobile_QR', 'wechatpay'];
         /**
          * Shareble adyen checkout component
          * @type {AdyenCheckout}
@@ -70,7 +71,7 @@ define(
                         'bankLocationId'
                     ]);
                 return this;
-            },initialize: function () {
+            }, initialize: function () {
 
                 var self = this;
                 this._super();
@@ -87,9 +88,9 @@ define(
 
                 // reset variable:
                 adyenPaymentService.setPaymentMethods();
-                
-                adyenPaymentService.retrieveAvailablePaymentMethods(function() {
-                    let paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
+
+                adyenPaymentService.retrieveAvailablePaymentMethods(function () {
+                    var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
                     if (JSON.stringify(paymentMethods).indexOf("ratepay") > -1) {
                         var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
                         var dfValueRatePay = self.getRatePayDeviceIdentToken();
@@ -133,7 +134,7 @@ define(
             },
             getAdyenHppPaymentMethods: function () {
                 var self = this;
-                let currentShippingAddressCountryCode = quote.shippingAddress().countryId;
+                var currentShippingAddressCountryCode = quote.shippingAddress().countryId;
 
                 // retrieve new payment methods if country code changed
                 if (shippingAddressCountryCode != currentShippingAddressCountryCode) {
@@ -145,14 +146,19 @@ define(
 
                 var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
 
-                var paymentList = _.map(paymentMethods, function (value) {
+                var paymentList = _.reduce(paymentMethods, function (acc, value) {
+
+                    if (!self.isPaymentMethodSupported(value.type)) {
+                        return acc;
+                    }
+
                     var result = {};
 
                     /**
                      * Returns the payment method's brand code (in checkout api it is the type)
                      * @returns {*}
                      */
-                    result.getBrandCode = function() {
+                    result.getBrandCode = function () {
                         return self.getBrandCodeFromPaymentMethod(value);
                     };
 
@@ -180,7 +186,7 @@ define(
                      * @param bool
                      * @returns {*}
                      */
-                    result.isPlaceOrderAllowed = function(bool) {
+                    result.isPlaceOrderAllowed = function (bool) {
                         self.isPlaceOrderActionAllowed(bool);
                         return result.placeOrderAllowed(bool);
                     };
@@ -191,11 +197,11 @@ define(
                      * @param bool
                      * @returns {*}
                      */
-                    result.isPlaceOrderAllowed = function(bool) {
+                    result.isPlaceOrderAllowed = function (bool) {
                         self.isPlaceOrderActionAllowed(bool);
                         return result.placeOrderAllowed(bool);
                     };
-                    result.afterPlaceOrder = function() {
+                    result.afterPlaceOrder = function () {
                         return self.afterPlaceOrder();
                     };
                     /**
@@ -282,7 +288,7 @@ define(
                     result.findIssuersProperty = function () {
                         var issuerKey = false;
                         if (typeof value.details !== 'undefined') {
-                            $.each(value.details, function(key, detail) {
+                            $.each(value.details, function (key, detail) {
                                 if (typeof detail.items !== 'undefined' && detail.key == 'issuer') {
                                     issuerKey = key;
                                 }
@@ -317,7 +323,7 @@ define(
                      * Returns the issuers for a payment method
                      * @returns {*}
                      */
-                    result.getIssuers = function() {
+                    result.getIssuers = function () {
                         if (result.hasIssuersAvailable()) {
                             return value.details[result.findIssuersProperty()].items;
                         }
@@ -502,10 +508,23 @@ define(
                         result.bankLocationId = ko.observable(null);
                     }
 
-                    return result;
-                });
+                    acc.push(result);
+                    return acc;
+                }, []);
 
                 return paymentList;
+            },
+            isPaymentMethodSupported: function (paymentMethod) {
+                if (paymentMethod == 'wechatpayWeb') {
+                    return true;
+                }
+                for (var i = 0; i < unsupportedPaymentMethods.length; i++) {
+                    var match =  paymentMethod.match(unsupportedPaymentMethods[i]);
+                    if(match) {
+                        return false;
+                    }
+                }
+                return true;
             },
             getGenderTypes: function () {
                 return _.map(window.checkoutConfig.payment.adyenHpp.genderTypes, function (value, key) {
@@ -575,13 +594,13 @@ define(
 
                 return true;
             },
-            placeRedirectOrder: function(data) {
+            placeRedirectOrder: function (data) {
                 // Place Order but use our own redirect url after
                 var self = this;
                 fullScreenLoader.startLoader();
 
                 var messageContainer = this.messageContainer;
-                if(brandCode()) {
+                if (brandCode()) {
                     messageContainer = self.messageComponents['messages-' + brandCode()];
                 }
 
@@ -599,7 +618,7 @@ define(
                             $("#messages-" + brandCode()).text(response['responseJSON'].message).slideDown();
                         }
 
-                        setTimeout(function(){
+                        setTimeout(function () {
                             $("#messages-" + brandCode()).slideUp();
                         }, 10000);
                         self.isPlaceOrderActionAllowed(true);
@@ -630,9 +649,9 @@ define(
             },
             validate: function (brandCode) {
                 var form = '#payment_form_' + this.getCode() + '_' + brandCode;
-                var validate =  $(form).validation() && $(form).validation('isValid');
+                var validate = $(form).validation() && $(form).validation('isValid');
 
-                if(!validate) {
+                if (!validate) {
                     return false;
                 }
 
@@ -691,8 +710,8 @@ define(
              * @param arr
              * @returns {*}
              */
-            filterUndefinedItemsInArray: function(arr) {
-                return arr.filter(function(item){
+            filterUndefinedItemsInArray: function (arr) {
+                return arr.filter(function (item) {
                     return typeof item !== 'undefined';
                 });
             }

@@ -135,41 +135,7 @@ class PaymentMethods extends AbstractHelper
         $quote = $this->quoteRepository->getActive($quoteId);
         $store = $quote->getStore();
 
-        $paymentMethods = $this->addHppMethodsToConfig($store, $country);
-        return $paymentMethods;
-    }
-
-    /**
-     * @param $store
-     * @return array
-     */
-    protected function addHppMethodsToConfig($store, $country)
-    {
-        $paymentMethods = [];
-
-        $ccEnabled = $this->config->getValue(
-            'payment/' . \Adyen\Payment\Model\Ui\AdyenCcConfigProvider::CODE . '/active',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
-            $store->getCode()
-        );
-        $ccTypes = array_keys($this->adyenHelper->getCcTypesAltData());
-
-        foreach ($this->fetchAlternativeMethods($store, $country) as $methodCode => $methodData) {
-            /*
-             * skip payment methods if it is a creditcard that is enabled in adyen_cc or a boleto method or wechat but
-             * not wechatpay
-             */
-            if (($ccEnabled && in_array($methodCode, $ccTypes)) ||
-                $this->adyenHelper->isPaymentMethodBoletoMethod($methodCode) ||
-                $this->adyenHelper->isPaymentMethodBcmcMobileQRMethod($methodCode) ||
-                $this->adyenHelper->isPaymentMethodWechatpayExceptWeb($methodCode)
-            ) {
-                continue;
-            }
-
-            $paymentMethods[$methodCode] = $methodData;
-        }
-
+        $paymentMethods = $this->fetchAlternativeMethods($store, $country);
         return $paymentMethods;
     }
 
@@ -214,10 +180,6 @@ class PaymentMethods extends AbstractHelper
         $paymentMethods = [];
         if (isset($responseData['paymentMethods'])) {
             foreach ($responseData['paymentMethods'] as $paymentMethod) {
-
-                if ($paymentMethod['type'] == "scheme") {
-                    continue;
-                }
 
                 $paymentMethodCode = $paymentMethod['type'];
                 $paymentMethod = $this->fieldMapPaymentMethod($paymentMethod);
