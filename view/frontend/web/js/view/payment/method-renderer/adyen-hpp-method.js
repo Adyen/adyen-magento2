@@ -514,13 +514,20 @@ define(
 
                 return paymentList;
             },
+            /**
+             * Some payment methods we do not want to render as it requires extra implementation
+             * or is already implemented in a separate payment method.
+             * Using a match as we want to prevent to render all Boleto and most of the WeChat types
+             * @param paymentMethod
+             * @returns {boolean}
+             */
             isPaymentMethodSupported: function (paymentMethod) {
                 if (paymentMethod == 'wechatpayWeb') {
                     return true;
                 }
                 for (var i = 0; i < unsupportedPaymentMethods.length; i++) {
-                    var match =  paymentMethod.match(unsupportedPaymentMethods[i]);
-                    if(match) {
+                    var match = paymentMethod.match(unsupportedPaymentMethods[i]);
+                    if (match) {
                         return false;
                     }
                 }
