@@ -146,7 +146,7 @@ define(
 
                 var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
 
-                var paymentList = _.reduce(paymentMethods, function (acc, value) {
+                var paymentList = _.reduce(paymentMethods, function (accumulator, value) {
 
                     if (!self.isPaymentMethodSupported(value.type)) {
                         return acc;
