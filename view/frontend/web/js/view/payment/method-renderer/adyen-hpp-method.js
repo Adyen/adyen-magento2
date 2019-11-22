@@ -509,7 +509,7 @@ define(
                     }
 
                     accumulator.push(result);
-                    return acc;
+                    return accumulator;
                 }, []);
 
                 return paymentList;
