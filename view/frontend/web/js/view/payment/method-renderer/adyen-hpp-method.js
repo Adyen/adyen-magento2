@@ -149,7 +149,7 @@ define(
                 var paymentList = _.reduce(paymentMethods, function (accumulator, value) {
 
                     if (!self.isPaymentMethodSupported(value.type)) {
-                        return acc;
+                        return accumulator;
                     }
 
                     var result = {};
