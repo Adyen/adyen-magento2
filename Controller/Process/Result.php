@@ -389,7 +389,21 @@ class Result extends \Magento\Framework\App\Action\Action
             $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("paymentData");
         }
 
-		$request["details"] = $response;
+        if (!empty($this->_session->getLastRealOrder()) &&
+            !empty($this->_session->getLastRealOrder()->getPayment()) &&
+            !empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("details"))
+        ) {
+            $details = $this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("details");
+            $key = array_search('returnUrlQueryString', $details[0]);
+
+            if ($key !== false) {
+                $request['details']['returnUrlQueryString'] = http_build_query($response);
+            } else {
+                $request["details"] = $response;
+            }
+        } else {
+            $request["details"] = $response;
+        }
 
 		try {
 			$response = $service->paymentsDetails($request);

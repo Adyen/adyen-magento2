@@ -151,6 +151,10 @@ class CheckoutResponseValidator extends AbstractValidator
                         $paymentData = $response['paymentData'];
                     }
 
+                    if (!empty($response['details'])) {
+                        $details = $response['details'];
+                    }
+
                     // If the redirect data is there then the payment is a card payment with 3d secure
                     if (isset($response['redirect']['data']['PaReq']) && isset($response['redirect']['data']['MD'])) {
 
@@ -184,6 +188,9 @@ class CheckoutResponseValidator extends AbstractValidator
                         // Flag to show we are in the checkoutAPM flow
                         $payment->setAdditionalInformation('checkoutAPM', true);
 
+                        if (!empty($details)) {
+                            $payment->setAdditionalInformation('details', $details);
+                        }
                         if ($redirectUrl && $paymentData && $redirectMethod) {
                             $payment->setAdditionalInformation('redirectUrl', $redirectUrl);
                             $payment->setAdditionalInformation('redirectMethod', $redirectMethod);
