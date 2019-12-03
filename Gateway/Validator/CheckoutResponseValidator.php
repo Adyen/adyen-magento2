@@ -184,6 +184,9 @@ class CheckoutResponseValidator extends AbstractValidator
                         // Flag to show we are in the checkoutAPM flow
                         $payment->setAdditionalInformation('checkoutAPM', true);
 
+                        if (!empty($response['details'])) {
+                            $payment->setAdditionalInformation('details', $response['details']);
+                        }
                         if ($redirectUrl && $paymentData && $redirectMethod) {
                             $payment->setAdditionalInformation('redirectUrl', $redirectUrl);
                             $payment->setAdditionalInformation('redirectMethod', $redirectMethod);
