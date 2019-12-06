@@ -929,6 +929,12 @@ class Cron
                     break;
                 }
 
+                // Order is already Cancelled
+                if ($this->_order->isCanceled()){
+                    $this->_adyenLogger->addAdyenNotificationCronjob("Order is already cancelled, skipping OFFER_CLOSED");
+                    break;
+                }
+
                 /*
                  * For cards, it can be 'visa', 'maestro',...
                  * For alternatives, it can be 'ideal', 'directEbanking',...
