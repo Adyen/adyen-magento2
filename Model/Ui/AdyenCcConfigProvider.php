@@ -169,6 +169,16 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
             $config['payment']['adyenCc']['installments'] = [];
         }
 
+        // combo cards are disabled by default
+        $config['payment']['adyenCc']['areComboCardsPossible'] = false;
+
+        // TODO: get this from somewhere dynamically
+        $countryCode = 'BR';
+        $currencyCode = 'BRL';
+        if ($countryCode == 'BR' && $currencyCode == 'BRL') {
+            $config['payment']['adyenCc']['areComboCardsPossible'] = true;
+        }
+
         return $config;
     }
 
