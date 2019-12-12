@@ -1030,9 +1030,9 @@
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10"/>
     </type>
     <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
-        <plugin name="AdyenPaymentInformationManagementAddPaymentInfo" type="Adyen\Payment\Plugin\PaymentInformationManagement" sortOrder="10"/>
+        <plugin name="AdyenPaymentInformationManagementAddPaymentInfo" type="Adyen\Payment\Plugin\PaymentInformationManagement" sortOrder="99999"/>
     </type>
     <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
-        <plugin name="AdyenGuestPaymentInformationManagementAddPaymentInfo" type="Adyen\Payment\Plugin\GuestPaymentInformationManagement" sortOrder="10"/>
+        <plugin name="AdyenGuestPaymentInformationManagementAddPaymentInfo" type="Adyen\Payment\Plugin\GuestPaymentInformationManagement" sortOrder="99999"/>
     </type>
 </config>
