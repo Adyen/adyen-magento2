@@ -73,9 +73,9 @@ class CcAuthorizationDataBuilder implements BuilderInterface
         // if card type is debit then change the issuer type
         if ($comboCardType == 'debit') {
             $requestBody['additionalData']['overwriteBrand'] = true;
-            $requestBody['selectedBrand'] = $this->getSelectedBrand($payment->getAdditionalInformation('cc_type'));
+            $requestBody['selectedBrand'] = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'));
+            $requestBody['paymentMethod']['type'] = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'));
             unset($requestBody['installments']);
-            unset($requestBody['paymentMethod']['type']);
         }
         $request['body'] = $requestBody;
         return $request;
@@ -86,7 +86,7 @@ class CcAuthorizationDataBuilder implements BuilderInterface
      * @return string
      * @throws UnavailableCardBrand
      */
-    private function getSelectedBrand($brand = 'VI'): string
+    private function getSelectedDebitBrand($brand): string
     {
         if ($brand == 'VI') {
             return 'electron';
