@@ -32,7 +32,6 @@ class CcAuthorizationDataBuilder implements BuilderInterface
     /**
      * @param array $buildSubject
      * @return mixed
-     * @throws UnavailableCardBrand
      */
     public function build(array $buildSubject)
     {
@@ -72,9 +71,11 @@ class CcAuthorizationDataBuilder implements BuilderInterface
         }
         // if card type is debit then change the issuer type and unset the installments field
         if ($comboCardType == 'debit') {
-            $requestBody['additionalData']['overwriteBrand'] = true;
-            $requestBody['selectedBrand'] = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'));
-            $requestBody['paymentMethod']['type'] = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'));
+            if ($selectedDebitBrand = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'))) {
+                $requestBody['additionalData']['overwriteBrand'] = true;
+                $requestBody['selectedBrand'] = $selectedDebitBrand;
+                $requestBody['paymentMethod']['type'] = $selectedDebitBrand;
+            }
             unset($requestBody['installments']);
         }
         $request['body'] = $requestBody;
@@ -84,9 +85,8 @@ class CcAuthorizationDataBuilder implements BuilderInterface
     /**
      * @param string $brand
      * @return string
-     * @throws UnavailableCardBrand
      */
-    private function getSelectedDebitBrand($brand): string
+    private function getSelectedDebitBrand($brand)
     {
         if ($brand == 'VI') {
             return 'electron';
@@ -94,6 +94,6 @@ class CcAuthorizationDataBuilder implements BuilderInterface
         if ($brand == 'MC') {
             return 'maestro';
         }
-        throw new UnavailableCardBrand();
+        return null;
     }
 }
