@@ -112,7 +112,6 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $this->storeManager = $storeManager;
         $this->serializer = $serializer;
         $this->checkoutSession = $checkoutSession;
-        $this->adyenLogger = $adyenLogger;
     }
 
     /**
