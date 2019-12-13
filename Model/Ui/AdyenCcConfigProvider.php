@@ -75,11 +75,6 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     private $serializer;
 
     /**
-     * @var \Magento\Checkout\Model\Session
-     */
-    protected $checkoutSession;
-
-    /**
      * AdyenCcConfigProvider constructor.
      *
      * @param \Magento\Payment\Helper\Data $paymentHelper
@@ -90,7 +85,6 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Payment\Model\CcConfig $ccConfig
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
-     * @param \Magento\Checkout\Model\Session $checkoutSession
      */
     public function __construct(
         \Magento\Payment\Helper\Data $paymentHelper,
@@ -100,8 +94,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         \Magento\Framework\View\Asset\Source $assetSource,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Payment\Model\CcConfig $ccConfig,
-        \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Magento\Checkout\Model\Session $checkoutSession
+        \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
@@ -111,7 +104,6 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $this->ccConfig = $ccConfig;
         $this->storeManager = $storeManager;
         $this->serializer = $serializer;
-        $this->checkoutSession = $checkoutSession;
     }
 
     /**
@@ -175,18 +167,6 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
             $config['payment']['adyenCc']['hasInstallments'] = true;
         } else {
             $config['payment']['adyenCc']['installments'] = [];
-        }
-
-        // combo cards are disabled by default
-        $config['payment']['adyenCc']['areComboCardsPossible'] = false;
-
-        $quote = $this->checkoutSession->getQuote();
-
-        $countryCode = $quote->getBillingAddress()->getCountryId();
-        $currencyCode = $quote->getCurrency()->getQuoteCurrencyCode();
-
-        if ($countryCode == 'BR' && $currencyCode == 'BRL') {
-            $config['payment']['adyenCc']['areComboCardsPossible'] = true;
         }
 
         return $config;

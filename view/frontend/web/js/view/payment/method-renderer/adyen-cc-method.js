@@ -476,7 +476,12 @@ define(
                 return window.checkoutConfig.payment.adyenCc.installments;
             },
             areComboCardsEnabled: function () {
-                return window.checkoutConfig.payment.adyenCc.areComboCardsPossible;
+                if (quote.billingAddress() === null) {
+                    return false;
+                }
+                var countryId = quote.billingAddress().countryId;
+                var currencyCode = quote.totals().quote_currency_code;
+                return currencyCode === "BRL" && countryId === "BR";
             },
             setPlaceOrderHandler: function (handler) {
                 this.placeOrderHandler = handler;
