@@ -67,10 +67,10 @@ class CcAuthorizationDataBuilder implements BuilderInterface
         // if installments is set and card type is credit card add it into the request
         $numberOfInstallments = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) ?: 0;
         $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE) ?: 'credit';
-        if ($comboCardType == 'credit' && $numberOfInstallments > 0) {
+        if ($numberOfInstallments > 0) {
             $requestBody['installments']['value'] = $numberOfInstallments;
         }
-        // if card type is debit then change the issuer type
+        // if card type is debit then change the issuer type and unset the installments field
         if ($comboCardType == 'debit') {
             $requestBody['additionalData']['overwriteBrand'] = true;
             $requestBody['selectedBrand'] = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'));
