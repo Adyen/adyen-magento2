@@ -73,6 +73,24 @@
                 <br/>
                 <!-- /ko -->
 
+                <!-- ko if: (areComboCardsEnabled())-->
+                <div class="field required">
+                    <label for="adyen-combo-card-select">
+                        <!--ko text: $t('Select debit or credit card')--><!-- /ko -->
+                    </label>
+                    <div class="control">
+                        <select id="adyen-combo-card-select"
+                                class="select"
+                                name="payment[combo_card_method]"
+                                data-bind="value: comboCardOption"
+                        >
+                            <option value="credit"><!--ko text: $t('Credit Card')--><!-- /ko --></option>
+                            <option value="debit"><!--ko text: $t('Debit Card')--><!-- /ko --></option>
+                        </select>
+                    </div>
+                </div>
+                <!-- /ko -->
+
                 <div class="field number cardContainerField">
                     <div class="checkout-component-dock" afterRender="renderSecureFields()" data-bind="attr: { id: 'cardContainer'}"></div>
                 </div>

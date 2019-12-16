@@ -47,6 +47,7 @@ define(
         return Component.extend({
             // need to duplicate as without the button will never activate on first time page view
             isPlaceOrderActionAllowed: ko.observable(quote.billingAddress() != null),
+            comboCardOption: ko.observable('credit'),
 
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
@@ -294,7 +295,8 @@ define(
                         'screen_width': browserInfo.screenWidth,
                         'screen_height': browserInfo.screenHeight,
                         'timezone_offset': browserInfo.timeZoneOffset,
-                        'language': browserInfo.language
+                        'language': browserInfo.language,
+                        'combo_card_type': this.comboCardOption()
                     }
                 };
                 this.vaultEnabler.visitAdditionalData(data);
@@ -468,10 +470,18 @@ define(
                     : false
             },
             hasInstallments: function () {
-                return window.checkoutConfig.payment.adyenCc.hasInstallments;
+                return this.comboCardOption() === 'credit' && window.checkoutConfig.payment.adyenCc.hasInstallments;
             },
             getAllInstallments: function () {
                 return window.checkoutConfig.payment.adyenCc.installments;
+            },
+            areComboCardsEnabled: function () {
+                if (quote.billingAddress() === null) {
+                    return false;
+                }
+                var countryId = quote.billingAddress().countryId;
+                var currencyCode = quote.totals().quote_currency_code;
+                return currencyCode === "BRL" && countryId === "BR";
             },
             setPlaceOrderHandler: function (handler) {
                 this.placeOrderHandler = handler;

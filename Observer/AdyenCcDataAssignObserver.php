@@ -47,6 +47,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     const TIMEZONE_OFFSET = 'timezone_offset';
     const LANGUAGE = 'language';
     const GUEST_EMAIL = 'guestEmail';
+    const COMBO_CARD_TYPE = 'combo_card_type';
 
     /**
      * @var array
@@ -67,7 +68,8 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         self::SCREEN_HEIGHT,
         self::TIMEZONE_OFFSET,
         self::LANGUAGE,
-        self::GUEST_EMAIL
+        self::GUEST_EMAIL,
+        self::COMBO_CARD_TYPE
     ];
 
     /**
