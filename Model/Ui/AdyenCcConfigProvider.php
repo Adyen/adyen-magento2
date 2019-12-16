@@ -173,7 +173,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Retrieve availables credit card types
+     * Retrieve available credit card types
      *
      * @return array
      */
@@ -195,9 +195,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Retrieve availables credit card type codes by alt code
+     * Retrieve available credit card type codes by alt code
      *
-     * @param string $methodCode
      * @return array
      */
     protected function getCcAvailableTypesByAlt()
@@ -293,3 +292,4 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         return $this->_request;
     }
 }
+

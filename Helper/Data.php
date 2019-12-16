@@ -1098,43 +1098,6 @@ class Data extends AbstractHelper
         return false;
     }
 
-    /**
-     * @return mixed
-     */
-    /**
-     * @param $paymentMethod
-     * @return bool
-     */
-    public function isPaymentMethodBcmcMobileQRMethod($paymentMethod)
-    {
-        if (strpos($paymentMethod, 'bcmc_mobile_QR') !== false) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * The payment method for wechat should be only wechatweb until we support the others too.
-     *
-     * @param $paymentMethod
-     * @return bool
-     */
-    public function isPaymentMethodWechatpayExceptWeb($paymentMethod)
-    {
-        if (strpos($paymentMethod, 'wechatpay') !== false) {
-            if (strpos($paymentMethod, 'wechatpayWeb') !== false) {
-                return false;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-
-
     public function getRatePayId()
     {
         return $this->getAdyenHppConfigData("ratepay_id");
@@ -1151,18 +1114,6 @@ class Data extends AbstractHelper
         if ($paymentMethod == "klarna" ||
             strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_'
         ) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param $paymentMethod
-     * @return bool
-     */
-    public function isPaymentMethodBoletoMethod($paymentMethod)
-    {
-        if (strpos($paymentMethod, 'boleto') !== false) {
             return true;
         }
         return false;

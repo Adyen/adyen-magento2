@@ -414,6 +414,10 @@ class Cron
                             if ($previousAdyenEventCode != "AUTHORISATION : TRUE" ||
                                 $this->_eventCode == Notification::ORDER_CLOSED
                             ) {
+                                // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
+                                if ($this->_order->getState() === \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW) {
+                                    $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                                }
                                 $this->_holdCancelOrder(false);
                             } else {
                                 $this->_order->setData('adyen_notification_event_code', $previousAdyenEventCode);
@@ -926,6 +930,12 @@ class Cron
                 // Order is already Authorised
                 if (!empty($previousSuccess)) {
                     $this->_adyenLogger->addAdyenNotificationCronjob("Order is already authorised, skipping OFFER_CLOSED");
+                    break;
+                }
+
+                // Order is already Cancelled
+                if ($this->_order->isCanceled()){
+                    $this->_adyenLogger->addAdyenNotificationCronjob("Order is already cancelled, skipping OFFER_CLOSED");
                     break;
                 }
 

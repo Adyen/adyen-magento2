@@ -64,7 +64,7 @@
         </field>
         <field id="sepa_flow" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Sepa Payment flow</label>
-            <tooltip>If you are not sure just leave it at 'Sale’. Sale means it is always immidiate capture with auth/cap it will follow the Capture Delay. If you want to enable 'Auth/Capt' for SEPA Direct Debit, please contact support@adyen.com</tooltip>
+            <tooltip>If you are not sure just leave it at 'Sale’. Sale means it is always immediate capture with auth/cap it will follow the Capture Delay. If you want to enable 'Auth/Capt' for SEPA Direct Debit, please contact support@adyen.com</tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\SepaFlow</source_model>
             <config_path>payment/adyen_abstract/sepa_flow</config_path>
         </field>

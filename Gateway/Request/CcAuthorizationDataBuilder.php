@@ -63,13 +63,37 @@ class CcAuthorizationDataBuilder implements BuilderInterface
         $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE);
         $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME);
 
-        // if installments is set add it into the request
-        if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) &&
-            $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) > 0
-        ) {
-            $requestBody['installments']['value'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS);
+        // if installments is set and card type is credit card add it into the request
+        $numberOfInstallments = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) ?: 0;
+        $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE) ?: 'credit';
+        if ($numberOfInstallments > 0) {
+            $requestBody['installments']['value'] = $numberOfInstallments;
+        }
+        // if card type is debit then change the issuer type and unset the installments field
+        if ($comboCardType == 'debit') {
+            if ($selectedDebitBrand = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'))) {
+                $requestBody['additionalData']['overwriteBrand'] = true;
+                $requestBody['selectedBrand'] = $selectedDebitBrand;
+                $requestBody['paymentMethod']['type'] = $selectedDebitBrand;
+            }
+            unset($requestBody['installments']);
         }
         $request['body'] = $requestBody;
         return $request;
+    }
+
+    /**
+     * @param string $brand
+     * @return string
+     */
+    private function getSelectedDebitBrand($brand)
+    {
+        if ($brand == 'VI') {
+            return 'electron';
+        }
+        if ($brand == 'MC') {
+            return 'maestro';
+        }
+        return null;
     }
 }
