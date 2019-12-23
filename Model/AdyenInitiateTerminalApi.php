@@ -57,6 +57,11 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     protected $checkoutSession;
 
     /**
+     * @var \Magento\Framework\App\ProductMetadataInterface
+     */
+    protected $productMetadata;
+
+    /**
      * AdyenInitiateTerminalApi constructor.
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
@@ -68,11 +73,13 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Framework\App\ProductMetadataInterface $productMetadata,
         array $data = []
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
         $this->checkoutSession = $checkoutSession;
+        $this->productMetadata = $productMetadata;
         $this->storeId = $storeManager->getStore()->getId();
 
         // initialize client
@@ -121,6 +128,13 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $initiateDate = date("U");
         $timeStamper = date("Y-m-d") . "T" . date("H:i:s+00:00");
 
+        // when upgrading to new version of library we can use the client methods
+        $saleToAcquirerData = [];
+        $saleToAcquirerData['applicationInfo']['merchantApplication']['version'] = $this->adyenHelper->getModuleVersion();
+        $saleToAcquirerData['applicationInfo']['merchantApplication']['name'] = $this->adyenHelper->getModuleName();
+        $saleToAcquirerData['applicationInfo']['externalPlatform']['version'] = $this->productMetadata->getVersion();
+        $saleToAcquirerData['applicationInfo']['externalPlatform']['name'] = $this->productMetadata->getName();
+
         $request = [
             'SaleToPOIRequest' =>
                 [
@@ -132,7 +146,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                             'SaleID' => 'Magento2Cloud',
                             'POIID' => $poiId,
                             'ProtocolVersion' => '3.0',
-                            'ServiceID' => $serviceID,
+                            'ServiceID' => $serviceID
                         ],
                     'PaymentRequest' =>
                         [
@@ -142,19 +156,19 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                                     'SaleTransactionID' =>
                                         [
                                             'TransactionID' => $reference,
-                                            'TimeStamp' => $timeStamper,
-                                        ],
+                                            'TimeStamp' => $timeStamper
+                                        ]
                                 ],
                             'PaymentTransaction' =>
                                 [
                                     'AmountsReq' =>
                                         [
                                             'Currency' => $quote->getCurrency()->getQuoteCurrencyCode(),
-                                            'RequestedAmount' => doubleval($quote->getGrandTotal()),
-                                        ],
-                                ],
-                        ],
-                ],
+                                            'RequestedAmount' => doubleval($quote->getGrandTotal())
+                                        ]
+                                ]
+                        ]
+                ]
         ];
 
         if (!empty($payload['number_of_installments'])) {
@@ -187,14 +201,14 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             $recurringContract = $this->adyenHelper->getAdyenPosCloudConfigData('recurring_type', $this->storeId);
 
             if (!empty($recurringContract) && !empty($shopperEmail)) {
-                $recurringDetails = [
-                    'shopperEmail' => $shopperEmail,
-                    'shopperReference' => strval($customerId),
-                    'recurringContract' => $recurringContract
-                ];
-                $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = http_build_query($recurringDetails);
+                $saleToAcquirerData['shopperEmail'] = $shopperEmail;
+                $saleToAcquirerData['shopperReference'] = (string) $customerId;
+                $saleToAcquirerData['recurringContract'] = $recurringContract;
             }
         }
+
+        $saleToAcquirerDataBase64 = base64_encode(json_encode($saleToAcquirerData));
+        $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = $saleToAcquirerDataBase64;
 
         $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation(
             'serviceID',
