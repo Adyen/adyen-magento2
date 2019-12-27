@@ -1,0 +1,15 @@
+language: php
+
+sudo: false
+
+php:
+  - 7.1
+  - 7.2
+  - 7.3
+
+install:
+    - composer install --prefer-dist
+
+script:
+    - php vendor/bin/phpcs --standard=Magento2 Block/ Helper/ Model/ Observer/ Test/
+    - php vendor/bin/phpunit
