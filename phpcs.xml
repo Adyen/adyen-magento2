@@ -26,5 +26,7 @@
          xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/squizlabs/PHP_CodeSniffer/master/phpcs.xsd">
     <exclude-pattern>vendor/*</exclude-pattern>
     <file>.</file>
+    <arg value="p"/>
+    <arg value="n"/>
     <rule ref="Magento2"/>
 </ruleset>

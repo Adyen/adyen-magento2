@@ -12,5 +12,5 @@ install:
     - composer install --prefer-dist
 
 script:
-    - php vendor/bin/phpcs -n
+    - php vendor/bin/phpcs
     - vendor/bin/phpunit -c Test/phpunit.xml
