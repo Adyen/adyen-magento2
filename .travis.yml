@@ -12,5 +12,5 @@ install:
     - composer install --prefer-dist
 
 script:
-    - php vendor/bin/phpcs --standard=Magento2 Block/ Helper/ Model/ Observer/ Test/
-    - php vendor/bin/phpunit
+    - php vendor/bin/phpcs  -n --standard=Magento2 Block/ Helper/ Model/ Observer/ Test/
+    - vendor/bin/phpunit -c Test/phpunit.xml
