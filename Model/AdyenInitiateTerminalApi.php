@@ -61,12 +61,16 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
      */
     protected $productMetadata;
 
+
     /**
      * AdyenInitiateTerminalApi constructor.
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Magento\Checkout\Model\Session $_checkoutSession
+     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
      * @param array $data
+     * @throws \Adyen\AdyenException
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
@@ -128,13 +132,6 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $initiateDate = date("U");
         $timeStamper = date("Y-m-d") . "T" . date("H:i:s+00:00");
 
-        // when upgrading to new version of library we can use the client methods
-        $saleToAcquirerData = [];
-        $saleToAcquirerData['applicationInfo']['merchantApplication']['version'] = $this->adyenHelper->getModuleVersion();
-        $saleToAcquirerData['applicationInfo']['merchantApplication']['name'] = $this->adyenHelper->getModuleName();
-        $saleToAcquirerData['applicationInfo']['externalPlatform']['version'] = $this->productMetadata->getVersion();
-        $saleToAcquirerData['applicationInfo']['externalPlatform']['name'] = $this->productMetadata->getName();
-
         $request = [
             'SaleToPOIRequest' =>
                 [
@@ -193,22 +190,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
         }
 
-        $customerId = $this->getCustomerId($quote);
-
-        // If customer exists add it into the request to store request
-        if (!empty($customerId)) {
-            $shopperEmail = $quote->getCustomerEmail();
-            $recurringContract = $this->adyenHelper->getAdyenPosCloudConfigData('recurring_type', $this->storeId);
-
-            if (!empty($recurringContract) && !empty($shopperEmail)) {
-                $saleToAcquirerData['shopperEmail'] = $shopperEmail;
-                $saleToAcquirerData['shopperReference'] = (string) $customerId;
-                $saleToAcquirerData['recurringContract'] = $recurringContract;
-            }
-        }
-
-        $saleToAcquirerDataBase64 = base64_encode(json_encode($saleToAcquirerData));
-        $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = $saleToAcquirerDataBase64;
+        $request = $this->addSaleToAquirerData($request, $quote);
 
         $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation(
             'serviceID',
@@ -245,14 +227,48 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     }
 
     /**
-	 * This getter makes it possible to overwrite the customer id from other plugins
-	 * Use this function to get the customer id so we can keep using this plugin in the UCD
-	 *
+     * This getter makes it possible to overwrite the customer id from other plugins
+     * Use this function to get the customer id so we can keep using this plugin in the UCD
+     *
      * @param Quote $quote
      * @return mixed
      */
     public function getCustomerId(Quote $quote)
     {
         return $quote->getCustomerId();
+    }
+
+    /**
+     * Add SaleToAquirerData for storing for recurring transactions and able to track platform and version
+     * When upgrading to new version of library we can use the client methods
+     * @param $request
+     * @param $quote
+     * @return mixed
+     */
+    public function addSaleToAquirerData($request, $quote)
+    {
+        $customerId = $this->getCustomerId($quote);
+
+        $saleToAcquirerData = [];
+
+        // If customer exists add it into the request to store request
+        if (!empty($customerId)) {
+            $shopperEmail = $quote->getCustomerEmail();
+            $recurringContract = $this->adyenHelper->getAdyenPosCloudConfigData('recurring_type', $this->storeId);
+
+            if (!empty($recurringContract) && !empty($shopperEmail)) {
+                $saleToAcquirerData['shopperEmail'] = $shopperEmail;
+                $saleToAcquirerData['shopperReference'] = (string)$customerId;
+                $saleToAcquirerData['recurringContract'] = $recurringContract;
+            }
+        }
+
+        $saleToAcquirerData['applicationInfo']['merchantApplication']['version'] = $this->adyenHelper->getModuleVersion();
+        $saleToAcquirerData['applicationInfo']['merchantApplication']['name'] = $this->adyenHelper->getModuleName();
+        $saleToAcquirerData['applicationInfo']['externalPlatform']['version'] = $this->productMetadata->getVersion();
+        $saleToAcquirerData['applicationInfo']['externalPlatform']['name'] = $this->productMetadata->getName();
+        $saleToAcquirerDataBase64 = base64_encode(json_encode($saleToAcquirerData));
+        $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = $saleToAcquirerDataBase64;
+        return $request;
     }
 }
