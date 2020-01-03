@@ -298,26 +298,33 @@ class Requests extends AbstractHelper
 
     /**
      * @param array $request
-     * @param $payment
-     * @param $store
+     * @param $additionalData
+     * @param $storeId
      * @return array
      */
-    public function buildThreeDS2Data($request = [], $additionalData)
+    public function buildThreeDS2Data($request = [], $additionalData, $storeId)
     {
-        $request['additionalData']['allow3DS2'] = true;
-        $request['origin'] = $this->adyenHelper->getOrigin();
-        $request['channel'] = 'web';
-        $request['browserInfo']['screenWidth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_WIDTH];
-        $request['browserInfo']['screenHeight'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_HEIGHT];
-        $request['browserInfo']['colorDepth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH];
-        $request['browserInfo']['timeZoneOffset'] = $additionalData[AdyenCcDataAssignObserver::TIMEZONE_OFFSET];
-        $request['browserInfo']['language'] = $additionalData[AdyenCcDataAssignObserver::LANGUAGE];
+        if ($this->adyenHelper->isCreditCardThreeDS2Enabled($storeId)) {
+            $request['additionalData']['allow3DS2'] = true;
+            $request['origin'] = $this->adyenHelper->getOrigin();
+            $request['channel'] = 'web';
+            $request['browserInfo']['screenWidth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_WIDTH];
+            $request['browserInfo']['screenHeight'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_HEIGHT];
+            $request['browserInfo']['colorDepth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH];
+            $request['browserInfo']['timeZoneOffset'] = $additionalData[AdyenCcDataAssignObserver::TIMEZONE_OFFSET];
+            $request['browserInfo']['language'] = $additionalData[AdyenCcDataAssignObserver::LANGUAGE];
 
-        if ($javaEnabled = $additionalData[AdyenCcDataAssignObserver::JAVA_ENABLED]) {
-            $request['browserInfo']['javaEnabled'] = $javaEnabled;
+            if ($javaEnabled = $additionalData[AdyenCcDataAssignObserver::JAVA_ENABLED]) {
+                $request['browserInfo']['javaEnabled'] = $javaEnabled;
+            } else {
+                $request['browserInfo']['javaEnabled'] = false;
+            }
         } else {
-            $request['browserInfo']['javaEnabled'] = false;
+            $request['additionalData']['allow3DS2'] = false;
+            $request['origin'] = $this->adyenHelper->getOrigin();
+            $request['channel'] = 'web';
         }
+        
         return $request;
     }
 
