@@ -190,7 +190,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
         }
 
-        $request = $this->addSaleToAquirerData($request, $quote);
+        $request = $this->addSaleToAcquirerData($request, $quote);
 
         $quote->getPayment()->getMethodInstance()->getInfoInstance()->setAdditionalInformation(
             'serviceID',
@@ -239,13 +239,13 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     }
 
     /**
-     * Add SaleToAquirerData for storing for recurring transactions and able to track platform and version
+     * Add SaleToAcquirerData for storing for recurring transactions and able to track platform and version
      * When upgrading to new version of library we can use the client methods
      * @param $request
      * @param $quote
      * @return mixed
      */
-    public function addSaleToAquirerData($request, $quote)
+    public function addSaleToAcquirerData($request, $quote)
     {
         $customerId = $this->getCustomerId($quote);
 
