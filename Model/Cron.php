@@ -1351,20 +1351,28 @@ class Cron
         // validate if amount is total amount
         $orderCurrencyCode = $this->_order->getOrderCurrencyCode();
         $amount = $this->_adyenHelper->originalAmount($this->_value, $orderCurrencyCode);
-
-        // add to order payment
-        $date = new \DateTime();
-        $this->_adyenOrderPaymentFactory->create()
-            ->setPspreference($this->_pspReference)
-            ->setMerchantReference($this->_merchantReference)
-            ->setPaymentId($paymentObj->getId())
-            ->setPaymentMethod($this->_paymentMethod)
-            ->setAmount($amount)
-            ->setTotalRefunded(0)
-            ->setCreatedAt($date)
-            ->setUpdatedAt($date)
-            ->save();
-
+        
+        try {
+            // add to order payment
+            $date = new \DateTime();
+            $this->_adyenOrderPaymentFactory->create()
+                ->setPspreference($this->_pspReference)
+                ->setMerchantReference($this->_merchantReference)
+                ->setPaymentId($paymentObj->getId())
+                ->setPaymentMethod($this->_paymentMethod)
+                ->setAmount($amount)
+                ->setTotalRefunded(0)
+                ->setCreatedAt($date)
+                ->setUpdatedAt($date)
+                ->save();
+        } catch (\Exception $e) {
+            $this->_adyenLogger->addError(
+                'While processing a notification an exception occured. The payment has already been saved in the
+                 adyen_order_payment table but something went went wrong later. Please check your logs for potential
+                 error messages regarding the merchant reference (order id): "' . $this->_merchantReference . '" and PSP
+                 reference: "' . $this->_pspReference . '"'
+            );
+        }
 
         if ($this->_isTotalAmount($paymentObj->getEntityId(), $orderCurrencyCode)) {
             $this->_createInvoice();
