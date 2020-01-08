@@ -96,11 +96,11 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
     }
 
     /** @throws \Exception */
-    public function testAddSaleToAquirerData()
+    public function testAddSaleToAcquirerData()
     {
         $quote = $this->getSimpleMock(\Magento\Quote\Model\Quote::class);
         $request = [];
-        $result = $this->adyenInitiateTerminalApi->addSaleToAquirerData($request, $quote);
+        $result = $this->adyenInitiateTerminalApi->addSaleToAcquirerData($request, $quote);
 
         $appInfo = [
             'applicationInfo' => [
@@ -129,7 +129,7 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($resultArrayExpected, $result);
     }
 
-    public function testAddSaleToAquirerDataLoggedInCustomer()
+    public function testAddSaleToAcquirerDataLoggedInCustomer()
     {
         $quoteMock = $this->getMockBuilder('Magento\Quote\Model\Quote')
             ->disableOriginalConstructor()
@@ -152,7 +152,7 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
             ->willReturn(self::CUSTOMER_EMAIL);
 
         $request = [];
-        $result = $this->adyenInitiateTerminalApi->addSaleToAquirerData($request, $quoteMock);
+        $result = $this->adyenInitiateTerminalApi->addSaleToAcquirerData($request, $quoteMock);
 
 
         $appInfo = [
