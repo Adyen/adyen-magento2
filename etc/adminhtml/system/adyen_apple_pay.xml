@@ -30,6 +30,7 @@
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Enabled</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <comment><![CDATA[Read our documentation on <a href="https://docs.adyen.com/payment-methods/apple-pay/enable-apple-pay" target="_blank">how to enable Apple Pay</a> before proceeding.]]></comment>
             <config_path>payment/adyen_apple_pay/active</config_path>
         </field>
         <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -42,23 +43,21 @@
             <config_path>payment/adyen_apple_pay/sort_order</config_path>
         </field>
         <field id="merchant_identifier_test" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Test: Apple Merchant Identifier</label>
-            <tooltip>You can retrieve this from your Apple Account.</tooltip>
+            <label>Apple merchant identifier for test</label>
             <config_path>payment/adyen_apple_pay/merchant_identifier_test</config_path>
         </field>
-        <field id="merchant_identifier_live" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Live: Apple Merchant Identifier</label>
-            <tooltip>You can retrieve this from your Apple Account.</tooltip>
-            <config_path>payment/adyen_apple_pay/merchant_identifier_live</config_path>
-        </field>
-        <field id="full_path_location_pem_file_test" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Test: PEM File location</label>
-            <tooltip>You need to generate a pem file from the apple certificate. You need to upload this to your webserver and define the full path location here.</tooltip>
+        <field id="full_path_location_pem_file_test" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>PEM file location for test</label>
+            <tooltip>The full path to your PEM file. For example: var/hosts/pemfile.pem</tooltip>
             <config_path>payment/adyen_apple_pay/full_path_location_pem_file_test</config_path>
         </field>
+        <field id="merchant_identifier_live" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Apple merchant identifier for live</label>
+            <config_path>payment/adyen_apple_pay/merchant_identifier_live</config_path>
+        </field>
         <field id="full_path_location_pem_file_live" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Live: PEM File location</label>
-            <tooltip>You need to generate a pem file from the apple certificate. You need to upload this to your webserver and define the full path location here.</tooltip>
+            <label>PEM file location for live</label>
+            <tooltip>The full path to your PEM file. For example: var/hosts/pemfile.pem</tooltip>
             <config_path>payment/adyen_apple_pay/full_path_location_pem_file_live</config_path>
         </field>
     </group>
