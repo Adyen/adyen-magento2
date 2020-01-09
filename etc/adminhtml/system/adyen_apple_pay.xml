@@ -48,7 +48,7 @@
         </field>
         <field id="full_path_location_pem_file_test" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>PEM file location for test</label>
-            <tooltip>The full path to your PEM file. For example: var/hosts/pemfile.pem</tooltip>
+            <tooltip>The full path to your PEM file. For example: /var/hosts/pemfile.pem</tooltip>
             <config_path>payment/adyen_apple_pay/full_path_location_pem_file_test</config_path>
         </field>
         <field id="merchant_identifier_live" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -57,7 +57,7 @@
         </field>
         <field id="full_path_location_pem_file_live" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>PEM file location for live</label>
-            <tooltip>The full path to your PEM file. For example: var/hosts/pemfile.pem</tooltip>
+            <tooltip>The full path to your PEM file. For example: /var/hosts/pemfile.pem</tooltip>
             <config_path>payment/adyen_apple_pay/full_path_location_pem_file_live</config_path>
         </field>
     </group>
