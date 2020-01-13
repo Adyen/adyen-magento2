@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_cc_store_payment_details_options" translate="label" showInDefault="1" showInWebsite="1" sortOrder="150">
+        <label>Store payment details options</label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <comment>Adyen can securely store credit card payment details of your shoppers, allowing you to accept recurring payments. For more information please visit our <a href="https://docs.adyen.com/plugins/magento-2">docs</a>.</comment>
+        <field id="adyen_cc_vault" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Enable Vault</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_cc_vault/active</config_path>
+        </field>
+        mment>
+        <field id="store_oneclick" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1">
+            <label>Store one-click contracts</label>
+            <source_model>Adyen\Payment\Model\Config\Source\YesNoBillingAgreements</source_model>
+            <tooltip>To complete the transaction, the shopper needs to enter their CVC/CVV</tooltip>
+            <config_path>payment/adyen_abstract/enable_oneclick</config_path>
+        </field>
+    </group>
+</include>
