@@ -43,7 +43,7 @@ define(
         var paymentMethod = ko.observable(null);
         var messageComponents;
         var shippingAddressCountryCode = quote.shippingAddress().countryId;
-        var unsupportedPaymentMethods = ['scheme', 'boleto', 'bcmc_mobile_QR', 'wechatpay'];
+        var unsupportedPaymentMethods = ['scheme', 'boleto', 'bcmc_mobile_QR', 'wechatpay', 'bcmc'];
         /**
          * Shareble adyen checkout component
          * @type {AdyenCheckout}

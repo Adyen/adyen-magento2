@@ -38,6 +38,7 @@ class Cron
 
     /**
      * Logging instance
+     *
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
     protected $_logger;
@@ -296,6 +297,7 @@ class Cron
 
     /**
      * Process the notification
+     *
      * @return void
      */
     public function processNotification()
@@ -452,7 +454,8 @@ class Cron
             } catch (\Exception $e) {
                 $this->_updateNotification($notification, false, false);
                 $this->_adyenLogger->addAdyenNotificationCronjob(
-                    sprintf("Notification %s had an error: %s \n %s", $notification->getEntityId(), $e->getMessage(), $e->getTraceAsString())
+                    sprintf("Notification %s had an error: %s \n %s", $notification->getEntityId(), $e->getMessage(),
+                        $e->getTraceAsString())
                 );
             }
         }
@@ -780,6 +783,7 @@ class Cron
 
     /**
      * retrieve last 4 digits of card from the reason field
+     *
      * @param $reason
      * @return string
      */
@@ -934,7 +938,7 @@ class Cron
                 }
 
                 // Order is already Cancelled
-                if ($this->_order->isCanceled()){
+                if ($this->_order->isCanceled()) {
                     $this->_adyenLogger->addAdyenNotificationCronjob("Order is already cancelled, skipping OFFER_CLOSED");
                     break;
                 }
@@ -1138,6 +1142,7 @@ class Cron
 
     /**
      * Not implemented
+     *
      * @return bool
      */
     protected function _refundOrder()
@@ -1287,8 +1292,8 @@ class Cron
     }
 
     /**
-     * @throws Exception
      * @return void
+     * @throws Exception
      */
     protected function _prepareInvoice()
     {
@@ -1352,19 +1357,27 @@ class Cron
         $orderCurrencyCode = $this->_order->getOrderCurrencyCode();
         $amount = $this->_adyenHelper->originalAmount($this->_value, $orderCurrencyCode);
 
-        // add to order payment
-        $date = new \DateTime();
-        $this->_adyenOrderPaymentFactory->create()
-            ->setPspreference($this->_pspReference)
-            ->setMerchantReference($this->_merchantReference)
-            ->setPaymentId($paymentObj->getId())
-            ->setPaymentMethod($this->_paymentMethod)
-            ->setAmount($amount)
-            ->setTotalRefunded(0)
-            ->setCreatedAt($date)
-            ->setUpdatedAt($date)
-            ->save();
-
+        try {
+            // add to order payment
+            $date = new \DateTime();
+            $this->_adyenOrderPaymentFactory->create()
+                ->setPspreference($this->_pspReference)
+                ->setMerchantReference($this->_merchantReference)
+                ->setPaymentId($paymentObj->getId())
+                ->setPaymentMethod($this->_paymentMethod)
+                ->setAmount($amount)
+                ->setTotalRefunded(0)
+                ->setCreatedAt($date)
+                ->setUpdatedAt($date)
+                ->save();
+        } catch (\Exception $e) {
+            $this->_adyenLogger->addError(
+                'While processing a notification an exception occured. The payment has already been saved in the ' .
+                'adyen_order_payment table but something went wrong later. Please check your logs for potential ' .
+                'error messages regarding the merchant reference (order id): "' . $this->_merchantReference .
+                '" and PSP reference: "' . $this->_pspReference . '"'
+            );
+        }
 
         if ($this->_isTotalAmount($paymentObj->getEntityId(), $orderCurrencyCode)) {
             $this->_createInvoice();
@@ -1618,9 +1631,9 @@ class Cron
     }
 
     /**
-     * @throws Exception
-     * @throws \Magento\Framework\Exception\LocalizedException
      * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws Exception
      */
     protected function _createInvoice()
     {
