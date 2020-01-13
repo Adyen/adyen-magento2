@@ -58,14 +58,6 @@
             <label>Store shopper details options</label>
             <comment><![CDATA[Adyen can securely store the credit card payment details of your shoppers, allowing you to offer recurring payments.
             For more information please visit our <a target="_blank" href="https://docs.adyen.com/">docs.</a>]]></comment>
-            <field id="store_oneclick" translate="label" type="select" sortOrder="10" showInDefault="1"
-                   showInWebsite="1"
-                   showInStore="1">
-                <label>Store one-click contracts</label>
-                <tooltip>"To complete the transaction, the shopper needs to enter their CVC/CVV"</tooltip>
-                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                <config_path>payment/adyen_abstract/enable_oneclick</config_path>
-            </field>
             <field id="store_recurring" translate="label" type="select" sortOrder="20" showInDefault="1"
                    showInWebsite="1"
                    showInStore="1">

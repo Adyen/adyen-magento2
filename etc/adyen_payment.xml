@@ -25,61 +25,61 @@
 <payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="urn:magento:module:Adyen_Payment:etc/adyen_payment.xsd">
     <adyen_credit_cards>
-        <type id="AE" order="0">
+        <type id="AE" order="10">
             <label>American Express</label>
             <code_alt>amex</code_alt>
         </type>
-        <type id="VI" order="10">
-            <label>Visa</label>
-            <code_alt>visa</code_alt>
-        </type>
-        <type id="MC" order="20">
-            <label>MasterCard</label>
-            <code_alt>mc</code_alt>
-        </type>
-        <type id="DI" order="30">
-            <label>Discover</label>
-            <code_alt>discover</code_alt>
-        </type>
-        <type id="SM" order="40">
-            <label>Maestro/Switch</label>
-            <code_alt>maestro</code_alt>
-        </type>
-        <type id="JCB" order="50">
-            <label>JCB</label>
-            <code_alt>jcb</code_alt>
-        </type>
-        <type id="DN" order="60">
-            <label>Diners</label>
-            <code_alt>diners</code_alt>
-        </type>
-        <type id="MI" order="70">
-            <label>Maestro</label>
-            <code_alt>maestro</code_alt>
-        </type>
-        <type id="UN" order="80">
-            <label>UnionPay</label>
-            <code_alt>cup</code_alt>
-        </type>
-        <type id="BCMC" order="90">
+        <type id="BCMC" order="20">
             <label>Bancontact</label>
             <code_alt>bcmc</code_alt>
         </type>
-        <type id="HIPERCARD" order="100">
+        <type id="DANKORT" order="30">
+            <label>Dankort</label>
+            <code_alt>dankort</code_alt>
+        </type>
+        <type id="DN" order="40">
+            <label>Diners</label>
+            <code_alt>diners</code_alt>
+        </type>
+        <type id="DI" order="50">
+            <label>Discover</label>
+            <code_alt>discover</code_alt>
+        </type>
+        <type id="ELO" order="60">
+            <label>Elo</label>
+            <code_alt>elo</code_alt>
+        </type>
+        <type id="HIPERCARD" order="70">
             <label>Hipercard</label>
             <code_alt>hipercard</code_alt>
         </type>
-        <type id="ELO" order="110">
-            <label>Elo</label>
-            <code_alt>elo</code_alt>
+        <type id="JCB" order="80">
+            <label>JCB</label>
+            <code_alt>jcb</code_alt>
+        </type>
+        <type id="MI" order="90">
+            <label>Maestro</label>
+            <code_alt>maestro</code_alt>
+        </type>
+        <type id="SM" order="100">
+            <label>Maestro/Switch</label>
+            <code_alt>maestro</code_alt>
+        </type>
+        <type id="MC" order="110">
+            <label>MasterCard</label>
+            <code_alt>mc</code_alt>
         </type>
         <type id="TROY" order="120">
             <label>Troy</label>
             <code_alt>troy</code_alt>
         </type>
-        <type id="DANKORT" order="130">
-            <label>Dankort</label>
-            <code_alt>dankort</code_alt>
+        <type id="UN" order="130">
+            <label>UnionPay</label>
+            <code_alt>cup</code_alt>
+        </type>
+        <type id="VI" order="140">
+            <label>Visa</label>
+            <code_alt>visa</code_alt>
         </type>
     </adyen_credit_cards>
 </payment>
