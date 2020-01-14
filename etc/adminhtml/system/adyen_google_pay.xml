@@ -42,7 +42,7 @@
             <config_path>payment/adyen_google_pay/sort_order</config_path>
         </field>
         <field id="merchant_identifier" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Google Merchant Identifier</label>
+            <label>Google Merchant ID</label>
             <comment><![CDATA[Your Google Merchant ID from Google Pay Developer Profile. For more information refer to <a href="https://developers.google.com/pay/api/web/guides/test-and-deploy/deploy-production-environment#obtain-your-merchantID">Obtain your merchantID</a>.]]></comment>
             <config_path>payment/adyen_google_pay/merchant_identifier</config_path>
         </field>
