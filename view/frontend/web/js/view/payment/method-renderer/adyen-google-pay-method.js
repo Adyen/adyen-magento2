@@ -100,6 +100,7 @@ define(
                     }
                 });
                 var googlepay = self.checkoutComponent.create('paywithgoogle', {
+                    showPayButton: true,
                     environment: self.getCheckoutEnvironment().toUpperCase(),
 
                     configuration: {
