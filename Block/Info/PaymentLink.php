@@ -41,9 +41,9 @@ class PaymentLink extends AbstractInfo
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
         Template\Context $context,
-        array $data = [],
         \Magento\Framework\Registry $registry,
-        \Adyen\Payment\Gateway\Command\PayByMailCommand $payByMailCommand
+        \Adyen\Payment\Gateway\Command\PayByMailCommand $payByMailCommand,
+        array $data = []
     ) {
         $this->registry = $registry;
         $this->payByMail = $payByMailCommand;
