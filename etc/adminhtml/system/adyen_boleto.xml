@@ -42,19 +42,19 @@
             <frontend_class>validate-number</frontend_class>
             <config_path>payment/adyen_boleto/sort_order</config_path>
         </field>
-        <field id="cctypes" translate="label" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+        <field id="delivery_days" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Days for delivery and payment</label>
+            <frontend_class>validate-number</frontend_class>
+            <config_path>payment/adyen_boleto/delivery_days</config_path>
+        </field>
+        <field id="cctypes" translate="label" type="multiselect" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Boleto Types</label>
             <depends><field id="active">1</field></depends>
             <validate>validate-no-empty</validate>
             <source_model>Adyen\Payment\Model\Config\Source\BoletoType</source_model>
             <config_path>payment/adyen_boleto/boletotypes</config_path>
         </field>
-        <field id="delivery_days" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Days for Delivery</label>
-            <tooltip>How many days to be added to the current date for delivery. Only numbers allowed.</tooltip>
-            <frontend_class>validate-number</frontend_class>
-            <config_path>payment/adyen_boleto/delivery_days</config_path>
-        </field>
+
 
         <group id="adyen_boleto_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="210">
             <label>Country Specific Settings</label>
