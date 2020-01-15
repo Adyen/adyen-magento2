@@ -92,29 +92,5 @@
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/paypal_capture_mode</config_path>
         </field>
-        <field id="payment_link_settings" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1">
-            <label>Payment link settings</label>
-            <frontend_model>Magento\Config\Block\System\Config\Form\Field\Heading</frontend_model>
-            <attribute type="shared">1</attribute>
-        </field>
-        <field id="payment_link_settings_subtitle" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1">
-            <label>These settings are required if you want to use the Payment link payment method.</label>
-            <frontend_model>Magento\Config\Block\System\Config\Form\Field\Heading</frontend_model>
-            <attribute type="shared">0</attribute>
-        </field>
-        <field id="skin_code" translate="label" type="text" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Skin code</label>
-            <config_path>payment/adyen_pay_by_mail/skin_code</config_path>
-        </field>
-        <field id="hmac_test" translate="label" type="obscure" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>HMAC Key for Test</label>
-            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-            <config_path>payment/adyen_pay_by_mail/hmac_test</config_path>
-        </field>
-        <field id="hmac_live" translate="label" type="obscure" sortOrder="160" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>HMAC Key for Live</label>
-            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-            <config_path>payment/adyen_pay_by_mail/hmac_live</config_path>
-        </field>
     </group>
 </include>
