@@ -50,24 +50,33 @@ class InstallmentValidator extends AbstractValidator
     private $serializer;
 
     /**
+     * @var \Magento\Quote\Model\QuoteRepository
+     */
+    private $quoteRepository;
+
+    /**
      * InstallmentValidator constructor.
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Checkout\Model\Session $session
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     * @param \Magento\Quote\Model\QuoteRepository $quoteRepository
      */
     public function __construct(
         \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $session,
-        \Magento\Framework\Serialize\SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
+        \Magento\Quote\Model\QuoteRepository $quoteRepository
+
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         $this->session = $session;
         $this->serializer = $serializer;
+        $this->quoteRepository = $quoteRepository;
         parent::__construct($resultFactory);
     }
 
@@ -77,7 +86,7 @@ class InstallmentValidator extends AbstractValidator
         $isValid = true;
         $fails = [];
         $payment = $validationSubject['payment'];
-        $quote = $this->session->getQuote();
+        $quote = $this->quoteRepository->get($validationSubject['payment']->getQuoteId());
         $installmentsEnabled = $this->adyenHelper->getAdyenCcConfigData('enable_installments');
         if ($quote && $installmentsEnabled) {
             $grandTotal = $quote->getGrandTotal();
