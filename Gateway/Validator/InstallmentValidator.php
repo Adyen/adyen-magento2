@@ -40,11 +40,6 @@ class InstallmentValidator extends AbstractValidator
     private $adyenHelper;
 
     /**
-     * @var \Magento\Checkout\Model\Session
-     */
-    private $session;
-
-    /**
      * @var \Magento\Framework\Serialize\SerializerInterface
      */
     private $serializer;
@@ -59,7 +54,6 @@ class InstallmentValidator extends AbstractValidator
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Checkout\Model\Session $session
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      * @param \Magento\Quote\Model\QuoteRepository $quoteRepository
      */
@@ -67,14 +61,12 @@ class InstallmentValidator extends AbstractValidator
         \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Checkout\Model\Session $session,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Magento\Quote\Model\QuoteRepository $quoteRepository
 
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
-        $this->session = $session;
         $this->serializer = $serializer;
         $this->quoteRepository = $quoteRepository;
         parent::__construct($resultFactory);
