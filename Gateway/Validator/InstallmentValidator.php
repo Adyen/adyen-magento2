@@ -78,7 +78,7 @@ class InstallmentValidator extends AbstractValidator
         $isValid = true;
         $fails = [];
         $payment = $validationSubject['payment'];
-        $quoteId = $payment->getOrderId();
+        $quoteId = $payment->getQuoteId();
         //This validator also runs for other payments that don't necesarily have a quoteId
         $quote = $quoteId?$this->quoteRepository->get($quoteId):false;
         $installmentsEnabled = $this->adyenHelper->getAdyenCcConfigData('enable_installments');
