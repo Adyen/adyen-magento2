@@ -89,14 +89,14 @@ class Redirect extends \Magento\Payment\Block\Form
 	 */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
-        array $data = [],
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\Locale\ResolverInterface $resolver,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Tax\Model\Config $taxConfig,
-        \Magento\Tax\Model\Calculation $taxCalculation
+        \Magento\Tax\Model\Calculation $taxCalculation,
+        array $data = []
     ) {
         $this->_orderFactory = $orderFactory;
         $this->_checkoutSession = $checkoutSession;
