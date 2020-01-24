@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
+use Adyen\Payment\Model\ApplicationInfo;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -1470,10 +1471,13 @@ class Data extends AbstractHelper
         $client = $this->createAdyenClient();
         $client->setApplicationName("Magento 2 plugin");
         $client->setXApiKey($apiKey);
+        $moduleVersion = $this->getModuleVersion();
 
-        $client->setAdyenPaymentSource($this->getModuleName(), $this->getModuleVersion());
-
+        $client->setAdyenPaymentSource($this->getModuleName(), $moduleVersion);
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
+
+        // set merchantApplication, we can use the client method setMerchantApplication() when we upgrade to the latest library version
+        $client->getConfig()->set(ApplicationInfo::MERCHANT_APPLICATION, array(ApplicationInfo::NAME => $this->getModuleName(), ApplicationInfo::VERSION => $moduleVersion));
 
         if ($this->isDemoMode($storeId)) {
             $client->setEnvironment(\Adyen\Environment::TEST);
