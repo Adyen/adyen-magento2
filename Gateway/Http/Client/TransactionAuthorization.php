@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Gateway\Http\Client;
 
 use Magento\Payment\Gateway\Http\ClientInterface;
+use Adyen\Payment\Model\ApplicationInfo;
 
 /**
  * Class TransactionSale
@@ -34,37 +35,31 @@ class TransactionAuthorization implements ClientInterface
     /**
      * @var \Adyen\Client
      */
-    protected $_client;
+    protected $client;
 
     /**
-     * PaymentRequest constructor.
-     *
-     * @param \Magento\Framework\Model\Context $context
-     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     * @var ApplicationInfo
+     */
+    private $applicationInfo;
+
+    /**
+     * TransactionAuthorization constructor.
      * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Adyen\Payment\Model\RecurringType $recurringType
-     * @param array $data
+     * @param ApplicationInfo $applicationInfo
+     * @throws \Adyen\AdyenException
      */
     public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\RecurringType $recurringType,
-        array $data = []
+        \Adyen\Payment\Model\ApplicationInfo $applicationInfo
     ) {
-        $this->_encryptor = $encryptor;
-        $this->_adyenHelper = $adyenHelper;
-        $this->_recurringType = $recurringType;
-        $this->_appState = $context->getAppState();
-
-        $this->_client = $this->_adyenHelper->initializeAdyenClient();
+        $this->applicationInfo = $applicationInfo;
+        $this->client = $adyenHelper->initializeAdyenClient();
     }
-    
+
     /**
      * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
-     * @return mixed
-     * @throws ClientException
+     * @return array|mixed
+     * @throws \Adyen\AdyenException
      */
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
@@ -76,14 +71,16 @@ class TransactionAuthorization implements ClientInterface
         if (!empty($headers['idempotencyKey'])) {
             $requestOptions['idempotencyKey'] = $headers['idempotencyKey'];
         }
-        
+
         // call lib
-        $service = new \Adyen\Service\Payment($this->_client);
+        $service = new \Adyen\Service\Payment($this->client);
+
+        $request = $this->applicationInfo->addMerchantApplicationIntoRequest($request);
 
         try {
             $response = $service->authorise($request, $requestOptions);
         } catch (\Adyen\AdyenException $e) {
-            $response['error'] =  $e->getMessage();
+            $response['error'] = $e->getMessage();
         }
         return $response;
     }
