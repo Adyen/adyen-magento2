@@ -512,8 +512,9 @@ class Cron
         $this->_eventCode = $notification->getEventCode();
         $this->_success = $notification->getSuccess();
         $this->_paymentMethod = $notification->getPaymentMethod();
-        $this->_reason = $notification->getPaymentMethod();
+        $this->_reason = $notification->getReason();
         $this->_value = $notification->getAmountValue();
+        $this->_live = $notification->getLive();
 
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : "";
 
