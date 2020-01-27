@@ -27,7 +27,7 @@ use Magento\Payment\Gateway\Http\ClientInterface;
 use Adyen\Payment\Model\ApplicationInfo;
 
 /**
- * Class TransactionSale
+ * Class TransactionAuthorization
  */
 class TransactionAuthorization implements ClientInterface
 {
