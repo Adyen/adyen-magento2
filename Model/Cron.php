@@ -1886,7 +1886,7 @@ class Cron
      *
      * @return void
      */
-    protected function _addRefundFailedNotice(){
+    protected function addRefundFailedNotice(){
         $this->notifierPool->addNotice(
             __("Adyen: Refund for order #%1 has failed", $this->_merchantReference),
             __("Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area and trigger this refund manually or contact our support.", $this->_reason, $this->_pspReference),
