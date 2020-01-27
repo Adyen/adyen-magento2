@@ -226,6 +226,11 @@ class Cron
     private $serializer;
 
     /**
+     * @var \Magento\Framework\Notification\NotifierInterface
+     */
+    private $notifierPool;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -270,7 +275,8 @@ class Cron
         OrderRepository $orderRepository,
         \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel,
         \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder,
-        \Magento\Framework\Serialize\SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
+        \Magento\Framework\Notification\NotifierInterface $notifierPool
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -293,6 +299,7 @@ class Cron
         $this->agreementResourceModel = $agreementResourceModel;
         $this->transactionBuilder = $transactionBuilder;
         $this->serializer = $serializer;
+        $this->notifierPool = $notifierPool;
     }
 
     /**
@@ -434,6 +441,10 @@ class Cron
                             'Order is already processed so ignore this notification state is:' . $this->_order->getState()
                         );
                     }
+                    //Trigger admin notice for unsuccessful REFUND notifications
+                    if ($this->_eventCode == Notification::REFUND){
+                        $this->addRefundFailedNotice();
+                    }
                 } else {
                     // Notification is successful
                     $this->_processNotification();
@@ -512,8 +523,9 @@ class Cron
         $this->_eventCode = $notification->getEventCode();
         $this->_success = $notification->getSuccess();
         $this->_paymentMethod = $notification->getPaymentMethod();
-        $this->_reason = $notification->getPaymentMethod();
+        $this->_reason = $notification->getReason();
         $this->_value = $notification->getAmountValue();
+        $this->_live = $notification->getLive();
 
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : "";
 
@@ -853,7 +865,8 @@ class Cron
 
         switch ($this->_eventCode) {
             case Notification::REFUND_FAILED:
-                // do nothing only inform the merchant with order comment history
+                //Trigger admin notice for REFUND_FAILED notifications
+                $this->addRefundFailedNotice();
                 break;
             case Notification::REFUND:
                 $ignoreRefundNotification = $this->_getConfigData(
@@ -1866,5 +1879,18 @@ class Cron
     {
         $path = 'payment/' . $paymentMethodCode . '/' . $field;
         return $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+    }
+
+    /**
+     * Add admin notice message for refund failed notification
+     *
+     * @return void
+     */
+    protected function addRefundFailedNotice(){
+        $this->notifierPool->addNotice(
+            __("Adyen: Refund for order #%1 has failed", $this->_merchantReference),
+            __("Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area and trigger this refund manually or contact our support.", $this->_reason, $this->_pspReference),
+            sprintf("https://ca-%s.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=%s", $this->_live === 'true' ? 'live' : 'test',  $this->_pspReference)
+        );
     }
 }

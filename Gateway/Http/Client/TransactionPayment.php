@@ -24,9 +24,10 @@
 namespace Adyen\Payment\Gateway\Http\Client;
 
 use Magento\Payment\Gateway\Http\ClientInterface;
+use Adyen\Payment\Model\ApplicationInfo;
 
 /**
- * Class TransactionSale
+ * Class TransactionPayment
  */
 class TransactionPayment implements ClientInterface
 {
@@ -36,21 +37,28 @@ class TransactionPayment implements ClientInterface
      */
     private $adyenHelper;
 
+    /**
+     * @var ApplicationInfo
+     */
+    private $applicationInfo;
 
     /**
      * TransactionPayment constructor.
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param ApplicationInfo $applicationInfo
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Model\ApplicationInfo $applicationInfo
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->applicationInfo = $applicationInfo;
     }
 
     /**
      * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
-     * @return mixed
-     * @throws ClientException
+     * @return array|mixed|string
+     * @throws \Adyen\AdyenException
      */
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
@@ -72,6 +80,8 @@ class TransactionPayment implements ClientInterface
         if (!empty($headers['idempotencyKey'])) {
             $requestOptions['idempotencyKey'] = $headers['idempotencyKey'];
         }
+
+        $request = $this->applicationInfo->addMerchantApplicationIntoRequest($request);
 
         try {
             $response = $service->payments($request, $requestOptions);
