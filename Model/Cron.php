@@ -443,7 +443,7 @@ class Cron
                     }
                     //Trigger admin notice for unsuccessful REFUND notifications
                     if ($this->_eventCode == Notification::REFUND){
-                        $this->_addRefundFailedNotice();
+                        $this->addRefundFailedNotice();
                     }
                 } else {
                     // Notification is successful
