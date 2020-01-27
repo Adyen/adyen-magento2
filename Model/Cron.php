@@ -866,7 +866,7 @@ class Cron
         switch ($this->_eventCode) {
             case Notification::REFUND_FAILED:
                 //Trigger admin notice for REFUND_FAILED notifications
-                $this->_addRefundFailedNotice();
+                $this->addRefundFailedNotice();
                 break;
             case Notification::REFUND:
                 $ignoreRefundNotification = $this->_getConfigData(
