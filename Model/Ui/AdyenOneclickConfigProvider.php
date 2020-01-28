@@ -108,13 +108,14 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
      */
     public function getConfig()
     {
+        $storeId = $this->_storeManager->getStore()->getId();
         // set to active
         $config = [
             'payment' => [
                 self::CODE => [
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'adyen/process/redirect/', ['_secure' => $this->_getRequest()->isSecure()])
+                        'adyen/process/redirect/', ['_secure' => $this->_getRequest()->isSecure(), '_scope' => $storeId])
                 ]
             ]
         ];

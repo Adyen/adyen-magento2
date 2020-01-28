@@ -111,6 +111,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
      */
     public function getConfig()
     {
+        $storeId = $this->storeManager->getStore()->getId();
         // set to active
         $config = [
             'payment' => [
@@ -118,7 +119,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
                     'vaultCode' => self::CC_VAULT_CODE,
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'adyen/process/redirect/', ['_secure' => $this->_getRequest()->isSecure()])
+                        'adyen/process/redirect/', ['_secure' => $this->_getRequest()->isSecure(), '_scope' => $storeId])
                 ]
             ]
         ];
