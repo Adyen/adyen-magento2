@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
+use Adyen\Payment\Model\ApplicationInfo;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -881,7 +882,8 @@ class Data extends AbstractHelper
      */
     public function getModuleVersion()
     {
-        $moduleDir = $this->componentRegistrar->getPath(\Magento\Framework\Component\ComponentRegistrar::MODULE, 'Adyen_Payment');
+        $moduleDir = $this->componentRegistrar->getPath(\Magento\Framework\Component\ComponentRegistrar::MODULE,
+            'Adyen_Payment');
 
         $composerJson = file_get_contents($moduleDir . '/composer.json');
         $composerJson = json_decode($composerJson, true);
@@ -1470,11 +1472,10 @@ class Data extends AbstractHelper
         $client = $this->createAdyenClient();
         $client->setApplicationName("Magento 2 plugin");
         $client->setXApiKey($apiKey);
+        $moduleVersion = $this->getModuleVersion();
 
-        $client->setAdyenPaymentSource($this->getModuleName(), $this->getModuleVersion());
-
+        $client->setAdyenPaymentSource($this->getModuleName(), $moduleVersion);
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
-
         if ($this->isDemoMode($storeId)) {
             $client->setEnvironment(\Adyen\Environment::TEST);
         } else {
@@ -1514,7 +1515,7 @@ class Data extends AbstractHelper
         $state = $objectManager->get('Magento\Framework\App\State');
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
         if ('adminhtml' === $state->getAreaCode()) {
-            $baseUrl =  $this->helperBackend->getHomePageUrl();
+            $baseUrl = $this->helperBackend->getHomePageUrl();
         }
         $parsed = parse_url($baseUrl);
         $origin = $parsed['scheme'] . "://" . $parsed['host'];
@@ -1671,9 +1672,9 @@ class Data extends AbstractHelper
                     $order->addRelatedObject($billingAgreement);
                 } else {
                     $message = __('Failed to create billing agreement for this order. Reason(s): ') . join(
-                        ', ',
-                        $billingAgreementErrors
-                    );
+                            ', ',
+                            $billingAgreementErrors
+                        );
                     throw new \Exception($message);
                 }
 
@@ -1761,6 +1762,7 @@ class Data extends AbstractHelper
 
         return in_array(strtolower($country), $countryList);
     }
+
     /**
      * Check if 3DS2.0 is enabled for credit cards
      *
@@ -1815,7 +1817,7 @@ class Data extends AbstractHelper
         $response = ['threeDS2' => false];
 
         if (!empty($type)) {
-            $response['type'] =  $type;
+            $response['type'] = $type;
         }
 
         if ($type && $token) {

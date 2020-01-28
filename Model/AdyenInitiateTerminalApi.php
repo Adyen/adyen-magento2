@@ -26,7 +26,6 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\AdyenInitiateTerminalApiInterface;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
-use Adyen\Util\Util;
 use Magento\Quote\Model\Quote;
 
 class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
@@ -263,10 +262,10 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             }
         }
 
-        $saleToAcquirerData['applicationInfo']['merchantApplication']['version'] = $this->adyenHelper->getModuleVersion();
-        $saleToAcquirerData['applicationInfo']['merchantApplication']['name'] = $this->adyenHelper->getModuleName();
-        $saleToAcquirerData['applicationInfo']['externalPlatform']['version'] = $this->productMetadata->getVersion();
-        $saleToAcquirerData['applicationInfo']['externalPlatform']['name'] = $this->productMetadata->getName();
+        $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::MERCHANT_APPLICATION][ApplicationInfo::VERSION] = $this->adyenHelper->getModuleVersion();
+        $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::MERCHANT_APPLICATION][ApplicationInfo::NAME] = $this->adyenHelper->getModuleName();
+        $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM][ApplicationInfo::VERSION] = $this->productMetadata->getVersion();
+        $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM][ApplicationInfo::NAME] = $this->productMetadata->getName();
         $saleToAcquirerDataBase64 = base64_encode(json_encode($saleToAcquirerData));
         $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = $saleToAcquirerDataBase64;
         return $request;
