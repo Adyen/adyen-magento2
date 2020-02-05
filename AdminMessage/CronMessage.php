@@ -93,7 +93,7 @@ class CronMessage implements \Magento\Framework\Notification\MessageInterface
     public function getText()
     {
         $urlNotificationsOverview=$this->backendHelper->getUrl("adyen/NotificationsOverview/index");
-        $message = __('You have <a href="'.$urlNotificationsOverview.'">%2 unprocessed notification(s)</a>. Please check your Cron', $urlNotificationsOverview, $this->_cronCheck);
+        $message = __('You have <a href="%1">%2 unprocessed notification(s)</a>. Please check your Cron', $urlNotificationsOverview, $this->_cronCheck);
         $urlMagento = "http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html";
         $urlAdyen = "https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#step2runcron";
         $message .= __(
