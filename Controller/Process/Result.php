@@ -99,8 +99,6 @@ class Result extends \Magento\Framework\App\Action\Action
         $response = $this->getRequest()->getParams();
         $this->_adyenLogger->addAdyenResult(print_r($response, true));
 
-        $failReturnPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
-
         if ($response) {
             $result = $this->validateResponse($response);
 
@@ -110,10 +108,12 @@ class Result extends \Magento\Framework\App\Action\Action
                 $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
             } else {
                 $this->_cancel($response);
+                $failReturnPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
                 $this->_redirect($failReturnPath);
             }
         } else {
             // redirect to checkout page
+            $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
             $this->_redirect($failReturnPath);
         }
     }
