@@ -31,17 +31,20 @@ class CronMessage implements \Magento\Framework\Notification\MessageInterface
     protected $_dateChecked;
     protected $_adyenHelper;
     protected $_timezoneInterface;
+    protected $backendHelper;
 
     public function __construct(
         \Magento\Backend\Model\Auth\Session $authSession,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezoneInterface
+        \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezoneInterface,
+        \Magento\Backend\Helper\Data $backendHelper
     ) {
         $this->_authSession = $authSession;
         $this->_cronCheck = $this->getSessionData("cronCheck");
         $this->_dateChecked = $this->getSessionData("dateChecked");
         $this->_adyenHelper = $adyenHelper;
         $this->_timezoneInterface = $timezoneInterface;
+        $this->backendHelper = $backendHelper;
     }
 
     /**
@@ -89,7 +92,8 @@ class CronMessage implements \Magento\Framework\Notification\MessageInterface
      */
     public function getText()
     {
-        $message = __('You have ' . $this->_cronCheck . ' unprocessed notification(s). Please check your Cron');
+        $urlNotificationsOverview=$this->backendHelper->getUrl("adyen/NotificationsOverview/index");
+        $message = __('You have <a href="'.$urlNotificationsOverview.'">%2 unprocessed notification(s)</a>. Please check your Cron', $urlNotificationsOverview, $this->_cronCheck);
         $urlMagento = "http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html";
         $urlAdyen = "https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#step2runcron";
         $message .= __(
