@@ -113,7 +113,7 @@ class Result extends \Magento\Framework\App\Action\Action
             }
         } else {
             // redirect to checkout page
-            $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
+            $failReturnPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
             $this->_redirect($failReturnPath);
         }
     }
