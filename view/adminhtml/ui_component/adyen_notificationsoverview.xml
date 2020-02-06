@@ -9,7 +9,6 @@
     <listingToolbar name="listing_top">
         <columnsControls name="columns_controls"/>
         <paging name="listing_paging"/>
-        <filterSearch name="fulltext"/>
         <filters name="listing_filters" />
     </listingToolbar>
     <dataSource name="nameOfDataSource">
@@ -39,11 +38,35 @@
                 </item>
             </argument>
         </column>
+        <column name="processing">
+            <argument name="data" xsi:type="array">
+                <item name="options" xsi:type="object">Magento\Config\Model\Config\Source\Yesno</item>
+                <item name="config" xsi:type="array">
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/select</item>
+                    <item name="filter" xsi:type="string">select</item>
+                    <item name="dataType" xsi:type="string">select</item>
+                    <item name="editor" xsi:type="string">select</item>
+                    <item name="label" xsi:type="string" translate="true">Processing</item>
+                </item>
+            </argument>
+        </column>
+        <column name="done">
+            <argument name="data" xsi:type="array">
+                <item name="options" xsi:type="object">Magento\Config\Model\Config\Source\Yesno</item>
+                <item name="config" xsi:type="array">
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/select</item>
+                    <item name="filter" xsi:type="string">select</item>
+                    <item name="dataType" xsi:type="string">select</item>
+                    <item name="editor" xsi:type="string">select</item>
+                    <item name="label" xsi:type="string" translate="true">Done</item>
+                </item>
+            </argument>
+        </column>
         <column name="status" class="Adyen\Payment\Ui\Component\Listing\Column\NotificationColumn">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">textRange</item>
                     <item name="label" xsi:type="string" translate="true">Status</item>
+                    <item name="sortable" xsi:type="boolean">false</item>
                 </item>
             </argument>
         </column>
@@ -59,15 +82,16 @@
         <column name="pspreference">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">textRange</item>
+                    <item name="filter" xsi:type="string">text</item>
                     <item name="label" xsi:type="string" translate="true">PSP Reference</item>
+                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                 </item>
             </argument>
         </column>
         <column name="event_code">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">textRange</item>
+                    <item name="filter" xsi:type="string">text</item>
                     <item name="label" xsi:type="string" translate="true">Event Code</item>
                 </item>
             </argument>
@@ -77,14 +101,17 @@
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
                     <item name="label" xsi:type="string" translate="true">Order</item>
+                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                 </item>
             </argument>
         </column>
-        <column name="created_at">
+        <column name="created_at" class="Magento\Ui\Component\Listing\Columns\Date">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">text</item>
+                    <item name="filter" xsi:type="string">dateRange</item>
                     <item name="label" xsi:type="string" translate="true">Creation Date</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
+                    <item name="dataType" xsi:type="string">date</item>
                 </item>
             </argument>
         </column>
