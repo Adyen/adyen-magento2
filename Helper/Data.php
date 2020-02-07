@@ -1853,16 +1853,4 @@ class Data extends AbstractHelper
 
         return $localeCode;
     }
-
-    /**
-     * Get the Customer Area PSP Search URL with a preset PSP Reference
-     *
-     * @param string $pspReference
-     * @return string
-     */
-    public function getPspReferenceSearchUrl($pspReference, $storeId = null){
-
-        return sprintf("https://ca-%s.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=%s", $this->getCheckoutEnvironment($storeId),  $pspReference);
-
-    }
 }

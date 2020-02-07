@@ -110,7 +110,10 @@ class NotificationColumn extends \Magento\Ui\Component\Listing\Columns\Column
                     );
                     $item["pspreference"] = sprintf(
                         "<a href='%s' target='_blank'>%s</a>",
-                        $this->adyenHelper->getPspReferenceSearchUrl($item["pspreference"], $order->getStoreId()),
+                        \Adyen\Util\Util::getPspReferenceSearchUrl(
+                            $item["pspreference"],
+                            $item["live"] === 'false' ? 'test' : 'live'
+                        ),
                         $item["pspreference"]
                     );
 

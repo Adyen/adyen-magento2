@@ -231,11 +231,6 @@ class Cron
     private $notifierPool;
 
     /**
-     * @var \Magento\Sales\Api\Data\OrderInterface
-     */
-    private $orderInterface;
-
-    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -281,8 +276,7 @@ class Cron
         \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel,
         \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Magento\Framework\Notification\NotifierInterface $notifierPool,
-        \Magento\Sales\Api\Data\OrderInterface $orderInterface
+        \Magento\Framework\Notification\NotifierInterface $notifierPool
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -306,7 +300,6 @@ class Cron
         $this->transactionBuilder = $transactionBuilder;
         $this->serializer = $serializer;
         $this->notifierPool = $notifierPool;
-        $this->orderInterface = $orderInterface;
     }
 
     /**
@@ -1894,13 +1887,10 @@ class Cron
      * @return void
      */
     protected function addRefundFailedNotice(){
-
-        $order = $this->orderInterface->loadByIncrementId($this->_merchantReference);
-
         $this->notifierPool->addNotice(
             __("Adyen: Refund for order #%1 has failed", $this->_merchantReference),
             __("Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area and trigger this refund manually or contact our support.", $this->_reason, $this->_pspReference),
-            $this->_adyenHelper->getPspReferenceSearchUrl($this->_pspReference, $order->getStoreId())
+            \Adyen\Util\Util::getPspReferenceSearchUrl($this->_pspReference, $this->_live === 'false' ? 'test' : 'live')
         );
     }
 }
