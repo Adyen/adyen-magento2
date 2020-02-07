@@ -84,7 +84,7 @@ class NotificationColumn extends \Magento\Ui\Component\Listing\Columns\Column
                         break;
 
                 }
-                $item["success"] = sprintf("<span class='%s'>%s</span>", $class, $item["success"]);
+                $item["success"] = sprintf('<span class="%s">%s</span>', $class, $item["success"]);
 
                 //Setting Status "fake" column value based on processing and done values
                 if ($item["processing"] == 0) {
@@ -104,12 +104,12 @@ class NotificationColumn extends \Magento\Ui\Component\Listing\Columns\Column
 
                     $orderUrl = $this->backendHelper->getUrl("sales/order/view", ["order_id" => $order->getId()]);
                     $item["merchant_reference"] = sprintf(
-                        "<a href='%s'>%s</a>",
+                        '<a href="%s">%s</a>',
                         $orderUrl,
                         $item["merchant_reference"]
                     );
                     $item["pspreference"] = sprintf(
-                        "<a href='%s' target='_blank'>%s</a>",
+                        '<a href="%s" target="_blank">%s</a>',
                         \Adyen\Util\Util::getPspReferenceSearchUrl(
                             $item["pspreference"],
                             $item["live"] === 'false' ? 'test' : 'live'
