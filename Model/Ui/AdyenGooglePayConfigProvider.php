@@ -106,7 +106,7 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
         ];
 
         $config['payment']['adyenGooglePay']['active'] = (bool)$this->adyenHelper->isAdyenGooglePayEnabled($this->storeManager->getStore()->getId());
-        $config['payment']['adyenGooglePay']['checkoutEnvironment'] = $this->adyenHelper->getCheckoutEnvironment($this->storeManager->getStore()->getId());
+        $config['payment']['adyenGooglePay']['environment'] = $this->adyenHelper->getGooglePayEnvironment($this->storeManager->getStore()->getId());
         $config['payment']['adyenGooglePay']['locale'] = $this->adyenHelper->getStoreLocale($this->storeManager->getStore()->getId());
         $config['payment']['adyenGooglePay']['merchantAccount'] = $this->adyenHelper->getAdyenMerchantAccount("adyen_google_pay", $this->storeManager->getStore()->getId());
 

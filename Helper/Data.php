@@ -34,6 +34,7 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
+    const PRODUCTION = 'production';
     const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
     const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
 
@@ -1591,6 +1592,19 @@ class Data extends AbstractHelper
         }
 
         return self::LIVE;
+    }
+
+    /**
+     * @param null $storeId
+     * @return string
+     */
+    public function getGooglePayEnvironment($storeId = null)
+    {
+        if ($this->isDemoMode($storeId)) {
+            return self::TEST;
+        }
+
+        return self::PRODUCTION;
     }
 
     /**
