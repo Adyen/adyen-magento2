@@ -1040,7 +1040,7 @@
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
             <argument name="collections" xsi:type="array">
-                <item name="adyen_notificationsoverview_data_source" xsi:type="string">Adyen\Payment\Model\ResourceModel\Notification\UiComponentCollection</item>
+                <item name="adyen_notifications_overview_data_source" xsi:type="string">Adyen\Payment\Model\ResourceModel\Notification\UiComponentCollection</item>
             </argument>
         </arguments>
     </type>

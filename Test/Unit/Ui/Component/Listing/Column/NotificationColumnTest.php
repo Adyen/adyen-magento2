@@ -15,7 +15,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2019 Adyen B.V.
+ * Copyright (c) 2020 Adyen B.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -85,6 +85,10 @@ class NotificationColumnTest extends TestCase
         $this->adyenHelperMock = $this->getMockBuilder(AdyenHelper::class)
             ->disableOriginalConstructor()
             ->getMock();
+        $this->adyenHelperMock->method("getPspReferenceSearchUrl")
+            ->willReturnCallback(function($pspReference, $liveEnvironment){
+                return "https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=$pspReference";
+            });
         $this->contextMock = $this->getMockBuilder(ContextInterface::class)
             ->disableOriginalConstructor()
             ->getMock();

@@ -7,7 +7,7 @@
     </head>
     <body>
         <referenceContainer name="content">
-            <uiComponent name="adyen_notificationsoverview"/>
+            <uiComponent name="adyen_notifications_overview"/>
         </referenceContainer>
     </body>
 </page>

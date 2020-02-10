@@ -15,33 +15,26 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Controller\Adminhtml\NotificationsOverview;
+namespace Adyen\Payment\Controller\Adminhtml\Notifications;
 
-class Index extends \Magento\Backend\App\Action
+class Overview extends \Magento\Backend\App\Action
 {
-    /**
-     * @var \Magento\Framework\View\Result\PageFactory
-     */
-    protected $resultPageFactory;
 
     /**
      * Constructor
      *
      * @param \Magento\Backend\App\Action\Context $context
-     * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
      */
     public function __construct(
-        \Magento\Backend\App\Action\Context $context,
-        \Magento\Framework\View\Result\PageFactory $resultPageFactory
+        \Magento\Backend\App\Action\Context $context
     ) {
         parent::__construct($context);
-        $this->resultPageFactory = $resultPageFactory;
     }
 
     /**
@@ -51,6 +44,10 @@ class Index extends \Magento\Backend\App\Action
      */
     public function execute()
     {
-        return $resultPage = $this->resultPageFactory->create();
+        $resultPage = $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_PAGE);
+        $resultPage->setActiveMenu('Adyen_Payment::notifications_overview')
+            ->getConfig()->getTitle()->prepend(__('Adyen Notifications Overview'));
+        return $resultPage;
+
     }
 }

@@ -1853,4 +1853,28 @@ class Data extends AbstractHelper
 
         return $localeCode;
     }
+
+    /**
+     * Get the Customer Area PSP Search URL with a preset PSP Reference
+     *
+     * @param string $pspReference
+     * @param string|bool $liveEnvironment
+     * @return string
+     */
+    public function getPspReferenceSearchUrl($pspReference, $liveEnvironment)
+    {
+
+        if($liveEnvironment === "false"){
+            $checkoutEnvironment = "test";
+        }
+        else{
+            $checkoutEnvironment = "live";
+        }
+        return sprintf(
+            "https://ca-%s.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=%s",
+            $checkoutEnvironment,
+            $pspReference
+        );
+
+    }
 }

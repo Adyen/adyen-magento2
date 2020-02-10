@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -66,58 +66,48 @@ class NotificationColumn extends \Magento\Ui\Component\Listing\Columns\Column
     public function prepareDataSource(array $dataSource)
     {
 
-        if (isset($dataSource['data']['items'])) {
+        if (empty($dataSource['data']['items'])) {
+            return $dataSource;
+        }
 
-            foreach ($dataSource['data']['items'] as & $item) {
+        foreach ($dataSource['data']['items'] as & $item) {
 
-                //Setting success column CSS class
-                switch ($item["success"]) {
+            $class = "grid-severity-critical";
+            if ($item["success"] == "true") {
+                $class = "grid-severity-notice";
+            }
+            $item["success"] = sprintf('<span class="%s">%s</span>', $class, $item["success"]);
 
-                    case "true";
-                        $class = "grid-severity-notice";
-                        break;
-                    case "false";
-                        $class = "grid-severity-critical";
-                        break;
-                    default:
-                        $class = "grid-severity-minor";
-                        break;
-
-                }
-                $item["success"] = sprintf('<span class="%s">%s</span>', $class, $item["success"]);
-
-                //Setting Status "fake" column value based on processing and done values
-                if ($item["processing"] == 0) {
-                    if ($item["done"] == 0) {
-                        $item["status"] = "Queued";
-                    } else {
-                        $item["status"] = "Processed";
-                    }
+            //Setting Status "fake" column value based on processing and done values
+            if ($item["processing"] == 0) {
+                if ($item["done"] == 0) {
+                    $item["status"] = __("Queued");
                 } else {
-                    $item["status"] = "In progress";
+                    $item["status"] = __("Processed");
                 }
+            } else {
+                $item["status"] = __("In progress");
+            }
 
-                //Adding anchor link to order number and PSP reference if order number exists
-                $this->orderInterface->unsetData();
-                $order = $this->orderInterface->loadByIncrementId($item["merchant_reference"]);
-                if ($order->getId()) {
+            //Adding anchor link to order number and PSP reference if order number exists
+            $this->orderInterface->unsetData();
+            $order = $this->orderInterface->loadByIncrementId($item["merchant_reference"]);
+            if ($order->getId()) {
 
-                    $orderUrl = $this->backendHelper->getUrl("sales/order/view", ["order_id" => $order->getId()]);
-                    $item["merchant_reference"] = sprintf(
-                        '<a href="%s">%s</a>',
-                        $orderUrl,
-                        $item["merchant_reference"]
-                    );
-                    $item["pspreference"] = sprintf(
-                        '<a href="%s" target="_blank">%s</a>',
-                        \Adyen\Util\Util::getPspReferenceSearchUrl(
-                            $item["pspreference"],
-                            $item["live"] === 'false' ? 'test' : 'live'
-                        ),
-                        $item["pspreference"]
-                    );
-
-                }
+                $orderUrl = $this->backendHelper->getUrl("sales/order/view", ["order_id" => $order->getId()]);
+                $item["merchant_reference"] = sprintf(
+                    '<a href="%s">%s</a>',
+                    $orderUrl,
+                    $item["merchant_reference"]
+                );
+                $item["pspreference"] = sprintf(
+                    '<a href="%s" target="_blank">%s</a>',
+                    $this->adyenHelper->getPspReferenceSearchUrl(
+                        $item["pspreference"],
+                        $item["live"]
+                    ),
+                    $item["pspreference"]
+                );
 
             }
 

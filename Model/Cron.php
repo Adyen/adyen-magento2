@@ -1886,11 +1886,13 @@ class Cron
      *
      * @return void
      */
-    protected function addRefundFailedNotice(){
+    protected function addRefundFailedNotice()
+    {
         $this->notifierPool->addNotice(
             __("Adyen: Refund for order #%1 has failed", $this->_merchantReference),
-            __("Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area and trigger this refund manually or contact our support.", $this->_reason, $this->_pspReference),
-            \Adyen\Util\Util::getPspReferenceSearchUrl($this->_pspReference, $this->_live === 'false' ? 'test' : 'live')
+            __("Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area and trigger this refund manually or contact our support.",
+                $this->_reason, $this->_pspReference),
+            $this->_adyenHelper->getPspReferenceSearchUrl($this->_pspReference, $this->_live)
         );
     }
 }
