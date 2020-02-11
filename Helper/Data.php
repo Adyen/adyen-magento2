@@ -1864,10 +1864,9 @@ class Data extends AbstractHelper
     public function getPspReferenceSearchUrl($pspReference, $liveEnvironment)
     {
 
-        if($liveEnvironment === "false"){
+        if ($liveEnvironment === "false") {
             $checkoutEnvironment = "test";
-        }
-        else{
+        } else {
             $checkoutEnvironment = "live";
         }
         return sprintf(
