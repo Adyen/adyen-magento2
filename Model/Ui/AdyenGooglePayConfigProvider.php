@@ -34,6 +34,8 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
 
     const GOOGLE_PAY_VAULT_CODE = 'adyen_google_pay_vault';
 
+    const PRODUCTION = 'production';
+
     /**
      * @var PaymentHelper
      */
@@ -106,9 +108,10 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
         ];
 
         $config['payment']['adyenGooglePay']['active'] = (bool)$this->adyenHelper->isAdyenGooglePayEnabled($this->storeManager->getStore()->getId());
-        $config['payment']['adyenGooglePay']['environment'] = $this->adyenHelper->getGooglePayEnvironment($this->storeManager->getStore()->getId());
+        $config['payment']['adyenGooglePay']['checkoutEnvironment'] = $this->getGooglePayEnvironment($this->storeManager->getStore()->getId());
         $config['payment']['adyenGooglePay']['locale'] = $this->adyenHelper->getStoreLocale($this->storeManager->getStore()->getId());
-        $config['payment']['adyenGooglePay']['merchantAccount'] = $this->adyenHelper->getAdyenMerchantAccount("adyen_google_pay", $this->storeManager->getStore()->getId());
+        $config['payment']['adyenGooglePay']['merchantAccount'] = $this->adyenHelper->getAdyenMerchantAccount("adyen_google_pay",
+            $this->storeManager->getStore()->getId());
 
         $quote = $this->checkoutSession->getQuote();
         $currency = $quote->getCurrency();
@@ -127,5 +130,18 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
     protected function _getRequest()
     {
         return $this->_request;
+    }
+
+    /**
+     * @param null $storeId
+     * @return mixed
+     */
+    private function getGooglePayEnvironment($storeId = null)
+    {
+        if ($this->adyenHelper->isDemoMode($storeId)) {
+            return \Adyen\Payment\Helper\Data::TEST;
+        }
+
+        return self::PRODUCTION;
     }
 }

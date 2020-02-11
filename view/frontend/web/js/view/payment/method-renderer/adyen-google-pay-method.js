@@ -101,7 +101,7 @@ define(
                 });
                 var googlepay = self.checkoutComponent.create('paywithgoogle', {
                     showPayButton: true,
-                    environment: self.getGooglePayEnvironment().toUpperCase(),
+                    environment: self.getCheckoutEnvironment().toUpperCase(),
 
                     configuration: {
                         // Adyen's merchant account
@@ -149,8 +149,8 @@ define(
                     self.googlePayAllowed(false);
                 });
             },
-            getGooglePayEnvironment: function () {
-                return window.checkoutConfig.payment.adyenGooglePay.environment;
+            getCheckoutEnvironment: function () {
+                return window.checkoutConfig.payment.adyenGooglePay.checkoutEnvironment;
             },
             isGooglePayAllowed: function () {
                 if (this.googlePayAllowed()) {
