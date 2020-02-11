@@ -65,6 +65,26 @@ define(
                         self.setPaymentMethods([]);
                     }
                 )
+            },
+            getOrderPaymentStatus: function (orderId, callback) {
+                var self = this;
+                var serviceUrl = urlBuilder.createUrl('/adyen/orders/:orderId/payment-status', {
+                    orderId: orderId
+                });
+
+                storage.get(
+                    serviceUrl
+                ).done(
+                    function (response) {
+                        if (callback) {
+                            callback(response);
+                        }
+                    }
+                ).fail(
+                    function (response) {
+                       console.log(response);
+                    }
+                )
             }
         };
     }

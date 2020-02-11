@@ -38,9 +38,10 @@ define(
         'Magento_Checkout/js/action/select-payment-method',
         'Adyen_Payment/js/threeds2-js-utils',
         'Adyen_Payment/js/model/threeds2',
-        'Magento_Checkout/js/model/error-processor'
+        'Magento_Checkout/js/model/error-processor',
+        'Adyen_Payment/js/model/adyen-payment-service',
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installmentsHelper, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2, errorProcessor) {
+    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installmentsHelper, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2, errorProcessor, adyenPaymentService) {
 
         'use strict';
 
@@ -338,7 +339,7 @@ define(
                         ).done(
                         function (response) {
                             self.afterPlaceOrder();
-                            self.validateThreeDS2OrPlaceOrder(response);
+                            adyenPaymentService.getOrderPaymentStatus(response, self.validateThreeDS2OrPlaceOrder.bind(self));
                         }
                     );
                 }
