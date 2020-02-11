@@ -1858,16 +1858,16 @@ class Data extends AbstractHelper
      * Get the Customer Area PSP Search URL with a preset PSP Reference
      *
      * @param string $pspReference
-     * @param string|bool $liveEnvironment
+     * @param string $liveEnvironment
      * @return string
      */
     public function getPspReferenceSearchUrl($pspReference, $liveEnvironment)
     {
 
-        if ($liveEnvironment === "false") {
-            $checkoutEnvironment = "test";
-        } else {
+        if ($liveEnvironment === "true") {
             $checkoutEnvironment = "live";
+        } else {
+            $checkoutEnvironment = "test";
         }
         return sprintf(
             "https://ca-%s.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=%s",

@@ -25,18 +25,6 @@ namespace Adyen\Payment\Controller\Adminhtml\Notifications;
 
 class Overview extends \Magento\Backend\App\Action
 {
-
-    /**
-     * Constructor
-     *
-     * @param \Magento\Backend\App\Action\Context $context
-     */
-    public function __construct(
-        \Magento\Backend\App\Action\Context $context
-    ) {
-        parent::__construct($context);
-    }
-
     /**
      * Load the page defined in corresponding layout XML
      *
