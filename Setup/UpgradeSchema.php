@@ -386,9 +386,9 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         $adyenNotificationErrorMessageColumn = [
             'type' => Table::TYPE_TEXT,
-            'length' => NULL,
+            'length' => null,
             'nullable' => true,
-            'default' => NULL,
+            'default' => null,
             'comment' => 'Adyen Notification Process Error Message',
             'after' => \Adyen\Payment\Model\Notification::ERROR_COUNT
         ];
