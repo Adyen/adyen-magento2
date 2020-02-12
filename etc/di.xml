@@ -1035,4 +1035,20 @@
     <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
         <plugin name="AdyenGuestPaymentInformationManagementAddPaymentInfo" type="Adyen\Payment\Plugin\GuestPaymentInformationManagement" sortOrder="10"/>
     </type>
+
+    <!--Notifications overview-->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="adyen_notifications_overview_data_source" xsi:type="string">Adyen\Payment\Model\ResourceModel\Notification\UiComponentCollection</item>
+            </argument>
+        </arguments>
+    </type>
+    <virtualType name="Adyen\Payment\Model\ResourceModel\Notification\UiComponentCollection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">adyen_notification</argument>
+            <argument name="resourceModel" xsi:type="string">Adyen\Payment\Model\ResourceModel\Notification</argument>
+        </arguments>
+    </virtualType>
+
 </config>
