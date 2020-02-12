@@ -1916,7 +1916,6 @@ class Cron
     {
         $this->setNotificationError($notification, $errorMessage);
         $this->addNotificationErrorComment($errorMessage);
-
     }
 
     /**
