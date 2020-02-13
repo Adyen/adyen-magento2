@@ -1948,7 +1948,7 @@ class Cron
      * @param string $errorMessage
      * @return void
      */
-    protected function addNotificationErrorComment($errorMessage)
+    private function addNotificationErrorComment($errorMessage)
     {
         $comment = __('The order failed to update: %1', $errorMessage);
         $this->_order->addStatusHistoryComment($comment);
