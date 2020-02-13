@@ -1925,7 +1925,7 @@ class Cron
      * @param string $errorMessage
      * @return void
      */
-    protected function setNotificationError($notification, $errorMessage)
+    private function setNotificationError($notification, $errorMessage)
     {
         $notification->setErrorCount($notification->getErrorCount() + 1);
         $oldMessage = $notification->getErrorMessage();
