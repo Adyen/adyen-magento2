@@ -1912,7 +1912,7 @@ class Cron
      * @param string $errorMessage
      * @return void
      */
-    protected function handleNotificationError($notification, $errorMessage)
+    private function handleNotificationError($notification, $errorMessage)
     {
         $this->setNotificationError($notification, $errorMessage);
         $this->addNotificationErrorComment($errorMessage);
