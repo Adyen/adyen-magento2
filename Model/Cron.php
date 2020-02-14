@@ -231,6 +231,11 @@ class Cron
     private $notifierPool;
 
     /**
+     * @var \Magento\Framework\Stdlib\DateTime\TimezoneInterface
+     */
+    private $timezone;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -276,7 +281,8 @@ class Cron
         \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel,
         \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Magento\Framework\Notification\NotifierInterface $notifierPool
+        \Magento\Framework\Notification\NotifierInterface $notifierPool,
+        \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezone
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -300,6 +306,7 @@ class Cron
         $this->transactionBuilder = $transactionBuilder;
         $this->serializer = $serializer;
         $this->notifierPool = $notifierPool;
+        $this->timezone = $timezone;
     }
 
     /**
@@ -339,6 +346,7 @@ class Cron
         $notifications->addFieldToFilter('done', 0);
         $notifications->addFieldToFilter('processing', 0);
         $notifications->addFieldToFilter('created_at', $dateRange);
+        $notifications->addFieldToFilter('error_count', ['lt' => Notification::MAX_ERROR_COUNT]);
 
         foreach ($notifications as $notification) {
             // set Cron processing to true
@@ -464,6 +472,7 @@ class Cron
                 ++$count;
             } catch (\Exception $e) {
                 $this->_updateNotification($notification, false, false);
+                $this->handleNotificationError($notification, $e->getMessage());
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     sprintf("Notification %s had an error: %s \n %s", $notification->getEntityId(), $e->getMessage(),
                         $e->getTraceAsString())
@@ -1894,5 +1903,55 @@ class Cron
                 $this->_reason, $this->_pspReference),
             $this->_adyenHelper->getPspReferenceSearchUrl($this->_pspReference, $this->_live)
         );
+    }
+
+    /**
+     * Add/update info on notification processing errors
+     *
+     * @param \Adyen\Payment\Model\Notification $notification
+     * @param string $errorMessage
+     * @return void
+     */
+    private function handleNotificationError($notification, $errorMessage)
+    {
+        $this->setNotificationError($notification, $errorMessage);
+        $this->addNotificationErrorComment($errorMessage);
+    }
+
+    /**
+     * Increases error count and appends error message to notification
+     *
+     * @param \Adyen\Payment\Model\Notification $notification
+     * @param string $errorMessage
+     * @return void
+     */
+    private function setNotificationError($notification, $errorMessage)
+    {
+        $notification->setErrorCount($notification->getErrorCount() + 1);
+        $oldMessage = $notification->getErrorMessage();
+        $newMessage = sprintf(
+            "[%s]: %s",
+            $this->timezone->formatDateTime($notification->getUpdatedAt()),
+            $errorMessage
+        );
+        if (empty($oldMessage)) {
+            $notification->setErrorMessage($newMessage);
+        } else {
+            $notification->setErrorMessage($oldMessage . "\n" . $newMessage);
+        }
+        $notification->save();
+    }
+
+    /**
+     * Adds a comment to the order history with the notification processing error
+     *
+     * @param string $errorMessage
+     * @return void
+     */
+    private function addNotificationErrorComment($errorMessage)
+    {
+        $comment = __('The order failed to update: %1', $errorMessage);
+        $this->_order->addStatusHistoryComment($comment);
+        $this->_order->save();
     }
 }

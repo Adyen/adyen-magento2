@@ -68,6 +68,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion221($setup);
         }
 
+        if (version_compare($context->getVersion(), '5.4.0', '<')) {
+            $this->updateSchemaVersion540($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -358,5 +362,47 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ->setComment('Adyen Invoice');
 
         $setup->getConnection()->createTable($table);
+    }
+
+    /**
+     * Upgrade to 5.4.0
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     */
+    public function updateSchemaVersion540(SchemaSetupInterface $setup)
+    {
+        $connection = $setup->getConnection();
+        $tableName = $setup->getTable('adyen_notification');
+
+        $adyenNotificationErrorCountColumn = [
+            'type' => Table::TYPE_INTEGER,
+            'length' => 1,
+            'nullable' => true,
+            'default' => 0,
+            'comment' => 'Adyen Notification Process Error Count',
+            'after' => \Adyen\Payment\Model\Notification::PROCESSING
+        ];
+
+        $adyenNotificationErrorMessageColumn = [
+            'type' => Table::TYPE_TEXT,
+            'length' => null,
+            'nullable' => true,
+            'default' => null,
+            'comment' => 'Adyen Notification Process Error Message',
+            'after' => \Adyen\Payment\Model\Notification::ERROR_COUNT
+        ];
+
+        $connection->addColumn(
+            $tableName,
+            \Adyen\Payment\Model\Notification::ERROR_COUNT,
+            $adyenNotificationErrorCountColumn
+        );
+
+        $connection->addColumn(
+            $tableName,
+            \Adyen\Payment\Model\Notification::ERROR_MESSAGE,
+            $adyenNotificationErrorMessageColumn
+        );
     }
 }

@@ -49,6 +49,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     const REPORT_AVAILABLE = "REPORT_AVAILABLE";
     const ORDER_CLOSED = "ORDER_CLOSED";
     const OFFER_CLOSED = "OFFER_CLOSED";
+    const MAX_ERROR_COUNT = 5;
 
     /**
      * Notification constructor.
@@ -94,7 +95,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
         $result = $this->getResource()->getNotification($pspReference, $eventCode, $success, $originalReference, $done);
         return (empty($result)) ? false : true;
     }
-    
+
     /**
      * @return mixed
      */
@@ -357,6 +358,69 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     public function setDone($done)
     {
         return $this->setData(self::DONE, $done);
+    }
+
+    /**
+     * Gets the Processing flag for the notification.
+     *
+     * @return bool Processing.
+     */
+    public function getProcessing()
+    {
+        return $this->getData(self::PROCESSING);
+    }
+
+    /**
+     * Sets Processing flag.
+     *
+     * @param bool $processing
+     * @return $this
+     */
+    public function setProcessing($processing)
+    {
+        return $this->setData(self::PROCESSING, $processing);
+    }
+
+    /**
+     * Gets the Error Count for the notification.
+     *
+     * @return bool|null ErrorCount.
+     */
+    public function getErrorCount()
+    {
+        return $this->getData(self::ERROR_COUNT);
+    }
+
+    /**
+     * Sets Error Count.
+     *
+     * @param bool $errorCount
+     * @return $this
+     */
+    public function setErrorCount($errorCount)
+    {
+        return $this->setData(self::ERROR_COUNT, $errorCount);
+    }
+
+    /**
+     * Gets the Error Message for the notification.
+     *
+     * @return string|null ErrorMessage
+     */
+    public function getErrorMessage()
+    {
+        return $this->getData(self::ERROR_MESSAGE);
+    }
+
+    /**
+     * Sets Error Message.
+     *
+     * @param string $errorMessage
+     * @return $this
+     */
+    public function setErrorMessage($errorMessage)
+    {
+        return $this->setData(self::ERROR_MESSAGE, $errorMessage);
     }
 
     /**
