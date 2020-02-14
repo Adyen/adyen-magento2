@@ -68,8 +68,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion221($setup);
         }
 
-        if (version_compare($context->getVersion(), '5.3.1', '<')) {
-            $this->updateSchemaVersion531($setup);
+        if (version_compare($context->getVersion(), '5.4.0', '<')) {
+            $this->updateSchemaVersion540($setup);
         }
 
         $setup->endSetup();
@@ -365,12 +365,12 @@ class UpgradeSchema implements UpgradeSchemaInterface
     }
 
     /**
-     * Upgrade to 5.3.1
+     * Upgrade to 5.4.0
      *
      * @param SchemaSetupInterface $setup
      * @return void
      */
-    public function updateSchemaVersion531(SchemaSetupInterface $setup)
+    public function updateSchemaVersion540(SchemaSetupInterface $setup)
     {
         $connection = $setup->getConnection();
         $tableName = $setup->getTable('adyen_notification');
