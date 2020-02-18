@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Adyen_Payment::css/notifications_overview_styles.css"/>
+        <title>
+            Adyen Notifications Overview
+        </title>
+    </head>
+    <body>
+        <referenceContainer name="content">
+            <uiComponent name="adyen_notifications_overview"/>
+        </referenceContainer>
+    </body>
+</page>

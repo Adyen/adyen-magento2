@@ -1031,4 +1031,25 @@
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10"/>
     </type>
+    <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
+        <plugin name="AdyenPaymentInformationManagementAddPaymentInfo" type="Adyen\Payment\Plugin\PaymentInformationManagement" sortOrder="10"/>
+    </type>
+    <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
+        <plugin name="AdyenGuestPaymentInformationManagementAddPaymentInfo" type="Adyen\Payment\Plugin\GuestPaymentInformationManagement" sortOrder="10"/>
+    </type>
+
+    <!--Notifications overview-->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="adyen_notifications_overview_data_source" xsi:type="string">Adyen\Payment\Model\ResourceModel\Notification\UiComponentCollection</item>
+            </argument>
+        </arguments>
+    </type>
+    <virtualType name="Adyen\Payment\Model\ResourceModel\Notification\UiComponentCollection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">adyen_notification</argument>
+            <argument name="resourceModel" xsi:type="string">Adyen\Payment\Model\ResourceModel\Notification</argument>
+        </arguments>
+    </virtualType>
 </config>
