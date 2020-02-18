@@ -71,19 +71,13 @@ define(
                     orderId: orderId
                 });
 
-                storage.get(
-                    serviceUrl
-                ).done(
-                    function (response) {
-                        if (callback) {
-                            callback(response);
+                storage.get(serviceUrl)
+                    .done(callback)
+                    .fail(
+                        function (response) {
+                           console.log(response);
                         }
-                    }
-                ).fail(
-                    function (response) {
-                       console.log(response);
-                    }
-                )
+                    );
             }
         };
     }
