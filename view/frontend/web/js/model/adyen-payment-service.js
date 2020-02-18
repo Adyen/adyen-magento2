@@ -61,13 +61,12 @@ define(
                         }
                     }
                 ).fail(
-                    function (response) {
+                    function () {
                         self.setPaymentMethods([]);
                     }
                 )
             },
             getOrderPaymentStatus: function (orderId, callback) {
-                var self = this;
                 var serviceUrl = urlBuilder.createUrl('/adyen/orders/:orderId/payment-status', {
                     orderId: orderId
                 });
