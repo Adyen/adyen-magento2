@@ -66,18 +66,12 @@ define(
                     }
                 )
             },
-            getOrderPaymentStatus: function (orderId, callback) {
+            getOrderPaymentStatus: function (orderId) {
                 var serviceUrl = urlBuilder.createUrl('/adyen/orders/:orderId/payment-status', {
                     orderId: orderId
                 });
 
-                storage.get(serviceUrl)
-                    .done(callback)
-                    .fail(
-                        function (response) {
-                           console.log(response);
-                        }
-                    );
+                return storage.get(serviceUrl);
             }
         };
     }

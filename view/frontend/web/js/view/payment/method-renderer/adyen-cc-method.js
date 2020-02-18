@@ -339,10 +339,8 @@ define(
                         ).done(
                             function (response) {
                                 self.afterPlaceOrder();
-                                adyenPaymentService.getOrderPaymentStatus(
-                                    response,
-                                    self.validateThreeDS2OrPlaceOrder.bind(self)
-                                );
+                                adyenPaymentService.getOrderPaymentStatus(response)
+                                    .done(self.validateThreeDS2OrPlaceOrder);
                             }
                         );
                 }
