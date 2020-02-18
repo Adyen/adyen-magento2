@@ -337,11 +337,14 @@ define(
                                 self.isPlaceOrderActionAllowed(true);
                             }
                         ).done(
-                        function (response) {
-                            self.afterPlaceOrder();
-                            adyenPaymentService.getOrderPaymentStatus(response, self.validateThreeDS2OrPlaceOrder.bind(self));
-                        }
-                    );
+                            function (response) {
+                                self.afterPlaceOrder();
+                                adyenPaymentService.getOrderPaymentStatus(
+                                    response,
+                                    self.validateThreeDS2OrPlaceOrder.bind(self)
+                                );
+                            }
+                        );
                 }
                 return false;
             },
