@@ -105,4 +105,33 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(false, $this->dataHelper->isPaymentMethodOpenInvoiceMethod('ideal'));
         $this->assertEquals(true, $this->dataHelper->isPaymentMethodOpenInvoiceMethod('test_klarna'));
     }
+
+    /**
+     * @param string $expectedResult
+     * @param string $pspReference
+     * @param string $checkoutEnvironment
+     * @dataProvider checkoutEnvironmentsProvider
+     *
+     */
+    public function testGetPspReferenceSearchUrl($expectedResult, $pspReference, $checkoutEnvironment)
+    {
+        $pspSearchUrl = $this->dataHelper->getPspReferenceSearchUrl($pspReference, $checkoutEnvironment);
+        $this->assertEquals($expectedResult, $pspSearchUrl);
+    }
+
+    public static function checkoutEnvironmentsProvider()
+    {
+        return array(
+            array(
+                'https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=7914073381342284',
+                '7914073381342284',
+                'false'
+            ),
+            array(
+                'https://ca-live.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=883580976999434D',
+                '883580976999434D',
+                'true'
+            )
+        );
+    }
 }
