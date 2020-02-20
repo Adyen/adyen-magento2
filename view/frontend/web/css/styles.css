@@ -113,6 +113,12 @@
     margin-right: 10px;
 }
 
+@supports not (-webkit-appearance: -apple-pay-button) {
+    #apple-pay-payment-method {
+        display: none;
+    }
+}
+
 .apple-pay-button-with-text {
     --apple-pay-scale: 1.5625; /* (height / 32) */
     display: inline-flex;
