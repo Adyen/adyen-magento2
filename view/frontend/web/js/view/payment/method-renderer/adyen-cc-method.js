@@ -41,7 +41,27 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service'
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installmentsHelper, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2, errorProcessor, adyenPaymentService) {
+    function (
+        $,
+        ko,
+        Component,
+        customer,
+        creditCardData,
+        additionalValidators,
+        quote,
+        installmentsHelper,
+        url,
+        VaultEnabler,
+        urlBuilder,
+        storage,
+        fullScreenLoader,
+        setPaymentMethodAction,
+        selectPaymentMethodAction,
+        threeDS2Utils,
+        threeds2,
+        errorProcessor,
+        adyenPaymentService
+    ) {
 
         'use strict';
 
@@ -340,7 +360,12 @@ define(
                             function (response) {
                                 self.afterPlaceOrder();
                                 adyenPaymentService.getOrderPaymentStatus(response)
-                                    .done(self.validateThreeDS2OrPlaceOrder);
+                                    .done(self.validateThreeDS2OrPlaceOrder)
+                                    .fail(function (result) {
+                                        errorProcessor.process(result, self.messageContainer);
+                                        fullScreenLoader.stopLoader();
+                                        self.isPlaceOrderActionAllowed(true);
+                                    });
                             }
                         );
                 }

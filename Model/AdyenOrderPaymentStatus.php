@@ -24,6 +24,7 @@
 
 namespace Adyen\Payment\Model;
 
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 
@@ -66,6 +67,7 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
      * {@inheritDoc}
      * @throws MagentoNoSuchEntityException
      * @throws AdyenException
+     * @throws LocalizedException
      */
     public function getOrderPaymentStatus($orderId)
     {
@@ -74,18 +76,18 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
             $payment = $order->getPayment();
 
             if ($payment->getMethod() === AdyenCcConfigProvider::CODE) {
+                $additionalInformation = $payment->getAdditionalInformation();
                 return $this->adyenHelper->buildThreeDS2ProcessResponseJson(
-                    $payment->getAdditionalInformation('threeDSType'),
-                    $payment->getAdditionalInformation('threeDS2Token')
+                    $additionalInformation['threeDSType'],
+                    $additionalInformation['threeDS2Token']
                 );
-            } else {
-                return $result;
             }
         } catch (NoSuchEntityException $e) {
             $this->adyenLogger->error("Exception: " . $e->getMessage());
-            throw new \Magento\Framework\Exception\LocalizedException(__('This order no longer exists.'));
+            throw new LocalizedException(__('This order no longer exists.'));
         }
 
-        return $result;
+        $this->adyenLogger->error("Problem in method getOrderPaymentStatus. Payment method is {$payment->getMethod()}");
+        throw new LocalizedException(__('An unexpected error occurred.'));
     }
 }
