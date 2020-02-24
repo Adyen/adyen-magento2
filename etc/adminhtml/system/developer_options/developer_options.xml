@@ -1,3 +1,5 @@
+<?xml version="1.0"?>
+<!--
 /**
  *                       ######
  *                       ######
@@ -14,11 +16,18 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
-
-.adyen-method-adyen-cc > .entry-edit-head > .config-heading .heading strong { padding-left:90px;background:url(images/adyen-logo.png) no-repeat 0 0;  background-size: 83px 24px;line-height: 23px;}
-ul.adyen-list { margin:0 20px 10px;}
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <label>Developer options</label>
+    <field id="debug" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+        <label>Enable debug logging</label>
+        <comment><![CDATA[We recommend you leave this set to Yes. The log files can be found in <i>var/log/adyen/</i>]]></comment>
+        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+        <config_path>payment/adyen_abstract/debug</config_path>
+    </field>
+</include>

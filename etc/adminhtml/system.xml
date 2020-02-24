@@ -16,7 +16,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -24,29 +24,79 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-        <section id="payment" translate="label" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
-            <group id="adyen_group_all_in_one" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Adyen All-in-One Payment Solutions</label>
-                <comment><![CDATA[Adyen All-in-One Payment Solutions]]></comment>
-                <attribute type="expanded">1</attribute>
-                <fieldset_css>complex</fieldset_css>
-                <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
-                <include path="Adyen_Payment::system/adyen_getting_started.xml"/>
-                <include path="Adyen_Payment::system/adyen_required_settings.xml"/>
-                <include path="Adyen_Payment::system/adyen_advanced_order_processing.xml"/>
-                <include path="Adyen_Payment::system/adyen_advanced_notifications.xml"/>
-                <include path="Adyen_Payment::system/adyen_billing_agreements.xml"/>
-                <include path="Adyen_Payment::system/adyen_checkout_experience.xml"/>
-                <include path="Adyen_Payment::system/adyen_manual_review.xml"/>
-                <include path="Adyen_Payment::system/adyen_split_payment.xml"/>
-                <include path="Adyen_Payment::system/adyen_cc.xml"/>
-                <include path="Adyen_Payment::system/adyen_oneclick.xml"/>
-                <include path="Adyen_Payment::system/adyen_hpp.xml"/>
-                <include path="Adyen_Payment::system/adyen_pos_cloud.xml"/>
-                <include path="Adyen_Payment::system/adyen_pay_by_mail.xml"/>
-                <include path="Adyen_Payment::system/adyen_boleto.xml"/>
-                <include path="Adyen_Payment::system/adyen_apple_pay.xml"/>
-                <include path="Adyen_Payment::system/adyen_google_pay.xml"/>
+        <section id="payment" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="adyen_group_all_in_one" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Adyen</label>
+                <include path="Adyen_Payment::system/header.xml"/>
+                <include path="Adyen_Payment::system/header_links.xml"/>
+                <include path="Adyen_Payment::system/main.xml"/>
+                <group id="adyen_group_all_in_one_ecommerce_payments" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <fieldset_css>adyen-ecommerce-payments-config</fieldset_css>
+                    <include path="Adyen_Payment::system/ecommerce_payments/ecommerce_payments.xml"/>
+                    <group id="adyen_group_all_in_one_ecommerce_payments_payment_links" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <include path="Adyen_Payment::system/ecommerce_payments/payment_links.xml"/>
+                    </group>
+                    <group id="adyen_group_all_in_one_ecommerce_payments_advanced_options" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <include path="Adyen_Payment::system/ecommerce_payments/advanced_options.xml"/>
+                    </group>
+                </group>
+                <group id="adyen_group_all_in_one_pos_payments" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <include path="Adyen_Payment::system/pos_payments/pos_payments.xml"/>
+                    <group id="adyen_group_all_in_one_pos_payments_advanced_options" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <include path="Adyen_Payment::system/pos_payments/advanced_options.xml"/>
+                    </group>
+                </group>
+                <group id="adyen_group_all_in_one_payment_methods" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <include path="Adyen_Payment::system/payment_methods/payment_methods.xml"/>
+                    <group id="adyen_group_all_in_one_payment_methods_cards" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <include path="Adyen_Payment::system/payment_methods/cards/cards.xml"/>
+                        <group id="adyen_group_all_in_one_payment_methods_cards_stored_card_details" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <include path="Adyen_Payment::system/payment_methods/cards/stored_card_details.xml"/>
+                        </group>
+                        <group id="adyen_group_all_in_one_payment_methods_cards_advanced_options" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <include path="Adyen_Payment::system/payment_methods/cards/advanced_options.xml"/>
+                        </group>
+                    </group>
+                    <group id="adyen_group_all_in_one_payment_methods_billing_agreements" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <include path="Adyen_Payment::system/payment_methods/billing_agreements/billing_agreements.xml"/>
+                    </group>
+                    <group id="adyen_group_all_in_one_payment_methods_local_payment_methods" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <include path="Adyen_Payment::system/payment_methods/local_payment_methods/local_payment_methods.xml"/>
+                        <group id="adyen_group_all_in_one_payment_methods_local_payment_methods_stored_payment_method_details" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <include path="Adyen_Payment::system/payment_methods/local_payment_methods/stored_payment_method_details.xml"/>
+                        </group>
+                        <group id="adyen_group_all_in_one_payment_methods_local_payment_methods_advanced_options" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <include path="Adyen_Payment::system/payment_methods/local_payment_methods/advanced_options.xml"/>
+                        </group>
+                    </group>
+                    <group id="adyen_group_all_in_one_payment_methods_payment_links" translate="label" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <include path="Adyen_Payment::system/payment_methods/payment_links/payment_links.xml"/>
+                    </group>
+                    <group id="adyen_group_all_in_one_payment_methods_boleto" translate="label" type="text" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <include path="Adyen_Payment::system/payment_methods/boleto/boleto.xml"/>
+                    </group>
+                    <group id="adyen_group_all_in_one_payment_methods_apple_pay" translate="label" type="text" sortOrder="600" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <include path="Adyen_Payment::system/payment_methods/apple_pay/apple_pay.xml"/>
+                    </group>
+                    <group id="adyen_group_all_in_one_payment_methods_google_pay" translate="label" type="text" sortOrder="700" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <include path="Adyen_Payment::system/payment_methods/google_pay/google_pay.xml"/>
+                    </group>
+                    <group id="adyen_group_all_in_one_payment_methods_pos" translate="label" type="text" sortOrder="800" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <include path="Adyen_Payment::system/payment_methods/pos/pos.xml"/>
+                        <group id="adyen_group_all_in_one_payment_methods_pos_stored_payment_details" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <include path="Adyen_Payment::system/payment_methods/pos/stored_payment_details.xml"/>
+                        </group>
+                        <group id="adyen_group_all_in_one_payment_methods_pos_advanced_options" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <include path="Adyen_Payment::system/payment_methods/pos/advanced_options.xml"/>
+                        </group>
+                    </group>
+                </group>
+                <group id="adyen_group_all_in_one_payment_methods_order_management" translate="label" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <include path="Adyen_Payment::system/order_management/order_management.xml"/>
+                </group>
+                <group id="adyen_group_all_in_one_payment_methods_developer_options" translate="label" type="text" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <include path="Adyen_Payment::system/developer_options/developer_options.xml"/>
+                </group>
             </group>
         </section>
     </system>

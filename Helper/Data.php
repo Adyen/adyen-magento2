@@ -234,8 +234,8 @@ class Data extends AbstractHelper
     public function getModes()
     {
         return [
-            '1' => 'Test Mode',
-            '0' => 'Production Mode'
+            '1' => 'Test',
+            '0' => 'Live'
         ];
     }
 
@@ -246,8 +246,8 @@ class Data extends AbstractHelper
     public function getCaptureModes()
     {
         return [
-            'auto' => 'immediate',
-            'manual' => 'manual'
+            'auto' => 'Immediate',
+            'manual' => 'Manual'
         ];
     }
 

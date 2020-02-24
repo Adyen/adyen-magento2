@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <label>Stored payment details options</label>
+    <comment><![CDATA[Adyen can securely store shoppers' payment details for recurring payments.]]></comment>
+    <field id="recurring_type" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Store for one-click payments</label>
+        <tooltip>One-click payments require the shopper to enter their security code (CVC, CVV, CID).</tooltip>
+        <source_model>Adyen\Payment\Model\Config\Source\RecurringType</source_model><!--TODO: Split original field-->
+        <config_path>payment/adyen_pos_cloud/recurring_type</config_path>
+    </field>
+    <field id="recurring_payments" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1"><!--TODO: new field?-->
+        <label>Store for one-click payments</label>
+        <tooltip>One-click payments require the shopper to enter their security code (CVC, CVV, CID).</tooltip>
+        <source_model>Adyen\Payment\Model\Config\Source\RecurringType</source_model><!--TODO: Split original field-->
+        <config_path>payment/adyen_pos_cloud/recurring_type</config_path>
+    </field>
+</config>
