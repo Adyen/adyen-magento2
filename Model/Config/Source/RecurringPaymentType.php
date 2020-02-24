@@ -27,6 +27,11 @@ class RecurringPaymentType implements \Magento\Framework\Option\ArrayInterface
 {
     const UNDEFINED_OPTION_LABEL = 'NONE';
 
+    const RECURRING_TYPES_LABELS = [
+        \Adyen\Payment\Model\RecurringType::ONECLICK => "One-click payments",
+        \Adyen\Payment\Model\RecurringType::RECURRING => "Recurring payments"
+    ];
+
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -53,7 +58,7 @@ class RecurringPaymentType implements \Magento\Framework\Option\ArrayInterface
         foreach ($recurringTypes as $code => $label) {
             if ($code == \Adyen\Payment\Model\RecurringType::ONECLICK ||
                 $code == \Adyen\Payment\Model\RecurringType::RECURRING) {
-                $options[] = ['value' => $code, 'label' => $label];
+                $options[] = ['value' => $code, 'label' => self::RECURRING_TYPES_LABELS[$code]];
             }
         }
         return $options;
