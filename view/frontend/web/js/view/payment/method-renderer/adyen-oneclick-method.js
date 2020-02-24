@@ -40,9 +40,32 @@ define(
         'mage/storage',
         'Magento_Checkout/js/action/place-order',
         'Adyen_Payment/js/model/threeds2',
-        'Magento_Checkout/js/model/error-processor'
+        'Magento_Checkout/js/model/error-processor',
+        'Adyen_Payment/js/model/adyen-payment-service'
     ],
-    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, url, threeDS2Utils, fullScreenLoader, setPaymentMethodAction, urlBuilder, storage, placeOrderAction, threeds2, errorProcessor) {
+    function (
+        ko,
+        _,
+        $,
+        Component,
+        selectPaymentMethodAction,
+        additionalValidators,
+        quote,
+        checkoutData,
+        redirectOnSuccessAction,
+        layout,
+        Messages,
+        url,
+        threeDS2Utils,
+        fullScreenLoader,
+        setPaymentMethodAction,
+        urlBuilder,
+        storage,
+        placeOrderAction,
+        threeds2,
+        errorProcessor,
+        adyenPaymentService
+    ) {
 
         'use strict';
 
@@ -184,6 +207,7 @@ define(
                          * @returns {boolean}
                          */
                         placeOrder: function (data, event) {
+                            debugger;
                             var self = this;
 
                             if (event) {
@@ -209,8 +233,13 @@ define(
                                         }
                                     ).done(
                                     function (response) {
+                                        debugger;
                                         self.afterPlaceOrder();
-                                        self.validateThreeDS2OrPlaceOrder(response);
+                                        adyenPaymentService.getOrderPaymentStatus(response)
+                                            .done(function (responseJSON) {
+                                                debugger;
+                                                self.validateThreeDS2OrPlaceOrder(responseJSON)
+                                            });
                                     }
                                 );
                             }

@@ -24,9 +24,8 @@
 
 namespace Adyen\Payment\Model;
 
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 
 class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentStatusInterface
 {
@@ -56,38 +55,30 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Helper\Data $adyenHelper
-    )
-    {
+    ) {
         $this->orderRepository = $orderRepository;
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
     }
 
     /**
-     * {@inheritDoc}
-     * @throws MagentoNoSuchEntityException
-     * @throws AdyenException
-     * @throws LocalizedException
+     * @param string $orderId
+     * @return bool|string
      */
     public function getOrderPaymentStatus($orderId)
     {
-        try {
-            $order = $this->orderRepository->get($orderId);
-            $payment = $order->getPayment();
+        $order = $this->orderRepository->get($orderId);
+        $payment = $order->getPayment();
 
-            if ($payment->getMethod() === AdyenCcConfigProvider::CODE) {
-                $additionalInformation = $payment->getAdditionalInformation();
-                return $this->adyenHelper->buildThreeDS2ProcessResponseJson(
-                    $additionalInformation['threeDSType'],
-                    $additionalInformation['threeDS2Token']
-                );
-            }
-        } catch (NoSuchEntityException $e) {
-            $this->adyenLogger->error("Exception: " . $e->getMessage());
-            throw new LocalizedException(__('This order no longer exists.'));
+        if ($payment->getMethod() === AdyenCcConfigProvider::CODE ||
+            $payment->getMethod() === AdyenOneclickConfigProvider::CODE
+        ) {
+            $additionalInformation = $payment->getAdditionalInformation();
+            return $this->adyenHelper->buildThreeDS2ProcessResponseJson(
+                $additionalInformation['threeDSType'],
+                $additionalInformation['threeDS2Token']
+            );
         }
-
-        $this->adyenLogger->error("Problem in method getOrderPaymentStatus. Payment method is {$payment->getMethod()}");
-        throw new LocalizedException(__('An unexpected error occurred.'));
+        return true;
     }
 }
