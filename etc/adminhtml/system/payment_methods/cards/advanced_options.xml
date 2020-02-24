@@ -26,8 +26,8 @@
     <label>Advanced options</label>
     <field id="enable_card_types" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Accepted card types</label>
-        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model> <!--TODO: Use custom source model-->
-         <!--TODO: new config path?-->
+        <source_model>Adyen\Payment\Model\Config\Source\AcceptedCardTypes</source_model>
+        <config_path>payment/adyen_cc/enablecctypes</config_path>
     </field>
     <field id="cctypes" translate="label" type="multiselect" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
         <depends>

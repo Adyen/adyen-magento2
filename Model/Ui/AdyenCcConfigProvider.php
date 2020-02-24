@@ -181,12 +181,15 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     {
         $types = [];
         $ccTypes = $this->_adyenHelper->getAdyenCcTypes();
-        $availableTypes = $this->_adyenHelper->getAdyenCcConfigData('cctypes');
-        if ($availableTypes) {
-            $availableTypes = explode(',', $availableTypes);
-            foreach (array_keys($ccTypes) as $code) {
-                if (in_array($code, $availableTypes)) {
-                    $types[$code] = $ccTypes[$code]['name'];
+        $enableAvailableTypes = $this->_adyenHelper->getAdyenCcConfigData('enablecctypes');
+        if ($enableAvailableTypes) {
+            $availableTypes = $this->_adyenHelper->getAdyenCcConfigData('cctypes');
+            if ($availableTypes) {
+                $availableTypes = explode(',', $availableTypes);
+                foreach (array_keys($ccTypes) as $code) {
+                    if (in_array($code, $availableTypes)) {
+                        $types[$code] = $ccTypes[$code]['name'];
+                    }
                 }
             }
         }
@@ -203,12 +206,15 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     {
         $types = [];
         $ccTypes = $this->_adyenHelper->getAdyenCcTypes();
-        $availableTypes = $this->_adyenHelper->getAdyenCcConfigData('cctypes');
-        if ($availableTypes) {
-            $availableTypes = explode(',', $availableTypes);
-            foreach (array_keys($ccTypes) as $code) {
-                if (in_array($code, $availableTypes)) {
-                    $types[$ccTypes[$code]['code_alt']] = $code;
+        $enableAvailableTypes = $this->_adyenHelper->getAdyenCcConfigData('enablecctypes');
+        if ($enableAvailableTypes) {
+            $availableTypes = $this->_adyenHelper->getAdyenCcConfigData('cctypes');
+            if ($availableTypes) {
+                $availableTypes = explode(',', $availableTypes);
+                foreach (array_keys($ccTypes) as $code) {
+                    if (in_array($code, $availableTypes)) {
+                        $types[$ccTypes[$code]['code_alt']] = $code;
+                    }
                 }
             }
         }
