@@ -24,28 +24,28 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <label>Advanced options</label>
-    <field id="ratepay_id" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+    <field id="shopper_country" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Shopper country</label>
+        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+        <config_path>payment/adyen_oneclick/share_billing_agreement</config_path> <!--TODO: New field?-->
+    </field>
+    <field id="ratepay_id" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>RatePAY Device Ident SId</label>
         <tooltip>Unique RatePAY Id provided by RatePAY integration consultant</tooltip>
         <config_path>payment/adyen_hpp/ratepay_id</config_path>
     </field>
-    <field id="split_payments_refund_strategy" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+    <field id="split_payments_refund_strategy" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Refunds that include gift cards</label>
         <comment><![CDATA[Learn more about refunds that include gift cards on <a href="https://docs.adyen.com/plugins/magento-2/set-up-the-plugin-in-magento/#split-payment" target="_blank">Adyen documentation</a>.]]></comment>
         <source_model>Adyen\Payment\Model\Config\Source\SplitPaymentRefundStrategy</source_model>
         <config_path>payment/adyen_abstract/split_payments_refund_strategy</config_path>
     </field>
-    <field id="shopper_country" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label>Shopper country</label>
-        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-        <config_path>payment/adyen_oneclick/share_billing_agreement</config_path> <!--TODO: New field?-->
-    </field>
-    <field id="allowspecific_local_payment_methods" translate="label" type="allowspecific" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+    <field id="allowspecific_local_payment_methods" translate="label" type="allowspecific" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
         <label>Applicable countries</label>
         <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
         <config_path>payment/adyen_hpp/allowspecific</config_path>
     </field>
-    <field id="specificcountry" translate="label" type="multiselect" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+    <field id="specificcountry" translate="label" type="multiselect" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
         <label>Payment from specific countries</label>
         <depends>
             <field id="allowspecific_local_payment_methods">1</field>
