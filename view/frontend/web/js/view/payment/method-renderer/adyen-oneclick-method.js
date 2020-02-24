@@ -207,7 +207,6 @@ define(
                          * @returns {boolean}
                          */
                         placeOrder: function (data, event) {
-                            debugger;
                             var self = this;
 
                             if (event) {
@@ -233,11 +232,9 @@ define(
                                         }
                                     ).done(
                                     function (response) {
-                                        debugger;
                                         self.afterPlaceOrder();
                                         adyenPaymentService.getOrderPaymentStatus(response)
                                             .done(function (responseJSON) {
-                                                debugger;
                                                 self.validateThreeDS2OrPlaceOrder(responseJSON)
                                             });
                                     }
