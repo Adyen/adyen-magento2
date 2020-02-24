@@ -37,7 +37,7 @@
     </field>
     <field id="paypal_capture_mode" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Capture delay for PayPal</label>
-        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model> <!--TODO: Replace with correct source model-->
+        <source_model>Adyen\Payment\Model\Config\Source\PaypalCaptureMode</source_model>
         <config_path>payment/adyen_abstract/paypal_capture_mode</config_path>
     </field>
 </config>
