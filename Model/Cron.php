@@ -1467,7 +1467,10 @@ class Cron
                         'This payment method is POS Cloud and configured to be working as auto capture '
                     );
                     return true;
-                } elseif (strcmp($captureModePos, 'manual') === 0) {
+                } elseif (
+                    strcmp($captureModePos, 'manual') === 0 ||
+                    strcmp($captureModePos, '1min_2days') === 0
+                ) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         'This payment method is POS Cloud and configured to be working as manual capture '
                     );

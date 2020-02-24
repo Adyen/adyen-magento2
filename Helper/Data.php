@@ -247,6 +247,7 @@ class Data extends AbstractHelper
     {
         return [
             'auto' => 'Immediate',
+            '1min_2days' => '1 min - 2 days',
             'manual' => 'Manual'
         ];
     }
