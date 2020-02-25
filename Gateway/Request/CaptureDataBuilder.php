@@ -70,7 +70,8 @@ class CaptureDataBuilder implements BuilderInterface
         $requestBody = [
             "modificationAmount" => $modificationAmount,
             "reference" => $payment->getOrder()->getIncrementId(),
-            "originalReference" => $pspReference
+            "originalReference" => $pspReference,
+            "storeId" => $payment->getOrder()->getStoreId()
         ];
 
         $brandCode = $payment->getAdditionalInformation(

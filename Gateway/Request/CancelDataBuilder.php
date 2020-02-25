@@ -62,7 +62,8 @@ class CancelDataBuilder implements BuilderInterface
 
         $request['body'] = [
             "reference" => $order->getOrderIncrementId(),
-            "originalReference" => $pspReference
+            "originalReference" => $pspReference,
+            "storeId" => $payment->getOrder()->getStoreId()
         ];
 
         return $request;

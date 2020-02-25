@@ -65,6 +65,9 @@ class TransactionRefund implements ClientInterface
         $responses = [];
 
         foreach ($requests as $request) {
+            $this->_client = $this->_adyenHelper->initializeAdyenClient($request['storeId']);
+            unset($request['storeId']);
+
             // call lib
             $service = new \Adyen\Service\Modification($this->_client);
 
