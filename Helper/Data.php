@@ -1384,6 +1384,17 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Return the terminal selection level, merchant account or store
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getTerminalSelectionLevel($storeId = null)
+    {
+        return $this->getAdyenPosCloudConfigData('terminal_selection', $storeId);
+    }
+
+    /**
      * Return the Store ID for the current store/mode
      *
      * @param int|null $storeId

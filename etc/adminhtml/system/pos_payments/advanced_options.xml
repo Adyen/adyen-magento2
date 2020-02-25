@@ -24,14 +24,21 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <label>Advanced options</label>
-    <field id="title" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+    <field id="terminal_selection" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Terminal selection</label>
-        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model> <!--TODO: Replace with correct source model-->
-        <config_path>payment/adyen_oneclick/share_billing_agreement</config_path> <!--TODO: Check which is the correct config path. Duplicated field in prototype (43)-->
+        <source_model>Adyen\Payment\Model\Config\Source\TerminalSelection</source_model>
+        <config_path>payment/adyen_pos_cloud/terminal_selection</config_path>
     </field>
-    <field id="capture_mode_pos" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+    <field id="pos_store_id" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+        <depends>
+            <field id="terminal_selection">store_level</field>
+        </depends>
+        <label>Store ID</label>
+        <config_path>payment/adyen_pos_cloud/pos_store_id</config_path>
+    </field>
+    <field id="capture_mode_pos" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>POS Capture Delay</label>
-        <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model> <!--TODO: Replace with correct source model-->
+        <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
         <config_path>payment/adyen_pos_cloud/capture_mode_pos</config_path>
     </field>
 </config>
