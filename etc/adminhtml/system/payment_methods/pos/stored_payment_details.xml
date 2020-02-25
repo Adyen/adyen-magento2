@@ -31,10 +31,10 @@
         <source_model>Adyen\Payment\Model\Config\Source\RecurringType</source_model><!--TODO: Split original field-->
         <config_path>payment/adyen_pos_cloud/recurring_type</config_path>
     </field>
-    <field id="recurring_payments" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1"><!--TODO: new field?-->
+    <field id="recurring_payments" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1"><!--TODO: new field? Yes-->
         <label>Store for one-click payments</label>
         <tooltip>One-click payments require the shopper to enter their security code (CVC, CVV, CID).</tooltip>
         <source_model>Adyen\Payment\Model\Config\Source\RecurringType</source_model><!--TODO: Split original field-->
-        <config_path>payment/adyen_pos_cloud/recurring_type</config_path>
+        <!--config_path>payment/adyen_pos_cloud/recurring_type</config_path-->
     </field>
 </config>

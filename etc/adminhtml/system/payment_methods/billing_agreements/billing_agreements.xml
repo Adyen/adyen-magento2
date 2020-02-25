@@ -41,7 +41,7 @@
     </field>
     <field id="recurring_payment_type" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Accepted billing agreements</label>
-        <source_model>Adyen\Payment\Model\Config\Source\RecurringPaymentType</source_model><!--TODO: Adjust source model and inquire about extra old option ONECLICK,RECURRING-->
+        <source_model>Adyen\Payment\Model\Config\Source\RecurringPaymentType</source_model>
         <config_path>payment/adyen_oneclick/recurring_payment_type</config_path>
     </field>
 </config>

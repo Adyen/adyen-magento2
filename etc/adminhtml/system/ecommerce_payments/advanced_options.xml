@@ -26,7 +26,7 @@
     <label>Advanced options</label>
     <field id="capture_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Capture delay</label>
-        <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model><!--TODO: Replace with correct source model-->
+        <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
         <config_path>payment/adyen_abstract/capture_mode</config_path>
     </field>
     <field id="capture_mode_kar" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1"> <!--TODO: Combine fields 15 + 16 and aggregate fields into options-->
