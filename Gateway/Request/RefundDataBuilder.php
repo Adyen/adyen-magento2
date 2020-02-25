@@ -144,7 +144,8 @@ class RefundDataBuilder implements BuilderInterface
                         "modificationAmount" => $modificationAmountObject,
                         "reference" => $payment->getOrder()->getIncrementId(),
                         "originalReference" => $splitPayment->getPspreference(),
-                        "merchantAccount" => $merchantAccount
+                        "merchantAccount" => $merchantAccount,
+                        "storeId" => $payment->getOrder()->getStoreId()
                     ];
                 }
             }
@@ -158,7 +159,8 @@ class RefundDataBuilder implements BuilderInterface
                     "modificationAmount" => $modificationAmount,
                     "reference" => $payment->getOrder()->getIncrementId(),
                     "originalReference" => $pspReference,
-                    "merchantAccount" => $merchantAccount
+                    "merchantAccount" => $merchantAccount,
+                    "storeId" => $payment->getOrder()->getStoreId()
                 ]
             ];
 
