@@ -38,7 +38,7 @@
     </field>
     <field id="capture_mode_pos" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>POS Capture Delay</label>
-        <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
+        <source_model>Adyen\Payment\Model\Config\Source\PosCaptureMode</source_model>
         <config_path>payment/adyen_pos_cloud/capture_mode_pos</config_path>
     </field>
 </config>

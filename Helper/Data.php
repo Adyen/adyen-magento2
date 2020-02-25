@@ -247,6 +247,19 @@ class Data extends AbstractHelper
     {
         return [
             'auto' => 'Immediate',
+            '1_7days' => '1 - 7 days',
+            'manual' => 'Manual'
+        ];
+    }
+
+    /**
+     * return recurring types for configuration setting
+     * @return array
+     */
+    public function getPosCaptureModes()
+    {
+        return [
+            'auto' => 'Immediate',
             '1min_2days' => '1 min - 2 days',
             'manual' => 'Manual'
         ];

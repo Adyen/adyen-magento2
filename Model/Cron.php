@@ -1502,8 +1502,8 @@ class Cron
                     return true;
                 }
             }
-            if (strcmp($captureMode, 'manual') === 0) {
-                $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode for this payment is set to manual');
+            if (strcmp($captureMode, 'manual') === 0 || strcmp($captureMode, '1_7days') === 0) {
+                $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode for this payment is set to manual or 1 - 7 days');
                 return false;
             }
 
