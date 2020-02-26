@@ -51,7 +51,6 @@ class TransactionRefund implements ClientInterface
         $this->_adyenHelper = $adyenHelper;
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
-
         $this->_client = $this->_adyenHelper->initializeAdyenClient();
     }
 
