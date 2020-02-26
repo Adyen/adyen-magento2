@@ -65,8 +65,8 @@ class TransactionCapture implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
-        $this->_client = $this->_adyenHelper->initializeAdyenClient($request['storeId']);
-        unset($request['storeId']);
+        $clientConfig = $transferObject->getClientConfig();
+        $this->_client = $this->_adyenHelper->initializeAdyenClient($clientConfig['storeId']);
         // call lib
         $service = new \Adyen\Service\Modification($this->_client);
 

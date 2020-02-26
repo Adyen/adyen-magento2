@@ -40,10 +40,14 @@ class CaptureDataBuilder implements BuilderInterface
      * CaptureDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
+    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper,\Adyen\Payment\Logger\AdyenLogger $adyenLogger)
     {
         $this->adyenHelper = $adyenHelper;
+        $this->_adyenLogger = $adyenLogger;
+
     }
 
     /**
@@ -70,8 +74,7 @@ class CaptureDataBuilder implements BuilderInterface
         $requestBody = [
             "modificationAmount" => $modificationAmount,
             "reference" => $payment->getOrder()->getIncrementId(),
-            "originalReference" => $pspReference,
-            "storeId" => $payment->getOrder()->getStoreId()
+            "originalReference" => $pspReference
         ];
 
         $brandCode = $payment->getAdditionalInformation(
@@ -82,12 +85,10 @@ class CaptureDataBuilder implements BuilderInterface
             $openInvoiceFields = $this->getOpenInvoiceData($payment);
             $requestBody["additionalData"] = $openInvoiceFields;
         }
-
         $request['body'] = $requestBody;
-
+        $request['clientConfig']=[ "storeId" => $payment->getOrder()->getStoreId()];
         return $request;
     }
-
 
     /**
      * @param $payment
