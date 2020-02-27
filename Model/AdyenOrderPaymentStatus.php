@@ -24,8 +24,8 @@
 
 namespace Adyen\Payment\Model;
 
-use Magento\Framework\Exception\NoSuchEntityException;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 
 class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentStatusInterface
 {
@@ -55,37 +55,30 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Helper\Data $adyenHelper
-    )
-    {
+    ) {
         $this->orderRepository = $orderRepository;
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
     }
 
     /**
-     * {@inheritDoc}
-     * @throws MagentoNoSuchEntityException
-     * @throws AdyenException
+     * @param string $orderId
+     * @return bool|string
      */
     public function getOrderPaymentStatus($orderId)
     {
-        try {
-            $order = $this->orderRepository->get($orderId);
-            $payment = $order->getPayment();
+        $order = $this->orderRepository->get($orderId);
+        $payment = $order->getPayment();
 
-            if ($payment->getMethod() === AdyenCcConfigProvider::CODE) {
-                return $this->adyenHelper->buildThreeDS2ProcessResponseJson(
-                    $payment->getAdditionalInformation('threeDSType'),
-                    $payment->getAdditionalInformation('threeDS2Token')
-                );
-            } else {
-                return $result;
-            }
-        } catch (NoSuchEntityException $e) {
-            $this->adyenLogger->error("Exception: " . $e->getMessage());
-            throw new \Magento\Framework\Exception\LocalizedException(__('This order no longer exists.'));
+        if ($payment->getMethod() === AdyenCcConfigProvider::CODE ||
+            $payment->getMethod() === AdyenOneclickConfigProvider::CODE
+        ) {
+            $additionalInformation = $payment->getAdditionalInformation();
+            return $this->adyenHelper->buildThreeDS2ProcessResponseJson(
+                $additionalInformation['threeDSType'],
+                $additionalInformation['threeDS2Token']
+            );
         }
-
-        return $result;
+        return true;
     }
 }

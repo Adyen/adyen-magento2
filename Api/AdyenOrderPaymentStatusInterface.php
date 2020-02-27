@@ -28,7 +28,7 @@ interface AdyenOrderPaymentStatusInterface
 {
     /**
      * @param string $orderId
-     * @return mixed
+     * @return string
      */
     public function getOrderPaymentStatus($orderId);
 }
