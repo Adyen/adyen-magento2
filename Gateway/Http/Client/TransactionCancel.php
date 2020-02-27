@@ -42,7 +42,7 @@ class TransactionCancel implements ClientInterface
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper
     ) {
-        $this->_adyenHelper = $adyenHelper;
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -54,7 +54,7 @@ class TransactionCancel implements ClientInterface
         $request = $transferObject->getBody();
         // call lib
         $service = new \Adyen\Service\Modification(
-            $this->_adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
+            $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
         );
 
         try {
