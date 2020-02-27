@@ -56,6 +56,10 @@ class TransferFactory implements TransferFactoryInterface
             $this->transferBuilder->setHeaders($request['headers']);
         }
 
+        if (!empty($request['clientConfig'])) {
+            $this->transferBuilder->setClientConfig($request['clientConfig']);
+        }
+
         $transfer = $this->transferBuilder
             ->setBody($request['body'])
             ->build();
