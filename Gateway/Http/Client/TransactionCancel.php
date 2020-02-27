@@ -30,29 +30,19 @@ use Magento\Payment\Gateway\Http\ClientInterface;
  */
 class TransactionCancel implements ClientInterface
 {
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    private $adyenHelper;
 
     /**
      * PaymentRequest constructor.
-     *
-     * @param \Magento\Framework\Model\Context $context
-     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Adyen\Payment\Model\RecurringType $recurringType
-     * @param array $data
      */
     public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\RecurringType $recurringType,
-        array $data = []
+        \Adyen\Payment\Helper\Data $adyenHelper
     ) {
-        $this->_encryptor = $encryptor;
-        $this->_adyenHelper = $adyenHelper;
-        $this->_recurringType = $recurringType;
-        $this->_appState = $context->getAppState();
-
-        $this->_client = $this->_adyenHelper->initializeAdyenClient();
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -62,16 +52,16 @@ class TransactionCancel implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
-
         // call lib
-        $service = new \Adyen\Service\Modification($this->_client);
+        $service = new \Adyen\Service\Modification(
+            $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
+        );
 
         try {
             $response = $service->cancel($request);
         } catch (\Adyen\AdyenException $e) {
             $response = null;
         }
-
         return $response;
     }
 }

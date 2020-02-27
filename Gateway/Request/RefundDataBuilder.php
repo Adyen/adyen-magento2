@@ -173,9 +173,8 @@ class RefundDataBuilder implements BuilderInterface
                 $requestBody[0]["additionalData"] = $openInvoiceFields;
             }
         }
-
+        $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
         $request['body'] = $requestBody;
-
         return $request;
     }
 
