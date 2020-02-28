@@ -26,9 +26,12 @@
  */
 ?>
 <?php if ($block->isBoletoPayment()) : ?>
+    <?php
+    $boletoData = $block->getBoletoData();
+    ?>
     <p>
         <?php echo $block->escapeHtml(__('Boleto PDF: ')); ?>
-        <a href="<?php echo $block->escapeUrl($block->getBoletoPdfUrl()); ?>">
+        <a href="<?php echo $block->escapeUrl($boletoData['action']['downloadUrl']); ?>">
             <?php echo $block->escapeHtml(__('Click here to download the Boleto PDF')); ?>
         </a>
     </p>
@@ -97,31 +100,31 @@
     <table>
         <tbody>
 
-        <?php if (!empty($multibancoData['comprafacil.entity'])) : ?>
+        <?php if (strcmp($multibancoData['paymentMethodType'], 'multibanco') === 0) : ?>
             <tr>
                 <th><?php echo $block->escapeHtml(__('Entity')); ?></th>
-                <td><?php echo $multibancoData['comprafacil.entity'] ?></td>
+                <td><?php echo $multibancoData['entity'] ?></td>
             </tr>
         <?php endif; ?>
 
-        <?php if (!empty($multibancoData['comprafacil.reference'])) : ?>
+        <?php if (!empty($multibancoData['reference'])) : ?>
             <tr>
                 <th><?php echo $block->escapeHtml(__('Reference')); ?></th>
-                <td><?php echo $multibancoData['comprafacil.reference'] ?></td>
+                <td><?php echo $multibancoData['reference'] ?></td>
             </tr>
         <?php endif; ?>
 
-        <?php if (!empty($multibancoData['comprafacil.amount'])) : ?>
+        <?php if (!empty($multibancoData['totalAmount'])) : ?>
             <tr>
                 <th><?php echo $block->escapeHtml(__('Amount')); ?></th>
-                <td><?php echo $multibancoData['comprafacil.amount'] ?></td>
+                <td><?php echo $block->priceHelper->currency($multibancoData['totalAmount']['value']) ?></td>
             </tr>
         <?php endif; ?>
 
-        <?php if (!empty($multibancoData['comprafacil.deadline'])) : ?>
+        <?php if (!empty($multibancoData['expiresAt'])) : ?>
             <tr>
                 <th><?php echo $block->escapeHtml(__('Payment deadline')); ?></th>
-                <td><?php echo $multibancoData['comprafacil.deadline'] ?> <?php echo $block->escapeHtml(__('Days')); ?></td>
+                <td><?php echo $multibancoData['expiresAt'] ?></td>
             </tr>
         <?php endif; ?>
         </tbody>
