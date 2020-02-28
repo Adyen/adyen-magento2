@@ -34,6 +34,6 @@ class ApiKeyEnding implements CommentInterface
         if (!$apiKeyEnding) {
             return '';
         }
-        return "Key stored ending in <strong>$apiKeyEnding</strong>";
+        return "Saved key ends in <strong>$apiKeyEnding</strong>";
     }
 }

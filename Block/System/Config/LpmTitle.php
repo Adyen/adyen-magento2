@@ -15,37 +15,32 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Config\Source;
+namespace Adyen\Payment\Block\System\Config;
 
-class SplitPaymentRefundStrategy implements \Magento\Framework\Option\ArrayInterface
+class LpmTitle extends \Magento\Config\Block\System\Config\Form\Field
 {
-    const REFUND_FIRST_PAYEMENT_FIRST = 1;
-    const REFUND_LAST_PAYEMENT_FIRST = 2;
-    const REFUND_ON_RATIO = 3;
+    /**
+     * Text to show instead of title field
+     *
+     * @var string
+     */
+    protected $titleText = 'The title is automatically set based on the locale and name of the payment method.';
 
     /**
-     * @return array
+     * Render fieldset html
+     *
+     * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
+     * @return string
      */
-    public function toOptionArray()
+    public function _renderValue(\Magento\Framework\Data\Form\Element\AbstractElement $element)
     {
-        return $this->getSplitPaymentRefundStrategies();
+        return '<td class="value">' . $this->titleText . '</td>';
     }
-    
-    /**
-     * @return array
-     */
-    public function getSplitPaymentRefundStrategies()
-    {
-        return [
-            self::REFUND_FIRST_PAYEMENT_FIRST => __('Refund from first payment method'),
-            self::REFUND_LAST_PAYEMENT_FIRST => 'Refund from last payment method',
-            self::REFUND_ON_RATIO => __('Refund payment methods based on ratio')
-        ];
-    }
+
 }

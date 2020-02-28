@@ -372,9 +372,11 @@ class PaymentMethods extends AbstractHelper
             "merchantAccount" => $this->adyenHelper->getAdyenMerchantAccount('adyen_pos_cloud', $storeId),
         ];
 
-        // In case the POS store id is set, provide in the request
-        if (!empty($this->adyenHelper->getPosStoreId($storeId))) {
-            $requestParams['store'] = $this->adyenHelper->getPosStoreId($storeId);
+        // In case the terminal selection level is store and POS store ID is set, provide it in the request
+        if (strcmp($this->adyenHelper->getTerminalSelectionLevel($storeId), 'store_level') === 0) {
+            if (!empty($this->adyenHelper->getPosStoreId($storeId))) {
+                $requestParams['store'] = $this->adyenHelper->getPosStoreId($storeId);
+            }
         }
 
         try {

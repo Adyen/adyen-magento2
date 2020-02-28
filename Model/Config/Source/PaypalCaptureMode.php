@@ -1,3 +1,4 @@
+<?php
 /**
  *                       ######
  *                       ######
@@ -14,11 +15,32 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-.adyen-method-adyen-cc > .entry-edit-head > .config-heading .heading strong { padding-left:90px;background:url(images/adyen-logo.png) no-repeat 0 0;  background-size: 83px 24px;line-height: 23px;}
-ul.adyen-list { margin:0 20px 10px;}
+namespace Adyen\Payment\Model\Config\Source;
+
+class PaypalCaptureMode implements \Magento\Framework\Option\ArrayInterface
+{
+    const OPTIONS = [
+        [
+            'value' => 0,
+            'label' => 'Capture immediately'
+        ],
+        [
+            'value' => 1,
+            'label' => 'Capture manually'
+        ],
+    ];
+
+    /**
+     * @return array
+     */
+    public function toOptionArray()
+    {
+        return self::OPTIONS;
+    }
+}

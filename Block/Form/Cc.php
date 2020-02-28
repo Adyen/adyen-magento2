@@ -124,15 +124,21 @@ class Cc extends \Magento\Payment\Block\Form\Cc
 		$types = [];
 		$ccTypes = $this->adyenHelper->getAdyenCcTypes();
 
-		$availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
-		if ($availableTypes) {
-			$availableTypes = explode(',', $availableTypes);
-			foreach (array_keys($ccTypes) as $code) {
-				if (in_array($code, $availableTypes)) {
-					$types[$ccTypes[$code]['code_alt']] = $code;
-				}
-			}
-		}
+        if (!$enableAvailableTypes) {
+            return $types;
+        }
+     
+        $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
+        if (!$availableTypes) {
+            return $types;
+        }
+                
+        $availableTypes = explode(',', $availableTypes);
+        foreach (array_keys($ccTypes) as $code) {
+            if (in_array($code, $availableTypes)) {
+                $types[$ccTypes[$code]['code_alt']] = $code;
+            }
+        }    
 
 		return $types;
 	}
