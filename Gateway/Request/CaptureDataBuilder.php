@@ -81,12 +81,10 @@ class CaptureDataBuilder implements BuilderInterface
             $openInvoiceFields = $this->getOpenInvoiceData($payment);
             $requestBody["additionalData"] = $openInvoiceFields;
         }
-
         $request['body'] = $requestBody;
-
+        $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
         return $request;
     }
-
 
     /**
      * @param $payment
