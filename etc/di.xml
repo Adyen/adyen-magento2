@@ -1026,14 +1026,10 @@
                 type="Adyen\Payment\Model\AdyenThreeDS2Process"/>
     <preference for="Adyen\Payment\Api\AdyenOriginKeyInterface"
                 type="Adyen\Payment\Model\AdyenOriginKey"/>
+    <preference for="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface"
+                type="Adyen\Payment\Model\AdyenOrderPaymentStatus"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10"/>
-    </type>
-    <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
-        <plugin name="AdyenPaymentInformationManagementAddPaymentInfo" type="Adyen\Payment\Plugin\PaymentInformationManagement" sortOrder="10"/>
-    </type>
-    <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
-        <plugin name="AdyenGuestPaymentInformationManagementAddPaymentInfo" type="Adyen\Payment\Plugin\GuestPaymentInformationManagement" sortOrder="10"/>
     </type>
 
     <!--Notifications overview-->
@@ -1050,5 +1046,4 @@
             <argument name="resourceModel" xsi:type="string">Adyen\Payment\Model\ResourceModel\Notification</argument>
         </arguments>
     </virtualType>
-
 </config>

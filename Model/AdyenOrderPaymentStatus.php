@@ -13,19 +13,21 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2020 Adyen B.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Plugin;
+namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 
-class GuestPaymentInformationManagement
+class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentStatusInterface
 {
     /**
      * @var \Magento\Sales\Api\OrderRepositoryInterface
@@ -43,7 +45,7 @@ class GuestPaymentInformationManagement
     protected $adyenHelper;
 
     /**
-     * GuestPaymentInformationManagement constructor.
+     * AdyenOrderPaymentStatus constructor.
      *
      * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
@@ -60,32 +62,23 @@ class GuestPaymentInformationManagement
     }
 
     /**
-     * @param \Magento\Checkout\Api\GuestPaymentInformationManagementInterface $subject
-     * @param $result
-     * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @param string $orderId
+     * @return bool|string
      */
-    public function afterSavePaymentInformationAndPlaceOrder(
-        \Magento\Checkout\Api\GuestPaymentInformationManagementInterface $subject,
-        $result
-    ) {
-        try {
-            $order = $this->orderRepository->get($result);
-            $payment = $order->getPayment();
+    public function getOrderPaymentStatus($orderId)
+    {
+        $order = $this->orderRepository->get($orderId);
+        $payment = $order->getPayment();
 
-            if ($payment->getMethod() === AdyenCcConfigProvider::CODE) {
-                return $this->adyenHelper->buildThreeDS2ProcessResponseJson(
-                    $payment->getAdditionalInformation('threeDSType'),
-                    $payment->getAdditionalInformation('threeDS2Token')
-                );
-            } else {
-                return $result;
-            }
-        } catch (NoSuchEntityException $e) {
-            $this->adyenLogger->error("Exception: " . $e->getMessage());
-            throw new \Magento\Framework\Exception\LocalizedException(__('This order no longer exists.'));
+        if ($payment->getMethod() === AdyenCcConfigProvider::CODE ||
+            $payment->getMethod() === AdyenOneclickConfigProvider::CODE
+        ) {
+            $additionalInformation = $payment->getAdditionalInformation();
+            return $this->adyenHelper->buildThreeDS2ProcessResponseJson(
+                $additionalInformation['threeDSType'],
+                $additionalInformation['threeDS2Token']
+            );
         }
-
-        return $result;
+        return true;
     }
 }
