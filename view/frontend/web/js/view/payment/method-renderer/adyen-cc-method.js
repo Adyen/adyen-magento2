@@ -245,6 +245,8 @@ define(
                     var popupModal = $('#threeDS2Modal').modal({
                         // disable user to hide popup
                         clickableOverlay: false,
+                        responsive: true,
+                        innerScroll: false,
                         // empty buttons, we don't need that
                         buttons: [],
                         modalClass: 'threeDS2Modal'
