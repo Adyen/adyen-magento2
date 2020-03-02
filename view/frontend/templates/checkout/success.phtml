@@ -31,7 +31,7 @@
     ?>
     <p>
         <?php echo $block->escapeHtml(__('Boleto PDF: ')); ?>
-        <a href="<?php echo $block->escapeUrl($boletoData['action']['downloadUrl']); ?>">
+        <a href="<?php echo $block->escapeUrl($boletoData['downloadUrl']); ?>">
             <?php echo $block->escapeHtml(__('Click here to download the Boleto PDF')); ?>
         </a>
     </p>
@@ -117,7 +117,7 @@
         <?php if (!empty($multibancoData['totalAmount'])) : ?>
             <tr>
                 <th><?php echo $block->escapeHtml(__('Amount')); ?></th>
-                <td><?php echo $block->priceHelper->currency($multibancoData['totalAmount']['value']) ?></td>
+                <td><?php echo $block->priceHelper->currency($multibancoData['totalAmount']['value']) //TODO: This value is showing as it comes from the API call and based on the currency the decimal point could be wrong until the Checkout Component is implemented ?></td>
             </tr>
         <?php endif; ?>
 

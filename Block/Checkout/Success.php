@@ -137,11 +137,14 @@ class Success extends \Magento\Framework\View\Element\Template
     public function getMultibancoData()
     {
         $result = [];
-        if (!empty($this->getOrder()->getPayment()) &&
-            !empty($this->getOrder()->getPayment()->getAdditionalInformation('paymentMethodType')) &&
-            strcmp($this->getOrder()->getPayment()->getAdditionalInformation('paymentMethodType'), 'multibanco') === 0
+        if (empty($this->getOrder()->getPayment())) {
+            return $result;
+        }
+        $action = $this->getOrder()->getPayment()->getAdditionalInformation('action');
+        if (!empty($action["paymentMethodType"]) &&
+            (strcmp($action["paymentMethodType"], 'multibanco') === 0)
         ) {
-            $result = $this->getOrder()->getPayment()->getAdditionalInformation();
+            $result = $action;
         }
 
         return $result;
