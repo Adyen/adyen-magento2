@@ -138,6 +138,7 @@ class Success extends \Magento\Framework\View\Element\Template
     {
         $result = [];
         if (!empty($this->getOrder()->getPayment()) &&
+            !empty($this->getOrder()->getPayment()->getAdditionalInformation('paymentMethodType')) &&
             strcmp($this->getOrder()->getPayment()->getAdditionalInformation('paymentMethodType'), 'multibanco') === 0
         ) {
             $result = $this->getOrder()->getPayment()->getAdditionalInformation();
