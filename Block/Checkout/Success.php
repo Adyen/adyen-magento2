@@ -107,7 +107,7 @@ class Success extends \Magento\Framework\View\Element\Template
     public function getBoletoData()
     {
         if ($this->isBoletoPayment()) {
-            return $this->getOrder()->getPayment()->getAdditionalInformation();
+            return $this->getOrder()->getPayment()->getAdditionalInformation('action');
         }
         return null;
     }
