@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,29 +23,23 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
-class RecurringPaymentType implements \Magento\Framework\Option\ArrayInterface
+class PosCaptureMode implements \Magento\Framework\Option\ArrayInterface
 {
-    const UNDEFINED_OPTION_LABEL = 'NONE';
-
-    const RECURRING_TYPES_LABELS = [
-        \Adyen\Payment\Model\RecurringType::ONECLICK => "One-click payments",
-        \Adyen\Payment\Model\RecurringType::RECURRING => "Recurring payments"
-    ];
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */
-    protected $_adyenHelper;
+    protected $adyenHelper;
+
 
     /**
-     * RecurringPaymentType constructor.
+     * CaptureMode constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper
     ) {
-        $this->_adyenHelper = $adyenHelper;
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -53,13 +47,10 @@ class RecurringPaymentType implements \Magento\Framework\Option\ArrayInterface
      */
     public function toOptionArray()
     {
-        $recurringTypes = $this->_adyenHelper->getRecurringTypes();
+        $recurringTypes = $this->adyenHelper->getPosCaptureModes();
 
         foreach ($recurringTypes as $code => $label) {
-            if ($code == \Adyen\Payment\Model\RecurringType::ONECLICK ||
-                $code == \Adyen\Payment\Model\RecurringType::RECURRING) {
-                $options[] = ['value' => $code, 'label' => self::RECURRING_TYPES_LABELS[$code]];
-            }
+            $options[] = ['value' => $code, 'label' => $label];
         }
         return $options;
     }

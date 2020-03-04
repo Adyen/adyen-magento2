@@ -46,12 +46,18 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     protected $checkoutSession;
 
     /**
+     * @var \Magento\Checkout\Model\Session
+     */
+    protected $cardAvailableTypesHelper;
+
+    /**
      * Cc constructor.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param \Adyen\Payment\Helper\CardAvailableTypes $cardAvailableTypesHelper
      * @param array $data
      */
     public function __construct(
@@ -59,12 +65,14 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         \Magento\Payment\Model\Config $paymentConfig,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $checkoutSession,
+        \Adyen\Payment\Helper\CardAvailableTypes $cardAvailableTypesHelper,
         array $data = []
     ) {
         parent::__construct($context, $paymentConfig);
         $this->adyenHelper = $adyenHelper;
         $this->appState = $context->getAppState();
         $this->checkoutSession = $checkoutSession;
+        $this->cardAvailableTypesHelper = $cardAvailableTypesHelper;
     }
 
 	/**
@@ -118,6 +126,9 @@ class Cc extends \Magento\Payment\Block\Form\Cc
 	 * Retrieve available credit card type codes by alt code
 	 *
 	 * @return array
+     * @deprecated Use Adyen\Payment\Helper\CardAvailableTypes getCardAvailableTypes() instead.
+     * This method will be removed.
+     *
 	 */
 	public function getCcAvailableTypesByAlt()
 	{
@@ -136,6 +147,17 @@ class Cc extends \Magento\Payment\Block\Form\Cc
 
 		return $types;
 	}
+
+    /**
+     * Retrieve available credit card type codes by alt code
+     *
+     * @return array
+     *
+     */
+    public function getCardAvailableTypes()
+    {
+        return $this->cardAvailableTypesHelper->getCardAvailableTypes('code_alt');
+    }
 
     /**
      * Allow checkbox for MOTO payments to be saved as RECURRING

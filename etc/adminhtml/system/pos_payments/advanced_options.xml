@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <label>Advanced options</label>
+    <field id="terminal_selection" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Terminal selection</label>
+        <source_model>Adyen\Payment\Model\Config\Source\TerminalSelection</source_model>
+        <config_path>payment/adyen_pos_cloud/terminal_selection</config_path>
+    </field>
+    <field id="pos_store_id" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+        <depends>
+            <field id="terminal_selection">store_level</field>
+        </depends>
+        <label>Store ID</label>
+        <config_path>payment/adyen_pos_cloud/pos_store_id</config_path>
+    </field>
+    <field id="capture_mode_pos" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>POS Capture Delay</label>
+        <source_model>Adyen\Payment\Model\Config\Source\PosCaptureMode</source_model>
+        <config_path>payment/adyen_pos_cloud/capture_mode_pos</config_path>
+    </field>
+</config>

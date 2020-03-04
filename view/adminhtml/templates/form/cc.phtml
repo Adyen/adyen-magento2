@@ -87,7 +87,7 @@ echo $code; ?>" style="display:none">
                 "Magento_Sales/order/create/form"
             ],
             function () {
-                var ccTypes = <?php echo json_encode($block->getCcAvailableTypesByAlt()); ?>;
+                var ccTypes = <?php echo json_encode($block->getCardAvailableTypes()); ?>;
 
                 //<![CDATA[
 

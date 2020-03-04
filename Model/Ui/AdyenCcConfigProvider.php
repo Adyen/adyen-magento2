@@ -75,6 +75,11 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     private $serializer;
 
     /**
+     * @var \Adyen\Payment\Helper\CardAvailableTypes
+     */
+    protected $cardAvailableTypesHelper;
+
+    /**
      * AdyenCcConfigProvider constructor.
      *
      * @param \Magento\Payment\Helper\Data $paymentHelper
@@ -94,7 +99,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         \Magento\Framework\View\Asset\Source $assetSource,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Payment\Model\CcConfig $ccConfig,
-        \Magento\Framework\Serialize\SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
+        \Adyen\Payment\Helper\CardAvailableTypes $cardAvailableTypesHelper
     ) {
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
@@ -104,6 +110,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $this->ccConfig = $ccConfig;
         $this->storeManager = $storeManager;
         $this->serializer = $serializer;
+        $this->cardAvailableTypesHelper = $cardAvailableTypesHelper;
     }
 
     /**
@@ -128,8 +135,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $config = array_merge_recursive($config, [
             'payment' => [
                 'ccform' => [
-                    'availableTypes' => [$methodCode => $this->getCcAvailableTypes()],
-                    'availableTypesByAlt' => [$methodCode => $this->getCcAvailableTypesByAlt()],
+                    'availableTypes' => [$methodCode => $this->cardAvailableTypesHelper->getCardAvailableTypes()],
+                    'availableTypesByAlt' => [$methodCode => $this->cardAvailableTypesHelper->getCardAvailableTypes('code_alt')],
                     'months' => [$methodCode => $this->getCcMonths()],
                     'years' => [$methodCode => $this->getCcYears()],
                     'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
@@ -176,6 +183,9 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
      * Retrieve available credit card types
      *
      * @return array
+     * @deprecated Use Adyen\Payment\Helper\CardAvailableTypes getCardAvailableTypes() instead.
+     * This method will be removed.
+     *
      */
     protected function getCcAvailableTypes()
     {
@@ -198,6 +208,9 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
      * Retrieve available credit card type codes by alt code
      *
      * @return array
+     * @deprecated Use Adyen\Payment\Helper\CardAvailableTypes getCardAvailableTypes() instead.
+     * This method will be removed.
+     *
      */
     protected function getCcAvailableTypesByAlt()
     {
@@ -292,4 +305,3 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         return $this->_request;
     }
 }
-
