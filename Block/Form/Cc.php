@@ -126,9 +126,9 @@ class Cc extends \Magento\Payment\Block\Form\Cc
 	 * Retrieve available credit card type codes by alt code
 	 *
 	 * @return array
-     * @deprecated Use Adyen\Payment\Helper\CardAvailableTypes getCardAvailableTypes() instead.
-     * This method will be removed.
-     *
+	 * @deprecated Use Adyen\Payment\Helper\CardAvailableTypes getCardAvailableTypes() instead.
+	 * This method will be removed.
+	 *
 	 */
 	public function getCcAvailableTypesByAlt()
 	{
