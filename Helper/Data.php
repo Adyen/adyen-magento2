@@ -1834,7 +1834,7 @@ class Data extends AbstractHelper
      */
     public function getCurrentLocaleCode($storeId)
     {
-        $localeCode = $this->getAdyenAbstractConfigData('shopper_locale', $storeId);
+        $localeCode = $this->getAdyenHppConfigData('shopper_locale', $storeId);
         if ($localeCode != "") {
             return $localeCode;
         }
