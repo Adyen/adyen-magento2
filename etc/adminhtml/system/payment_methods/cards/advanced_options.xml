@@ -53,7 +53,7 @@
         <depends>
             <field id="enable_installments">1</field>
         </depends>
-        <tooltip>Configure your installment for each credit card type: Insert the minimum amount required to
+        <tooltip>Configure your installment for each card type: Insert the minimum amount required to
             make the configured installment available in the amount range column.
             Example: if the amount range is configured to 100 and the number of installments to 4x, the shopper
             will see the 4x option only if the payment total is higher or equal than 100.

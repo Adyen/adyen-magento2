@@ -184,7 +184,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
      *
      * @return array
      * @deprecated Use Adyen\Payment\Helper\CardAvailableTypes getCardAvailableTypes() instead.
-     * This method will be removed.
+     * This method will be removed in version 6.0.0
      *
      */
     protected function getCcAvailableTypes()
@@ -209,7 +209,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
      *
      * @return array
      * @deprecated Use Adyen\Payment\Helper\CardAvailableTypes getCardAvailableTypes() instead.
-     * This method will be removed.
+     * This method will be removed in version 6.0.0
      *
      */
     protected function getCcAvailableTypesByAlt()
