@@ -42,6 +42,7 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
      * @param \Magento\Payment\Model\Config $paymentConfig
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param \Adyen\Payment\Helper\CardAvailableTypes $cardAvailableTypesHelper
      * @param array $data
      */
     public function __construct(
@@ -50,9 +51,10 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Backend\Model\Session\Quote $sessionQuote,
+        \Adyen\Payment\Helper\CardAvailableTypes $cardAvailableTypesHelper,
         array $data = []
     ) {
-        parent::__construct($context, $paymentConfig, $adyenHelper, $checkoutSession, $data);
+        parent::__construct($context, $paymentConfig, $adyenHelper, $checkoutSession, $cardAvailableTypesHelper, $data);
         $this->_sessionQuote = $sessionQuote;
     }
 
