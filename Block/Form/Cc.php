@@ -46,7 +46,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     protected $checkoutSession;
 
     /**
-     * @var \Magento\Checkout\Model\Session
+     * @var \Adyen\Payment\Helper\CardAvailableTypes
      */
     protected $cardAvailableTypesHelper;
 
