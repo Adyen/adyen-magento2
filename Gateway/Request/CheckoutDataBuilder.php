@@ -192,7 +192,7 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         $request['body'] = $requestBody;
-        
+
         return $request;
     }
 
@@ -241,14 +241,14 @@ class CheckoutDataBuilder implements BuilderInterface
         // Discount cost
         if ($discountAmount != 0) {
 
-            $description = __('Total Discount');
-            $itemAmount = $this->adyenHelper->formatAmount($discountAmount, $currency);
+            $description = __('Discount');
+            $itemAmount = '-'.$this->adyenHelper->formatAmount($discountAmount, $currency);
             $itemVatAmount = "0";
             $itemVatPercentage = "0";
             $numberOfItems = 1;
 
             $formFields['lineItems'][] = [
-                'itemId' => 'totalDiscount',
+                'id' => 'Discount',
                 'amountExcludingTax' => $itemAmount,
                 'taxAmount' => $itemVatAmount,
                 'description' => $description,
@@ -272,7 +272,7 @@ class CheckoutDataBuilder implements BuilderInterface
             if ($priceExcludingTax !== 0) {
                 $formattedTaxPercentage = $cart->getShippingAddress()->getShippingTaxAmount() / $priceExcludingTax * 100 * 100;
             }
-            
+
             $formFields['lineItems'][] = [
                 'itemId' => 'shippingCost',
                 'amountExcludingTax' => $formattedPriceExcludingTax,
