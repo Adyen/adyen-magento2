@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <label>Billing Agreements</label>
+    <comment><![CDATA[Accept one-click or recurring payments from shoppers' stored billing agreements.]]></comment>
+    <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Enabled</label>
+        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+        <config_path>payment/adyen_oneclick/active</config_path>
+    </field>
+    <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Title</label>
+        <config_path>payment/adyen_oneclick/title</config_path>
+    </field>
+    <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+        <label>Sort order</label>
+        <frontend_class>validate-number</frontend_class>
+        <config_path>payment/adyen_oneclick/sort_order</config_path>
+    </field>
+    <field id="recurring_payment_type" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Accepted billing agreements</label>
+        <source_model>Adyen\Payment\Model\Config\Source\RecurringPaymentType</source_model>
+        <config_path>payment/adyen_oneclick/recurring_payment_type</config_path>
+    </field>
+</config>

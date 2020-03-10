@@ -73,6 +73,11 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
     private $ccConfig;
 
     /**
+     * @var \Adyen\Payment\Helper\CardAvailableTypes
+     */
+    protected $cardAvailableTypesHelper;
+
+    /**
      * AdyenOneclickConfigProvider constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -82,6 +87,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Magento\Payment\Model\CcConfig $ccConfig
+     * @param \Adyen\Payment\Helper\CardAvailableTypes $cardAvailableTypesHelper
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
@@ -90,7 +96,8 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         \Magento\Checkout\Model\Session $session,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Payment\Model\CcConfig $ccConfig
+        \Magento\Payment\Model\CcConfig $ccConfig,
+        \Adyen\Payment\Helper\CardAvailableTypes $cardAvailableTypesHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
@@ -99,6 +106,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         $this->_storeManager = $storeManager;
         $this->_urlBuilder = $urlBuilder;
         $this->ccConfig = $ccConfig;
+        $this->cardAvailableTypesHelper = $cardAvailableTypesHelper;
     }
 
     /**
@@ -132,7 +140,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         $config = array_merge_recursive($config, [
             'payment' => [
                 'ccform' => [
-                    'availableTypes' => [$methodCode => $this->getCcAvailableTypes()],
+                    'availableTypes' => [$methodCode => $this->cardAvailableTypesHelper->getCardAvailableTypes()],
                     'months' => [$methodCode => $this->getCcMonths()],
                     'years' => [$methodCode => $this->getCcYears()],
                     'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
@@ -210,6 +218,9 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
      * Retrieve availables credit card types
      *
      * @return array
+     * @deprecated Use Adyen\Payment\Helper\CardAvailableTypes getCardAvailableTypes() instead.
+     * This method will be removed in version 6.0.0
+     *
      */
     protected function getCcAvailableTypes()
     {

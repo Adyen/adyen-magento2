@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <comment><![CDATA[This information can be found in your <a href="https://ca-test.adyen.com/" target="_blank">Adyen Customer Area</a>.]]></comment>
+    <label>Adyen settings for point-of-sale payments</label>
+    <field id="pos_merchant_account" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+        <label>Merchant account</label>
+        <can_be_empty>1</can_be_empty>
+        <config_path>payment/adyen_pos_cloud/pos_merchant_account</config_path>
+    </field>
+    <field id="api_key_test" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+        <label>API key for test</label>
+        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+        <config_path>payment/adyen_pos_cloud/api_key_test</config_path>
+        <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
+    </field>
+    <field id="api_key_live" translate="label" type="obscure" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+        <label>API key for live</label>
+        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+        <config_path>payment/adyen_pos_cloud/api_key_live</config_path>
+        <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
+    </field>
+</include>

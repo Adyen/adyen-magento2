@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <label>Payment Links</label>
+    <comment><![CDATA[Create an order and send an Adyen payment link directly to the shopper. Make sure you have filled out the settings for payment links (under Adyen settings for ecommerce payments).]]></comment>
+    <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Enabled</label>
+        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+        <config_path>payment/adyen_pay_by_mail/active</config_path>
+    </field>
+    <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Title</label>
+        <config_path>payment/adyen_pay_by_mail/title</config_path>
+    </field>
+    <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+        <label>Sort order</label>
+        <frontend_class>validate-number</frontend_class>
+        <config_path>payment/adyen_pay_by_mail/sort_order</config_path>
+    </field>
+    <field id="session_validity" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Days until link expires</label>
+        <config_path>payment/adyen_pay_by_mail/session_validity</config_path>
+    </field>
+    <field id="allowspecific_payment_links" translate="label" type="allowspecific" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+        <label>Applicable countries</label>
+        <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+        <config_path>payment/adyen_pay_by_mail/allowspecific</config_path>
+    </field>
+    <field id="specificcountry" translate="label" type="multiselect" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+        <depends>
+            <field id="allowspecific_payment_links">1</field>
+        </depends>
+        <label>Payment from specific countries</label>
+        <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+        <can_be_empty>1</can_be_empty>
+        <config_path>payment/adyen_pay_by_mail/specificcountry</config_path>
+    </field>
+</config>

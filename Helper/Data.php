@@ -234,8 +234,8 @@ class Data extends AbstractHelper
     public function getModes()
     {
         return [
-            '1' => 'Test Mode',
-            '0' => 'Production Mode'
+            '1' => 'Test',
+            '0' => 'Live'
         ];
     }
 
@@ -246,8 +246,22 @@ class Data extends AbstractHelper
     public function getCaptureModes()
     {
         return [
-            'auto' => 'immediate',
-            'manual' => 'manual'
+            'auto' => 'Immediate',
+            '1_7days' => '1 - 7 days',
+            'manual' => 'Manual'
+        ];
+    }
+
+    /**
+     * return recurring types for configuration setting
+     * @return array
+     */
+    public function getPosCaptureModes()
+    {
+        return [
+            'auto' => 'Immediate',
+            '1min_2days' => '1 min - 2 days',
+            'manual' => 'Manual'
         ];
     }
 
@@ -1380,6 +1394,17 @@ class Data extends AbstractHelper
             $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_live', $storeId)));
         }
         return $apiKey;
+    }
+
+    /**
+     * Return the terminal selection level, merchant account or store
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getTerminalSelectionLevel($storeId = null)
+    {
+        return $this->getAdyenPosCloudConfigData('terminal_selection', $storeId);
     }
 
     /**

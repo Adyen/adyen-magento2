@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <label>Advanced options</label>
+    <field id="capture_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Capture delay</label>
+        <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
+        <config_path>payment/adyen_abstract/capture_mode</config_path>
+    </field>
+    <field id="capture_mode_kar" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1"> <!--TODO: Combine fields 15 + 16 and aggregate fields into options-->
+        <label>Capture delay for Klarna, AfterPay, and RatePAY</label>
+        <!--source_model>Adyen\Payment\Model\Config\Source\KarCaptureMode?</source_model-->
+        <config_path>payment/adyen_abstract/kar_capture_mode</config_path>
+        <comment><![CDATA[This setting should only be changed when instructed by the Adyen <a href="https://support.adyen.com/hc/en-us/requests/new" target="_blank">support team</a>.]]></comment>
+    </field>
+    <field id="paypal_capture_mode" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Capture delay for PayPal</label>
+        <source_model>Adyen\Payment\Model\Config\Source\PaypalCaptureMode</source_model>
+        <config_path>payment/adyen_abstract/paypal_capture_mode</config_path>
+    </field>
+</config>

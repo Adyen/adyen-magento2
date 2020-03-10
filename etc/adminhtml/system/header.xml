@@ -1,4 +1,5 @@
-<?php
+<?xml version="1.0"?>
+<!--
 /**
  *                       ######
  *                       ######
@@ -15,37 +16,17 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
-
-namespace Adyen\Payment\Model\Config\Source;
-
-class SplitPaymentRefundStrategy implements \Magento\Framework\Option\ArrayInterface
-{
-    const REFUND_FIRST_PAYEMENT_FIRST = 1;
-    const REFUND_LAST_PAYEMENT_FIRST = 2;
-    const REFUND_ON_RATIO = 3;
-
-    /**
-     * @return array
-     */
-    public function toOptionArray()
-    {
-        return $this->getSplitPaymentRefundStrategies();
-    }
-    
-    /**
-     * @return array
-     */
-    public function getSplitPaymentRefundStrategies()
-    {
-        return [
-            self::REFUND_FIRST_PAYEMENT_FIRST => __('Refund from first payment method'),
-            self::REFUND_LAST_PAYEMENT_FIRST => 'Refund from last payment method',
-            self::REFUND_ON_RATIO => __('Refund payment methods based on ratio')
-        ];
-    }
-}
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <frontend_model>Adyen\Payment\Block\System\Config\Header</frontend_model>
+    <comment><![CDATA[
+    <p>Adyen all-in-one payments platform</p>
+    <p>Offer key payment methods anywhere in the world at the flick of a switch.</p>
+    <p>Easy integration with our in-house built Magento Plugin, no set-up fee.</p>
+    ]]></comment>
+</include>
