@@ -505,7 +505,12 @@ define(
                 }
                 var countryId = quote.billingAddress().countryId;
                 var currencyCode = quote.totals().quote_currency_code;
-                return currencyCode === "BRL" && countryId === "BR";
+                var allowedCurrenciesByCountry = {
+                    'BR': 'BRL',
+                    'MX': 'MXN'
+                };
+                return allowedCurrenciesByCountry[countryId] &&
+                    currencyCode === allowedCurrenciesByCountry[countryId];
             },
             setPlaceOrderHandler: function (handler) {
                 this.placeOrderHandler = handler;
