@@ -28,7 +28,6 @@
             <adyen_abstract>
                 <active>0</active>
                 <model>AdyenPaymentGenericFacade</model>
-                <order_status>pending</order_status>
                 <demo_mode>1</demo_mode>
                 <debug>1</debug>
                 <title_renderer>title_image</title_renderer>
@@ -38,6 +37,16 @@
                 <enable_oneclick>1</enable_oneclick>
                 <enable_recurring>0</enable_recurring>
                 <group>adyen</group>
+                <!-- etc/adminhtml/system/order_management/order_management.xml -->
+                <order_status>pending</order_status>
+                <payment_pre_authorized>pending</payment_pre_authorized>
+                <payment_authorized>processing</payment_authorized>
+                <payment_authorized_virtual>complete</payment_authorized_virtual>
+                <payment_cancelled>canceled</payment_cancelled>
+                <fraud_manual_review_status>pending</fraud_manual_review_status>
+                <fraud_manual_review_accept_status>processing</fraud_manual_review_accept_status>
+                <send_email_bank_sepa_on_pending>0</send_email_bank_sepa_on_pending>
+                <ignore_refund_notification>0</ignore_refund_notification>
             </adyen_abstract>
             <adyen_cc>
                 <active>1</active>
