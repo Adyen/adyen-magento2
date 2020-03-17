@@ -27,43 +27,43 @@
     <comment><![CDATA[Manage the status assigned to an order when there is an update in the payment process. To learn more about the different stages of the payment process, refer to <a href="https://docs.adyen.com/developers/plug-ins-and-partners/magento-2/order-management-in-magento" target="_blank">Adyen documentation</a>.]]></comment>
     <field id="order_status" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
         <label>Order creation</label>
-        <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model><!--TODO: Check source model for available options and plan migration script-->
+        <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
         <config_path>payment/adyen_abstract/order_status</config_path>
     </field>
     <field id="payment_pre_authorized" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
         <label>Payment authorisation</label>
-        <source_model>Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model><!--TODO: Check source model for available options and plan migration script-->
+        <source_model>Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
         <config_path>payment/adyen_abstract/payment_pre_authorized</config_path>
     </field>
     <field id="payment_authorized" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
         <label>Payment capture</label>
-        <source_model>Magento\Sales\Model\Config\Source\Order\Status\Processing</source_model><!--TODO: Check source model for available options and plan migration script-->
+        <source_model>Magento\Sales\Model\Config\Source\Order\Status\Processing</source_model>
         <config_path>payment/adyen_abstract/payment_authorized</config_path>
     </field>
     <field id="payment_authorized_virtual" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Payment capture (virtual products)</label>
         <source_model>Adyen\Payment\Model\Config\Source\Complete</source_model>
-        <config_path>payment/adyen_abstract/payment_authorized_virtual</config_path><!--TODO: Check source model for available options and plan migration script-->
+        <config_path>payment/adyen_abstract/payment_authorized_virtual</config_path>
     </field>
     <field id="payment_cancelled" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
         <label>Order cancellation</label>
         <source_model>Adyen\Payment\Model\Config\Source\Cancelled</source_model>
-        <config_path>payment/adyen_abstract/payment_cancelled</config_path><!--TODO: Check source model for available options and plan migration script-->
+        <config_path>payment/adyen_abstract/payment_cancelled</config_path>
     </field>
     <field id="fraud_manual_review_status" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Under manual review</label>
         <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
-        <config_path>payment/adyen_abstract/fraud_manual_review_status</config_path><!--TODO: Check source model for available options and plan migration script-->
+        <config_path>payment/adyen_abstract/fraud_manual_review_status</config_path>
     </field>
     <field id="fraud_manual_review_accept_status" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Manual review accepted</label>
         <source_model>Magento\Sales\Model\Config\Source\Order\Status\Processing</source_model>
-        <config_path>payment/adyen_abstract/fraud_manual_review_accept_status</config_path><!--TODO: Check source model for available options and plan migration script-->
+        <config_path>payment/adyen_abstract/fraud_manual_review_accept_status</config_path>
     </field>
     <field id="send_email_bank_sepa_on_pending" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Send order confirmation email for Bank Transfer/SEPA</label>
         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-        <config_path>payment/adyen_abstract/send_email_bank_sepa_on_pending</config_path><!--TODO: Check source model for available options and plan migration script-->
+        <config_path>payment/adyen_abstract/send_email_bank_sepa_on_pending</config_path>
     </field>
     <field id="ignore_refund_notification" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Ignore refund notification</label>
