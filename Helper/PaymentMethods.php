@@ -86,6 +86,11 @@ class PaymentMethods extends AbstractHelper
     protected $themeProvider;
 
     /**
+     * @var \Magento\Quote\Model\Quote
+     */
+    protected $quote;
+
+    /**
      * PaymentMethods constructor.
      *
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
@@ -133,41 +138,51 @@ class PaymentMethods extends AbstractHelper
     {
         // get quote from quoteId
         $quote = $this->quoteRepository->getActive($quoteId);
-        $store = $quote->getStore();
 
-        $paymentMethods = $this->fetchAlternativeMethods($store, $country);
+        // If quote cannot be found early return the empty paymentMethods array
+        if (empty($quote)) {
+            return [];
+        }
+
+        $this->setQuote($quote);
+
+        $paymentMethods = $this->fetchAlternativeMethods($country);
         return $paymentMethods;
     }
 
     /**
-     * @param $store
      * @param $country
      * @return array
      */
-    protected function fetchAlternativeMethods($store, $country)
+    protected function fetchAlternativeMethods($country)
     {
-        $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData('merchant_account');
+        $quote = $this->getQuote();
+        $store = $quote->getStore();
+
+        $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData('merchant_account', $store->getId());
 
         if (!$merchantAccount) {
             return [];
         }
+
+        $currencyCode = $this->getCurrentCurrencyCode($store);
 
         $adyFields = [
             "channel" => "Web",
             "merchantAccount" => $merchantAccount,
             "countryCode" => $this->getCurrentCountryCode($store, $country),
             "amount" => [
-                "currency" => $this->getCurrentCurrencyCode($store),
+                "currency" => $currencyCode,
                 "value" => (int)$this->adyenHelper->formatAmount(
                     $this->getCurrentPaymentAmount(),
-                    $this->getCurrentCurrencyCode($store)
+                    $currencyCode
                 ),
             ],
             "shopperReference" => $this->getCurrentShopperReference(),
             "shopperLocale" => $this->adyenHelper->getCurrentLocaleCode($store->getId())
         ];
 
-        $billingAddress = $this->getQuote()->getBillingAddress();
+        $billingAddress = $quote->getBillingAddress();
 
         if (!empty($billingAddress)) {
             if ($customerTelephone = trim($billingAddress->getTelephone())) {
@@ -319,7 +334,7 @@ class PaymentMethods extends AbstractHelper
     {
 
         // initialize the adyen client
-        $client = $this->adyenHelper->initializeAdyenClient($this->getQuote()->getStoreId());
+        $client = $this->adyenHelper->initializeAdyenClient($store->getId());
 
         // initialize service
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
@@ -342,7 +357,15 @@ class PaymentMethods extends AbstractHelper
      */
     protected function getQuote()
     {
-        return $this->session->getQuote();
+        return $this->quote;
+    }
+
+    /**
+     * @param \Magento\Quote\Model\Quote $quote
+     */
+    protected function setQuote(\Magento\Quote\Model\Quote $quote)
+    {
+        $this->quote = $quote;
     }
 
     /**
