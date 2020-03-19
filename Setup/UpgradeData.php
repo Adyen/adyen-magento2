@@ -66,6 +66,10 @@ class UpgradeData implements UpgradeDataInterface
             $this->updateSchemaVersion244($setup);
         }
 
+        if (version_compare($context->getVersion(), '6.0.0', '<')) {
+            $this->updateDataVersion600($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -157,5 +161,59 @@ class UpgradeData implements UpgradeDataInterface
 
         // re-initialize otherwise it will cause errors
         $this->reinitableConfig->reinit();
+    }
+
+    /**
+     * Upgrade to 6.0.0
+     * The new configuration UI uses new fields, combines selections that used
+     * to be separated and splits old fields into multiple configurations
+     *
+     * @param ModuleDataSetupInterface $setup
+     */
+    public function updateDataVersion600(ModuleDataSetupInterface $setup)
+    {
+
+        $pathTerminalSelection = "payment/adyen_pos_cloud/terminal_selection";
+        $pathPosStoreId = "payment/adyen_pos_cloud/pos_store_id";
+
+        $configDataTable = $setup->getTable('core_config_data');
+        $connection = $setup->getConnection();
+
+        //Setting terminal_selection=store_level for scopes that have pos_store_id set
+        $select = $connection->select()
+            ->from($configDataTable)
+            ->where('path = ?', $pathPosStoreId)
+            ->where('value <> "" AND value IS NOT NULL');
+        $configPosStoreIdValues = $connection->fetchAll($select);
+        foreach ($configPosStoreIdValues as $configPosStoreIdValue) {
+            $scope = $configPosStoreIdValue['scope'];
+            $scopeId = $configPosStoreIdValue['scope_id'];
+            $this->configWriter->save(
+                $pathTerminalSelection,
+                'store_level',
+                $scope,
+                $scopeId
+            );
+        }
+
+        //Setting terminal_selection=merchant_account_level for scopes where pos_store_id is empty
+        $select = $connection->select()
+            ->from($configDataTable)
+            ->where('path = ?', $pathPosStoreId)
+            ->where('value = ""');
+        $configPosStoreIdEmptyValues = $connection->fetchAll($select);
+        foreach ($configPosStoreIdEmptyValues as $configPosStoreIdEmptyValue) {
+            $scopeEmpty = $configPosStoreIdEmptyValue['scope'];
+            $scopeIdEmpty = $configPosStoreIdEmptyValue['scope_id'];
+            $this->configWriter->save(
+                $pathTerminalSelection,
+                'merchant_account_level',
+                $scopeEmpty,
+                $scopeIdEmpty
+            );
+        }
+
+        $this->reinitableConfig->reinit();
+
     }
 }

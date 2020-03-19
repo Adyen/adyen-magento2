@@ -155,6 +155,7 @@
                 <total_timeout>120</total_timeout>
                 <recurring_type>NONE</recurring_type>
                 <group>adyen</group>
+                <terminal_selection>merchant_account_level</terminal_selection>
             </adyen_pos_cloud>
             <adyen_pay_by_mail>
                 <active>0</active>
