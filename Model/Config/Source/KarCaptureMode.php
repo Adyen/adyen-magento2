@@ -27,11 +27,15 @@ class KarCaptureMode implements \Magento\Framework\Option\ArrayInterface
 {
     const OPTIONS = [
         [
-            'value' => 0,
+            'value' => 'capture_on_shipment',
+            'label' => 'Capture on shipment'
+        ],
+        [
+            'value' => 'capture_immediately',
             'label' => 'Capture immediately'
         ],
         [
-            'value' => 1,
+            'value' => 'capture_manually',
             'label' => 'Capture manually'
         ],
     ];

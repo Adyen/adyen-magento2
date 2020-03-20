@@ -47,6 +47,7 @@
                 <fraud_manual_review_accept_status>processing</fraud_manual_review_accept_status>
                 <send_email_bank_sepa_on_pending>0</send_email_bank_sepa_on_pending>
                 <ignore_refund_notification>0</ignore_refund_notification>
+                <kar_capture_mode>capture_manually</kar_capture_mode>
             </adyen_abstract>
             <adyen_cc>
                 <active>1</active>

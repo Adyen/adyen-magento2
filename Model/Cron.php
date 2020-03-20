@@ -1429,7 +1429,7 @@ class Cron
             ));
             $_paymentCode = $this->_paymentMethodCode();
             $captureModeOpenInvoice = $this->_getConfigData(
-                'auto_capture_openinvoice',
+                'kar_capture_mode',
                 'adyen_abstract',
                 $this->_order->getStoreId()
             );
@@ -1478,12 +1478,12 @@ class Cron
                 }
             }
 
-            // if auto capture mode for openinvoice is turned on then use auto capture
-            if ($captureModeOpenInvoice == true &&
+            // if capture immediately for openinvoice is turned on then use auto capture
+            if (strcmp($captureModeOpenInvoice, 'capture_immediately') === 0 &&
                 $this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod)
             ) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'This payment method is configured to be working as auto capture '
+                    'This payment method is configured to be working as capture immediately'
                 );
                 return true;
             }
