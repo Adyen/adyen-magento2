@@ -54,9 +54,10 @@
                 <label>Title</label>
                 <config_path>payment/adyen_hpp/title</config_path>
             </field>
-            <field id="shopper_locale" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+            <field id="shopper_locale" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Language locale (optional)</label>
-                <tooltip>This will override the default shopper locale of the Magento store (e.g. nl_NL). Leave empty to let Magento decide.</tooltip>
+                <tooltip>This will override the default shopper locale of the Magento store (e.g. Dutch (Netherlands)).</tooltip>
+                <source_model>Adyen\Payment\Model\Config\Source\InheritableLocale</source_model>
                 <config_path>payment/adyen_hpp/shopper_locale</config_path>
             </field>
             <field id="country_code" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
