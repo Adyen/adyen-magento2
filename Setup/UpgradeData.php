@@ -46,6 +46,11 @@ class UpgradeData implements UpgradeDataInterface
      */
     private $reinitableConfig;
 
+    /**
+     * @var configDataTable
+     */
+    private $configDataTable;
+
     public function __construct(
         WriterInterface $configWriter,
         ReinitableConfigInterface $reinitableConfig
@@ -173,15 +178,30 @@ class UpgradeData implements UpgradeDataInterface
     public function updateDataVersion600(ModuleDataSetupInterface $setup)
     {
 
+        $this->configDataTable = $setup->getTable('core_config_data');
+        $connection = $setup->getConnection();
+
+        $this->setTerminalSelection($connection);
+
+        $this->setKarCaptureMode($connection);
+
+        $this->reinitableConfig->reinit();
+
+    }
+
+    /**
+     * Sets terminal_selection configuration by checking the value of pos_store_id
+     *
+     * @param Magento\Framework\DB\Adapter\Pdo\Mysql $connection
+     */
+    private function setTerminalSelection($connection)
+    {
         $pathTerminalSelection = "payment/adyen_pos_cloud/terminal_selection";
         $pathPosStoreId = "payment/adyen_pos_cloud/pos_store_id";
 
-        $configDataTable = $setup->getTable('core_config_data');
-        $connection = $setup->getConnection();
-
         //Setting terminal_selection=store_level for scopes that have pos_store_id set
         $select = $connection->select()
-            ->from($configDataTable)
+            ->from($this->configDataTable)
             ->where('path = ?', $pathPosStoreId)
             ->where('value <> "" AND value IS NOT NULL');
         $configPosStoreIdValues = $connection->fetchAll($select);
@@ -198,7 +218,7 @@ class UpgradeData implements UpgradeDataInterface
 
         //Setting terminal_selection=merchant_account_level for scopes where pos_store_id is empty
         $select = $connection->select()
-            ->from($configDataTable)
+            ->from($this->configDataTable)
             ->where('path = ?', $pathPosStoreId)
             ->where('value = ""');
         $configPosStoreIdEmptyValues = $connection->fetchAll($select);
@@ -212,8 +232,78 @@ class UpgradeData implements UpgradeDataInterface
                 $scopeIdEmpty
             );
         }
+    }
 
-        $this->reinitableConfig->reinit();
+    /**
+     * Sets kar_capture_mode configuration by checking the values of capture_on_shipment and auto_capture_openinvoice
+     *
+     * @param Magento\Framework\DB\Adapter\Pdo\Mysql $connection
+     */
+    private function setKarCaptureMode($connection)
+    {
+        $pathKarCaptureMode = "payment/adyen_abstract/kar_capture_mode";
 
+        //Selecting capture_on_shipment and auto_capture_openinvoice by scope
+        $select = $connection->select()
+            ->from($this->configDataTable,
+                [
+                    'scope AS core_config_data_scope',
+                    'scope_id AS core_config_data_scope_id'
+                ]
+            )
+            ->joinLeft($this->configDataTable . ' AS capture_on_shipment',
+                'capture_on_shipment.path = "payment/adyen_abstract/capture_on_shipment"
+                AND capture_on_shipment.scope = core_config_data.scope
+                AND capture_on_shipment.scope_id = core_config_data.scope_id',
+                [
+                    'value AS capture_on_shipment_value'
+                ])
+            ->joinLeft($this->configDataTable . ' AS auto_capture_openinvoice',
+                'auto_capture_openinvoice.path = "payment/adyen_abstract/auto_capture_openinvoice"
+                AND auto_capture_openinvoice.scope = core_config_data.scope
+                AND auto_capture_openinvoice.scope_id = core_config_data.scope_id',
+                [
+                    'value AS auto_capture_openinvoice_value'
+                ])
+            ->where('
+            core_config_data.path IN 
+            ("payment/adyen_abstract/capture_on_shipment", "payment/adyen_abstract/auto_capture_openinvoice")
+            ');
+        $configCaptureValues = $connection->fetchAll($select);
+
+        foreach ($configCaptureValues as $configCaptureValue) {
+
+            //If the configuration is not set we assume the default value (0)
+            if ($configCaptureValue['capture_on_shipment_value'] == null) {
+                $configCaptureValue['capture_on_shipment_value'] = 0;
+            }
+            if ($configCaptureValue['auto_capture_openinvoice_value'] == null) {
+                $configCaptureValue['auto_capture_openinvoice_value'] = 0;
+            }
+
+            //Assigning values to kar_capture_mode according to source model Adyen\Payment\Model\Config\Source\KarCaptureMode
+            switch ([
+                $configCaptureValue['capture_on_shipment_value'],
+                $configCaptureValue['auto_capture_openinvoice_value']
+            ]) {
+                case [1, 1]:
+                case [0, 1]:
+                    $karCaptureModeValue = 'capture_immediately';
+                    break;
+                case [1, 0]:
+                    $karCaptureModeValue = 'capture_on_shipment';
+                    break;
+                case [0, 0]:
+                    $karCaptureModeValue = 'capture_manually';
+                    break;
+            }
+
+            $this->configWriter->save(
+                $pathKarCaptureMode,
+                $karCaptureModeValue,
+                $configCaptureValue['core_config_data_scope'],
+                $configCaptureValue['core_config_data_scope_id']
+            );
+        }
     }
 }
