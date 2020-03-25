@@ -266,7 +266,7 @@ class UpgradeData implements UpgradeDataInterface
                     'value AS auto_capture_openinvoice_value'
                 ])
             ->where('
-            core_config_data.path IN 
+            core_config_data.path IN
             ("payment/adyen_abstract/capture_on_shipment", "payment/adyen_abstract/auto_capture_openinvoice")
             ');
         $configCaptureValues = $connection->fetchAll($select);
