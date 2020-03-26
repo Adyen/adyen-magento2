@@ -32,7 +32,7 @@ class ShopperCountryMode implements \Magento\Framework\Option\ArrayInterface
         ],
         [
             'value' => 1,
-            'label' => 'Costum'
+            'label' => 'Custom'
         ],
     ];
 
