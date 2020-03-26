@@ -30,7 +30,7 @@
         <config_path>payment/adyen_hpp/shoppercountry</config_path>
     </field>
     <field id="shopper_specific_country" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
-        <label>Custum shopper country</label>
+        <label>Custom shopper country</label>
         <depends>
             <field id="shopper_country">1</field>
         </depends>
