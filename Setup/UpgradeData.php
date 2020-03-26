@@ -185,6 +185,8 @@ class UpgradeData implements UpgradeDataInterface
 
         $this->setKarCaptureMode($connection);
 
+        $this->setShopperCountry($connection);
+
         $this->reinitableConfig->reinit();
 
     }
@@ -305,5 +307,38 @@ class UpgradeData implements UpgradeDataInterface
                 $configCaptureValue['core_config_data_scope_id']
             );
         }
+    }
+    /**
+     * Sets shoppercountry configuration by checking the value of payment/adyen_hpp/country_code
+     *
+     * @param Magento\Framework\DB\Adapter\Pdo\Mysql $connection
+     */
+    private function setShopperCountry($connection)
+    {
+        $countryCode = "payment/adyen_hpp/country_code";
+        $shoppercountry = "payment/adyen_hpp/shoppercountry";
+
+        $select = $connection->select()
+            ->from($this->configDataTable)
+            ->where('path = ?', $countryCode)
+            ->where('value <> "" AND value IS NOT NULL');
+        $configCountryCodeValues = $connection->fetchAll($select);
+
+        foreach ($configCountryCodeValues as $configCountryCodeValue) {
+            $scope = $configCountryCodeValue['scope'];
+            $scopeId = $configCountryCodeValue['scope_id'];
+
+            if (isset($configCountryCodeValue)) {
+                $shoppercountry = 1;
+            }
+            $this->configWriter->save(
+                $shoppercountry,
+                'store_level',
+                $scope,
+                $scopeId
+            );
+        }
+
+
     }
 }
