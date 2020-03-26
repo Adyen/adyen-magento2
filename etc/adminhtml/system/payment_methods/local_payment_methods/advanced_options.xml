@@ -36,7 +36,7 @@
         </depends>
         <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
         <can_be_empty>1</can_be_empty>
-        <config_path>payment/adyen_hpp/countrycode</config_path>
+        <config_path>payment/adyen_hpp/country_code</config_path>
     </field>
     <field id="ratepay_id" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>RatePAY Device Ident SId</label>
