@@ -1901,4 +1901,21 @@ class Data extends AbstractHelper
         );
 
     }
+
+    /**
+     * Gives back CountryCode configuration values
+     *
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getAdyenCountryCodeConfigData($storeId = null)
+    {
+        $shopperLocale = trim($this->_adyenHelper->getAdyenHppConfigData('shopper_locale', $storeId));
+        $countryCode = trim($this->_adyenHelper->getAdyenHppConfigData('country_code', $storeId));
+        if ($countryCode == false && $shopperLocale == 1) {
+            return $this->getConfigData($countryCode, 'adyen_hpp', $storeId);
+        } else {
+            return "";
+        }
+    }
 }

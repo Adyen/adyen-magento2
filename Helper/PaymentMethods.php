@@ -260,7 +260,7 @@ class PaymentMethods extends AbstractHelper
     protected function getCurrentCountryCode($store, $country)
     {
         // if fixed countryCode is setup in config use this
-        $countryCode = $this->adyenHelper->getAdyenHppConfigData('country_code', $store->getId());
+        $countryCode = $this->adyenHelper->getAdyenCountryCodeConfigData($store->getId());
 
         if ($countryCode != "") {
             return $countryCode;

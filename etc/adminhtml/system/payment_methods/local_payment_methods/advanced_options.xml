@@ -27,7 +27,7 @@
     <field id="shopper_country" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Shopper country</label>
         <source_model>Adyen\Payment\Model\Config\Source\ShopperCountryMode</source_model>
-        <config_path>payment/adyen_hpp/shoppercountry</config_path>
+        <config_path>payment/adyen_hpp/shopper_country</config_path>
     </field>
     <field id="shopper_specific_country" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
         <label>Custom shopper country</label>

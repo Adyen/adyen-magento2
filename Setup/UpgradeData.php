@@ -316,7 +316,7 @@ class UpgradeData implements UpgradeDataInterface
     private function setShopperCountry($connection)
     {
         $countryCode = "payment/adyen_hpp/country_code";
-        $shoppercountry = "payment/adyen_hpp/shoppercountry";
+        $shoppercountry = "payment/adyen_hpp/shopper_country";
 
         $select = $connection->select()
             ->from($this->configDataTable)
@@ -328,12 +328,9 @@ class UpgradeData implements UpgradeDataInterface
             $scope = $configCountryCodeValue['scope'];
             $scopeId = $configCountryCodeValue['scope_id'];
 
-            if (isset($configCountryCodeValue)) {
-                $shoppercountry = 1;
-            }
             $this->configWriter->save(
                 $shoppercountry,
-                'store_level',
+                1,
                 $scope,
                 $scopeId
             );
