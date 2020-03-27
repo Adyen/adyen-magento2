@@ -74,7 +74,7 @@ class PayByMailCommand implements CommandInterface
         $stateObject->setState(\Magento\Sales\Model\Order::STATE_NEW);
         $stateObject->setStatus($this->_adyenHelper->getAdyenAbstractConfigData('order_status'));
         $stateObject->setIsNotified(false);
-        
+
         return $this;
     }
 
@@ -139,7 +139,7 @@ class PayByMailCommand implements CommandInterface
             $skinCode = $this->_adyenHelper->getAdyenHppConfigData('skin_code');
             $hmacKey           = $this->_adyenHelper->getHmac();
             $shopperLocale     = trim($this->_adyenHelper->getAdyenHppConfigData('shopper_locale', $storeId));
-            $countryCode       = trim($this->_adyenHelper->getAdyenHppConfigData('country_code', $storeId));
+            $countryCode       = trim($this->_adyenHelper->getAdyenCountryCodeConfigData($storeId));
         } else {
             // use pay_by_mail skin and hmac
             $hmacKey = $this->_adyenHelper->getHmacPayByMail();
@@ -184,7 +184,7 @@ class PayByMailCommand implements CommandInterface
         $formFields['shopperEmail']      = $shopperEmail;
         // recurring
         $recurringType                   = $this->_adyenHelper->getRecurringTypeFromOneclickRecurringSetting($storeId);
-        
+
         $sessionValidity = $this->_adyenHelper->getAdyenPayByMailConfigData('session_validity', $storeId);
 
         if ($sessionValidity == "") {

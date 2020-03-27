@@ -121,6 +121,7 @@
                 <allowspecific>0</allowspecific>
                 <ratepay_id>oj9GsQ</ratepay_id>
                 <sort_order>3</sort_order>
+                <shopper_country>0</shopper_country>
                 <payment_action>authorize</payment_action>
                 <can_initialize>1</can_initialize>
                 <is_gateway>1</is_gateway>

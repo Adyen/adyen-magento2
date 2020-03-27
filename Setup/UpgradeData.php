@@ -185,6 +185,8 @@ class UpgradeData implements UpgradeDataInterface
 
         $this->setKarCaptureMode($connection);
 
+        $this->setShopperCountry($connection);
+
         $this->reinitableConfig->reinit();
 
     }
@@ -266,7 +268,7 @@ class UpgradeData implements UpgradeDataInterface
                     'value AS auto_capture_openinvoice_value'
                 ])
             ->where('
-            core_config_data.path IN 
+            core_config_data.path IN
             ("payment/adyen_abstract/capture_on_shipment", "payment/adyen_abstract/auto_capture_openinvoice")
             ');
         $configCaptureValues = $connection->fetchAll($select);
@@ -305,5 +307,35 @@ class UpgradeData implements UpgradeDataInterface
                 $configCaptureValue['core_config_data_scope_id']
             );
         }
+    }
+    /**
+     * Sets shoppercountry configuration by checking the value of payment/adyen_hpp/country_code
+     *
+     * @param Magento\Framework\DB\Adapter\Pdo\Mysql $connection
+     */
+    private function setShopperCountry($connection)
+    {
+        $countryCode = "payment/adyen_hpp/country_code";
+        $shoppercountry = "payment/adyen_hpp/shopper_country";
+
+        $select = $connection->select()
+            ->from($this->configDataTable)
+            ->where('path = ?', $countryCode)
+            ->where('value <> "" AND value IS NOT NULL');
+        $configCountryCodeValues = $connection->fetchAll($select);
+
+        foreach ($configCountryCodeValues as $configCountryCodeValue) {
+            $scope = $configCountryCodeValue['scope'];
+            $scopeId = $configCountryCodeValue['scope_id'];
+
+            $this->configWriter->save(
+                $shoppercountry,
+                1,
+                $scope,
+                $scopeId
+            );
+        }
+
+
     }
 }
