@@ -1910,10 +1910,10 @@ class Data extends AbstractHelper
      */
     public function getAdyenCountryCodeConfigData($storeId = null)
     {
-        $shopperLocale = trim($this->_adyenHelper->getAdyenHppConfigData('shopper_locale', $storeId));
-        $countryCode = trim($this->_adyenHelper->getAdyenHppConfigData('country_code', $storeId));
-        if ($countryCode == false && $shopperLocale == 1) {
-            return $this->getConfigData($countryCode, 'adyen_hpp', $storeId);
+        $shopperCountry = trim($this->getConfigData('shopper_country', 'adyen_hpp', $storeId));
+        $countryCode = trim($this->getConfigData('country_code', 'adyen_hpp', $storeId));
+        if ($shopperCountry == 1) {
+            return $countryCode;
         } else {
             return "";
         }
