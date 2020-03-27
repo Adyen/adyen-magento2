@@ -61,7 +61,7 @@
         <field id="allowspecific_local_payment_methods">1</field>
     </depends>
     <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
-    <can_be_empty>1</can_be_empty>
+    <validate>required-entry</validate>
     <config_path>payment/adyen_hpp/specificcountry</config_path>
     </field>
 </config>
