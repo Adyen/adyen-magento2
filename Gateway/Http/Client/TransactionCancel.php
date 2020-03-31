@@ -60,7 +60,7 @@ class TransactionCancel implements ClientInterface
         try {
             $response = $service->cancel($request);
         } catch (\Adyen\AdyenException $e) {
-            $response = null;
+            $response['error'] = $e->getMessage();
         }
         return $response;
     }

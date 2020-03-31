@@ -59,9 +59,14 @@ class RefundResponseValidator extends AbstractValidator
         $errorMessages = [];
 
         foreach ($responses as $response) {
-            if ($response['response'] != '[refund-received]') {
+            if (empty($response['response']) || $response['response'] != '[refund-received]') {
                 $errorMsg = __('Error with refund');
                 $this->adyenLogger->error($errorMsg);
+
+                if (!empty($response['error'])) {
+                    $this->adyenLogger->error($response['error']);
+                }
+
                 $errorMessages[] = $errorMsg;
             }
         }
