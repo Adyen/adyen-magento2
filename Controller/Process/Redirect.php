@@ -224,7 +224,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
 
 						$this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
 					} else {
-						$order->addStatusHistoryComment(__('3D-secure validation was unsuccessful. This order will be cancelled when the relevant notification has been processed.'))->save();
+						$order->addStatusHistoryComment(__('3D-secure validation was unsuccessful. This order will be cancelled when the related notification has been processed.'))->save();
 
 						// reactivate the quote
 						$session = $this->_getCheckout();
