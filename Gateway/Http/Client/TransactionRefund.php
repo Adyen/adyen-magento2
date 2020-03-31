@@ -30,29 +30,20 @@ use Magento\Payment\Gateway\Http\ClientInterface;
  */
 class TransactionRefund implements ClientInterface
 {
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    private $adyenHelper;
 
     /**
      * PaymentRequest constructor.
-     *
-     * @param \Magento\Framework\Model\Context $context
-     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Adyen\Payment\Model\RecurringType $recurringType
-     * @param array $data
      */
     public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\RecurringType $recurringType,
-        array $data = []
-    ) {
-        $this->_encryptor = $encryptor;
-        $this->_adyenHelper = $adyenHelper;
-        $this->_recurringType = $recurringType;
-        $this->_appState = $context->getAppState();
 
-        $this->_client = $this->_adyenHelper->initializeAdyenClient();
+        \Adyen\Payment\Helper\Data $adyenHelper
+    ) {
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -66,12 +57,13 @@ class TransactionRefund implements ClientInterface
 
         foreach ($requests as $request) {
             // call lib
-            $service = new \Adyen\Service\Modification($this->_client);
-
+            $service = new \Adyen\Service\Modification(
+                $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
+            );
             try {
                 $responses[] = $service->refund($request);
             } catch (\Adyen\AdyenException $e) {
-                $responses[] = null;
+                $responses[] = array('error' => $e->getMessage());
             }
         }
         return $responses;

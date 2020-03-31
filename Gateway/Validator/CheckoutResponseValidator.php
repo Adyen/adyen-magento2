@@ -67,7 +67,7 @@ class CheckoutResponseValidator extends AbstractValidator
         $isValid = true;
         $errorMessages = [];
         // validate result
-        if (isset($response['resultCode'])) {
+        if (!empty($response['resultCode'])) {
             switch ($response['resultCode']) {
                 case "IdentifyShopper":
                     $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
@@ -89,6 +89,7 @@ class CheckoutResponseValidator extends AbstractValidator
                             }
                         }
                     } elseif (!empty($response['additionalData']['comprafacil.entity'])) {
+                        //Multibanco resultCode has changed after checkout v49 and comprafacil.entity is not received anymore
                         foreach ($response['additionalData'] as $key => $value) {
                             if (strpos($key, 'comprafacil') === 0) {
                                 $payment->setAdditionalInformation($key, $value);
@@ -105,31 +106,11 @@ class CheckoutResponseValidator extends AbstractValidator
                     $payment->setAdditionalInformation('pspReference', $response['pspReference']);
                     break;
                 case "PresentToShopper":
-                    $payment->setAdditionalInformation('pspReference', $response['pspReference']);
-                    // set additionalData
-                    if (isset($response['outputDetails']) && is_array($response['outputDetails'])) {
-
-                        $outputDetails = $response['outputDetails'];
-                        if (isset($outputDetails['boletobancario.dueDate'])) {
-                            $payment->setAdditionalInformation(
-                                'dueDate',
-                                $outputDetails['boletobancario.dueDate']
-                            );
-                        }
-
-                        if (isset($outputDetails['boletobancario.expirationDate'])) {
-                            $payment->setAdditionalInformation(
-                                'expirationDate',
-                                $outputDetails['boletobancario.expirationDate']
-                            );
-                        }
-
-                        if (isset($outputDetails['boletobancario.url'])) {
-                            $payment->setAdditionalInformation(
-                                'url',
-                                $outputDetails['boletobancario.url']
-                            );
-                        }
+                    if (!empty($response['action'])) {
+                        $payment->setAdditionalInformation('action', $response['action']);
+                    }
+                    if (!empty($response['pspReference'])) {
+                        $payment->setAdditionalInformation('pspReference', $response['pspReference']);
                     }
                     break;
                 case "RedirectShopper":
@@ -212,6 +193,11 @@ class CheckoutResponseValidator extends AbstractValidator
             }
         } else {
             $errorMsg = __('Error with payment method please select different payment method.');
+
+            if (!empty($response['error'])) {
+                $this->adyenLogger->error($response['error']);
+            }
+
             throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
         }
 

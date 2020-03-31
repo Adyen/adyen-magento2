@@ -113,6 +113,12 @@
     margin-right: 10px;
 }
 
+@supports not (-webkit-appearance: -apple-pay-button) {
+    #apple-pay-payment-method {
+        display: none;
+    }
+}
+
 .apple-pay-button-with-text {
     --apple-pay-scale: 1.5625; /* (height / 32) */
     display: inline-flex;
@@ -1237,11 +1243,13 @@
     height:100%;
     width:100%
 }
+
 .adyen-checkout__threeds2__challenge.adyen-checkout__threeds2__challenge--05{
     overflow:hidden;
     padding-top:56.25%;
     position:relative
 }
+
 .adyen-checkout__threeds2__challenge.adyen-checkout__threeds2__challenge--05 .adyen-checkout__iframe--threeDSIframe{
     border:0;
     height:100%;
@@ -1613,15 +1621,20 @@
 /* Checkout component Adyen styling end */
 
 /* never show the close button as this will result in errors */
-.threeDS2Modal .action-close {display:none; }
-
-
+.threeDS2Modal .action-close {
+    display:none;
+}
 
 .threeDS2Modal #threeDS2Container {
     margin-bottom: 5rem;
 }
 
-.adyen-checkout__threeds2, .adyen-checkout__threeds2__challenge {
-    height:100%;
+.adyen-checkout__threeds2__challenge.adyen-checkout__threeds2__challenge--05 .adyen-checkout__iframe--threeDSIframe{
+    position: relative;
+    min-height: 400px;
 }
 
+.adyen-checkout__threeds2__challenge.adyen-checkout__threeds2__challenge--05{
+    overflow:auto;
+    padding-top: 0;
+}

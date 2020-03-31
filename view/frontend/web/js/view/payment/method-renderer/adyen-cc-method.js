@@ -38,9 +38,30 @@ define(
         'Magento_Checkout/js/action/select-payment-method',
         'Adyen_Payment/js/threeds2-js-utils',
         'Adyen_Payment/js/model/threeds2',
-        'Magento_Checkout/js/model/error-processor'
+        'Magento_Checkout/js/model/error-processor',
+        'Adyen_Payment/js/model/adyen-payment-service'
     ],
-    function ($, ko, Component, customer, creditCardData, additionalValidators, quote, installmentsHelper, url, VaultEnabler, urlBuilder, storage, fullScreenLoader, setPaymentMethodAction, selectPaymentMethodAction, threeDS2Utils, threeds2, errorProcessor) {
+    function (
+        $,
+        ko,
+        Component,
+        customer,
+        creditCardData,
+        additionalValidators,
+        quote,
+        installmentsHelper,
+        url,
+        VaultEnabler,
+        urlBuilder,
+        storage,
+        fullScreenLoader,
+        setPaymentMethodAction,
+        selectPaymentMethodAction,
+        threeDS2Utils,
+        threeds2,
+        errorProcessor,
+        adyenPaymentService
+    ) {
 
         'use strict';
 
@@ -103,7 +124,7 @@ define(
              * set up the installments
              */
             renderSecureFields: function () {
-                let self = this;
+                var self = this;
 
                 if (!self.getOriginKey()) {
                     return;
@@ -112,8 +133,8 @@ define(
                 self.installments(0);
 
                 // installments
-                let allInstallments = self.getAllInstallments();
-                let cardNode = document.getElementById('cardContainer');
+                var allInstallments = self.getAllInstallments();
+                var cardNode = document.getElementById('cardContainer');
 
                 self.cardComponent = self.checkout.create('card', {
                     originKey: self.getOriginKey(),
@@ -146,15 +167,15 @@ define(
                         if (creditCardType) {
                             // If the credit card type is already set, check if it changed or not
                             if (!self.creditCardType() || self.creditCardType() && self.creditCardType() != creditCardType) {
-                                let numberOfInstallments = [];
+                                var numberOfInstallments = [];
 
                                 if (creditCardType in allInstallments) {
 
                                     // get for the creditcard the installments
-                                    let installmentCreditcard = allInstallments[creditCardType];
-                                    let grandTotal = quote.totals().grand_total;
-                                    let precision = quote.getPriceFormat().precision;
-                                    let currencyCode = quote.totals().quote_currency_code;
+                                    var installmentCreditcard = allInstallments[creditCardType];
+                                    var grandTotal = quote.totals().grand_total;
+                                    var precision = quote.getPriceFormat().precision;
+                                    var currencyCode = quote.totals().quote_currency_code;
 
                                     numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(installmentCreditcard, grandTotal, precision, currencyCode);
                                 }
@@ -224,11 +245,12 @@ define(
                     var popupModal = $('#threeDS2Modal').modal({
                         // disable user to hide popup
                         clickableOverlay: false,
+                        responsive: true,
+                        innerScroll: false,
                         // empty buttons, we don't need that
                         buttons: [],
                         modalClass: 'threeDS2Modal'
                     });
-
 
                     popupModal.modal("openModal");
 
@@ -239,7 +261,6 @@ define(
                             onComplete: function (result) {
                                 self.threeDS2ChallengeComponent.unmount();
                                 self.closeModal(popupModal);
-
                                 fullScreenLoader.startLoader();
                                 threeds2.processThreeDS2(result.data).done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON);
@@ -338,7 +359,10 @@ define(
                         ).done(
                         function (response) {
                             self.afterPlaceOrder();
-                            self.validateThreeDS2OrPlaceOrder(response);
+                            adyenPaymentService.getOrderPaymentStatus(response)
+                                .done(function (responseJSON) {
+                                    self.validateThreeDS2OrPlaceOrder(responseJSON)
+                                });
                         }
                     );
                 }
@@ -481,7 +505,12 @@ define(
                 }
                 var countryId = quote.billingAddress().countryId;
                 var currencyCode = quote.totals().quote_currency_code;
-                return currencyCode === "BRL" && countryId === "BR";
+                var allowedCurrenciesByCountry = {
+                    'BR': 'BRL',
+                    'MX': 'MXN'
+                };
+                return allowedCurrenciesByCountry[countryId] &&
+                    currencyCode === allowedCurrenciesByCountry[countryId];
             },
             setPlaceOrderHandler: function (handler) {
                 this.placeOrderHandler = handler;

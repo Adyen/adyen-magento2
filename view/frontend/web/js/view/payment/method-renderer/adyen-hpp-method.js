@@ -180,16 +180,6 @@ define(
                     result.placeRedirectOrder = function placeRedirectOrder(data) {
                         return self.placeRedirectOrder(data);
                     };
-                    /**
-                     * Set and get if the place order action is allowed
-                     * Sets the placeOrderAllowed observable and the original isPlaceOrderActionAllowed as well
-                     * @param bool
-                     * @returns {*}
-                     */
-                    result.isPlaceOrderAllowed = function (bool) {
-                        self.isPlaceOrderActionAllowed(bool);
-                        return result.placeOrderAllowed(bool);
-                    };
 
                     /**
                      * Set and get if the place order action is allowed

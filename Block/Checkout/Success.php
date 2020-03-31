@@ -45,21 +45,29 @@ class Success extends \Magento\Framework\View\Element\Template
     protected $_orderFactory;
 
     /**
+     * @var \Magento\Framework\Pricing\Helper\Data
+     */
+    public $priceHelper;
+
+    /**
      * Success constructor.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Magento\Sales\Model\OrderFactory $orderFactory
+     * @param \Magento\Framework\Pricing\Helper\Data $priceHelper
      * @param array $data
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Sales\Model\OrderFactory $orderFactory,
+        \Magento\Framework\Pricing\Helper\Data $priceHelper,
         array $data = []
     ) {
         $this->_checkoutSession = $checkoutSession;
         $this->_orderFactory = $orderFactory;
+        $this->priceHelper = $priceHelper;
         parent::__construct($context, $data);
     }
 
@@ -96,10 +104,10 @@ class Success extends \Magento\Framework\View\Element\Template
     /**
      * @return null|\string[]
      */
-    public function getBoletoPdfUrl()
+    public function getBoletoData()
     {
         if ($this->isBoletoPayment()) {
-            return $this->getOrder()->getPayment()->getAdditionalInformation('url');
+            return $this->getOrder()->getPayment()->getAdditionalInformation('action');
         }
         return null;
     }
@@ -129,10 +137,14 @@ class Success extends \Magento\Framework\View\Element\Template
     public function getMultibancoData()
     {
         $result = [];
-        if (!empty($this->getOrder()->getPayment()) &&
-            !empty($this->getOrder()->getPayment()->getAdditionalInformation('comprafacil.entity'))
+        if (empty($this->getOrder()->getPayment())) {
+            return $result;
+        }
+        $action = $this->getOrder()->getPayment()->getAdditionalInformation('action');
+        if (!empty($action["paymentMethodType"]) &&
+            (strcmp($action["paymentMethodType"], 'multibanco') === 0)
         ) {
-            $result = $this->getOrder()->getPayment()->getAdditionalInformation();
+            $result = $action;
         }
 
         return $result;

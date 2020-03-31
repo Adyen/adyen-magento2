@@ -61,10 +61,17 @@ define(
                         }
                     }
                 ).fail(
-                    function (response) {
+                    function () {
                         self.setPaymentMethods([]);
                     }
                 )
+            },
+            getOrderPaymentStatus: function (orderId) {
+                var serviceUrl = urlBuilder.createUrl('/adyen/orders/:orderId/payment-status', {
+                    orderId: orderId
+                });
+
+                return storage.get(serviceUrl);
             }
         };
     }
