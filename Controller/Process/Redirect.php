@@ -224,6 +224,11 @@ class Redirect extends \Magento\Framework\App\Action\Action
 
 						$this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
 					} else {
+					    /*
+					     * Since responseCode!='Authorised' the order could be cancelled immediately,
+					     * but redirect payments can have multiple conflicting responses.
+					     * The order will be cancelled if an Authorization Success=False notification is processed instead
+					    */
 						$order->addStatusHistoryComment(__('3D-secure validation was unsuccessful. This order will be cancelled when the related notification has been processed.'))->save();
 
 						// reactivate the quote
