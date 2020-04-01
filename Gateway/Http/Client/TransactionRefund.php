@@ -63,7 +63,7 @@ class TransactionRefund implements ClientInterface
             try {
                 $responses[] = $service->refund($request);
             } catch (\Adyen\AdyenException $e) {
-                $responses[] = null;
+                $responses[] = array('error' => $e->getMessage());
             }
         }
         return $responses;

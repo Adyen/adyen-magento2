@@ -74,10 +74,18 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
             $payment->getMethod() === AdyenOneclickConfigProvider::CODE
         ) {
             $additionalInformation = $payment->getAdditionalInformation();
-            return $this->adyenHelper->buildThreeDS2ProcessResponseJson(
-                $additionalInformation['threeDSType'],
-                $additionalInformation['threeDS2Token']
-            );
+
+            $type = null;
+            if (!empty($additionalInformation['threeDSType'])) {
+                $type = $additionalInformation['threeDSType'];
+            }
+
+            $token = null;
+            if (!empty($additionalInformation['threeDS2Token'])) {
+                $token = $additionalInformation['threeDS2Token'];
+            }
+
+            return $this->adyenHelper->buildThreeDS2ProcessResponseJson($type, $token);
         }
         return true;
     }

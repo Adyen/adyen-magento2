@@ -288,10 +288,13 @@ class Requests extends AbstractHelper
      */
     public function buildBrowserData($request = [])
     {
-        $request['browserInfo'] = [
-            'userAgent' => $_SERVER['HTTP_USER_AGENT'],
-            'acceptHeader' => $_SERVER['HTTP_ACCEPT']
-        ];
+        if (!empty($_SERVER['HTTP_USER_AGENT'])) {
+            $request['browserInfo']['userAgent'] = $_SERVER['HTTP_USER_AGENT'];
+        }
+
+        if (!empty($_SERVER['HTTP_ACCEPT'])) {
+            $request['browserInfo']['acceptHeader'] = $_SERVER['HTTP_ACCEPT'];
+        }
 
         return $request;
     }
@@ -324,7 +327,7 @@ class Requests extends AbstractHelper
             $request['origin'] = $this->adyenHelper->getOrigin();
             $request['channel'] = 'web';
         }
-        
+
         return $request;
     }
 
