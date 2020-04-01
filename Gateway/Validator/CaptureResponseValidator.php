@@ -58,9 +58,14 @@ class CaptureResponseValidator extends AbstractValidator
         $isValid = true;
         $errorMessages = [];
 
-        if ($response['response'] != '[capture-received]') {
+        if (empty($response['response']) || $response['response'] != '[capture-received]') {
             $errorMsg = __('Error with capture');
             $this->adyenLogger->error($errorMsg);
+
+            if (!empty($response['error'])) {
+                $this->adyenLogger->error($response['error']);
+            }
+
             $errorMessages[] = $errorMsg;
         }
 
