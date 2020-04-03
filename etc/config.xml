@@ -48,6 +48,8 @@
                 <send_email_bank_sepa_on_pending>0</send_email_bank_sepa_on_pending>
                 <ignore_refund_notification>0</ignore_refund_notification>
                 <kar_capture_mode>capture_manually</kar_capture_mode>
+                <!-- etc/adminhtml/system/payment_methods/local_payment_methods/stored_payment_method_details.xml -->
+                <stored_local_payments_active>0</stored_local_payments_active>
             </adyen_abstract>
             <adyen_cc>
                 <active>1</active>

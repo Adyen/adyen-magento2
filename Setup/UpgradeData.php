@@ -23,6 +23,8 @@
 
 namespace Adyen\Payment\Setup;
 
+use Adyen\Payment\Model\RecurringType;
+use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
@@ -47,7 +49,7 @@ class UpgradeData implements UpgradeDataInterface
     private $reinitableConfig;
 
     /**
-     * @var configDataTable
+     * @var string configDataTable
      */
     private $configDataTable;
 
@@ -105,7 +107,7 @@ class UpgradeData implements UpgradeDataInterface
             $scope = $configRecurringTypeValue['scope'];
             $scopeId = $configRecurringTypeValue['scope_id'];
             switch ($configRecurringTypeValue['value']) {
-                case \Adyen\Payment\Model\RecurringType::ONECLICK:
+                case RecurringType::ONECLICK:
                     $this->configWriter->save(
                         $pathEnableOneclick,
                         '1',
@@ -119,7 +121,7 @@ class UpgradeData implements UpgradeDataInterface
                         $scopeId
                     );
                     break;
-                case \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING:
+                case RecurringType::ONECLICK_RECURRING:
                     $this->configWriter->save(
                         $pathEnableOneclick,
                         '1',
@@ -133,7 +135,7 @@ class UpgradeData implements UpgradeDataInterface
                         $scopeId
                     );
                     break;
-                case \Adyen\Payment\Model\RecurringType::RECURRING:
+                case RecurringType::RECURRING:
                     $this->configWriter->save(
                         $pathEnableOneclick,
                         '0',
@@ -147,7 +149,7 @@ class UpgradeData implements UpgradeDataInterface
                         $scopeId
                     );
                     break;
-                case \Adyen\Payment\Model\RecurringType::NONE:
+                case RecurringType::NONE:
                     $this->configWriter->save(
                         $pathEnableOneclick,
                         '0',
@@ -187,6 +189,8 @@ class UpgradeData implements UpgradeDataInterface
 
         $this->setShopperCountry($connection);
 
+        $this->setLocalPaymentMethodsRecurringInformation($connection);
+
         $this->reinitableConfig->reinit();
 
     }
@@ -194,9 +198,9 @@ class UpgradeData implements UpgradeDataInterface
     /**
      * Sets terminal_selection configuration by checking the value of pos_store_id
      *
-     * @param Magento\Framework\DB\Adapter\Pdo\Mysql $connection
+     * @param AdapterInterface $connection
      */
-    private function setTerminalSelection($connection)
+    private function setTerminalSelection(AdapterInterface $connection)
     {
         $pathTerminalSelection = "payment/adyen_pos_cloud/terminal_selection";
         $pathPosStoreId = "payment/adyen_pos_cloud/pos_store_id";
@@ -239,9 +243,9 @@ class UpgradeData implements UpgradeDataInterface
     /**
      * Sets kar_capture_mode configuration by checking the values of capture_on_shipment and auto_capture_openinvoice
      *
-     * @param Magento\Framework\DB\Adapter\Pdo\Mysql $connection
+     * @param AdapterInterface $connection
      */
-    private function setKarCaptureMode($connection)
+    private function setKarCaptureMode(AdapterInterface $connection)
     {
         $pathKarCaptureMode = "payment/adyen_abstract/kar_capture_mode";
 
@@ -308,12 +312,13 @@ class UpgradeData implements UpgradeDataInterface
             );
         }
     }
+
     /**
      * Sets shoppercountry configuration by checking the value of payment/adyen_hpp/country_code
      *
-     * @param Magento\Framework\DB\Adapter\Pdo\Mysql $connection
+     * @param AdapterInterface $connection
      */
-    private function setShopperCountry($connection)
+    private function setShopperCountry(AdapterInterface $connection)
     {
         $countryCode = "payment/adyen_hpp/country_code";
         $shoppercountry = "payment/adyen_hpp/shopper_country";
@@ -337,5 +342,27 @@ class UpgradeData implements UpgradeDataInterface
         }
 
 
+    }
+
+    /**
+     * On version 6.1.0 we created a new field for recurring information for Local Payment Methods.
+     *
+     * @param AdapterInterface $connection
+     */
+    private function setLocalPaymentMethodsRecurringInformation(AdapterInterface $connection)
+    {
+        $select = $connection->select()
+            ->from($this->configDataTable)
+            ->where('path = ?', 'payment/adyen_abstract/enable_recurring')
+            ->where('value <> "" AND value IS NOT NULL');
+        $recurringConfigurationList = $connection->fetchAll($select);
+        foreach ($recurringConfigurationList as $aRecurringConfiguration) {
+            $this->configWriter->save(
+                'payment/adyen_abstract/stored_local_payments_active',
+                $aRecurringConfiguration['value'],
+                $aRecurringConfiguration['scope'],
+                $aRecurringConfiguration['scope_id']
+            );
+        }
     }
 }
