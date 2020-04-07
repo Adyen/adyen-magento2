@@ -41,7 +41,8 @@ define(
         'Magento_Checkout/js/action/place-order',
         'Adyen_Payment/js/model/threeds2',
         'Magento_Checkout/js/model/error-processor',
-        'Adyen_Payment/js/model/adyen-payment-service'
+        'Adyen_Payment/js/model/adyen-payment-service',
+        'Adyen_Payment/js/bundle'
     ],
     function (
         ko,
@@ -64,7 +65,8 @@ define(
         placeOrderAction,
         threeds2,
         errorProcessor,
-        adyenPaymentService
+        adyenPaymentService,
+        AdyenComponent
     ) {
 
         'use strict';
@@ -135,9 +137,7 @@ define(
                     locale: self.getLocale(),
                     originKey: self.getOriginKey(),
                     environment: self.getCheckoutEnvironment(),
-                    risk: {
-                        enabled: false
-                    }
+
                 });
 
                 // convert to list so you can iterate
@@ -267,19 +267,56 @@ define(
                                 hideCVC = true;
                             }
 
+                            const oneClickData =  {
+                                type: self.agreement_data.variant,
+                                hideCVC: hideCVC,
+                                details: self.getOneclickDetails(),
+                                expiryMonth:self.agreement_data.card.expiryMonth,
+                                expiryYear:self.agreement_data.card.expiryYear,
+                                holderName:self.agreement_data.card.holderName,
+                                number:self.agreement_data.card.number,
+
+                                onChange: function (state, component) {
+                                    if (state.isValid) {
+                                        self.placeOrderAllowed(true);
+                                        isValid(true);
+
+                                        if (typeof state.data !== 'undefined' &&
+                                            typeof state.data.paymentMethod !== 'undefined' &&
+                                            typeof state.data.paymentMethod.encryptedSecurityCode !== 'undefined'
+                                        ) {
+                                            self.encryptedCreditCardVerificationNumber = state.data.paymentMethod.encryptedSecurityCode;
+                                        }
+                                    } else {
+                                        self.encryptedCreditCardVerificationNumber = '';
+
+                                        if (self.agreement_data.variant != "maestro") {
+                                            self.placeOrderAllowed(false);
+                                            isValid(false);
+                                        }
+                                    }
+                                }
+                            };
+
+                            console.log(oneClickData);
                             var oneClickCard = checkout
-                                .create('card', {
+                                .create('card',{
                                     type: self.agreement_data.variant,
                                     hideCVC: hideCVC,
                                     details: self.getOneclickDetails(),
-                                    storedDetails: {
-                                        "card": {
-                                            "expiryMonth": self.agreement_data.card.expiryMonth,
-                                            "expiryYear": self.agreement_data.card.expiryYear,
-                                            "holderName": self.agreement_data.card.holderName,
-                                            "number": self.agreement_data.card.number
-                                        }
-                                    },
+                                    // storedDetails: {
+                                    //     "card": {
+                                    //         "expiryMonth": self.agreement_data.card.expiryMonth,
+                                    //         "expiryYear": self.agreement_data.card.expiryYear,
+                                    //         "holderName": self.agreement_data.card.holderName,
+                                    //         "number": self.agreement_data.card.number
+                                    //     }
+                                    // }
+                                    expiryMonth:self.agreement_data.card.expiryMonth,
+                                    expiryYear:self.agreement_data.card.expiryYear,
+                                    holderName:self.agreement_data.card.holderName,
+                                    number:self.agreement_data.card.number,
+
                                     onChange: function (state, component) {
                                         if (state.isValid) {
                                             self.placeOrderAllowed(true);

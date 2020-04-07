@@ -39,7 +39,8 @@ define(
         'Adyen_Payment/js/threeds2-js-utils',
         'Adyen_Payment/js/model/threeds2',
         'Magento_Checkout/js/model/error-processor',
-        'Adyen_Payment/js/model/adyen-payment-service'
+        'Adyen_Payment/js/model/adyen-payment-service',
+        'Adyen_Payment/js/bundle',
     ],
     function (
         $,
@@ -60,7 +61,8 @@ define(
         threeDS2Utils,
         threeds2,
         errorProcessor,
-        adyenPaymentService
+        adyenPaymentService,
+        AdyenComponent
     ) {
 
         'use strict';
@@ -87,9 +89,11 @@ define(
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
 
                 // initialize adyen component for general use
-                this.checkout = new AdyenCheckout({
-                    locale: this.getLocale()
-                });
+                this.checkout =   new AdyenCheckout({
+                        locale: this.getLocale(),
+                        originKey: this.getOriginKey(),
+                        environment: this.getCheckoutEnvironment()
+                    });
 
                 return this;
             },
@@ -137,8 +141,6 @@ define(
                 var cardNode = document.getElementById('cardContainer');
 
                 self.cardComponent = self.checkout.create('card', {
-                    originKey: self.getOriginKey(),
-                    environment: self.getCheckoutEnvironment(),
                     type: 'card',
                     hasHolderName: true,
                     holderNameRequired: true,

@@ -35,9 +35,10 @@ define(
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Checkout/js/action/place-order',
         'uiLayout',
-        'Magento_Ui/js/model/messages'
+        'Magento_Ui/js/model/messages',
+        'Adyen_Payment/js/bundle'
     ],
-    function (ko, $, Component, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader, placeOrderAction, layout, Messages) {
+    function (ko, $, Component, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader, placeOrderAction, layout, Messages, AdyenComponent) {
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
@@ -82,9 +83,7 @@ define(
                  * Create sherable checkout component
                  * @type {AdyenCheckout}
                  */
-                self.checkoutComponent = new AdyenCheckout({
-                    locale: self.getLocale()
-                });
+                self.checkoutComponent =  new AdyenCheckout({  locale: self.getLocale()});
 
                 // reset variable:
                 adyenPaymentService.setPaymentMethods();
