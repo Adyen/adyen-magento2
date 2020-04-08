@@ -91,19 +91,25 @@ class PaymentMethods extends AbstractHelper
     protected $quote;
 
     /**
+     * @var \Magento\Checkout\Model\PaymentDetailsFactory
+     */
+    protected $paymentDetailsFactory;
+
+    /**
      * PaymentMethods constructor.
      *
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param Data $adyenHelper
      * @param \Magento\Checkout\Model\Session $session
-	 * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
+     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\View\Asset\Source $assetSource
      * @param \Magento\Framework\View\DesignInterface $design
      * @param \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider
+     * @param \Magento\Checkout\Model\PaymentDetailsFactory $paymentDetailsFactory
      */
     public function __construct(
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
@@ -116,7 +122,8 @@ class PaymentMethods extends AbstractHelper
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\View\Asset\Source $assetSource,
         \Magento\Framework\View\DesignInterface $design,
-        \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider
+        \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider,
+        \Magento\Checkout\Model\PaymentDetailsFactory $paymentDetailsFactory
     ) {
         $this->quoteRepository = $quoteRepository;
         $this->config = $config;
@@ -129,6 +136,7 @@ class PaymentMethods extends AbstractHelper
         $this->assetSource = $assetSource;
         $this->design = $design;
         $this->themeProvider = $themeProvider;
+        $this->paymentDetailsFactory = $paymentDetailsFactory;
     }
 
     /**
@@ -192,6 +200,16 @@ class PaymentMethods extends AbstractHelper
 
         $responseData = $this->getPaymentMethodsResponse($adyFields, $store);
 
+        // TODO this should be the implemented with the PaymentDetailsInterface but for now we json encode it and
+        // on the fronend we decode it so we can move forward
+        // /** @var \Magento\Checkout\Api\Data\PaymentDetailsInterface $paymentDetails */
+        // $paymentDetails = $this->paymentDetailsFactory->create();
+        // $paymentDetails->setPaymentMethods($responseData);
+        //$paymentDetails->setTotals($this->cartTotalsRepository->get($cartId));
+        //return $paymentDetails;
+        
+        return json_encode($responseData);
+
         $paymentMethods = [];
         if (isset($responseData['paymentMethods'])) {
             foreach ($responseData['paymentMethods'] as $paymentMethod) {
@@ -200,9 +218,10 @@ class PaymentMethods extends AbstractHelper
                 $paymentMethod = $this->fieldMapPaymentMethod($paymentMethod);
 
                 // check if payment method is an openinvoice method
-                $paymentMethod['isPaymentMethodOpenInvoiceMethod'] =
-                    $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
+                //$paymentMethod['isPaymentMethodOpenInvoiceMethod'] =
+                    //$this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
 
+                //TODO create the icons on the frontend or in a separate function but not here!
                 // add icon location in result
                 if ($this->adyenHelper->showLogos()) {
                     // Fix for MAGETWO-70402 https://github.com/magento/magento2/pull/7686

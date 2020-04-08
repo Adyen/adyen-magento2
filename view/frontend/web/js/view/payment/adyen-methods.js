@@ -24,11 +24,13 @@
 define(
     [
         'uiComponent',
-        'Magento_Checkout/js/model/payment/renderer-list'
+        'Magento_Checkout/js/model/payment/renderer-list',
+        'Adyen_Payment/js/model/adyen-payment-service'
     ],
     function (
         Component,
-        rendererList
+        rendererList,
+        adyenPaymentService
     ) {
         'use strict';
         rendererList.push(
@@ -67,6 +69,32 @@ define(
                 var self = this;
                 this._super();
 
+                // reset variable:
+                adyenPaymentService.setPaymentMethods();
+
+                adyenPaymentService.retrieveAvailablePaymentMethods(function () {
+                    var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
+                    console.log(paymentMethods);
+                    if (!!window.checkoutConfig.payment.adyenHpp) {
+                        if (JSON.stringify(paymentMethods).indexOf("ratepay") > -1) {
+                            var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
+                            var dfValueRatePay = self.getRatePayDeviceIdentToken();
+
+                            window.di = {
+                                t: dfValueRatePay.replace(':', ''),
+                                v: ratePayId,
+                                l: 'Checkout'
+                            };
+
+                            // Load Ratepay script
+                            var ratepayScriptTag = document.createElement('script');
+                            ratepayScriptTag.src = "//d.ratepay.com/" + ratePayId + "/di.js";
+                            ratepayScriptTag.type = "text/javascript";
+                            document.body.appendChild(ratepayScriptTag);
+                        }
+                    }
+                });
+
                 // include checkout card component javascript
                 var checkoutCardComponentScriptTag = document.createElement('script');
                 checkoutCardComponentScriptTag.id = "AdyenCheckoutCardComponentScript";
@@ -86,7 +114,10 @@ define(
             },
             isGooglePayEnabled: function() {
                 return window.checkoutConfig.payment.adyenGooglePay.active;
-            }
+            },
+            getRatePayDeviceIdentToken: function () {
+                return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
+            },
         });
     }
 );

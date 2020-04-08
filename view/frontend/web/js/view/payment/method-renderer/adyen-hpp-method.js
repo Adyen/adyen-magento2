@@ -29,8 +29,8 @@ define(
         'Magento_Checkout/js/checkout-data',
         'Magento_Checkout/js/model/payment/additional-validators',
         'mage/storage',
-        'Magento_Checkout/js/model/url-builder',
         'Adyen_Payment/js/model/adyen-payment-service',
+        'Magento_Checkout/js/model/url-builder',
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Checkout/js/action/place-order',
@@ -38,7 +38,7 @@ define(
         'Magento_Ui/js/model/messages',
         'Adyen_Payment/js/bundle'
     ],
-    function (ko, $, Component, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader, placeOrderAction, layout, Messages, AdyenComponent) {
+    function (ko, $, Component, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, adyenPaymentService, urlBuilder, customer, fullScreenLoader, placeOrderAction, layout, Messages, AdyenComponent) {
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
@@ -85,51 +85,31 @@ define(
                  */
                 self.checkoutComponent =  new AdyenCheckout({  locale: self.getLocale()});
 
-                // reset variable:
-                adyenPaymentService.setPaymentMethods();
+                var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
 
-                adyenPaymentService.retrieveAvailablePaymentMethods(function () {
-                    var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
-                    if (JSON.stringify(paymentMethods).indexOf("ratepay") > -1) {
-                        var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
-                        var dfValueRatePay = self.getRatePayDeviceIdentToken();
+                // create component needs to be in initialize method
+                var messageComponents = {};
+                _.map(paymentMethods, function (value) {
 
-                        window.di = {
-                            t: dfValueRatePay.replace(':', ''),
-                            v: ratePayId,
-                            l: 'Checkout'
-                        };
+                    var messageContainer = new Messages();
+                    var name = 'messages-' + self.getBrandCodeFromPaymentMethod(value);
+                    var messagesComponent = {
+                        parent: self.name,
+                        name: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
+                        displayArea: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
+                        component: 'Magento_Ui/js/view/messages',
+                        config: {
+                            messageContainer: messageContainer
+                        }
+                    };
+                    layout([messagesComponent]);
 
-                        // Load Ratepay script
-                        var ratepayScriptTag = document.createElement('script');
-                        ratepayScriptTag.src = "//d.ratepay.com/" + ratePayId + "/di.js";
-                        ratepayScriptTag.type = "text/javascript";
-                        document.body.appendChild(ratepayScriptTag);
-                    }
-
-                    // create component needs to be in initialize method
-                    var messageComponents = {};
-                    _.map(paymentMethods, function (value) {
-
-                        var messageContainer = new Messages();
-                        var name = 'messages-' + self.getBrandCodeFromPaymentMethod(value);
-                        var messagesComponent = {
-                            parent: self.name,
-                            name: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
-                            displayArea: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
-                            component: 'Magento_Ui/js/view/messages',
-                            config: {
-                                messageContainer: messageContainer
-                            }
-                        };
-                        layout([messagesComponent]);
-
-                        messageComponents[name] = messageContainer;
-                    });
-                    self.messageComponents = messageComponents;
-
-                    fullScreenLoader.stopLoader();
+                    messageComponents[name] = messageContainer;
                 });
+
+                self.messageComponents = messageComponents;
+
+                fullScreenLoader.stopLoader();
             },
             getAdyenHppPaymentMethods: function () {
                 var self = this;
@@ -144,8 +124,11 @@ define(
                 }
 
                 var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
+                console.log(paymentMethods);
+                console.log(paymentMethods.paymentMethods);
 
                 var paymentList = _.reduce(paymentMethods, function (accumulator, value) {
+                    console.log(value);
 
                     if (!self.isPaymentMethodSupported(value.type)) {
                         return accumulator;

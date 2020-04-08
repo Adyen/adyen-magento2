@@ -59,6 +59,8 @@ class GuestAdyenPaymentMethodManagement implements \Adyen\Payment\Api\GuestAdyen
 
         // if shippingAddress is provided use this country
         $country = null;
+        // TODO check why the frontend doesn't have the shipping address
+        // or get it from the cart
         if ($shippingAddress) {
             $country = $shippingAddress->getCountryId();
         }

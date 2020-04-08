@@ -55,7 +55,10 @@ define(
                     serviceUrl, JSON.stringify(payload)
                 ).done(
                     function (response) {
-                        self.setPaymentMethods(response);
+                        var jsonResponse = JSON.parse(response);
+                        console.log(jsonResponse);
+
+                        self.setPaymentMethods(jsonResponse);
                         if (callback) {
                             callback();
                         }
