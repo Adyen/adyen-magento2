@@ -35,7 +35,7 @@ class Header extends \Magento\Config\Block\System\Config\Form\Fieldset implement
      */
     protected function _getHeaderHtml($element)
     {
-        $this->isCollapsedDefault = false;
+        $this->isCollapsedDefault = true;
         if ($element->getIsNested()) {
             $html = '<tr class="nested"><td colspan="4"><div class="' . $this->_getFrontendClass($element) . '">';
         } else {
