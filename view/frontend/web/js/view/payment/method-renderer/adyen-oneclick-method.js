@@ -231,11 +231,11 @@ define(
                                             self.isPlaceOrderActionAllowed(true);
                                         }
                                     ).done(
-                                    function (response) {
+                                    function (orderId) {
                                         self.afterPlaceOrder();
-                                        adyenPaymentService.getOrderPaymentStatus(response)
+                                        adyenPaymentService.getOrderPaymentStatus(orderId)
                                             .done(function (responseJSON) {
-                                                self.validateThreeDS2OrPlaceOrder(responseJSON)
+                                                self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
                                             });
                                     }
                                 );
@@ -310,13 +310,13 @@ define(
                          * Based on the response we can start a 3DS2 validation or place the order
                          * @param responseJSON
                          */
-                        validateThreeDS2OrPlaceOrder: function (responseJSON) {
+                        validateThreeDS2OrPlaceOrder: function (responseJSON, orderId) {
                             var self = this;
                             var response = JSON.parse(responseJSON);
 
                             if (!!response.threeDS2) {
                                 // render component
-                                self.renderThreeDS2Component(response.type, response.token);
+                                self.renderThreeDS2Component(response.type, response.token, orderId);
                             } else {
                                 window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
                             }
@@ -332,7 +332,7 @@ define(
                          * @param type
                          * @param token
                          */
-                        renderThreeDS2Component: function (type, token) {
+                        renderThreeDS2Component: function (type, token, orderId) {
                             var self = this;
 
                             var threeDS2Node = document.getElementById('threeDS2ContainerOneClick');
@@ -341,8 +341,10 @@ define(
                                 self.threeDS2Component = checkout.create('threeDS2DeviceFingerprint', {
                                     fingerprintToken: token,
                                     onComplete: function (result) {
-                                        threeds2.processThreeDS2(result.data).done(function (responseJSON) {
-                                            self.validateThreeDS2OrPlaceOrder(responseJSON)
+                                        var request = result.data;
+                                        request.orderId = orderId;
+                                        threeds2.processThreeDS2(request).done(function (responseJSON) {
+                                            self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
                                         }).fail(function (result) {
                                             errorProcessor.process(result, self.getMessageContainer());
                                             self.isPlaceOrderActionAllowed(true);
@@ -375,8 +377,10 @@ define(
                                         onComplete: function (result) {
                                             popupModal.modal("closeModal");
                                             fullScreenLoader.startLoader();
-                                            threeds2.processThreeDS2(result.data).done(function (responseJSON) {
-                                                self.validateThreeDS2OrPlaceOrder(responseJSON)
+                                            var request = result.data;
+                                            request.orderId = orderId;
+                                            threeds2.processThreeDS2(request).done(function (responseJSON) {
+                                                self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
                                             }).fail(function (result) {
                                                 errorProcessor.process(result, self.getMessageContainer());
                                                 self.isPlaceOrderActionAllowed(true);
