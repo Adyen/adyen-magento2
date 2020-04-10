@@ -37,16 +37,10 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
      */
     private $adyenHelper;
 
-
     /**
      * @var \Magento\Sales\Model\OrderFactory
      */
     private $orderFactory;
-
-    /**
-     * @var
-     */
-    private $order;
 
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
@@ -58,6 +52,8 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
      *
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Sales\Model\OrderFactory $orderFactory
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
     public function __construct(
         \Magento\Checkout\Model\Session $checkoutSession,
@@ -87,8 +83,12 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed because the request was not a valid JSON'));
         }
 
-        // Get payment and cart information from session
-        $order = $this->getOrder();
+        if (empty($payload['orderId'])) {
+            throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed because of a missing order id'));
+        }
+
+        // Create order by order id
+        $order = $this->orderFactory->create()->load($payload['orderId']);
         $payment = $order->getPayment();
 
         // Init payments/details request
@@ -139,7 +139,6 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         // To actually save the additional info changes into the quote
         $order->save();
 
-
         $response = [];
 
         if($result['resultCode'] != 'Authorised') {
@@ -157,19 +156,5 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
 
         $response['result'] = $result['resultCode'];
         return json_encode($response);
-    }
-
-    /**
-     * Get order object
-     *
-     * @return \Magento\Sales\Model\Order
-     */
-    protected function getOrder()
-    {
-        if (!$this->order) {
-            $incrementId = $this->checkoutSession->getLastRealOrderId();
-            $this->order = $this->orderFactory->create()->loadByIncrementId($incrementId);
-        }
-        return $this->order;
     }
 }
