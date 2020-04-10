@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Magento\Checkout\Api\Data\PaymentDetailsInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 
 /**
@@ -154,7 +155,7 @@ class PaymentMethods extends AbstractHelper
 
         $this->setQuote($quote);
 
-        $paymentMethods = $this->fetchAlternativeMethods($country);
+        $paymentMethods = $this->fetchAlternativeMethods($country)->getPaymentMethods();
         return $paymentMethods;
     }
 
@@ -162,7 +163,7 @@ class PaymentMethods extends AbstractHelper
      * @param $country
      * @return array
      */
-    protected function fetchAlternativeMethods($country)
+    protected function fetchAlternativeMethods($country):PaymentDetailsInterface
     {
         $quote = $this->getQuote();
         $store = $quote->getStore();
@@ -199,71 +200,10 @@ class PaymentMethods extends AbstractHelper
         }
 
         $responseData = $this->getPaymentMethodsResponse($adyFields, $store);
-
-        // TODO this should be the implemented with the PaymentDetailsInterface but for now we json encode it and
-        // on the fronend we decode it so we can move forward
-        // /** @var \Magento\Checkout\Api\Data\PaymentDetailsInterface $paymentDetails */
-        // $paymentDetails = $this->paymentDetailsFactory->create();
-        // $paymentDetails->setPaymentMethods($responseData);
-        //$paymentDetails->setTotals($this->cartTotalsRepository->get($cartId));
-        //return $paymentDetails;
-        
-        return json_encode($responseData);
-
-        $paymentMethods = [];
-        if (isset($responseData['paymentMethods'])) {
-            foreach ($responseData['paymentMethods'] as $paymentMethod) {
-
-                $paymentMethodCode = $paymentMethod['type'];
-                $paymentMethod = $this->fieldMapPaymentMethod($paymentMethod);
-
-                // check if payment method is an openinvoice method
-                //$paymentMethod['isPaymentMethodOpenInvoiceMethod'] =
-                    //$this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
-
-                //TODO create the icons on the frontend or in a separate function but not here!
-                // add icon location in result
-                if ($this->adyenHelper->showLogos()) {
-                    // Fix for MAGETWO-70402 https://github.com/magento/magento2/pull/7686
-                    // Explicitly setting theme
-                    $themeCode = "Magento/blank";
-
-                    $themeId = $this->design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
-                    if (!empty($themeId)) {
-                        $theme = $this->themeProvider->getThemeById($themeId);
-                        if ($theme && !empty($theme->getCode())) {
-                            $themeCode = $theme->getCode();
-                        }
-                    }
-
-                    $params = [];
-                    $params = array_merge([
-                        'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
-                        '_secure' => $this->request->isSecure(),
-                        'theme' => $themeCode
-                    ], $params);
-
-                    $asset = $this->assetRepo->createAsset('Adyen_Payment::images/logos/' .
-                        $paymentMethodCode . '.png', $params);
-
-                    $placeholder = $this->assetSource->findSource($asset);
-
-                    $icon = null;
-                    if ($placeholder) {
-                        list($width, $height) = getimagesize($asset->getSourceFile());
-                        $icon = [
-                            'url' => $asset->getUrl(),
-                            'width' => $width,
-                            'height' => $height
-                        ];
-                    }
-                    $paymentMethod['icon'] = $icon;
-                }
-                $paymentMethods[$paymentMethodCode] = $paymentMethod;
-            }
-        }
-
-        return $paymentMethods;
+         /** @var \Magento\Checkout\Api\Data\PaymentDetailsInterface $paymentDetails */
+        $paymentDetails = $this->paymentDetailsFactory->create();
+        $paymentDetails->setPaymentMethods($responseData);
+        return $paymentDetails;
     }
 
     /**
