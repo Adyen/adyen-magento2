@@ -851,7 +851,8 @@ class Cron
                 // Allow magento to cancel order
                 $this->_order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
 
-                if ($this->_order->canCancel()) {
+                $canCancel = $this->adyenHelper->getAdyenAbstractConfigData('can_cancel');
+                if ($this->_order->canCancel() && $canCancel) {
                     $this->_order->cancel();
                 } else {
                     $this->_adyenLogger->addAdyenNotificationCronjob('Order can not be canceled');

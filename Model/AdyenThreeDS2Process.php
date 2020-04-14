@@ -149,7 +149,10 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
                 $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
             }
 
-            $order->cancel()->save();
+            $canCancel = $this->adyenHelper->getAdyenAbstractConfigData('can_cancel');
+            if ($canCancel) {
+                $order->cancel()->save();
+            }
 
             throw new \Magento\Framework\Exception\LocalizedException(__('The payment is REFUSED.'));
         }
