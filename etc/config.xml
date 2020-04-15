@@ -38,7 +38,7 @@
                 <enable_oneclick>1</enable_oneclick>
                 <enable_recurring>0</enable_recurring>
                 <group>adyen</group>
-                <can_cancel>1</can_cancel>
+                <notifications_can_cancel>1</notifications_can_cancel>
             </adyen_abstract>
             <adyen_cc>
                 <active>1</active>
