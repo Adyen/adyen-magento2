@@ -152,8 +152,7 @@ class ResultPos extends \Magento\Framework\App\Action\Action
                         $history->save();
 
                         // cancel the order
-                        $canCancel = $this->_adyenHelper->getAdyenAbstractConfigData('can_cancel');
-                        if ($order->canCancel() && $canCancel) {
+                        if ($order->canCancel()) {
                             $order->cancel()->save();
                             $this->_adyenLogger->addAdyenResult('Order is cancelled');
                         } else {

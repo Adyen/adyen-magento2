@@ -829,6 +829,12 @@ class Cron
      */
     protected function _holdCancelOrder($ignoreHasInvoice)
     {
+        $canCancel = $this->adyenHelper->getAdyenAbstractConfigData('can_cancel');
+        if(!$canCancel){
+            $this->_adyenLogger->addAdyenNotificationCronjob('Order can not be canceled based on the plugin configuration');
+            return;
+        }
+
         $orderStatus = $this->_getConfigData(
             'payment_cancelled',
             'adyen_abstract',
@@ -851,8 +857,7 @@ class Cron
                 // Allow magento to cancel order
                 $this->_order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
 
-                $canCancel = $this->adyenHelper->getAdyenAbstractConfigData('can_cancel');
-                if ($this->_order->canCancel() && $canCancel) {
+                if ($this->_order->canCancel()) {
                     $this->_order->cancel();
                 } else {
                     $this->_adyenLogger->addAdyenNotificationCronjob('Order can not be canceled');

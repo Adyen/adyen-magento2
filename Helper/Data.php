@@ -789,11 +789,6 @@ class Data extends AbstractHelper
      */
     public function cancelOrder($order)
     {
-        $canCancel = $this->getAdyenAbstractConfigData('can_cancel');
-        if (!$canCancel) {
-            return;
-        }
-
         $orderStatus = $this->getAdyenAbstractConfigData('payment_cancelled');
         $order->setActionFlag($orderStatus, true);
 
