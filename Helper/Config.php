@@ -23,11 +23,9 @@
 
 namespace Adyen\Payment\Helper;
 
-use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 
-
-class Config extends AbstractHelper
+class Config
 {
 
     const XML_PAYMENT_PREFIX = "payment";
