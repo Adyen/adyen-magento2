@@ -373,7 +373,7 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringAlternativePaymentMethodsData($request = [], $areaCode, int $storeId, $additionalData)
+    public function buildRecurringAlternativePaymentMethodsData($request = [], $areaCode, int $storeId)
     {
 
         if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
