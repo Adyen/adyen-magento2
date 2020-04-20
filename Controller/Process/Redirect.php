@@ -231,6 +231,8 @@ class Redirect extends \Magento\Framework\App\Action\Action
 					    */
 						$order->addStatusHistoryComment(__('3D-secure validation was unsuccessful. This order will be cancelled when the related notification has been processed.'))->save();
 
+                        $this->messageManager->addErrorMessage("3D-secure validation was unsuccessful");
+
 						// reactivate the quote
 						$session = $this->_getCheckout();
 
