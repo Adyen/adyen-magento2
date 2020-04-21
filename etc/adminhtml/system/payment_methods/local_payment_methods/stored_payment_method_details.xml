@@ -24,7 +24,7 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <label>Stored payment method details options</label>
-    <comment><![CDATA[Adyen can securely store shoppers' local payment method details to enable recurring payments. See which local payment methods support recurring on <a href="https://docs.adyen.com/payment-methods#cash-and-atm-payment-methods" target="_blank">Adyen documentation</a>.]]]></comment>
+    <comment><![CDATA[Adyen can securely store shoppers' local payment method details to enable recurring payments. See which local payment methods support recurring on <a href="https://docs.adyen.com/payment-methods#cash-and-atm-payment-methods" target="_blank">Adyen documentation</a>.]]></comment>
 
     <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Enabled</label>

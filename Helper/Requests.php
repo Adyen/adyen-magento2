@@ -324,7 +324,7 @@ class Requests extends AbstractHelper
             $request['origin'] = $this->adyenHelper->getOrigin();
             $request['channel'] = 'web';
         }
-        
+
         return $request;
     }
 
@@ -362,6 +362,30 @@ class Requests extends AbstractHelper
             if (!empty($additionalData[AdyenCcDataAssignObserver::STORE_CC])) {
                 $request['paymentMethod']['storeDetails'] = true;
             }
+        }
+
+        return $request;
+    }
+
+    /**
+     * @param $request
+     * @param $areaCode
+     * @param $storeId
+     * @param $payment
+     */
+    public function buildRecurringAlternativePaymentMethodsData($request = [], $areaCode, int $storeId)
+    {
+
+        if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
+            $storeId = null;
+        }
+
+        $enableStorePaymentMethod = $this->adyenHelper->getAdyenAbstractConfigData('stored_local_payments_active', $storeId);
+
+        if ($enableStorePaymentMethod) {
+            $request['storePaymentMethod'] = true;
+        } else {
+            $request['storePaymentMethod'] = false;
         }
 
         return $request;
