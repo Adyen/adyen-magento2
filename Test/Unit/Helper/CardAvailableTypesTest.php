@@ -106,9 +106,9 @@ class CardAvailableTypesTest extends \PHPUnit\Framework\TestCase
             array(
                 'code_alt',
                 [
-                    'AE' => 'amex',
-                    'VI' => 'visa',
-                    'DI' => 'discover',
+                    'amex' => 'AE',
+                    'visa' => 'VI',
+                    'discover' => 'DI',
                 ]
 
             )

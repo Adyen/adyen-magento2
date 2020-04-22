@@ -62,7 +62,11 @@ class CardAvailableTypes extends AbstractHelper
         $availableTypes = explode(',', $availableTypes);
         foreach (array_keys($cardTypes) as $code) {
             if (in_array($code, $availableTypes)) {
-                $types[$code] = $cardTypes[$code][$index];
+                if (strcmp($index, 'name') === 0) {
+                    $types[$code] = $cardTypes[$code][$index];
+                } elseif (strcmp($index, 'code_alt') === 0) {
+                    $types[$cardTypes[$code][$index]] = $code;
+                }
             }
         }
 
