@@ -50,10 +50,10 @@ class PaymentMethods extends AbstractHelper
      */
     protected $session;
 
-	/**
-	 * @var \Magento\Framework\Locale\ResolverInterface
-	 */
-	protected $localeResolver;
+    /**
+     * @var \Magento\Framework\Locale\ResolverInterface
+     */
+    protected $localeResolver;
 
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
@@ -116,7 +116,7 @@ class PaymentMethods extends AbstractHelper
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $session,
-		\Magento\Framework\Locale\ResolverInterface $localeResolver,
+        \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\App\RequestInterface $request,
@@ -129,7 +129,7 @@ class PaymentMethods extends AbstractHelper
         $this->config = $config;
         $this->adyenHelper = $adyenHelper;
         $this->session = $session;
-		$this->localeResolver = $localeResolver;
+        $this->localeResolver = $localeResolver;
         $this->adyenLogger = $adyenLogger;
         $this->assetRepo = $assetRepo;
         $this->request = $request;
@@ -154,7 +154,7 @@ class PaymentMethods extends AbstractHelper
 
         $this->setQuote($quote);
 
-        $paymentMethods = $this->fetchAlternativeMethods($country);
+        $paymentMethods = $this->fetchPaymentMethods($country);
         return $paymentMethods;
     }
 
@@ -162,7 +162,7 @@ class PaymentMethods extends AbstractHelper
      * @param $country
      * @return array
      */
-    protected function fetchAlternativeMethods($country)
+    protected function fetchPaymentMethods($country)
     {
         $quote = $this->getQuote();
         $store = $quote->getStore();
@@ -200,70 +200,78 @@ class PaymentMethods extends AbstractHelper
 
         $responseData = $this->getPaymentMethodsResponse($adyFields, $store);
 
-        // TODO this should be the implemented with the PaymentDetailsInterface but for now we json encode it and
-        // on the fronend we decode it so we can move forward
-        // /** @var \Magento\Checkout\Api\Data\PaymentDetailsInterface $paymentDetails */
-        // $paymentDetails = $this->paymentDetailsFactory->create();
-        // $paymentDetails->setPaymentMethods($responseData);
-        //$paymentDetails->setTotals($this->cartTotalsRepository->get($cartId));
-        //return $paymentDetails;
-        
-        return json_encode($responseData);
+        if (empty($responseData['paymentMethods'])) {
+            return [];
+        }
 
-        $paymentMethods = [];
-        if (isset($responseData['paymentMethods'])) {
-            foreach ($responseData['paymentMethods'] as $paymentMethod) {
+        $paymentMethods = $responseData['paymentMethods'];
+        $response['paymentMethodsResponse'] = $responseData;
 
+        // Add extra details per payment mmethod
+        $paymentMethodsExtraDetails = [];
+
+        if ($this->adyenHelper->showLogos()) {
+            // Explicitly setting theme
+            $themeCode = "Magento/blank";
+
+            $themeId = $this->design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
+            if (!empty($themeId)) {
+                $theme = $this->themeProvider->getThemeById($themeId);
+                if ($theme && !empty($theme->getCode())) {
+                    $themeCode = $theme->getCode();
+                }
+            }
+
+            $params = [];
+            $params = array_merge(
+                [
+                    'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                    '_secure' => $this->request->isSecure(),
+                    'theme' => $themeCode
+                ],
+                $params
+            );
+
+
+            foreach ($paymentMethods as $paymentMethod) {
                 $paymentMethodCode = $paymentMethod['type'];
-                $paymentMethod = $this->fieldMapPaymentMethod($paymentMethod);
+
+                $asset = $this->assetRepo->createAsset(
+                    'Adyen_Payment::images/logos/' .
+                    $paymentMethodCode . '.png',
+                    $params
+                );
+
+                $placeholder = $this->assetSource->findSource($asset);
+
+                $icon = [];
+                if ($placeholder) {
+                    list($width, $height) = getimagesize($asset->getSourceFile());
+                    $icon = [
+                        'url' => $asset->getUrl(),
+                        'width' => $width,
+                        'height' => $height
+                    ];
+                } else {
+                    $icon = [
+                        'url' => 'https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/medium/' .$paymentMethodCode . '.png',
+                        'width' => 77,
+                        'height' => 50
+                    ];
+                }
+
+                $paymentMethodsExtraDetails[$paymentMethodCode]['icon'] = $icon;
 
                 // check if payment method is an openinvoice method
-                //$paymentMethod['isPaymentMethodOpenInvoiceMethod'] =
-                    //$this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
-
-                //TODO create the icons on the frontend or in a separate function but not here!
-                // add icon location in result
-                if ($this->adyenHelper->showLogos()) {
-                    // Fix for MAGETWO-70402 https://github.com/magento/magento2/pull/7686
-                    // Explicitly setting theme
-                    $themeCode = "Magento/blank";
-
-                    $themeId = $this->design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
-                    if (!empty($themeId)) {
-                        $theme = $this->themeProvider->getThemeById($themeId);
-                        if ($theme && !empty($theme->getCode())) {
-                            $themeCode = $theme->getCode();
-                        }
-                    }
-
-                    $params = [];
-                    $params = array_merge([
-                        'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
-                        '_secure' => $this->request->isSecure(),
-                        'theme' => $themeCode
-                    ], $params);
-
-                    $asset = $this->assetRepo->createAsset('Adyen_Payment::images/logos/' .
-                        $paymentMethodCode . '.png', $params);
-
-                    $placeholder = $this->assetSource->findSource($asset);
-
-                    $icon = null;
-                    if ($placeholder) {
-                        list($width, $height) = getimagesize($asset->getSourceFile());
-                        $icon = [
-                            'url' => $asset->getUrl(),
-                            'width' => $width,
-                            'height' => $height
-                        ];
-                    }
-                    $paymentMethod['icon'] = $icon;
-                }
-                $paymentMethods[$paymentMethodCode] = $paymentMethod;
+                $paymentMethodsExtraDetails[$paymentMethodCode]['isOpenInvoice'] =
+                    $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
             }
         }
 
-        return $paymentMethods;
+        $response['paymentMethodsExtraDetails'] = $paymentMethodsExtraDetails;
+
+        //TODO this should be the implemented with an interface
+        return json_encode($response);
     }
 
     /**
@@ -322,28 +330,6 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
-     * @var array
-     */
-    protected $fieldMapPaymentMethod = [
-        'name' => 'title'
-    ];
-
-    /**
-     * @param $paymentMethod
-     * @return mixed
-     */
-    protected function fieldMapPaymentMethod($paymentMethod)
-    {
-        foreach ($this->fieldMapPaymentMethod as $field => $newField) {
-            if (isset($paymentMethod[$field])) {
-                $paymentMethod[$newField] = $paymentMethod[$field];
-                unset($paymentMethod[$field]);
-            }
-        }
-        return $paymentMethod;
-    }
-
-    /**
      * @param $requestParams
      * @param $store
      * @return array
@@ -351,7 +337,6 @@ class PaymentMethods extends AbstractHelper
      */
     protected function getPaymentMethodsResponse($requestParams, $store)
     {
-
         // initialize the adyen client
         $client = $this->adyenHelper->initializeAdyenClient($store->getId());
 
@@ -401,7 +386,6 @@ class PaymentMethods extends AbstractHelper
      */
     public function getConnectedTerminals()
     {
-
         $storeId = $this->getQuote()->getStoreId();
 
         // initialize the adyen client
