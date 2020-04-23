@@ -20,6 +20,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Observer;
 
 use Magento\Framework\Event\Observer;
@@ -31,45 +32,39 @@ use Magento\Quote\Api\Data\PaymentInterface;
  */
 class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 {
+    //TODO do we need these?
+    const VARIANT = 'variant';
+
+    const STATE_DATA = 'state_data';
+    const STORE_PAYMENT_METHOD = 'storePaymentMethod';
     const CC_TYPE = 'cc_type';
     const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
-    const STORE_CC = 'store_cc';
-    const ENCRYPTED_CREDIT_CARD_NUMBER = 'number';
-    const ENCRYPTED_SECURITY_CODE = 'cvc';
-    const ENCRYPTED_EXPIRY_MONTH = 'expiryMonth';
-    const ENCRYPTED_EXPIRY_YEAR = 'expiryYear';
-    const HOLDER_NAME = 'holderName';
-    const VARIANT = 'variant';
-    const JAVA_ENABLED = 'java_enabled';
-    const SCREEN_COLOR_DEPTH = 'screen_color_depth';
-    const SCREEN_WIDTH = 'screen_width';
-    const SCREEN_HEIGHT = 'screen_height';
-    const TIMEZONE_OFFSET = 'timezone_offset';
-    const LANGUAGE = 'language';
-    const GUEST_EMAIL = 'guestEmail';
     const COMBO_CARD_TYPE = 'combo_card_type';
+    const BROWSER_INFO = 'browserInfo';
+    const PAYMENT_METHOD = 'paymentMethod';
+    const RISK_DATA = 'riskData';
 
     /**
+     * Approved root level keys from additional data array
+     *
      * @var array
      */
-    protected $additionalInformationList = [
-        self::CC_TYPE,
-        self::NUMBER_OF_INSTALLMENTS,
-        self::STORE_CC,
-        self::ENCRYPTED_CREDIT_CARD_NUMBER,
-        self::ENCRYPTED_SECURITY_CODE,
-        self::ENCRYPTED_EXPIRY_MONTH,
-        self::ENCRYPTED_EXPIRY_YEAR,
-        self::HOLDER_NAME,
-        self::VARIANT,
-        self::JAVA_ENABLED,
-        self::SCREEN_COLOR_DEPTH,
-        self::SCREEN_WIDTH,
-        self::SCREEN_HEIGHT,
-        self::TIMEZONE_OFFSET,
-        self::LANGUAGE,
-        self::GUEST_EMAIL,
-        self::COMBO_CARD_TYPE
+    private static $approvedAdditionalDataKeys = [
+        self::STATE_DATA,
+        self::COMBO_CARD_TYPE,
+        self::NUMBER_OF_INSTALLMENTS
+    ];
+
+    /**
+     * Approved root level keys from the checkout component's state data object
+     *
+     * @var array
+     */
+    private static $approvedStateDataKeys = [
+        self::BROWSER_INFO,
+        self::PAYMENT_METHOD,
+        self::RISK_DATA,
+        self::STORE_PAYMENT_METHOD
     ];
 
     /**
@@ -78,27 +73,61 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
      */
     public function execute(Observer $observer)
     {
+        // Get request fields
         $data = $this->readDataArgument($observer);
 
+        // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
         if (!is_array($additionalData)) {
             return;
         }
 
+        // Get a validated additional data array
+        $additionalData = $this->getArrayOnlyWithApprovedKeys($additionalData, self::$approvedAdditionalDataKeys);
+
+        // json decode state data
+        $stateData = [];
+        if (!empty($additionalData[self::STATE_DATA])) {
+            $stateData = json_decode($additionalData[self::STATE_DATA], true);
+        }
+
+        // Get validated state data array
+        if (!empty($stateData)) {
+            $stateData = $this->getArrayOnlyWithApprovedKeys($stateData, self::$approvedStateDataKeys);
+        }
+
+        // Replace state data with the decoded and validated state data
+        $additionalData[self::STATE_DATA] = $stateData;
+
+        // Set additional data in the payment
         $paymentInfo = $this->readPaymentModelArgument($observer);
+        foreach ($additionalData as $key => $data) {
+            $paymentInfo->setAdditionalInformation($key, $data);
+        }
 
         // set ccType
-        if (!empty($additionalData['cc_type'])) {
-            $paymentInfo->setCcType($additionalData['cc_type']);
+        if (!empty($additionalData[self::CC_TYPE])) {
+            $paymentInfo->setCcType($additionalData[self::CC_TYPE]);
         }
+    }
 
-        foreach ($this->additionalInformationList as $additionalInformationKey) {
-            if (isset($additionalData[$additionalInformationKey])) {
-                $paymentInfo->setAdditionalInformation(
-                    $additionalInformationKey,
-                    $additionalData[$additionalInformationKey]
-                );
+    /**
+     * Returns an array with only the approved keys
+     *
+     * @param array $array
+     * @param array $approvedKeys
+     * @return array
+     */
+    private function getArrayOnlyWithApprovedKeys($array, $approvedKeys)
+    {
+        $result = [];
+
+        foreach ($approvedKeys as $approvedKey) {
+            if (isset($array[$approvedKey])) {
+                $result[$approvedKey] = $array[$approvedKey];
             }
         }
+
+        return $result;
     }
 }
