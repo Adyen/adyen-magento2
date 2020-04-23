@@ -71,31 +71,32 @@ define(
                 var self = this;
                 this._super();
 
-                // reset variable:
-                adyenPaymentService.setPaymentMethods();
+                adyenPaymentService.retrieveAvailablePaymentMethods().done(function (response) {
 
-                adyenPaymentService.retrieveAvailablePaymentMethods(function () {
-                    var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
-                    console.log(paymentMethods);
-                    if (!!window.checkoutConfig.payment.adyenHpp) {
+                    var responseJson = JSON.parse(response);
+                    var paymentMethodsResponse = responseJson.paymentMethodsResponse;
+                    var paymentMethods = paymentMethodsResponse.paymentMethods;
+
+                    // TODO check if this is still required or if can be outsourced for the generic component, or checkout can create a ratepay component
+                    /*if (!!window.checkoutConfig.payment.adyenHpp) {
                         if (JSON.stringify(paymentMethods).indexOf("ratepay") > -1) {
-                            var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
-                            var dfValueRatePay = self.getRatePayDeviceIdentToken();
 
-                            window.di = {
-                                t: dfValueRatePay.replace(':', ''),
-                                v: ratePayId,
-                                l: 'Checkout'
-                            };
+                          var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
+                           var dfValueRatePay = self.getRatePayDeviceIdentToken();
 
-                            // Load Ratepay script
-                            var ratepayScriptTag = document.createElement('script');
-                            ratepayScriptTag.src = "//d.ratepay.com/" + ratePayId + "/di.js";
-                            ratepayScriptTag.type = "text/javascript";
-                            document.body.appendChild(ratepayScriptTag);
+                           window.di = {
+                               t: dfValueRatePay.replace(':', ''),
+                               v: ratePayId,
+                               l: 'Checkout'
+                           };
+
+                           // Load Ratepay script
+                           var ratepayScriptTag = document.createElement('script');
+                           ratepayScriptTag.src = "//d.ratepay.com/" + ratePayId + "/di.js";
+                           ratepayScriptTag.type = "text/javascript";
+                           document.body.appendChild(ratepayScriptTag);
                         }
-                    }
-                });
+                    }*/
 
                     // Initialises adyen checkout main component with default configuration
                     adyenPaymentService.initCheckoutComponent(
