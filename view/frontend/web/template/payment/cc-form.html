@@ -92,7 +92,7 @@
                 <!-- /ko -->
 
                 <div class="field number cardContainerField">
-                    <div class="checkout-component-dock" afterRender="renderSecureFields()" data-bind="attr: { id: 'cardContainer'}"></div>
+                    <div class="checkout-component-dock" afterRender="renderCardComponent()" data-bind="attr: { id: 'cardContainer'}"></div>
                 </div>
 
                 <div id="threeDS2Wrapper">
@@ -100,34 +100,6 @@
                         <div id="threeDS2Container"></div>
                     </div>
                 </div>
-
-
-                <!-- ko if: (hasInstallments())-->
-
-                <div class="field required"
-                     data-bind="attr: {id: getCode() + '_installments_div'}, visible: installments().length > 0">
-                    <label data-bind="attr: {for: getCode() + '_installments'}" class="label">
-                        <span><!-- ko text: $t('Installments')--><!-- /ko --></span>
-                    </label>
-                    <div class="control">
-
-                        <select class="select"
-                                name="payment[number_of_installments]"
-                                data-bind="attr: {id: getCode() + '_installments', 'data-container': getCode() + '-installments', 'data-validate': JSON.stringify({required:false})},
-
-                                        enable: isActive($parents),
-                                        options: installments,
-                                        optionsValue: 'value',
-                                        optionsText: 'key',
-                                        optionsCaption: $t('Do not use Installments'),
-                                        value: installment"
-                                data-validate="{required:true}">
-                        </select>
-                    </div>
-                </div>
-
-
-                <!-- /ko -->
 
                 <!-- ko if: (isVaultEnabled())-->
                 <div class="field choice">
