@@ -464,13 +464,7 @@ define(
                 return window.checkoutConfig.payment.adyenCc.methodCode;
             },
             getOriginKey: function () {
-                return window.checkoutConfig.payment.adyenCc.originKey;
-            },
-            getCheckoutEnvironment: function () {
-                return window.checkoutConfig.payment.adyenCc.checkoutEnvironment;
-            },
-            getLocale: function () {
-                return window.checkoutConfig.payment.adyenCc.locale;
+                return adyenConfiguration.getOriginKey;
             },
             isActive: function () {
                 return true;

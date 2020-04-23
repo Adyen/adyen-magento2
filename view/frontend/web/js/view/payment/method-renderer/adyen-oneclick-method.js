@@ -600,15 +600,6 @@ define(
             hasVerification: function () {
                 return window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction;
             },
-            getLocale: function () {
-                return window.checkoutConfig.payment.adyenOneclick.locale;
-            },
-            getOriginKey: function () {
-                return window.checkoutConfig.payment.adyenOneclick.originKey;
-            },
-            getCheckoutEnvironment: function () {
-                return window.checkoutConfig.payment.adyenOneclick.checkoutEnvironment;
-            }
         });
     }
 );
