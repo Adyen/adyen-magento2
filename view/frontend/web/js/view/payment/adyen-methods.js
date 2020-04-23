@@ -25,12 +25,14 @@ define(
     [
         'uiComponent',
         'Magento_Checkout/js/model/payment/renderer-list',
-        'Adyen_Payment/js/model/adyen-payment-service'
+        'Adyen_Payment/js/model/adyen-payment-service',
+        'Adyen_Payment/js/model/adyen-configuration'
     ],
     function (
         Component,
         rendererList,
-        adyenPaymentService
+        adyenPaymentService,
+        adyenConfiguration
     ) {
         'use strict';
         rendererList.push(
@@ -95,12 +97,14 @@ define(
                     }
                 });
 
-                // include checkout card component javascript
-                var checkoutCardComponentScriptTag = document.createElement('script');
-                checkoutCardComponentScriptTag.id = "AdyenCheckoutCardComponentScript";
-                checkoutCardComponentScriptTag.src = self.getCheckoutCardComponentSource();
-                checkoutCardComponentScriptTag.type = "text/javascript";
-                document.head.appendChild(checkoutCardComponentScriptTag);
+                    // Initialises adyen checkout main component with default configuration
+                    adyenPaymentService.initCheckoutComponent(
+                        paymentMethodsResponse,
+                        adyenConfiguration.getOriginKey(),
+                        adyenConfiguration.getLocale(),
+                        adyenConfiguration.getCheckoutEnvironment()
+                    );
+                })
 
                 if (this.isGooglePayEnabled()) {
                     var googlepayscript = document.createElement('script');
@@ -109,15 +113,12 @@ define(
                     document.head.appendChild(googlepayscript);
                 }
             },
-            getCheckoutCardComponentSource: function() {
-                return window.checkoutConfig.payment.checkoutCardComponentSource;
-            },
             isGooglePayEnabled: function() {
                 return window.checkoutConfig.payment.adyenGooglePay.active;
             },
             getRatePayDeviceIdentToken: function () {
                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
-            },
+            }
         });
     }
 );

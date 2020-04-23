@@ -9,11 +9,12 @@ define(
         'Adyen_Payment/js/model/adyen-method-list',
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/url-builder',
-        'mage/storage'
+        'mage/storage',
+        'Adyen_Payment/js/bundle',
     ],
     function (_, quote, methodList, customer, urlBuilder, storage) {
         'use strict';
-
+        var checkoutComponent = {};
         return {
             /**
              * Populate the list of payment methods
@@ -75,6 +76,17 @@ define(
                 });
 
                 return storage.get(serviceUrl);
+            },
+            initCheckoutComponent: function(paymentMethodsResponse, originKey, locale, environment, ) {
+                checkoutComponent = new AdyenCheckout({
+                    locale: locale,
+                    originKey: originKey,
+                    environment: environment,
+                    paymentMethodsResponse: paymentMethodsResponse,
+                });
+            },
+            getCheckoutComponent: function() {
+                return checkoutComponent;
             }
         };
     }

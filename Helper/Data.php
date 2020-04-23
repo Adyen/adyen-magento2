@@ -34,8 +34,6 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
-    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
-    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -1601,19 +1599,6 @@ class Data extends AbstractHelper
     private function createAdyenCheckoutUtilityService($client)
     {
         return new \Adyen\Service\CheckoutUtility($client);
-    }
-
-    /**
-     * @param int|null $storeId
-     * @return string
-     */
-    public function getCheckoutCardComponentJs($storeId = null)
-    {
-        if ($this->isDemoMode($storeId)) {
-            return self::CHECKOUT_COMPONENT_JS_TEST;
-        }
-
-        return self::CHECKOUT_COMPONENT_JS_LIVE;
     }
 
     /**
