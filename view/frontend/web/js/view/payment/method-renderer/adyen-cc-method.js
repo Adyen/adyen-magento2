@@ -124,12 +124,11 @@ define(
                 // TODO get config from admin configuration
                 installmentsConfiguration = '[[0,2,3],[2,3,3]]'; // DUmmy data for testing
 
-                var placeOrderAllowed = self.placeOrderAllowed.bind(this);
+                var placeOrderAllowed = self.placeOrderAllowed.bind(self);
 
                 function handleOnChange(state, component) {
                     if (!!state.isValid) {
-                        console.log(state.data);
-                        this.stateData = state.data;
+                        self.stateData = state.data;
                         placeOrderAllowed(true);
                     } else {
                         placeOrderAllowed(false);
@@ -164,10 +163,9 @@ define(
                 var self = this;
 
                 // Handle identify shopper action
-                if (action.type == 'IdentifyShopper') {
+                if (action.type == 'threeDS2Fingerprint') {
                     var configuration = {
-                        onComplete: function (result) {
-                            self.threeDS2IdentifyComponent.unmount();
+                        onAdditionalDetails: function (result) {
                             var request = result.data;
                             request.orderId = orderId;
                             adyenPaymentService.processThreeDS2(request).done(function (responseJSON) {
@@ -182,7 +180,7 @@ define(
                 }
 
                 // Handle challenge shopper action
-                if (action.type == "ChallengeShopper") {
+                if (action.type == "threeDS2Challenge") {
                     fullScreenLoader.stopLoader();
 
                     var popupModal = $('#threeDS2Modal').modal({
@@ -199,8 +197,7 @@ define(
 
                     var configuration = {
                         size: '05',
-                        onComplete: function (result) {
-                            self.threeDS2ChallengeComponent.unmount();
+                        onAdditionalDetails: function (result) {
                             self.closeModal(popupModal);
                             fullScreenLoader.startLoader();
                             var request = result.data;
@@ -217,7 +214,6 @@ define(
                 }
 
                 self.checkoutComponent.createFromAction(action, configuration).mount('#threeDS2Container');
-
             },
             /**
              * This method is a workaround to close the modal in the right way and reconstruct the threeDS2Modal.
@@ -243,7 +239,8 @@ define(
                     'method': this.item.method,
                     additional_data: {
                         'state_data': JSON.stringify(this.stateData),
-                        'combo_card_type': this.comboCardOption()
+                        'combo_card_type': this.comboCardOption(),
+                        'channel': 'Web' //TODO pass channel from frontend
                     }
                 };
                 this.vaultEnabler.visitAdditionalData(data);
@@ -302,9 +299,12 @@ define(
                 var self = this;
                 var response = JSON.parse(responseJSON);
 
-                if (!!response.threeDS2) {
+                if (!!response.type && (
+                    response.type == "threeDS2Fingerprint" ||
+                    response.type == "threeDS2Challenge"
+                )) {
                     // render component
-                    self.renderThreeDS2Component(response.type, response.token, orderId);
+                    self.renderThreeDS2Component(response, orderId);
                 } else {
                     window.location.replace(url.build(
                         window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl)
@@ -324,19 +324,6 @@ define(
                 var validate = $(form).validation() && $(form).validation('isValid');
 
                 if (!validate) {
-                    return false;
-                }
-
-                return true;
-            },
-            /**
-             * Validates if the typed in card holder is valid
-             * - length validation, can not be empty
-             *
-             * @returns {boolean}
-             */
-            isCardOwnerValid: function () {
-                if (this.creditCardOwner().length == 0) {
                     return false;
                 }
 

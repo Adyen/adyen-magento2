@@ -76,6 +76,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
     public function initiate($payload)
     {
         // Decode payload from frontend
+        // TODO implement interface to handle the request the correct way
         $payload = json_decode($payload, true);
 
         // Validate JSON that has just been parsed if it was in a valid format
@@ -83,6 +84,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed because the request was not a valid JSON'));
         }
 
+        // Validate if order id is present
         if (empty($payload['orderId'])) {
             throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed because of a missing order id'));
         }
@@ -91,28 +93,16 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         $order = $this->orderFactory->create()->load($payload['orderId']);
         $payment = $order->getPayment();
 
+
+
+        // Unset action from additional info since it is not needed anymore
+        $payment->unsAdditionalInformation("action");
+
+        // TODO validate and format the request root level keys
+        $request = $payload;
+
         // Init payments/details request
         $result = [];
-
-        if ($paymentData = $payment->getAdditionalInformation("threeDS2PaymentData")) {
-            // Add payment data into the request object
-            $request = [
-                "paymentData" => $payment->getAdditionalInformation("threeDS2PaymentData")
-            ];
-
-            // unset payment data from additional information
-            $payment->unsAdditionalInformation("threeDS2PaymentData");
-        } else {
-            $this->adyenLogger->error("3D secure 2.0 failed, payment data not found");
-            throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed, payment data not found'));
-        }
-
-        // Depends on the component's response we send a fingerprint or the challenge result
-        if (!empty($payload['details']['threeds2.fingerprint'])) {
-            $request['details']['threeds2.fingerprint'] = $payload['details']['threeds2.fingerprint'];
-        } elseif (!empty($payload['details']['threeds2.challengeResult'])) {
-            $request['details']['threeds2.challengeResult'] = $payload['details']['threeds2.challengeResult'];
-        }
 
         // Send the request
         try {
@@ -128,9 +118,9 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         // Check if result is challenge shopper, if yes return the token
         if (!empty($result['resultCode']) &&
             $result['resultCode'] === 'ChallengeShopper' &&
-            !empty($result['authentication']['threeds2.challengeToken'])
+            !empty($result['action'])
         ) {
-            return $this->adyenHelper->buildThreeDS2ProcessResponseJson($result['resultCode'], $result['authentication']['threeds2.challengeToken']);
+            return json_encode($result['action']);
         }
 
         // Save the payments response because we are going to need it during the place order flow

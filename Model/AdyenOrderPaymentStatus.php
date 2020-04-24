@@ -75,18 +75,11 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
         ) {
             $additionalInformation = $payment->getAdditionalInformation();
 
-            $type = null;
-            if (!empty($additionalInformation['threeDSType'])) {
-                $type = $additionalInformation['threeDSType'];
+            if (!empty($additionalInformation['action'])) {
+                return json_encode($additionalInformation['action']);
             }
-
-            $token = null;
-            if (!empty($additionalInformation['threeDS2Token'])) {
-                $token = $additionalInformation['threeDS2Token'];
-            }
-
-            return $this->adyenHelper->buildThreeDS2ProcessResponseJson($type, $token);
         }
+        
         return true;
     }
 }
