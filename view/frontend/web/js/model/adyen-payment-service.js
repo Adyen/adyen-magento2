@@ -19,8 +19,6 @@ define(
              * Retrieve the list of available payment methods from the server
              */
             retrieveAvailablePaymentMethods: function () {
-                var self = this;
-
                 // retrieve payment methods
                 var serviceUrl,
                     payload;

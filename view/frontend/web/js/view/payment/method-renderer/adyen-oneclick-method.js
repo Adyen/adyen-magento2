@@ -73,7 +73,6 @@ define(
         var recurringDetailReference = ko.observable(null);
         var variant = ko.observable(null);
         var paymentMethod = ko.observable(null);
-        var numberOfInstallments = ko.observable(null);
         var isValid = ko.observable(false);
 
         return Component.extend({
@@ -81,7 +80,6 @@ define(
                 template: 'Adyen_Payment/payment/oneclick-form',
                 recurringDetailReference: '',
                 variant: '',
-                numberOfInstallments: '',
                 checkoutComponent: {},
                 storedPayments: []
             },
@@ -90,8 +88,7 @@ define(
                     .observe([
                         'recurringDetailReference',
                         'creditCardType',
-                        'variant',
-                        'numberOfInstallments'
+                        'variant'
                     ]);
                 return this;
             },
@@ -231,7 +228,7 @@ define(
                                 }
                             });
 
-                            var oneClickCard = self.checkoutComponent
+                            self.checkoutComponent
                                 .create(storedPayment.type, configuration)
                                 .mount('#storedPaymentContainer-' + self.value);
                         },

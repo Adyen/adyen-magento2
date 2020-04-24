@@ -68,15 +68,13 @@ define(
         /** Add view logic here if needed */
         return Component.extend({
             initialize: function () {
-                var self = this;
                 this._super();
 
                 adyenPaymentService.retrieveAvailablePaymentMethods().done(function (response) {
 
                     var responseJson = JSON.parse(response);
                     var paymentMethodsResponse = responseJson.paymentMethodsResponse;
-                    var paymentMethods = paymentMethodsResponse.paymentMethods;
-
+                    
                     // TODO check if this is still required or if can be outsourced for the generic component, or checkout can create a ratepay component
                     /*if (!!window.checkoutConfig.payment.adyenHpp) {
                         if (JSON.stringify(paymentMethods).indexOf("ratepay") > -1) {
