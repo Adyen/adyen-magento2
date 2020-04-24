@@ -69,15 +69,9 @@ class CheckoutResponseValidator extends AbstractValidator
         // validate result
         if (!empty($response['resultCode'])) {
             switch ($response['resultCode']) {
-                case "IdentifyShopper":
-                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
-                    $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.fingerprintToken']);
-                    $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
-                    break;
                 case "ChallengeShopper":
-                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
-                    $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.challengeToken']);
-                    $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
+                case "IdentifyShopper":
+                    $payment->setAdditionalInformation('action', $response['action']);
                     break;
                 case "Authorised":
                 case "Received":

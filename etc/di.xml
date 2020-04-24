@@ -557,7 +557,7 @@
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
-                <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CcAuthorizationDataBuilder</item>
+                <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CheckoutDataBuilder</item>
                 <item name="vault" xsi:type="string">Adyen\Payment\Gateway\Request\VaultDataBuilder</item>
                 <item name="threeds2" xsi:type="string">Adyen\Payment\Gateway\Request\ThreeDS2DataBuilder</item>
             </argument>
