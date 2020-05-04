@@ -63,9 +63,8 @@ class GooglePayAuthorizationDataBuilder implements BuilderInterface
         $requestBody['paymentMethod']['type'] = 'paywithgoogle';
         // get payment data
         if ($token) {
-            $parsedToken = json_decode($token);
             try {
-                $requestBody['paymentMethod']['paywithgoogle.token'] = $parsedToken;
+                $requestBody['paymentMethod']['paywithgoogle.token'] = $token;
             } catch (\Exception $exception) {
                 $this->adyenLogger->addAdyenDebug("exception: " . $exception->getMessage());
             }
