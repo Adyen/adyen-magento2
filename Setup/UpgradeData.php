@@ -30,6 +30,9 @@ use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Class UpgradeData
@@ -53,12 +56,19 @@ class UpgradeData implements UpgradeDataInterface
      */
     private $configDataTable;
 
+    /**
+     * @var StoreManagerInterface $storeManager
+     */
+    private $storeManager;
+
     public function __construct(
         WriterInterface $configWriter,
-        ReinitableConfigInterface $reinitableConfig
+        ReinitableConfigInterface $reinitableConfig,
+        StoreManagerInterface $storeManager
     ) {
         $this->configWriter = $configWriter;
         $this->reinitableConfig = $reinitableConfig;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -73,7 +83,7 @@ class UpgradeData implements UpgradeDataInterface
             $this->updateSchemaVersion244($setup);
         }
 
-        if (version_compare($context->getVersion(), '6.0.0', '<')) {
+        if ($context->getVersion() && version_compare($context->getVersion(), '6.0.0', '<')) {
             $this->updateDataVersion600($setup);
         }
 
@@ -190,6 +200,8 @@ class UpgradeData implements UpgradeDataInterface
         $this->setShopperCountry($connection);
 
         $this->setLocalPaymentMethodsRecurringInformation($connection);
+
+        $this->setPaymentCaptureVirtualProducts($connection);
 
         $this->reinitableConfig->reinit();
 
@@ -365,4 +377,76 @@ class UpgradeData implements UpgradeDataInterface
             );
         }
     }
+
+    /**
+     * On version 6.0.0 we set a default value for payment_authorized_virtual.
+     * Instances where this config was not previously configured should remain unset (null)
+     *
+     * @param AdapterInterface $connection
+     */
+    private function setPaymentCaptureVirtualProducts(AdapterInterface $connection)
+    {
+
+        $pathPaymentCaptureVirtualProducts = 'payment/adyen_abstract/payment_authorized_virtual';
+
+        /*
+         * Looping through all stores that could have a value for this configuration field.
+         * If there's no configuration for a given scope then a null value is set to avoid the new 'complete' default.
+         * The default scope is then checked as well.
+         */
+        $stores = $this->storeManager->getStores();
+        $scopes = [];
+        foreach ($stores as $store) {
+
+            $select = $connection->select()
+                ->from($this->configDataTable)
+                ->where('path = ?', $pathPaymentCaptureVirtualProducts)
+                ->where('scope = ?', ScopeInterface::SCOPE_WEBSITES)
+                ->where('scope_id = ?', $store->getWebsiteId());
+
+            $paymentCaptureVirtualProductConfList = $connection->fetchAll($select);
+
+            if (count($paymentCaptureVirtualProductConfList) == 0) {
+                $this->configWriter->save(
+                    $pathPaymentCaptureVirtualProducts,
+                    null,
+                    ScopeInterface::SCOPE_WEBSITES,
+                    $store->getWebsiteId()
+                );
+            }
+
+            $select = $connection->select()
+                ->from($this->configDataTable)
+                ->where('path = ?', $pathPaymentCaptureVirtualProducts)
+                ->where('scope = ?', ScopeInterface::SCOPE_STORES)
+                ->where('scope_id = ?', $store->getId());
+
+            $paymentCaptureVirtualProductConfList = $connection->fetchAll($select);
+
+            if (count($paymentCaptureVirtualProductConfList) == 0) {
+                $this->configWriter->save(
+                    $pathPaymentCaptureVirtualProducts,
+                    null,
+                    ScopeInterface::SCOPE_STORES,
+                    $store->getId()
+                );
+            }
+        }
+
+        $select = $connection->select()
+            ->from($this->configDataTable)
+            ->where('path = ?', $pathPaymentCaptureVirtualProducts)
+            ->where('scope = ?', ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
+        $paymentCaptureVirtualProductConfList = $connection->fetchAll($select);
+
+        if (count($paymentCaptureVirtualProductConfList) == 0) {
+            $this->configWriter->save(
+                $pathPaymentCaptureVirtualProducts,
+                null,
+                ScopeConfigInterface::SCOPE_TYPE_DEFAULT
+            );
+        }
+
+    }
+
 }
