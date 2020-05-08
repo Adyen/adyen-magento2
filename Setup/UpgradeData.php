@@ -395,7 +395,6 @@ class UpgradeData implements UpgradeDataInterface
          * The default scope is then checked as well.
          */
         $stores = $this->storeManager->getStores();
-        $scopes = [];
         foreach ($stores as $store) {
 
             $select = $connection->select()
