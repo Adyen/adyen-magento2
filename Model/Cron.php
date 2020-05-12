@@ -839,7 +839,7 @@ class Cron
     protected function _holdCancelOrder($ignoreHasInvoice)
     {
         if (!$this->configHelper->getNotificationsCanCancel($this->_order->getStoreId())) {
-            $this->_adyenLogger->addAdyenNotificationCronjob('Order can not be canceled based on the plugin configuration');
+            $this->_adyenLogger->addAdyenNotificationCronjob('Order cannot be canceled based on the plugin configuration');
             return;
         }
 
