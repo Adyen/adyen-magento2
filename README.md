@@ -50,7 +50,7 @@ We have defined this:
 ```
 
 ## Support
-You can create issues on our Magento Repository. In case of specific problems with your account, please contact  <a href="mailto:support@adyen.com">support@adyen.com</a>.
+If you have a feature request, or spotted a bug or a technical problem, create a GitHub issue. For other questions, contact our [support team](https://support.adyen.com/hc/en-us/requests/new?ticket_form_id=360000705420).
 
 ## API Library
 This module is using the Adyen APIs Library for PHP for all (API) connections to Adyen.
