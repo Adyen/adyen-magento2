@@ -77,7 +77,7 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
         $this->serializer = $serializer;
-        
+
         // Fix for Magento2.3 adding isAjax to the request params
         if(interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
             $request = $this->getRequest();
@@ -272,24 +272,24 @@ class Json extends \Magento\Framework\App\Action\Action
         }
 
         // validate username and password
-        if ((!isset($_SERVER['PHP_AUTH_USER']) && !isset($_SERVER['PHP_AUTH_PW']))) {
+        if ((!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW']))) {
             if ($this->_isTestNotification($response['pspReference'])) {
                 $this->_returnResult(
-                    'Authentication failed: PHP_AUTH_USER and PHP_AUTH_PW are empty. See Adyen Magento manual CGI mode'
+                    'Authentication failed: PHP_AUTH_USER and/or PHP_AUTH_PW are empty. See Adyen Magento manual CGI mode'
                 );
             }
             return false;
         }
 
-        $usernameCmp = strcmp($_SERVER['PHP_AUTH_USER'], $username);
-        $passwordCmp = strcmp($_SERVER['PHP_AUTH_PW'], $password);
-        if ($usernameCmp === 0 && $passwordCmp === 0) {
+        $usernameIsValid = hash_equals($username, $_SERVER['PHP_AUTH_USER']);
+        $passwordIsValid = hash_equals($password, $_SERVER['PHP_AUTH_PW']);
+        if ($usernameIsValid && $passwordIsValid) {
             return true;
         }
 
         // If notification is test check if fields are correct if not return error
         if ($this->_isTestNotification($response['pspReference'])) {
-            if ($usernameCmp != 0 || $passwordCmp != 0) {
+            if (!$usernameIsValid || !$passwordIsValid) {
                 $this->_returnResult(
                     'username (PHP_AUTH_USER) and\or password (PHP_AUTH_PW) are not the same as Magento settings'
                 );
