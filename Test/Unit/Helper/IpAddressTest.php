@@ -52,7 +52,7 @@ class IpAddressTest extends \PHPUnit\Framework\TestCase
 
     public function testIsIpAddressValid()
     {
-        $this->assertIsBool($this->ipAddressHelper->isIpAddressValid([gethostbyname('outgoing1.adyen.com')]));
+        $this->assertTrue(is_bool($this->ipAddressHelper->isIpAddressValid([gethostbyname('outgoing1.adyen.com')])));
     }
 
     public function testUpdateCachedIpAddresses()
@@ -67,7 +67,7 @@ class IpAddressTest extends \PHPUnit\Framework\TestCase
 
     public function testGetIpAddressesFromCache()
     {
-        $this->assertIsArray($this->ipAddressHelper->getIpAddressesFromCache());
+        $this->assertTrue(is_array($this->ipAddressHelper->getIpAddressesFromCache()));
     }
 
 }
