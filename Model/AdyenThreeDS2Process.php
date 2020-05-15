@@ -84,11 +84,14 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         }
 
         if (empty($payload['orderId'])) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed because of a missing order id'));
+            $order = $this->getOrder();
+            // In the next major release remove support for retrieving order from session and throw exception instead
+            //throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed because of a missing order id'));
+        } else {
+            // Create order by order id
+            $order = $this->orderFactory->create()->load($payload['orderId']);
         }
 
-        // Create order by order id
-        $order = $this->orderFactory->create()->load($payload['orderId']);
         $payment = $order->getPayment();
 
         // Init payments/details request
@@ -156,5 +159,19 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
 
         $response['result'] = $result['resultCode'];
         return json_encode($response);
+    }
+
+    /**
+     * Get order object
+     *
+     * @return \Magento\Sales\Model\Order
+     * @deprecated Will be removed in 7.0.0
+     */
+    protected function getOrder()
+    {
+        $incrementId = $this->checkoutSession->getLastRealOrderId();
+        $order = $this->orderFactory->create()->loadByIncrementId($incrementId);
+
+        return $order;
     }
 }
