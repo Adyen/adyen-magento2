@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -16,19 +15,35 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
-    <group id="adyen_payment">
-        <job name="adyen_payment_process_notification" instance="Adyen\Payment\Model\Cron" method="processNotification">
-            <schedule>*/1 * * * *</schedule>
-        </job>
-        <job name="adyen_payment_server_address_caching" instance="Adyen\Payment\Cron\ServerIpAddress" method="execute">
-            <schedule>*/1 * * * *</schedule>
-        </job>
-    </group>
-</config>
+
+namespace Adyen\Payment\Cron;
+
+use Adyen\Payment\Helper\IpAddress;
+
+class ServerIpAddress
+{
+
+    /**
+     * @var IpAddress $ipAddressHelper
+     */
+    protected $ipAddressHelper;
+
+    public function __construct(
+        IpAddress $ipAddressHelper
+    ) {
+        $this->ipAddressHelper = $ipAddressHelper;
+    }
+
+    public function execute()
+    {
+        //Check if there are already verified IP addresses in cache and refresh when empty
+        if (empty($this->ipAddressHelper->getIpAddressesFromCache())) {
+            $this->ipAddressHelper->updateCachedIpAddresses();
+        }
+    }
+}
