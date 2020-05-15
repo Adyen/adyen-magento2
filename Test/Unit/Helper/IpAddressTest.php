@@ -69,5 +69,4 @@ class IpAddressTest extends \PHPUnit\Framework\TestCase
     {
         $this->assertTrue(is_array($this->ipAddressHelper->getIpAddressesFromCache()));
     }
-
 }
