@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Util\IpAddress as IpAddressUtil;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 
@@ -53,24 +54,32 @@ class IpAddress
     private $serializer;
 
     /**
+     * @var AdyenLogger $adyenLogger
+     */
+    protected $adyenLogger;
+
+    /**
      * IpAddress constructor.
      *
      * @param IpAddressUtil $ipAddressUtil
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         IpAddressUtil $ipAddressUtil,
         CacheInterface $cache,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        AdyenLogger $adyenLogger
     ) {
         $this->ipAddressUtil = $ipAddressUtil;
         $this->cache = $cache;
         $this->serializer = $serializer;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
-     * Checks if the provided array of IPs addresses has been validated before and updates the cache accordingly
+     * Checks if the provided array of IPs addresses has been validated
      *
      * @param string[] $ipAddresses
      * @param bool $fullCacheKeyUpdate
@@ -83,6 +92,13 @@ class IpAddress
         }
 
         $cachedIpsArray = $this->getIpAddressesFromCache();
+
+        if (empty($cachedIpsArray)) {
+            $this->adyenLogger->addAdyenDebug(
+                'There are no verified Adyen IP addresses in cache. IP records will be updated on cron run.'
+            );
+            return false;
+        }
 
         foreach ($ipAddresses as $ipAddress) {
             //If the IP is already cached return true
