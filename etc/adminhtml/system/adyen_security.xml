@@ -32,7 +32,7 @@
             <config_path>payment/adyen_abstract/notifications_ip_hmac_check</config_path>
             <comment>
                 <![CDATA[
-                If enabled notifications will be accepted only if the IP address matches Adyen's servers and the HMAC
+                Enabled notifications will be accepted only if the IP address matches Adyen's servers and the HMAC
                 signature is verified. To learn more about these settings refer to
                 <a target="_blank" href="https://docs.adyen.com/plugins/magento-2/set-up-the-plugin-in-magento">Adyen documentation</a>.
                 ]]>
