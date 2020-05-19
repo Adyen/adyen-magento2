@@ -100,6 +100,10 @@ class IpAddressTest extends \PHPUnit\Framework\TestCase
             array(
                 '192.168.100.10',
                 false
+            ),
+            array(
+                '500.168.100.10',
+                false
             )
         );
     }
