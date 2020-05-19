@@ -95,9 +95,9 @@ class IpAddress
 
         if (empty($cachedIpsArray)) {
             $this->adyenLogger->addAdyenDebug(
-                'There are no verified Adyen IP addresses in cache. IP records will be updated on cron run.'
+                'There are no verified Adyen IP addresses in cache. Updating IP records.'
             );
-            return false;
+            $this->updateCachedIpAddresses();
         }
 
         foreach ($ipAddresses as $ipAddress) {
