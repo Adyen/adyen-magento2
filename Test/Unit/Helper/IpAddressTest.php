@@ -40,19 +40,31 @@ class IpAddressTest extends \PHPUnit\Framework\TestCase
     protected function setUp()
     {
         $cache = $this->getSimpleMock(\Magento\Framework\App\CacheInterface::class);
+        $cache->method('load')->willReturn(
+            array(
+                '1.2.3.4',
+                '20.20.20.20'
+            )
+        );
         $serializer = $this->getSimpleMock(\Magento\Framework\Serialize\SerializerInterface::class);
+        $serializer->method('unserialize')->willReturnArgument(0);
         $ipAddressUtil = $this->getSimpleMock(\Adyen\Util\IpAddress::class);
+        $adyenLogger = $this->getSimpleMock(\Adyen\Payment\Logger\AdyenLogger::class);
 
         $this->ipAddressHelper = new \Adyen\Payment\Helper\IpAddress(
             $ipAddressUtil,
             $cache,
-            $serializer
+            $serializer,
+            $adyenLogger
         );
     }
 
-    public function testIsIpAddressValid()
+    /**
+     * @dataProvider ipAddressesProvider
+     */
+    public function testIsIpAddressValid($ipAddress, $expectedResult)
     {
-        $this->assertTrue(is_bool($this->ipAddressHelper->isIpAddressValid([gethostbyname('outgoing1.adyen.com')])));
+        $this->assertEquals($expectedResult, $this->ipAddressHelper->isIpAddressValid([$ipAddress]));
     }
 
     public function testUpdateCachedIpAddresses()
@@ -68,5 +80,27 @@ class IpAddressTest extends \PHPUnit\Framework\TestCase
     public function testGetIpAddressesFromCache()
     {
         $this->assertTrue(is_array($this->ipAddressHelper->getIpAddressesFromCache()));
+    }
+
+    public static function ipAddressesProvider()
+    {
+        return array(
+            array(
+                '1.2.3.4',
+                true
+            ),
+            array(
+                '20.20.20.20',
+                true
+            ),
+            array(
+                '8.8.8.8',
+                false
+            ),
+            array(
+                '192.168.100.10',
+                false
+            )
+        );
     }
 }
