@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Controller\Process;
 
+use Adyen\Util\HmacSignature;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Magento\Framework\App\Request\Http as Http;
 
@@ -68,6 +69,11 @@ class Json extends \Magento\Framework\App\Action\Action
     protected $ipAddressHelper;
 
     /**
+     * @var HmacSignature
+     */
+    private $hmacSignature;
+
+    /**
      * Json constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -76,6 +82,7 @@ class Json extends \Magento\Framework\App\Action\Action
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      * @param \Adyen\Payment\Helper\Config $configHelper
      * @param \Adyen\Payment\Helper\IpAddress $ipAddressHelper
+     * @param HmacSignature $hmacSignature
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -83,7 +90,8 @@ class Json extends \Magento\Framework\App\Action\Action
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Adyen\Payment\Helper\Config $configHelper,
-        \Adyen\Payment\Helper\IpAddress $ipAddressHelper
+        \Adyen\Payment\Helper\IpAddress $ipAddressHelper,
+        HmacSignature $hmacSignature
     ) {
         parent::__construct($context);
         $this->_objectManager = $context->getObjectManager();
@@ -93,6 +101,7 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->serializer = $serializer;
         $this->configHelper = $configHelper;
         $this->ipAddressHelper = $ipAddressHelper;
+        $this->hmacSignature = $hmacSignature;
 
         // Fix for Magento2.3 adding isAjax to the request params
         if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
@@ -202,6 +211,12 @@ class Json extends \Magento\Framework\App\Action\Action
                 $this->_adyenLogger->addAdyenNotification(
                     "Notification has been rejected because the IP address could not be verified"
                 );
+                return false;
+            }
+
+            //Validate the Hmac calculation
+            if (!$this->hmacSignature->isValidNotificationHMAC($this->configHelper->getNotificationsHmacKey(), $response)) {
+                $this->_adyenLogger->addAdyenNotification('HMAC key validation failed');
                 return false;
             }
         }
