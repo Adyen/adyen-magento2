@@ -58,18 +58,32 @@ class Json extends \Magento\Framework\App\Action\Action
     private $serializer;
 
     /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    protected $configHelper;
+
+    /**
+     * @var \Adyen\Payment\Helper\IpAddress
+     */
+    protected $ipAddressHelper;
+
+    /**
      * Json constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     * @param \Adyen\Payment\Helper\Config $configHelper
+     * @param \Adyen\Payment\Helper\IpAddress $ipAddressHelper
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Magento\Framework\Serialize\SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
+        \Adyen\Payment\Helper\Config $configHelper,
+        \Adyen\Payment\Helper\IpAddress $ipAddressHelper
     ) {
         parent::__construct($context);
         $this->_objectManager = $context->getObjectManager();
@@ -77,9 +91,11 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
         $this->serializer = $serializer;
+        $this->configHelper = $configHelper;
+        $this->ipAddressHelper = $ipAddressHelper;
 
         // Fix for Magento2.3 adding isAjax to the request params
-        if(interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
+        if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
             $request = $this->getRequest();
             if ($request instanceof Http && $request->isPost()) {
                 $request->setParam('isAjax', true);
@@ -180,6 +196,16 @@ class Json extends \Magento\Framework\App\Action\Action
      */
     protected function _processNotification($response, $notificationMode)
     {
+        if ($this->configHelper->getNotificationsIpHmacCheck()) {
+            //Validate if the notification comes from a verified IP
+            if (!$this->isIpValid()) {
+                $this->_adyenLogger->addAdyenNotification(
+                    "Notification has been rejected because the IP address could not be verified"
+                );
+                return false;
+            }
+        }
+
         // validate the notification
         if ($this->authorised($response)) {
 
@@ -296,6 +322,29 @@ class Json extends \Magento\Framework\App\Action\Action
             }
         }
         return false;
+    }
+
+    /**
+     * Checks if any of the possible remote IP address sending the notification is verified and returns the validation result
+     *
+     * @return bool
+     */
+    protected function isIpValid()
+    {
+        $ipAddress = [];
+
+        //Getting remote and possibly forwarded IP addresses
+        if (!empty($_SERVER['REMOTE_ADDR'])) {
+            array_push($ipAddress, $_SERVER['REMOTE_ADDR']);
+        }
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            array_push($ipAddress, $_SERVER['HTTP_X_FORWARDED_FOR']);
+        }
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            array_push($ipAddress, $_SERVER['HTTP_CLIENT_IP']);
+        }
+
+        return $this->ipAddressHelper->isIpAddressValid($ipAddress);
     }
 
     /**

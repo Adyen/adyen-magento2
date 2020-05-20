@@ -27,5 +27,8 @@
         <job name="adyen_payment_process_notification" instance="Adyen\Payment\Model\Cron" method="processNotification">
             <schedule>*/1 * * * *</schedule>
         </job>
+        <job name="adyen_payment_server_address_caching" instance="Adyen\Payment\Cron\ServerIpAddress" method="execute">
+            <schedule>*/1 * * * *</schedule>
+        </job>
     </group>
 </config>

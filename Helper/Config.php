@@ -31,6 +31,7 @@ class Config
     const XML_PAYMENT_PREFIX = "payment";
     const XML_ADYEN_ABSTRACT_PREFIX = "adyen_abstract";
     const XML_NOTIFICATIONS_CAN_CANCEL_FIELD = "notifications_can_cancel";
+    const XML_NOTIFICATIONS_IP_HMAC_CHECK = "notifications_ip_hmac_check";
 
     /**
      * @var Magento\Framework\App\Config\ScopeConfigInterface
@@ -57,6 +58,22 @@ class Config
     {
         return (bool)$this->getConfigData(
             self::XML_NOTIFICATIONS_CAN_CANCEL_FIELD,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId,
+            true
+        );
+    }
+
+    /**
+     * Retrieve flag for notifications_ip_hmac_check
+     *
+     * @param int $storeId
+     * @return bool
+     */
+    public function getNotificationsIpHmacCheck($storeId = null)
+    {
+        return (bool)$this->getConfigData(
+            self::XML_NOTIFICATIONS_IP_HMAC_CHECK,
             self::XML_ADYEN_ABSTRACT_PREFIX,
             $storeId,
             true
