@@ -33,7 +33,8 @@ class Config
     const XML_ADYEN_ABSTRACT_PREFIX = "adyen_abstract";
     const XML_NOTIFICATIONS_CAN_CANCEL_FIELD = "notifications_can_cancel";
     const XML_NOTIFICATIONS_IP_HMAC_CHECK = "notifications_ip_hmac_check";
-    const XML_NOTIFICATIONS_HMAC_KEY = "notification_hmac_key";
+    const XML_NOTIFICATIONS_HMAC_KEY_LIVE = "notification_hmac_key_live";
+    const XML_NOTIFICATIONS_HMAC_KEY_TEST = "notification_hmac_key_test";
 
     /**
      * @var Magento\Framework\App\Config\ScopeConfigInterface
@@ -46,15 +47,24 @@ class Config
     private $encryptor;
 
     /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    private $adyenHelper;
+
+    /**
      * Config constructor.
      * @param Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param EncryptorInterface $encryptor
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        EncryptorInterface $encryptor
+        EncryptorInterface $encryptor,
+        \Adyen\Payment\Helper\Data $adyenHelper
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -97,12 +107,22 @@ class Config
      */
     public function getNotificationsHmacKey($storeId = null)
     {
-        $key = (string)$this->getConfigData(
-            self::XML_NOTIFICATIONS_HMAC_KEY,
-            self::XML_ADYEN_ABSTRACT_PREFIX,
-            $storeId,
-            false
-        );
+        $key = "";
+        if ($this->adyenHelper->isDemoMode($storeId)) {
+            $key = (string)$this->getConfigData(
+                self::XML_NOTIFICATIONS_HMAC_KEY_TEST,
+                self::XML_ADYEN_ABSTRACT_PREFIX,
+                $storeId,
+                false
+            );
+        } else {
+            $key = (string)$this->getConfigData(
+                self::XML_NOTIFICATIONS_HMAC_KEY_LIVE,
+                self::XML_ADYEN_ABSTRACT_PREFIX,
+                $storeId,
+                false
+            );
+        }
         return $this->encryptor->decrypt(trim($key));
     }
     /**
