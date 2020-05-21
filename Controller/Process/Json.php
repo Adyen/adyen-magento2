@@ -218,12 +218,9 @@ class Json extends \Magento\Framework\App\Action\Action
                 //Validate the Hmac calculation
                 if (!$this->hmacSignature->isValidNotificationHMAC($this->configHelper->getNotificationsHmacKey(),
                     $response)) {
-                    $this->_adyenLogger->addAdyenNotification('HMAC key validation failed');
+                    $this->_adyenLogger->addAdyenNotification('HMAC key validation failed '. print_r($response, 1));
                     return false;
                 }
-                $this->_adyenLogger->addAdyenNotification('In the list');
-            }else{
-                $this->_adyenLogger->addAdyenNotification('Event code not in my array');
             }
         }
 
