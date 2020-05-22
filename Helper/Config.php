@@ -35,6 +35,7 @@ class Config
     const XML_NOTIFICATIONS_IP_HMAC_CHECK = "notifications_ip_hmac_check";
     const XML_NOTIFICATIONS_HMAC_KEY_LIVE = "notification_hmac_key_live";
     const XML_NOTIFICATIONS_HMAC_KEY_TEST = "notification_hmac_key_test";
+    const XML_DEMO_MODE = 'demo_mode';
 
     /**
      * @var Magento\Framework\App\Config\ScopeConfigInterface
@@ -124,7 +125,7 @@ class Config
      */
     public function isDemoMode($storeId = null)
     {
-        return $this->getConfigData('demo_mode', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
+        return $this->getConfigData(self::XML_DEMO_MODE, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
     /**
