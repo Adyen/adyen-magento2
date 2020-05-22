@@ -99,7 +99,6 @@ class Config
      */
     public function getNotificationsHmacKey($storeId = null)
     {
-        $key = "";
         if ($this->isDemoMode($storeId)) {
             $key = $this->getConfigData(
                 self::XML_NOTIFICATIONS_HMAC_KEY_TEST,
@@ -125,7 +124,7 @@ class Config
      */
     public function isDemoMode($storeId = null)
     {
-        return $this->getConfigData('demo_mode', 'adyen_abstract', $storeId, true);
+        return $this->getConfigData('demo_mode', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
     /**
