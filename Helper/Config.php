@@ -47,24 +47,16 @@ class Config
     private $encryptor;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    private $adyenHelper;
-
-    /**
      * Config constructor.
      * @param Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param EncryptorInterface $encryptor
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        EncryptorInterface $encryptor,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        EncryptorInterface $encryptor
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
-        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -108,7 +100,7 @@ class Config
     public function getNotificationsHmacKey($storeId = null)
     {
         $key = "";
-        if ($this->adyenHelper->isDemoMode($storeId)) {
+        if ($this->isDemoMode($storeId)) {
             $key = $this->getConfigData(
                 self::XML_NOTIFICATIONS_HMAC_KEY_TEST,
                 self::XML_ADYEN_ABSTRACT_PREFIX,
@@ -125,6 +117,17 @@ class Config
         }
         return $this->encryptor->decrypt(trim($key));
     }
+    /**
+     * Returns true if the enviroment is set to test, false for live
+     *
+     * @param int $storeId
+     * @return bool
+     */
+    public function isDemoMode($storeId = null)
+    {
+        return $this->getConfigData('demo_mode', 'adyen_abstract', $storeId, true);
+    }
+
     /**
      * Retrieve information from payment configuration
      *
