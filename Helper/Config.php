@@ -35,7 +35,6 @@ class Config
     const XML_NOTIFICATIONS_IP_HMAC_CHECK = "notifications_ip_hmac_check";
     const XML_NOTIFICATIONS_HMAC_KEY_LIVE = "notification_hmac_key_live";
     const XML_NOTIFICATIONS_HMAC_KEY_TEST = "notification_hmac_key_test";
-    const XML_DEMO_MODE = 'demo_mode';
 
     /**
      * @var Magento\Framework\App\Config\ScopeConfigInterface
@@ -48,16 +47,24 @@ class Config
     private $encryptor;
 
     /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    private $adyenHelper;
+
+    /**
      * Config constructor.
      * @param Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param EncryptorInterface $encryptor
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        EncryptorInterface $encryptor
+        EncryptorInterface $encryptor,
+        \Adyen\Payment\Helper\Data $adyenHelper
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -100,7 +107,7 @@ class Config
      */
     public function getNotificationsHmacKey($storeId = null)
     {
-        if ($this->isDemoMode($storeId)) {
+        if ($this->adyenHelper->isDemoMode($storeId)) {
             $key = $this->getConfigData(
                 self::XML_NOTIFICATIONS_HMAC_KEY_TEST,
                 self::XML_ADYEN_ABSTRACT_PREFIX,
@@ -117,17 +124,7 @@ class Config
         }
         return $this->encryptor->decrypt(trim($key));
     }
-    /**
-     * Returns true if the enviroment is set to test, false for live
-     *
-     * @param int $storeId
-     * @return bool
-     */
-    public function isDemoMode($storeId = null)
-    {
-        return $this->getConfigData(self::XML_DEMO_MODE, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
-    }
-
+   
     /**
      * Retrieve information from payment configuration
      *
