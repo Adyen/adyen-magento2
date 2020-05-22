@@ -109,14 +109,14 @@ class Config
     {
         $key = "";
         if ($this->adyenHelper->isDemoMode($storeId)) {
-            $key = (string)$this->getConfigData(
+            $key = $this->getConfigData(
                 self::XML_NOTIFICATIONS_HMAC_KEY_TEST,
                 self::XML_ADYEN_ABSTRACT_PREFIX,
                 $storeId,
                 false
             );
         } else {
-            $key = (string)$this->getConfigData(
+            $key = $this->getConfigData(
                 self::XML_NOTIFICATIONS_HMAC_KEY_LIVE,
                 self::XML_ADYEN_ABSTRACT_PREFIX,
                 $storeId,

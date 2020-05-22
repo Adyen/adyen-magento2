@@ -46,7 +46,7 @@
             <tooltip>
                 <![CDATA[
                 Set HMAC key at first on Adyen so new notifications are sent with the key. To learn more about these settings refer to
-                <a target="_blank" href="https://docs.adyen.com/classic-integration/hosted-payment-pages/hmac-signature-calculation#page-introduction">Adyen documentation</a>.
+                <a target="_blank" href="https://docs.adyen.com/development-resources/webhooks/verify-hmac-signatures">Adyen documentation</a>.
                 ]]>
             </tooltip>
         </field>
@@ -58,9 +58,9 @@
             <tooltip>
                 <![CDATA[
                 Set HMAC key at first on Adyen so new notifications are sent with the key. To learn more about these settings refer to
-                <a target="_blank" href="https://docs.adyen.com/classic-integration/hosted-payment-pages/hmac-signature-calculation#page-introduction">Adyen documentation</a>.
+                <a target="_blank" href="https://docs.adyen.com/development-resources/webhooks/verify-hmac-signatures">Adyen documentation</a>.
                 ]]>
             </tooltip>
         </field>
-    </group>
+    </group>v
 </include>
