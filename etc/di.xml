@@ -1075,6 +1075,8 @@
                 <item name="payment/adyen_apple_pay/merchant_identifier_test" xsi:type="string">1</item>
                 <item name="payment/adyen_apple_pay/merchant_identifier_live" xsi:type="string">1</item>
                 <item name="payment/adyen_google_pay/merchant_identifier" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/notification_hmac_key_test" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/notification_hmac_key_live" xsi:type="string">1</item>
             </argument>
         </arguments>
     </type>

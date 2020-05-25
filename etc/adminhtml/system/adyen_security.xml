@@ -38,5 +38,29 @@
                 ]]>
             </comment>
         </field>
+        <field id="notification_hmac_key_test" translate="label" type="text" sortOrder="20" showInDefault="1"
+               showInWebsite="1" showInStore="1">
+            <label>Hmac key test</label>
+            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <config_path>payment/adyen_abstract/notification_hmac_key_test</config_path>
+            <tooltip>
+                <![CDATA[
+                Set HMAC key at first on Adyen so new notifications are sent with the key. To learn more about these settings refer to
+                <a target="_blank" href="https://docs.adyen.com/development-resources/webhooks/verify-hmac-signatures">Adyen documentation</a>.
+                ]]>
+            </tooltip>
+        </field>
+        <field id="notification_hmac_key_live" translate="label" type="text" sortOrder="30" showInDefault="1"
+               showInWebsite="1" showInStore="1">
+            <label>Hmac key live</label>
+            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <config_path>payment/adyen_abstract/notification_hmac_key_live</config_path>
+            <tooltip>
+                <![CDATA[
+                Set HMAC key at first on Adyen so new notifications are sent with the key. To learn more about these settings refer to
+                <a target="_blank" href="https://docs.adyen.com/development-resources/webhooks/verify-hmac-signatures">Adyen documentation</a>.
+                ]]>
+            </tooltip>
+        </field>
     </group>
 </include>
