@@ -236,6 +236,11 @@ class Cron
     private $timezone;
 
     /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    protected $configHelper;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -282,7 +287,8 @@ class Cron
         \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Magento\Framework\Notification\NotifierInterface $notifierPool,
-        \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezone
+        \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezone,
+        \Adyen\Payment\Helper\Config $configHelper
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -307,6 +313,7 @@ class Cron
         $this->serializer = $serializer;
         $this->notifierPool = $notifierPool;
         $this->timezone = $timezone;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -432,7 +439,9 @@ class Cron
                                 $this->_eventCode == Notification::ORDER_CLOSED
                             ) {
                                 // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
-                                if ($this->_order->getState() === \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW) {
+                                if ($this->_order->getState() === \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW &&
+                                    $this->configHelper->getNotificationsCanCancel($this->_order->getStoreId())
+                                ) {
                                     $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
                                 }
                                 $this->_holdCancelOrder(false);
@@ -829,6 +838,11 @@ class Cron
      */
     protected function _holdCancelOrder($ignoreHasInvoice)
     {
+        if (!$this->configHelper->getNotificationsCanCancel($this->_order->getStoreId())) {
+            $this->_adyenLogger->addAdyenNotificationCronjob('Order cannot be canceled based on the plugin configuration');
+            return;
+        }
+
         $orderStatus = $this->_getConfigData(
             'payment_cancelled',
             'adyen_abstract',
@@ -992,7 +1006,7 @@ class Cron
                     break;
                 }
 
-                if (!$this->_order->canCancel()) {
+                if (!$this->_order->canCancel() && $this->configHelper->getNotificationsCanCancel($this->_order->getStoreId())) {
                     // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
                     $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
                 }
@@ -1951,7 +1965,9 @@ class Cron
     private function addNotificationErrorComment($errorMessage)
     {
         $comment = __('The order failed to update: %1', $errorMessage);
-        $this->_order->addStatusHistoryComment($comment);
-        $this->_order->save();
+        if ($this->_order) {
+            $this->_order->addStatusHistoryComment($comment);
+            $this->_order->save();
+        }
     }
 }

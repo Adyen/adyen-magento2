@@ -114,27 +114,26 @@
                 <!-- /ko -->
 
             </fieldset>
-        </form>
 
-        <div class="checkout-agreements-block">
-            <!-- ko foreach: $parent.getRegion('before-place-order') -->
-            <!-- ko template: getTemplate() --><!-- /ko -->
-            <!--/ko-->
-        </div>
-
-
-        <div class="actions-toolbar">
-            <div class="primary">
-                <button class="action primary checkout"
-                        type="submit"
-                        data-bind="click: placeOrder,
-                        attr: {title: $t('Place Order')},
-                        enable: isButtonActive()"
-                        disabled>
-                    <span data-bind="text: $t('Place Order')"></span>
-                </button>
+            <div class="checkout-agreements-block">
+                <!-- ko foreach: $parent.getRegion('before-place-order') -->
+                <!-- ko template: getTemplate() --><!-- /ko -->
+                <!--/ko-->
             </div>
-        </div>
+
+            <div class="actions-toolbar">
+                <div class="primary">
+                    <button class="action primary checkout"
+                            type="submit"
+                            data-bind="click: placeOrder,
+                            attr: {title: $t('Place Order')},
+                            enable: isButtonActive()"
+                            disabled>
+                        <span data-bind="text: $t('Place Order')"></span>
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 

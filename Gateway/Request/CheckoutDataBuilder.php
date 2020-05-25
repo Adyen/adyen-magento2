@@ -135,6 +135,19 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBody['deviceFingerprint'] = $payment->getAdditionalInformation("df_value");
         }
 
+        //Boleto data
+        if ($payment->getAdditionalInformation("social_security_number")) {
+            $requestBody['socialSecurityNumber'] = $payment->getAdditionalInformation("social_security_number");
+        }
+
+        if ($payment->getAdditionalInformation("firstname")) {
+            $requestBody['shopperName']['firstName'] = $payment->getAdditionalInformation("firstname");
+        }
+
+        if ($payment->getAdditionalInformation("lastname")) {
+            $requestBody['shopperName']['lastName'] = $payment->getAdditionalInformation("lastname");
+        }
+
         if ($payment->getMethod() == \Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider::CODE) {
             // TODO check if this is coming from the component now
             /*$boletoTypes = $this->adyenHelper->getAdyenBoletoConfigData('boletotypes');
