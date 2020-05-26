@@ -275,7 +275,7 @@ class Result extends \Magento\Framework\App\Action\Action
                 break;
             case Notification::REFUSED:
                 // if refused there will be a AUTHORIZATION : FALSE notification send only exception is idea
-                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order on OFFER_CLOSED notification');
+                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order on AUTHORISATION success = false notification');
                 $result = false;
                 break;
             default:
