@@ -107,7 +107,10 @@ class Result extends \Magento\Framework\App\Action\Action
                 $session->getQuote()->setIsActive(false)->save();
                 $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
             } else {
-                $this->_cancel($response);
+                $this->_adyenLogger->addAdyenResult(
+                    __('Payment for order %1 was unsuccessful, it will be cancelled when the OFFER_CLOSED notification has been processed.', $this->_order->getIncrementId())
+                );
+                $this->restoreCart($response);
                 $failReturnPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
                 $this->_redirect($failReturnPath);
             }
@@ -121,16 +124,12 @@ class Result extends \Magento\Framework\App\Action\Action
     /**
      * @param $response
      */
-    protected function _cancel($response)
+    protected function restoreCart($response)
     {
         $session = $this->_session;
 
         // restore the quote
         $session->restoreQuote();
-
-        $order = $this->_order;
-
-        $this->_adyenHelper->cancelOrder($order);
 
         if (isset($response['authResult']) && $response['authResult'] == \Adyen\Payment\Model\Notification::CANCELLED) {
             $this->messageManager->addError(__('You have cancelled the order. Please try again'));
@@ -270,17 +269,17 @@ class Result extends \Magento\Framework\App\Action\Action
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
             case Notification::CANCELLED:
-                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order');
+                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order on OFFER_CLOSED notification');
                 $result = false;
                 break;
             case Notification::REFUSED:
                 // if refused there will be a AUTHORIZATION : FALSE notification send only exception is idea
-                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order');
+                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order on OFFER_CLOSED notification');
                 $result = false;
                 break;
             case Notification::ERROR:
                 //attempt to hold/cancel
-                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order');
+                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order on OFFER_CLOSED notification');
                 $result = false;
                 break;
             default:
