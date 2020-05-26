@@ -269,16 +269,12 @@ class Result extends \Magento\Framework\App\Action\Action
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
             case Notification::CANCELLED:
+            case Notification::ERROR:
                 $this->_adyenLogger->addAdyenResult('Cancel or Hold the order on OFFER_CLOSED notification');
                 $result = false;
                 break;
             case Notification::REFUSED:
                 // if refused there will be a AUTHORIZATION : FALSE notification send only exception is idea
-                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order on OFFER_CLOSED notification');
-                $result = false;
-                break;
-            case Notification::ERROR:
-                //attempt to hold/cancel
                 $this->_adyenLogger->addAdyenResult('Cancel or Hold the order on OFFER_CLOSED notification');
                 $result = false;
                 break;
