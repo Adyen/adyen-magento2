@@ -26,6 +26,10 @@ namespace Adyen\Payment\Gateway\Response;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 use Magento\Payment\Model\InfoInterface;
+use Magento\Vault\Model\PaymentTokenManagement;
+use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 
 class VaultDetailsHandler implements HandlerInterface
 {
@@ -46,6 +50,16 @@ class VaultDetailsHandler implements HandlerInterface
     private $adyenHelper;
 
     /**
+     * @var PaymentTokenManagement
+     */
+    private $paymentTokenManagement;
+
+    /**
+     * @var
+     */
+    private $paymentTokenRepository;
+
+    /**
      * VaultDetailsHandler constructor.
      *
      * @param PaymentTokenFactoryInterface $paymentTokenFactory
@@ -55,11 +69,15 @@ class VaultDetailsHandler implements HandlerInterface
     public function __construct(
         PaymentTokenFactoryInterface $paymentTokenFactory,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        PaymentTokenManagement $paymentTokenManagement,
+        PaymentTokenRepositoryInterface $paymentTokenRepository
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         $this->paymentTokenFactory = $paymentTokenFactory;
+        $this->paymentTokenManagement = $paymentTokenManagement;
+        $this->paymentTokenRepository = $paymentTokenRepository;
     }
 
     /**
@@ -67,14 +85,14 @@ class VaultDetailsHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $response)
     {
-        $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
+        /** @var @var PaymentDataObject $orderPayment */
+        $orderPayment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
-        /** @var \Adyen\Payment\Api\Data\OrderPaymentInterface $payment */
-        $payment = $payment->getPayment();
+        $payment = $orderPayment->getPayment();
 
         if ($this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId())) {
             // add vault payment token entity to extension attributes
-            $paymentToken = $this->getVaultPaymentToken($response);
+            $paymentToken = $this->getVaultPaymentToken($response, $payment);
 
             if (null !== $paymentToken) {
                 $extensionAttributes = $this->getExtensionAttributes($payment);
@@ -87,9 +105,10 @@ class VaultDetailsHandler implements HandlerInterface
      * Get vault payment token entity
      *
      * @param array $response
+     * @param $payment
      * @return PaymentTokenInterface|null
      */
-    private function getVaultPaymentToken(array $response)
+    private function getVaultPaymentToken(array $response, $payment)
     {
         $paymentToken = null;
 
@@ -136,16 +155,29 @@ class VaultDetailsHandler implements HandlerInterface
             $cardType = $additionalData['paymentMethod'];
 
             try {
-                /** @var PaymentTokenInterface $paymentToken */
-                $paymentToken = $this->paymentTokenFactory->create(
-                    PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
-                );
 
-                if (strpos($cardType, "paywithgoogle") !== false && !empty($additionalData['paymentMethodVariant'])) {
-                    $cardType = $additionalData['paymentMethodVariant'];
-                    $paymentToken->setIsVisible(false);
+                // Check if paymentToken exists already
+                $paymentToken = $this->paymentTokenManagement->getByGatewayToken($token, $payment->getMethodInstance()->getCode(), $payment->getOrder()->getCustomerId());
+
+                $paymentTokenSaveRequired = false;
+
+                // In case the payment token does not exist, create it based on the additionalData
+                if (is_null($paymentToken))  {
+                    /** @var PaymentTokenInterface $paymentToken */
+                    $paymentToken = $this->paymentTokenFactory->create(
+                        PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
+                    );
+
+                    $paymentToken->setGatewayToken($token);
+
+                    if (strpos($cardType, "paywithgoogle") !== false && !empty($additionalData['paymentMethodVariant'])) {
+                        $cardType = $additionalData['paymentMethodVariant'];
+                        $paymentToken->setIsVisible(false);
+                    }
+                } else {
+                    $paymentTokenSaveRequired = true;
                 }
-                $paymentToken->setGatewayToken($token);
+
                 $paymentToken->setExpiresAt($this->getExpirationDate($expirationDate));
 
                 $details = [
@@ -155,6 +187,11 @@ class VaultDetailsHandler implements HandlerInterface
                 ];
 
                 $paymentToken->setTokenDetails(json_encode($details));
+
+                // If the token is updated, it needs to be saved to keep the changes
+                if ($paymentTokenSaveRequired) {
+                    $this->paymentTokenRepository->save($paymentToken);
+                }
             } catch (\Exception $e) {
                 $this->adyenLogger->error(print_r($e, true));
             }
