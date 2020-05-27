@@ -108,7 +108,11 @@ class Result extends \Magento\Framework\App\Action\Action
                 $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
             } else {
                 $this->_adyenLogger->addAdyenResult(
-                    __('Payment for order %1 was unsuccessful, it will be cancelled when the OFFER_CLOSED notification has been processed.', $this->_order->getIncrementId())
+                    sprintf(
+                        'Payment for order %d was unsuccessful, ' .
+                        'it will be cancelled when the OFFER_CLOSED notification has been processed.',
+                        $this->_order->getIncrementId()
+                    )
                 );
                 $this->restoreCart($response);
                 $failReturnPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
