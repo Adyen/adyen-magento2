@@ -492,21 +492,4 @@ class Requests extends AbstractHelper
 
         return $address;
     }
-
-    /**
-     * Only adds idempotency key if payment method is adyen_hpp for now
-     *
-     * @param array $request
-     * @param $paymentMethod
-     * @param $idempotencyKey
-     * @return array
-     */
-    public function addIdempotencyKey($request = [], $paymentMethod, $idempotencyKey)
-    {
-        if (!empty($paymentMethod) && $paymentMethod == 'adyen_hpp') {
-            $request['idempotencyKey'] = $idempotencyKey;
-        }
-
-        return $request;
-    }
 }
