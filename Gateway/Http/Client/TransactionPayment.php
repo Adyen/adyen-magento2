@@ -76,11 +76,7 @@ class TransactionPayment implements ClientInterface
         $service = new \Adyen\Service\Checkout($client);
 
         $requestOptions = [];
-
-        if (!empty($headers['idempotencyKey'])) {
-            $requestOptions['idempotencyKey'] = $headers['idempotencyKey'];
-        }
-
+        
         $request = $this->applicationInfo->addMerchantApplicationIntoRequest($request);
 
         try {
