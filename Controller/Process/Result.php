@@ -109,7 +109,7 @@ class Result extends \Magento\Framework\App\Action\Action
             } else {
                 $this->_adyenLogger->addAdyenResult(
                     sprintf(
-                        'Payment for order %d was unsuccessful, ' .
+                        'Payment for order %s was unsuccessful, ' .
                         'it will be cancelled when the OFFER_CLOSED notification has been processed.',
                         $this->_order->getIncrementId()
                     )
