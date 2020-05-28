@@ -145,8 +145,6 @@ define(
 
                     var agreementLabel = storedPayment.name + ', ' + storedPayment.holderName + ', **** ' + storedPayment.lastFour;
 
-                    console.log(self.checkoutComponent);
-
                     return {
                         'label': agreementLabel,
                         'value': storedPayment.storedPaymentMethodId,
