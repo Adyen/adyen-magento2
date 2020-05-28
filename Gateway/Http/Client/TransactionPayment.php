@@ -63,7 +63,6 @@ class TransactionPayment implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $request = $transferObject->getBody();
-        $headers = $transferObject->getHeaders();
 
         // If the payments call is already done return the request
         if (!empty($request['resultCode'])) {
@@ -76,10 +75,6 @@ class TransactionPayment implements ClientInterface
         $service = new \Adyen\Service\Checkout($client);
 
         $requestOptions = [];
-
-        if (!empty($headers['idempotencyKey'])) {
-            $requestOptions['idempotencyKey'] = $headers['idempotencyKey'];
-        }
 
         $request = $this->applicationInfo->addMerchantApplicationIntoRequest($request);
 
