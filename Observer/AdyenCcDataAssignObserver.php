@@ -26,12 +26,15 @@ namespace Adyen\Payment\Observer;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
+use Adyen\Payment\Observer\AdyenObserverTrait;
 
 /**
  * Class DataAssignObserver
  */
 class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 {
+    use AdyenObserverTrait;
+
     //TODO do we need these?
     const VARIANT = 'variant';
 
@@ -109,25 +112,5 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         if (!empty($additionalData[self::CC_TYPE])) {
             $paymentInfo->setCcType($additionalData[self::CC_TYPE]);
         }
-    }
-
-    /**
-     * Returns an array with only the approved keys
-     *
-     * @param array $array
-     * @param array $approvedKeys
-     * @return array
-     */
-    private function getArrayOnlyWithApprovedKeys($array, $approvedKeys)
-    {
-        $result = [];
-
-        foreach ($approvedKeys as $approvedKey) {
-            if (isset($array[$approvedKey])) {
-                $result[$approvedKey] = $array[$approvedKey];
-            }
-        }
-
-        return $result;
     }
 }

@@ -246,11 +246,11 @@ define(
                 if (this.validate() && additionalValidators.validate()) {
 
                     var data = {};
-                    data.stateData = self.stateData;
                     data.method = self.method;
 
                     var additionalData = {};
                     additionalData.brand_code = self.brandCode;
+                    additionalData.state_data = JSON.stringify(self.stateData);
 
                     if (brandCode() == "ratepay") {
                         additionalData.df_value = this.getRatePayDeviceIdentToken();

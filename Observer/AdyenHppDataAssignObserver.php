@@ -31,36 +31,36 @@ use Magento\Quote\Api\Data\PaymentInterface;
  */
 class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
 {
-    const BRAND_CODE = 'brand_code';
-    const ISSUER_ID = 'issuer_id';
-    const GENDER = 'gender';
-    const DOB = 'dob';
-    const TELEPHONE = 'telephone';
-    const DF_VALUE = 'df_value';
-    const SSN = 'ssn';
-	const OWNER_NAME = 'ownerName';
-    const BANK_ACCOUNT_OWNER_NAME = 'bankAccountOwnerName';
-	const IBAN_NUMBER = 'ibanNumber';
-    const BANK_ACCOUNT_NUMBER = 'bankAccountNumber';
-    const BANK_LOCATIONID = 'bankLocationId';
+    use AdyenObserverTrait;
 
+    // TODO do we need these?
+    const DF_VALUE = 'df_value';
+
+    const BRAND_CODE = 'brand_code';
+    const STATE_DATA = 'state_data';
+    const BROWSER_INFO = 'browserInfo';
+    const PAYMENT_METHOD = 'paymentMethod';
+    const RISK_DATA = 'riskData';
 
     /**
+     * Approved root level keys from additional data array
+     *
      * @var array
      */
-    protected $additionalInformationList = [
-        self::BRAND_CODE,
-        self::ISSUER_ID,
-        self::GENDER,
-        self::DOB,
-        self::TELEPHONE,
-        self::DF_VALUE,
-        self::SSN,
-		self::OWNER_NAME,
-        self::BANK_ACCOUNT_OWNER_NAME,
-		self::IBAN_NUMBER,
-        self::BANK_ACCOUNT_NUMBER,
-        self::BANK_LOCATIONID
+    private static $approvedAdditionalDataKeys = [
+        self::STATE_DATA,
+        self::BRAND_CODE
+    ];
+
+    /**
+     * Approved root level keys from the checkout component's state data object
+     *
+     * @var array
+     */
+    private static $approvedStateDataKeys = [
+        self::BROWSER_INFO,
+        self::PAYMENT_METHOD,
+        self::RISK_DATA
     ];
 
     /**
@@ -69,26 +69,42 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
      */
     public function execute(Observer $observer)
     {
+        // Get request fields
         $data = $this->readDataArgument($observer);
 
+        // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
         if (!is_array($additionalData)) {
             return;
         }
 
-        $paymentInfo = $this->readPaymentModelArgument($observer);
-        
-        if (isset($additionalData[self::BRAND_CODE])) {
-            $paymentInfo->setCcType($additionalData[self::BRAND_CODE]);
+        // Get a validated additional data array
+        $additionalData = $this->getArrayOnlyWithApprovedKeys($additionalData, self::$approvedAdditionalDataKeys);
+
+        // json decode state data
+        $stateData = [];
+        if (!empty($additionalData[self::STATE_DATA])) {
+            $stateData = json_decode($additionalData[self::STATE_DATA], true);
         }
 
-        foreach ($this->additionalInformationList as $additionalInformationKey) {
-            if (isset($additionalData[$additionalInformationKey])) {
-                $paymentInfo->setAdditionalInformation(
-                    $additionalInformationKey,
-                    $additionalData[$additionalInformationKey]
-                );
-            }
+        // Get validated state data array
+        if (!empty($stateData)) {
+            $stateData = $this->getArrayOnlyWithApprovedKeys($stateData, self::$approvedStateDataKeys);
+        }
+
+        // Replace state data with the decoded and validated state data
+        $additionalData[self::STATE_DATA] = $stateData;
+
+        // Set additional data in the payment
+        $paymentInfo = $this->readPaymentModelArgument($observer);
+        foreach ($additionalData as $key => $data) {
+            $paymentInfo->setAdditionalInformation($key, $data);
+        }
+
+        // Is this the correct way of setting it???
+        // Set BrandCode into CCType
+        if (isset($additionalData[self::BRAND_CODE])) {
+            $paymentInfo->setCcType($additionalData[self::BRAND_CODE]);
         }
     }
 }
