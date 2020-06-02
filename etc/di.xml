@@ -914,6 +914,7 @@
     </virtualType>
 
     <preference for="Magento\Paypal\Model\Billing\Agreement" type="Adyen\Payment\Model\Billing\Agreement" />
+    <preference for="Magento\Payment\Gateway\Data\Order\AddressAdapter" type="Adyen\Payment\Gateway\Data\Order\AddressAdapter"/>
     <type name="Adyen\Payment\Logger\Handler\AdyenDebug">
         <arguments>
             <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
