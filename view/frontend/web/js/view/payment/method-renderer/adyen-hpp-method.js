@@ -60,7 +60,6 @@ define(
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
         var messageComponents;
-        var shippingAddressCountryCode = quote.shippingAddress().countryId;
         var unsupportedPaymentMethods = ['scheme', 'boleto', 'bcmc_mobile_QR', 'wechatpay', /^bcmc$/, "applepay", "paywithgoogle"];
         /**
          * Shareble adyen checkout component
@@ -78,7 +77,8 @@ define(
             initObservable: function () {
                 this._super()
                     .observe([
-                        'brandCode'
+                        'brandCode',
+                        'paymentListObservable'
                     ]);
                 return this;
             }, initialize: function () {
@@ -86,7 +86,7 @@ define(
                 var self = this;
                 this._super();
 
-                fullScreenLoader.startLoader();
+                var paymentMethodsObservable = adyenPaymentService.getPaymentMethodsObservable();
 
                 /**
                  * Create sherable checkout component
@@ -94,8 +94,21 @@ define(
                  */
                 self.checkoutComponent = adyenPaymentService.getCheckoutComponent();
 
-                var paymentMethods = self.checkoutComponent.paymentMethodsResponse.paymentMethods;
+                paymentMethodsObservable.subscribe(function() {
+                    console.log('test');
+                    self.checkoutComponent = adyenPaymentService.getCheckoutComponent();
+                    self.setAdyenHppPaymentMethods();
+                });
+            },
+            getAdyenHppPaymentMethods: function () {
+                return this.paymentListObservable;
+            },
+            setAdyenHppPaymentMethods: function () {
+                var self = this;
 
+                fullScreenLoader.startLoader();
+
+                var paymentMethods = self.checkoutComponent.paymentMethodsResponse.paymentMethods;
 
                 // create component needs to be in initialize method
                 var messageComponents = {};
@@ -119,20 +132,6 @@ define(
 
                 self.messageComponents = messageComponents;
 
-                fullScreenLoader.stopLoader();
-            },
-            getAdyenHppPaymentMethods: function () {
-                var self = this;
-                var currentShippingAddressCountryCode = quote.shippingAddress().countryId;
-
-                // retrieve new payment methods if country code changed
-                if (shippingAddressCountryCode != currentShippingAddressCountryCode) {
-                    fullScreenLoader.startLoader();
-                    adyenPaymentService.retrieveAvailablePaymentMethods();
-                    shippingAddressCountryCode = currentShippingAddressCountryCode;
-                    fullScreenLoader.stopLoader();
-                }
-
                 // filter unnecessary field details from checkout component
                 // TODO refactor
                 self.checkoutComponent.paymentMethodsResponse.paymentMethods.forEach(function (paymentMethod, index) {
@@ -146,6 +145,8 @@ define(
 
                 // Get paymentMethod list with filtered details
                 var paymentMethods = self.checkoutComponent.paymentMethodsResponse.paymentMethods;
+
+                var paymentListObservable = ko.observable([]);
 
                 // Iterate through the payment methods and render them
                 var paymentList = _.reduce(paymentMethods, function (accumulator, value) {
@@ -227,9 +228,9 @@ define(
                     return accumulator;
                 }, []);
 
-                return paymentList;
+                self.paymentListObservable(paymentList);
+                fullScreenLoader.stopLoader();
             },
-
             // TODO prefill gender in components where it is available
             getGenderTypes: function () {
                 return _.map(window.checkoutConfig.payment.adyenHpp.genderTypes, function (value, key) {
