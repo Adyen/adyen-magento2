@@ -195,7 +195,7 @@ define(
 
 
                         isButtonActive: function () {
-                            return self.isActive() && this.getCode() == self.isChecked() && self.isBillingAgreementChecked() && this.placeOrderAllowed();
+                            return this.isActive() && this.getCode() == this.isChecked() && this.isPlaceOrderActionAllowed() && this.placeOrderAllowed();
                         },
                         /**
                          * Custom place order function
