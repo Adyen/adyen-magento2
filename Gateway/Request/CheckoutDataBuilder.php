@@ -76,6 +76,8 @@ class CheckoutDataBuilder implements BuilderInterface
         $order->setCanSendNewEmailFlag(false);
 
         $componentStateData = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::STATE_DATA);
+        $requestBody = array_merge($requestBody, $componentStateData);
+
 
         if (empty($requestBody['paymentMethod']['type']) && !empty(
             $payment->getAdditionalInformation(
