@@ -34,7 +34,6 @@
 <?php
 $_info = $this->getInfo();
 $_isDemoMode = $block->isDemoMode();
-$paymentAction=$block->getMethod()->getInfoInstance()->getAdditionalInformation('action');
 ?>
 
 <?php if ($_pspReference = $_info->getAdditionalInformation('pspReference')):?>
@@ -74,9 +73,9 @@ $paymentAction=$block->getMethod()->getInfoInstance()->getAdditionalInformation(
     </div>
 <?php endif; ?>
 
-<?php if(!empty($paymentAction['expiresAt'])): ?>
+<?php if(!empty($block->getPaymentActionData('expiresAt'))): ?>
     <div>
-        <?php echo __('Expiration Date: %1', $paymentAction['expiresAt']) ?>
+        <?php echo __('Expiration Date: %1', $block->getPaymentActionData('expiresAt')) ?>
     </div>
 <?php endif; ?>
 
@@ -86,9 +85,9 @@ $paymentAction=$block->getMethod()->getInfoInstance()->getAdditionalInformation(
     </div>
 <?php endif; ?>
 
-<?php if(!empty($paymentAction['downloadUrl'])): ?>
+<?php if(!empty($block->getPaymentActionData('downloadUrl'))): ?>
     <div>
-        <a target="_blank" href="<?php echo $paymentAction['downloadUrl']; ?>"><?php echo __('PDF Url'); ?></a>
+        <a target="_blank" href="<?php echo $block->getPaymentActionData('downloadUrl'); ?>"><?php echo __('PDF Url'); ?></a>
     </div>
 <?php endif; ?>
 
