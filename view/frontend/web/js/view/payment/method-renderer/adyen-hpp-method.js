@@ -60,7 +60,7 @@ define(
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
         var messageComponents;
-        var unsupportedPaymentMethods = ['scheme', 'boleto', 'bcmc_mobile_QR', 'wechatpay', /^bcmc$/, "applepay", "paywithgoogle"];
+        var unsupportedPaymentMethods = ['scheme', 'boleto', 'bcmc_mobile_QR', 'wechatpay', /^bcmc$/, "applepay", "paywithgoogle", "paypal"];
         /**
          * Shareble adyen checkout component
          * @type {AdyenCheckout}
@@ -93,9 +93,9 @@ define(
                  * @type {AdyenCheckout}
                  */
                 self.checkoutComponent = adyenPaymentService.getCheckoutComponent();
+                self.setAdyenHppPaymentMethods();
 
                 paymentMethodsObservable.subscribe(function() {
-                    console.log('test');
                     self.checkoutComponent = adyenPaymentService.getCheckoutComponent();
                     self.setAdyenHppPaymentMethods();
                 });
@@ -132,25 +132,14 @@ define(
 
                 self.messageComponents = messageComponents;
 
-                // filter unnecessary field details from checkout component
-                // TODO refactor
-                self.checkoutComponent.paymentMethodsResponse.paymentMethods.forEach(function (paymentMethod, index) {
-                    if (!!self.checkoutComponent.paymentMethodsResponse.paymentMethods[index].details) {
-                        if (!!self.checkoutComponent.paymentMethodsResponse.paymentMethods[index].details.personalDetails) {
-                            self.checkoutComponent.paymentMethodsResponse.paymentMethods[index].details =
-                                self.filterOutOpenInvoiceComponentDetails(paymentMethod.details);
-                        }
-                    }
-                });
-
                 // Get paymentMethod list with filtered details
                 var paymentMethods = self.checkoutComponent.paymentMethodsResponse.paymentMethods;
 
                 var paymentListObservable = ko.observable([]);
 
                 // Iterate through the payment methods and render them
-                var paymentList = _.reduce(paymentMethods, function (accumulator, value) {
-                    if (!self.isPaymentMethodSupported(value.type)) {
+                var paymentList = _.reduce(paymentMethods, function (accumulator, paymentMethod) {
+                    if (!self.isPaymentMethodSupported(paymentMethod.type)) {
                         return accumulator;
                     }
 
@@ -161,11 +150,11 @@ define(
                      * @returns {*}
                      */
                     result.getBrandCode = function () {
-                        return self.getBrandCodeFromPaymentMethod(value);
+                        return self.getBrandCodeFromPaymentMethod(paymentMethod);
                     };
 
                     result.brandCode = result.getBrandCode();
-                    result.name = value.name;
+                    result.name = paymentMethod.name;
                     result.method = self.item.method;
                     /**
                      * Observable to enable and disable place order buttons for payment methods
@@ -203,18 +192,48 @@ define(
                      */
                     result.renderCheckoutComponent = function () {
                         result.isPlaceOrderAllowed(false);
-                        try {
-                            self.checkoutComponent.create(result.getBrandCode(), {
-                                onChange: function (state) {
-                                    if (!!state.isValid) {
-                                        result.stateData = state.data;
-                                        result.isPlaceOrderAllowed(true);
-                                    } else {
-                                        result.stateData = {};
-                                        result.isPlaceOrderAllowed(false);
-                                    }
+
+                        var showPayButton = false;
+                        const showPayButtonPaymentMethods = [
+                            'paypal'
+                        ];
+
+                        if (showPayButtonPaymentMethods.includes(paymentMethod.type)) {
+                            showPayButton = true;
+                        }
+
+                        // If the details are empty and the pay button does not needs to be rendered by the component
+                        // simply skip rendering the adyen checkout component
+                        if (!paymentMethod.details && !showPayButton) {
+                            result.isPlaceOrderAllowed(true);
+                            return;
+                        }
+
+                        /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
+                        var configuration = {
+                            showPayButton: showPayButton,
+                            data: {
+                                billingAddress: {
+                                    city: quote.shippingAddress().city,
+                                    country: quote.shippingAddress().countryId,
+                                    houseNumberOrName: '',
+                                    postalCode: quote.shippingAddress().postcode,
+                                    street: quote.shippingAddress().street.join(" ")
                                 }
-                            }).mount('#adyen-alternative-payment-container-' + result.getBrandCode());
+                            },
+                            onChange: function (state) {
+                                if (!!state.isValid) {
+                                    result.stateData = state.data;
+                                    result.isPlaceOrderAllowed(true);
+                                } else {
+                                    result.stateData = {};
+                                    result.isPlaceOrderAllowed(false);
+                                }
+                            }
+                        };
+
+                        try {
+                            self.checkoutComponent.create(result.getBrandCode(), configuration).mount('#adyen-alternative-payment-container-' + result.getBrandCode());
                         } catch (err) {
                             // The component does not exist yet
                         }
@@ -398,46 +417,6 @@ define(
                 }
 
                 return '';
-            },
-            /**
-             * In the open invoice components we need to validate only the personal details and only the
-             * dateOfBirth, telephoneNumber and gender if it's set in the admin
-             * @param details
-             * @returns {Array}
-             */
-            filterOutOpenInvoiceComponentDetails: function (details) {
-                var self = this;
-                var filteredDetails = _.map(details, function (parentDetail) {
-                    if (parentDetail.key == "personalDetails") {
-                        var detailObject = _.map(parentDetail.details, function (detail) {
-                            if (detail.key == 'dateOfBirth' ||
-                                detail.key == 'telephoneNumber' ||
-                                detail.key == 'gender') {
-                                return detail;
-                            }
-                        });
-
-                        if (!!detailObject) {
-                            return {
-                                "key": parentDetail.key,
-                                "type": parentDetail.type,
-                                "details": self.filterUndefinedItemsInArray(detailObject)
-                            };
-                        }
-                    }
-                });
-
-                return self.filterUndefinedItemsInArray(filteredDetails);
-            },
-            /**
-             * Helper function to filter out the undefined items from an array
-             * @param arr
-             * @returns {*}
-             */
-            filterUndefinedItemsInArray: function (arr) {
-                return arr.filter(function (item) {
-                    return typeof item !== 'undefined';
-                });
             }
         });
     }
