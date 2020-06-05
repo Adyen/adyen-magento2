@@ -35,14 +35,18 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 class VaultDetailsHandler implements HandlerInterface
 {
 
+    const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
+    const CARD_SUMMARY = 'cardSummary';
+    const EXPIRY_DATE = 'expiryDate';
+    const PAYMENT_METHOD = 'paymentMethod';
     const ADDITIONAL_DATA_ERRORS = array(
-        'recurring.recurringDetailReference' => 'Missing Token in Result please enable in ' .
+        self::RECURRING_DETAIL_REFERENCE => 'Missing Token in Result please enable in ' .
             'Settings -> API URLs and Response menu in the Adyen Customer Area Recurring details setting',
-        'cardSummary' => 'Missing cardSummary in Result please login to the adyen portal ' .
+        self::CARD_SUMMARY => 'Missing cardSummary in Result please login to the adyen portal ' .
             'and go to Settings -> API URLs and Response and enable the Card summary property',
-        'expiryDate' => 'Missing expiryDate in Result please login to the adyen portal and go to ' .
+        self::EXPIRY_DATE => 'Missing expiryDate in Result please login to the adyen portal and go to ' .
             'Settings -> API URLs and Response and enable the Expiry date property',
-        'paymentMethod' => 'Missing paymentMethod in Result please login to the adyen portal and go to ' .
+        self::PAYMENT_METHOD => 'Missing paymentMethod in Result please login to the adyen portal and go to ' .
             'Settings -> API URLs and Response and enable the Variant property'
     );
 
@@ -144,7 +148,7 @@ class VaultDetailsHandler implements HandlerInterface
             try {
 
                 // Check if paymentToken exists already
-                $paymentToken = $this->paymentTokenManagement->getByGatewayToken($additionalData['recurring.recurringDetailReference'],
+                $paymentToken = $this->paymentTokenManagement->getByGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE],
                     $payment->getMethodInstance()->getCode(), $payment->getOrder()->getCustomerId());
 
                 $paymentTokenSaveRequired = false;
@@ -156,23 +160,23 @@ class VaultDetailsHandler implements HandlerInterface
                         PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
                     );
 
-                    $paymentToken->setGatewayToken($additionalData['recurring.recurringDetailReference']);
+                    $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
 
-                    if (strpos($additionalData['paymentMethod'], "paywithgoogle") !== false
+                    if (strpos($additionalData[self::PAYMENT_METHOD], "paywithgoogle") !== false
                         && !empty($additionalData['paymentMethodVariant'])) {
-                        $additionalData['paymentMethod'] = $additionalData['paymentMethodVariant'];
+                        $additionalData[self::PAYMENT_METHOD] = $additionalData['paymentMethodVariant'];
                         $paymentToken->setIsVisible(false);
                     }
                 } else {
                     $paymentTokenSaveRequired = true;
                 }
 
-                $paymentToken->setExpiresAt($this->getExpirationDate($additionalData['expiryDate']));
+                $paymentToken->setExpiresAt($this->getExpirationDate($additionalData[self::EXPIRY_DATE]));
 
                 $details = [
-                    'type' => $additionalData['paymentMethod'],
-                    'maskedCC' => $additionalData['cardSummary'],
-                    'expirationDate' => $additionalData['expiryDate']
+                    'type' => $additionalData[self::PAYMENT_METHOD],
+                    'maskedCC' => $additionalData[self::CARD_SUMMARY],
+                    'expirationDate' => $additionalData[self::EXPIRY_DATE]
                 ];
 
                 $paymentToken->setTokenDetails(json_encode($details));
