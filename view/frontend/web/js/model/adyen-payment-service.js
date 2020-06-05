@@ -75,7 +75,13 @@ define(
                     originKey: originKey,
                     environment: environment,
                     paymentMethodsResponse: paymentMethodsResponse,
-                    showPayButton: false
+                    consentCheckbox: false,
+                    visibility: {
+                        personalDetails: 'editable',
+                        billingAddress: 'editable',
+                        separateDeliveryAddress: 'hidden',
+                        deliveryAddress: 'hidden'
+                    }
                 });
 
                 paymentMethods(paymentMethodsResponse.paymentMethods);
