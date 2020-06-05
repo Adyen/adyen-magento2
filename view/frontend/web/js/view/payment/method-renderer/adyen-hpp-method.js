@@ -132,11 +132,6 @@ define(
 
                 self.messageComponents = messageComponents;
 
-                // Get paymentMethod list with filtered details
-                var paymentMethods = self.checkoutComponent.paymentMethodsResponse.paymentMethods;
-
-                var paymentListObservable = ko.observable([]);
-
                 // Iterate through the payment methods and render them
                 var paymentList = _.reduce(paymentMethods, function (accumulator, paymentMethod) {
                     if (!self.isPaymentMethodSupported(paymentMethod.type)) {
