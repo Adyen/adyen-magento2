@@ -201,10 +201,8 @@ class VaultDetailsHandler implements HandlerInterface
      * @return string
      * @throws \Exception
      */
-    private
-    function getExpirationDate(
-        $expirationDate
-    ) {
+    private function getExpirationDate($expirationDate)
+    {
         $expirationDate = explode('/', $expirationDate);
 
         //add leading zero to month
@@ -231,10 +229,8 @@ class VaultDetailsHandler implements HandlerInterface
      * @param InfoInterface $payment
      * @return OrderPaymentExtensionInterface
      */
-    private
-    function getExtensionAttributes(
-        InfoInterface $payment
-    ) {
+    private function getExtensionAttributes(InfoInterface $payment)
+    {
         $extensionAttributes = $payment->getExtensionAttributes();
         if (null === $extensionAttributes) {
             $extensionAttributes = $this->paymentExtensionFactory->create();
