@@ -133,61 +133,64 @@ class VaultDetailsHandler implements HandlerInterface
      */
     private function getVaultPaymentToken(array $response, $payment)
     {
+
+        if (empty($response['additionalData'])) {
+            return null;
+        }
+
+        $additionalData = $response['additionalData'];
+
         $paymentToken = null;
 
-        if (!empty($response['additionalData'])) {
-            $additionalData = $response['additionalData'];
+        foreach (self::ADDITIONAL_DATA_ERRORS as $key => $errorMsg) {
+            if (empty($additionalData[$key])) {
+                $this->adyenLogger->error($errorMsg);
+                return null;
+            }
+        }
 
-            foreach (self::ADDITIONAL_DATA_ERRORS as $key => $errorMsg) {
-                if (empty($additionalData[$key])) {
-                    $this->adyenLogger->error($errorMsg);
-                    return null;
+        try {
+
+            // Check if paymentToken exists already
+            $paymentToken = $this->paymentTokenManagement->getByGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE],
+                $payment->getMethodInstance()->getCode(), $payment->getOrder()->getCustomerId());
+
+            $paymentTokenSaveRequired = false;
+
+            // In case the payment token does not exist, create it based on the additionalData
+            if (is_null($paymentToken)) {
+                /** @var PaymentTokenInterface $paymentToken */
+                $paymentToken = $this->paymentTokenFactory->create(
+                    PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
+                );
+
+                $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
+
+                if (strpos($additionalData[self::PAYMENT_METHOD], "paywithgoogle") !== false
+                    && !empty($additionalData['paymentMethodVariant'])) {
+                    $additionalData[self::PAYMENT_METHOD] = $additionalData['paymentMethodVariant'];
+                    $paymentToken->setIsVisible(false);
                 }
+            } else {
+                $paymentTokenSaveRequired = true;
             }
 
-            try {
+            $paymentToken->setExpiresAt($this->getExpirationDate($additionalData[self::EXPIRY_DATE]));
 
-                // Check if paymentToken exists already
-                $paymentToken = $this->paymentTokenManagement->getByGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE],
-                    $payment->getMethodInstance()->getCode(), $payment->getOrder()->getCustomerId());
+            $details = [
+                'type' => $additionalData[self::PAYMENT_METHOD],
+                'maskedCC' => $additionalData[self::CARD_SUMMARY],
+                'expirationDate' => $additionalData[self::EXPIRY_DATE]
+            ];
 
-                $paymentTokenSaveRequired = false;
+            $paymentToken->setTokenDetails(json_encode($details));
 
-                // In case the payment token does not exist, create it based on the additionalData
-                if (is_null($paymentToken)) {
-                    /** @var PaymentTokenInterface $paymentToken */
-                    $paymentToken = $this->paymentTokenFactory->create(
-                        PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
-                    );
-
-                    $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
-
-                    if (strpos($additionalData[self::PAYMENT_METHOD], "paywithgoogle") !== false
-                        && !empty($additionalData['paymentMethodVariant'])) {
-                        $additionalData[self::PAYMENT_METHOD] = $additionalData['paymentMethodVariant'];
-                        $paymentToken->setIsVisible(false);
-                    }
-                } else {
-                    $paymentTokenSaveRequired = true;
-                }
-
-                $paymentToken->setExpiresAt($this->getExpirationDate($additionalData[self::EXPIRY_DATE]));
-
-                $details = [
-                    'type' => $additionalData[self::PAYMENT_METHOD],
-                    'maskedCC' => $additionalData[self::CARD_SUMMARY],
-                    'expirationDate' => $additionalData[self::EXPIRY_DATE]
-                ];
-
-                $paymentToken->setTokenDetails(json_encode($details));
-
-                // If the token is updated, it needs to be saved to keep the changes
-                if ($paymentTokenSaveRequired) {
-                    $this->paymentTokenRepository->save($paymentToken);
-                }
-            } catch (\Exception $e) {
-                $this->adyenLogger->error(print_r($e, true));
+            // If the token is updated, it needs to be saved to keep the changes
+            if ($paymentTokenSaveRequired) {
+                $this->paymentTokenRepository->save($paymentToken);
             }
+        } catch (\Exception $e) {
+            $this->adyenLogger->error(print_r($e, true));
         }
 
         return $paymentToken;
@@ -198,8 +201,10 @@ class VaultDetailsHandler implements HandlerInterface
      * @return string
      * @throws \Exception
      */
-    private function getExpirationDate($expirationDate)
-    {
+    private
+    function getExpirationDate(
+        $expirationDate
+    ) {
         $expirationDate = explode('/', $expirationDate);
 
         //add leading zero to month
@@ -226,8 +231,10 @@ class VaultDetailsHandler implements HandlerInterface
      * @param InfoInterface $payment
      * @return OrderPaymentExtensionInterface
      */
-    private function getExtensionAttributes(InfoInterface $payment)
-    {
+    private
+    function getExtensionAttributes(
+        InfoInterface $payment
+    ) {
         $extensionAttributes = $payment->getExtensionAttributes();
         if (null === $extensionAttributes) {
             $extensionAttributes = $this->paymentExtensionFactory->create();
