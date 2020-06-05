@@ -27,14 +27,16 @@ define(
         'Magento_Checkout/js/model/payment/renderer-list',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Magento_Checkout/js/model/quote'
+        'Magento_Checkout/js/model/quote',
+        'Magento_Customer/js/model/customer'
     ],
     function (
         Component,
         rendererList,
         adyenPaymentService,
         adyenConfiguration,
-        quote
+        quote,
+        customer
     ) {
         'use strict';
         rendererList.push(
@@ -70,6 +72,8 @@ define(
         /** Add view logic here if needed */
         return Component.extend({
             initialize: function () {
+                var self = this;
+
                 this._super();
 
                 if (this.isGooglePayEnabled()) {
@@ -79,40 +83,47 @@ define(
                     document.head.appendChild(googlepayscript);
                 }
 
+                if (customer.isLoggedIn()) {
+                    self.setAdyenPaymentMethods();
+                }
+
                 quote.shippingAddress.subscribe(function() {
-                    adyenPaymentService.retrieveAvailablePaymentMethods().done(function (response) {
-                        var responseJson = JSON.parse(response);
-                        var paymentMethodsResponse = responseJson.paymentMethodsResponse;
+                    self.setAdyenPaymentMethods();
+                })
+            },
+            setAdyenPaymentMethods: function() {
+                adyenPaymentService.retrieveAvailablePaymentMethods().done(function (response) {
+                    var responseJson = JSON.parse(response);
+                    var paymentMethodsResponse = responseJson.paymentMethodsResponse;
 
-                        // TODO check if this is still required or if can be outsourced for the generic component, or checkout can create a ratepay component
-                        /*if (!!window.checkoutConfig.payment.adyenHpp) {
-                            if (JSON.stringify(paymentMethods).indexOf("ratepay") > -1) {
+                    // TODO check if this is still required or if can be outsourced for the generic component, or checkout can create a ratepay component
+                    /*if (!!window.checkoutConfig.payment.adyenHpp) {
+                        if (JSON.stringify(paymentMethods).indexOf("ratepay") > -1) {
 
-                              var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
-                               var dfValueRatePay = self.getRatePayDeviceIdentToken();
+                          var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
+                           var dfValueRatePay = self.getRatePayDeviceIdentToken();
 
-                               window.di = {
-                                   t: dfValueRatePay.replace(':', ''),
-                                   v: ratePayId,
-                                   l: 'Checkout'
-                               };
+                           window.di = {
+                               t: dfValueRatePay.replace(':', ''),
+                               v: ratePayId,
+                               l: 'Checkout'
+                           };
 
-                               // Load Ratepay script
-                               var ratepayScriptTag = document.createElement('script');
-                               ratepayScriptTag.src = "//d.ratepay.com/" + ratePayId + "/di.js";
-                               ratepayScriptTag.type = "text/javascript";
-                               document.body.appendChild(ratepayScriptTag);
-                            }
-                        }*/
+                           // Load Ratepay script
+                           var ratepayScriptTag = document.createElement('script');
+                           ratepayScriptTag.src = "//d.ratepay.com/" + ratePayId + "/di.js";
+                           ratepayScriptTag.type = "text/javascript";
+                           document.body.appendChild(ratepayScriptTag);
+                        }
+                    }*/
 
-                        // Initialises adyen checkout main component with default configuration
-                        adyenPaymentService.initCheckoutComponent(
-                            paymentMethodsResponse,
-                            adyenConfiguration.getOriginKey(),
-                            adyenConfiguration.getLocale(),
-                            adyenConfiguration.getCheckoutEnvironment()
-                        );
-                    })
+                    // Initialises adyen checkout main component with default configuration
+                    adyenPaymentService.initCheckoutComponent(
+                        paymentMethodsResponse,
+                        adyenConfiguration.getOriginKey(),
+                        adyenConfiguration.getLocale(),
+                        adyenConfiguration.getCheckoutEnvironment()
+                    );
                 })
             },
             isGooglePayEnabled: function() {
