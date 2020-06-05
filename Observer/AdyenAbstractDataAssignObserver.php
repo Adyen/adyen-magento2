@@ -40,14 +40,14 @@ abstract class AdyenAbstractDataAssignObserver extends AbstractDataAssignObserve
 
     /**
      * @param DataObject $data
-     * @return array|void
+     * @return array
      */
     protected function getValidatedAdditionalData(DataObject $data)
     {
         // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
         if (!is_array($additionalData)) {
-            return;
+            return [];
         }
 
         // Get a validated additional data array
