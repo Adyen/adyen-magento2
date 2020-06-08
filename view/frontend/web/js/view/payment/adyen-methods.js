@@ -26,13 +26,17 @@ define(
         'uiComponent',
         'Magento_Checkout/js/model/payment/renderer-list',
         'Adyen_Payment/js/model/adyen-payment-service',
-        'Adyen_Payment/js/model/adyen-configuration'
+        'Adyen_Payment/js/model/adyen-configuration',
+        'Magento_Checkout/js/model/quote',
+        'Magento_Customer/js/model/customer'
     ],
     function (
         Component,
         rendererList,
         adyenPaymentService,
-        adyenConfiguration
+        adyenConfiguration,
+        quote,
+        customer
     ) {
         'use strict';
         rendererList.push(
@@ -67,14 +71,37 @@ define(
         );
         /** Add view logic here if needed */
         return Component.extend({
+            defaults: {
+                countryCode: ""
+            },
             initialize: function () {
+                var self = this;
+
                 this._super();
 
-                adyenPaymentService.retrieveAvailablePaymentMethods().done(function (response) {
+                if (this.isGooglePayEnabled()) {
+                    var googlepayscript = document.createElement('script');
+                    googlepayscript.src = "https://pay.google.com/gp/p/js/pay.js";
+                    googlepayscript.type = "text/javascript";
+                    document.head.appendChild(googlepayscript);
+                }
 
+                if (customer.isLoggedIn()) {
+                    self.setAdyenPaymentMethods();
+                }
+
+                quote.shippingAddress.subscribe(function() {
+                    if (!!quote.shippingAddress().countryId && self.countryCode !== quote.shippingAddress().countryId) {
+                        self.countryCode = quote.shippingAddress().countryId;
+                        self.setAdyenPaymentMethods();
+                    }
+                })
+            },
+            setAdyenPaymentMethods: function() {
+                adyenPaymentService.retrieveAvailablePaymentMethods().done(function (response) {
                     var responseJson = JSON.parse(response);
                     var paymentMethodsResponse = responseJson.paymentMethodsResponse;
-                    
+
                     // TODO check if this is still required or if can be outsourced for the generic component, or checkout can create a ratepay component
                     /*if (!!window.checkoutConfig.payment.adyenHpp) {
                         if (JSON.stringify(paymentMethods).indexOf("ratepay") > -1) {
@@ -104,13 +131,6 @@ define(
                         adyenConfiguration.getCheckoutEnvironment()
                     );
                 })
-
-                if (this.isGooglePayEnabled()) {
-                    var googlepayscript = document.createElement('script');
-                    googlepayscript.src = "https://pay.google.com/gp/p/js/pay.js";
-                    googlepayscript.type = "text/javascript";
-                    document.head.appendChild(googlepayscript);
-                }
             },
             isGooglePayEnabled: function() {
                 return window.checkoutConfig.payment.adyenGooglePay.active;

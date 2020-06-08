@@ -4,6 +4,7 @@
  */
 define(
     [
+        'ko',
         'underscore',
         'Magento_Checkout/js/model/quote',
         'Magento_Customer/js/model/customer',
@@ -11,9 +12,10 @@ define(
         'mage/storage',
         'Adyen_Payment/js/bundle',
     ],
-    function (_, quote, customer, urlBuilder, storage, adyenComponent) {
+    function (ko, _, quote, customer, urlBuilder, storage, adyenComponent) {
         'use strict';
         var checkoutComponent = {};
+        var paymentMethods = ko.observable({})
         return {
             /**
              * Retrieve the list of available payment methods from the server
@@ -73,10 +75,22 @@ define(
                     originKey: originKey,
                     environment: environment,
                     paymentMethodsResponse: paymentMethodsResponse,
+                    consentCheckbox: false,
+                    visibility: {
+                        personalDetails: 'editable',
+                        billingAddress: 'editable',
+                        separateDeliveryAddress: 'hidden',
+                        deliveryAddress: 'hidden'
+                    }
                 });
+
+                paymentMethods(paymentMethodsResponse.paymentMethods);
             },
             getCheckoutComponent: function() {
                 return checkoutComponent;
+            },
+            getPaymentMethodsObservable: function() {
+                return paymentMethods;
             }
         };
     }

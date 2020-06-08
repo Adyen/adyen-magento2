@@ -23,44 +23,32 @@
 namespace Adyen\Payment\Observer;
 
 use Magento\Framework\Event\Observer;
-use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 
 /**
  * Class DataAssignObserver
  */
-class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
+class AdyenHppDataAssignObserver extends AdyenAbstractDataAssignObserver
 {
-    const BRAND_CODE = 'brand_code';
-    const ISSUER_ID = 'issuer_id';
-    const GENDER = 'gender';
-    const DOB = 'dob';
-    const TELEPHONE = 'telephone';
-    const DF_VALUE = 'df_value';
-    const SSN = 'ssn';
-	const OWNER_NAME = 'ownerName';
-    const BANK_ACCOUNT_OWNER_NAME = 'bankAccountOwnerName';
-	const IBAN_NUMBER = 'ibanNumber';
-    const BANK_ACCOUNT_NUMBER = 'bankAccountNumber';
-    const BANK_LOCATIONID = 'bankLocationId';
-
-
     /**
+     * Approved root level keys from additional data array
+     *
      * @var array
      */
-    protected $additionalInformationList = [
-        self::BRAND_CODE,
-        self::ISSUER_ID,
-        self::GENDER,
-        self::DOB,
-        self::TELEPHONE,
-        self::DF_VALUE,
-        self::SSN,
-		self::OWNER_NAME,
-        self::BANK_ACCOUNT_OWNER_NAME,
-		self::IBAN_NUMBER,
-        self::BANK_ACCOUNT_NUMBER,
-        self::BANK_LOCATIONID
+    protected $approvedAdditionalDataKeys = [
+        self::STATE_DATA,
+        self::BRAND_CODE
+    ];
+
+    /**
+     * Approved root level keys from the checkout component's state data object
+     *
+     * @var array
+     */
+    protected $approvedStateDataKeys = [
+        self::BROWSER_INFO,
+        self::PAYMENT_METHOD,
+        self::RISK_DATA
     ];
 
     /**
@@ -69,26 +57,20 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
      */
     public function execute(Observer $observer)
     {
+        // Get request fields
         $data = $this->readDataArgument($observer);
 
-        $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
-        if (!is_array($additionalData)) {
-            return;
+        $additionalData = $this->getValidatedAdditionalData($data);
+
+        // Set additional data in the payment
+        $paymentInfo = $this->readPaymentModelArgument($observer);
+        foreach ($additionalData as $key => $data) {
+            $paymentInfo->setAdditionalInformation($key, $data);
         }
 
-        $paymentInfo = $this->readPaymentModelArgument($observer);
-        
+        // Set BrandCode into CCType
         if (isset($additionalData[self::BRAND_CODE])) {
             $paymentInfo->setCcType($additionalData[self::BRAND_CODE]);
-        }
-
-        foreach ($this->additionalInformationList as $additionalInformationKey) {
-            if (isset($additionalData[$additionalInformationKey])) {
-                $paymentInfo->setAdditionalInformation(
-                    $additionalInformationKey,
-                    $additionalData[$additionalInformationKey]
-                );
-            }
         }
     }
 }
