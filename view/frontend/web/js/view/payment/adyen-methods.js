@@ -71,6 +71,9 @@ define(
         );
         /** Add view logic here if needed */
         return Component.extend({
+            defaults: {
+                countryCode: ""
+            },
             initialize: function () {
                 var self = this;
 
@@ -88,7 +91,10 @@ define(
                 }
 
                 quote.shippingAddress.subscribe(function() {
-                    self.setAdyenPaymentMethods();
+                    if (!!quote.shippingAddress().countryId && self.countryCode !== quote.shippingAddress().countryId) {
+                        self.countryCode = quote.shippingAddress().countryId;
+                        self.setAdyenPaymentMethods();
+                    }
                 })
             },
             setAdyenPaymentMethods: function() {
