@@ -29,8 +29,8 @@
             <input type="radio"
                    name="payment[method]"
                    class="radio"
-                   data-bind="attr: {'id': 'paymentmethod_' + brandCode}, value: 'paymentmethod_' + brandCode, checked: brandCode == $parent.isBrandCodeChecked, click: $parent.selectPaymentMethodBrandCode"/>
-            <label data-bind="attr: {'for': 'paymentmethod_' + brandCode}" class="label">
+                   data-bind="attr: {'id': 'adyen_' + brandCode}, value: 'adyen_' + brandCode, checked: brandCode == $parent.isBrandCodeChecked, click: $parent.selectPaymentMethodBrandCode"/>
+            <label data-bind="attr: {'for': 'adyen_' + brandCode}" class="label">
 
                 <!-- ko if: name.icon -->
                 <img data-bind="attr: {
