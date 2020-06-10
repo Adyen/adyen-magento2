@@ -40,6 +40,11 @@ class InstallmentValidator extends AbstractValidator
     private $adyenHelper;
 
     /**
+     * @var \Magento\Framework\Serialize\SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * @var \Magento\Quote\Model\QuoteRepository
      */
     private $quoteRepository;
@@ -49,17 +54,20 @@ class InstallmentValidator extends AbstractValidator
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      * @param \Magento\Quote\Model\QuoteRepository $quoteRepository
      */
     public function __construct(
         \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Magento\Quote\Model\QuoteRepository $quoteRepository
 
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
+        $this->serializer = $serializer;
         $this->quoteRepository = $quoteRepository;
         parent::__construct($resultFactory);
     }
@@ -80,14 +88,27 @@ class InstallmentValidator extends AbstractValidator
         $installmentsEnabled = $this->adyenHelper->getAdyenCcConfigData('enable_installments');
         if ($quote && $installmentsEnabled) {
             $grandTotal = $quote->getGrandTotal();
-            $installments = $this->adyenHelper->getAdyenCcConfigData('installments');
+            $installmentsAvailable = $this->adyenHelper->getAdyenCcConfigData('installments');
             $installmentSelected = $payment->getAdditionalInformation('number_of_installments');
             $ccType = $payment->getAdditionalInformation('cc_type');
+            if ($installmentsAvailable) {
+                $installments = $this->serializer->unserialize($installmentsAvailable);
+            }
             if ($installmentSelected && $installmentsAvailable) {
                 $isValid = false;
                 $fails[] = __('Installments not valid.');
                 if ($installments) {
-                    //TODO how implement custom validation of generated installments code against selected value?
+                    foreach ($installments as $ccTypeInstallment => $installment) {
+                        if ($ccTypeInstallment == $ccType) {
+                            foreach ($installment as $amount => $installmentsData) {
+                                if ($installmentSelected == $installmentsData) {
+                                    if ($grandTotal >= $amount) {
+                                        $isValid = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
