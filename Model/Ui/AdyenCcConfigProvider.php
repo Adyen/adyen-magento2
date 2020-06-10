@@ -70,6 +70,11 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     private $storeManager;
 
     /**
+     * @var \Magento\Framework\Serialize\SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * AdyenCcConfigProvider constructor.
      *
      * @param \Magento\Payment\Helper\Data $paymentHelper
@@ -79,6 +84,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
      * @param \Magento\Framework\View\Asset\Source $assetSource
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Payment\Model\CcConfig $ccConfig
+     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      */
     public function __construct(
         \Magento\Payment\Helper\Data $paymentHelper,
@@ -87,7 +93,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Framework\View\Asset\Source $assetSource,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Payment\Model\CcConfig $ccConfig
+        \Magento\Payment\Model\CcConfig $ccConfig,
+        \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
@@ -96,6 +103,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $this->_assetSource = $assetSource;
         $this->ccConfig = $ccConfig;
         $this->storeManager = $storeManager;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -155,7 +163,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $installments = $this->_adyenHelper->getAdyenCcConfigData('installments');
 
         if ($installmentsEnabled && $installments) {
-            $config['payment']['adyenCc']['installments'] = $installments;
+            $config['payment']['adyenCc']['installments'] = $this->serializer->unserialize($installments);
             $config['payment']['adyenCc']['hasInstallments'] = true;
         } else {
             $config['payment']['adyenCc']['installments'] = [];
