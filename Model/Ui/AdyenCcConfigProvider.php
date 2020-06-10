@@ -75,6 +75,11 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     private $serializer;
 
     /**
+     * @var \Adyen\Payment\Helper\Installments
+     */
+    private $installmentsHelper;
+
+    /**
      * AdyenCcConfigProvider constructor.
      *
      * @param \Magento\Payment\Helper\Data $paymentHelper
@@ -85,6 +90,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Payment\Model\CcConfig $ccConfig
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     * @param \Adyen\Payment\Helper\Installments $installmentsHelper
      */
     public function __construct(
         \Magento\Payment\Helper\Data $paymentHelper,
@@ -94,7 +100,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         \Magento\Framework\View\Asset\Source $assetSource,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Payment\Model\CcConfig $ccConfig,
-        \Magento\Framework\Serialize\SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
+        \Adyen\Payment\Helper\Installments $installmentsHelper
     ) {
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
@@ -104,6 +111,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $this->ccConfig = $ccConfig;
         $this->storeManager = $storeManager;
         $this->serializer = $serializer;
+        $this->installmentsHelper = $installmentsHelper;
     }
 
     /**
@@ -163,7 +171,9 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $installments = $this->_adyenHelper->getAdyenCcConfigData('installments');
 
         if ($installmentsEnabled && $installments) {
-            $config['payment']['adyenCc']['installments'] = $this->serializer->unserialize($installments);
+            $config['payment']['adyenCc']['installments'] = $this->installmentsHelper->convertArrayToInstallmentsFormat(
+                $this->serializer->unserialize($installments)
+            );
             $config['payment']['adyenCc']['hasInstallments'] = true;
         } else {
             $config['payment']['adyenCc']['installments'] = [];

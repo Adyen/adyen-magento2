@@ -25,7 +25,7 @@ namespace Adyen\Payment\Helper;
 
 class Installments
 {
-    const CARD_TYPES = array(
+    static $card_types = array(
         'AE' => 1,
         'ELO' => 2,
         'HIPER' => 4,
@@ -48,17 +48,19 @@ class Installments
         $formattedConfig = array();
         //Looping through cards
         foreach ($installmentsArray as $card => $cardInstallments) {
-            //Looping through installments configs
-            foreach ($cardInstallments as $amount => $numberInstallments) {
-                //Searching the result array for matching configs
-                $configFound = array_search(array($amount, $numberInstallments), array_column($formattedConfig, 1));
-                if ($configFound !== false) {
-                    //Add the card ID to the resulting ID value
-                    $formattedConfig[$configFound][0] = $formattedConfig[$configFound][0] + self::CARD_TYPES[$card];
+            if (isset(self::$card_types[$card])) {
+                //Looping through installments configs
+                foreach ($cardInstallments as $amount => $numberInstallments) {
+                    //Searching the result array for matching configs
+                    $configFound = array_search(array($amount, $numberInstallments), array_column($formattedConfig, 1));
+                    if ($configFound !== false) {
+                        //Add the card ID to the resulting ID value
+                        $formattedConfig[$configFound][0] = $formattedConfig[$configFound][0] + self::$card_types[$card];
 
-                } else {
-                    //Create a new config element
-                    $formattedConfig[] = array(self::CARD_TYPES[$card], array($amount, $numberInstallments));
+                    } else {
+                        //Create a new config element
+                        $formattedConfig[] = array(self::$card_types[$card], array($amount, $numberInstallments));
+                    }
                 }
             }
         }
@@ -68,7 +70,7 @@ class Installments
             $formattedConfig[$key][] = $config[1][0];
             $formattedConfig[$key][] = $config[1][1];
             unset($formattedConfig[$key][1]);
-            $strArr[] = '[' . implode(',', [$config[1][0], $config[1][1], $config[0]]) . ']';
+            $strArr[] = '[' . implode(',', array($config[1][0], $config[1][1], $config[0])) . ']';
         }
         return '[' . implode(',', $strArr) . ']';
     }

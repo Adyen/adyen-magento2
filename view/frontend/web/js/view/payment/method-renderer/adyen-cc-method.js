@@ -120,9 +120,7 @@ define(
 
                 var self = this;
                 // installments configuration
-                var installmentsConfiguration = this.getAllInstallments();
-                // TODO get config from admin configuration
-                installmentsConfiguration = '[[0,2,3],[2,3,3]]'; // DUmmy data for testing
+                var installmentsConfiguration = JSON.parse(this.getAllInstallments());
 
                 var placeOrderAllowed = self.placeOrderAllowed.bind(self);
 
