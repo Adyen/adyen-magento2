@@ -364,7 +364,7 @@ class Cron
 
         foreach ($notifications as $notification) {
             // Remove OFFER_CLOSED notifications arrived in the last 10 minutes from the list to process to ensure it
-            // won't close any order which has an AUTHOIRSED notification arrived a bit later than the OFFER_CLOSED one.
+            // won't close any order which has an AUTHORISED notification arrived a bit later than the OFFER_CLOSED one.
             $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
             $minutesUntilProcessing = $offerClosedMinDate->diff($createdAt)->i;
             if ($notification['event_code'] == Notification::OFFER_CLOSED && $minutesUntilProcessing > 0) {
