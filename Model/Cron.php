@@ -355,7 +355,27 @@ class Cron
         $notifications->addFieldToFilter('created_at', $dateRange);
         $notifications->addFieldToFilter('error_count', ['lt' => Notification::MAX_ERROR_COUNT]);
 
+        // Process the notifications in ascending order by creation date and event_code
+        $notifications->getSelect()->order('created_at ASC')->order('event_code ASC');
+
+        // OFFER_CLOSED notifications needs to be at least 10 minutes old to be processed
+        $offerClosedMinDate = new \DateTime();
+        $offerClosedMinDate->modify('-10 minutes');
+
         foreach ($notifications as $notification) {
+            // Remove OFFER_CLOSED notifications arrived in the last 10 minutes from the list to process to ensure it
+            // won't close any order which has an AUTHOIRSED notification arrived a bit later than the OFFER_CLOSED one.
+            $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
+            $minutesUntilProcessing = $offerClosedMinDate->diff($createdAt)->i;
+            if ($notification['event_code'] == Notification::OFFER_CLOSED && $minutesUntilProcessing > 0) {
+                $this->_adyenLogger->addAdyenNotificationCronjob(
+                    sprintf('OFFER_CLOSED notification %s skipped! Wait %s minute(s) before processing.',
+                        $notification->getEntityId(), $minutesUntilProcessing)
+                );
+                $notifications->removeItemByKey($notification->getId());
+                continue;
+            }
+
             // set Cron processing to true
             $this->_updateNotification($notification, true, false);
         }
@@ -459,7 +479,7 @@ class Cron
                         );
                     }
                     //Trigger admin notice for unsuccessful REFUND notifications
-                    if ($this->_eventCode == Notification::REFUND){
+                    if ($this->_eventCode == Notification::REFUND) {
                         $this->addRefundFailedNotice();
                     }
                 } else {
@@ -882,7 +902,6 @@ class Cron
      */
     protected function _processNotification()
     {
-
         $this->_adyenLogger->addAdyenNotificationCronjob('Processing the notification');
         $_paymentCode = $this->_paymentMethodCode();
 
@@ -1143,10 +1162,8 @@ class Cron
                         // Populate billing agreement data
                         $billingAgreement->parseRecurringContractData($contractDetail);
                         if ($billingAgreement->isValid()) {
-
                             if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),
                                 $this->_order->getId())) {
-
                                 // save into sales_billing_agreement_order
                                 $billingAgreement->addOrderRelation($this->_order);
 
