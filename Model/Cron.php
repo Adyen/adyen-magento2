@@ -341,22 +341,8 @@ class Cron
 
         $this->_order = null;
 
-        // execute notifications from 2 minute or earlier because order could not yet been created by magento
-        $dateStart = new \DateTime();
-        $dateStart->modify('-5 day');
-        $dateEnd = new \DateTime();
-        $dateEnd->modify('-1 minute');
-        $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
-
-        // create collection
         $notifications = $this->_notificationFactory->create();
-        $notifications->addFieldToFilter('done', 0);
-        $notifications->addFieldToFilter('processing', 0);
-        $notifications->addFieldToFilter('created_at', $dateRange);
-        $notifications->addFieldToFilter('error_count', ['lt' => Notification::MAX_ERROR_COUNT]);
-
-        // Process the notifications in ascending order by creation date and event_code
-        $notifications->getSelect()->order('created_at ASC')->order('event_code ASC');
+        $notifications->notificationsToProcessFilter();
 
         // OFFER_CLOSED notifications needs to be at least 10 minutes old to be processed
         $offerClosedMinDate = new \DateTime();
