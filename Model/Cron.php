@@ -366,6 +366,8 @@ class Cron
             // Remove OFFER_CLOSED notifications arrived in the last 10 minutes from the list to process to ensure it
             // won't close any order which has an AUTHORISED notification arrived a bit later than the OFFER_CLOSED one.
             $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
+            // Difference between $offerClosedMinDate and $createdAt in minutes is the time until processing the
+            // notification in minutes
             $minutesUntilProcessing = $offerClosedMinDate->diff($createdAt)->i;
             if ($notification['event_code'] == Notification::OFFER_CLOSED && $minutesUntilProcessing > 0) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
