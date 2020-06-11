@@ -331,6 +331,34 @@ class Cron
         }
     }
 
+    /**
+     * @param $notification
+     * @return bool
+     */
+    private function shouldSkipProcessingNotification($notification)
+    {
+        // OFFER_CLOSED notifications needs to be at least 10 minutes old to be processed
+        $offerClosedMinDate = new \DateTime();
+        $offerClosedMinDate->modify('-10 minutes');
+
+        // Remove OFFER_CLOSED notifications arrived in the last 10 minutes from the list to process to ensure it
+        // won't close any order which has an AUTHORISED notification arrived a bit later than the OFFER_CLOSED one.
+        $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
+        // To get the difference between $offerClosedMinDate and $createdAt, $offerClosedMinDate time in seconds is
+        // deducted from $createdAt time in seconds, divided by 60 and rounded down to integer
+        $minutesUntilProcessing = floor(($createdAt->getTimestamp() - $offerClosedMinDate->getTimestamp()) / 60);
+        if ($notification['event_code'] == Notification::OFFER_CLOSED && $minutesUntilProcessing > 0) {
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                sprintf('OFFER_CLOSED notification %s skipped! Wait %s minute(s) before processing.',
+                    $notification->getEntityId(), $minutesUntilProcessing)
+            );
+
+            return true;
+        }
+
+        return false;
+    }
+
     public function execute()
     {
         // needed for Magento < 2.2.0 https://github.com/magento/magento2/pull/8413
@@ -344,27 +372,16 @@ class Cron
         $notifications = $this->_notificationFactory->create();
         $notifications->notificationsToProcessFilter();
 
-        // OFFER_CLOSED notifications needs to be at least 10 minutes old to be processed
-        $offerClosedMinDate = new \DateTime();
-        $offerClosedMinDate->modify('-10 minutes');
-
+        // Loop thorugh notifications to set processing to true if notifiaction should not be skipped
         foreach ($notifications as $notification) {
-            // Remove OFFER_CLOSED notifications arrived in the last 10 minutes from the list to process to ensure it
-            // won't close any order which has an AUTHORISED notification arrived a bit later than the OFFER_CLOSED one.
-            $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
-            // To get the difference between $offerClosedMinDate and $createdAt, $offerClosedMinDate time in seconds is
-            // deducted from $createdAt time in seconds, divided by 60 and rounded down to integer
-            $minutesUntilProcessing = floor(($createdAt->getTimestamp() - $offerClosedMinDate->getTimestamp()) / 60);
-            if ($notification['event_code'] == Notification::OFFER_CLOSED && $minutesUntilProcessing > 0) {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    sprintf('OFFER_CLOSED notification %s skipped! Wait %s minute(s) before processing.',
-                        $notification->getEntityId(), $minutesUntilProcessing)
-                );
+            // Check if notification should be processed or not
+            if ($this->shouldSkipProcessingNotification($notification)) {
+                // Remove notification from collection which will be processed
                 $notifications->removeItemByKey($notification->getId());
                 continue;
             }
 
-            // set Cron processing to true
+            // set notification processing to true
             $this->_updateNotification($notification, true, false);
         }
 
