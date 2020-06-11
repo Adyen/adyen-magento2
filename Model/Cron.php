@@ -331,6 +331,34 @@ class Cron
         }
     }
 
+    /**
+     * @param $notification
+     * @return bool
+     */
+    private function shouldSkipProcessingNotification($notification)
+    {
+        // OFFER_CLOSED notifications needs to be at least 10 minutes old to be processed
+        $offerClosedMinDate = new \DateTime();
+        $offerClosedMinDate->modify('-10 minutes');
+
+        // Remove OFFER_CLOSED notifications arrived in the last 10 minutes from the list to process to ensure it
+        // won't close any order which has an AUTHORISED notification arrived a bit later than the OFFER_CLOSED one.
+        $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
+        // To get the difference between $offerClosedMinDate and $createdAt, $offerClosedMinDate time in seconds is
+        // deducted from $createdAt time in seconds, divided by 60 and rounded down to integer
+        $minutesUntilProcessing = floor(($createdAt->getTimestamp() - $offerClosedMinDate->getTimestamp()) / 60);
+        if ($notification['event_code'] == Notification::OFFER_CLOSED && $minutesUntilProcessing > 0) {
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                sprintf('OFFER_CLOSED notification %s skipped! Wait %s minute(s) before processing.',
+                    $notification->getEntityId(), $minutesUntilProcessing)
+            );
+
+            return true;
+        }
+
+        return false;
+    }
+
     public function execute()
     {
         // needed for Magento < 2.2.0 https://github.com/magento/magento2/pull/8413
@@ -341,22 +369,19 @@ class Cron
 
         $this->_order = null;
 
-        // execute notifications from 2 minute or earlier because order could not yet been created by magento
-        $dateStart = new \DateTime();
-        $dateStart->modify('-5 day');
-        $dateEnd = new \DateTime();
-        $dateEnd->modify('-1 minute');
-        $dateRange = ['from' => $dateStart, 'to' => $dateEnd, 'datetime' => true];
-
-        // create collection
         $notifications = $this->_notificationFactory->create();
-        $notifications->addFieldToFilter('done', 0);
-        $notifications->addFieldToFilter('processing', 0);
-        $notifications->addFieldToFilter('created_at', $dateRange);
-        $notifications->addFieldToFilter('error_count', ['lt' => Notification::MAX_ERROR_COUNT]);
+        $notifications->notificationsToProcessFilter();
 
+        // Loop thorugh notifications to set processing to true if notifiaction should not be skipped
         foreach ($notifications as $notification) {
-            // set Cron processing to true
+            // Check if notification should be processed or not
+            if ($this->shouldSkipProcessingNotification($notification)) {
+                // Remove notification from collection which will be processed
+                $notifications->removeItemByKey($notification->getId());
+                continue;
+            }
+
+            // set notification processing to true
             $this->_updateNotification($notification, true, false);
         }
 
@@ -459,7 +484,7 @@ class Cron
                         );
                     }
                     //Trigger admin notice for unsuccessful REFUND notifications
-                    if ($this->_eventCode == Notification::REFUND){
+                    if ($this->_eventCode == Notification::REFUND) {
                         $this->addRefundFailedNotice();
                     }
                 } else {
@@ -882,7 +907,6 @@ class Cron
      */
     protected function _processNotification()
     {
-
         $this->_adyenLogger->addAdyenNotificationCronjob('Processing the notification');
         $_paymentCode = $this->_paymentMethodCode();
 
@@ -1143,10 +1167,8 @@ class Cron
                         // Populate billing agreement data
                         $billingAgreement->parseRecurringContractData($contractDetail);
                         if ($billingAgreement->isValid()) {
-
                             if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),
                                 $this->_order->getId())) {
-
                                 // save into sales_billing_agreement_order
                                 $billingAgreement->addOrderRelation($this->_order);
 
