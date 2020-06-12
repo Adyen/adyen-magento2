@@ -73,9 +73,9 @@ $_isDemoMode = $block->isDemoMode();
     </div>
 <?php endif; ?>
 
-<?php if($_info->getAdditionalInformation('expirationDate') != ""): ?>
+<?php if(!empty($block->getPaymentActionData('expiresAt'))): ?>
     <div>
-        <?php echo __('Expiration Date: %1', $_info->getAdditionalInformation('expirationDate')) ?>
+        <?php echo __('Expiration Date: %1', $block->getPaymentActionData('expiresAt')) ?>
     </div>
 <?php endif; ?>
 
@@ -85,9 +85,9 @@ $_isDemoMode = $block->isDemoMode();
     </div>
 <?php endif; ?>
 
-<?php if($_info->getAdditionalInformation('url') != ""): ?>
+<?php if(!empty($block->getPaymentActionData('downloadUrl'))): ?>
     <div>
-        <a target="_blank" href="<?php echo $_info->getAdditionalInformation('url'); ?>"><?php echo __('PDF Url'); ?></a>
+        <a target="_blank" href="<?php echo $block->getPaymentActionData('downloadUrl'); ?>"><?php echo __('PDF Url'); ?></a>
     </div>
 <?php endif; ?>
 

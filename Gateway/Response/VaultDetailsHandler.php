@@ -23,43 +23,79 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 use Magento\Payment\Model\InfoInterface;
+use Magento\Vault\Model\PaymentTokenManagement;
+use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 
 class VaultDetailsHandler implements HandlerInterface
 {
 
+    const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
+    const CARD_SUMMARY = 'cardSummary';
+    const EXPIRY_DATE = 'expiryDate';
+    const PAYMENT_METHOD = 'paymentMethod';
+    const ADDITIONAL_DATA_ERRORS = array(
+        self::RECURRING_DETAIL_REFERENCE => 'Missing Token in Result please enable in ' .
+            'Settings -> API URLs and Response menu in the Adyen Customer Area Recurring details setting',
+        self::CARD_SUMMARY => 'Missing cardSummary in Result please login to the adyen portal ' .
+            'and go to Settings -> API URLs and Response and enable the Card summary property',
+        self::EXPIRY_DATE => 'Missing expiryDate in Result please login to the adyen portal and go to ' .
+            'Settings -> API URLs and Response and enable the Expiry date property',
+        self::PAYMENT_METHOD => 'Missing paymentMethod in Result please login to the adyen portal and go to ' .
+            'Settings -> API URLs and Response and enable the Variant property'
+    );
+
     /**
-     * @var PaymentTokenInterfaceFactory
+     * @var PaymentTokenFactoryInterface
      */
     protected $paymentTokenFactory;
 
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
+     * @var AdyenLogger
      */
     private $adyenLogger;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
+
+    /**
+     * @var PaymentTokenManagement
+     */
+    private $paymentTokenManagement;
+
+    /**
+     * @var
+     */
+    private $paymentTokenRepository;
 
     /**
      * VaultDetailsHandler constructor.
      *
      * @param PaymentTokenFactoryInterface $paymentTokenFactory
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param AdyenLogger $adyenLogger
+     * @param Data $adyenHelper
+     * @param PaymentTokenManagement $paymentTokenManagement
+     * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      */
     public function __construct(
         PaymentTokenFactoryInterface $paymentTokenFactory,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        AdyenLogger $adyenLogger,
+        Data $adyenHelper,
+        PaymentTokenManagement $paymentTokenManagement,
+        PaymentTokenRepositoryInterface $paymentTokenRepository
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         $this->paymentTokenFactory = $paymentTokenFactory;
+        $this->paymentTokenManagement = $paymentTokenManagement;
+        $this->paymentTokenRepository = $paymentTokenRepository;
     }
 
     /**
@@ -67,18 +103,23 @@ class VaultDetailsHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $response)
     {
-        $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
+        /** @var PaymentDataObject $orderPayment */
+        $orderPayment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
-        /** @var \Adyen\Payment\Api\Data\OrderPaymentInterface $payment */
-        $payment = $payment->getPayment();
+        $payment = $orderPayment->getPayment();
 
         if ($this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId())) {
             // add vault payment token entity to extension attributes
-            $paymentToken = $this->getVaultPaymentToken($response);
+            $paymentToken = $this->getVaultPaymentToken($response, $payment);
 
             if (null !== $paymentToken) {
                 $extensionAttributes = $this->getExtensionAttributes($payment);
                 $extensionAttributes->setVaultPaymentToken($paymentToken);
+            } else {
+                $this->adyenLogger->error(
+                    sprintf('Failure trying to save credit card token in vault for order %s',
+                        $payment->getOrder()->getIncrementId())
+                );
             }
         }
     }
@@ -87,77 +128,69 @@ class VaultDetailsHandler implements HandlerInterface
      * Get vault payment token entity
      *
      * @param array $response
+     * @param $payment
      * @return PaymentTokenInterface|null
      */
-    private function getVaultPaymentToken(array $response)
+    private function getVaultPaymentToken(array $response, $payment)
     {
+
+        if (empty($response['additionalData'])) {
+            return null;
+        }
+
+        $additionalData = $response['additionalData'];
+
         $paymentToken = null;
 
-        if (!empty($response['additionalData'])) {
-            $additionalData = $response['additionalData'];
-
-
-            if (empty($additionalData['recurring.recurringDetailReference'])) {
-                $this->adyenLogger->error(
-                    'Missing Token in Result please enable in ' .
-                    'Settings -> API URLs and Response menu in the Adyen Customer Area Recurring details setting'
-                );
+        foreach (self::ADDITIONAL_DATA_ERRORS as $key => $errorMsg) {
+            if (empty($additionalData[$key])) {
+                $this->adyenLogger->error($errorMsg);
                 return null;
             }
-            $token = $additionalData['recurring.recurringDetailReference'];
+        }
 
+        try {
 
-            if (empty($additionalData['cardSummary'])) {
-                $this->adyenLogger->error(
-                    'Missing cardSummary in Result please login to the adyen portal ' .
-                    'and go to Settings -> API URLs and Response and enable the Card summary property'
-                );
-                return null;
-            }
-            $cardSummary = $additionalData['cardSummary'];
+            // Check if paymentToken exists already
+            $paymentToken = $this->paymentTokenManagement->getByGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE],
+                $payment->getMethodInstance()->getCode(), $payment->getOrder()->getCustomerId());
 
-            if (empty($additionalData['expiryDate'])) {
-                $this->adyenLogger->error(
-                    'Missing expiryDate in Result please login to the adyen portal and go to ' .
-                    'Settings -> API URLs and Response and enable the Expiry date property'
-                );
-                return null;
-            }
-            $expirationDate = $additionalData['expiryDate'];
+            $paymentTokenSaveRequired = false;
 
-            if (empty($additionalData['paymentMethod'])) {
-                $this->adyenLogger->error(
-                    'Missing paymentMethod in Result please login to the adyen portal and go to ' .
-                    'Settings -> API URLs and Response and enable the Variant property'
-                );
-                return null;
-            }
-
-            $cardType = $additionalData['paymentMethod'];
-
-            try {
+            // In case the payment token does not exist, create it based on the additionalData
+            if (is_null($paymentToken)) {
                 /** @var PaymentTokenInterface $paymentToken */
                 $paymentToken = $this->paymentTokenFactory->create(
                     PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
                 );
 
-                if (strpos($cardType, "paywithgoogle") !== false && !empty($additionalData['paymentMethodVariant'])) {
-                    $cardType = $additionalData['paymentMethodVariant'];
+                $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
+
+                if (strpos($additionalData[self::PAYMENT_METHOD], "paywithgoogle") !== false
+                    && !empty($additionalData['paymentMethodVariant'])) {
+                    $additionalData[self::PAYMENT_METHOD] = $additionalData['paymentMethodVariant'];
                     $paymentToken->setIsVisible(false);
                 }
-                $paymentToken->setGatewayToken($token);
-                $paymentToken->setExpiresAt($this->getExpirationDate($expirationDate));
-
-                $details = [
-                    'type' => $cardType,
-                    'maskedCC' => $cardSummary,
-                    'expirationDate' => $expirationDate
-                ];
-
-                $paymentToken->setTokenDetails(json_encode($details));
-            } catch (\Exception $e) {
-                $this->adyenLogger->error(print_r($e, true));
+            } else {
+                $paymentTokenSaveRequired = true;
             }
+
+            $paymentToken->setExpiresAt($this->getExpirationDate($additionalData[self::EXPIRY_DATE]));
+
+            $details = [
+                'type' => $additionalData[self::PAYMENT_METHOD],
+                'maskedCC' => $additionalData[self::CARD_SUMMARY],
+                'expirationDate' => $additionalData[self::EXPIRY_DATE]
+            ];
+
+            $paymentToken->setTokenDetails(json_encode($details));
+
+            // If the token is updated, it needs to be saved to keep the changes
+            if ($paymentTokenSaveRequired) {
+                $this->paymentTokenRepository->save($paymentToken);
+            }
+        } catch (\Exception $e) {
+            $this->adyenLogger->error(print_r($e, true));
         }
 
         return $paymentToken;

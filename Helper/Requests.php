@@ -487,26 +487,15 @@ class Requests extends AbstractHelper
             // Parse address into street and house number where possible
             $address = $this->adyenHelper->getStreetFromString($address->getStreetFull());
         } else {
-            $address = $this->adyenHelper->getStreetFromString(implode(' ', [$address->getStreetLine1(), $address->getStreetLine2()]));
+            $address = $this->adyenHelper->getStreetFromString(
+                implode(' ', [
+                    $address->getStreetLine1(),
+                    $address->getStreetLine2(),
+                    $address->getStreetLine3(),
+                    $address->getStreetLine4()
+                ]));
         }
 
         return $address;
-    }
-
-    /**
-     * Only adds idempotency key if payment method is adyen_hpp for now
-     *
-     * @param array $request
-     * @param $paymentMethod
-     * @param $idempotencyKey
-     * @return array
-     */
-    public function addIdempotencyKey($request = [], $paymentMethod, $idempotencyKey)
-    {
-        if (!empty($paymentMethod) && $paymentMethod == 'adyen_hpp') {
-            $request['idempotencyKey'] = $idempotencyKey;
-        }
-
-        return $request;
     }
 }

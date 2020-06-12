@@ -78,6 +78,7 @@ define(
         var isValid = ko.observable(false);
 
         return Component.extend({
+            isPlaceOrderActionAllowed: ko.observable(quote.billingAddress() != null),
             defaults: {
                 template: 'Adyen_Payment/payment/oneclick-form',
                 recurringDetailReference: '',
@@ -195,7 +196,7 @@ define(
 
 
                         isButtonActive: function () {
-                            return self.isActive() && this.getCode() == self.isChecked() && self.isBillingAgreementChecked() && this.placeOrderAllowed();
+                            return self.isActive() && this.getCode() == self.isChecked() && self.isBillingAgreementChecked() && this.placeOrderAllowed() && self.isPlaceOrderActionAllowed();
                         },
                         /**
                          * Custom place order function
@@ -528,7 +529,6 @@ define(
                 if (quote.paymentMethod().method == paymentMethod()) {
                     return recurringDetailReference();
                 }
-
                 return null;
             }),
             placeOrderHandler: null,
