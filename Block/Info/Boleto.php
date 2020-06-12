@@ -37,6 +37,10 @@ class Boleto extends AbstractInfo
     public function getPaymentActionData($data)
     {
         $paymentAction = $this->getMethod()->getInfoInstance()->getAdditionalInformation('action');
-        return !empty($paymentAction[$data]) ? $paymentAction[$data] : '';
+        if (empty($paymentAction[$data])) {
+            return '';
+        }
+        
+        return $paymentAction[$data];
     }
 }
