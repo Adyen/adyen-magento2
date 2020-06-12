@@ -195,7 +195,6 @@ class PaymentMethods extends AbstractHelper
         $paymentMethods = [];
         if (isset($responseData['paymentMethods'])) {
             foreach ($responseData['paymentMethods'] as $paymentMethod) {
-
                 $paymentMethodCode = $paymentMethod['type'];
                 $paymentMethod = $this->fieldMapPaymentMethod($paymentMethod);
 

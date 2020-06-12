@@ -150,7 +150,6 @@ class VaultDetailsHandler implements HandlerInterface
         }
 
         try {
-
             // Check if paymentToken exists already
             $paymentToken = $this->paymentTokenManagement->getByGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE],
                 $payment->getMethodInstance()->getCode(), $payment->getOrder()->getCustomerId());

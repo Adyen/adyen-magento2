@@ -134,7 +134,6 @@ class CheckoutResponseValidator extends AbstractValidator
 
                     // If the redirect data is there then the payment is a card payment with 3d secure
                     if (isset($response['redirect']['data']['PaReq']) && isset($response['redirect']['data']['MD'])) {
-
                         $paReq = null;
                         $md = null;
 

@@ -153,19 +153,16 @@ class Redirect extends \Magento\Framework\App\Action\Action
 
 		// check if 3D secure is active. If not just go to success page
 		if ($active && $success != true) {
-
 			$this->_adyenLogger->addAdyenResult("3D secure is active");
 
 			// check if it is already processed
 			if ($this->getRequest()->isPost()) {
-
 				$this->_adyenLogger->addAdyenResult("Process 3D secure payment");
 				$requestMD = $this->getRequest()->getPost('MD');
 				$requestPaRes = $this->getRequest()->getPost('PaRes');
 				$md = $order->getPayment()->getAdditionalInformation('md');
 
 				if ($requestMD == $md) {
-
 					$order->getPayment()->setAdditionalInformation('paResponse', $requestPaRes);
 
 					try {
@@ -253,7 +250,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
 				$this->_view->getLayout()->initMessages();
 				$this->_view->renderLayout();
 			}
-
 		} elseif (!empty($checkoutAPM)) {
 			$this->_view->loadLayout();
 			$this->_view->getLayout()->initMessages();

@@ -166,7 +166,6 @@ class Requests extends AbstractHelper
     public function buildAddressData($request = [], $billingAddress, $shippingAddress)
     {
         if ($billingAddress) {
-
             // Billing address defaults
             $requestBillingDefaults = [
                 "street" => "N/A",
@@ -212,7 +211,6 @@ class Requests extends AbstractHelper
         }
 
         if ($shippingAddress) {
-
             // Delivery address defaults
             $requestDeliveryDefaults = [
                 "street" => "N/A",
@@ -341,7 +339,6 @@ class Requests extends AbstractHelper
     {
         // If the vault feature is on this logic is handled in the VaultDataBuilder
         if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
-
             if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
                 $storeId = null;
             }

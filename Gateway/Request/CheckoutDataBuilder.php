@@ -240,7 +240,6 @@ class CheckoutDataBuilder implements BuilderInterface
 
         // Discount cost
         if ($discountAmount != 0) {
-
             $description = __('Discount');
             $itemAmount = -$this->adyenHelper->formatAmount($discountAmount, $currency);
             $itemVatAmount = "0";
@@ -260,7 +259,6 @@ class CheckoutDataBuilder implements BuilderInterface
 
         // Shipping cost
         if ($cart->getShippingAddress()->getShippingAmount() > 0 || $cart->getShippingAddress()->getShippingTaxAmount() > 0) {
-
             $priceExcludingTax = $cart->getShippingAddress()->getShippingAmount() - $cart->getShippingAddress()->getShippingTaxAmount();
 
             $formattedTaxAmount = $this->adyenHelper->formatAmount($cart->getShippingAddress()->getShippingTaxAmount(), $currency);
