@@ -186,6 +186,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             $request['SaleToPOIRequest']['PaymentData'] = [
                 'PaymentType' => $transactionType,
             ];
+
         }
 
         $request = $this->addSaleToAcquirerData($request, $quote);

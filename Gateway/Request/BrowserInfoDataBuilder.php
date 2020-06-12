@@ -41,8 +41,7 @@ class BrowserInfoDataBuilder implements BuilderInterface
      */
     public function __construct(
         \Adyen\Payment\Helper\Requests $adyenRequestsHelper
-    )
-    {
+    ) {
         $this->adyenRequestsHelper = $adyenRequestsHelper;
     }
 

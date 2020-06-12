@@ -114,7 +114,9 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'adyen/process/redirect/', ['_secure' => $this->_getRequest()->isSecure()])
+                        'adyen/process/redirect/',
+                        ['_secure' => $this->_getRequest()->isSecure()]
+                    )
                 ]
             ]
         ];
@@ -124,6 +126,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             $config['payment']['adyenOneclick']['methodCode'] = self::CODE;
             $config['payment'][self::CODE]['isActive'] = false;
             return $config;
+
         }
 
         $methodCode = self::CODE;

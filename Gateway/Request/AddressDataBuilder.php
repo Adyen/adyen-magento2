@@ -42,8 +42,7 @@ class AddressDataBuilder implements BuilderInterface
      */
     public function __construct(
         \Adyen\Payment\Helper\Requests $adyenRequestsHelper
-	)
-    {
+    ) {
         $this->adyenRequestsHelper = $adyenRequestsHelper;
     }
 
@@ -58,11 +57,11 @@ class AddressDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getOrder();
-		$billingAddress = $order->getBillingAddress();
+        $billingAddress = $order->getBillingAddress();
         $shippingAddress = $order->getShippingAddress();
 
         $request['body'] = $this->adyenRequestsHelper->buildAddressData([], $billingAddress, $shippingAddress);
 
-		return $request;
+        return $request;
     }
 }

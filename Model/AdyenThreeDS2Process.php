@@ -60,8 +60,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-    )
-    {
+    ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
         $this->orderFactory = $orderFactory;
@@ -144,7 +143,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
 
         $response = [];
 
-        if($result['resultCode'] != 'Authorised') {
+        if ($result['resultCode'] != 'Authorised') {
             $this->checkoutSession->restoreQuote();
 
             // Always cancel the order if the paymenth has failed

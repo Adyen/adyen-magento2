@@ -79,7 +79,7 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->serializer = $serializer;
         
         // Fix for Magento2.3 adding isAjax to the request params
-        if(interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
+        if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
             $request = $this->getRequest();
             if ($request instanceof Http && $request->isPost()) {
                 $request->setParam('isAjax', true);

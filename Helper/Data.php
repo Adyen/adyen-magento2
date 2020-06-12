@@ -882,8 +882,10 @@ class Data extends AbstractHelper
      */
     public function getModuleVersion()
     {
-        $moduleDir = $this->componentRegistrar->getPath(\Magento\Framework\Component\ComponentRegistrar::MODULE,
-            'Adyen_Payment');
+        $moduleDir = $this->componentRegistrar->getPath(
+            \Magento\Framework\Component\ComponentRegistrar::MODULE,
+            'Adyen_Payment'
+        );
 
         $composerJson = file_get_contents($moduleDir . '/composer.json');
         $composerJson = json_decode($composerJson, true);
@@ -1644,6 +1646,7 @@ class Data extends AbstractHelper
                         $additionalData['recurring.recurringDetailReference']
                     );
                 } else {
+
                     $billingAgreement->setIsObjectChanged(true);
                     $message = __(
                         'Updated billing agreement #%1.',
@@ -1658,10 +1661,12 @@ class Data extends AbstractHelper
                 $billingAgreementErrors = $billingAgreement->getErrors();
 
                 if ($billingAgreement->isValid() && empty($billingAgreementErrors)) {
+
                     if (!$this->agreementResourceModel->getOrderRelation(
                         $billingAgreement->getAgreementId(),
                         $order->getId()
                     )) {
+
                         // save into sales_billing_agreement_order
                         $billingAgreement->addOrderRelation($order);
                     }
@@ -1669,11 +1674,12 @@ class Data extends AbstractHelper
                     $order->addRelatedObject($billingAgreement);
                 } else {
                     $message = __('Failed to create billing agreement for this order. Reason(s): ') . join(
-                            ', ',
-                            $billingAgreementErrors
-                        );
+                        ', ',
+                        $billingAgreementErrors
+                    );
                     throw new \Exception($message);
                 }
+
             } catch (\Exception $exception) {
                 $message = $exception->getMessage();
                 $this->adyenLogger->error("exception: " . $message);
@@ -1870,6 +1876,5 @@ class Data extends AbstractHelper
             $checkoutEnvironment,
             $pspReference
         );
-
     }
 }

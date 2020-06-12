@@ -63,7 +63,6 @@ class InstallmentValidator extends AbstractValidator
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Magento\Quote\Model\QuoteRepository $quoteRepository
-
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;

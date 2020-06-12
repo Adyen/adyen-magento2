@@ -40,8 +40,8 @@ class CustomerIpDataBuilder implements BuilderInterface
      * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Requests $adyenRequestsHelper)
-    {
+        \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+    ) {
         $this->adyenRequestsHelper = $adyenRequestsHelper;
     }
 

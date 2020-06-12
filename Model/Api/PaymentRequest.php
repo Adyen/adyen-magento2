@@ -103,9 +103,9 @@ class PaymentRequest extends DataObject
         $paResponse = $payment->getAdditionalInformation('paResponse');
         $paymentData = $payment->getAdditionalInformation('paymentData');
 
-		$payment->unsAdditionalInformation('paymentData');
-		$payment->unsAdditionalInformation('paRequest');
-		$payment->unsAdditionalInformation('md');
+        $payment->unsAdditionalInformation('paymentData');
+        $payment->unsAdditionalInformation('paRequest');
+        $payment->unsAdditionalInformation('md');
 
         $request = [
             "paymentData" => $paymentData,
@@ -218,8 +218,8 @@ class PaymentRequest extends DataObject
         ];
 
         // call lib
-		$client = $this->_adyenHelper->initializeAdyenClient($storeId);
-		$service = $this->_adyenHelper->createAdyenRecurringService($client);
+        $client = $this->_adyenHelper->initializeAdyenClient($storeId);
+        $service = $this->_adyenHelper->createAdyenRecurringService($client);
 
         try {
             $result = $service->disable($request);

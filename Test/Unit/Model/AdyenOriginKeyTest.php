@@ -24,7 +24,6 @@
 
 namespace Adyen\Payment\Model;
 
-
 use Adyen\Payment\Helper\Data as AdyenHelper;
 use PHPUnit\Framework\TestCase;
 use PHPUnit_Framework_MockObject_MockObject as MockObject;

@@ -109,6 +109,7 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
                  */
                 $this->inboxFactory->create()->parse($messageData);
                 return true;
+
             } catch (\Exception $e) {
                 return false;
             }

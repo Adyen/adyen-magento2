@@ -24,7 +24,6 @@
 
 namespace Adyen\Payment\Model;
 
-
 class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
 {
 

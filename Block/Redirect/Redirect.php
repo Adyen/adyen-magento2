@@ -64,29 +64,29 @@ class Redirect extends \Magento\Payment\Block\Form
      */
     protected $_taxConfig;
 
-	/**
-	 * @var \Magento\Tax\Model\Calculation
-	 */
+    /**
+     * @var \Magento\Tax\Model\Calculation
+     */
     protected $_taxCalculation;
 
-	/**
-	 * Request object
-	 */
-	protected $_request;
+    /**
+     * Request object
+     */
+    protected $_request;
 
-	/**
-	 * Redirect constructor.
-	 *
-	 * @param \Magento\Framework\View\Element\Template\Context $context
-	 * @param array $data
-	 * @param \Magento\Sales\Model\OrderFactory $orderFactory
-	 * @param \Magento\Checkout\Model\Session $checkoutSession
-	 * @param \Adyen\Payment\Helper\Data $adyenHelper
-	 * @param \Magento\Framework\Locale\ResolverInterface $resolver
-	 * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-	 * @param \Magento\Tax\Model\Config $taxConfig
-	 * @param \Magento\Tax\Model\Calculation $taxCalculation
-	 */
+    /**
+     * Redirect constructor.
+     *
+     * @param \Magento\Framework\View\Element\Template\Context $context
+     * @param array $data
+     * @param \Magento\Sales\Model\OrderFactory $orderFactory
+     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Framework\Locale\ResolverInterface $resolver
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param \Magento\Tax\Model\Config $taxConfig
+     * @param \Magento\Tax\Model\Calculation $taxCalculation
+     */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Sales\Model\OrderFactory $orderFactory,
@@ -106,38 +106,38 @@ class Redirect extends \Magento\Payment\Block\Form
         $this->_resolver = $resolver;
         $this->_adyenLogger = $adyenLogger;
 
-		$this->_getOrder();
+        $this->_getOrder();
         $this->_taxConfig = $taxConfig;
         $this->_taxCalculation = $taxCalculation;
-		$this->_request = $context->getRequest();
+        $this->_request = $context->getRequest();
     }
 
-	/**
-	 * @return mixed|string[]
-	 * @throws AdyenException
-	 */
+    /**
+     * @return mixed|string[]
+     * @throws AdyenException
+     */
     public function getRedirectMethod()
-	{
-		if ($redirectMethod = $this->getPayment()->getAdditionalInformation('redirectMethod')) {
-			return $redirectMethod;
-		}
+    {
+        if ($redirectMethod = $this->getPayment()->getAdditionalInformation('redirectMethod')) {
+            return $redirectMethod;
+        }
 
-		throw new AdyenException("No redirect method is provided.");
-	}
-	/**
-	 * Retrieves redirect url for the flow of checkout API
-	 *
-	 * @return string[]
-	 * @throws AdyenException
-	 */
-	public function getRedirectUrl()
-	{
-		if ($redirectUrl = $this->getPayment()->getAdditionalInformation('redirectUrl')) {
-			return $redirectUrl;
-		}
+        throw new AdyenException("No redirect method is provided.");
+    }
+    /**
+     * Retrieves redirect url for the flow of checkout API
+     *
+     * @return string[]
+     * @throws AdyenException
+     */
+    public function getRedirectUrl()
+    {
+        if ($redirectUrl = $this->getPayment()->getAdditionalInformation('redirectUrl')) {
+            return $redirectUrl;
+        }
 
-		throw new AdyenException("No redirect url is provided.");
-	}
+        throw new AdyenException("No redirect url is provided.");
+    }
 
     /**
      * @return $this
@@ -155,11 +155,12 @@ class Redirect extends \Magento\Payment\Block\Form
         $url = "";
         try {
             if ($this->_order->getPayment()) {
+
                 switch ($this->_adyenHelper->isDemoMode()) {
                     case true:
                         if ($this->_adyenHelper->doesPaymentMethodSkipDetails(
-                                $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                            )
+                            $this->_order->getPayment()->getAdditionalInformation('brand_code')
+                        )
                         ) {
                             $url = "https://test.adyen.com/hpp/skipDetails.shtml";
                         } else {
@@ -168,8 +169,8 @@ class Redirect extends \Magento\Payment\Block\Form
                         break;
                     default:
                         if ($this->_adyenHelper->doesPaymentMethodSkipDetails(
-                                $this->_order->getPayment()->getAdditionalInformation('brand_code')
-                            )
+                            $this->_order->getPayment()->getAdditionalInformation('brand_code')
+                        )
                         ) {
                             $url = "https://live.adyen.com/hpp/skipDetails.shtml";
                         } else {
@@ -186,13 +187,13 @@ class Redirect extends \Magento\Payment\Block\Form
         return $url;
     }
 
-	/**
-	 * @return mixed
-	 */
-	private function getBrandCode()
-	{
-		return $this->getPayment()->getAdditionalInformation('brand_code');
-	}
+    /**
+     * @return mixed
+     */
+    private function getBrandCode()
+    {
+        return $this->getPayment()->getAdditionalInformation('brand_code');
+    }
 
     /**
      * Set Billing Address data
@@ -419,81 +420,84 @@ class Redirect extends \Magento\Payment\Block\Form
         return $this->_checkoutSession;
     }
 
-	/**
-	 * Retrieve request object
-	 *
-	 * @return \Magento\Framework\App\RequestInterface
-	 */
-	protected function _getRequest()
-	{
-		return $this->_request;
-	}
+    /**
+     * Retrieve request object
+     *
+     * @return \Magento\Framework\App\RequestInterface
+     */
+    protected function _getRequest()
+    {
+        return $this->_request;
+    }
 
-	/**
-	 * Get order object
-	 *
-	 * @return \Magento\Sales\Model\Order
-	 */
-	protected function _getOrder()
-	{
-		if (!$this->_order) {
-			$incrementId = $this->_getCheckout()->getLastRealOrderId();
-			$this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
-		}
-		return $this->_order;
-	}
+    /**
+     * Get order object
+     *
+     * @return \Magento\Sales\Model\Order
+     */
+    protected function _getOrder()
+    {
+        if (!$this->_order) {
+            $incrementId = $this->_getCheckout()->getLastRealOrderId();
+            $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
+        }
+        return $this->_order;
+    }
 
-	/**
-	 * @return mixed
-	 */
-	public function getPaReq()
-	{
-		if ($paReq = $this->getPayment()->getAdditionalInformation('paRequest')) {
-			return $paReq;
-		}
+    /**
+     * @return mixed
+     */
+    public function getPaReq()
+    {
+        if ($paReq = $this->getPayment()->getAdditionalInformation('paRequest')) {
+            return $paReq;
+        }
 
-		throw new AdyenException("No paRequest is provided.");
-	}
+        throw new AdyenException("No paRequest is provided.");
+    }
 
-	/**
-	 * @return string[]
-	 * @throws AdyenException
-	 */
-	public function getMd()
-	{
-		if ($md = $this->getPayment()->getAdditionalInformation('md')) {
-			return $md;
-		}
+    /**
+     * @return string[]
+     * @throws AdyenException
+     */
+    public function getMd()
+    {
+        if ($md = $this->getPayment()->getAdditionalInformation('md')) {
+            return $md;
+        }
 
-		throw new AdyenException("No MD is provided.");
-	}
+        throw new AdyenException("No MD is provided.");
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getTermUrl()
-	{
-		return $this->getUrl('adyen/process/redirect',
-			['_secure' => $this->_getRequest()->isSecure()]);
-	}
+    /**
+     * @return string
+     */
+    public function getTermUrl()
+    {
+        return $this->getUrl(
+            'adyen/process/redirect',
+            ['_secure' => $this->_getRequest()->isSecure()]
+        );
+    }
 
-	/**
-	 * Retrieve payment object if available
-	 *
-	 * @return \Magento\Framework\DataObject|\Magento\Sales\Api\Data\OrderPaymentInterface|mixed|null
-	 * @throws AdyenException
-	 */
-	private function getPayment() {
-		try {
-			$paymentObject = $this->_order->getPayment();
-			if (!empty($paymentObject)) {
-				return $paymentObject;
-			}
-		} catch (Exception $e) {
-			// do nothing for now
-			throw($e);
-		}
+    /**
+     * Retrieve payment object if available
+     *
+     * @return \Magento\Framework\DataObject|\Magento\Sales\Api\Data\OrderPaymentInterface|mixed|null
+     * @throws AdyenException
+     */
+    private function getPayment()
+    {
+        try {
+            $paymentObject = $this->_order->getPayment();
+            if (!empty($paymentObject)) {
+                return $paymentObject;
+            }
+        } catch (Exception $e) {
+            // do nothing for now
+            throw($e);
+        }
 
-		throw new AdyenException("No payment object is found.");
-	}
+        throw new AdyenException("No payment object is found.");
+    }
 }

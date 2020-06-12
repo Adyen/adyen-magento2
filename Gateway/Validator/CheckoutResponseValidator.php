@@ -35,7 +35,7 @@ class CheckoutResponseValidator extends AbstractValidator
     /**
      * @var \Adyen\Payment\Helper\Data
      */
-    private  $adyenHelper;
+    private $adyenHelper;
 
     /**
      * GeneralResponseValidator constructor.
@@ -114,7 +114,6 @@ class CheckoutResponseValidator extends AbstractValidator
                     }
                     break;
                 case "RedirectShopper":
-
                     $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
 
                     $redirectUrl = null;
@@ -134,6 +133,7 @@ class CheckoutResponseValidator extends AbstractValidator
 
                     // If the redirect data is there then the payment is a card payment with 3d secure
                     if (isset($response['redirect']['data']['PaReq']) && isset($response['redirect']['data']['MD'])) {
+
                         $paReq = null;
                         $md = null;
 
@@ -174,7 +174,7 @@ class CheckoutResponseValidator extends AbstractValidator
                         } else {
                             $isValid = false;
                             $errorMsg = __('Payment method is not valid.');
-                            $this->adyenLogger->error($errorMsg);;
+                            $this->adyenLogger->error($errorMsg);
                             $errorMessages[] = $errorMsg;
                         }
                     }

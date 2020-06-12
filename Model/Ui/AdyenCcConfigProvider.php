@@ -118,7 +118,9 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
                     'vaultCode' => self::CC_VAULT_CODE,
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'adyen/process/redirect/', ['_secure' => $this->_getRequest()->isSecure()])
+                        'adyen/process/redirect/',
+                        ['_secure' => $this->_getRequest()->isSecure()]
+                    )
                 ]
             ]
         ];
@@ -292,4 +294,3 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         return $this->_request;
     }
 }
-

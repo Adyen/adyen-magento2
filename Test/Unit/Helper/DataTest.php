@@ -59,7 +59,7 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $localeResolver = $this->getSimpleMock(\Magento\Framework\Locale\ResolverInterface::class);
         $config = $this->getSimpleMock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
         $helperBackend = $this->getSimpleMock(\Magento\Backend\Helper\Data::class);
-        $serializer = $this->getSimpleMock( \Magento\Framework\Serialize\SerializerInterface::class);
+        $serializer = $this->getSimpleMock(\Magento\Framework\Serialize\SerializerInterface::class);
         $componentRegistrar = $this->getSimpleMock(\Magento\Framework\Component\ComponentRegistrarInterface::class);
 
         $this->dataHelper = new \Adyen\Payment\Helper\Data(
@@ -121,17 +121,17 @@ class DataTest extends \PHPUnit\Framework\TestCase
 
     public static function checkoutEnvironmentsProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 'https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=7914073381342284',
                 '7914073381342284',
                 'false'
-            ),
-            array(
+            ],
+            [
                 'https://ca-live.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=883580976999434D',
                 '883580976999434D',
                 'true'
-            )
-        );
+            ]
+        ];
     }
 }

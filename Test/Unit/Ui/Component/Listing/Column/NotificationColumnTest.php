@@ -86,7 +86,7 @@ class NotificationColumnTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $this->adyenHelperMock->method("getPspReferenceSearchUrl")
-            ->willReturnCallback(function($pspReference, $liveEnvironment){
+            ->willReturnCallback(function ($pspReference, $liveEnvironment) {
                 return "https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=$pspReference";
             });
         $this->contextMock = $this->getMockBuilder(ContextInterface::class)
@@ -103,7 +103,6 @@ class NotificationColumnTest extends TestCase
             $this->contextMock,
             $this->uiComponentMock
         );
-
     }
 
     /**
@@ -118,15 +117,15 @@ class NotificationColumnTest extends TestCase
 
     public function dataSourceProvider()
     {
-        return array(
-            array(
-                array(
+        return [
+            [
+                [
                     'data' =>
-                        array(
+                        [
                             'items' =>
-                                array(
+                                [
                                     0 =>
-                                        array(
+                                        [
                                             'id_field_name' => 'entity_id',
                                             'entity_id' => '6779',
                                             'pspreference' => '852559045255812F',
@@ -145,9 +144,9 @@ class NotificationColumnTest extends TestCase
                                             'created_at' => '2019-05-28 12:08:53',
                                             'updated_at' => '2020-02-07 09:02:35',
                                             'orig_data' => null,
-                                        ),
+                                        ],
                                     1 =>
-                                        array(
+                                        [
                                             'id_field_name' => 'entity_id',
                                             'entity_id' => '6780',
                                             'pspreference' => '852559045465860A',
@@ -166,9 +165,9 @@ class NotificationColumnTest extends TestCase
                                             'created_at' => '2019-05-28 12:12:05',
                                             'updated_at' => '2020-02-07 09:02:35',
                                             'orig_data' => null,
-                                        ),
+                                        ],
                                     2 =>
-                                        array(
+                                        [
                                             'id_field_name' => 'entity_id',
                                             'entity_id' => '6809',
                                             'pspreference' => '882559051426497E',
@@ -187,19 +186,19 @@ class NotificationColumnTest extends TestCase
                                             'created_at' => '2019-05-28 13:51:19',
                                             'updated_at' => '2020-02-07 09:02:35',
                                             'orig_data' => null,
-                                        ),
-                                ),
+                                        ],
+                                ],
                             'totalRecords' => 3,
 
-                        )
-                ),
-                array(
+                        ]
+                ],
+                [
                     'data' =>
-                        array(
+                        [
                             'items' =>
-                                array(
+                                [
                                     0 =>
-                                        array(
+                                        [
                                             'id_field_name' => 'entity_id',
                                             'entity_id' => '6779',
                                             'pspreference' => '<a href="https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=852559045255812F" target="_blank">852559045255812F</a>',
@@ -219,9 +218,9 @@ class NotificationColumnTest extends TestCase
                                             'updated_at' => '2020-02-07 09:02:35',
                                             'orig_data' => null,
                                             'status' => 'Processed',
-                                        ),
+                                        ],
                                     1 =>
-                                        array(
+                                        [
                                             'id_field_name' => 'entity_id',
                                             'entity_id' => '6780',
                                             'pspreference' => '<a href="https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=852559045465860A" target="_blank">852559045465860A</a>',
@@ -241,9 +240,9 @@ class NotificationColumnTest extends TestCase
                                             'updated_at' => '2020-02-07 09:02:35',
                                             'orig_data' => null,
                                             'status' => 'Processed',
-                                        ),
+                                        ],
                                     2 =>
-                                        array(
+                                        [
                                             'id_field_name' => 'entity_id',
                                             'entity_id' => '6809',
                                             'pspreference' => '<a href="https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=882559051426497E" target="_blank">882559051426497E</a>',
@@ -263,13 +262,12 @@ class NotificationColumnTest extends TestCase
                                             'updated_at' => '2020-02-07 09:02:35',
                                             'orig_data' => null,
                                             'status' => 'Processed',
-                                        ),
-                                ),
+                                        ],
+                                ],
                             'totalRecords' => 3,
-                        )
-                )
-            )
-        );
+                        ]
+                ]
+            ]
+        ];
     }
-
 }
