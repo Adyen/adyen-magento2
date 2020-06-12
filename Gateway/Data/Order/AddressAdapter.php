@@ -15,32 +15,48 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Block\Info;
+namespace Adyen\Payment\Gateway\Data\Order;
 
-class Boleto extends AbstractInfo
+use Magento\Sales\Api\Data\OrderAddressInterface;
+
+class AddressAdapter extends \Magento\Payment\Gateway\Data\Order\AddressAdapter
 {
     /**
-     * @var string
+     * @var OrderAddressInterface
      */
-    protected $_template = 'Adyen_Payment::info/adyen_boleto.phtml';
+    private $address;
+
+    public function __construct(OrderAddressInterface $address)
+    {
+        $this->address = $address;
+        parent::__construct($address);
+    }
 
     /**
-     * @param $data string
+     * Get street line 3
+     *
      * @return string
      */
-    public function getPaymentActionData($data)
+    public function getStreetLine3()
     {
-        $paymentAction = $this->getMethod()->getInfoInstance()->getAdditionalInformation('action');
-        if (empty($paymentAction[$data])) {
-            return '';
-        }
-        
-        return $paymentAction[$data];
+        $street = $this->address->getStreet();
+        return isset($street[2]) ? $street[2] : '';
+    }
+
+    /**
+     * Get street line 4
+     *
+     * @return string
+     */
+    public function getStreetLine4()
+    {
+        $street = $this->address->getStreet();
+        return isset($street[3]) ? $street[3] : '';
     }
 }
