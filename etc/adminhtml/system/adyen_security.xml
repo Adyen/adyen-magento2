@@ -24,15 +24,22 @@
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_security" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label><![CDATA[Security]]></label>
+        <label><![CDATA[Advanced: Security]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <comment>
+            <![CDATA[
+                <p>
+                Enabling these features is strongly recommended to improve the security of your integration.
+                </p>
+            ]]>
+        </comment>
         <field id="notifications_ip_hmac_check" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Check notification's IP address and HMAC signature</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/notifications_ip_hmac_check</config_path>
             <comment>
                 <![CDATA[
-                Enabled notifications will be accepted only if the IP address matches Adyen's servers and the HMAC
+                If enabled notifications will be accepted only when the IP address matches Adyen's servers and the HMAC
                 signature is verified. To learn more about these settings refer to
                 <a target="_blank" href="https://docs.adyen.com/plugins/magento-2/set-up-the-plugin-in-magento">Adyen documentation</a>.
                 ]]>
