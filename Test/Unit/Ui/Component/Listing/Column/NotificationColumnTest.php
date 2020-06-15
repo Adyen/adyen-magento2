@@ -68,7 +68,6 @@ class NotificationColumnTest extends TestCase
 
     public function setUp()
     {
-
         $this->orderMock = $this->getMockBuilder(Order::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -81,14 +80,18 @@ class NotificationColumnTest extends TestCase
             ->getMock();
         $this->dataMock->method("getUrl")
             ->with("sales/order/view", ["order_id" => 1])
-            ->willReturn("https://test.com/index.php/admin/sales/order/view/order_id/7/key/90713b7af1b7d29bc585626042062a9c514473d1c692c69be03eb1a8bfb00f74/");
+            ->willReturn(
+                "https://test.com/index.php/admin/sales/order/view/order_id/7/key/90713b7af1b7d29bc585626042062a9c514473d1c692c69be03eb1a8bfb00f74/"
+            );
         $this->adyenHelperMock = $this->getMockBuilder(AdyenHelper::class)
             ->disableOriginalConstructor()
             ->getMock();
         $this->adyenHelperMock->method("getPspReferenceSearchUrl")
-            ->willReturnCallback(function ($pspReference, $liveEnvironment) {
-                return "https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=$pspReference";
-            });
+            ->willReturnCallback(
+                function ($pspReference, $liveEnvironment) {
+                    return "https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=$pspReference";
+                }
+            );
         $this->contextMock = $this->getMockBuilder(ContextInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
