@@ -31,7 +31,6 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
      */
     protected $_installmentRenderer = null;
 
-
     /**
      * @var \Adyen\Payment\Block\Adminhtml\System\Config\Field\Cctypes
      */

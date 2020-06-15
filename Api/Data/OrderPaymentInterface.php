@@ -126,7 +126,6 @@ interface OrderPaymentInterface
      */
     public function setPaymentId($paymentId);
 
-
     /**
      * Gets the Paymentmethod for the payment.
      *

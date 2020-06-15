@@ -40,9 +40,6 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
         $this->_inboxFactory = $inboxFactory;
     }
 
-    /**
-     * Message identity
-     */
     const MESSAGE_IDENTITY = 'Adyen Version Control message';
 
     /**

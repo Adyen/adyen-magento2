@@ -150,8 +150,6 @@ class Success extends \Magento\Framework\View\Element\Template
         return $result;
     }
 
-
-
     /**
      * @return \Magento\Sales\Model\Order
      */

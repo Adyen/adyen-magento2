@@ -118,7 +118,6 @@ class PayByMailCommand implements CommandInterface
         return $url;
     }
 
-
     /**
      * @param \Magento\Sales\Model\Order\Payment $payment
      * @param float|bool $paymentAmount
@@ -145,7 +144,8 @@ class PayByMailCommand implements CommandInterface
             $hmacKey = $this->_adyenHelper->getHmacPayByMail();
         }
 
-        $amount            = $this->_adyenHelper->formatAmount($paymentAmount ?: $order->getGrandTotal(), $orderCurrencyCode);
+        $amount            = $this->_adyenHelper->formatAmount($paymentAmount ?: $order->getGrandTotal(),
+                                                               $orderCurrencyCode);
         $merchantAccount   = trim($this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId));
         $shopperEmail      = $order->getCustomerEmail();
         $customerId        = $order->getCustomerId();

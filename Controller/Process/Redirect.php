@@ -127,7 +127,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
         $this->paymentExtensionFactory = $paymentExtensionFactory;
         $this->orderPaymentResource = $orderPaymentResource;
         $this->serializer = $serializer;
-        if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
+        if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
             $request = $this->getRequest();
             if ($request instanceof Http && $request->isPost()) {
                 $request->setParam('isAjax', true);
@@ -179,7 +179,8 @@ class Redirect extends \Magento\Framework\App\Action\Action
                     // check if authorise3d was successful
                     if ($responseCode == 'Authorised') {
                         $order->addStatusHistoryComment(__('3D-secure validation was successful'))->save();
-                        // set back to false so when pressed back button on the success page it will reactivate 3D secure
+                        // set back to false so when pressed back button on the success page
+                        // it will reactivate 3D secure
                         $order->getPayment()->setAdditionalInformation('3dActive', '');
                         $order->getPayment()->setAdditionalInformation('3dSuccess', true);
 
@@ -225,7 +226,8 @@ class Redirect extends \Magento\Framework\App\Action\Action
                         /*
                          * Since responseCode!='Authorised' the order could be cancelled immediately,
                          * but redirect payments can have multiple conflicting responses.
-                         * The order will be cancelled if an Authorization Success=False notification is processed instead
+                         * The order will be cancelled if an Authorization
+                         * Success=False notification is processed instead
                         */
                         $order->addStatusHistoryComment(__('3D-secure validation was unsuccessful. This order will be cancelled when the related notification has been processed.'))->save();
 
@@ -243,10 +245,13 @@ class Redirect extends \Magento\Framework\App\Action\Action
             } else {
                 $this->_adyenLogger->addAdyenResult("Customer was redirected to bank for 3D-secure validation.");
                 $order->addStatusHistoryComment(
-                    __('Customer was redirected to bank for 3D-secure validation. Once the shopper authenticated, the order status will be updated accordingly. 
+                    __('Customer was redirected to bank for 3D-secure validation. Once the shopper authenticated, 
+                        the order status will be updated accordingly. 
                         <br />Make sure that your notifications are being processed! 
-                        <br />If the order is stuck on this status, the shopper abandoned the session. The payment can be seen as unsuccessful. 
-                        <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. Please contact Adyen Support to enable this.')
+                        <br />If the order is stuck on this status, the shopper abandoned the session. 
+                        The payment can be seen as unsuccessful. 
+                        <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. 
+                        Please contact Adyen Support to enable this.')
                 )->save();
                 $this->_view->loadLayout();
                 $this->_view->getLayout()->initMessages();
@@ -280,7 +285,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
     {
         if (!$this->_order) {
             $incrementId = $this->_getCheckout()->getLastRealOrderId();
-            $this->_orderFactory = $this->_objectManager->get('Magento\Sales\Model\OrderFactory');
+            $this->_orderFactory = $this->_objectManager->get(Magento\Sales\Model\OrderFactory::class);
             $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
         }
         return $this->_order;
@@ -291,7 +296,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
      */
     protected function _getCheckout()
     {
-        return $this->_objectManager->get('Magento\Checkout\Model\Session');
+        return $this->_objectManager->get(Magento\Checkout\Model\Session::class);
     }
 
     /**
@@ -299,7 +304,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
      */
     protected function _getQuote()
     {
-        return $this->_objectManager->get('Magento\Quote\Model\Quote');
+        return $this->_objectManager->get(Magento\Quote\Model\Quote::class);
     }
 
     /**
@@ -307,7 +312,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
      */
     protected function _getQuoteManagement()
     {
-        return $this->_objectManager->get('\Magento\Quote\Model\QuoteManagement');
+        return $this->_objectManager->get(\Magento\Quote\Model\QuoteManagement::class);
     }
 
     /**

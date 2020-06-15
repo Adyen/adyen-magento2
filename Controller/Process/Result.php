@@ -268,7 +268,8 @@ class Result extends \Magento\Framework\App\Action\Action
                     $comment .= "<br /><br />The payment result is not confirmed (yet).
                                  <br />Once the payment is authorised, the order status will be updated accordingly. 
                                  <br />If the order is stuck on this status, the payment can be seen as unsuccessful. 
-                                 <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. Please contact Adyen Support to enable this.";
+                                 <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. 
+                                 Please contact Adyen Support to enable this.";
                 }
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
@@ -279,7 +280,8 @@ class Result extends \Magento\Framework\App\Action\Action
                 break;
             case Notification::REFUSED:
                 // if refused there will be a AUTHORIZATION : FALSE notification send only exception is idea
-                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order on AUTHORISATION success = false notification');
+                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order on AUTHORISATION 
+                success = false notification');
                 $result = false;
                 break;
             default:
@@ -356,7 +358,7 @@ class Result extends \Magento\Framework\App\Action\Action
     protected function _getOrder($incrementId = null)
     {
         if (!$this->_order) {
-            if (!is_null($incrementId)) {
+            if ($incrementId !== null) {
                 $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
             } else {
                 $this->_order = $this->_session->getLastRealOrder();
@@ -384,7 +386,8 @@ class Result extends \Magento\Framework\App\Action\Action
             !empty($this->_session->getLastRealOrder()->getPayment()) &&
             !empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("paymentData"))
         ) {
-            $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("paymentData");
+            $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->
+            getAdditionalInformation("paymentData");
         }
 
         $request["details"] = $response;
