@@ -87,8 +87,8 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
     {
 
         // Only execute the query the first time you access the Admin page
-        if ($this->authSession->isFirstPageAfterLogin() 
-            && !empty($this->adyenHelper->getWsUsername()) 
+        if ($this->authSession->isFirstPageAfterLogin()
+            && !empty($this->adyenHelper->getWsUsername())
             && empty($this->adyenHelper->getAPIKey())
         ) {
             try {

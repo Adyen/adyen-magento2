@@ -490,7 +490,8 @@ class Requests extends AbstractHelper
                     $address->getStreetLine2(),
                     $address->getStreetLine3(),
                     $address->getStreetLine4()
-                ]));
+                ])
+            );
         }
 
         return $address;

@@ -349,8 +349,11 @@ class Cron
         $minutesUntilProcessing = floor(($createdAt->getTimestamp() - $offerClosedMinDate->getTimestamp()) / 60);
         if ($notification['event_code'] == Notification::OFFER_CLOSED && $minutesUntilProcessing > 0) {
             $this->_adyenLogger->addAdyenNotificationCronjob(
-                sprintf('OFFER_CLOSED notification %s skipped! Wait %s minute(s) before processing.',
-                    $notification->getEntityId(), $minutesUntilProcessing)
+                sprintf(
+                    'OFFER_CLOSED notification %s skipped! Wait %s minute(s) before processing.',
+                    $notification->getEntityId(),
+                    $minutesUntilProcessing
+                )
             );
 
             return true;
@@ -508,8 +511,12 @@ class Cron
                 $this->_updateNotification($notification, false, false);
                 $this->handleNotificationError($notification, $e->getMessage());
                 $this->_adyenLogger->addAdyenNotificationCronjob(
-                    sprintf("Notification %s had an error: %s \n %s", $notification->getEntityId(), $e->getMessage(),
-                        $e->getTraceAsString())
+                    sprintf(
+                        "Notification %s had an error: %s \n %s",
+                        $notification->getEntityId(),
+                        $e->getMessage(),
+                        $e->getTraceAsString()
+                    )
                 );
             }
         }
@@ -1015,8 +1022,10 @@ class Cron
                 */
                 $orderPaymentMethod = $this->_order->getPayment()->getCcType();
 
-                $isOrderCc = strcmp($this->_paymentMethodCode(),
-                        'adyen_cc') == 0 || strcmp($this->_paymentMethodCode(), 'adyen_oneclick') == 0;
+                $isOrderCc = strcmp(
+                    $this->_paymentMethodCode(),
+                    'adyen_cc'
+                ) == 0 || strcmp($this->_paymentMethodCode(), 'adyen_oneclick') == 0;
 
                 /*
                  * If the order was made with an Alternative payment method,
@@ -1073,8 +1082,6 @@ class Cron
                 break;
 
             case Notification::RECURRING_CONTRACT:
-
-
                 // only store billing agreements if Vault is disabled
                 if (!$this->_adyenHelper->isCreditCardVaultEnabled()) {
                     // storedReferenceCode
@@ -1167,8 +1174,10 @@ class Cron
                         // Populate billing agreement data
                         $billingAgreement->parseRecurringContractData($contractDetail);
                         if ($billingAgreement->isValid()) {
-                            if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),
-                                $this->_order->getId())) {
+                            if (!$this->agreementResourceModel->getOrderRelation(
+                                $billingAgreement->getAgreementId(),
+                                $this->_order->getId()
+                            )) {
                                 // save into sales_billing_agreement_order
                                 $billingAgreement->addOrderRelation($this->_order);
 
@@ -1496,8 +1505,10 @@ class Cron
             }
 
             if ($_paymentCode == "adyen_pos_cloud") {
-                $captureModePos = $this->_adyenHelper->getAdyenPosCloudConfigData('capture_mode_pos',
-                    $this->_order->getStoreId());
+                $captureModePos = $this->_adyenHelper->getAdyenPosCloudConfigData(
+                    'capture_mode_pos',
+                    $this->_order->getStoreId()
+                );
                 if (strcmp($captureModePos, 'auto') === 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         'This payment method is POS Cloud and configured to be working as auto capture '
@@ -1935,8 +1946,11 @@ class Cron
     {
         $this->notifierPool->addNotice(
             __("Adyen: Refund for order #%1 has failed", $this->_merchantReference),
-            __("Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area and trigger this refund manually or contact our support.",
-                $this->_reason, $this->_pspReference),
+            __(
+                "Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area and trigger this refund manually or contact our support.",
+                $this->_reason,
+                $this->_pspReference
+            ),
             $this->_adyenHelper->getPspReferenceSearchUrl($this->_pspReference, $this->_live)
         );
     }

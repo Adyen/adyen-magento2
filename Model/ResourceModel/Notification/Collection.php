@@ -48,7 +48,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     }
 
     /**
-     * Filter the notifications table to get non processed or done notifications without 5 or more errors older than 
+     * Filter the notifications table to get non processed or done notifications without 5 or more errors older than
      * 2 minutes but not older than 5 days, ordered by created_at and event_code columns
      *
      * @return $this
