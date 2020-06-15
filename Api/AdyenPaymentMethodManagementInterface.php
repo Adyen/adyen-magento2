@@ -27,7 +27,6 @@ namespace Adyen\Payment\Api;
  * Interface GuestAdyenPaymentMethodManagementInterface
  *
  * @api
- * @package Adyen\Payment\Api
  */
 
 interface AdyenPaymentMethodManagementInterface

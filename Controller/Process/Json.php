@@ -27,8 +27,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 use Magento\Framework\App\Request\Http as Http;
 
 /**
- * Class Json
- * @package Adyen\Payment\Controller\Process
+ * Class Json extends Action
  */
 class Json extends \Magento\Framework\App\Action\Action
 {
@@ -126,7 +125,8 @@ class Json extends \Magento\Framework\App\Action\Action
                 }
                 $cronCheckTest = $notificationItems['notificationItems'][0]['NotificationRequestItem']['pspReference'];
 
-                // Run the query for checking unprocessed notifications, do this only for test notifications coming from the Adyen Customer Area
+                // Run the query for checking unprocessed notifications, do this only for test notifications coming
+                // from the Adyen Customer Area
                 if ($this->_isTestNotification($cronCheckTest)) {
                     $unprocessedNotifications = $this->_adyenHelper->getUnprocessedNotifications();
                     if ($unprocessedNotifications > 0) {
@@ -164,7 +164,8 @@ class Json extends \Magento\Framework\App\Action\Action
         $mode = $this->_adyenHelper->getAdyenAbstractConfigData('demo_mode');
 
         // Notification mode can be a string or a boolean
-        if (($mode == '1' && ($notificationMode == "false" || $notificationMode == false)) || ($mode == '0' && ($notificationMode == 'true' || $notificationMode == true))) {
+        if (($mode == '1' && ($notificationMode == "false" || $notificationMode == false))
+            || ($mode == '0' && ($notificationMode == 'true' || $notificationMode == true))) {
             return true;
         }
         return false;

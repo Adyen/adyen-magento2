@@ -377,7 +377,8 @@ class Redirect extends \Magento\Payment\Block\Form
             );
         }
 
-        $formFields['openinvoicedata.refundDescription'] = "Refund / Correction for " . $formFields['merchantReference'];
+        $formFields['openinvoicedata.refundDescription'] = "Refund / Correction for " .
+            $formFields['merchantReference'];
         $formFields['openinvoicedata.numberOfLines'] = $count;
 
         return $formFields;
