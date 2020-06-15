@@ -72,7 +72,6 @@ class InstallmentValidator extends AbstractValidator
         parent::__construct($resultFactory);
     }
 
-
     public function validate(array $validationSubject)
     {
         $isValid = true;

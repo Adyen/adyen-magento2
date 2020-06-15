@@ -58,7 +58,6 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
         $this->_storeManager = $storeManager;
     }
 
-
     /**
      * Get the merchant Session from Apple to start Apple Pay transaction
      *

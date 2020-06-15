@@ -32,7 +32,6 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
      */
     protected $adyenHelper;
 
-
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper
     ) {

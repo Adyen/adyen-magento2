@@ -129,9 +129,8 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         if ($payment->getAdditionalInformation("ssn")) {
-            $requestBody['paymentMethod']['personalDetails']['socialSecurityNumber'] = $payment->getAdditionalInformation(
-                "ssn"
-            );
+            $requestBody['paymentMethod']['personalDetails']['socialSecurityNumber'] =
+                $payment->getAdditionalInformation("ssn");
         }
 
         // Additional data for sepa direct debit

@@ -391,33 +391,44 @@ class Requests extends AbstractHelper
             $request['paymentMethod']['type'] = 'scheme';
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) &&
-            $cardNumber = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) &&
+            $cardNumber = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) {
             $request['paymentMethod']['encryptedCardNumber'] = $cardNumber;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) &&
-            $expiryMonth = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) &&
+            $expiryMonth = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) {
             $request['paymentMethod']['encryptedExpiryMonth'] = $expiryMonth;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) &&
-            $expiryYear = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) &&
+            $expiryYear = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) {
             $request['paymentMethod']['encryptedExpiryYear'] = $expiryYear;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::HOLDER_NAME]) && $holderName =
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::HOLDER_NAME]) && $holderName =
                 $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::HOLDER_NAME]) {
             $request['paymentMethod']['holderName'] = $holderName;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) &&
-            $securityCode = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) &&
+            $securityCode = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) {
             $request['paymentMethod']['encryptedSecurityCode'] = $securityCode;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]) &&
-            $recurringDetailReference = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]) &&
+            $recurringDetailReference = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]
         ) {
             $request['paymentMethod']['recurringDetailReference'] = $recurringDetailReference;
         }
@@ -442,8 +453,10 @@ class Requests extends AbstractHelper
         }
 
         // if installments is set add it into the request
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS])) {
-            if (($numberOfInstallment = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS]) > 0) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+        [AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS])) {
+            if (($numberOfInstallment = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+                [AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS]) > 0) {
                 $request['installments']['value'] = $numberOfInstallment;
             }
         }

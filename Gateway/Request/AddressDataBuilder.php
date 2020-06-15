@@ -25,9 +25,7 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-/**
- * Class AddressDataBuilder
- */
+
 class AddressDataBuilder implements BuilderInterface
 {
     /**

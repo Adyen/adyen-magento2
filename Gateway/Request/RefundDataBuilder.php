@@ -80,7 +80,6 @@ class RefundDataBuilder implements BuilderInterface
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
         $grandTotal = $payment->getOrder()->getGrandTotal();
 
-
         // check if it contains a split payment
         $orderPaymentCollection = $this->orderPaymentCollectionFactory
             ->create()

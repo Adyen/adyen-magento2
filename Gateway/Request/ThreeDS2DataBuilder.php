@@ -51,7 +51,6 @@ class ThreeDS2DataBuilder implements BuilderInterface
         $this->adyenRequestsHelper = $adyenRequestsHelper;
     }
 
-
     /**
      * @param array $buildSubject
      * @return array

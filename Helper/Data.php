@@ -321,7 +321,6 @@ class Data extends AbstractHelper
         return (int)number_format($amount, $this->decimalNumbers($currency), '', '');
     }
 
-
     /**
      * Tax Percentage needs to be in minor units for Adyen
      *
@@ -439,7 +438,6 @@ class Data extends AbstractHelper
         }
         return $street;
     }
-
 
     /**
      * gives back global configuration values
@@ -1462,7 +1460,8 @@ class Data extends AbstractHelper
                         $formattedHtml .= "<td class='terminal-api-receipt-name'>&nbsp;</td>";
                     }
                     if (!empty($textParts['value'])) {
-                        $formattedHtml .= "<td class='terminal-api-receipt-value' align='right'>" . $textParts['value'] . "</td>";
+                        $formattedHtml .= "<td class='terminal-api-receipt-value' align='right'>"
+                            . $textParts['value'] . "</td>";
                     } else {
                         $formattedHtml .= "<td class='terminal-api-receipt-value' align='right'>&nbsp;</td>";
                     }
@@ -1536,7 +1535,7 @@ class Data extends AbstractHelper
     public function getOrigin()
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $state = $objectManager->get('Magento\Framework\App\State');
+        $state = $objectManager->get(Magento\Framework\App\State::class);
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
         if ('adminhtml' === $state->getAreaCode()) {
             $baseUrl = $this->helperBackend->getHomePageUrl();

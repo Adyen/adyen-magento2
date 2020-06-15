@@ -58,7 +58,8 @@ class ApplicationInfo
     {
         // add applicationInfo into request
         $request[self::APPLICATION_INFO][self::MERCHANT_APPLICATION][self::NAME] = $this->adyenHelper->getModuleName();
-        $request[self::APPLICATION_INFO][self::MERCHANT_APPLICATION][self::VERSION] = $this->adyenHelper->getModuleVersion(
+        $request[self::APPLICATION_INFO][self::MERCHANT_APPLICATION][self::VERSION] =
+            $this->adyenHelper->getModuleVersion(
         );
         return $request;
     }

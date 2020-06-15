@@ -166,7 +166,8 @@ class CheckoutResponseValidator extends AbstractValidator
                             $this->adyenLogger->error($errorMsg);
                             $errorMessages[] = $errorMsg;
                         }
-                        // otherwise it is an alternative payment method which only requires the redirect url to be present
+                        // otherwise it is an alternative payment method which only requires the
+                        // redirect url to be present
                     } else {
                         // Flag to show we are in the checkoutAPM flow
                         $payment->setAdditionalInformation('checkoutAPM', true);
@@ -185,7 +186,6 @@ class CheckoutResponseValidator extends AbstractValidator
                             $errorMessages[] = $errorMsg;
                         }
                     }
-
                     break;
                 case "Refused":
                     $errorMsg = __('The payment is REFUSED.');

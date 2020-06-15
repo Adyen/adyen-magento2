@@ -263,7 +263,6 @@ class PaymentMethods extends AbstractHelper
         return 10;
     }
 
-
     /**
      * @param $store
      * @return mixed

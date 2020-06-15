@@ -25,9 +25,6 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-/**
- * Class CustomerDataBuilder
- */
 class CustomerDataBuilder implements BuilderInterface
 {
     /**
