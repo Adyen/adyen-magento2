@@ -88,7 +88,7 @@ class NotificationColumnTest extends TestCase
             ->getMock();
         $this->adyenHelperMock->method("getPspReferenceSearchUrl")
             ->willReturnCallback(
-                function ($pspReference, $liveEnvironment) {
+                function ($pspReference) {
                     return "https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=$pspReference";
                 }
             );
