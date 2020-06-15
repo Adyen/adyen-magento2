@@ -82,7 +82,6 @@ class IpAddress
      * Checks if the provided array of IPs addresses has been validated
      *
      * @param string[] $ipAddresses
-     * @param bool $fullCacheKeyUpdate
      * @return bool
      */
     public function isIpAddressValid($ipAddresses)
