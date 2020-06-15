@@ -156,8 +156,8 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBody['shopperName']['firstName'] = $payment->getAdditionalInformation("firstname");
         }
 
-        if ($payment->getAdditionalInformation("lastName")) {
-            $requestBody['shopperName']['lastName'] = $payment->getAdditionalInformation("lastName");
+        if ($payment->getAdditionalInformation("lastname")) {
+            $requestBody['shopperName']['lastName'] = $payment->getAdditionalInformation("lastname");
         }
 
         if ($payment->getMethod() == \Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider::CODE) {
