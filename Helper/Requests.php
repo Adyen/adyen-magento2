@@ -75,8 +75,14 @@ class Requests extends AbstractHelper
      * @param null $additionalData
      * @return array
      */
-    public function buildCustomerData($request = [], $customerId = 0, $billingAddress, $storeId, $payment = null, $additionalData = null)
-    {
+    public function buildCustomerData(
+        $request = [],
+        $customerId = 0,
+        $billingAddress,
+        $storeId,
+        $payment = null,
+        $additionalData = null
+    ) {
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
         }
@@ -485,12 +491,15 @@ class Requests extends AbstractHelper
             $address = $this->adyenHelper->getStreetFromString($address->getStreetFull());
         } else {
             $address = $this->adyenHelper->getStreetFromString(
-                implode(' ', [
-                    $address->getStreetLine1(),
-                    $address->getStreetLine2(),
-                    $address->getStreetLine3(),
-                    $address->getStreetLine4()
-                ])
+                implode(
+                    ' ',
+                    [
+                        $address->getStreetLine1(),
+                        $address->getStreetLine2(),
+                        $address->getStreetLine3(),
+                        $address->getStreetLine4()
+                    ]
+                )
             );
         }
 

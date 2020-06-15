@@ -170,7 +170,7 @@ class Result extends \Magento\Framework\App\Action\Action
             if (!$authStatus) {
                 throw new \Magento\Framework\Exception\LocalizedException(__('ResultUrl authentification failure'));
             }
-        // Otherwise validate the pazload and get back the response that can be used to finish the order
+            // Otherwise validate the pazload and get back the response that can be used to finish the order
         } else {
             // send the payload verification payment\details request to validate the response
             $response = $this->validatePayloadAndReturnResponse($response);
@@ -184,10 +184,13 @@ class Result extends \Magento\Framework\App\Action\Action
 
         $order = $this->_getOrder($incrementId);
         if ($order->getId()) {
-            $this->_eventManager->dispatch('adyen_payment_process_resulturl_before', [
-                'order' => $order,
-                'adyen_response' => $response
-            ]);
+            $this->_eventManager->dispatch(
+                'adyen_payment_process_resulturl_before',
+                [
+                    'order' => $order,
+                    'adyen_response' => $response
+                ]
+            );
             if (isset($response['handled'])) {
                 return $response['handled_response'];
             }
@@ -195,10 +198,13 @@ class Result extends \Magento\Framework\App\Action\Action
             // update the order
             $result = $this->_validateUpdateOrder($order, $response);
 
-            $this->_eventManager->dispatch('adyen_payment_process_resulturl_after', [
-                'order' => $order,
-                'adyen_response' => $response
-            ]);
+            $this->_eventManager->dispatch(
+                'adyen_payment_process_resulturl_after',
+                [
+                    'order' => $order,
+                    'adyen_response' => $response
+                ]
+            );
         } else {
             throw new \Magento\Framework\Exception\LocalizedException(
                 __('Order does not exists with increment_id: %1', $incrementId)
@@ -280,8 +286,10 @@ class Result extends \Magento\Framework\App\Action\Action
                 break;
             case Notification::REFUSED:
                 // if refused there will be a AUTHORIZATION : FALSE notification send only exception is idea
-                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order on AUTHORISATION 
-                success = false notification');
+                $this->_adyenLogger->addAdyenResult(
+                    'Cancel or Hold the order on AUTHORISATION 
+                success = false notification'
+                );
                 $result = false;
                 break;
             default:
@@ -300,7 +308,7 @@ class Result extends \Magento\Framework\App\Action\Action
 
         return $result;
     }
-    
+
     /**
      * Authenticate using sha256 Merchant signature
      *
@@ -309,13 +317,12 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     protected function _authenticate($response)
     {
-
         $merchantSigNotification = $response['merchantSig'];
 
-            // do it like this because $_GET is converting dot to underscore
-            $queryString = $_SERVER['QUERY_STRING'];
-            $result = [];
-            $pairs = explode("&", $queryString);
+        // do it like this because $_GET is converting dot to underscore
+        $queryString = $_SERVER['QUERY_STRING'];
+        $result = [];
+        $pairs = explode("&", $queryString);
 
         foreach ($pairs as $pair) {
             $nv = explode("=", $pair);
@@ -324,12 +331,12 @@ class Result extends \Magento\Framework\App\Action\Action
             $result[$name] = $value;
         }
 
-            // do not include the merchantSig in the merchantSig calculation
-            unset($result['merchantSig']);
+        // do not include the merchantSig in the merchantSig calculation
+        unset($result['merchantSig']);
 
-            // Sign request using secret key
-            $hmacKey = $this->_adyenHelper->getHmac();
-            $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
+        // Sign request using secret key
+        $hmacKey = $this->_adyenHelper->getHmac();
+        $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
 
         if (strcmp($merchantSig, $merchantSigNotification) === 0) {
             return true;
@@ -407,7 +414,7 @@ class Result extends \Magento\Framework\App\Action\Action
         try {
             $response = $service->paymentsDetails($request);
         } catch (\Adyen\AdyenException $e) {
-            $response['error'] =  $e->getMessage();
+            $response['error'] = $e->getMessage();
         }
 
         return $response;

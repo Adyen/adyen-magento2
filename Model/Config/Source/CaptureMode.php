@@ -25,12 +25,10 @@ namespace Adyen\Payment\Model\Config\Source;
 
 class CaptureMode implements \Magento\Framework\Option\ArrayInterface
 {
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;
-
 
     /**
      * CaptureMode constructor.

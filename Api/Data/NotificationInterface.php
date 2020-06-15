@@ -112,7 +112,7 @@ interface NotificationInterface
     /**
      * Sets entity ID.
      *
-     * @param  int $entityId
+     * @param int $entityId
      * @return $this
      */
     public function setEntityId($entityId);
@@ -127,7 +127,7 @@ interface NotificationInterface
     /**
      * Sets Pspreference.
      *
-     * @param  string $pspreference
+     * @param string $pspreference
      * @return $this
      */
     public function setPspreference($pspreference);
@@ -135,7 +135,7 @@ interface NotificationInterface
     /**
      * Sets OriginalReference.
      *
-     * @param  string $originalReference
+     * @param string $originalReference
      * @return $this
      */
     public function setOriginalReference($originalReference);
@@ -157,7 +157,7 @@ interface NotificationInterface
     /**
      * Sets MerchantReference.
      *
-     * @param  string $merchantReference
+     * @param string $merchantReference
      * @return $this
      */
     public function setMerchantReference($merchantReference);
@@ -172,7 +172,7 @@ interface NotificationInterface
     /**
      * Sets EventCode.
      *
-     * @param  string $eventCode
+     * @param string $eventCode
      * @return $this
      */
     public function setEventCode($eventCode);
@@ -187,7 +187,7 @@ interface NotificationInterface
     /**
      * Sets Success.
      *
-     * @param  boolean $success
+     * @param boolean $success
      * @return $this
      */
     public function setSuccess($success);
@@ -202,7 +202,7 @@ interface NotificationInterface
     /**
      * Sets PaymentMethod.
      *
-     * @param  string $paymentMethod
+     * @param string $paymentMethod
      * @return $this
      */
     public function setPaymentMethod($paymentMethod);
@@ -217,7 +217,7 @@ interface NotificationInterface
     /**
      * Sets AmountValue.
      *
-     * @param  string $amountValue
+     * @param string $amountValue
      * @return $this
      */
     public function setAmountValue($amountValue);
@@ -232,7 +232,7 @@ interface NotificationInterface
     /**
      * Sets AmountCurrency.
      *
-     * @param  string $amountCurrency
+     * @param string $amountCurrency
      * @return $this
      */
     public function setAmountCurrency($amountCurrency);
@@ -247,7 +247,7 @@ interface NotificationInterface
     /**
      * Sets Reason.
      *
-     * @param  string $reason
+     * @param string $reason
      * @return $this
      */
     public function setReason($reason);
@@ -262,7 +262,7 @@ interface NotificationInterface
     /**
      * Sets AdditionalData.
      *
-     * @param  string $additionalData
+     * @param string $additionalData
      * @return $this
      */
     public function setAdditionalData($additionalData);
@@ -277,7 +277,7 @@ interface NotificationInterface
     /**
      * Sets Done.
      *
-     * @param  string $done
+     * @param string $done
      * @return $this
      */
     public function setDone($done);
@@ -292,7 +292,7 @@ interface NotificationInterface
     /**
      * Sets the created-at timestamp for the notification.
      *
-     * @param  string $createdAt timestamp
+     * @param string $createdAt timestamp
      * @return $this
      */
     public function setCreatedAt($createdAt);
@@ -307,7 +307,7 @@ interface NotificationInterface
     /**
      * Sets the updated-at timestamp for the notification.
      *
-     * @param  string $timestamp
+     * @param string $timestamp
      * @return $this
      */
     public function setUpdatedAt($timestamp);

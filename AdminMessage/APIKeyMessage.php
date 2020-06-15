@@ -51,10 +51,10 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
     /**
      * APIKeyMessage constructor.
      *
-     * @param \Adyen\Payment\Helper\Data                    $adyenHelper
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\AdminNotification\Model\InboxFactory $inboxFactory
-     * @param \Magento\Store\Model\StoreManagerInterface    $storeManagerInterface
-     * @param \Magento\Backend\Model\Auth\Session           $authSession
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManagerInterface
+     * @param \Magento\Backend\Model\Auth\Session $authSession
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
@@ -85,7 +85,6 @@ class APIKeyMessage implements \Magento\Framework\Notification\MessageInterface
      */
     public function isDisplayed()
     {
-
         // Only execute the query the first time you access the Admin page
         if ($this->authSession->isFirstPageAfterLogin()
             && !empty($this->adyenHelper->getWsUsername())

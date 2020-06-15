@@ -60,6 +60,7 @@ class TokenGooglePayUiComponentProvider implements TokenUiComponentProviderInter
 
     /**
      * Get UI component for token
+     *
      * @param PaymentTokenInterface $paymentToken
      * @return TokenUiComponentInterface
      */

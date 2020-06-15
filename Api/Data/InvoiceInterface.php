@@ -61,7 +61,7 @@ interface InvoiceInterface
     /**
      * Sets entity ID.
      *
-     * @param  int $entityId
+     * @param int $entityId
      * @return $this
      */
     public function setEntityId($entityId);
@@ -76,7 +76,7 @@ interface InvoiceInterface
     /**
      * Sets Pspreference.
      *
-     * @param  string $pspreference
+     * @param string $pspreference
      * @return $this
      */
     public function setPspreference($pspreference);
@@ -102,7 +102,7 @@ interface InvoiceInterface
     /**
      * Sets AcquirerReference.
      *
-     * @param  string $acquirerReference
+     * @param string $acquirerReference
      * @return $this
      */
     public function setAcquirerReference($acquirerReference);
@@ -117,7 +117,7 @@ interface InvoiceInterface
     /**
      * Sets InvoiceID.
      *
-     * @param  int $invoiceId
+     * @param int $invoiceId
      * @return $this
      */
     public function setInvoiceId($invoiceId);

@@ -34,7 +34,6 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 
 class VaultDetailsHandler implements HandlerInterface
 {
-
     const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
     const CARD_SUMMARY = 'cardSummary';
     const EXPIRY_DATE = 'expiryDate';
@@ -135,7 +134,6 @@ class VaultDetailsHandler implements HandlerInterface
      */
     private function getVaultPaymentToken(array $response, $payment)
     {
-
         if (empty($response['additionalData'])) {
             return null;
         }
@@ -230,6 +228,7 @@ class VaultDetailsHandler implements HandlerInterface
 
     /**
      * Get payment extension attributes
+     *
      * @param InfoInterface $payment
      * @return OrderPaymentExtensionInterface
      */

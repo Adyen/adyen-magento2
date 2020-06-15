@@ -28,7 +28,6 @@ namespace Adyen\Payment\Model\ResourceModel\Billing\Agreement;
  */
 class Collection extends \Magento\Paypal\Model\ResourceModel\Billing\Agreement\Collection
 {
-
     /**
      * Collection initialization
      *

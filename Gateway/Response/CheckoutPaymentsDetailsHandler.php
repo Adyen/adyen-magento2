@@ -27,7 +27,6 @@ use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class CheckoutPaymentsDetailsHandler implements HandlerInterface
 {
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */

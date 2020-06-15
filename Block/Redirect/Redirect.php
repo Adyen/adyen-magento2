@@ -28,7 +28,6 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 
 class Redirect extends \Magento\Payment\Block\Form
 {
-
     /**
      * @var \Magento\Sales\Model\OrderFactory
      */
@@ -124,6 +123,7 @@ class Redirect extends \Magento\Payment\Block\Form
 
         throw new AdyenException("No redirect method is provided.");
     }
+
     /**
      * Retrieves redirect url for the flow of checkout API
      *

@@ -31,6 +31,7 @@ class PaymentVaultDeleteToken
      * @var \Adyen\Payment\Model\Api\PaymentRequest
      */
     protected $paymentRequest;
+
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
@@ -38,6 +39,7 @@ class PaymentVaultDeleteToken
 
     /**
      * PaymentVaultDeleteToken constructor.
+     *
      * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
      */
     public function __construct(

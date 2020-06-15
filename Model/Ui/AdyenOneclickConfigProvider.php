@@ -28,7 +28,6 @@ use Magento\Payment\Helper\Data as PaymentHelper;
 
 class AdyenOneclickConfigProvider implements ConfigProviderInterface
 {
-
     const CODE = 'adyen_oneclick';
 
     /**
@@ -130,22 +129,29 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
 
         $methodCode = self::CODE;
 
-        $config = array_merge_recursive($config, [
-            'payment' => [
-                'ccform' => [
-                    'availableTypes' => [$methodCode => $this->getCcAvailableTypes()],
-                    'months' => [$methodCode => $this->getCcMonths()],
-                    'years' => [$methodCode => $this->getCcYears()],
-                    'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
-                    'cvvImageUrl' => [$methodCode => $this->getCvvImageUrl()]
+        $config = array_merge_recursive(
+            $config,
+            [
+                'payment' => [
+                    'ccform' => [
+                        'availableTypes' => [$methodCode => $this->getCcAvailableTypes()],
+                        'months' => [$methodCode => $this->getCcMonths()],
+                        'years' => [$methodCode => $this->getCcYears()],
+                        'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
+                        'cvvImageUrl' => [$methodCode => $this->getCvvImageUrl()]
+                    ]
                 ]
             ]
-        ]);
+        );
 
         $config['payment']['adyenOneclick']['methodCode'] = self::CODE;
         $config['payment']['adyenOneclick']['originKey'] = $this->_adyenHelper->getOriginKeyForBaseUrl();
-        $config['payment']['adyenOneclick']['checkoutEnvironment'] = $this->_adyenHelper->getCheckoutEnvironment($this->_storeManager->getStore()->getId());
-        $config['payment']['adyenOneclick']['locale'] = $this->_adyenHelper->getStoreLocale($this->_storeManager->getStore()->getId());
+        $config['payment']['adyenOneclick']['checkoutEnvironment'] = $this->_adyenHelper->getCheckoutEnvironment(
+            $this->_storeManager->getStore()->getId()
+        );
+        $config['payment']['adyenOneclick']['locale'] = $this->_adyenHelper->getStoreLocale(
+            $this->_storeManager->getStore()->getId()
+        );
 
         $enableOneclick = $this->_adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
         $canCreateBillingAgreement = false;

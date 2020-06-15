@@ -27,7 +27,6 @@ use Monolog\Logger;
 
 class AdyenLogger extends Logger
 {
-
     /**
      * Detailed debug information
      */
@@ -62,8 +61,8 @@ class AdyenLogger extends Logger
      *
      * This method allows for compatibility with common interfaces.
      *
-     * @param  string  $message The log message
-     * @param  array   $context The log context
+     * @param string $message The log message
+     * @param array $context The log context
      * @return Boolean Whether the record has been processed
      */
     public function addAdyenNotification($message, array $context = [])
@@ -89,9 +88,9 @@ class AdyenLogger extends Logger
     /**
      * Adds a log record.
      *
-     * @param  integer $level   The logging level
-     * @param  string  $message The log message
-     * @param  array   $context The log context
+     * @param integer $level The logging level
+     * @param string $message The log message
+     * @param array $context The log context
      * @return Boolean Whether the record has been processed
      */
     public function addRecord($level, $message, array $context = [])
@@ -105,8 +104,8 @@ class AdyenLogger extends Logger
      *
      * This method allows for compatibility with common interfaces.
      *
-     * @param  string  $message The log message
-     * @param  array   $context The log context
+     * @param string $message The log message
+     * @param array $context The log context
      * @return Boolean Whether the record has been processed
      */
     public function addNotificationLog($message, array $context = [])

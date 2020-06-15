@@ -76,7 +76,7 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
         $this->serializer = $serializer;
-        
+
         // Fix for Magento2.3 adding isAjax to the request params
         if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
             $request = $this->getRequest();
@@ -327,19 +327,29 @@ class Json extends \Magento\Framework\App\Action\Action
         } elseif (isset($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']) &&
             $_SERVER['REDIRECT_REMOTE_AUTHORIZATION'] != ''
         ) {
-            list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
+            list(
+                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
+                ) =
                 explode(':', base64_decode($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']), 2);
         } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
-            list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
+            list(
+                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
+                ) =
                 explode(':', base64_decode(substr($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)), 2);
         } elseif (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
-            list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
+            list(
+                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
+                ) =
                 explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)), 2);
         } elseif (!empty($_SERVER['REMOTE_USER'])) {
-            list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
+            list(
+                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
+                ) =
                 explode(':', base64_decode(substr($_SERVER['REMOTE_USER'], 6)), 2);
         } elseif (!empty($_SERVER['REDIRECT_REMOTE_USER'])) {
-            list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
+            list(
+                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
+                ) =
                 explode(':', base64_decode(substr($_SERVER['REDIRECT_REMOTE_USER'], 6)), 2);
         }
     }

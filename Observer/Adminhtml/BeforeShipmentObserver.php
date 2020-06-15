@@ -32,7 +32,6 @@ use Magento\Payment\Observer\AbstractDataAssignObserver;
  */
 class BeforeShipmentObserver extends AbstractDataAssignObserver
 {
-
     private $adyenHelper;
 
     /**
@@ -54,7 +53,11 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
     {
         $shipment = $observer->getEvent()->getShipment();
         $order = $shipment->getOrder();
-        $captureOnShipment = $this->adyenHelper->getConfigData('capture_on_shipment', 'adyen_abstract', $order->getStoreId());
+        $captureOnShipment = $this->adyenHelper->getConfigData(
+            'capture_on_shipment',
+            'adyen_abstract',
+            $order->getStoreId()
+        );
 
         if ($this->isPaymentMethodAdyen($order) && $captureOnShipment) {
             $payment = $order->getPayment();

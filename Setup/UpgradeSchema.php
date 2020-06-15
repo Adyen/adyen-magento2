@@ -33,7 +33,6 @@ use Magento\Framework\Setup\SchemaSetupInterface;
  */
 class UpgradeSchema implements UpgradeSchemaInterface
 {
-
     const ADYEN_ORDER_PAYMENT = 'adyen_order_payment';
     const ADYEN_INVOICE = 'adyen_invoice';
 
@@ -309,7 +308,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
     public function updateSchemaVersion221(SchemaSetupInterface $setup)
     {
-
         $table = $setup->getConnection()
             ->newTable($setup->getTable(self::ADYEN_INVOICE))
             ->addColumn(

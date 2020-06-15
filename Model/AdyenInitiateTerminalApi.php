@@ -63,6 +63,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
     /**
      * AdyenInitiateTerminalApi constructor.
+     *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Checkout\Model\Session $checkoutSession
@@ -100,6 +101,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
     /**
      * Trigger sync call on terminal
+     *
      * @return mixed
      * @throws \Exception
      */
@@ -110,7 +112,9 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
         // Validate JSON that has just been parsed if it was in a valid format
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Terminal API initiate request was not a valid JSON'));
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Terminal API initiate request was not a valid JSON')
+            );
         }
 
         if (empty($payload['terminal_id'])) {
@@ -239,6 +243,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     /**
      * Add SaleToAcquirerData for storing for recurring transactions and able to track platform and version
      * When upgrading to new version of library we can use the client methods
+     *
      * @param $request
      * @param $quote
      * @return mixed
@@ -261,10 +266,14 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             }
         }
 
-        $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::MERCHANT_APPLICATION][ApplicationInfo::VERSION] = $this->adyenHelper->getModuleVersion();
-        $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::MERCHANT_APPLICATION][ApplicationInfo::NAME] = $this->adyenHelper->getModuleName();
-        $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM][ApplicationInfo::VERSION] = $this->productMetadata->getVersion();
-        $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM][ApplicationInfo::NAME] = $this->productMetadata->getName();
+        $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::MERCHANT_APPLICATION][ApplicationInfo::VERSION] = $this->adyenHelper->getModuleVersion(
+        );
+        $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::MERCHANT_APPLICATION][ApplicationInfo::NAME] = $this->adyenHelper->getModuleName(
+        );
+        $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM][ApplicationInfo::VERSION] = $this->productMetadata->getVersion(
+        );
+        $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM][ApplicationInfo::NAME] = $this->productMetadata->getName(
+        );
         $saleToAcquirerDataBase64 = base64_encode(json_encode($saleToAcquirerData));
         $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = $saleToAcquirerDataBase64;
         return $request;

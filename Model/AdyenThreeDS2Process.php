@@ -68,9 +68,9 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
     }
 
     /**
-     * @api
      * @param string $payload
      * @return string
+     * @api
      */
     public function initiate($payload)
     {
@@ -79,7 +79,9 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
 
         // Validate JSON that has just been parsed if it was in a valid format
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed because the request was not a valid JSON'));
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('3D secure 2.0 failed because the request was not a valid JSON')
+            );
         }
 
         if (empty($payload['orderId'])) {
@@ -106,7 +108,9 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             $payment->unsAdditionalInformation("threeDS2PaymentData");
         } else {
             $this->adyenLogger->error("3D secure 2.0 failed, payment data not found");
-            throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed, payment data not found'));
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('3D secure 2.0 failed, payment data not found')
+            );
         }
 
         // Depends on the component's response we send a fingerprint or the challenge result
@@ -132,7 +136,10 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             $result['resultCode'] === 'ChallengeShopper' &&
             !empty($result['authentication']['threeds2.challengeToken'])
         ) {
-            return $this->adyenHelper->buildThreeDS2ProcessResponseJson($result['resultCode'], $result['authentication']['threeds2.challengeToken']);
+            return $this->adyenHelper->buildThreeDS2ProcessResponseJson(
+                $result['resultCode'],
+                $result['authentication']['threeds2.challengeToken']
+            );
         }
 
         // Save the payments response because we are going to need it during the place order flow

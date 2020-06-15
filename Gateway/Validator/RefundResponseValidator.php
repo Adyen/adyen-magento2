@@ -27,7 +27,6 @@ use Magento\Payment\Gateway\Validator\AbstractValidator;
 
 class RefundResponseValidator extends AbstractValidator
 {
-
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */

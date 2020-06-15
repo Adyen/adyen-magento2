@@ -32,7 +32,7 @@
            href="<?= $block->escapeHtml(
                $block->getMethod()->getInfoInstance()->getAdditionalInformation('payment_url')
            ); ?>">
-            <?= __("Click here to pay for your purchase"); ?>
+            <?= $block->escapeHtml(__("Click here to pay for your purchase")); ?>
         </a>
     </dt>
 </dl>

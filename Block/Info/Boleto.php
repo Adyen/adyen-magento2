@@ -40,7 +40,7 @@ class Boleto extends AbstractInfo
         if (empty($paymentAction[$data])) {
             return '';
         }
-        
+
         return $paymentAction[$data];
     }
 }

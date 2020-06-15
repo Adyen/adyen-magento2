@@ -27,7 +27,6 @@ use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class PaymentCommentHistoryHandler implements HandlerInterface
 {
-
     /**
      * @param array $handlingSubject
      * @param array $response
