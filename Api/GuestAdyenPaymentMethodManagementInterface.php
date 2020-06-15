@@ -25,6 +25,7 @@ namespace Adyen\Payment\Api;
 
 /**
  * Interface GuestAdyenPaymentMethodManagementInterface
+ *
  * @api
  * @package Adyen\Payment\Api
  */
@@ -35,7 +36,7 @@ interface GuestAdyenPaymentMethodManagementInterface
     /**
      * Get payment information
      *
-     * @param  string $cartId
+     * @param  string                                        $cartId
      * @param  null|\Magento\Quote\Api\Data\AddressInterface
      * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
      */
