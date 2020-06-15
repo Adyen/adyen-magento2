@@ -103,10 +103,11 @@ define(
 
                     promise.then(function (success) {
                         var status;
-                        if (success)
+                        if (success) {
                             status = ApplePaySession.STATUS_SUCCESS;
-                        else
+                        } else {
                             status = ApplePaySession.STATUS_FAILURE;
+                        }
 
                         session.completePayment(status);
 
@@ -149,8 +150,9 @@ define(
                     // validate if applepay is allowed, it will be picked up by the isApplePayVisible method
                     var promise = window.ApplePaySession.canMakePaymentsWithActiveCard(self.getMerchantIdentifier());
                     promise.then(function (canMakePayments) {
-                        if (canMakePayments)
+                        if (canMakePayments) {
                             canMakeApplePayPayments(true);
+                        }
                     });
 
                     if (window.ApplePaySession && window.ApplePaySession.supportsVersion(applePayVersion)) {
@@ -168,7 +170,8 @@ define(
                     var serviceUrl = urlBuilder.createUrl('/adyen/request-merchant-session', {});
 
                     storage.post(
-                        serviceUrl, JSON.stringify('{}')
+                        serviceUrl,
+                        JSON.stringify('{}')
                     ).done(
                         function (response) {
                             var data = JSON.parse(response);

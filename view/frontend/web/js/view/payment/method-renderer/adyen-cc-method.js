@@ -170,7 +170,6 @@ define(
                                 var numberOfInstallments = [];
 
                                 if (creditCardType in allInstallments) {
-
                                     // get for the creditcard the installments
                                     var installmentCreditcard = allInstallments[creditCardType];
                                     var grandTotal = quote.totals().grand_total;
@@ -182,8 +181,7 @@ define(
 
                                 if (numberOfInstallments) {
                                     self.installments(numberOfInstallments);
-                                }
-                                else {
+                                } else {
                                     self.installments(0);
                                 }
                             }
@@ -193,7 +191,6 @@ define(
                                 self.creditCardType("MI");
                             } else {
                                 self.creditCardType(creditCardType);
-
                             }
                         } else {
                             self.creditCardType("")
@@ -233,14 +230,12 @@ define(
                                     fullScreenLoader.stopLoader();
                                 });
                             },
-                            onError: function (error) {
-                                console.log(JSON.stringify(error));
-                            }
+                        onError: function (error) {
+                            console.log(JSON.stringify(error));
+                        }
                         });
 
                     self.threeDS2IdentifyComponent.mount(threeDS2Node);
-
-
                 } else if (type == "ChallengeShopper") {
                     fullScreenLoader.stopLoader();
 
@@ -274,9 +269,9 @@ define(
                                     fullScreenLoader.stopLoader();
                                 });
                             },
-                            onError: function (error) {
-                                console.log(JSON.stringify(error));
-                            }
+                        onError: function (error) {
+                            console.log(JSON.stringify(error));
+                        }
                         });
                     self.threeDS2ChallengeComponent.mount(threeDS2Node);
                 }
@@ -361,14 +356,14 @@ define(
                                 self.isPlaceOrderActionAllowed(true);
                             }
                         ).done(
-                        function (orderId) {
-                            self.afterPlaceOrder();
-                            adyenPaymentService.getOrderPaymentStatus(orderId)
+                            function (orderId) {
+                                self.afterPlaceOrder();
+                                adyenPaymentService.getOrderPaymentStatus(orderId)
                                 .done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
                                 });
-                        }
-                    );
+                            }
+                        );
                 }
                 return false;
             },
@@ -385,8 +380,8 @@ define(
                     self.renderThreeDS2Component(response.type, response.token, orderId);
                 } else {
                     window.location.replace(url.build(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl)
-                    );
+                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
+                    ));
                 }
             },
             /**
