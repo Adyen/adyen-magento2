@@ -20,6 +20,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -54,10 +55,10 @@ class CustomerIpDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $order = $paymentDataObject->getPayment()->getOrder();
-        $shopperIp = $order-> getRemoteIp();
+        $shopperIp = $order->getRemoteIp();
 
         if (empty($shopperIp)) {
-            $shopperIp = $order-> getXForwardedFor();
+            $shopperIp = $order->getXForwardedFor();
         }
 
         $request['body'] = $this->adyenRequestsHelper->buildCustomerIpData([], $shopperIp);

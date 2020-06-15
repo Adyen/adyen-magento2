@@ -25,7 +25,6 @@ namespace Adyen\Payment\Block\Info;
 
 class Cc extends AbstractInfo
 {
-
     /**
      * @var string
      */

@@ -217,14 +217,20 @@ class PaymentMethods extends AbstractHelper
                     }
 
                     $params = [];
-                    $params = array_merge([
-                        'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
-                        '_secure' => $this->request->isSecure(),
-                        'theme' => $themeCode
-                    ], $params);
+                    $params = array_merge(
+                        [
+                            'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                            '_secure' => $this->request->isSecure(),
+                            'theme' => $themeCode
+                        ],
+                        $params
+                    );
 
-                    $asset = $this->assetRepo->createAsset('Adyen_Payment::images/logos/' .
-                        $paymentMethodCode . '.png', $params);
+                    $asset = $this->assetRepo->createAsset(
+                        'Adyen_Payment::images/logos/' .
+                        $paymentMethodCode . '.png',
+                        $params
+                    );
 
                     $placeholder = $this->assetSource->findSource($asset);
 
@@ -331,7 +337,6 @@ class PaymentMethods extends AbstractHelper
      */
     protected function getPaymentMethodsResponse($requestParams, $store)
     {
-
         // initialize the adyen client
         $client = $this->adyenHelper->initializeAdyenClient($store->getId());
 
@@ -381,7 +386,6 @@ class PaymentMethods extends AbstractHelper
      */
     public function getConnectedTerminals()
     {
-
         $storeId = $this->getQuote()->getStoreId();
 
         // initialize the adyen client

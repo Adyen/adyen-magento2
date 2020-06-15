@@ -21,6 +21,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Model\InstantPurchase\CreditCard;
 
 use Magento\InstantPurchase\PaymentMethodIntegration\AvailabilityCheckerInterface;
@@ -30,7 +31,6 @@ use Magento\InstantPurchase\PaymentMethodIntegration\AvailabilityCheckerInterfac
  */
 class AvailabilityChecker implements AvailabilityCheckerInterface
 {
-
     /**
      * @inheritdoc
      */

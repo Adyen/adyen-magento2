@@ -25,7 +25,6 @@ namespace Adyen\Payment\Controller\Process;
 
 class ResultPos extends \Magento\Framework\App\Action\Action
 {
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -194,7 +193,7 @@ class ResultPos extends \Magento\Framework\App\Action\Action
         $amountChecksum = 0;
 
         $amountLength = strlen($amount);
-        for ($i=0; $i<$amountLength; $i++) {
+        for ($i = 0; $i < $amountLength; $i++) {
             // ASCII value use ord
             $checksumCalc = ord($amount[$i]) - 48;
             $amountChecksum += $checksumCalc;
@@ -202,21 +201,21 @@ class ResultPos extends \Magento\Framework\App\Action\Action
 
         $currencyChecksum = 0;
         $currencyLength = strlen($currency);
-        for ($i=0; $i<$currencyLength; $i++) {
+        for ($i = 0; $i < $currencyLength; $i++) {
             $checksumCalc = ord($currency[$i]) - 64;
             $currencyChecksum += $checksumCalc;
         }
 
         $resultChecksum = 0;
         $resultLength = strlen($result);
-        for ($i=0; $i<$resultLength; $i++) {
+        for ($i = 0; $i < $resultLength; $i++) {
             $checksumCalc = ord($result[$i]) - 64;
             $resultChecksum += $checksumCalc;
         }
 
         $sessionIdChecksum = 0;
         $sessionIdLength = strlen($sessionId);
-        for ($i=0; $i<$sessionIdLength; $i++) {
+        for ($i = 0; $i < $sessionIdLength; $i++) {
             $checksumCalc = $this->_getAscii2Int($sessionId[$i]);
             $sessionIdChecksum += $checksumCalc;
         }

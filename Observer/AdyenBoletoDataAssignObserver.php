@@ -20,6 +20,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Observer;
 
 use Magento\Framework\Event\Observer;
@@ -61,6 +62,7 @@ class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
     ) {
         $this->adyenHelper = $adyenHelper;
     }
+
     /**
      * @param Observer $observer
      * @return void

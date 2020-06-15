@@ -33,7 +33,6 @@ use Magento\Payment\Model\InfoInterface;
 
 class Redirect extends \Magento\Framework\App\Action\Action
 {
-
     /**
      * @var \Magento\Quote\Model\Quote
      */
@@ -199,21 +198,21 @@ class Redirect extends \Magento\Framework\App\Action\Action
                                 $paymentToken = $this->paymentTokenFactory->create(
                                     PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
                                 );
-                                         $paymentToken->setGatewayToken($token);
-                                         $paymentToken->setExpiresAt($this->getExpirationDate($expirationDate));
-                                         $details = [
-                                             'type' => $cardType,
-                                             'maskedCC' => $cardSummary,
-                                             'expirationDate' => $expirationDate
-                                         ];
-                                         $paymentToken->setTokenDetails(json_encode($details));
-                                         $extensionAttributes = $this->getExtensionAttributes($order->getPayment());
-                                         $extensionAttributes->setVaultPaymentToken($paymentToken);
-                                         $orderPayment = $order->getPayment()->setExtensionAttributes($extensionAttributes);
-                                         $add = $this->serializer->unserialize($orderPayment->getAdditionalData());
-                                         $add['force_save'] = true;
-                                         $orderPayment->setAdditionalData($this->serializer->serialize($add));
-                                         $this->orderPaymentResource->save($orderPayment);
+                                $paymentToken->setGatewayToken($token);
+                                $paymentToken->setExpiresAt($this->getExpirationDate($expirationDate));
+                                $details = [
+                                    'type' => $cardType,
+                                    'maskedCC' => $cardSummary,
+                                    'expirationDate' => $expirationDate
+                                ];
+                                $paymentToken->setTokenDetails(json_encode($details));
+                                $extensionAttributes = $this->getExtensionAttributes($order->getPayment());
+                                $extensionAttributes->setVaultPaymentToken($paymentToken);
+                                $orderPayment = $order->getPayment()->setExtensionAttributes($extensionAttributes);
+                                $add = $this->serializer->unserialize($orderPayment->getAdditionalData());
+                                $add['force_save'] = true;
+                                $orderPayment->setAdditionalData($this->serializer->serialize($add));
+                                $this->orderPaymentResource->save($orderPayment);
                             } catch (\Exception $e) {
                                 $this->_adyenLogger->error((string)$e->getMessage());
                             }
@@ -229,7 +228,11 @@ class Redirect extends \Magento\Framework\App\Action\Action
                          * The order will be cancelled if an Authorization
                          * Success=False notification is processed instead
                         */
-                        $order->addStatusHistoryComment(__('3D-secure validation was unsuccessful. This order will be cancelled when the related notification has been processed.'))->save();
+                        $order->addStatusHistoryComment(
+                            __(
+                                '3D-secure validation was unsuccessful. This order will be cancelled when the related notification has been processed.'
+                            )
+                        )->save();
 
                         $this->messageManager->addErrorMessage("3D-secure validation was unsuccessful");
 
@@ -245,13 +248,15 @@ class Redirect extends \Magento\Framework\App\Action\Action
             } else {
                 $this->_adyenLogger->addAdyenResult("Customer was redirected to bank for 3D-secure validation.");
                 $order->addStatusHistoryComment(
-                    __('Customer was redirected to bank for 3D-secure validation. Once the shopper authenticated, 
+                    __(
+                        'Customer was redirected to bank for 3D-secure validation. Once the shopper authenticated, 
                         the order status will be updated accordingly. 
                         <br />Make sure that your notifications are being processed! 
                         <br />If the order is stuck on this status, the shopper abandoned the session. 
                         The payment can be seen as unsuccessful. 
                         <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. 
-                        Please contact Adyen Support to enable this.')
+                        Please contact Adyen Support to enable this.'
+                    )
                 )->save();
                 $this->_view->loadLayout();
                 $this->_view->getLayout()->initMessages();
@@ -359,6 +364,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
 
     /**
      * Get payment extension attributes
+     *
      * @param InfoInterface $payment
      * @return OrderPaymentExtensionInterface
      */

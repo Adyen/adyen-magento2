@@ -30,7 +30,6 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
  */
 class RefundDataBuilder implements BuilderInterface
 {
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -48,6 +47,7 @@ class RefundDataBuilder implements BuilderInterface
 
     /**
      * RefundDataBuilder constructor.
+     *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory
      */

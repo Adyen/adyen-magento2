@@ -76,7 +76,7 @@ interface OrderPaymentInterface
     /**
      * Sets entity ID.
      *
-     * @param  int $entityId
+     * @param int $entityId
      * @return $this
      */
     public function setEntityId($entityId);
@@ -91,7 +91,7 @@ interface OrderPaymentInterface
     /**
      * Sets Pspreference.
      *
-     * @param  string $pspreference
+     * @param string $pspreference
      * @return $this
      */
     public function setPspreference($pspreference);
@@ -106,7 +106,7 @@ interface OrderPaymentInterface
     /**
      * Sets MerchantReference.
      *
-     * @param  string $merchantReference
+     * @param string $merchantReference
      * @return $this
      */
     public function setMerchantReference($merchantReference);
@@ -121,7 +121,7 @@ interface OrderPaymentInterface
     /**
      * Sets PaymentId.
      *
-     * @param  string $paymentId
+     * @param string $paymentId
      * @return $this
      */
     public function setPaymentId($paymentId);
@@ -136,7 +136,7 @@ interface OrderPaymentInterface
     /**
      * Sets PaymentMethod.
      *
-     * @param  string $paymentMethod
+     * @param string $paymentMethod
      * @return $this
      */
     public function setPaymentMethod($paymentMethod);
@@ -151,7 +151,7 @@ interface OrderPaymentInterface
     /**
      * Sets Amount.
      *
-     * @param  string $amount
+     * @param string $amount
      * @return $this
      */
     public function setAmount($amount);
@@ -166,7 +166,7 @@ interface OrderPaymentInterface
     /**
      * Sets Total Refunded.
      *
-     * @param  string $totalRefunded
+     * @param string $totalRefunded
      * @return $this
      */
     public function setTotalRefunded($totalRefunded);
@@ -181,7 +181,7 @@ interface OrderPaymentInterface
     /**
      * Sets the created-at timestamp for the payment.
      *
-     * @param  string $createdAt timestamp
+     * @param string $createdAt timestamp
      * @return $this
      */
     public function setCreatedAt($createdAt);
@@ -196,7 +196,7 @@ interface OrderPaymentInterface
     /**
      * Sets the updated-at timestamp for the payment.
      *
-     * @param  string $timestamp
+     * @param string $timestamp
      * @return $this
      */
     public function setUpdatedAt($timestamp);

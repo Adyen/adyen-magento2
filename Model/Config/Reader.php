@@ -20,9 +20,11 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 /**
  * Loads catalog attributes configuration from multiple XML files by merging them together
  */
+
 namespace Adyen\Payment\Model\Config;
 
 class Reader extends \Magento\Framework\Config\Reader\Filesystem

@@ -27,7 +27,6 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 
 class AdyenBoletoConfigProvider implements ConfigProviderInterface
 {
-
     const CODE = 'adyen_boleto';
 
     /**

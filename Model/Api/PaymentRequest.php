@@ -27,7 +27,6 @@ use Magento\Framework\DataObject;
 
 class PaymentRequest extends DataObject
 {
-
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
      */

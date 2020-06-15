@@ -29,7 +29,6 @@ use Magento\Directory\Helper\Data;
 
 class AdyenHppConfigProvider implements ConfigProviderInterface
 {
-
     const CODE = 'adyen_hpp';
 
     /**
@@ -134,7 +133,9 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
             }
         }
 
-        $config['payment']['adyenHpp']['locale'] = $this->adyenHelper->getCurrentLocaleCode($this->storeManager->getStore()->getId());
+        $config['payment']['adyenHpp']['locale'] = $this->adyenHelper->getCurrentLocaleCode(
+            $this->storeManager->getStore()->getId()
+        );
 
         // add to config
         $config['payment'] ['adyenHpp']['gender'] = $gender;

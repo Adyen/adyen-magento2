@@ -80,6 +80,7 @@ class Invoice extends \Magento\Framework\Model\AbstractModel implements InvoiceI
 
     /**
      * Gets the Pspreference of the original Payment
+     *
      * @return mixed
      */
     public function getOriginalReference()
@@ -97,6 +98,7 @@ class Invoice extends \Magento\Framework\Model\AbstractModel implements InvoiceI
     {
         return $this->setData(self::ORIGINAL_REFERENCE, $originalReference);
     }
+
     /**
      * Gets the AcquirerReference for the invoice.
      *

@@ -90,6 +90,7 @@ class Success extends \Magento\Framework\View\Element\Template
 
     /**
      * Detect if Boleto is used as payment method
+     *
      * @return bool
      */
     public function isBoletoPayment()

@@ -20,6 +20,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -43,7 +44,7 @@ class PaymentDataBuilder implements BuilderInterface
     {
         $this->adyenRequestsHelper = $adyenRequestsHelper;
     }
-    
+
     /**
      * @param array $buildSubject
      * @return array
@@ -62,8 +63,14 @@ class PaymentDataBuilder implements BuilderInterface
         $reference = $order->getOrderIncrementId();
         $paymentMethod = $payment->getMethod();
 
-        $request['body'] = $this->adyenRequestsHelper->buildPaymentData([], $amount, $currencyCode, $reference, $paymentMethod);
-        
+        $request['body'] = $this->adyenRequestsHelper->buildPaymentData(
+            [],
+            $amount,
+            $currencyCode,
+            $reference,
+            $paymentMethod
+        );
+
         return $request;
     }
 }

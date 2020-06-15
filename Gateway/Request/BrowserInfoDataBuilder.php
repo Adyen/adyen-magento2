@@ -20,6 +20,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;

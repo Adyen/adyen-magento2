@@ -27,7 +27,6 @@ use Adyen\Payment\Api\Data\NotificationInterface;
 
 class Notification extends \Magento\Framework\Model\AbstractModel implements NotificationInterface
 {
-
     const AUTHORISATION = 'AUTHORISATION';
     const PENDING = 'PENDING';
     const AUTHORISED = 'AUTHORISED';

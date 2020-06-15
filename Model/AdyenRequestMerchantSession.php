@@ -45,6 +45,7 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
 
     /**
      * AdyenRequestMerchantSession constructor.
+     *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
@@ -72,7 +73,9 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
         $ch = curl_init();
 
         $merchantIdentifier = $this->_adyenHelper->getAdyenApplePayMerchantIdentifier();
-        $domainName = parse_url($this->_storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))['host'];
+        $domainName = parse_url(
+            $this->_storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB)
+        )['host'];
         $displayName = $this->_storeManager->getStore()->getName();
 
         $data = '{
@@ -92,10 +95,14 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
         curl_setopt($ch, CURLOPT_SSLCERT, $fullPathLocationPEMFile);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        curl_setopt(
+            $ch,
+            CURLOPT_HTTPHEADER,
+            [
                 'Content-Type: application/json',
                 'Content-Length: ' . strlen($data)
-            ]);
+            ]
+        );
 
         $result = curl_exec($ch);
         $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -105,7 +112,9 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
 
         // result not 200 throw error
         if ($httpStatus != 200 && $result) {
-            $this->_adyenLogger->addAdyenDebug("Error Apple, API HTTP Status is: " . $httpStatus . " result is:" . $result);
+            $this->_adyenLogger->addAdyenDebug(
+                "Error Apple, API HTTP Status is: " . $httpStatus . " result is:" . $result
+            );
         } elseif (!$result) {
             $errno = curl_errno($ch);
             $message = curl_error($ch);

@@ -20,6 +20,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Observer;
 
 use Magento\Framework\Event\Observer;
@@ -70,6 +71,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
 
     /**
      * AdyenCcDataAssignObserver constructor.
+     *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(

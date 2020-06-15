@@ -71,12 +71,18 @@ class CheckoutResponseValidator extends AbstractValidator
             switch ($response['resultCode']) {
                 case "IdentifyShopper":
                     $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
-                    $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.fingerprintToken']);
+                    $payment->setAdditionalInformation(
+                        'threeDS2Token',
+                        $response['authentication']['threeds2.fingerprintToken']
+                    );
                     $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
                     break;
                 case "ChallengeShopper":
                     $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
-                    $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.challengeToken']);
+                    $payment->setAdditionalInformation(
+                        'threeDS2Token',
+                        $response['authentication']['threeds2.challengeToken']
+                    );
                     $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
                     break;
                 case "Authorised":
@@ -99,7 +105,9 @@ class CheckoutResponseValidator extends AbstractValidator
 
                     // Save cc_type if available in the response
                     if (!empty($response['additionalData']['paymentMethod'])) {
-                        $ccType = $this->adyenHelper->getMagentoCreditCartType($response['additionalData']['paymentMethod']);
+                        $ccType = $this->adyenHelper->getMagentoCreditCartType(
+                            $response['additionalData']['paymentMethod']
+                        );
                         $payment->setAdditionalInformation('cc_type', $ccType);
                         $payment->setCcType($ccType);
                     }

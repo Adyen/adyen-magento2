@@ -95,7 +95,9 @@ class CcBackendAuthorizationDataBuilder implements BuilderInterface
         if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) &&
             $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) > 0
         ) {
-            $requestBody['installments']['value'] = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS);
+            $requestBody['installments']['value'] = $payment->getAdditionalInformation(
+                AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
+            );
         }
 
         // Flow for Billing agreements, for Vault check VaultDataBuilder

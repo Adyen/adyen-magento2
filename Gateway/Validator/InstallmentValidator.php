@@ -51,6 +51,7 @@ class InstallmentValidator extends AbstractValidator
 
     /**
      * InstallmentValidator constructor.
+     *
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Adyen\Payment\Helper\Data $adyenHelper

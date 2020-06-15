@@ -21,6 +21,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Model\InstantPurchase\CreditCard;
 
 use Magento\InstantPurchase\PaymentMethodIntegration\PaymentTokenFormatterInterface;
@@ -33,6 +34,7 @@ class TokenFormatter implements PaymentTokenFormatterInterface
 {
     /**
      * Most used credit card types
+     *
      * @var array
      */
     public static $baseCardTypes = [

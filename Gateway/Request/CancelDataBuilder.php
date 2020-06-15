@@ -30,7 +30,6 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
  */
 class CancelDataBuilder implements BuilderInterface
 {
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -64,7 +63,7 @@ class CancelDataBuilder implements BuilderInterface
             "reference" => $order->getOrderIncrementId(),
             "originalReference" => $pspReference
         ];
-        
+
         $request['clientConfig'] = ["storeId" => $order->getStoreId()];
         return $request;
     }

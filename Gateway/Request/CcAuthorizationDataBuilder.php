@@ -28,7 +28,6 @@ use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 
 class CcAuthorizationDataBuilder implements BuilderInterface
 {
-
     /**
      * @param array $buildSubject
      * @return mixed
@@ -64,7 +63,9 @@ class CcAuthorizationDataBuilder implements BuilderInterface
         $payment->unsAdditionalInformation(AdyenCcDataAssignObserver::HOLDER_NAME);
 
         // if installments is set and card type is credit card add it into the request
-        $numberOfInstallments = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) ?: 0;
+        $numberOfInstallments = $payment->getAdditionalInformation(
+            AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
+        ) ?: 0;
         $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE) ?: 'credit';
         if ($numberOfInstallments > 0) {
             $requestBody['installments']['value'] = $numberOfInstallments;

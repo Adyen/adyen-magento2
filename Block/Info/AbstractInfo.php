@@ -27,7 +27,6 @@ use Magento\Framework\View\Element\Template;
 
 class AbstractInfo extends \Magento\Payment\Block\Info
 {
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -37,7 +36,7 @@ class AbstractInfo extends \Magento\Payment\Block\Info
      * @var \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory
      */
     protected $_adyenOrderPaymentCollectionFactory;
-    
+
     /**
      * AbstractInfo constructor.
      *
