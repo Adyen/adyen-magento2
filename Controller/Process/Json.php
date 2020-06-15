@@ -78,7 +78,7 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->serializer = $serializer;
         
         // Fix for Magento2.3 adding isAjax to the request params
-        if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
+        if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
             $request = $this->getRequest();
             if ($request instanceof Http && $request->isPost()) {
                 $request->setParam('isAjax', true);
@@ -190,7 +190,7 @@ class Json extends \Magento\Framework\App\Action\Action
             // check if notification already exists
             if (!$this->_isDuplicate($response)) {
                 try {
-                    $notification = $this->_objectManager->create('Adyen\Payment\Model\Notification');
+                    $notification = $this->_objectManager->create(Adyen\Payment\Model\Notification::class);
 
                     if (isset($response['pspReference'])) {
                         $notification->setPspreference($response['pspReference']);
@@ -312,7 +312,7 @@ class Json extends \Magento\Framework\App\Action\Action
         if (isset($response['originalReference'])) {
             $originalReference = trim($response['originalReference']);
         }
-        $notification = $this->_objectManager->create('Adyen\Payment\Model\Notification');
+        $notification = $this->_objectManager->create(Adyen\Payment\Model\Notification::class);
         return $notification->isDuplicate($pspReference, $eventCode, $success, $originalReference);
     }
 

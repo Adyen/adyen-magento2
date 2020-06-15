@@ -140,14 +140,6 @@ class Redirect extends \Magento\Payment\Block\Form
     }
 
     /**
-     * @return $this
-     */
-    public function _prepareLayout()
-    {
-        return parent::_prepareLayout();
-    }
-
-    /**
      * @return string
      */
     public function getFormUrl()

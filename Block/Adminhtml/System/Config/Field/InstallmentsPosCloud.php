@@ -41,7 +41,7 @@ class InstallmentsPosCloud extends \Magento\Config\Block\System\Config\Form\Fiel
     {
         if (!$this->_installmentRenderer) {
             $this->_installmentRenderer = $this->getLayout()->createBlock(
-                '\Adyen\Payment\Block\Adminhtml\System\Config\Field\Installment',
+                \Adyen\Payment\Block\Adminhtml\System\Config\Field\Installment::class,
                 '',
                 ['data' => ['is_render_to_js_template' => true]]
             );

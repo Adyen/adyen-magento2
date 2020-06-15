@@ -46,7 +46,7 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
     {
         if (!$this->_installmentRenderer) {
             $this->_installmentRenderer = $this->getLayout()->createBlock(
-                '\Adyen\Payment\Block\Adminhtml\System\Config\Field\Installment',
+                \Adyen\Payment\Block\Adminhtml\System\Config\Field\Installment::class,
                 '',
                 ['data' => ['is_render_to_js_template' => true]]
             );
@@ -64,7 +64,7 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
     {
         if (!$this->_ccTypesRenderer) {
             $this->_ccTypesRenderer = $this->getLayout()->createBlock(
-                '\Adyen\Payment\Block\Adminhtml\System\Config\Field\Cctypes',
+                \Adyen\Payment\Block\Adminhtml\System\Config\Field\Cctypes::class,
                 '',
                 ['data' => ['is_render_to_js_template' => true]]
             );
