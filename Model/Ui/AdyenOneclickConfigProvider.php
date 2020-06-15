@@ -126,7 +126,6 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             $config['payment']['adyenOneclick']['methodCode'] = self::CODE;
             $config['payment'][self::CODE]['isActive'] = false;
             return $config;
-
         }
 
         $methodCode = self::CODE;

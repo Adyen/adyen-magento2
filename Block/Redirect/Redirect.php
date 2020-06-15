@@ -155,7 +155,6 @@ class Redirect extends \Magento\Payment\Block\Form
         $url = "";
         try {
             if ($this->_order->getPayment()) {
-
                 switch ($this->_adyenHelper->isDemoMode()) {
                     case true:
                         if ($this->_adyenHelper->doesPaymentMethodSkipDetails(

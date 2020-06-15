@@ -1646,7 +1646,6 @@ class Data extends AbstractHelper
                         $additionalData['recurring.recurringDetailReference']
                     );
                 } else {
-
                     $billingAgreement->setIsObjectChanged(true);
                     $message = __(
                         'Updated billing agreement #%1.',
@@ -1661,12 +1660,10 @@ class Data extends AbstractHelper
                 $billingAgreementErrors = $billingAgreement->getErrors();
 
                 if ($billingAgreement->isValid() && empty($billingAgreementErrors)) {
-
                     if (!$this->agreementResourceModel->getOrderRelation(
                         $billingAgreement->getAgreementId(),
                         $order->getId()
                     )) {
-
                         // save into sales_billing_agreement_order
                         $billingAgreement->addOrderRelation($order);
                     }
@@ -1679,7 +1676,6 @@ class Data extends AbstractHelper
                     );
                     throw new \Exception($message);
                 }
-
             } catch (\Exception $exception) {
                 $message = $exception->getMessage();
                 $this->adyenLogger->error("exception: " . $message);

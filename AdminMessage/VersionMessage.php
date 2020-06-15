@@ -105,8 +105,13 @@ class VersionMessage implements \Magento\Framework\Notification\MessageInterface
     {
         $githubContent = $this->getSessionData("AdyenGithubVersion");
         $message = __("A new Adyen extension version is now available: ");
-        $message .= __("<a href= \"" . $githubContent['html_url'] . "\" target='_blank'> " . $githubContent['tag_name'] . "!</a>");
-        $message .= __(" You are running the " . $this->_adyenHelper->getModuleVersion() . " version. We advise to update your extension.");
+        $message .= __(
+            "<a href= \"" . $githubContent['html_url'] . "\" target='_blank'> " . $githubContent['tag_name'] . "!</a>"
+        );
+        $message .= __(
+            " You are running the " . $this->_adyenHelper->getModuleVersion(
+            ) . " version. We advise to update your extension."
+        );
         return __($message);
     }
 
