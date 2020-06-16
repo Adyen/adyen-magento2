@@ -28,67 +28,85 @@
 /**
  * @see \Magento\Payment\Block\Info
  */
+
 ?>
 <div>
-    <?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?>
+    <?= $block->escapeHtml($block->getMethod()->getTitle()); ?>
 </div>
 <?php
-$_info = $this->getInfo();
+$_info = $block->getInfo();
 $_isDemoMode = $block->isDemoMode();
 ?>
-<?php if ($_pspReference = $_info->getAdditionalInformation('pspReference')):?>
+<?php if ($_pspReference = $_info->getAdditionalInformation('pspReference')): ?>
     <div>
-        <?php if($_isDemoMode): ?>
-            <?php echo __('Adyen PSP Reference: <a href="https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=%1&txType=Payment" target="_blank">%1</a>', $block->escapeHtml($_pspReference), $block->escapeHtml($_pspReference)) ?>
+        <?php if ($_isDemoMode): ?>
+            <?= $block->escapeHtml(__('Adyen PSP Reference: ')); ?>
+            <a href="https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=<?= $block->escapeHtml(
+                $_pspReference
+            ); ?>&txType=Payment" target="_blank"><?= $block->escapeHtml($_pspReference); ?></a>
         <?php else: ?>
-            <?php echo __('Adyen PSP Reference: <a href="https://ca-live.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=%1&txType=Payment" target="_blank">%1</a>', $block->escapeHtml($_pspReference), $block->escapeHtml($_pspReference)) ?>
+            <?= $block->escapeHtml(__('Adyen PSP Reference: ')); ?>
+            <a href="https://ca-live.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=<?= $block->escapeHtml(
+                $_pspReference
+            ); ?>&txType=Payment" target="_blank"><?= $block->escapeHtml($_pspReference); ?></a>
         <?php endif; ?>
     </div>
-<?php endif;?>
+<?php endif; ?>
 
-<?php if($block->getCcTypeName() != ""):?>
+<?php if ($block->getCcTypeName() != ""): ?>
     <div>
-        <?php echo __('Credit Card Type: %1', $block->getCcTypeName()) ?><br/>
+        <?= $block->escapeHtml(__('Credit Card Type: %1', $block->getCcTypeName())); ?><br/>
     </div>
 <?php endif; ?>
-<?php if($_info->getCcLast4() != ""):?>
-    <?php echo __('Credit Card Number: xxxx-%1', $this->getInfo()->getCcLast4()) ?><br/>
-<?php endif;?>
-
-<?php if($_info->getAdditionalInformation('number_of_installments') != ""): ?>
-    <?php echo __('Number of installments: %1', $_info->getAdditionalInformation('number_of_installments')) ?><br/>
+<?php if ($_info->getCcLast4() != ""): ?>
+    <?= $block->escapeHtml(__('Credit Card Number: xxxx-%1', $this->getInfo()->getCcLast4())); ?><br/>
 <?php endif; ?>
 
-
-<?php if($_info->getAdditionalInformation('adyen_avs_result') != ""): ?>
-    <?php echo __('Avs result: %1', $_info->getAdditionalInformation('adyen_avs_result')) ?><br/>
-<?php endif; ?>
-<?php if($_info->getAdditionalInformation('adyen_cvc_result') != ""): ?>
-    <?php echo __('Cvc result: %1', $_info->getAdditionalInformation('adyen_cvc_result')) ?><br/>
-<?php endif; ?>
-<?php if($_info->getAdditionalInformation('adyen_total_fraud_score') != ""): ?>
-    <?php echo __('Total fraud score: %1', $_info->getAdditionalInformation('adyen_total_fraud_score')) ?><br/>
-<?php endif; ?>
-<?php if($_info->getAdditionalInformation('adyen_refusal_reason_raw') != ""): ?>
-    <?php echo __('Raw acquirer response: %1', $_info->getAdditionalInformation('adyen_refusal_reason_raw')) ?><br/>
+<?php if ($_info->getAdditionalInformation('number_of_installments') != ""): ?>
+    <?= $block->escapeHtml(
+        __('Number of installments: %1', $_info->getAdditionalInformation('number_of_installments'))
+    ); ?><br/>
 <?php endif; ?>
 
-<?php if($_info->getAdditionalInformation('adyen_auth_code') != ""): ?>
-    <?php echo __('Authorisation code: %1', $_info->getAdditionalInformation('adyen_auth_code')) ?><br/>
-<?php endif; ?>
-<?php if($_info->getAdditionalInformation('adyen_acquirer_reference') != ""): ?>
-    <?php echo __('Acquirer reference: %1', $_info->getAdditionalInformation('adyen_acquirer_reference')) ?><br/>
+<?php if ($_info->getAdditionalInformation('adyen_avs_result') != ""): ?>
+    <?= $block->escapeHtml(__('Avs result: %1', $_info->getAdditionalInformation('adyen_avs_result'))); ?><br/>
 <?php endif; ?>
 
-<?php if ($_specificInfo = $block->getSpecificInformation()):?>
-<table class="data-table admin__table-secondary">
-<?php foreach ($_specificInfo as $_label => $_value):?>
-    <tr>
-        <th><?php echo $block->escapeHtml($_label)?>:</th>
-        <td><?php echo nl2br(implode("\n", $block->getValueAsArray($_value, true)))?></td>
-    </tr>
-<?php endforeach; ?>
-</table>
-<?php endif;?>
+<?php if ($_info->getAdditionalInformation('adyen_cvc_result') != ""): ?>
+    <?= $block->escapeHtml(__('Cvc result: %1', $_info->getAdditionalInformation('adyen_cvc_result'))); ?><br/>
+<?php endif; ?>
 
-<?php echo $block->getChildHtml()?>
+<?php if ($_info->getAdditionalInformation('adyen_total_fraud_score') != ""): ?>
+    <?= $block->escapeHtml(__('Total fraud score: %1', $_info->getAdditionalInformation('adyen_total_fraud_score'))); ?>
+    <br/>
+<?php endif; ?>
+
+<?php if ($_info->getAdditionalInformation('adyen_refusal_reason_raw') != ""): ?>
+    <?= $block->escapeHtml(
+        __('Raw acquirer response: %1', $_info->getAdditionalInformation('adyen_refusal_reason_raw'))
+    ); ?><br/>
+<?php endif; ?>
+
+<?php if ($_info->getAdditionalInformation('adyen_auth_code') != ""): ?>
+    <?= $block->escapeHtml(__('Authorisation code: %1', $_info->getAdditionalInformation('adyen_auth_code'))); ?><br/>
+<?php endif; ?>
+
+<?php if ($_info->getAdditionalInformation('adyen_acquirer_reference') != ""): ?>
+    <?= $block->escapeHtml(
+        __('Acquirer reference: %1', $_info->getAdditionalInformation('adyen_acquirer_reference'))
+    ); ?><br/>
+<?php endif; ?>
+
+<?php if ($_specificInfo = $block->getSpecificInformation()): ?>
+    <table class="data-table admin__table-secondary">
+        <?php foreach ($_specificInfo as $_label => $_value): ?>
+            <tr>
+                <th><?= $block->escapeHtml($_label) ?>:
+                </th>
+                <td><?= $block->escapeHtml(nl2br(implode("\n", $block->getValueAsArray($_value, true)))); ?></td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+<?php endif; ?>
+
+<?= $block->escapeHtml($block->getChildHtml()); ?>

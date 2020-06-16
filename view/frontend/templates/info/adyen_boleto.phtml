@@ -25,7 +25,7 @@
 
 ?>
 <?php
-$_info = $this->getInfo();
+$_info = $block->getInfo();
 ?>
 <dl class="payment-method adyen_cc">
     <dt class="title"><?= $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
@@ -34,6 +34,6 @@ $_info = $this->getInfo();
     <dt class="title"><?= $block->escapeHtml($_info->getAdditionalInformation('firstname')); ?></dt>
     <dt class="title"><?= $block->escapeHtml($_info->getAdditionalInformation('lastname')); ?></dt>
     <dt class="title"><a target="_blank" href="<?= $block->escapeHtml(
-            $block->getPaymentActionData('downloadUrl')
-        ); ?>"><?= $block->escapeHtml(__("Click here to download Boleto PDF.")); ?></a></dt>
+        $block->getPaymentActionData('downloadUrl')
+    ); ?>"><?= $block->escapeHtml(__("Click here to download Boleto PDF.")); ?></a></dt>
 </dl>
