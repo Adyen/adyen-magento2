@@ -45,7 +45,8 @@ $currentCountry = $block->getInfoData('country');
                                type="radio"
                                name="payment[recurring_detail_reference]"
                                title="Adyen Stored Payment Methods"
-                               onclick="document.getElementById('adyen_oneclick_variant').value = '<?= $card['agreement_data']['variant']; ?>';"
+                               onclick="document.getElementById('adyen_oneclick_variant').value = '<?= /* @noEscape */
+                               $card['agreement_data']['variant']; ?>';"
                                class="admin__control-radio">
                         <label class="admin__field-label"
                                for="p_method_adyen_oneclick_<?= /* @noEscape */ $card['reference_id'] ?>">

@@ -26,7 +26,6 @@ namespace Adyen\Payment\Model;
 
 class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
 {
-
     /**
      * @var
      */
@@ -137,7 +136,6 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
             )
             ->getMock();
 
-
         $quoteMock->expects($this->any())
             ->method('getCustomerId')
             ->willReturn(self::CUSTOMER_ID);
@@ -148,8 +146,7 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
 
         $request = [];
         $result = $this->adyenInitiateTerminalApi->addSaleToAcquirerData($request, $quoteMock);
-
-
+        
         $appInfo = [
             'shopperEmail' => self::CUSTOMER_EMAIL,
             'shopperReference' => self::CUSTOMER_ID,

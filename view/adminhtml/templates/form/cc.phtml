@@ -37,10 +37,11 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
     <span id="noApiKey"
           class="message message-error error"
           style="visibility: hidden"><?= $block->escapeHtml(
-            __(
-                'Please configure an API Key and a live endpoint prefix(if in Production Mode) in your Adyen Required Settings'
-            )
-        ); ?>
+              __(
+                  'Please configure an API Key and a live endpoint prefix(if in Production Mode) in your Adyen ' .
+                  'Required Settings'
+              )
+          ); ?>
     </span>
     <div class="field admin__field">
         <label for="<?= /* @noEscape */ $code; ?>_cc_owner">
@@ -83,13 +84,13 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                 "Magento_Sales/order/create/form"
             ],
             function () {
-                var ccTypes = <?= json_encode($block->getCcAvailableTypesByAlt()); ?>;
+                var ccTypes = <?= /* @noEscape */ json_encode($block->getCcAvailableTypesByAlt()); ?>;
 
                 //<![CDATA[
 
                 // Append checkout card components script
                 var scriptTag = document.createElement('script');
-                scriptTag.src = "<?= $block->getCheckoutCardComponentJs(); ?>";
+                scriptTag.src = "<?= $block->escapeHtml($block->getCheckoutCardComponentJs()); ?>";
                 scriptTag.type = "text/javascript";
                 document.body.appendChild(scriptTag);
 
@@ -110,14 +111,14 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                  */
                 var secureFieldsInitialize = function () {
 
-                    if (!"<?= $block->getCheckoutOriginKeys(); ?>") {
+                    if (!"<?php $block->getCheckoutOriginKeys(); ?>") {
                         document.getElementById('noApiKey').style = "visibility: visible; display:inline-block";
                         return;
                     }
                     var cardNode = document.getElementById("cardContainer-<?= /* @noEscape */ $code; ?>");
 
                     var checkout = new AdyenCheckout({
-                        locale: "<?= $block->getLocale(); ?>",
+                        locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
                         risk: {
                             enabled: false
                         }
@@ -125,21 +126,29 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                     var hideCVC = "<?= !$block->hasVerification(); ?>";
 
                     var card = checkout.create('card', {
-                        originKey: "<?= $block->getCheckoutOriginKeys(); ?>",
-                        environment: "<?= $block->getCheckoutEnvironment(); ?>",
+                        originKey: "<?= /* @noEscape */ $block->getCheckoutOriginKeys(); ?>",
+                        environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
                         type: 'card',
                         groupTypes: ccTypes,
                         hideCVC: hideCVC,
-                        enableStoreDetails: "<?= $block->allowRecurring() && !$block->isVaultEnabled();?>",
+                        enableStoreDetails: "<?= /* @noEscape */ $block->allowRecurring() && !$block->isVaultEnabled();?>",
 
                         onChange: function (state) {
                             // When the state is valid update the input fields
                             if (state.isValid) {
                                 // Here we enable the button if the component is now valid
-                                jQuery("#<?= /* @noEscape */ $code; ?>-number").val(state.data.paymentMethod.encryptedCardNumber);
-                                jQuery("#<?= /* @noEscape */ $code; ?>-expiryMonth").val(state.data.paymentMethod.encryptedExpiryMonth);
-                                jQuery("#<?= /* @noEscape */ $code; ?>-expiryYear").val(state.data.paymentMethod.encryptedExpiryYear);
-                                jQuery("#<?= /* @noEscape */ $code; ?>-cvc").val(state.data.paymentMethod.encryptedSecurityCode);
+                                jQuery("#<?= /* @noEscape */ $code; ?>-number").val(
+                                    state.data.paymentMethod.encryptedCardNumber
+                                );
+                                jQuery("#<?= /* @noEscape */ $code; ?>-expiryMonth").val(
+                                    state.data.paymentMethod.encryptedExpiryMonth
+                                );
+                                jQuery("#<?= /* @noEscape */ $code; ?>-expiryYear").val(
+                                    state.data.paymentMethod.encryptedExpiryYear
+                                );
+                                jQuery("#<?= /* @noEscape */ $code; ?>-cvc").val(
+                                    state.data.paymentMethod.encryptedSecurityCode
+                                );
                                 jQuery("#<?= /* @noEscape */ $code; ?>-store_cc").val(state.data.storePaymentMethod);
                             }
                         },

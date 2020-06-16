@@ -36,7 +36,7 @@
         <dt><?= $block->escapeHtml(__('Pay using Bank transfer')); ?></dt>
         <dd><?= $block->escapeHtml(
             __('Please transfer the amount using the reference below to the following bank account')
-        ); ?></dd>
+            ); ?></dd>
 
         <?php
         if (!empty($order->getGrandTotal())): ?>
@@ -76,7 +76,7 @@
                 'Please pay with the provided Multibanco reference and entity before payment deadline in order ' .
                 'to complete our payment'
             )
-        ); ?></dd>
+            ); ?></dd>
 
         <?php if (!empty($multibancoData['comprafacil.entity'])): ?>
             <dt><?= $block->escapeHtml(__('Entity')); ?></dt>
@@ -97,7 +97,7 @@
             <dt><?= $block->escapeHtml(__('Deadline')); ?></dt>
             <dd><?= $block->escapeHtml($multibancoData['comprafacil.deadline']); ?> <?= $block->escapeHtml(
                 __('Days')
-            ); ?></dd>
+                ); ?></dd>
         <?php endif; ?>
     <?php else: ?>
         <?php if ($_methodTitle = $_info->getAdditionalInformation('method_title')): ?>

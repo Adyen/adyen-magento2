@@ -45,7 +45,7 @@
     <h2><?= $block->escapeHtml(__('Pay using Bank transfer')); ?></h2>
     <p><?= $block->escapeHtml(
         __('Please transfer the amount using the reference below to the following bank account')
-    ); ?></p>
+        ); ?></p>
     <table>
         <tbody>
         <?php if (!empty($order->getGrandTotal())): ?>
@@ -98,9 +98,10 @@
     <h2><?= $block->escapeHtml(__('Pay using Multibanco')); ?></h2>
     <p><?= $block->escapeHtml(
         __(
-            'Please pay with the provided Multibanco reference and entity before payment deadline in order to complete our payment'
+            'Please pay with the provided Multibanco reference and entity before payment deadline in order to ' .
+            'complete our payment'
         )
-    ); ?></p>
+        ); ?></p>
     <table>
         <tbody>
 
@@ -121,11 +122,7 @@
         <?php if (!empty($multibancoData['totalAmount'])): ?>
             <tr>
                 <th><?= $block->escapeHtml(__('Amount')); ?></th>
-                <td><?= $block->escapeHtml(
-                        $block->priceHelper->currency($multibancoData['totalAmount']['value'])
-                    );
-                    //TODO: This value is showing as it comes from the API call and based on the currency the decimal
-                    //// point could be wrong until the Checkout Component is implemented    ?>
+                <td><?= $block->escapeHtml($block->priceHelper->currency($multibancoData['totalAmount']['value']));?>
                 </td>
             </tr>
         <?php endif; ?>

@@ -59,7 +59,7 @@ $_isDemoMode = $block->isDemoMode();
     </div>
 <?php endif; ?>
 <?php if ($_info->getCcLast4() != ""): ?>
-    <?= $block->escapeHtml(__('Credit Card Number: xxxx-%1', $this->getInfo()->getCcLast4())); ?><br/>
+    <?= $block->escapeHtml(__('Credit Card Number: xxxx-%1', $block->getInfo()->getCcLast4())); ?><br/>
 <?php endif; ?>
 
 <?php if ($_info->getAdditionalInformation('number_of_installments') != ""): ?>

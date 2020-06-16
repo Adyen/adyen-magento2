@@ -124,8 +124,8 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
 
         $config['payment']['adyenGooglePay']['merchantIdentifier'] =
             $this->adyenHelper->getAdyenGooglePayMerchantIdentifier(
-            $this->storeManager->getStore()->getId()
-        );
+                $this->storeManager->getStore()->getId()
+            );
 
         return $config;
     }

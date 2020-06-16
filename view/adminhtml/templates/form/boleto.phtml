@@ -54,7 +54,7 @@ $currentBoletoType = $block->getInfoData('boleto_type');
                 <option value=""></option>
                 <?php foreach ($block->getBoletoTypes() as $key => $value): ?>
                     <option value="<?= $block->escapeHtml($key); ?>" <?php
-                            if ($key == $currentBoletoType): ?>selected="selected"<?php
+                    if ($key == $currentBoletoType): ?>selected="selected"<?php
                     endif ?>>
                         <?= $block->escapeHtml($value); ?>
                     </option>

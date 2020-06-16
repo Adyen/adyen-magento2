@@ -524,8 +524,7 @@ class Cron
         if ($count > 0) {
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 sprintf(
-                    "Cronjob updated %s notification(s)"
-                    ,
+                    "Cronjob updated %s notification(s)",
                     $count
                 )
             );
@@ -698,8 +697,7 @@ class Cron
 
         // if payment method is klarna, ratepay or openinvoice/afterpay show the reservartion number
         if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
-                $this->_paymentMethod
-            ) && !empty($this->_klarnaReservationNumber)) {
+            $this->_paymentMethod) && !empty($this->_klarnaReservationNumber)) {
             $klarnaReservationNumberText = "<br /> reservationNumber: " . $this->_klarnaReservationNumber;
         } else {
             $klarnaReservationNumberText = "";
@@ -911,8 +909,9 @@ class Cron
                 if ($this->_order->canHold()) {
                     $this->_order->hold();
                 } else {
-                    $this->_adyenLogger->addAdyenNotificationCronjob
-                    ('Order can not hold or is already on Hold');
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        'Order can not hold or is already on Hold'
+                    );
                     return;
                 }
             } else {
@@ -927,8 +926,9 @@ class Cron
                 }
             }
         } else {
-            $this->_adyenLogger->addAdyenNotificationCronjob
-            ('Order has already an invoice so cannot be canceled');
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                'Order has already an invoice so cannot be canceled'
+            );
         }
     }
 
