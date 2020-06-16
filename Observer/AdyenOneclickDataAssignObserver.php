@@ -27,9 +27,6 @@ use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 
-/**
- * Class DataAssignObserver
- */
 class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
 {
     const RECURRING_DETAIL_REFERENCE = 'recurring_detail_reference';

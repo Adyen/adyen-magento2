@@ -278,7 +278,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
         );
     }
 
-
     /**
      * Upgrade to 2.0.7
      *

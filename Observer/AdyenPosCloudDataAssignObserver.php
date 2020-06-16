@@ -27,9 +27,6 @@ use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 
-/**
- * Class DataAssignObserver
- */
 class AdyenPosCloudDataAssignObserver extends AbstractDataAssignObserver
 {
     const TERMINAL_ID = 'terminal_id';

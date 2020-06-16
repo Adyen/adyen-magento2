@@ -35,7 +35,6 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
      */
     protected $config;
 
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -235,7 +234,6 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         return $types;
     }
 
-
     /**
      * Retrieve credit card expire months
      *
@@ -275,7 +273,6 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
     {
         return $this->ccConfig->getCvvImageUrl();
     }
-
 
     /**
      * Retrieve request object

@@ -112,7 +112,6 @@ class InstallSchema implements InstallSchemaInterface
 
         $installer->getConnection()->createTable($table);
 
-
         $orderTable = $installer->getTable('sales_order');
 
         $columns = [

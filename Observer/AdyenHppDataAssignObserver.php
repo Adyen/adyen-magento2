@@ -27,9 +27,6 @@ use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 
-/**
- * Class DataAssignObserver
- */
 class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
 {
     const BRAND_CODE = 'brand_code';
@@ -44,7 +41,6 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
     const IBAN_NUMBER = 'ibanNumber';
     const BANK_ACCOUNT_NUMBER = 'bankAccountNumber';
     const BANK_LOCATIONID = 'bankLocationId';
-
 
     /**
      * @var array

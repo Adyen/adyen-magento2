@@ -27,9 +27,6 @@ namespace Adyen\Payment\Observer\Adminhtml;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 
-/**
- * Class DataAssignObserver
- */
 class BeforeShipmentObserver extends AbstractDataAssignObserver
 {
     private $adyenHelper;

@@ -111,8 +111,7 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
         }
         return $types;
     }
-
-
+    
     /**
      * Retrieve request object
      *

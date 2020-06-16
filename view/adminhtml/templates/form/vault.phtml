@@ -30,9 +30,10 @@ $id = $block->escapeHtml($block->getData('id'));
 ?>
 <div data-mage-init='{
         "Adyen_Payment/js/vault": {
-            "container": "payment_<?= /* @noEscape */
-$id ?>",
-            "publicHash": "<?= $block->escapeHtml($block->getData(TokenUiComponentProviderInterface::COMPONENT_PUBLIC_HASH)) ?>",
+            "container": "payment_<?= /* @noEscape */ $id ?>",
+            "publicHash": "<?= $block->escapeHtml(
+    $block->getData(TokenUiComponentProviderInterface::COMPONENT_PUBLIC_HASH)
+) ?>",
             "code": "<?= $block->escapeHtml($block->getData('code')) ?>"
         }
     }' id="payment_<?= /* @noEscape */
