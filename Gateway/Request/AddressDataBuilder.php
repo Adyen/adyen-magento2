@@ -25,7 +25,6 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-
 class AddressDataBuilder implements BuilderInterface
 {
     /**
@@ -58,7 +57,7 @@ class AddressDataBuilder implements BuilderInterface
         $billingAddress = $order->getBillingAddress();
         $shippingAddress = $order->getShippingAddress();
 
-        $request['body'] = $this->adyenRequestsHelper->buildAddressData([], $billingAddress, $shippingAddress);
+        $request['body'] = $this->adyenRequestsHelper->buildAddressData($billingAddress, $shippingAddress, []);
 
         return $request;
     }

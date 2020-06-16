@@ -55,7 +55,7 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @return mixed
      */
-    public function buildMerchantAccountData($request = [], $paymentMethod, $storeId)
+    public function buildMerchantAccountData($paymentMethod, $storeId, $request = [])
     {
         // Retrieve merchant account
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($paymentMethod, $storeId);
@@ -67,21 +67,21 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param array $request
      * @param int $customerId
      * @param $billingAddress
      * @param $storeId
      * @param null $payment
      * @param null $additionalData
      * @return array
+     * @param array $request
      */
     public function buildCustomerData(
-        $request = [],
         $customerId = 0,
         $billingAddress,
         $storeId,
         $payment = null,
-        $additionalData = null
+        $additionalData = null,
+        $request = []
     ) {
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
@@ -156,7 +156,7 @@ class Requests extends AbstractHelper
      * @param $ipAddress
      * @return mixed
      */
-    public function buildCustomerIpData($request = [], $ipAddress)
+    public function buildCustomerIpData($ipAddress, $request = [])
     {
         $request['shopperIP'] = $ipAddress;
 
@@ -169,7 +169,7 @@ class Requests extends AbstractHelper
      * @param $shippingAddress
      * @return mixed
      */
-    public function buildAddressData($request = [], $billingAddress, $shippingAddress)
+    public function buildAddressData($billingAddress, $shippingAddress, $request = [])
     {
         if ($billingAddress) {
             // Billing address defaults
@@ -273,7 +273,7 @@ class Requests extends AbstractHelper
      * @param $paymentMethod
      * @return array
      */
-    public function buildPaymentData($request = [], $amount, $currencyCode, $reference, $paymentMethod)
+    public function buildPaymentData($amount, $currencyCode, $reference, $paymentMethod, $request = [])
     {
         $request['amount'] = [
             'currency' => $currencyCode,
@@ -309,7 +309,7 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @return array
      */
-    public function buildThreeDS2Data($request = [], $additionalData, $storeId)
+    public function buildThreeDS2Data($additionalData, $storeId, $request = [])
     {
         if ($this->adyenHelper->isCreditCardThreeDS2Enabled($storeId)) {
             $request['additionalData']['allow3DS2'] = true;
@@ -341,7 +341,7 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringData($request = [], $areaCode, int $storeId, $additionalData)
+    public function buildRecurringData($areaCode, int $storeId, $additionalData, $request = [])
     {
         // If the vault feature is on this logic is handled in the VaultDataBuilder
         if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
@@ -379,7 +379,7 @@ class Requests extends AbstractHelper
      * @param $storeIdbuildCCData
      * @return mixed
      */
-    public function buildCCData($request = [], $payload, $storeId, $areaCode)
+    public function buildCCData($payload, $storeId, $areaCode, $request = [])
     {
         // If ccType is set use this. For bcmc you need bcmc otherwise it will fail
 
@@ -470,7 +470,7 @@ class Requests extends AbstractHelper
      * @param $additionalInformation
      * @return mixed
      */
-    public function buildVaultData($request = [], $payload)
+    public function buildVaultData($payload, $request = [])
     {
         if ($this->adyenHelper->isCreditCardVaultEnabled()) {
             if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE]) &&

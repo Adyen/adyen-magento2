@@ -160,7 +160,7 @@ class VaultDetailsHandler implements HandlerInterface
             $paymentTokenSaveRequired = false;
 
             // In case the payment token does not exist, create it based on the additionalData
-            if (is_null($paymentToken)) {
+            if ($paymentToken === null) {
                 /** @var PaymentTokenInterface $paymentToken */
                 $paymentToken = $this->paymentTokenFactory->create(
                     PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD

@@ -95,7 +95,8 @@ class CheckoutResponseValidator extends AbstractValidator
                             }
                         }
                     } elseif (!empty($response['additionalData']['comprafacil.entity'])) {
-                        //Multibanco resultCode has changed after checkout v49 and comprafacil.entity is not received anymore
+                        //Multibanco resultCode has changed after checkout v49 and
+                        // comprafacil.entity is not received anymore
                         foreach ($response['additionalData'] as $key => $value) {
                             if (strpos($key, 'comprafacil') === 0) {
                                 $payment->setAdditionalInformation($key, $value);

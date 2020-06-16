@@ -64,9 +64,9 @@ class ThreeDS2DataBuilder implements BuilderInterface
         $order = $paymentDataObject->getOrder();
         $additionalInformation = $payment->getAdditionalInformation();
         $request['body'] = $this->adyenRequestsHelper->buildThreeDS2Data(
-            [],
             $additionalInformation,
-            $order->getStoreId()
+            $order->getStoreId(),
+            []
         );
         return $request;
     }

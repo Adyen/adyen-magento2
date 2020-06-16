@@ -61,7 +61,7 @@ class CustomerIpDataBuilder implements BuilderInterface
             $shopperIp = $order->getXForwardedFor();
         }
 
-        $request['body'] = $this->adyenRequestsHelper->buildCustomerIpData([], $shopperIp);
+        $request['body'] = $this->adyenRequestsHelper->buildCustomerIpData($shopperIp, []);
 
         return $request;
     }

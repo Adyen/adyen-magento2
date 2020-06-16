@@ -65,10 +65,10 @@ class RecurringDataBuilder implements BuilderInterface
         $areaCode = $this->appState->getAreaCode();
         $additionalInformation = $payment->getAdditionalInformation();
         $request['body'] = $this->adyenRequestsHelper->buildRecurringData(
-            [],
             $areaCode,
             $storeId,
-            $additionalInformation
+            $additionalInformation,
+            []
         );
         return $request;
     }
