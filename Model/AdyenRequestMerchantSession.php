@@ -65,7 +65,8 @@ class AdyenRequestMerchantSession implements AdyenRequestMerchantSessionInterfac
      */
     public function getMerchantSession()
     {
-        // Works for test and live. Maybe we need to switch for validationUrl from callback event waiting for apple to respond
+        // Works for test and live. Maybe we need to switch for validationUrl
+        // from callback event waiting for apple to respond
         $validationUrl = "https://apple-pay-gateway-cert.apple.com/paymentservices/startSession";
 
         // create a new cURL resource

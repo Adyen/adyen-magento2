@@ -81,7 +81,8 @@ class NotificationColumnTest extends TestCase
         $this->dataMock->method("getUrl")
             ->with("sales/order/view", ["order_id" => 1])
             ->willReturn(
-                "https://test.com/index.php/admin/sales/order/view/order_id/7/key/90713b7af1b7d29bc585626042062a9c514473d1c692c69be03eb1a8bfb00f74/"
+                'https://test.com/index.php/admin/sales/order/view/order_id
+                /7/key/90713b7af1b7d29bc585626042062a9c514473d1c692c69be03eb1a8bfb00f74/'
             );
         $this->adyenHelperMock = $this->getMockBuilder(AdyenHelper::class)
             ->disableOriginalConstructor()

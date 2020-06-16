@@ -44,23 +44,28 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $dataStorage = $this->getSimpleMock(\Magento\Framework\Config\DataInterface::class);
         $country = $this->getSimpleMock(\Magento\Directory\Model\Config\Source\Country::class);
         $moduleList = $this->getSimpleMock(\Magento\Framework\Module\ModuleListInterface::class);
-        $billingAgreementCollectionFactory = $this->getSimpleMock(\Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory::class);
+        $billingAgreementCollectionFactory = $this->getSimpleMock(\Adyen\Payment\Model\ResourceModel
+                                                                  \Billing\Agreement\CollectionFactory::class);
         $assetRepo = $this->getSimpleMock(\Magento\Framework\View\Asset\Repository::class);
         $assetSource = $this->getSimpleMock(\Magento\Framework\View\Asset\Source::class);
-        $notificationFactory = $this->getSimpleMock(\Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory::class);
+        $notificationFactory = $this->getSimpleMock(\Adyen\Payment\Model\ResourceModel
+                                                    \Notification\CollectionFactory::class);
         $taxConfig = $this->getSimpleMock(\Magento\Tax\Model\Config::class);
         $taxCalculation = $this->getSimpleMock(\Magento\Tax\Model\Calculation::class);
         $productMetadata = $this->getSimpleMock(\Magento\Framework\App\ProductMetadata::class);
         $adyenLogger = $this->getSimpleMock(\Adyen\Payment\Logger\AdyenLogger::class);
         $storeManager = $this->getSimpleMock(\Magento\Store\Model\StoreManager::class);
         $cache = $this->getSimpleMock(\Magento\Framework\App\CacheInterface::class);
-        $billingAgreementFactory = $this->getSimpleMock(\Adyen\Payment\Model\Billing\AgreementFactory::class);
-        $agreementResourceModel = $this->getSimpleMock(\Adyen\Payment\Model\ResourceModel\Billing\Agreement::class);
+        $billingAgreementFactory = $this->getSimpleMock(\Adyen\Payment
+                                                        \Model\Billing\AgreementFactory::class);
+        $agreementResourceModel = $this->getSimpleMock(\Adyen\Payment
+                                                       \Model\ResourceModel\Billing\Agreement::class);
         $localeResolver = $this->getSimpleMock(\Magento\Framework\Locale\ResolverInterface::class);
         $config = $this->getSimpleMock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
         $helperBackend = $this->getSimpleMock(\Magento\Backend\Helper\Data::class);
         $serializer = $this->getSimpleMock(\Magento\Framework\Serialize\SerializerInterface::class);
-        $componentRegistrar = $this->getSimpleMock(\Magento\Framework\Component\ComponentRegistrarInterface::class);
+        $componentRegistrar = $this->getSimpleMock(\Magento\Framework
+                                                   \Component\ComponentRegistrarInterface::class);
 
         $this->dataHelper = new \Adyen\Payment\Helper\Data(
             $context,

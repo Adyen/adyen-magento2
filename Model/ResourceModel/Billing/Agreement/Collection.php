@@ -35,7 +35,7 @@ class Collection extends \Magento\Paypal\Model\ResourceModel\Billing\Agreement\C
      */
     protected function _construct()
     {
-        $this->_init('Adyen\Payment\Model\Billing\Agreement', 'Magento\Paypal\Model\ResourceModel\Billing\Agreement');
+        $this->_init(Adyen\Payment\Model\Billing\Agreement::class, Magento\Paypal\Model\ResourceModel\Billing\Agreement::class);
     }
 
     /**

@@ -53,7 +53,7 @@ class Payment extends \Magento\Framework\Model\AbstractModel implements OrderPay
      */
     protected function _construct()
     {
-        $this->_init('Adyen\Payment\Model\ResourceModel\Order\Payment');
+        $this->_init(Adyen\Payment\Model\ResourceModel\Order\Payment::class);
     }
 
     /**

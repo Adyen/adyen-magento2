@@ -54,7 +54,7 @@ class Invoice extends \Magento\Framework\Model\AbstractModel implements InvoiceI
      */
     protected function _construct()
     {
-        $this->_init('Adyen\Payment\Model\ResourceModel\Invoice');
+        $this->_init(Adyen\Payment\Model\ResourceModel\Invoice::class);
     }
 
     /**

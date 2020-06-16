@@ -40,7 +40,6 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
     private const CUSTOMER_EMAIL = 'customer@example.com';
     private const RECURRING_TYPE = 'ONECLICK,RECURRING';
 
-
     private function getSimpleMock($originalClassName)
     {
         return $this->getMockBuilder($originalClassName)
@@ -60,10 +59,8 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
         $storeManager->method('getStore')
             ->will($this->returnValue($store));
 
-
         $adyenHelper->method('getModuleVersion')
             ->will($this->returnValue(self::MODULE_VERSION));
-
 
         // Create a map of arguments to return values.
         $map = [
@@ -83,7 +80,6 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
 
         $productMetadata->method('getName')
             ->will($this->returnValue(self::PLATFORM_NAME));
-
 
         $this->adyenInitiateTerminalApi = new \Adyen\Payment\Model\AdyenInitiateTerminalApi(
             $adyenHelper,

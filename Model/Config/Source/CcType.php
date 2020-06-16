@@ -24,8 +24,6 @@
 namespace Adyen\Payment\Model\Config\Source;
 
 /**
- * Class CcType
- *
  * @codeCoverageIgnore
  */
 class CcType extends \Magento\Payment\Model\Source\Cctype

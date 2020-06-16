@@ -87,7 +87,8 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         if (empty($payload['orderId'])) {
             $order = $this->getOrder();
             // In the next major release remove support for retrieving order from session and throw exception instead
-            //throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed because of a missing order id'));
+            //throw new \Magento\Framework\Exception\LocalizedException
+            //(__('3D secure 2.0 failed because of a missing order id'));
         } else {
             // Create order by order id
             $order = $this->orderFactory->create()->load($payload['orderId']);

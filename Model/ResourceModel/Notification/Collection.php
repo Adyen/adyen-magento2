@@ -30,7 +30,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     public function _construct()
     {
-        $this->_init('Adyen\Payment\Model\Notification', 'Adyen\Payment\Model\ResourceModel\Notification');
+        $this->_init(Adyen\Payment\Model\Notification::class, Adyen\Payment\Model\ResourceModel\Notification::class);
     }
 
     /**

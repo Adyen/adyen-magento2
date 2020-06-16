@@ -190,7 +190,9 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
             !isset($contractDetail['paymentMethod'])
         ) {
             $this->_errors[] = __(
-                '"In the Additional data in API response section, select: Card bin, Card summary, Expiry Date, Cardholder name, Recurring details and Variant to create billing agreements immediately after the payment is authorized."'
+                '"In the Additional data in API response section, select: Card bin, 
+                Card summary, Expiry Date, Cardholder name, Recurring details and Variant 
+                to create billing agreements immediately after the payment is authorized."'
             );
             return $this;
         }

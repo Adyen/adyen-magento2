@@ -76,7 +76,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
      */
     protected function _construct()
     {
-        $this->_init('Adyen\Payment\Model\ResourceModel\Notification');
+        $this->_init(Adyen\Payment\Model\ResourceModel\Notification::class);
     }
 
     /**
@@ -212,7 +212,6 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     {
         return $this->setData(self::SUCCESS, $success);
     }
-
 
     /**
      * Gets the Paymentmethod for the notification.
