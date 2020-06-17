@@ -86,7 +86,8 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         $requestBody['returnUrl'] = $this->storeManager->getStore()->getBaseUrl(
-            \Magento\Framework\UrlInterface::URL_TYPE_LINK).'adyen/process/result';
+                \Magento\Framework\UrlInterface::URL_TYPE_LINK
+            ) . 'adyen/process/result';
 
         // Additional data for ACH
         if ($payment->getAdditionalInformation("bankAccountNumber")) {

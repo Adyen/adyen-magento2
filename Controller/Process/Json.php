@@ -390,6 +390,5 @@ class Json extends \Magento\Framework\App\Action\Action
             ->clearHeader('Content-Type')
             ->setHeader('Content-Type', 'text/html')
             ->setBody($message);
-        return;
     }
 }
