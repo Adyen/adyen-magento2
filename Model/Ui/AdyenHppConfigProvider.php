@@ -69,6 +69,11 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
     protected $storeManager;
 
     /**
+     * @var \Adyen\Payment\Model\Gender
+     */
+    protected $gender;
+
+    /**
      * AdyenHppConfigProvider constructor.
      *
      * @param PaymentHelper $paymentHelper
@@ -77,6 +82,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Checkout\Model\Session $session
+     * @param \Adyen\Payment\Model\Gender
      */
     public function __construct(
         PaymentHelper $paymentHelper,
@@ -85,7 +91,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Checkout\Model\Session $session,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Adyen\Payment\Model\Gender $gender
     ) {
         $this->paymentHelper = $paymentHelper;
         $this->adyenHelper = $adyenHelper;
@@ -94,6 +101,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $this->customerSession = $customerSession;
         $this->session = $session;
         $this->storeManager = $storeManager;
+        $this->gender = $gender;
     }
 
     /**
@@ -121,7 +129,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
 
         // get customer
         if ($this->customerSession->isLoggedIn()) {
-            $gender = \Adyen\Payment\Model\Gender::getAdyenGenderFromMagentoGender(
+            $this->gender->getAdyenGenderFromMagentoGender(
                 $this->customerSession->getCustomerData()->getGender()
             );
 
@@ -142,7 +150,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $config['payment'] ['adyenHpp']['dob'] = $dob;
 
         // gender types
-        $config['payment'] ['adyenHpp']['genderTypes'] = \Adyen\Payment\Model\Gender::getGenderTypes();
+        $config['payment'] ['adyenHpp']['genderTypes'] =  $this->gender->getGenderTypes();
 
         $config['payment'] ['adyenHpp']['ratePayId'] = $this->adyenHelper->getRatePayId();
         $config['payment'] ['adyenHpp']['deviceIdentToken'] = hash("sha256", $this->session->getQuoteId() . date('c'));

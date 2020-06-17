@@ -421,7 +421,7 @@ class Data extends AbstractHelper
      * @return array $street
      * @example street + number
      */
-    public static function formatStreet($street)
+    public function formatStreet($street)
     {
         if (count($street) != 1) {
             return $street;

@@ -44,18 +44,26 @@ class CheckoutDataBuilder implements BuilderInterface
     private $cartRepository;
 
     /**
+     * @var \Adyen\Payment\Model\Gender
+     */
+    private $gender;
+
+    /**
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Quote\Api\CartRepositoryInterface $cartRepository
+     * @param \Adyen\Payment\Model\Gender $gender
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Quote\Api\CartRepositoryInterface $cartRepository
+        \Magento\Quote\Api\CartRepositoryInterface $cartRepository,
+        \Adyen\Payment\Model\Gender $gender
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
         $this->cartRepository = $cartRepository;
+        $this->gender = $gender;
     }
 
     /**
@@ -105,7 +113,7 @@ class CheckoutDataBuilder implements BuilderInterface
         // Additional data for open invoice payment
         if ($payment->getAdditionalInformation("gender")) {
             $order->setCustomerGender(
-                \Adyen\Payment\Model\Gender::getMagentoGenderFromAdyenGender(
+                $this->gender->getMagentoGenderFromAdyenGender(
                     $payment->getAdditionalInformation("gender")
                 )
             );
