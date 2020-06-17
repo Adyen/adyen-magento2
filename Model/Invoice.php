@@ -22,7 +22,6 @@
  * Author: Adyen <magento@adyen.com>
  */
 // phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod.Found
-
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\InvoiceInterface;

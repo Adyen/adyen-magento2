@@ -20,7 +20,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-
+// phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod
 namespace Adyen\Payment\Gateway\Validator;
 
 use Magento\Payment\Gateway\Validator\AbstractValidator;
