@@ -25,6 +25,10 @@ namespace Adyen\Payment\Helper;
 
 class Installments
 {
+    /**
+     * @var array Card type bit values to indicate which ones are supported
+     * e.g. In order to support AE + HIPERCARD + VI the resulting number must be 21
+     */
     static $card_types = array(
         'AE' => 1,
         'ELO' => 2,
@@ -35,10 +39,12 @@ class Installments
     );
 
     /**
+     * @see \Adyen\Payment\Model\Config\Backend\Installments::beforeSave()
+     *
+     * Converts the array stored by the Installments backend model into the format required by the generic component
      *
      * @param array $installmentsArray
      * @return string
-     *
      */
     public function convertArrayToInstallmentsFormat($installmentsArray)
     {
@@ -46,7 +52,7 @@ class Installments
             return '[]';
         }
         $formattedConfig = array();
-        //Looping through cards
+        //Looping through cc_types
         foreach ($installmentsArray as $card => $cardInstallments) {
             if (isset(self::$card_types[$card])) {
                 //Looping through installments configs
