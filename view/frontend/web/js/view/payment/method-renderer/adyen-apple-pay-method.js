@@ -146,14 +146,8 @@ define(
                 var self = this;
 
                 if (!!window.ApplePaySession) {
-                    // validate if applepay is allowed, it will be picked up by the isApplePayVisible method
-                    var promise = window.ApplePaySession.canMakePaymentsWithActiveCard(self.getMerchantIdentifier());
-                    promise.then(function (canMakePayments) {
-                        if (canMakePayments)
-                            canMakeApplePayPayments(true);
-                    });
-
                     if (window.ApplePaySession && window.ApplePaySession.supportsVersion(applePayVersion)) {
+                        canMakeApplePayPayments(true);
                         return true;
                     }
                 }
