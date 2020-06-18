@@ -143,15 +143,12 @@ define(
                 return window.checkoutConfig.payment.adyen.showLogo;
             },
             isApplePayAllowed: function () {
-                var self = this;
-
                 if (!!window.ApplePaySession) {
                     if (window.ApplePaySession && window.ApplePaySession.supportsVersion(applePayVersion)) {
                         canMakeApplePayPayments(true);
                         return true;
                     }
                 }
-
                 return false;
             },
             performValidation: function (validationURL) {
