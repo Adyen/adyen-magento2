@@ -50,42 +50,42 @@
         <tbody>
         <?php if (!empty($order->getGrandTotal())): ?>
             <tr>
-                <th><?= $block->escapeHtml(__('Amount')); ?></th>
+                <th scope="row"><?= $block->escapeHtml(__('Amount')); ?></th>
                 <td><?= $block->escapeHtml($order->formatPrice($order->getGrandTotal())); ?></td>
             </tr>
         <?php endif; ?>
 
         <?php if (!empty($banktranferData['bankTransfer.reference'])): ?>
             <tr>
-                <th><?= $block->escapeHtml(__('With reference')); ?></th>
+                <th scope="row"><?= $block->escapeHtml(__('With reference')); ?></th>
                 <td><?= $block->escapeHtml($banktranferData['bankTransfer.reference']); ?></td>
             </tr>
         <?php endif; ?>
 
         <?php if (!empty($banktranferData['bankTransfer.owner'])): ?>
             <tr>
-                <th><?= $block->escapeHtml(__('Beneficiary Name')); ?></th>
+                <th scope="row"><?= $block->escapeHtml(__('Beneficiary Name')); ?></th>
                 <td><?= $block->escapeHtml($banktranferData['bankTransfer.owner']); ?></td>
             </tr>
         <?php endif; ?>
 
         <?php if (!empty($banktranferData['bankTransfer.bankName'])): ?>
             <tr>
-                <th><?= $block->escapeHtml(__('Bank')); ?></th>
+                <th scope="row"><?= $block->escapeHtml(__('Bank')); ?></th>
                 <td><?= $block->escapeHtml($banktranferData['bankTransfer.bankName']); ?></td>
             </tr>
         <?php endif; ?>
 
         <?php if (!empty($banktranferData['bankTransfer.iban'])): ?>
             <tr>
-                <th><?= $block->escapeHtml(__('IBAN')); ?></th>
+                <th scope="row"><?= $block->escapeHtml(__('IBAN')); ?></th>
                 <td><?= $block->escapeHtml($banktranferData['bankTransfer.iban']); ?></td>
             </tr>
         <?php endif; ?>
 
         <?php if (!empty($banktranferData['bankTransfer.accountCode'])): ?>
             <tr>
-                <th><?= $block->escapeHtml(__('Bankaccount')); ?></th>
+                <th scope="row"><?= $block->escapeHtml(__('Bankaccount')); ?></th>
                 <td><?= $block->escapeHtml($banktranferData['bankTransfer.accountCode']); ?></td>
             </tr>
         <?php endif; ?>
@@ -107,21 +107,21 @@
 
         <?php if (strcmp($multibancoData['paymentMethodType'], 'multibanco') === 0): ?>
             <tr>
-                <th><?= $block->escapeHtml(__('Entity')); ?></th>
+                <th scope="row"><?= $block->escapeHtml(__('Entity')); ?></th>
                 <td><?= $block->escapeHtml($multibancoData['entity']); ?></td>
             </tr>
         <?php endif; ?>
 
         <?php if (!empty($multibancoData['reference'])): ?>
             <tr>
-                <th><?= $block->escapeHtml(__('Reference')); ?></th>
+                <th scope="row"><?= $block->escapeHtml(__('Reference')); ?></th>
                 <td><?= $block->escapeHtml($multibancoData['reference']); ?></td>
             </tr>
         <?php endif; ?>
 
         <?php if (!empty($multibancoData['totalAmount'])): ?>
             <tr>
-                <th><?= $block->escapeHtml(__('Amount')); ?></th>
+                <th scope="row"><?= $block->escapeHtml(__('Amount')); ?></th>
                 <td><?= $block->escapeHtml($block->priceHelper->currency($multibancoData['totalAmount']['value']));?>
                 </td>
             </tr>
@@ -129,7 +129,7 @@
 
         <?php if (!empty($multibancoData['expiresAt'])): ?>
             <tr>
-                <th><?= $block->escapeHtml(__('Payment deadline')); ?></th>
+                <th scope="row"><?= $block->escapeHtml(__('Payment deadline')); ?></th>
                 <td><?= $block->escapeHtml($multibancoData['expiresAt']); ?></td>
             </tr>
         <?php endif; ?>

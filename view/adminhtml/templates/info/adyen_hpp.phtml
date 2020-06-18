@@ -68,42 +68,42 @@ $_isDemoMode = $block->isDemoMode();
             <tbody>
             <?php if (!empty($order->getGrandTotal())): ?>
                 <tr>
-                    <th><?= $block->escapeHtml(__('Amount')); ?></th>
+                    <th scope="row"><?= $block->escapeHtml(__('Amount')); ?></th>
                     <td><?= $block->escapeHtml($order->formatPrice($order->getGrandTotal())); ?></td>
                 </tr>
             <?php endif; ?>
 
             <?php if (!empty($banktranferData['bankTransfer.reference'])): ?>
                 <tr>
-                    <th><?= $block->escapeHtml(__('With reference')); ?></th>
+                    <th scope="row"><?= $block->escapeHtml(__('With reference')); ?></th>
                     <td><?= $block->escapeHtml($banktranferData['bankTransfer.reference']); ?></td>
                 </tr>
             <?php endif; ?>
 
             <?php if (!empty($banktranferData['bankTransfer.owner'])): ?>
                 <tr>
-                    <th><?= $block->escapeHtml(__('Beneficiary Name')); ?></th>
+                    <th scope="row"><?= $block->escapeHtml(__('Beneficiary Name')); ?></th>
                     <td><?= $block->escapeHtml($banktranferData['bankTransfer.owner']); ?></td>
                 </tr>
             <?php endif; ?>
 
             <?php if (!empty($banktranferData['bankTransfer.bankName'])): ?>
                 <tr>
-                    <th><?= $block->escapeHtml(__('Bank')); ?></th>
+                    <th scope="row"><?= $block->escapeHtml(__('Bank')); ?></th>
                     <td><?= $block->escapeHtml($banktranferData['bankTransfer.bankName']); ?></td>
                 </tr>
             <?php endif; ?>
 
             <?php if (!empty($banktranferData['bankTransfer.iban'])): ?>
                 <tr>
-                    <th><?= $block->escapeHtml(__('IBAN')); ?></th>
+                    <th scope="row"><?= $block->escapeHtml(__('IBAN')); ?></th>
                     <td><?= $block->escapeHtml($banktranferData['bankTransfer.iban']); ?></td>
                 </tr>
             <?php endif; ?>
 
             <?php if (!empty($banktranferData['bankTransfer.accountCode'])): ?>
                 <tr>
-                    <th><?= $block->escapeHtml(__('Bankaccount')); ?></th>
+                    <th scope="row"><?= $block->escapeHtml(__('Bankaccount')); ?></th>
                     <td><?= $block->escapeHtml($banktranferData['bankTransfer.accountCode']); ?></td>
                 </tr>
             <?php endif; ?>
@@ -120,28 +120,28 @@ $_isDemoMode = $block->isDemoMode();
             <tbody>
             <?php if (!empty($multibancoData['comprafacil.entity'])): ?>
                 <tr>
-                    <th><?= $block->escapeHtml(__('Entity')); ?></th>
+                    <th scope="row"><?= $block->escapeHtml(__('Entity')); ?></th>
                     <td><?= $block->escapeHtml($multibancoData['comprafacil.entity']); ?></td>
                 </tr>
             <?php endif; ?>
 
             <?php if (!empty($multibancoData['comprafacil.reference'])): ?>
                 <tr>
-                    <th><?= $block->escapeHtml(__('Reference')); ?></th>
+                    <th scope="row"><?= $block->escapeHtml(__('Reference')); ?></th>
                     <td><?= $block->escapeHtml($multibancoData['comprafacil.reference']); ?></td>
                 </tr>
             <?php endif; ?>
 
             <?php if (!empty($multibancoData['comprafacil.amount'])): ?>
                 <tr>
-                    <th><?= $block->escapeHtml(__('Amount')); ?></th>
+                    <th scope="row"><?= $block->escapeHtml(__('Amount')); ?></th>
                     <td><?= $block->escapeHtml($multibancoData['comprafacil.amount']); ?></td>
                 </tr>
             <?php endif; ?>
 
             <?php if (!empty($multibancoData['comprafacil.deadline'])): ?>
                 <tr>
-                    <th><?= $block->escapeHtml(__('Deadline')); ?></th>
+                    <th scope="row"><?= $block->escapeHtml(__('Deadline')); ?></th>
                     <td><?= $block->escapeHtml($multibancoData['comprafacil.deadline']); ?><?= $block->escapeHtml(
                         __('Days')
                     ); ?></td>
@@ -162,10 +162,10 @@ $_isDemoMode = $block->isDemoMode();
 <?php if ($block->getSplitPayments()): ?>
     <table class="edit-order-table">
         <tr>
-            <th>PspReference</th>
-            <th>Payment Method</th>
-            <th>Amount</th>
-            <th>Refunded</th>
+            <th scope="col">PspReference</th>
+            <th scope="col">Payment Method</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Refunded</th>
         </tr>
         <?php foreach ($block->getSplitPayments() as $payment): ?>
             <tr>
@@ -182,7 +182,7 @@ $_isDemoMode = $block->isDemoMode();
     <table class="data-table admin__table-secondary">
         <?php foreach ($_specificInfo as $_label => $_value): ?>
             <tr>
-                <th><?= $block->escapeHtml($_label) ?>:</th>
+                <th scope="row"><?= $block->escapeHtml($_label) ?>:</th>
                 <td><?= $block->escapeHtml(nl2br(implode("\n", $block->getValueAsArray($_value, true)))); ?></td>
             </tr>
         <?php endforeach; ?>

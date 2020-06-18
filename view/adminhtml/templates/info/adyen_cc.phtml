@@ -101,7 +101,7 @@ $_isDemoMode = $block->isDemoMode();
     <table class="data-table admin__table-secondary">
         <?php foreach ($_specificInfo as $_label => $_value): ?>
             <tr>
-                <th><?= $block->escapeHtml($_label) ?>:
+                <th scope="row"><?= $block->escapeHtml($_label) ?>:
                 </th>
                 <td><?= $block->escapeHtml(nl2br(implode("\n", $block->getValueAsArray($_value, true)))); ?></td>
             </tr>
