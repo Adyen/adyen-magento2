@@ -31,6 +31,6 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     public function _construct()
     {
-        $this->_init(Adyen\Payment\Model\Invoice::class, Adyen\Payment\Model\ResourceModel\Invoice::class);
+        $this->_init(\Adyen\Payment\Model\Invoice::class, \Adyen\Payment\Model\ResourceModel\Invoice::class);
     }
 }

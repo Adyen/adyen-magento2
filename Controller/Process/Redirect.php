@@ -291,7 +291,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
     {
         if (!$this->_order) {
             $incrementId = $this->_getCheckout()->getLastRealOrderId();
-            $this->_orderFactory = $this->_objectManager->get(Magento\Sales\Model\OrderFactory::class);
+            $this->_orderFactory = $this->_objectManager->get(\Magento\Sales\Model\OrderFactory::class);
             $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
         }
         return $this->_order;
@@ -302,7 +302,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
      */
     protected function _getCheckout()
     {
-        return $this->_objectManager->get(Magento\Checkout\Model\Session::class);
+        return $this->_objectManager->get(\Magento\Checkout\Model\Session::class);
     }
 
     /**
@@ -310,7 +310,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
      */
     protected function _getQuote()
     {
-        return $this->_objectManager->get(Magento\Quote\Model\Quote::class);
+        return $this->_objectManager->get(\Magento\Quote\Model\Quote::class);
     }
 
     /**

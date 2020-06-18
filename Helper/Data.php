@@ -1535,7 +1535,7 @@ class Data extends AbstractHelper
     public function getOrigin()
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $state = $objectManager->get(Magento\Framework\App\State::class);
+        $state = $objectManager->get(\Magento\Framework\App\State::class);
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
         if ('adminhtml' === $state->getAreaCode()) {
             $baseUrl = $this->helperBackend->getHomePageUrl();

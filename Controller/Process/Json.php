@@ -190,7 +190,7 @@ class Json extends \Magento\Framework\App\Action\Action
             // check if notification already exists
             if (!$this->_isDuplicate($response)) {
                 try {
-                    $notification = $this->_objectManager->create(Adyen\Payment\Model\Notification::class);
+                    $notification = $this->_objectManager->create(\Adyen\Payment\Model\Notification::class);
 
                     if (isset($response['pspReference'])) {
                         $notification->setPspreference($response['pspReference']);
@@ -312,7 +312,7 @@ class Json extends \Magento\Framework\App\Action\Action
         if (isset($response['originalReference'])) {
             $originalReference = trim($response['originalReference']);
         }
-        $notification = $this->_objectManager->create(Adyen\Payment\Model\Notification::class);
+        $notification = $this->_objectManager->create(\Adyen\Payment\Model\Notification::class);
         return $notification->isDuplicate($pspReference, $eventCode, $success, $originalReference);
     }
 

@@ -76,7 +76,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
      */
     protected function _construct()
     {
-        $this->_init(Adyen\Payment\Model\ResourceModel\Notification::class);
+        $this->_init(\Adyen\Payment\Model\ResourceModel\Notification::class);
     }
 
     /**
