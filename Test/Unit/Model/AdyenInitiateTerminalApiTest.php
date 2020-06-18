@@ -26,18 +26,15 @@ namespace Adyen\Payment\Model;
 
 class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @var
-     */
     private $adyenInitiateTerminalApi;
 
-    private const MODULE_VERSION = '1.0.0';
-    private const MODULE_NAME = 'ModuleVersion';
-    private const PLATFORM_VERSION = '2.0.0';
-    private const PLATFORM_NAME = 'PlatformName';
-    private const CUSTOMER_ID = '1';
-    private const CUSTOMER_EMAIL = 'customer@example.com';
-    private const RECURRING_TYPE = 'ONECLICK,RECURRING';
+    const MODULE_VERSION = '1.0.0';
+    const MODULE_NAME = 'ModuleVersion';
+    const PLATFORM_VERSION = '2.0.0';
+    const PLATFORM_NAME = 'PlatformName';
+    const CUSTOMER_ID = '1';
+    const CUSTOMER_EMAIL = 'customer@example.com';
+    const RECURRING_TYPE = 'ONECLICK,RECURRING';
 
     private function getSimpleMock($originalClassName)
     {
