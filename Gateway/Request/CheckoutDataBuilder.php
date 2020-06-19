@@ -82,13 +82,13 @@ class CheckoutDataBuilder implements BuilderInterface
         // do not send email
         $order->setCanSendNewEmailFlag(false);
 
-        $requestBody['paymentMethod']['type'] = $payment->getAdditionalInformation(
+        $requestBodyPaymentMethod['type'] = $payment->getAdditionalInformation(
             AdyenHppDataAssignObserver::BRAND_CODE
         );
 
         // Additional data for payment methods with issuer list
         if ($payment->getAdditionalInformation(AdyenHppDataAssignObserver::ISSUER_ID)) {
-            $requestBody['paymentMethod']['issuer'] = $payment->getAdditionalInformation(
+            $requestBodyPaymentMethod['issuer'] = $payment->getAdditionalInformation(
                 AdyenHppDataAssignObserver::ISSUER_ID
             );
         }
@@ -117,13 +117,13 @@ class CheckoutDataBuilder implements BuilderInterface
                     $payment->getAdditionalInformation("gender")
                 )
             );
-            $requestBody['paymentMethod']['personalDetails']['gender'] = $payment->getAdditionalInformation("gender");
+            $requestBodyPaymentMethod['personalDetails']['gender'] = $payment->getAdditionalInformation("gender");
         }
 
         if ($payment->getAdditionalInformation("dob")) {
             $order->setCustomerDob($payment->getAdditionalInformation("dob"));
 
-            $requestBody['paymentMethod']['personalDetails']['dateOfBirth'] = $this->adyenHelper->formatDate(
+            $requestBodyPaymentMethod['personalDetails']['dateOfBirth'] = $this->adyenHelper->formatDate(
                 $payment->getAdditionalInformation("dob"),
                 'Y-m-d'
             );
@@ -131,23 +131,23 @@ class CheckoutDataBuilder implements BuilderInterface
 
         if ($payment->getAdditionalInformation("telephone")) {
             $order->getBillingAddress()->setTelephone($payment->getAdditionalInformation("telephone"));
-            $requestBody['paymentMethod']['personalDetails']['telephoneNumber'] = $payment->getAdditionalInformation(
+            $requestBodyPaymentMethod['personalDetails']['telephoneNumber'] = $payment->getAdditionalInformation(
                 "telephone"
             );
         }
 
         if ($payment->getAdditionalInformation("ssn")) {
-            $requestBody['paymentMethod']['personalDetails']['socialSecurityNumber'] =
+            $requestBodyPaymentMethod['personalDetails']['socialSecurityNumber'] =
                 $payment->getAdditionalInformation("ssn");
         }
 
         // Additional data for sepa direct debit
         if ($payment->getAdditionalInformation("ownerName")) {
-            $requestBody['paymentMethod']['sepa.ownerName'] = $payment->getAdditionalInformation("ownerName");
+            $requestBodyPaymentMethod['sepa.ownerName'] = $payment->getAdditionalInformation("ownerName");
         }
 
         if ($payment->getAdditionalInformation("ibanNumber")) {
-            $requestBody['paymentMethod']['sepa.ibanNumber'] = $payment->getAdditionalInformation("ibanNumber");
+            $requestBodyPaymentMethod['sepa.ibanNumber'] = $payment->getAdditionalInformation("ibanNumber");
         }
 
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
@@ -188,10 +188,10 @@ class CheckoutDataBuilder implements BuilderInterface
 
             if (count($boletoTypes) == 1) {
                 $requestBody['selectedBrand'] = $boletoTypes[0];
-                $requestBody['paymentMethod']['type'] = $boletoTypes[0];
+                $requestBodyPaymentMethod['type'] = $boletoTypes[0];
             } else {
                 $requestBody['selectedBrand'] = $payment->getAdditionalInformation("boleto_type");
-                $requestBody['paymentMethod']['type'] = $payment->getAdditionalInformation("boleto_type");
+                $requestBodyPaymentMethod['type'] = $payment->getAdditionalInformation("boleto_type");
             }
 
             $deliveryDays = (int)$this->adyenHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
@@ -208,6 +208,7 @@ class CheckoutDataBuilder implements BuilderInterface
                 )
             );
 
+            $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
             $requestBody['deliveryDate'] = $deliveryDate;
 
             $order->setCanSendNewEmailFlag(true);

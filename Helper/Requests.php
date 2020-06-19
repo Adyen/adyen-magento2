@@ -76,9 +76,9 @@ class Requests extends AbstractHelper
      * @param array $request
      */
     public function buildCustomerData(
-        $customerId = 0,
         $billingAddress,
         $storeId,
+        $customerId = 0,
         $payment = null,
         $additionalData = null,
         $request = []

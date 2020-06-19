@@ -163,8 +163,8 @@ class Json extends \Magento\Framework\App\Action\Action
         $mode = $this->_adyenHelper->getAdyenAbstractConfigData('demo_mode');
 
         // Notification mode can be a string or a boolean
-        if (($mode == '1' && ($notificationMode == "false" || $notificationMode == false))
-            || ($mode == '0' && ($notificationMode == 'true' || $notificationMode == true))) {
+        if (($mode == '1' && ($notificationMode == "false" || !$notificationMode))
+            || ($mode == '0' && ($notificationMode == 'true' || $notificationMode))) {
             return true;
         }
         return false;
@@ -288,11 +288,9 @@ class Json extends \Magento\Framework\App\Action\Action
 
         // If notification is test check if fields are correct if not return error
         if ($this->_isTestNotification($response['pspReference'])) {
-            if ($usernameCmp != 0 || $passwordCmp != 0) {
-                $this->_returnResult(
-                    'username (PHP_AUTH_USER) and\or password (PHP_AUTH_PW) are not the same as Magento settings'
-                );
-            }
+            $this->_returnResult(
+                'username (PHP_AUTH_USER) and\or password (PHP_AUTH_PW) are not the same as Magento settings'
+            );
         }
         return false;
     }
