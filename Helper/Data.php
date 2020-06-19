@@ -392,7 +392,7 @@ class Data extends AbstractHelper
             return false;
         }
 
-        $street = self::formatStreet($address->getStreet());
+        $street = $this->formatStreet($address->getStreet());
         $streetName = $street['0'];
         unset($street['0']);
         $streetNr = implode(' ', $street);
@@ -407,7 +407,7 @@ class Data extends AbstractHelper
      */
     public function getStreetFromString($streetLine)
     {
-        $street = self::formatStreet([$streetLine]);
+        $street = $this->formatStreet([$streetLine]);
         $streetName = $street['0'];
         unset($street['0']);
         $streetNr = implode(' ', $street);
