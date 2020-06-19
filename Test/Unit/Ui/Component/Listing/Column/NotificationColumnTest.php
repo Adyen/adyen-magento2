@@ -207,7 +207,8 @@ class NotificationColumnTest extends TestCase
                                             'entity_id' => '6779',
                                             'pspreference' => '<a href="https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=852559045255812F" target="_blank">852559045255812F</a>',
                                             'original_reference' => '882559045109501K',
-                                            'merchant_reference' => '<a href="https://test.com/index.php/admin/sales/order/view/order_id/7/key/90713b7af1b7d29bc585626042062a9c514473d1c692c69be03eb1a8bfb00f74/">000000007</a>',
+                                            'merchant_reference' => '<a href="https://test.com/index.php/admin/sales/order/view/order_id
+                /7/key/90713b7af1b7d29bc585626042062a9c514473d1c692c69be03eb1a8bfb00f74/">000000007</a>',
                                             'event_code' => 'REFUND_FAILED',
                                             'success' => '<span class="grid-severity-critical">false</span>',
                                             'payment_method' => 'visa',
@@ -229,7 +230,8 @@ class NotificationColumnTest extends TestCase
                                             'entity_id' => '6780',
                                             'pspreference' => '<a href="https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=852559045465860A" target="_blank">852559045465860A</a>',
                                             'original_reference' => '882559045109501K',
-                                            'merchant_reference' => '<a href="https://test.com/index.php/admin/sales/order/view/order_id/7/key/90713b7af1b7d29bc585626042062a9c514473d1c692c69be03eb1a8bfb00f74/">000000007</a>',
+                                            'merchant_reference' => '<a href="https://test.com/index.php/admin/sales/order/view/order_id
+                /7/key/90713b7af1b7d29bc585626042062a9c514473d1c692c69be03eb1a8bfb00f74/">000000007</a>',
                                             'event_code' => 'REFUND',
                                             'success' => '<span class="grid-severity-critical">false</span>',
                                             'payment_method' => 'visa',
@@ -251,7 +253,8 @@ class NotificationColumnTest extends TestCase
                                             'entity_id' => '6809',
                                             'pspreference' => '<a href="https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=882559051426497E" target="_blank">882559051426497E</a>',
                                             'original_reference' => '8825562829109806',
-                                            'merchant_reference' => '<a href="https://test.com/index.php/admin/sales/order/view/order_id/7/key/90713b7af1b7d29bc585626042062a9c514473d1c692c69be03eb1a8bfb00f74/">000000007</a>',
+                                            'merchant_reference' => '<a href="https://test.com/index.php/admin/sales/order/view/order_id
+                /7/key/90713b7af1b7d29bc585626042062a9c514473d1c692c69be03eb1a8bfb00f74/">000000007</a>',
                                             'event_code' => 'REFUND',
                                             'success' => '<span class="grid-severity-critical">false</span>',
                                             'payment_method' => 'mc',
