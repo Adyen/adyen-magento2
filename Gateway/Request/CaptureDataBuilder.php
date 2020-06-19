@@ -103,7 +103,9 @@ class CaptureDataBuilder implements BuilderInterface
         $latestInvoice = $invoices->getLastItem();
 
         foreach ($latestInvoice->getItems() as $invoiceItem) {            
-            if($invoiceItem->getOrderItem()->getParentItem()) continue;
+            if ($invoiceItem->getOrderItem()->getParentItem()) {
+                continue;
+            }
             ++$count;
             $numberOfItems = (int)$invoiceItem->getQty();
             $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
