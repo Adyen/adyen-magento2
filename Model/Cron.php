@@ -1184,8 +1184,8 @@ class Cron
                         $billingAgreement = $this->_billingAgreementFactory->create();
                         $billingAgreement->load($recurringDetailReference, 'reference_id');
                         // check if BA exists
-                        if (!($billingAgreement && $billingAgreement->getAgreementId(
-                            ) > 0 && $billingAgreement->isValid())) {
+                        if (!($billingAgreement && $billingAgreement->getAgreementId() > 0 
+                        && $billingAgreement->isValid())) {
                             // create new
                             $this->_adyenLogger->addAdyenNotificationCronjob("Creating new Billing Agreement");
                             $this->_order->getPayment()->setBillingAgreementData(
