@@ -451,8 +451,8 @@ class Cron
                         $this->_adyenLogger->addAdyenNotificationCronjob('Going to cancel the order');
 
                         // if payment is API check, check if API result pspreference is the same as reference
-                        if ($this->_eventCode == NOTIFICATION::AUTHORISATION && $this->_getPaymentMethodType(
-                            ) == 'api') {
+                        if ($this->_eventCode == NOTIFICATION::AUTHORISATION 
+                        && $this->_getPaymentMethodType() == 'api') {
                             // don't cancel the order becasue order was successfull through api
                             $this->_adyenLogger->addAdyenNotificationCronjob(
                                 'order is not cancelled because api result was succesfull'
