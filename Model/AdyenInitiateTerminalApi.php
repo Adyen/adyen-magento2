@@ -266,17 +266,13 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         }
 
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::MERCHANT_APPLICATION]
-        [ApplicationInfo::VERSION] = $this->adyenHelper->getModuleVersion(
-        );
+        [ApplicationInfo::VERSION] = $this->adyenHelper->getModuleVersion();
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::MERCHANT_APPLICATION]
-        [ApplicationInfo::NAME] = $this->adyenHelper->getModuleName(
-        );
+        [ApplicationInfo::NAME] = $this->adyenHelper->getModuleName();
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM]
-        [ApplicationInfo::VERSION] = $this->productMetadata->getVersion(
-        );
+        [ApplicationInfo::VERSION] = $this->productMetadata->getVersion();
         $saleToAcquirerData[ApplicationInfo::APPLICATION_INFO][ApplicationInfo::EXTERNAL_PLATFORM]
-        [ApplicationInfo::NAME] = $this->productMetadata->getName(
-        );
+        [ApplicationInfo::NAME] = $this->productMetadata->getName();
         $saleToAcquirerDataBase64 = base64_encode(json_encode($saleToAcquirerData));
         $request['SaleToPOIRequest']['PaymentRequest']['SaleData']['SaleToAcquirerData'] = $saleToAcquirerDataBase64;
         return $request;
