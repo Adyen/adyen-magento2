@@ -41,7 +41,7 @@
         <?php
         if (!empty($order->getGrandTotal())): ?>
             <dt><?= $block->escapeHtml(__('Amount')); ?></dt>
-            <dd><?= $block->escapeHtml($order->formatPrice($order->getGrandTotal())); ?></dd>
+            <dd><?= /* @noEscape */ $order->formatPrice($order->getGrandTotal()); ?></dd>
         <?php endif; ?>
 
         <?php if (!empty($banktranferData['bankTransfer.reference'])): ?>

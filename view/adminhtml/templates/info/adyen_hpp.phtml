@@ -69,7 +69,7 @@ $_isDemoMode = $block->isDemoMode();
             <?php if (!empty($order->getGrandTotal())): ?>
                 <tr>
                     <th scope="row"><?= $block->escapeHtml(__('Amount')); ?></th>
-                    <td><?= $block->escapeHtml($order->formatPrice($order->getGrandTotal())); ?></td>
+                    <td><?= /* @noEscape */ $order->formatPrice($order->getGrandTotal()); ?></td>
                 </tr>
             <?php endif; ?>
 
