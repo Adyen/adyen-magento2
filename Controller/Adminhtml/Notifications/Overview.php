@@ -36,6 +36,5 @@ class Overview extends \Magento\Backend\App\Action
         $resultPage->setActiveMenu('Adyen_Payment::notifications_overview')
             ->getConfig()->getTitle()->prepend(__('Adyen Notifications Overview'));
         return $resultPage;
-
     }
 }

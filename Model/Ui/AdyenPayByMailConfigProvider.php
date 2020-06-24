@@ -29,7 +29,6 @@ use Magento\Directory\Helper\Data;
 
 class AdyenPayByMailConfigProvider implements ConfigProviderInterface
 {
-
     const CODE = 'adyen_pay_by_mail';
 
     /**

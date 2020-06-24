@@ -24,12 +24,10 @@
 namespace Adyen\Payment\Model\Config\Source;
 
 /**
- * Class CcType
  * @codeCoverageIgnore
  */
 class CcType extends \Magento\Payment\Model\Source\Cctype
 {
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -56,7 +54,7 @@ class CcType extends \Magento\Payment\Model\Source\Cctype
      */
     public function getAllowedTypes()
     {
-        return ['VI', 'MC', 'AE', 'DI', 'JCB', 'UN', 'MI', 'DN', 'BCMC', 'HIPERCARD','ELO', 'TROY', 'DANKORT'];
+        return ['VI', 'MC', 'AE', 'DI', 'JCB', 'UN', 'MI', 'DN', 'BCMC', 'HIPERCARD', 'ELO', 'TROY', 'DANKORT'];
     }
 
     /**

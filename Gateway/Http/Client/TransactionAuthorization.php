@@ -26,9 +26,6 @@ namespace Adyen\Payment\Gateway\Http\Client;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Adyen\Payment\Model\ApplicationInfo;
 
-/**
- * Class TransactionAuthorization
- */
 class TransactionAuthorization implements ClientInterface
 {
 

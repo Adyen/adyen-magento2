@@ -57,10 +57,10 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     protected $_adyenLogger;
 
-	/**
-	 * @var \Magento\Store\Model\StoreManagerInterface
-	 */
-	protected $storeManager;
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
 
     /**
      * Result constructor.
@@ -71,7 +71,7 @@ class Result extends \Magento\Framework\App\Action\Action
      * @param \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory
      * @param \Magento\Checkout\Model\Session $session
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -80,7 +80,7 @@ class Result extends \Magento\Framework\App\Action\Action
         \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory,
         \Magento\Checkout\Model\Session $session,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-		\Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
@@ -165,16 +165,16 @@ class Result extends \Magento\Framework\App\Action\Action
 
         // If the merchant signature is present, authenticate the result url
         if (!empty($response['merchantSig'])) {
-			// authenticate result url
-			$authStatus = $this->_authenticate($response);
-			if (!$authStatus) {
-				throw new \Magento\Framework\Exception\LocalizedException(__('ResultUrl authentification failure'));
-			}
-		// Otherwise validate the pazload and get back the response that can be used to finish the order
-		} else {
-			// send the payload verification payment\details request to validate the response
-			$response = $this->validatePayloadAndReturnResponse($response);
-		}
+            // authenticate result url
+            $authStatus = $this->_authenticate($response);
+            if (!$authStatus) {
+                throw new \Magento\Framework\Exception\LocalizedException(__('ResultUrl authentification failure'));
+            }
+            // Otherwise validate the pazload and get back the response that can be used to finish the order
+        } else {
+            // send the payload verification payment\details request to validate the response
+            $response = $this->validatePayloadAndReturnResponse($response);
+        }
 
         $incrementId = null;
 
@@ -184,10 +184,13 @@ class Result extends \Magento\Framework\App\Action\Action
 
         $order = $this->_getOrder($incrementId);
         if ($order->getId()) {
-            $this->_eventManager->dispatch('adyen_payment_process_resulturl_before', [
-                'order' => $order,
-                'adyen_response' => $response
-            ]);
+            $this->_eventManager->dispatch(
+                'adyen_payment_process_resulturl_before',
+                [
+                    'order' => $order,
+                    'adyen_response' => $response
+                ]
+            );
             if (isset($response['handled'])) {
                 return $response['handled_response'];
             }
@@ -195,10 +198,13 @@ class Result extends \Magento\Framework\App\Action\Action
             // update the order
             $result = $this->_validateUpdateOrder($order, $response);
 
-            $this->_eventManager->dispatch('adyen_payment_process_resulturl_after', [
-                'order' => $order,
-                'adyen_response' => $response
-            ]);
+            $this->_eventManager->dispatch(
+                'adyen_payment_process_resulturl_after',
+                [
+                    'order' => $order,
+                    'adyen_response' => $response
+                ]
+            );
         } else {
             throw new \Magento\Framework\Exception\LocalizedException(
                 __('Order does not exists with increment_id: %1', $incrementId)
@@ -218,9 +224,9 @@ class Result extends \Magento\Framework\App\Action\Action
         $result = false;
 
         if (!empty($response['authResult'])) {
-			$authResult = $response['authResult'];
-		} elseif (!empty($response['resultCode'])) {
-			$authResult = $response['resultCode'];
+            $authResult = $response['authResult'];
+        } elseif (!empty($response['resultCode'])) {
+            $authResult = $response['resultCode'];
         } else {
             // In case the result is unknown we log the request and don't update the history
             $this->_adyenLogger->addError("Unexpected result query parameter. Response: " . json_encode($response));
@@ -250,13 +256,13 @@ class Result extends \Magento\Framework\App\Action\Action
                 $result = true;
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
-			case Notification::RECEIVED:
-				$result = true;
+            case Notification::RECEIVED:
+                $result = true;
                 if (strpos($paymentMethod, "alipay_hk") !== false) {
                     $result = false;
                 }
-				$this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
-				break;
+                $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
+                break;
             case Notification::PENDING:
                 // do nothing wait for the notification
                 $result = true;
@@ -268,7 +274,8 @@ class Result extends \Magento\Framework\App\Action\Action
                     $comment .= "<br /><br />The payment result is not confirmed (yet).
                                  <br />Once the payment is authorised, the order status will be updated accordingly. 
                                  <br />If the order is stuck on this status, the payment can be seen as unsuccessful. 
-                                 <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. Please contact Adyen Support to enable this.";
+                                 <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. 
+                                 Please contact Adyen Support to enable this.";
                 }
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
                 break;
@@ -279,7 +286,10 @@ class Result extends \Magento\Framework\App\Action\Action
                 break;
             case Notification::REFUSED:
                 // if refused there will be a AUTHORIZATION : FALSE notification send only exception is idea
-                $this->_adyenLogger->addAdyenResult('Cancel or Hold the order on AUTHORISATION success = false notification');
+                $this->_adyenLogger->addAdyenResult(
+                    'Cancel or Hold the order on AUTHORISATION 
+                success = false notification'
+                );
                 $result = false;
                 break;
             default:
@@ -298,7 +308,7 @@ class Result extends \Magento\Framework\App\Action\Action
 
         return $result;
     }
-    
+
     /**
      * Authenticate using sha256 Merchant signature
      *
@@ -307,34 +317,32 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     protected function _authenticate($response)
     {
+        $merchantSigNotification = $response['merchantSig'];
 
-		$merchantSigNotification = $response['merchantSig'];
+        // do it like this because $_GET is converting dot to underscore
+        $queryString = $_SERVER['QUERY_STRING'];
+        $result = [];
+        $pairs = explode("&", $queryString);
 
-			// do it like this because $_GET is converting dot to underscore
-			$queryString = $_SERVER['QUERY_STRING'];
-			$result = [];
-			$pairs = explode("&", $queryString);
+        foreach ($pairs as $pair) {
+            $nv = explode("=", $pair);
+            $name = urldecode($nv[0]);
+            $value = urldecode($nv[1]);
+            $result[$name] = $value;
+        }
 
-		foreach ($pairs as $pair) {
-			$nv = explode("=", $pair);
-			$name = urldecode($nv[0]);
-			$value = urldecode($nv[1]);
-			$result[$name] = $value;
-		}
+        // do not include the merchantSig in the merchantSig calculation
+        unset($result['merchantSig']);
 
-			// do not include the merchantSig in the merchantSig calculation
-			unset($result['merchantSig']);
+        // Sign request using secret key
+        $hmacKey = $this->_adyenHelper->getHmac();
+        $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
 
-			// Sign request using secret key
-			$hmacKey = $this->_adyenHelper->getHmac();
-			$merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $result);
+        if (strcmp($merchantSig, $merchantSigNotification) === 0) {
+            return true;
+        }
 
-		if (strcmp($merchantSig, $merchantSigNotification) === 0) {
-			return true;
-		}
-
-		return false;
-
+        return false;
     }
 
     /**
@@ -357,7 +365,7 @@ class Result extends \Magento\Framework\App\Action\Action
     protected function _getOrder($incrementId = null)
     {
         if (!$this->_order) {
-            if (!is_null($incrementId)) {
+            if ($incrementId !== null) {
                 $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
             } else {
                 $this->_order = $this->_session->getLastRealOrder();
@@ -367,17 +375,17 @@ class Result extends \Magento\Framework\App\Action\Action
         return $this->_order;
     }
 
-	/**
-	 * Validates the payload from checkout /payments hpp and returns the api response
-	 *
-	 * @param $response
-	 * @return mixed
-	 * @throws \Adyen\AdyenException
-	 */
+    /**
+     * Validates the payload from checkout /payments hpp and returns the api response
+     *
+     * @param $response
+     * @return mixed
+     * @throws \Adyen\AdyenException
+     */
     protected function validatePayloadAndReturnResponse($response)
-	{
-		$client = $this->_adyenHelper->initializeAdyenClient($this->storeManager->getStore()->getId());
-		$service = $this->_adyenHelper->createAdyenCheckoutService($client);
+    {
+        $client = $this->_adyenHelper->initializeAdyenClient($this->storeManager->getStore()->getId());
+        $service = $this->_adyenHelper->createAdyenCheckoutService($client);
 
         $request = [];
 
@@ -385,7 +393,8 @@ class Result extends \Magento\Framework\App\Action\Action
             !empty($this->_session->getLastRealOrder()->getPayment()) &&
             !empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("paymentData"))
         ) {
-            $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("paymentData");
+            $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->
+            getAdditionalInformation("paymentData");
         }
 
         $request["details"] = $response;
@@ -398,16 +407,16 @@ class Result extends \Magento\Framework\App\Action\Action
             $key = array_search('returnUrlQueryString', $details[0]);
 
             if ($key !== false) {
-                $request["details"] = array("returnUrlQueryString" => http_build_query($response));
+                $request["details"] = ["returnUrlQueryString" => http_build_query($response)];
             }
         }
 
-		try {
-			$response = $service->paymentsDetails($request);
-		} catch(\Adyen\AdyenException $e) {
-			$response['error'] =  $e->getMessage();
-		}
+        try {
+            $response = $service->paymentsDetails($request);
+        } catch (\Adyen\AdyenException $e) {
+            $response['error'] = $e->getMessage();
+        }
 
-		return $response;
-	}
+        return $response;
+    }
 }

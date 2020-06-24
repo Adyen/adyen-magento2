@@ -27,12 +27,10 @@ use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class CheckoutPaymentsDetailsHandler implements HandlerInterface
 {
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */
     protected $adyenHelper;
-
 
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper

@@ -27,7 +27,6 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 
 class Config
 {
-
     const XML_PAYMENT_PREFIX = "payment";
     const XML_ADYEN_ABSTRACT_PREFIX = "adyen_abstract";
     const XML_NOTIFICATIONS_CAN_CANCEL_FIELD = "notifications_can_cancel";
@@ -39,6 +38,7 @@ class Config
 
     /**
      * Config constructor.
+     *
      * @param Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      */
     public function __construct(

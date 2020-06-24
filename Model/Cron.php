@@ -35,7 +35,6 @@ use Magento\Sales\Model\OrderRepository;
 
 class Cron
 {
-
     /**
      * Logging instance
      *
@@ -349,8 +348,11 @@ class Cron
         $minutesUntilProcessing = floor(($createdAt->getTimestamp() - $offerClosedMinDate->getTimestamp()) / 60);
         if ($notification['event_code'] == Notification::OFFER_CLOSED && $minutesUntilProcessing > 0) {
             $this->_adyenLogger->addAdyenNotificationCronjob(
-                sprintf('OFFER_CLOSED notification %s skipped! Wait %s minute(s) before processing.',
-                    $notification->getEntityId(), $minutesUntilProcessing)
+                sprintf(
+                    'OFFER_CLOSED notification %s skipped! Wait %s minute(s) before processing.',
+                    $notification->getEntityId(),
+                    $minutesUntilProcessing
+                )
             );
 
             return true;
@@ -449,7 +451,8 @@ class Cron
                         $this->_adyenLogger->addAdyenNotificationCronjob('Going to cancel the order');
 
                         // if payment is API check, check if API result pspreference is the same as reference
-                        if ($this->_eventCode == NOTIFICATION::AUTHORISATION && $this->_getPaymentMethodType() == 'api') {
+                        if ($this->_eventCode == NOTIFICATION::AUTHORISATION 
+                        && $this->_getPaymentMethodType() == 'api') {
                             // don't cancel the order becasue order was successfull through api
                             $this->_adyenLogger->addAdyenNotificationCronjob(
                                 'order is not cancelled because api result was succesfull'
@@ -480,7 +483,8 @@ class Cron
                         }
                     } else {
                         $this->_adyenLogger->addAdyenNotificationCronjob(
-                            'Order is already processed so ignore this notification state is:' . $this->_order->getState()
+                            'Order is already processed so ignore this notification state is:'
+                            . $this->_order->getState()
                         );
                     }
                     //Trigger admin notice for unsuccessful REFUND notifications
@@ -508,14 +512,22 @@ class Cron
                 $this->_updateNotification($notification, false, false);
                 $this->handleNotificationError($notification, $e->getMessage());
                 $this->_adyenLogger->addAdyenNotificationCronjob(
-                    sprintf("Notification %s had an error: %s \n %s", $notification->getEntityId(), $e->getMessage(),
-                        $e->getTraceAsString())
+                    sprintf(
+                        "Notification %s had an error: %s \n %s",
+                        $notification->getEntityId(),
+                        $e->getMessage(),
+                        $e->getTraceAsString()
+                    )
                 );
             }
         }
-
         if ($count > 0) {
-            $this->_adyenLogger->addAdyenNotificationCronjob(sprintf("Cronjob updated %s notification(s)", $count));
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                sprintf(
+                    "Cronjob updated %s notification(s)",
+                    $count
+                )
+            );
         }
     }
 
@@ -570,7 +582,9 @@ class Cron
         $this->_value = $notification->getAmountValue();
         $this->_live = $notification->getLive();
 
-        $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : "";
+        $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
+            $notification->getAdditionalData()
+        ) : "";
 
         // boleto data
         if ($this->_paymentMethodCode() == "adyen_boleto") {
@@ -608,13 +622,17 @@ class Cron
             }
             $additionalData2 = isset($additionalData['additionalData']) ? $additionalData['additionalData'] : null;
             if ($additionalData2 && is_array($additionalData2)) {
-                $this->_klarnaReservationNumber = isset($additionalData2['acquirerReference']) ? trim($additionalData2['acquirerReference']) : "";
+                $this->_klarnaReservationNumber = isset($additionalData2['acquirerReference']) ? trim(
+                    $additionalData2['acquirerReference']
+                ) : "";
             }
-            $acquirerReference = isset($additionalData['acquirerReference']) ? $additionalData['acquirerReference'] : null;
+            $acquirerReference = isset($additionalData['acquirerReference']) ?
+                $additionalData['acquirerReference'] : null;
             if ($acquirerReference != "") {
                 $this->_acquirerReference = $acquirerReference;
             }
-            $ratepayDescriptor = isset($additionalData['openinvoicedata.descriptor']) ? $additionalData['openinvoicedata.descriptor'] : "";
+            $ratepayDescriptor = isset($additionalData['openinvoicedata.descriptor']) ?
+                $additionalData['openinvoicedata.descriptor'] : "";
             if ($ratepayDescriptor !== "") {
                 $this->ratepayDescriptor = $ratepayDescriptor;
             }
@@ -678,7 +696,8 @@ class Cron
         }
 
         // if payment method is klarna, ratepay or openinvoice/afterpay show the reservartion number
-        if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod) && !empty($this->_klarnaReservationNumber)) {
+        if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
+            $this->_paymentMethod) && !empty($this->_klarnaReservationNumber)) {
             $klarnaReservationNumberText = "<br /> reservationNumber: " . $this->_klarnaReservationNumber;
         } else {
             $klarnaReservationNumberText = "";
@@ -725,7 +744,10 @@ class Cron
         ) {
             $manualReviewAcceptStatus = $this->_getFraudManualReviewAcceptStatus();
             $this->_order->addStatusHistoryComment($comment, $manualReviewAcceptStatus);
-            $this->_adyenLogger->addAdyenNotificationCronjob('Created comment history for this notification with status change to: ' . $manualReviewAcceptStatus);
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                'Created comment history for this notification with status change to: '
+                . $manualReviewAcceptStatus
+            );
             return;
         }
 
@@ -740,7 +762,9 @@ class Cron
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Updating the Adyen attributes of the order');
 
-        $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : "";
+        $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
+            $notification->getAdditionalData()
+        ) : "";
 
         $_paymentCode = $this->_paymentMethodCode();
 
@@ -864,7 +888,9 @@ class Cron
     protected function _holdCancelOrder($ignoreHasInvoice)
     {
         if (!$this->configHelper->getNotificationsCanCancel($this->_order->getStoreId())) {
-            $this->_adyenLogger->addAdyenNotificationCronjob('Order cannot be canceled based on the plugin configuration');
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                'Order cannot be canceled based on the plugin configuration'
+            );
             return;
         }
 
@@ -883,7 +909,9 @@ class Cron
                 if ($this->_order->canHold()) {
                     $this->_order->hold();
                 } else {
-                    $this->_adyenLogger->addAdyenNotificationCronjob('Order can not hold or is already on Hold');
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        'Order can not hold or is already on Hold'
+                    );
                     return;
                 }
             } else {
@@ -898,7 +926,9 @@ class Cron
                 }
             }
         } else {
-            $this->_adyenLogger->addAdyenNotificationCronjob('Order has already an invoice so cannot be canceled');
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                'Order has already an invoice so cannot be canceled'
+            );
         }
     }
 
@@ -983,7 +1013,9 @@ class Cron
                                 ->setOriginalReference($this->_originalReference)
                                 ->setAcquirerReference($this->_acquirerReference)
                                 ->save();
-                            $this->_adyenLogger->addAdyenNotificationCronjob('Created invoice entry in the Adyen table');
+                            $this->_adyenLogger->addAdyenNotificationCronjob(
+                                'Created invoice entry in the Adyen table'
+                            );
                         }
                     }
                 }
@@ -993,13 +1025,17 @@ class Cron
 
                 // Order is already Authorised
                 if (!empty($previousSuccess)) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob("Order is already authorised, skipping OFFER_CLOSED");
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        "Order is already authorised, skipping OFFER_CLOSED"
+                    );
                     break;
                 }
 
                 // Order is already Cancelled
                 if ($this->_order->isCanceled()) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob("Order is already cancelled, skipping OFFER_CLOSED");
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        "Order is already cancelled, skipping OFFER_CLOSED"
+                    );
                     break;
                 }
 
@@ -1015,8 +1051,10 @@ class Cron
                 */
                 $orderPaymentMethod = $this->_order->getPayment()->getCcType();
 
-                $isOrderCc = strcmp($this->_paymentMethodCode(),
-                        'adyen_cc') == 0 || strcmp($this->_paymentMethodCode(), 'adyen_oneclick') == 0;
+                $isOrderCc = strcmp(
+                        $this->_paymentMethodCode(),
+                        'adyen_cc'
+                    ) == 0 || strcmp($this->_paymentMethodCode(), 'adyen_oneclick') == 0;
 
                 /*
                  * If the order was made with an Alternative payment method,
@@ -1024,13 +1062,17 @@ class Cron
                  * the notification matches the payment method of the order.
                  */
                 if (!$isOrderCc && strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob("Order is not a credit card, 
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        "Order is not a credit card, 
                     or the payment method in the notification does not match the payment method of the order, 
-                    skipping OFFER_CLOSED");
+                    skipping OFFER_CLOSED"
+                    );
                     break;
                 }
 
-                if (!$this->_order->canCancel() && $this->configHelper->getNotificationsCanCancel($this->_order->getStoreId())) {
+                if (!$this->_order->canCancel() && $this->configHelper->getNotificationsCanCancel(
+                        $this->_order->getStoreId()
+                    )) {
                     // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
                     $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
                 }
@@ -1073,8 +1115,6 @@ class Cron
                 break;
 
             case Notification::RECURRING_CONTRACT:
-
-
                 // only store billing agreements if Vault is disabled
                 if (!$this->_adyenHelper->isCreditCardVaultEnabled()) {
                     // storedReferenceCode
@@ -1144,7 +1184,8 @@ class Cron
                         $billingAgreement = $this->_billingAgreementFactory->create();
                         $billingAgreement->load($recurringDetailReference, 'reference_id');
                         // check if BA exists
-                        if (!($billingAgreement && $billingAgreement->getAgreementId() > 0 && $billingAgreement->isValid())) {
+                        if (!($billingAgreement && $billingAgreement->getAgreementId() > 0 
+                        && $billingAgreement->isValid())) {
                             // create new
                             $this->_adyenLogger->addAdyenNotificationCronjob("Creating new Billing Agreement");
                             $this->_order->getPayment()->setBillingAgreementData(
@@ -1159,7 +1200,10 @@ class Cron
                             $billingAgreement->importOrderPayment($this->_order->getPayment());
                             $message = __('Created billing agreement #%1.', $recurringDetailReference);
                         } else {
-                            $this->_adyenLogger->addAdyenNotificationCronjob("Using existing Billing Agreement");
+                            $this->_adyenLogger->addAdyenNotificationCronjob
+                            (
+                                "Using existing Billing Agreement"
+                            );
                             $billingAgreement->setIsObjectChanged(true);
                             $message = __('Updated billing agreement #%1.', $recurringDetailReference);
                         }
@@ -1167,8 +1211,10 @@ class Cron
                         // Populate billing agreement data
                         $billingAgreement->parseRecurringContractData($contractDetail);
                         if ($billingAgreement->isValid()) {
-                            if (!$this->agreementResourceModel->getOrderRelation($billingAgreement->getAgreementId(),
-                                $this->_order->getId())) {
+                            if (!$this->agreementResourceModel->getOrderRelation(
+                                $billingAgreement->getAgreementId(),
+                                $this->_order->getId()
+                            )) {
                                 // save into sales_billing_agreement_order
                                 $billingAgreement->addOrderRelation($this->_order);
 
@@ -1187,7 +1233,9 @@ class Cron
                     $comment = $this->_order->addStatusHistoryComment($message);
                     $this->_order->addRelatedObject($comment);
                 } else {
-                    $this->_adyenLogger->addAdyenNotificationCronjob('Ignore recurring_contract notification because Vault feature is enabled');
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        'Ignore recurring_contract notification because Vault feature is enabled'
+                    );
                 }
                 break;
             default:
@@ -1209,7 +1257,9 @@ class Cron
 
         // check if it is a split payment if so save the refunded data
         if ($this->_originalReference != "") {
-            $this->_adyenLogger->addAdyenNotificationCronjob('Going to update the refund to split payments table');
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                'Going to update the refund to split payments table'
+            );
 
             $orderPayment = $this->_adyenOrderPaymentCollectionFactory
                 ->create()
@@ -1223,7 +1273,9 @@ class Cron
                 $orderPayment->setUpdatedAt(new \DateTime());
                 $orderPayment->setTotalRefunded($amountRefunded);
                 $orderPayment->save();
-                $this->_adyenLogger->addAdyenNotificationCronjob('Update the refund in the split payments table');
+                $this->_adyenLogger->addAdyenNotificationCronjob(
+                    'Update the refund in the split payments table'
+                );
             } else {
                 $this->_adyenLogger->addAdyenNotificationCronjob('Payment not found in split payment table');
             }
@@ -1405,7 +1457,8 @@ class Cron
 
             if (!$createPendingInvoice) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'Setting pending invoice is off so don\'t create an invoice wait for the capture notification'
+                    'Setting pending invoice is off so don\'t create 
+                    an invoice wait for the capture notification'
                 );
                 return;
             }
@@ -1453,27 +1506,33 @@ class Cron
     {
         // validate if payment methods allows manual capture
         if ($this->_manualCaptureAllowed()) {
-            $captureMode = trim($this->_getConfigData(
-                'capture_mode',
-                'adyen_abstract',
-                $this->_order->getStoreId()
-            ));
-            $sepaFlow = trim($this->_getConfigData(
-                'sepa_flow',
-                'adyen_abstract',
-                $this->_order->getStoreId()
-            ));
+            $captureMode = trim(
+                $this->_getConfigData(
+                    'capture_mode',
+                    'adyen_abstract',
+                    $this->_order->getStoreId()
+                )
+            );
+            $sepaFlow = trim(
+                $this->_getConfigData(
+                    'sepa_flow',
+                    'adyen_abstract',
+                    $this->_order->getStoreId()
+                )
+            );
             $_paymentCode = $this->_paymentMethodCode();
             $captureModeOpenInvoice = $this->_getConfigData(
                 'auto_capture_openinvoice',
                 'adyen_abstract',
                 $this->_order->getStoreId()
             );
-            $manualCapturePayPal = trim($this->_getConfigData(
-                'paypal_capture_mode',
-                'adyen_abstract',
-                $this->_order->getStoreId()
-            ));
+            $manualCapturePayPal = trim(
+                $this->_getConfigData(
+                    'paypal_capture_mode',
+                    'adyen_abstract',
+                    $this->_order->getStoreId()
+                )
+            );
 
             /*
              * if you are using authcap the payment method is manual.
@@ -1496,8 +1555,10 @@ class Cron
             }
 
             if ($_paymentCode == "adyen_pos_cloud") {
-                $captureModePos = $this->_adyenHelper->getAdyenPosCloudConfigData('capture_mode_pos',
-                    $this->_order->getStoreId());
+                $captureModePos = $this->_adyenHelper->getAdyenPosCloudConfigData(
+                    'capture_mode_pos',
+                    $this->_order->getStoreId()
+                );
                 if (strcmp($captureModePos, 'auto') === 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         'This payment method is POS Cloud and configured to be working as auto capture '
@@ -1536,7 +1597,10 @@ class Cron
                 }
             }
             if (strcmp($captureMode, 'manual') === 0) {
-                $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode for this payment is set to manual');
+                $this->_adyenLogger->addAdyenNotificationCronjob
+                (
+                    'Capture mode for this payment is set to manual'
+                );
                 return false;
             }
 
@@ -1545,7 +1609,10 @@ class Cron
              * (if the option auto capture mode for openinvoice is not set)
              */
             if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod)) {
-                $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode for klarna is by default set to manual');
+                $this->_adyenLogger->addAdyenNotificationCronjob
+                (
+                    'Capture mode for klarna is by default set to manual'
+                );
                 return false;
             }
 
@@ -1553,7 +1620,10 @@ class Cron
             return true;
         } else {
             // does not allow manual capture so is always immediate capture
-            $this->_adyenLogger->addAdyenNotificationCronjob('This payment method does not allow manual capture');
+            $this->_adyenLogger->addAdyenNotificationCronjob
+            (
+                'This payment method does not allow manual capture'
+            );
             return true;
         }
     }
@@ -1764,7 +1834,10 @@ class Cron
                 $this->_invoiceSender->send($invoice);
             }
         } else {
-            $this->_adyenLogger->addAdyenNotificationCronjob('It is not possible to create invoice for this order');
+            $this->_adyenLogger->addAdyenNotificationCronjob
+            (
+                'It is not possible to create invoice for this order'
+            );
         }
     }
 
@@ -1935,8 +2008,12 @@ class Cron
     {
         $this->notifierPool->addNotice(
             __("Adyen: Refund for order #%1 has failed", $this->_merchantReference),
-            __("Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area and trigger this refund manually or contact our support.",
-                $this->_reason, $this->_pspReference),
+            __(
+                "Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area 
+                and trigger this refund manually or contact our support.",
+                $this->_reason,
+                $this->_pspReference
+            ),
             $this->_adyenHelper->getPspReferenceSearchUrl($this->_pspReference, $this->_live)
         );
     }

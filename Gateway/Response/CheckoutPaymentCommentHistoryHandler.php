@@ -27,7 +27,6 @@ use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class CheckoutPaymentCommentHistoryHandler implements HandlerInterface
 {
-
     /**
      * @param array $handlingSubject
      * @param array $response
@@ -40,7 +39,7 @@ class CheckoutPaymentCommentHistoryHandler implements HandlerInterface
         /** @var OrderPaymentInterface $payment */
         $payment = $payment->getPayment();
 
-		$comment = __("Adyen Result response:");
+        $comment = __("Adyen Result response:");
 
         if (isset($response['resultCode'])) {
             $responseCode = $response['resultCode'];
@@ -60,12 +59,12 @@ class CheckoutPaymentCommentHistoryHandler implements HandlerInterface
         }
 
         if ($responseCode) {
-			$comment .= '<br /> ' . __('authResult:') . ' ' . $responseCode;
+            $comment .= '<br /> ' . __('authResult:') . ' ' . $responseCode;
             $payment->getOrder()->setAdyenResulturlEventCode($responseCode);
         }
 
         if ($pspReference) {
-			$comment .= '<br /> ' . __('pspReference:') . ' ' . $pspReference;
+            $comment .= '<br /> ' . __('pspReference:') . ' ' . $pspReference;
         }
 
         $payment->getOrder()->addStatusHistoryComment($comment);

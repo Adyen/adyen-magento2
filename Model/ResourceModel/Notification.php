@@ -25,7 +25,6 @@ namespace Adyen\Payment\Model\ResourceModel;
 
 class Notification extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
-
     /**
      * Construct
      */
@@ -59,7 +58,7 @@ class Notification extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         if ($originalReference) {
             $select->where('notification.original_reference=?', $originalReference);
         }
-        
+
         return $this->getConnection()->fetchAll($select);
     }
 }

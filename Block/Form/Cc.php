@@ -67,30 +67,30 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         $this->checkoutSession = $checkoutSession;
     }
 
-	/**
-	 * @return string
-	 */
+    /**
+     * @return string
+     */
     public function getCheckoutCardComponentJs()
-	{
-		return $this->adyenHelper->getCheckoutCardComponentJs($this->checkoutSession->getQuote()->getStore()->getId());
-	}
+    {
+        return $this->adyenHelper->getCheckoutCardComponentJs($this->checkoutSession->getQuote()->getStore()->getId());
+    }
 
-	/**
-	 * @return string
-	 * @throws \Adyen\AdyenException
-	 */
-	public function getCheckoutOriginKeys()
-	{
-		return $this->adyenHelper->getOriginKeyForBaseUrl();
-	}
+    /**
+     * @return string
+     * @throws \Adyen\AdyenException
+     */
+    public function getCheckoutOriginKeys()
+    {
+        return $this->adyenHelper->getOriginKeyForBaseUrl();
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getCheckoutEnvironment()
-	{
-		return $this->adyenHelper->getCheckoutEnvironment($this->checkoutSession->getQuote()->getStore()->getId());
-	}
+    /**
+     * @return string
+     */
+    public function getCheckoutEnvironment()
+    {
+        return $this->adyenHelper->getCheckoutEnvironment($this->checkoutSession->getQuote()->getStore()->getId());
+    }
 
     /**
      * Retrieve has verification configuration
@@ -106,43 +106,43 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         return true;
     }
 
-	/**
-	 * @return string
-	 */
-	public function getLocale()
-	{
-		return $this->adyenHelper->getStoreLocale($this->checkoutSession->getQuote()->getStore()->getId());
-	}
+    /**
+     * @return string
+     */
+    public function getLocale()
+    {
+        return $this->adyenHelper->getStoreLocale($this->checkoutSession->getQuote()->getStore()->getId());
+    }
 
-	/**
-	 * Retrieve available credit card type codes by alt code
-	 *
-	 * @return array
-	 */
-	public function getCcAvailableTypesByAlt()
-	{
-		$types = [];
-		$ccTypes = $this->adyenHelper->getAdyenCcTypes();
+    /**
+     * Retrieve available credit card type codes by alt code
+     *
+     * @return array
+     */
+    public function getCcAvailableTypesByAlt()
+    {
+        $types = [];
+        $ccTypes = $this->adyenHelper->getAdyenCcTypes();
 
-		$availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
-		if ($availableTypes) {
-			$availableTypes = explode(',', $availableTypes);
-			foreach (array_keys($ccTypes) as $code) {
-				if (in_array($code, $availableTypes)) {
-					$types[$ccTypes[$code]['code_alt']] = $code;
-				}
-			}
-		}
+        $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
+        if ($availableTypes) {
+            $availableTypes = explode(',', $availableTypes);
+            foreach (array_keys($ccTypes) as $code) {
+                if (in_array($code, $availableTypes)) {
+                    $types[$ccTypes[$code]['code_alt']] = $code;
+                }
+            }
+        }
 
-		return $types;
-	}
+        return $types;
+    }
 
     /**
      * Allow checkbox for MOTO payments to be saved as RECURRING
      *
      * @return bool
      */
-	public function allowRecurring()
+    public function allowRecurring()
     {
         if ($this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', null)) {
             return true;
@@ -157,5 +157,4 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     {
         return $this->adyenHelper->isCreditCardVaultEnabled();
     }
-
 }

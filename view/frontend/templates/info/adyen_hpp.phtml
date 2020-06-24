@@ -24,81 +24,86 @@
 // @codingStandardsIgnoreFile
 
 ?>
-<?php
-$_info = $this->getInfo();
-?>
+<?php $_info = $block->getInfo(); ?>
 
 <dl class="payment-method adyen_hpp">
-    <?php if (!empty($block->getBankTransferData())) : ?>
+    <?php if (!empty($block->getBankTransferData())): ?>
         <?php
         $banktranferData = $block->getBankTransferData();
         $order = $block->getOrder();
         ?>
 
-        <dt><?php echo $block->escapeHtml(__('Pay using Bank transfer')); ?></dt>
-        <dd><?php echo $block->escapeHtml(__('Please transfer the amount using the reference below to the following bank account')); ?></dd>
+        <dt><?= $block->escapeHtml(__('Pay using Bank transfer')); ?></dt>
+        <dd><?= $block->escapeHtml(
+            __('Please transfer the amount using the reference below to the following bank account')
+            ); ?></dd>
 
-        <?php if (!empty($order->getGrandTotal())) : ?>
-            <dt><?php echo $block->escapeHtml(__('Amount')); ?></dt>
-            <dd><?php echo $order->formatPrice($order->getGrandTotal()); ?></dd>
-        <?php endif; ?>
-
-        <?php if (!empty($banktranferData['bankTransfer.reference'])) : ?>
-            <dt><?php echo $block->escapeHtml(__('With reference')); ?></dt>
-            <dd><?php echo $banktranferData['bankTransfer.reference'] ?></dd>
-        <?php endif; ?>
-
-        <?php if (!empty($banktranferData['bankTransfer.owner'])) : ?>
-            <dt><?php echo $block->escapeHtml(__('Beneficiary Name')); ?></dt>
-            <dd><?php echo $banktranferData['bankTransfer.owner'] ?></dd>
-        <?php endif; ?>
-
-        <?php if (!empty($banktranferData['bankTransfer.bankName'])) : ?>
-            <dt><?php echo $block->escapeHtml(__('Bank')); ?></dt>
-            <dd><?php echo $banktranferData['bankTransfer.bankName'] ?></dd>
-        <?php endif; ?>
-
-        <?php if (!empty($banktranferData['bankTransfer.iban'])) : ?>
-            <dt><?php echo $block->escapeHtml(__('IBAN')); ?></dt>
-            <dd><?php echo $banktranferData['bankTransfer.iban'] ?></dd>
-        <?php endif; ?>
-
-        <?php if (!empty($banktranferData['bankTransfer.accountCode'])) : ?>
-            <dt><?php echo $block->escapeHtml(__('Bankaccount')); ?></dt>
-            <dd><?php echo $banktranferData['bankTransfer.accountCode'] ?></dd>
-        <?php endif; ?>
-    <?php elseif (!empty($block->getMultibancoData())) : ?>
         <?php
-        $multibancoData = $block->getMultibancoData();
-        ?>
-
-        <dt><?php echo $block->escapeHtml(__('Pay using Multibanco')); ?></dt>
-        <dd><?php echo $block->escapeHtml(__('Please pay with the provided Multibanco reference and entity before payment deadline in order to complete our payment')); ?></dd>
-
-        <?php if (!empty($multibancoData['comprafacil.entity'])) : ?>
-            <dt><?php echo $block->escapeHtml(__('Entity')); ?></dt>
-            <dd><?php echo $multibancoData['comprafacil.entity'] ?></dd>
+        if (!empty($order->getGrandTotal())): ?>
+            <dt><?= $block->escapeHtml(__('Amount')); ?></dt>
+            <dd><?= $block->escapeHtml($order->formatPrice($order->getGrandTotal())); ?></dd>
         <?php endif; ?>
 
-        <?php if (!empty($multibancoData['comprafacil.reference'])) : ?>
-            <dt><?php echo $block->escapeHtml(__('Reference')); ?></dt>
-            <dd><?php echo $multibancoData['comprafacil.reference'] ?></dd>
+        <?php if (!empty($banktranferData['bankTransfer.reference'])): ?>
+            <dt><?= $block->escapeHtml(__('With reference')); ?></dt>
+            <dd><?= $block->escapeHtml($banktranferData['bankTransfer.reference']); ?></dd>
         <?php endif; ?>
 
-        <?php if (!empty($multibancoData['comprafacil.amount'])) : ?>
-            <dt><?php echo $block->escapeHtml(__('Amount')); ?></dt>
-            <dd><?php echo $multibancoData['comprafacil.amount'] ?></dd>
+        <?php if (!empty($banktranferData['bankTransfer.owner'])): ?>
+            <dt><?= $block->escapeHtml(__('Beneficiary Name')); ?></dt>
+            <dd><?= $block->escapeHtml($banktranferData['bankTransfer.owner']); ?></dd>
         <?php endif; ?>
 
-        <?php if (!empty($multibancoData['comprafacil.deadline'])) : ?>
-            <dt><?php echo $block->escapeHtml(__('Deadline')); ?></dt>
-            <dd><?php echo $multibancoData['comprafacil.deadline'] ?> <?php echo $block->escapeHtml(__('Days')); ?></dd>
+        <?php if (!empty($banktranferData['bankTransfer.bankName'])): ?>
+            <dt><?= $block->escapeHtml(__('Bank')); ?></dt>
+            <dd><?= $block->escapeHtml($banktranferData['bankTransfer.bankName']); ?></dd>
+        <?php endif; ?>
+
+        <?php if (!empty($banktranferData['bankTransfer.iban'])): ?>
+            <dt><?= $block->escapeHtml(__('IBAN')); ?></dt>
+            <dd><?= $block->escapeHtml($banktranferData['bankTransfer.iban']); ?></dd>
+        <?php endif; ?>
+
+        <?php if (!empty($banktranferData['bankTransfer.accountCode'])): ?>
+            <dt><?= $block->escapeHtml(__('Bankaccount')); ?></dt>
+            <dd><?= $block->escapeHtml($banktranferData['bankTransfer.accountCode']); ?></dd>
+        <?php endif; ?>
+    <?php elseif (!empty($block->getMultibancoData())): ?>
+        <?php $multibancoData = $block->getMultibancoData(); ?>
+        <dt><?= $block->escapeHtml(__('Pay using Multibanco')); ?></dt>
+        <dd><?= $block->escapeHtml(
+            __(
+                'Please pay with the provided Multibanco reference and entity before payment deadline in order ' .
+                'to complete our payment'
+            )
+            ); ?></dd>
+
+        <?php if (!empty($multibancoData['comprafacil.entity'])): ?>
+            <dt><?= $block->escapeHtml(__('Entity')); ?></dt>
+            <dd><?= $block->escapeHtml($multibancoData['comprafacil.entity']); ?></dd>
+        <?php endif; ?>
+
+        <?php if (!empty($multibancoData['comprafacil.reference'])): ?>
+            <dt><?= $block->escapeHtml(__('Reference')); ?></dt>
+            <dd><?= $block->escapeHtml($multibancoData['comprafacil.reference']); ?></dd>
+        <?php endif; ?>
+
+        <?php if (!empty($multibancoData['comprafacil.amount'])): ?>
+            <dt><?= $block->escapeHtml(__('Amount')); ?></dt>
+            <dd><?= $block->escapeHtml($multibancoData['comprafacil.amount']); ?></dd>
+        <?php endif; ?>
+
+        <?php if (!empty($multibancoData['comprafacil.deadline'])): ?>
+            <dt><?= $block->escapeHtml(__('Deadline')); ?></dt>
+            <dd><?= $block->escapeHtml($multibancoData['comprafacil.deadline']); ?> <?= $block->escapeHtml(
+                __('Days')
+                ); ?></dd>
         <?php endif; ?>
     <?php else: ?>
         <?php if ($_methodTitle = $_info->getAdditionalInformation('method_title')): ?>
-            <dt class="title"><?php echo $_methodTitle; ?></dt>
+            <dt class="title"><?= $block->escapeHtml($_methodTitle); ?></dt>
         <?php elseif ($_brandCode = $_info->getAdditionalInformation('brand_code')): ?>
-            <dt class="title"><?php echo $_brandCode; ?></dt>
+            <dt class="title"><?= $block->escapeHtml($_brandCode); ?></dt>
         <?php endif; ?>
     <?php endif; ?>
 </dl>

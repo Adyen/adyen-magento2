@@ -20,7 +20,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-
+// phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod
 namespace Adyen\Payment\Gateway\Validator;
 
 use Magento\Payment\Gateway\Validator\AbstractValidator;
@@ -62,13 +62,19 @@ class ThreeDS2ResponseValidator extends AbstractValidator
                 !empty($response['authentication']['threeds2.fingerprintToken'])
             ) {
                 $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
-                $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.fingerprintToken']);
+                $payment->setAdditionalInformation(
+                    'threeDS2Token',
+                    $response['authentication']['threeds2.fingerprintToken']
+                );
                 $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
             } elseif ($response['resultCode'] == "ChallengeShopper" &&
                 !empty($response['authentication']['threeds2.challengeToken'])
             ) {
                 $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
-                $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.challengeToken']);
+                $payment->setAdditionalInformation(
+                    'threeDS2Token',
+                    $response['authentication']['threeds2.challengeToken']
+                );
                 $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
             } else {
                 $errorMsg = __('Error with payment method please select different payment method.');

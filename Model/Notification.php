@@ -20,18 +20,17 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-
+// phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod.Found
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\NotificationInterface;
 
 class Notification extends \Magento\Framework\Model\AbstractModel implements NotificationInterface
 {
-
     const AUTHORISATION = 'AUTHORISATION';
     const PENDING = 'PENDING';
     const AUTHORISED = 'AUTHORISED';
-	const RECEIVED = 'RECEIVED';
+    const RECEIVED = 'RECEIVED';
     const CANCELLED = 'CANCELLED';
     const REFUSED = 'REFUSED';
     const ERROR = 'ERROR';
@@ -77,7 +76,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
      */
     protected function _construct()
     {
-        $this->_init('Adyen\Payment\Model\ResourceModel\Notification');
+        $this->_init(\Adyen\Payment\Model\ResourceModel\Notification::class);
     }
 
     /**
@@ -213,7 +212,6 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     {
         return $this->setData(self::SUCCESS, $success);
     }
-
 
     /**
      * Gets the Paymentmethod for the notification.

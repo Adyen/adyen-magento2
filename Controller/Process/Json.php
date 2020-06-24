@@ -27,8 +27,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 use Magento\Framework\App\Request\Http as Http;
 
 /**
- * Class Json
- * @package Adyen\Payment\Controller\Process
+ * Class Json extends Action
  */
 class Json extends \Magento\Framework\App\Action\Action
 {
@@ -77,9 +76,9 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
         $this->serializer = $serializer;
-        
+
         // Fix for Magento2.3 adding isAjax to the request params
-        if(interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
+        if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
             $request = $this->getRequest();
             if ($request instanceof Http && $request->isPost()) {
                 $request->setParam('isAjax', true);
@@ -110,7 +109,6 @@ class Json extends \Magento\Framework\App\Action\Action
             $notificationMode = isset($notificationItems['live']) ? $notificationItems['live'] : "";
 
             if ($notificationMode !== "" && $this->_validateNotificationMode($notificationMode)) {
-
                 foreach ($notificationItems['notificationItems'] as $notificationItem) {
                     $status = $this->_processNotification(
                         $notificationItem['NotificationRequestItem'],
@@ -126,7 +124,8 @@ class Json extends \Magento\Framework\App\Action\Action
                 }
                 $cronCheckTest = $notificationItems['notificationItems'][0]['NotificationRequestItem']['pspReference'];
 
-                // Run the query for checking unprocessed notifications, do this only for test notifications coming from the Adyen Customer Area
+                // Run the query for checking unprocessed notifications, do this only for test notifications coming
+                // from the Adyen Customer Area
                 if ($this->_isTestNotification($cronCheckTest)) {
                     $unprocessedNotifications = $this->_adyenHelper->getUnprocessedNotifications();
                     if ($unprocessedNotifications > 0) {
@@ -164,7 +163,8 @@ class Json extends \Magento\Framework\App\Action\Action
         $mode = $this->_adyenHelper->getAdyenAbstractConfigData('demo_mode');
 
         // Notification mode can be a string or a boolean
-        if (($mode == '1' && ($notificationMode == "false" || $notificationMode == false)) || ($mode == '0' && ($notificationMode == 'true' || $notificationMode == true))) {
+        if (($mode == '1' && ($notificationMode == "false" || !$notificationMode))
+            || ($mode == '0' && ($notificationMode == 'true' || $notificationMode))) {
             return true;
         }
         return false;
@@ -182,7 +182,6 @@ class Json extends \Magento\Framework\App\Action\Action
     {
         // validate the notification
         if ($this->authorised($response)) {
-
             // log the notification
             $this->_adyenLogger->addAdyenNotification(
                 "The content of the notification item is: " . print_r($response, 1)
@@ -191,7 +190,7 @@ class Json extends \Magento\Framework\App\Action\Action
             // check if notification already exists
             if (!$this->_isDuplicate($response)) {
                 try {
-                    $notification = $this->_objectManager->create('Adyen\Payment\Model\Notification');
+                    $notification = $this->_objectManager->create(\Adyen\Payment\Model\Notification::class);
 
                     if (isset($response['pspReference'])) {
                         $notification->setPspreference($response['pspReference']);
@@ -289,11 +288,9 @@ class Json extends \Magento\Framework\App\Action\Action
 
         // If notification is test check if fields are correct if not return error
         if ($this->_isTestNotification($response['pspReference'])) {
-            if ($usernameCmp != 0 || $passwordCmp != 0) {
-                $this->_returnResult(
-                    'username (PHP_AUTH_USER) and\or password (PHP_AUTH_PW) are not the same as Magento settings'
-                );
-            }
+            $this->_returnResult(
+                'username (PHP_AUTH_USER) and\or password (PHP_AUTH_PW) are not the same as Magento settings'
+            );
         }
         return false;
     }
@@ -313,7 +310,7 @@ class Json extends \Magento\Framework\App\Action\Action
         if (isset($response['originalReference'])) {
             $originalReference = trim($response['originalReference']);
         }
-        $notification = $this->_objectManager->create('Adyen\Payment\Model\Notification');
+        $notification = $this->_objectManager->create(\Adyen\Payment\Model\Notification::class);
         return $notification->isDuplicate($pspReference, $eventCode, $success, $originalReference);
     }
 
@@ -328,19 +325,29 @@ class Json extends \Magento\Framework\App\Action\Action
         } elseif (isset($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']) &&
             $_SERVER['REDIRECT_REMOTE_AUTHORIZATION'] != ''
         ) {
-            list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
+            list(
+                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
+                ) =
                 explode(':', base64_decode($_SERVER['REDIRECT_REMOTE_AUTHORIZATION']), 2);
         } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
-            list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
+            list(
+                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
+                ) =
                 explode(':', base64_decode(substr($_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)), 2);
         } elseif (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
-            list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
+            list(
+                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
+                ) =
                 explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)), 2);
         } elseif (!empty($_SERVER['REMOTE_USER'])) {
-            list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
+            list(
+                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
+                ) =
                 explode(':', base64_decode(substr($_SERVER['REMOTE_USER'], 6)), 2);
         } elseif (!empty($_SERVER['REDIRECT_REMOTE_USER'])) {
-            list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) =
+            list(
+                $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']
+                ) =
                 explode(':', base64_decode(substr($_SERVER['REDIRECT_REMOTE_USER'], 6)), 2);
         }
     }
@@ -381,6 +388,5 @@ class Json extends \Magento\Framework\App\Action\Action
             ->clearHeader('Content-Type')
             ->setHeader('Content-Type', 'text/html')
             ->setBody($message);
-        return;
     }
 }

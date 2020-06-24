@@ -26,7 +26,7 @@ namespace Adyen\Payment\Model\Config\Source;
 class RecurringType implements \Magento\Framework\Option\ArrayInterface
 {
     const UNDEFINED_OPTION_LABEL = 'NONE';
-    
+
     /**
      * @var \Adyen\Payment\Helper\Data
      */

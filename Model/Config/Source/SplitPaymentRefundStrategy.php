@@ -36,7 +36,7 @@ class SplitPaymentRefundStrategy implements \Magento\Framework\Option\ArrayInter
     {
         return $this->getSplitPaymentRefundStrategies();
     }
-    
+
     /**
      * @return array
      */

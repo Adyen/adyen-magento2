@@ -106,7 +106,7 @@ class InstallmentsPosCloud extends \Magento\Framework\App\Config\Value
     protected function _afterLoad()
     {
         $value = $this->getValue();
-        if(!empty($value)) {
+        if (!empty($value)) {
             $value = $this->serializer->unserialize($value);
             if (is_array($value)) {
                 $value = $this->encodeArrayFieldValue($value);
