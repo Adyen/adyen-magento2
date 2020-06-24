@@ -208,12 +208,12 @@ class CheckoutDataBuilder implements BuilderInterface
                 )
             );
 
-            $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
             $requestBody['deliveryDate'] = $deliveryDate;
 
             $order->setCanSendNewEmailFlag(true);
         }
 
+        $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
         $request['body'] = $requestBody;
 
         return $request;
