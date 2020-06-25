@@ -23,13 +23,8 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
-/**
- * Class BoletoType
- * @package Adyen\Payment\Model\Config\Source
- */
 class BoletoType implements \Magento\Framework\Option\ArrayInterface
 {
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */

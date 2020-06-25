@@ -28,7 +28,6 @@ use Magento\Payment\Gateway\CommandInterface;
 
 class PayByMailCommand implements CommandInterface
 {
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -61,7 +60,7 @@ class PayByMailCommand implements CommandInterface
     public function execute(array $commandSubject)
     {
         $stateObject = \Magento\Payment\Gateway\Helper\SubjectReader::readStateObject($commandSubject);
-        $payment =\Magento\Payment\Gateway\Helper\SubjectReader::readPayment($commandSubject);
+        $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($commandSubject);
         $payment = $payment->getPayment();
 
         // do not let magento set status to processing
@@ -74,7 +73,7 @@ class PayByMailCommand implements CommandInterface
         $stateObject->setState(\Magento\Sales\Model\Order::STATE_NEW);
         $stateObject->setStatus($this->_adyenHelper->getAdyenAbstractConfigData('order_status'));
         $stateObject->setIsNotified(false);
-        
+
         return $this;
     }
 
@@ -118,7 +117,6 @@ class PayByMailCommand implements CommandInterface
         return $url;
     }
 
-
     /**
      * @param \Magento\Sales\Model\Order\Payment $payment
      * @param float|bool $paymentAmount
@@ -128,31 +126,34 @@ class PayByMailCommand implements CommandInterface
     {
         $order = $payment->getOrder();
 
-        $realOrderId       = $order->getRealOrderId();
+        $realOrderId = $order->getRealOrderId();
         $orderCurrencyCode = $order->getOrderCurrencyCode();
         $storeId = $order->getStore()->getId();
 
         // check if paybymail has it's own skin
-        $skinCode          = trim($this->_adyenHelper->getAdyenPayByMailConfigData('skin_code'));
+        $skinCode = trim($this->_adyenHelper->getAdyenPayByMailConfigData('skin_code'));
         if ($skinCode == "") {
             // use HPP skin and HMAC
             $skinCode = $this->_adyenHelper->getAdyenHppConfigData('skin_code');
-            $hmacKey           = $this->_adyenHelper->getHmac();
-            $shopperLocale     = trim($this->_adyenHelper->getAdyenHppConfigData('shopper_locale', $storeId));
-            $countryCode       = trim($this->_adyenHelper->getAdyenHppConfigData('country_code', $storeId));
+            $hmacKey = $this->_adyenHelper->getHmac();
+            $shopperLocale = trim($this->_adyenHelper->getAdyenHppConfigData('shopper_locale', $storeId));
+            $countryCode = trim($this->_adyenHelper->getAdyenHppConfigData('country_code', $storeId));
         } else {
             // use pay_by_mail skin and hmac
             $hmacKey = $this->_adyenHelper->getHmacPayByMail();
         }
 
-        $amount            = $this->_adyenHelper->formatAmount($paymentAmount ?: $order->getGrandTotal(), $orderCurrencyCode);
-        $merchantAccount   = trim($this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId));
-        $shopperEmail      = $order->getCustomerEmail();
-        $customerId        = $order->getCustomerId();
+        $amount = $this->_adyenHelper->formatAmount(
+            $paymentAmount ?: $order->getGrandTotal(),
+            $orderCurrencyCode
+        );
+        $merchantAccount = trim($this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId));
+        $shopperEmail = $order->getCustomerEmail();
+        $customerId = $order->getCustomerId();
 
         // get locale from store
-        $shopperLocale     = (!empty($shopperLocale)) ? $shopperLocale : $this->_adyenHelper->getStoreLocale($storeId);
-        $countryCode       = (!empty($countryCode)) ? $countryCode : false;
+        $shopperLocale = (!empty($shopperLocale)) ? $shopperLocale : $this->_adyenHelper->getStoreLocale($storeId);
+        $countryCode = (!empty($countryCode)) ? $countryCode : false;
 
         // if directory lookup is enabled use the billingadress as countrycode
         if ($countryCode == false) {
@@ -163,44 +164,44 @@ class PayByMailCommand implements CommandInterface
             }
         }
 
-        $deliveryDays                   = $this->_adyenHelper->getAdyenHppConfigData('delivery_days', $storeId);
-        $deliveryDays                   = (!empty($deliveryDays)) ? $deliveryDays : 5;
+        $deliveryDays = $this->_adyenHelper->getAdyenHppConfigData('delivery_days', $storeId);
+        $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
 
         $formFields = [];
-        $formFields['merchantAccount']   = $merchantAccount;
+        $formFields['merchantAccount'] = $merchantAccount;
         $formFields['merchantReference'] = $realOrderId;
-        $formFields['paymentAmount']     = (int)$amount;
-        $formFields['currencyCode']      = $orderCurrencyCode;
-        $formFields['shipBeforeDate']    = date(
+        $formFields['paymentAmount'] = (int)$amount;
+        $formFields['currencyCode'] = $orderCurrencyCode;
+        $formFields['shipBeforeDate'] = date(
             "Y-m-d",
             mktime(date("H"), date("i"), date("s"), date("m"), date("j") + $deliveryDays, date("Y"))
         );
-        $formFields['skinCode']          = $skinCode;
-        $formFields['shopperLocale']     = $shopperLocale;
+        $formFields['skinCode'] = $skinCode;
+        $formFields['shopperLocale'] = $shopperLocale;
         if ($countryCode != "") {
-            $formFields['countryCode']       = $countryCode;
+            $formFields['countryCode'] = $countryCode;
         }
 
-        $formFields['shopperEmail']      = $shopperEmail;
+        $formFields['shopperEmail'] = $shopperEmail;
         // recurring
-        $recurringType                   = $this->_adyenHelper->getRecurringTypeFromOneclickRecurringSetting($storeId);
-        
+        $recurringType = $this->_adyenHelper->getRecurringTypeFromOneclickRecurringSetting($storeId);
+
         $sessionValidity = $this->_adyenHelper->getAdyenPayByMailConfigData('session_validity', $storeId);
 
         if ($sessionValidity == "") {
             $sessionValidity = 3;
         }
 
-        $formFields['sessionValidity'] = date("c", strtotime("+". $sessionValidity. " days"));
+        $formFields['sessionValidity'] = date("c", strtotime("+" . $sessionValidity . " days"));
 
         if ($customerId > 0) {
             $formFields['recurringContract'] = $recurringType;
-            $formFields['shopperReference']  = $customerId;
+            $formFields['shopperReference'] = $customerId;
         }
 
         // Sign request using secret key
         $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $formFields);
-        $formFields['merchantSig']      = $merchantSig;
+        $formFields['merchantSig'] = $merchantSig;
 
         $this->_adyenLogger->addAdyenDebug(print_r($formFields, true));
 

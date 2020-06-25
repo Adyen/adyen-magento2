@@ -40,7 +40,6 @@ class TransactionRefund implements ClientInterface
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
-
         \Adyen\Payment\Helper\Data $adyenHelper
     ) {
         $this->adyenHelper = $adyenHelper;
@@ -63,7 +62,7 @@ class TransactionRefund implements ClientInterface
             try {
                 $responses[] = $service->refund($request);
             } catch (\Adyen\AdyenException $e) {
-                $responses[] = array('error' => $e->getMessage());
+                $responses[] = ['error' => $e->getMessage()];
             }
         }
         return $responses;

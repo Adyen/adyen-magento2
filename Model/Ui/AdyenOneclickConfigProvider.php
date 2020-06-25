@@ -28,14 +28,12 @@ use Magento\Payment\Helper\Data as PaymentHelper;
 
 class AdyenOneclickConfigProvider implements ConfigProviderInterface
 {
-
     const CODE = 'adyen_oneclick';
 
     /**
      * @var Config
      */
     protected $config;
-
 
     /**
      * @var \Adyen\Payment\Helper\Data
@@ -114,7 +112,9 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'adyen/process/redirect/', ['_secure' => $this->_getRequest()->isSecure()])
+                        'adyen/process/redirect/',
+                        ['_secure' => $this->_getRequest()->isSecure()]
+                    )
                 ]
             ]
         ];
@@ -124,27 +124,33 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             $config['payment']['adyenOneclick']['methodCode'] = self::CODE;
             $config['payment'][self::CODE]['isActive'] = false;
             return $config;
-
         }
 
         $methodCode = self::CODE;
 
-        $config = array_merge_recursive($config, [
-            'payment' => [
-                'ccform' => [
-                    'availableTypes' => [$methodCode => $this->getCcAvailableTypes()],
-                    'months' => [$methodCode => $this->getCcMonths()],
-                    'years' => [$methodCode => $this->getCcYears()],
-                    'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
-                    'cvvImageUrl' => [$methodCode => $this->getCvvImageUrl()]
+        $config = array_merge_recursive(
+            $config,
+            [
+                'payment' => [
+                    'ccform' => [
+                        'availableTypes' => [$methodCode => $this->getCcAvailableTypes()],
+                        'months' => [$methodCode => $this->getCcMonths()],
+                        'years' => [$methodCode => $this->getCcYears()],
+                        'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
+                        'cvvImageUrl' => [$methodCode => $this->getCvvImageUrl()]
+                    ]
                 ]
             ]
-        ]);
+        );
 
         $config['payment']['adyenOneclick']['methodCode'] = self::CODE;
         $config['payment']['adyenOneclick']['originKey'] = $this->_adyenHelper->getOriginKeyForBaseUrl();
-        $config['payment']['adyenOneclick']['checkoutEnvironment'] = $this->_adyenHelper->getCheckoutEnvironment($this->_storeManager->getStore()->getId());
-        $config['payment']['adyenOneclick']['locale'] = $this->_adyenHelper->getStoreLocale($this->_storeManager->getStore()->getId());
+        $config['payment']['adyenOneclick']['checkoutEnvironment'] = $this->_adyenHelper->getCheckoutEnvironment(
+            $this->_storeManager->getStore()->getId()
+        );
+        $config['payment']['adyenOneclick']['locale'] = $this->_adyenHelper->getStoreLocale(
+            $this->_storeManager->getStore()->getId()
+        );
 
         $enableOneclick = $this->_adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
         $canCreateBillingAgreement = false;
@@ -228,7 +234,6 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         return $types;
     }
 
-
     /**
      * Retrieve credit card expire months
      *
@@ -268,7 +273,6 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
     {
         return $this->ccConfig->getCvvImageUrl();
     }
-
 
     /**
      * Retrieve request object

@@ -52,7 +52,8 @@ define(
                 };
 
                 storage.post(
-                    serviceUrl, JSON.stringify(payload)
+                    serviceUrl,
+                    JSON.stringify(payload)
                 ).done(
                     function (response) {
                         self.setPaymentMethods(response);

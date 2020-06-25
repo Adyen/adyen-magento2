@@ -33,7 +33,7 @@ class Gender
     /**
      * @return array
      */
-    public static function getGenderTypes()
+    public function getGenderTypes()
     {
         return [
             self::MALE_VALUE => __('Male'),
@@ -47,7 +47,7 @@ class Gender
      * @param string $genderValue
      * @return null|string
      */
-    public static function getMagentoGenderFromAdyenGender($genderValue)
+    public function getMagentoGenderFromAdyenGender($genderValue)
     {
         $gender = null;
         if ($genderValue == self::MALE_VALUE) {
@@ -62,7 +62,7 @@ class Gender
      * @param string $genderValue
      * @return null|string
      */
-    public static function getAdyenGenderFromMagentoGender($genderValue)
+    public function getAdyenGenderFromMagentoGender($genderValue)
     {
         $gender = null;
         if ($genderValue == self::MALE) {

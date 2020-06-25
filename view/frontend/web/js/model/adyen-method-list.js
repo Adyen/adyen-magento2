@@ -6,7 +6,7 @@ define(
     [
         'ko'
     ],
-    function(ko) {
+    function (ko) {
         'use strict';
         return ko.observableArray([]);
     }

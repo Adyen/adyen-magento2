@@ -51,7 +51,6 @@ class ThreeDS2DataBuilder implements BuilderInterface
         $this->adyenRequestsHelper = $adyenRequestsHelper;
     }
 
-
     /**
      * @param array $buildSubject
      * @return array
@@ -64,7 +63,11 @@ class ThreeDS2DataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $order = $paymentDataObject->getOrder();
         $additionalInformation = $payment->getAdditionalInformation();
-        $request['body'] = $this->adyenRequestsHelper->buildThreeDS2Data([], $additionalInformation, $order->getStoreId());
+        $request['body'] = $this->adyenRequestsHelper->buildThreeDS2Data(
+            $additionalInformation,
+            $order->getStoreId(),
+            []
+        );
         return $request;
     }
 }

@@ -25,18 +25,17 @@ namespace Adyen\Payment\Api;
 
 /**
  * Interface GuestAdyenPaymentMethodManagementInterface
+ *
  * @api
- * @package Adyen\Payment\Api
  */
-
 interface AdyenPaymentMethodManagementInterface
 {
 
     /**
      * Get payment information
      *
-     * @param  string $cartId
-     * @param  null|\Magento\Quote\Api\Data\AddressInterface
+     * @param string $cartId
+     * @param null|\Magento\Quote\Api\Data\AddressInterface
      * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
      */
     public function getPaymentMethods($cartId, \Magento\Quote\Api\Data\AddressInterface $shippingAddress = null);

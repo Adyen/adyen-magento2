@@ -54,7 +54,7 @@ class VaultDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $additionalInformation = $payment->getAdditionalInformation();
 
-        $request['body'] = $this->adyenRequestsHelper->buildVaultData([], $additionalInformation);
+        $request['body'] = $this->adyenRequestsHelper->buildVaultData($additionalInformation, []);
 
         return $request;
     }

@@ -21,7 +21,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-
+// phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod.Found
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\InvoiceInterface;
@@ -54,7 +54,7 @@ class Invoice extends \Magento\Framework\Model\AbstractModel implements InvoiceI
      */
     protected function _construct()
     {
-        $this->_init('Adyen\Payment\Model\ResourceModel\Invoice');
+        $this->_init(\Adyen\Payment\Model\ResourceModel\Invoice::class);
     }
 
     /**
@@ -80,6 +80,7 @@ class Invoice extends \Magento\Framework\Model\AbstractModel implements InvoiceI
 
     /**
      * Gets the Pspreference of the original Payment
+     *
      * @return mixed
      */
     public function getOriginalReference()
@@ -97,6 +98,7 @@ class Invoice extends \Magento\Framework\Model\AbstractModel implements InvoiceI
     {
         return $this->setData(self::ORIGINAL_REFERENCE, $originalReference);
     }
+
     /**
      * Gets the AcquirerReference for the invoice.
      *

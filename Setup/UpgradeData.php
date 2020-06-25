@@ -29,13 +29,8 @@ use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
 
-/**
- * Class UpgradeData
- * @package Adyen\Payment\Setup
- */
 class UpgradeData implements UpgradeDataInterface
 {
-
     /**
      * @var WriterInterface
      */

@@ -20,9 +20,11 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 /**
  * Locator for payment config XSD schemas.
  */
+
 namespace Adyen\Payment\Model\Config;
 
 use Magento\Framework\Module\Dir;

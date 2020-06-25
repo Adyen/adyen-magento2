@@ -55,7 +55,7 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @return mixed
      */
-    public function buildMerchantAccountData($request = [], $paymentMethod, $storeId)
+    public function buildMerchantAccountData($paymentMethod, $storeId, $request = [])
     {
         // Retrieve merchant account
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($paymentMethod, $storeId);
@@ -67,16 +67,22 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param array $request
      * @param int $customerId
      * @param $billingAddress
      * @param $storeId
      * @param null $payment
      * @param null $additionalData
      * @return array
+     * @param array $request
      */
-    public function buildCustomerData($request = [], $customerId = 0, $billingAddress, $storeId, $payment = null, $additionalData = null)
-    {
+    public function buildCustomerData(
+        $billingAddress,
+        $storeId,
+        $customerId = 0,
+        $payment = null,
+        $additionalData = null,
+        $request = []
+    ) {
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
         }
@@ -150,7 +156,7 @@ class Requests extends AbstractHelper
      * @param $ipAddress
      * @return mixed
      */
-    public function buildCustomerIpData($request = [], $ipAddress)
+    public function buildCustomerIpData($ipAddress, $request = [])
     {
         $request['shopperIP'] = $ipAddress;
 
@@ -163,10 +169,9 @@ class Requests extends AbstractHelper
      * @param $shippingAddress
      * @return mixed
      */
-    public function buildAddressData($request = [], $billingAddress, $shippingAddress)
+    public function buildAddressData($billingAddress, $shippingAddress, $request = [])
     {
         if ($billingAddress) {
-
             // Billing address defaults
             $requestBillingDefaults = [
                 "street" => "N/A",
@@ -212,7 +217,6 @@ class Requests extends AbstractHelper
         }
 
         if ($shippingAddress) {
-
             // Delivery address defaults
             $requestDeliveryDefaults = [
                 "street" => "N/A",
@@ -269,7 +273,7 @@ class Requests extends AbstractHelper
      * @param $paymentMethod
      * @return array
      */
-    public function buildPaymentData($request = [], $amount, $currencyCode, $reference, $paymentMethod)
+    public function buildPaymentData($amount, $currencyCode, $reference, $paymentMethod, $request = [])
     {
         $request['amount'] = [
             'currency' => $currencyCode,
@@ -305,7 +309,7 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @return array
      */
-    public function buildThreeDS2Data($request = [], $additionalData, $storeId)
+    public function buildThreeDS2Data($additionalData, $storeId, $request = [])
     {
         if ($this->adyenHelper->isCreditCardThreeDS2Enabled($storeId)) {
             $request['additionalData']['allow3DS2'] = true;
@@ -337,11 +341,10 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringData($request = [], $areaCode, int $storeId, $additionalData)
+    public function buildRecurringData($areaCode, int $storeId, $additionalData, $request = [])
     {
         // If the vault feature is on this logic is handled in the VaultDataBuilder
         if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
-
             if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
                 $storeId = null;
             }
@@ -376,7 +379,7 @@ class Requests extends AbstractHelper
      * @param $storeIdbuildCCData
      * @return mixed
      */
-    public function buildCCData($request = [], $payload, $storeId, $areaCode)
+    public function buildCCData($payload, $storeId, $areaCode, $request = [])
     {
         // If ccType is set use this. For bcmc you need bcmc otherwise it will fail
 
@@ -388,33 +391,44 @@ class Requests extends AbstractHelper
             $request['paymentMethod']['type'] = 'scheme';
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) &&
-            $cardNumber = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) &&
+            $cardNumber = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) {
             $request['paymentMethod']['encryptedCardNumber'] = $cardNumber;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) &&
-            $expiryMonth = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) &&
+            $expiryMonth = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) {
             $request['paymentMethod']['encryptedExpiryMonth'] = $expiryMonth;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) &&
-            $expiryYear = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) &&
+            $expiryYear = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) {
             $request['paymentMethod']['encryptedExpiryYear'] = $expiryYear;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::HOLDER_NAME]) && $holderName =
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::HOLDER_NAME]) && $holderName =
                 $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::HOLDER_NAME]) {
             $request['paymentMethod']['holderName'] = $holderName;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) &&
-            $securityCode = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) &&
+            $securityCode = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) {
             $request['paymentMethod']['encryptedSecurityCode'] = $securityCode;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]) &&
-            $recurringDetailReference = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]) &&
+            $recurringDetailReference = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]
         ) {
             $request['paymentMethod']['recurringDetailReference'] = $recurringDetailReference;
         }
@@ -439,8 +453,10 @@ class Requests extends AbstractHelper
         }
 
         // if installments is set add it into the request
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS])) {
-            if (($numberOfInstallment = $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS]) > 0) {
+        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+        [AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS])) {
+            if (($numberOfInstallment = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+                [AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS]) > 0) {
                 $request['installments']['value'] = $numberOfInstallment;
             }
         }
@@ -454,7 +470,7 @@ class Requests extends AbstractHelper
      * @param $additionalInformation
      * @return mixed
      */
-    public function buildVaultData($request = [], $payload)
+    public function buildVaultData($payload, $request = [])
     {
         if ($this->adyenHelper->isCreditCardVaultEnabled()) {
             if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE]) &&
@@ -488,12 +504,16 @@ class Requests extends AbstractHelper
             $address = $this->adyenHelper->getStreetFromString($address->getStreetFull());
         } else {
             $address = $this->adyenHelper->getStreetFromString(
-                implode(' ', [
-                    $address->getStreetLine1(),
-                    $address->getStreetLine2(),
-                    $address->getStreetLine3(),
-                    $address->getStreetLine4()
-                ]));
+                implode(
+                    ' ',
+                    [
+                        $address->getStreetLine1(),
+                        $address->getStreetLine2(),
+                        $address->getStreetLine3(),
+                        $address->getStreetLine4()
+                    ]
+                )
+            );
         }
 
         return $address;

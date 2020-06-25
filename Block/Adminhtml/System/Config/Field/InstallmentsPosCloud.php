@@ -41,7 +41,7 @@ class InstallmentsPosCloud extends \Magento\Config\Block\System\Config\Form\Fiel
     {
         if (!$this->_installmentRenderer) {
             $this->_installmentRenderer = $this->getLayout()->createBlock(
-                '\Adyen\Payment\Block\Adminhtml\System\Config\Field\Installment',
+                \Adyen\Payment\Block\Adminhtml\System\Config\Field\Installment::class,
                 '',
                 ['data' => ['is_render_to_js_template' => true]]
             );
@@ -51,6 +51,7 @@ class InstallmentsPosCloud extends \Magento\Config\Block\System\Config\Form\Fiel
 
     /**
      * Prepare to render
+     *
      * @return void
      */
     protected function _prepareToRender()
@@ -58,15 +59,15 @@ class InstallmentsPosCloud extends \Magento\Config\Block\System\Config\Form\Fiel
         $this->addColumn(
             'amount',
             [
-                'label'     => __('Amount Range'),
-                'renderer'  => false,
+                'label' => __('Amount Range'),
+                'renderer' => false,
             ]
         );
         $this->addColumn(
             'installments',
             [
-                'label'     => __('Number Of Installments'),
-                'renderer'  => $this->getNumberOfInstallmentsRenderer(),
+                'label' => __('Number Of Installments'),
+                'renderer' => $this->getNumberOfInstallmentsRenderer(),
             ]
         );
 

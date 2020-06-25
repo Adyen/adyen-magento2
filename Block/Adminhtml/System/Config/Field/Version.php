@@ -24,6 +24,7 @@
 /**
  * Field renderer for PayPal merchant country selector
  */
+
 namespace Adyen\Payment\Block\Adminhtml\System\Config\Field;
 
 class Version extends \Magento\Config\Block\System\Config\Form\Field
@@ -33,8 +34,10 @@ class Version extends \Magento\Config\Block\System\Config\Form\Field
      * @var \Adyen\Payment\Helper\Data
      */
     protected $_adyenHelper;
+
     /**
      * Version constructor.
+     *
      * @param \Magento\Framework\Module\ModuleListInterface $moduleList
      * @param \Magento\Backend\Block\Template\Context $context
      * @param array $data
