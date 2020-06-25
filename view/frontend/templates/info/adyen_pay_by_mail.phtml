@@ -24,11 +24,15 @@
 // @codingStandardsIgnoreFile
 
 ?>
-<?php
-$_info = $this->getInfo();
-?>
 
 <dl class="payment-method adyen_paybymail">
-    <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
-    <dt><a target="_blank" href="<?php echo $this->getMethod()->getInfoInstance()->getAdditionalInformation('payment_url'); ?>"><?php echo __("Click here to pay for your purchase"); ?></a></dt>
+    <dt class="title"><?= $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
+    <dt>
+        <a target="_blank"
+           href="<?= $block->escapeHtml(
+               $block->getMethod()->getInfoInstance()->getAdditionalInformation('payment_url')
+           ); ?>">
+            <?= $block->escapeHtml(__("Click here to pay for your purchase")); ?>
+        </a>
+    </dt>
 </dl>

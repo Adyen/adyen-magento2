@@ -127,12 +127,12 @@ define(
                                         self.isPlaceOrderActionAllowed(true);
                                     }
                                 ).done(
-                                function () {
-                                    self.afterPlaceOrder();
-                                    window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
+                                    function () {
+                                        self.afterPlaceOrder();
+                                        window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
 
-                                }
-                            );
+                                    }
+                                );
                         }
                     },
                     buttonColor: 'black', // default/black/white

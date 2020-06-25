@@ -31,7 +31,6 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
      */
     protected $_installmentRenderer = null;
 
-
     /**
      * @var \Adyen\Payment\Block\Adminhtml\System\Config\Field\Cctypes
      */
@@ -47,7 +46,7 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
     {
         if (!$this->_installmentRenderer) {
             $this->_installmentRenderer = $this->getLayout()->createBlock(
-                '\Adyen\Payment\Block\Adminhtml\System\Config\Field\Installment',
+                \Adyen\Payment\Block\Adminhtml\System\Config\Field\Installment::class,
                 '',
                 ['data' => ['is_render_to_js_template' => true]]
             );
@@ -65,7 +64,7 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
     {
         if (!$this->_ccTypesRenderer) {
             $this->_ccTypesRenderer = $this->getLayout()->createBlock(
-                '\Adyen\Payment\Block\Adminhtml\System\Config\Field\Cctypes',
+                \Adyen\Payment\Block\Adminhtml\System\Config\Field\Cctypes::class,
                 '',
                 ['data' => ['is_render_to_js_template' => true]]
             );
@@ -75,6 +74,7 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
 
     /**
      * Prepare to render
+     *
      * @return void
      */
     protected function _prepareToRender()
@@ -82,22 +82,22 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
         $this->addColumn(
             'amount',
             [
-                'label'     => __('Amount Range'),
-                'renderer'  => false,
+                'label' => __('Amount Range'),
+                'renderer' => false,
             ]
         );
         $this->addColumn(
             'installments',
             [
-                'label'     => __('Number Of Installments'),
-                'renderer'  => $this->getNumberOfInstallmentsRenderer(),
+                'label' => __('Number Of Installments'),
+                'renderer' => $this->getNumberOfInstallmentsRenderer(),
             ]
         );
         $this->addColumn(
             'cc_types',
             [
                 'label' => __('Allowed Credit Card Types'),
-                'renderer'  => $this->getCcTypesRenderer(),
+                'renderer' => $this->getCcTypesRenderer(),
             ]
         );
         $this->_addAfter = false;

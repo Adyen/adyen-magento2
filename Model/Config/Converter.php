@@ -20,9 +20,11 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 /**
  * Payment Config Converter
  */
+
 namespace Adyen\Payment\Model\Config;
 
 class Converter implements \Magento\Framework\Config\ConverterInterface

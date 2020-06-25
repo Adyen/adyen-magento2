@@ -28,6 +28,7 @@ interface AdyenInitiateTerminalApiInterface
 {
     /**
      * Trigger sync call on terminal
+     *
      * @param string $payload
      * @return mixed
      */

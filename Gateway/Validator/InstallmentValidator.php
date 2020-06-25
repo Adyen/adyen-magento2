@@ -51,6 +51,7 @@ class InstallmentValidator extends AbstractValidator
 
     /**
      * InstallmentValidator constructor.
+     *
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -63,7 +64,6 @@ class InstallmentValidator extends AbstractValidator
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Magento\Quote\Model\QuoteRepository $quoteRepository
-
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
@@ -71,7 +71,6 @@ class InstallmentValidator extends AbstractValidator
         $this->quoteRepository = $quoteRepository;
         parent::__construct($resultFactory);
     }
-
 
     public function validate(array $validationSubject)
     {

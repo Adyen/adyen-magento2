@@ -144,6 +144,7 @@ class Data extends AbstractHelper
 
     /**
      * Data constructor.
+     *
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Magento\Framework\Config\DataInterface $dataStorage
@@ -216,6 +217,7 @@ class Data extends AbstractHelper
 
     /**
      * return recurring types for configuration setting
+     *
      * @return array
      */
     public function getRecurringTypes()
@@ -229,6 +231,7 @@ class Data extends AbstractHelper
 
     /**
      * return recurring types for configuration setting
+     *
      * @return array
      */
     public function getModes()
@@ -241,6 +244,7 @@ class Data extends AbstractHelper
 
     /**
      * return recurring types for configuration setting
+     *
      * @return array
      */
     public function getCaptureModes()
@@ -253,6 +257,7 @@ class Data extends AbstractHelper
 
     /**
      * return recurring types for configuration setting
+     *
      * @return array
      */
     public function getPaymentRoutines()
@@ -265,6 +270,7 @@ class Data extends AbstractHelper
 
     /**
      * Return the number of decimals for the specified currency
+     *
      * @param $currency
      * @return int
      */
@@ -305,6 +311,7 @@ class Data extends AbstractHelper
 
     /**
      * Return the formatted amount. Adyen accepts the currency in multiple formats.
+     *
      * @param $amount
      * @param $currency
      * @return int
@@ -313,7 +320,6 @@ class Data extends AbstractHelper
     {
         return (int)number_format($amount, $this->decimalNumbers($currency), '', '');
     }
-
 
     /**
      * Tax Percentage needs to be in minor units for Adyen
@@ -376,6 +382,7 @@ class Data extends AbstractHelper
 
     /**
      * Street format
+     *
      * @param type $address
      * @return array
      */
@@ -385,7 +392,7 @@ class Data extends AbstractHelper
             return false;
         }
 
-        $street = self::formatStreet($address->getStreet());
+        $street = $this->formatStreet($address->getStreet());
         $streetName = $street['0'];
         unset($street['0']);
         $streetNr = implode(' ', $street);
@@ -394,12 +401,13 @@ class Data extends AbstractHelper
 
     /**
      * Street format
+     *
      * @param string $streetLine
      * @return array
      */
     public function getStreetFromString($streetLine)
     {
-        $street = self::formatStreet([$streetLine]);
+        $street = $this->formatStreet([$streetLine]);
         $streetName = $street['0'];
         unset($street['0']);
         $streetNr = implode(' ', $street);
@@ -408,11 +416,12 @@ class Data extends AbstractHelper
 
     /**
      * Fix this one string street + number
-     * @example street + number
+     *
      * @param array $street
      * @return array $street
+     * @example street + number
      */
-    public static function formatStreet($street)
+    public function formatStreet($street)
     {
         if (count($street) != 1) {
             return $street;
@@ -429,7 +438,6 @@ class Data extends AbstractHelper
         }
         return $street;
     }
-
 
     /**
      * gives back global configuration values
@@ -741,15 +749,23 @@ class Data extends AbstractHelper
     public function getAPIKey($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData(
-                'api_key_test',
-                $storeId
-            )));
+            $apiKey = $this->_encryptor->decrypt(
+                trim(
+                    $this->getAdyenAbstractConfigData(
+                        'api_key_test',
+                        $storeId
+                    )
+                )
+            );
         } else {
-            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData(
-                'api_key_live',
-                $storeId
-            )));
+            $apiKey = $this->_encryptor->decrypt(
+                trim(
+                    $this->getAdyenAbstractConfigData(
+                        'api_key_live',
+                        $storeId
+                    )
+                )
+            );
         }
         return $apiKey;
     }
@@ -809,6 +825,7 @@ class Data extends AbstractHelper
     /**
      * Creditcard type that is selected is different from creditcard type that we get back from the request this
      * function get the magento creditcard type this is needed for getting settings like installments
+     *
      * @param $ccType
      * @return mixed
      */
@@ -882,8 +899,10 @@ class Data extends AbstractHelper
      */
     public function getModuleVersion()
     {
-        $moduleDir = $this->componentRegistrar->getPath(\Magento\Framework\Component\ComponentRegistrar::MODULE,
-            'Adyen_Payment');
+        $moduleDir = $this->componentRegistrar->getPath(
+            \Magento\Framework\Component\ComponentRegistrar::MODULE,
+            'Adyen_Payment'
+        );
 
         $composerJson = file_get_contents($moduleDir . '/composer.json');
         $composerJson = json_decode($composerJson, true);
@@ -1154,6 +1173,7 @@ class Data extends AbstractHelper
 
     /**
      * Format Magento locale codes with undersocre to ISO locale codes with dash
+     *
      * @param $localeCode
      */
     public function formatLocaleCode($localeCode)
@@ -1357,9 +1377,11 @@ class Data extends AbstractHelper
         $formFields['openinvoicedata.' . $linename . '.itemVatPercentage'] = $itemVatPercentage;
         $formFields['openinvoicedata.' . $linename . '.numberOfItems'] = $numberOfItems;
 
-        if ($this->isVatCategoryHigh($payment->getAdditionalInformation(
-            \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
-        ))
+        if ($this->isVatCategoryHigh(
+            $payment->getAdditionalInformation(
+                \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
+            )
+        )
         ) {
             $formFields['openinvoicedata.' . $linename . '.vatCategory'] = "High";
         } else {
@@ -1438,7 +1460,8 @@ class Data extends AbstractHelper
                         $formattedHtml .= "<td class='terminal-api-receipt-name'>&nbsp;</td>";
                     }
                     if (!empty($textParts['value'])) {
-                        $formattedHtml .= "<td class='terminal-api-receipt-value' align='right'>" . $textParts['value'] . "</td>";
+                        $formattedHtml .= "<td class='terminal-api-receipt-value' align='right'>"
+                            . $textParts['value'] . "</td>";
                     } else {
                         $formattedHtml .= "<td class='terminal-api-receipt-value' align='right'>&nbsp;</td>";
                     }
@@ -1512,7 +1535,7 @@ class Data extends AbstractHelper
     public function getOrigin()
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $state = $objectManager->get('Magento\Framework\App\State');
+        $state = $objectManager->get(\Magento\Framework\App\State::class);
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
         if ('adminhtml' === $state->getAreaCode()) {
             $baseUrl = $this->helperBackend->getHomePageUrl();
@@ -1644,7 +1667,6 @@ class Data extends AbstractHelper
                         $additionalData['recurring.recurringDetailReference']
                     );
                 } else {
-
                     $billingAgreement->setIsObjectChanged(true);
                     $message = __(
                         'Updated billing agreement #%1.',
@@ -1659,12 +1681,10 @@ class Data extends AbstractHelper
                 $billingAgreementErrors = $billingAgreement->getErrors();
 
                 if ($billingAgreement->isValid() && empty($billingAgreementErrors)) {
-
                     if (!$this->agreementResourceModel->getOrderRelation(
                         $billingAgreement->getAgreementId(),
                         $order->getId()
                     )) {
-
                         // save into sales_billing_agreement_order
                         $billingAgreement->addOrderRelation($order);
                     }
@@ -1677,7 +1697,6 @@ class Data extends AbstractHelper
                         );
                     throw new \Exception($message);
                 }
-
             } catch (\Exception $exception) {
                 $message = $exception->getMessage();
                 $this->adyenLogger->error("exception: " . $message);
@@ -1691,6 +1710,7 @@ class Data extends AbstractHelper
 
     /**
      * Method can be used by interceptors to provide the customer ID in a different way.
+     *
      * @param \Magento\Sales\Model\Order $order
      * @return int|null
      */
@@ -1863,7 +1883,6 @@ class Data extends AbstractHelper
      */
     public function getPspReferenceSearchUrl($pspReference, $liveEnvironment)
     {
-
         if ($liveEnvironment === "true") {
             $checkoutEnvironment = "live";
         } else {
@@ -1874,6 +1893,5 @@ class Data extends AbstractHelper
             $checkoutEnvironment,
             $pspReference
         );
-
     }
 }

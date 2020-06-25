@@ -27,7 +27,6 @@ use Magento\Payment\Gateway\Validator\AbstractValidator;
 
 class CancelResponseValidator extends AbstractValidator
 {
-
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */

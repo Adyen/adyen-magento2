@@ -25,7 +25,6 @@ namespace Adyen\Payment\Block\Form;
 
 class PayByMail extends \Magento\Payment\Block\Form
 {
-
     /**
      * @var string
      */

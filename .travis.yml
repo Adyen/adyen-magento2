@@ -8,9 +8,9 @@ php:
   - 7.3
 
 install:
-    - echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
-    - composer install --prefer-dist
+  - echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
+  - composer install --prefer-dist
 
 script:
-    - php vendor/bin/phpcs
-    - vendor/bin/phpunit -c Test/phpunit.xml
+  - php vendor/bin/phpcs
+  - vendor/bin/phpunit -c Test/phpunit.xml

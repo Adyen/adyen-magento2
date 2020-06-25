@@ -35,7 +35,7 @@ class CheckoutResponseValidator extends AbstractValidator
     /**
      * @var \Adyen\Payment\Helper\Data
      */
-    private  $adyenHelper;
+    private $adyenHelper;
 
     /**
      * GeneralResponseValidator constructor.
@@ -71,12 +71,18 @@ class CheckoutResponseValidator extends AbstractValidator
             switch ($response['resultCode']) {
                 case "IdentifyShopper":
                     $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
-                    $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.fingerprintToken']);
+                    $payment->setAdditionalInformation(
+                        'threeDS2Token',
+                        $response['authentication']['threeds2.fingerprintToken']
+                    );
                     $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
                     break;
                 case "ChallengeShopper":
                     $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
-                    $payment->setAdditionalInformation('threeDS2Token', $response['authentication']['threeds2.challengeToken']);
+                    $payment->setAdditionalInformation(
+                        'threeDS2Token',
+                        $response['authentication']['threeds2.challengeToken']
+                    );
                     $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
                     break;
                 case "Authorised":
@@ -89,7 +95,8 @@ class CheckoutResponseValidator extends AbstractValidator
                             }
                         }
                     } elseif (!empty($response['additionalData']['comprafacil.entity'])) {
-                        //Multibanco resultCode has changed after checkout v49 and comprafacil.entity is not received anymore
+                        //Multibanco resultCode has changed after checkout v49 and
+                        // comprafacil.entity is not received anymore
                         foreach ($response['additionalData'] as $key => $value) {
                             if (strpos($key, 'comprafacil') === 0) {
                                 $payment->setAdditionalInformation($key, $value);
@@ -99,7 +106,9 @@ class CheckoutResponseValidator extends AbstractValidator
 
                     // Save cc_type if available in the response
                     if (!empty($response['additionalData']['paymentMethod'])) {
-                        $ccType = $this->adyenHelper->getMagentoCreditCartType($response['additionalData']['paymentMethod']);
+                        $ccType = $this->adyenHelper->getMagentoCreditCartType(
+                            $response['additionalData']['paymentMethod']
+                        );
                         $payment->setAdditionalInformation('cc_type', $ccType);
                         $payment->setCcType($ccType);
                     }
@@ -114,7 +123,6 @@ class CheckoutResponseValidator extends AbstractValidator
                     }
                     break;
                 case "RedirectShopper":
-
                     $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
 
                     $redirectUrl = null;
@@ -134,7 +142,6 @@ class CheckoutResponseValidator extends AbstractValidator
 
                     // If the redirect data is there then the payment is a card payment with 3d secure
                     if (isset($response['redirect']['data']['PaReq']) && isset($response['redirect']['data']['MD'])) {
-
                         $paReq = null;
                         $md = null;
 
@@ -160,7 +167,8 @@ class CheckoutResponseValidator extends AbstractValidator
                             $this->adyenLogger->error($errorMsg);
                             $errorMessages[] = $errorMsg;
                         }
-                        // otherwise it is an alternative payment method which only requires the redirect url to be present
+                        // otherwise it is an alternative payment method which only requires the
+                        // redirect url to be present
                     } else {
                         // Flag to show we are in the checkoutAPM flow
                         $payment->setAdditionalInformation('checkoutAPM', true);
@@ -175,11 +183,10 @@ class CheckoutResponseValidator extends AbstractValidator
                         } else {
                             $isValid = false;
                             $errorMsg = __('Payment method is not valid.');
-                            $this->adyenLogger->error($errorMsg);;
+                            $this->adyenLogger->error($errorMsg);
                             $errorMessages[] = $errorMsg;
                         }
                     }
-
                     break;
                 case "Refused":
                     $errorMsg = __('The payment is REFUSED.');

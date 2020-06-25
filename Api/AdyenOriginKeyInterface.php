@@ -24,7 +24,6 @@
 
 namespace Adyen\Payment\Api;
 
-
 interface AdyenOriginKeyInterface
 {
     /**

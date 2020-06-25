@@ -24,23 +24,17 @@
 
 namespace Adyen\Payment\Model;
 
-
 class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
 {
-
-    /**
-     * @var
-     */
     private $adyenInitiateTerminalApi;
 
-    private const MODULE_VERSION = '1.0.0';
-    private const MODULE_NAME = 'ModuleVersion';
-    private const PLATFORM_VERSION = '2.0.0';
-    private const PLATFORM_NAME = 'PlatformName';
-    private const CUSTOMER_ID = '1';
-    private const CUSTOMER_EMAIL = 'customer@example.com';
-    private const RECURRING_TYPE = 'ONECLICK,RECURRING';
-
+    const MODULE_VERSION = '1.0.0';
+    const MODULE_NAME = 'ModuleVersion';
+    const PLATFORM_VERSION = '2.0.0';
+    const PLATFORM_NAME = 'PlatformName';
+    const CUSTOMER_ID = '1';
+    const CUSTOMER_EMAIL = 'customer@example.com';
+    const RECURRING_TYPE = 'ONECLICK,RECURRING';
 
     private function getSimpleMock($originalClassName)
     {
@@ -61,10 +55,8 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
         $storeManager->method('getStore')
             ->will($this->returnValue($store));
 
-
         $adyenHelper->method('getModuleVersion')
             ->will($this->returnValue(self::MODULE_VERSION));
-
 
         // Create a map of arguments to return values.
         $map = [
@@ -84,7 +76,6 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
 
         $productMetadata->method('getName')
             ->will($this->returnValue(self::PLATFORM_NAME));
-
 
         $this->adyenInitiateTerminalApi = new \Adyen\Payment\Model\AdyenInitiateTerminalApi(
             $adyenHelper,
@@ -142,7 +133,6 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
             )
             ->getMock();
 
-
         $quoteMock->expects($this->any())
             ->method('getCustomerId')
             ->willReturn(self::CUSTOMER_ID);
@@ -153,8 +143,7 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
 
         $request = [];
         $result = $this->adyenInitiateTerminalApi->addSaleToAcquirerData($request, $quoteMock);
-
-
+        
         $appInfo = [
             'shopperEmail' => self::CUSTOMER_EMAIL,
             'shopperReference' => self::CUSTOMER_ID,

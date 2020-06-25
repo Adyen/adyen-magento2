@@ -20,6 +20,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -41,8 +42,7 @@ class BrowserInfoDataBuilder implements BuilderInterface
      */
     public function __construct(
         \Adyen\Payment\Helper\Requests $adyenRequestsHelper
-    )
-    {
+    ) {
         $this->adyenRequestsHelper = $adyenRequestsHelper;
     }
 

@@ -29,7 +29,6 @@ use Magento\Payment\Gateway\Http\TransferInterface;
 
 class TransferFactory implements TransferFactoryInterface
 {
-
     /**
      * @var TransferBuilder
      */

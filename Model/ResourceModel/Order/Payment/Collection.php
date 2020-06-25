@@ -28,7 +28,6 @@ namespace Adyen\Payment\Model\ResourceModel\Order\Payment;
  */
 class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
-
     /**
      * Collection initialization
      *
@@ -36,7 +35,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     protected function _construct()
     {
-        $this->_init('Adyen\Payment\Model\Order\Payment', 'Adyen\Payment\Model\ResourceModel\Order\Payment');
+        $this->_init(\Adyen\Payment\Model\Order\Payment::class, \Adyen\Payment\Model\ResourceModel\Order\Payment::class);
     }
 
     /**
@@ -47,7 +46,9 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     {
         $connection = $this->getConnection();
 
-        $sumCond = new \Zend_Db_Expr("SUM(adyen_order_payment.{$connection->quoteIdentifier(\Adyen\Payment\Model\Order\Payment::AMOUNT)})");
+        $sumCond = new \Zend_Db_Expr(
+            "SUM(adyen_order_payment.{$connection->quoteIdentifier(\Adyen\Payment\Model\Order\Payment::AMOUNT)})"
+        );
 
         $select = $connection->select()->from(
             ['adyen_order_payment' => $this->getTable('adyen_order_payment')],

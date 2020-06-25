@@ -31,53 +31,50 @@ $ccExpMonth = $block->getInfoData('cc_exp_month');
 $ccExpYear = $block->getInfoData('cc_exp_year');
 ?>
 
-<fieldset class="admin__fieldset payment-method" id="payment_form_<?php /* @noEscape */
-echo $code; ?>" style="display:none">
-    <span id="noApiKey" class="message message-error error" style="visibility: hidden"><?php echo $block->escapeHtml(__('Please configure an API Key and a live endpoint prefix(if in Production Mode) in your Adyen Required Settings'));?></span>
+<fieldset class="admin__fieldset payment-method"
+          id="payment_form_<?= /* @noEscape */ $code; ?>"
+          style="display:none">
+    <span id="noApiKey"
+          class="message message-error error"
+          style="visibility: hidden"><?= $block->escapeHtml(
+              __(
+                  'Please configure an API Key and a live endpoint prefix(if in Production Mode) in your Adyen ' .
+                  'Required Settings'
+              )
+          ); ?>
+    </span>
     <div class="field admin__field">
-        <label for="<?php /* @noEscape */
-        echo $code; ?>_cc_owner">
-            <span><?php echo $block->escapeHtml(__('Name on Card')); ?></span>
+        <label for="<?= /* @noEscape */ $code; ?>_cc_owner">
+            <span><?= $block->escapeHtml(__('Name on Card')); ?></span>
         </label>
         <div>
-            <input type="text" id="<?php /* @noEscape */
-            echo $code; ?>_cc_owner" name="payment[holderName]"
-                   title="<?php echo $block->escapeHtml(__('Name on Card')); ?>" class="admin__control-text"
-                   value="<?php /* @noEscape */
-                   echo $block->getInfoData('cc_owner'); ?>"
-                   placeholder="<?php echo $block->escapeHtml(__('Name on Card')); ?>"/>
+            <input type="text" id="<?= /* @noEscape */ $code; ?>_cc_owner" name="payment[holderName]"
+                   title="<?= $block->escapeHtml(__('Name on Card')); ?>"
+                   class="admin__control-text"
+                   value="<?= /* @noEscape */ $block->getInfoData('cc_owner'); ?>"
+                   placeholder="<?= $block->escapeHtml(__('Name on Card')); ?>"/>
         </div>
     </div>
 
-    <div id="cardContainer-<?php /* @noEscape */
-    echo $code; ?>"></div>
-    <input id="<?php /* @noEscape */
-    echo $code; ?>-number" type="hidden" name="payment[number]">
-    <input id="<?php /* @noEscape */
-    echo $code; ?>-cvc" type="hidden" name="payment[cvc]">
-    <input id="<?php /* @noEscape */
-    echo $code; ?>-expiryMonth" type="hidden" name="payment[expiryMonth]">
-    <input id="<?php /* @noEscape */
-    echo $code; ?>-expiryYear" type="hidden" name="payment[expiryYear]">
-    <input id="<?php /* @noEscape */
-    echo $code; ?>-cc_type" type="hidden" name="payment[cc_type]">
-    <input id="<?php /* @noEscape */
-    echo $code; ?>-store_cc" type="hidden" name="payment[store_cc]">
+    <div id="cardContainer-<?= /* @noEscape */ $code; ?>"></div>
+    <input id="<?= /* @noEscape */ $code; ?>-number" type="hidden" name="payment[number]">
+    <input id="<?= /* @noEscape */ $code; ?>-cvc" type="hidden" name="payment[cvc]">
+    <input id="<?= /* @noEscape */ $code; ?>-expiryMonth" type="hidden" name="payment[expiryMonth]">
+    <input id="<?= /* @noEscape */ $code; ?>-expiryYear" type="hidden" name="payment[expiryYear]">
+    <input id="<?= /* @noEscape */ $code; ?>-cc_type" type="hidden" name="payment[cc_type]">
+    <input id="<?= /* @noEscape */ $code; ?>-store_cc" type="hidden" name="payment[store_cc]">
 
     <?php if ($block->isVaultEnabled()): ?>
         <div class="field choice">
             <input type="checkbox"
-                   id="<?php /* @noEscape */
-                   echo $code; ?>_vault"
+                   id="<?= /* @noEscape */ $code; ?>_vault"
                    name="payment[is_active_payment_token_enabler]"
                    class="checkbox"/>
-            <label class="label" for="<?php /* @noEscape */
-            echo $code; ?>_vault">
-                <span><?php echo $block->escapeHtml('Save for later use.'); ?></span>
+            <label class="label" for="<?= /* @noEscape */ $code; ?>_vault">
+                <span><?= $block->escapeHtml('Save for later use.'); ?></span>
             </label>
         </div>
     <?php endif; ?>
-
 
     <script>
         require(
@@ -87,13 +84,13 @@ echo $code; ?>" style="display:none">
                 "Magento_Sales/order/create/form"
             ],
             function () {
-                var ccTypes = <?php echo json_encode($block->getCcAvailableTypesByAlt()); ?>;
+                var ccTypes = <?= /* @noEscape */ json_encode($block->getCcAvailableTypesByAlt()); ?>;
 
                 //<![CDATA[
 
                 // Append checkout card components script
                 var scriptTag = document.createElement('script');
-                scriptTag.src = "<?php echo $block->getCheckoutCardComponentJs(); ?>";
+                scriptTag.src = "<?= $block->escapeHtml($block->getCheckoutCardComponentJs()); ?>";
                 scriptTag.type = "text/javascript";
                 document.body.appendChild(scriptTag);
 
@@ -114,42 +111,50 @@ echo $code; ?>" style="display:none">
                  */
                 var secureFieldsInitialize = function () {
 
-                    if (!"<?php echo $block->getCheckoutOriginKeys(); ?>") {
-                        document.getElementById('noApiKey').style="visibility: visible; display:inline-block";
+                    if (!"<?php $block->getCheckoutOriginKeys(); ?>") {
+                        document.getElementById('noApiKey').style = "visibility: visible; display:inline-block";
                         return;
                     }
-                    var cardNode = document.getElementById("cardContainer-<?php /* @noEscape */ echo $code; ?>");
+                    var cardNode = document.getElementById("cardContainer-<?= /* @noEscape */ $code; ?>");
 
                     var checkout = new AdyenCheckout({
-                        locale: "<?php echo $block->getLocale(); ?>",
+                        locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
                         risk: {
                             enabled: false
                         }
                     });
-                    var hideCVC = "<?php echo !$block->hasVerification(); ?>";
+                    var hideCVC = "<?= !$block->hasVerification(); ?>";
 
                     var card = checkout.create('card', {
-                        originKey: "<?php echo $block->getCheckoutOriginKeys(); ?>",
-                        environment: "<?php echo $block->getCheckoutEnvironment(); ?>",
+                        originKey: "<?= /* @noEscape */ $block->getCheckoutOriginKeys(); ?>",
+                        environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
                         type: 'card',
                         groupTypes: ccTypes,
                         hideCVC: hideCVC,
-                        enableStoreDetails: "<?php echo $block->allowRecurring() && !$block->isVaultEnabled();?>",
+                        enableStoreDetails: "<?= /* @noEscape */ $block->allowRecurring() && !$block->isVaultEnabled();?>",
 
                         onChange: function (state) {
                             // When the state is valid update the input fields
                             if (state.isValid) {
                                 // Here we enable the button if the component is now valid
-                                jQuery("#<?php /* @noEscape */ echo $code; ?>-number").val(state.data.paymentMethod.encryptedCardNumber);
-                                jQuery("#<?php /* @noEscape */ echo $code; ?>-expiryMonth").val(state.data.paymentMethod.encryptedExpiryMonth);
-                                jQuery("#<?php /* @noEscape */ echo $code; ?>-expiryYear").val(state.data.paymentMethod.encryptedExpiryYear);
-                                jQuery("#<?php /* @noEscape */ echo $code; ?>-cvc").val(state.data.paymentMethod.encryptedSecurityCode);
-                                jQuery("#<?php /* @noEscape */ echo $code; ?>-store_cc").val(state.data.storePaymentMethod);
+                                jQuery("#<?= /* @noEscape */ $code; ?>-number").val(
+                                    state.data.paymentMethod.encryptedCardNumber
+                                );
+                                jQuery("#<?= /* @noEscape */ $code; ?>-expiryMonth").val(
+                                    state.data.paymentMethod.encryptedExpiryMonth
+                                );
+                                jQuery("#<?= /* @noEscape */ $code; ?>-expiryYear").val(
+                                    state.data.paymentMethod.encryptedExpiryYear
+                                );
+                                jQuery("#<?= /* @noEscape */ $code; ?>-cvc").val(
+                                    state.data.paymentMethod.encryptedSecurityCode
+                                );
+                                jQuery("#<?= /* @noEscape */ $code; ?>-store_cc").val(state.data.storePaymentMethod);
                             }
                         },
                         onBrand: function (state) {
                             if (state.isValid) {
-                                jQuery("#<?php /* @noEscape */ echo $code; ?>-cc_type").val(getCcCodeByAltCode(state.brand));
+                                jQuery("#<?= /* @noEscape */ $code; ?>-cc_type").val(getCcCodeByAltCode(state.brand));
                             }
                         },
                         onError: function () {
@@ -167,8 +172,7 @@ echo $code; ?>" style="display:none">
                             secureFieldsInitialize();
                         }
                     };
-                }
-                else {
+                } else {
                     scriptTag.onload = function () {
                         secureFieldsInitialize();
                     };

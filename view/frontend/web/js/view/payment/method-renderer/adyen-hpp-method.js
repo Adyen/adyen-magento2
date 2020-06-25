@@ -177,7 +177,8 @@ define(
                     result.validate = function () {
                         return self.validate(result.getBrandCode());
                     };
-                    result.placeRedirectOrder = function placeRedirectOrder(data) {
+                    result.placeRedirectOrder = function placeRedirectOrder(data)
+                    {
                         return self.placeRedirectOrder(data);
                     };
 
@@ -259,8 +260,7 @@ define(
                         if (quote.billingAddress().countryId == "NO") {
                             //14 digits for Norway ÅÅÅÅMMDD-XXXXX
                             return 14;
-                        }
-                        else {
+                        } else {
                             //13 digits for other Nordic countries ÅÅÅÅMMDD-XXXX
                             return 13;
                         }
@@ -368,7 +368,6 @@ define(
                                 if (!!state.isValid) {
                                     result.issuer(state.data.paymentMethod.issuer);
                                     result.isPlaceOrderAllowed(true);
-
                                 } else {
                                     result.isPlaceOrderAllowed(false);
                                 }
@@ -536,7 +535,6 @@ define(
                 var self = this;
 
                 if (this.validate() && additionalValidators.validate()) {
-
                     var data = {};
                     data.method = self.method;
 
@@ -641,9 +639,9 @@ define(
                 }
                 return null;
             }),
-            isIconEnabled: function () {
-                return window.checkoutConfig.payment.adyen.showLogo;
-            },
+        isIconEnabled: function () {
+            return window.checkoutConfig.payment.adyen.showLogo;
+        },
             validate: function (brandCode) {
                 var form = '#payment_form_' + this.getCode() + '_' + brandCode;
                 var validate = $(form).validation() && $(form).validation('isValid');

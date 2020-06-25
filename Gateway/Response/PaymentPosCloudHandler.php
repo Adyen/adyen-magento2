@@ -91,7 +91,8 @@ class PaymentPosCloudHandler implements HandlerInterface
                 !empty($paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData'])
             ) {
                 $maskedPan = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['MaskedPan'];
-                $expiryDate = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['SensitiveCardData']['ExpiryDate']; // 1225
+                $expiryDate = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']
+                ['SensitiveCardData']['ExpiryDate']; // 1225
                 $expiryDate = substr($expiryDate, 0, 2) . '/' . substr($expiryDate, 2, 2);
                 $brand = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['PaymentBrand'];
 
@@ -113,8 +114,10 @@ class PaymentPosCloudHandler implements HandlerInterface
         }
 
         // set transaction(status)
-        if (!empty($paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'])) {
-            $pspReference = $paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID'];
+        if (!empty($paymentResponse['PaymentResult']['PaymentAcquirerData']['AcquirerTransactionID']['TransactionID']))
+        {
+            $pspReference = $paymentResponse['PaymentResult']['PaymentAcquirerData']
+            ['AcquirerTransactionID']['TransactionID'];
             $payment->setTransactionId($pspReference);
             // set transaction(payment)
         } else {

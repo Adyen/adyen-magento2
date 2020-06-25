@@ -31,9 +31,6 @@ use Magento\Vault\Model\Ui\TokenUiComponentProviderInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
 use Magento\Framework\UrlInterface;
 
-/**
- * Class TokenGooglePayUiComponentProvider
- */
 class TokenGooglePayUiComponentProvider implements TokenUiComponentProviderInterface
 {
     /**
@@ -60,6 +57,7 @@ class TokenGooglePayUiComponentProvider implements TokenUiComponentProviderInter
 
     /**
      * Get UI component for token
+     *
      * @param PaymentTokenInterface $paymentToken
      * @return TokenUiComponentInterface
      */

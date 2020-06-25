@@ -102,7 +102,6 @@ interface NotificationInterface
      */
     const UPDATED_AT = 'updated_at';
 
-
     /**
      * Gets the ID for the notification.
      *
@@ -132,7 +131,6 @@ interface NotificationInterface
      * @return $this
      */
     public function setPspreference($pspreference);
-
 
     /**
      * Sets OriginalReference.
