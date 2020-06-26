@@ -45,7 +45,7 @@
                 ]]>
             </comment>
         </field>
-        <field id="notification_hmac_key_test" translate="label" type="text" sortOrder="20" showInDefault="1"
+        <field id="notification_hmac_key_test" translate="label" type="obscure" sortOrder="20" showInDefault="1"
                showInWebsite="1" showInStore="1">
             <label>HMAC key test</label>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
@@ -57,7 +57,7 @@
                 ]]>
             </tooltip>
         </field>
-        <field id="notification_hmac_key_live" translate="label" type="text" sortOrder="30" showInDefault="1"
+        <field id="notification_hmac_key_live" translate="label" type="obscure" sortOrder="30" showInDefault="1"
                showInWebsite="1" showInStore="1">
             <label>HMAC key live</label>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
