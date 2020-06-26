@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Controller\Process;
 
+use Adyen\Util\HmacSignature;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Magento\Framework\App\Request\Http as Http;
 
@@ -57,18 +58,39 @@ class Json extends \Magento\Framework\App\Action\Action
     private $serializer;
 
     /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    protected $configHelper;
+
+    /**
+     * @var \Adyen\Payment\Helper\IpAddress
+     */
+    protected $ipAddressHelper;
+
+    /**
+     * @var HmacSignature
+     */
+    private $hmacSignature;
+
+    /**
      * Json constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     * @param \Adyen\Payment\Helper\Config $configHelper
+     * @param \Adyen\Payment\Helper\IpAddress $ipAddressHelper
+     * @param HmacSignature $hmacSignature
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Magento\Framework\Serialize\SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
+        \Adyen\Payment\Helper\Config $configHelper,
+        \Adyen\Payment\Helper\IpAddress $ipAddressHelper,
+        HmacSignature $hmacSignature
     ) {
         parent::__construct($context);
         $this->_objectManager = $context->getObjectManager();
@@ -76,6 +98,9 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
         $this->serializer = $serializer;
+        $this->configHelper = $configHelper;
+        $this->ipAddressHelper = $ipAddressHelper;
+        $this->hmacSignature = $hmacSignature;
 
         // Fix for Magento2.3 adding isAjax to the request params
         if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
@@ -180,6 +205,25 @@ class Json extends \Magento\Framework\App\Action\Action
      */
     protected function _processNotification($response, $notificationMode)
     {
+        if ($this->configHelper->getNotificationsIpHmacCheck()) {
+            //Validate if the notification comes from a verified IP
+            if (!$this->isIpValid()) {
+                $this->_adyenLogger->addAdyenNotification(
+                    "Notification has been rejected because the IP address could not be verified"
+                );
+                return false;
+            }
+
+            if ($this->hmacSignature->isHmacSupportedEventCode($response)) {
+                //Validate the Hmac calculation
+                if (!$this->hmacSignature->isValidNotificationHMAC($this->configHelper->getNotificationsHmacKey(),
+                    $response)) {
+                    $this->_adyenLogger->addAdyenNotification('HMAC key validation failed ' . print_r($response, 1));
+                    return false;
+                }
+            }
+        }
+
         // validate the notification
         if ($this->authorised($response)) {
             // log the notification
@@ -271,18 +315,18 @@ class Json extends \Magento\Framework\App\Action\Action
         }
 
         // validate username and password
-        if ((!isset($_SERVER['PHP_AUTH_USER']) && !isset($_SERVER['PHP_AUTH_PW']))) {
+        if ((!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW']))) {
             if ($this->_isTestNotification($response['pspReference'])) {
                 $this->_returnResult(
-                    'Authentication failed: PHP_AUTH_USER and PHP_AUTH_PW are empty. See Adyen Magento manual CGI mode'
+                    'Authentication failed: PHP_AUTH_USER or PHP_AUTH_PW are empty. See Adyen Magento manual CGI mode'
                 );
             }
             return false;
         }
 
-        $usernameCmp = strcmp($_SERVER['PHP_AUTH_USER'], $username);
-        $passwordCmp = strcmp($_SERVER['PHP_AUTH_PW'], $password);
-        if ($usernameCmp === 0 && $passwordCmp === 0) {
+        $usernameIsValid = hash_equals($username, $_SERVER['PHP_AUTH_USER']);
+        $passwordIsValid = hash_equals($password, $_SERVER['PHP_AUTH_PW']);
+        if ($usernameIsValid && $passwordIsValid) {
             return true;
         }
 
@@ -293,6 +337,29 @@ class Json extends \Magento\Framework\App\Action\Action
             );
         }
         return false;
+    }
+
+    /**
+     * Checks if any of the possible remote IP address sending the notification is verified and returns the validation result
+     *
+     * @return bool
+     */
+    protected function isIpValid()
+    {
+        $ipAddress = [];
+
+        //Getting remote and possibly forwarded IP addresses
+        if (!empty($_SERVER['REMOTE_ADDR'])) {
+            array_push($ipAddress, $_SERVER['REMOTE_ADDR']);
+        }
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            array_push($ipAddress, $_SERVER['HTTP_X_FORWARDED_FOR']);
+        }
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            array_push($ipAddress, $_SERVER['HTTP_CLIENT_IP']);
+        }
+
+        return $this->ipAddressHelper->isIpAddressValid($ipAddress);
     }
 
     /**
