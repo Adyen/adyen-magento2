@@ -91,6 +91,11 @@ class PaymentMethods extends AbstractHelper
     protected $quote;
 
     /**
+     * @var \Magento\Checkout\Model\PaymentDetailsFactory
+     */
+    protected $paymentDetailsFactory;
+
+    /**
      * PaymentMethods constructor.
      *
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
@@ -104,6 +109,7 @@ class PaymentMethods extends AbstractHelper
      * @param \Magento\Framework\View\Asset\Source $assetSource
      * @param \Magento\Framework\View\DesignInterface $design
      * @param \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider
+     * @param \Magento\Checkout\Model\PaymentDetailsFactory $paymentDetailsFactory
      */
     public function __construct(
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
@@ -116,7 +122,8 @@ class PaymentMethods extends AbstractHelper
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\View\Asset\Source $assetSource,
         \Magento\Framework\View\DesignInterface $design,
-        \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider
+        \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider,
+        \Magento\Checkout\Model\PaymentDetailsFactory $paymentDetailsFactory
     ) {
         $this->quoteRepository = $quoteRepository;
         $this->config = $config;
@@ -129,6 +136,7 @@ class PaymentMethods extends AbstractHelper
         $this->assetSource = $assetSource;
         $this->design = $design;
         $this->themeProvider = $themeProvider;
+        $this->paymentDetailsFactory = $paymentDetailsFactory;
     }
 
     /**
@@ -146,7 +154,7 @@ class PaymentMethods extends AbstractHelper
 
         $this->setQuote($quote);
 
-        $paymentMethods = $this->fetchAlternativeMethods($country);
+        $paymentMethods = $this->fetchPaymentMethods($country);
         return $paymentMethods;
     }
 
@@ -154,7 +162,7 @@ class PaymentMethods extends AbstractHelper
      * @param $country
      * @return array
      */
-    protected function fetchAlternativeMethods($country)
+    protected function fetchPaymentMethods($country)
     {
         $quote = $this->getQuote();
         $store = $quote->getStore();
@@ -192,64 +200,78 @@ class PaymentMethods extends AbstractHelper
 
         $responseData = $this->getPaymentMethodsResponse($adyFields, $store);
 
-        $paymentMethods = [];
-        if (isset($responseData['paymentMethods'])) {
-            foreach ($responseData['paymentMethods'] as $paymentMethod) {
+        if (empty($responseData['paymentMethods'])) {
+            return [];
+        }
+
+        $paymentMethods = $responseData['paymentMethods'];
+        $response['paymentMethodsResponse'] = $responseData;
+
+        // Add extra details per payment mmethod
+        $paymentMethodsExtraDetails = [];
+
+        if ($this->adyenHelper->showLogos()) {
+            // Explicitly setting theme
+            $themeCode = "Magento/blank";
+
+            $themeId = $this->design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
+            if (!empty($themeId)) {
+                $theme = $this->themeProvider->getThemeById($themeId);
+                if ($theme && !empty($theme->getCode())) {
+                    $themeCode = $theme->getCode();
+                }
+            }
+
+            $params = [];
+            $params = array_merge(
+                [
+                    'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                    '_secure' => $this->request->isSecure(),
+                    'theme' => $themeCode
+                ],
+                $params
+            );
+
+
+            foreach ($paymentMethods as $paymentMethod) {
                 $paymentMethodCode = $paymentMethod['type'];
-                $paymentMethod = $this->fieldMapPaymentMethod($paymentMethod);
+
+                $asset = $this->assetRepo->createAsset(
+                    'Adyen_Payment::images/logos/' .
+                    $paymentMethodCode . '.png',
+                    $params
+                );
+
+                $placeholder = $this->assetSource->findSource($asset);
+
+                $icon = [];
+                if ($placeholder) {
+                    list($width, $height) = getimagesize($asset->getSourceFile());
+                    $icon = [
+                        'url' => $asset->getUrl(),
+                        'width' => $width,
+                        'height' => $height
+                    ];
+                } else {
+                    $icon = [
+                        'url' => 'https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/medium/' .$paymentMethodCode . '.png',
+                        'width' => 77,
+                        'height' => 50
+                    ];
+                }
+
+                $paymentMethodsExtraDetails[$paymentMethodCode]['icon'] = $icon;
 
                 // check if payment method is an openinvoice method
-                $paymentMethod['isPaymentMethodOpenInvoiceMethod'] =
+                $paymentMethodsExtraDetails[$paymentMethodCode]['isOpenInvoice'] =
                     $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
-
-                // add icon location in result
-                if ($this->adyenHelper->showLogos()) {
-                    // Fix for MAGETWO-70402 https://github.com/magento/magento2/pull/7686
-                    // Explicitly setting theme
-                    $themeCode = "Magento/blank";
-
-                    $themeId = $this->design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
-                    if (!empty($themeId)) {
-                        $theme = $this->themeProvider->getThemeById($themeId);
-                        if ($theme && !empty($theme->getCode())) {
-                            $themeCode = $theme->getCode();
-                        }
-                    }
-
-                    $params = [];
-                    $params = array_merge(
-                        [
-                            'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
-                            '_secure' => $this->request->isSecure(),
-                            'theme' => $themeCode
-                        ],
-                        $params
-                    );
-
-                    $asset = $this->assetRepo->createAsset(
-                        'Adyen_Payment::images/logos/' .
-                        $paymentMethodCode . '.png',
-                        $params
-                    );
-
-                    $placeholder = $this->assetSource->findSource($asset);
-
-                    $icon = null;
-                    if ($placeholder) {
-                        list($width, $height) = getimagesize($asset->getSourceFile());
-                        $icon = [
-                            'url' => $asset->getUrl(),
-                            'width' => $width,
-                            'height' => $height
-                        ];
-                    }
-                    $paymentMethod['icon'] = $icon;
-                }
-                $paymentMethods[$paymentMethodCode] = $paymentMethod;
             }
         }
 
-        return $paymentMethods;
+        $response['paymentMethodsExtraDetails'] = $paymentMethodsExtraDetails;
+
+        //TODO this should be the implemented with an interface
+        return json_encode($response);
     }
 
     /**
@@ -304,28 +326,6 @@ class PaymentMethods extends AbstractHelper
         }
 
         return "";
-    }
-
-    /**
-     * @var array
-     */
-    protected $fieldMapPaymentMethod = [
-        'name' => 'title'
-    ];
-
-    /**
-     * @param $paymentMethod
-     * @return mixed
-     */
-    protected function fieldMapPaymentMethod($paymentMethod)
-    {
-        foreach ($this->fieldMapPaymentMethod as $field => $newField) {
-            if (isset($paymentMethod[$field])) {
-                $paymentMethod[$newField] = $paymentMethod[$field];
-                unset($paymentMethod[$field]);
-            }
-        }
-        return $paymentMethod;
     }
 
     /**

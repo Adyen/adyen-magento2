@@ -315,17 +315,6 @@ class Requests extends AbstractHelper
             $request['additionalData']['allow3DS2'] = true;
             $request['origin'] = $this->adyenHelper->getOrigin();
             $request['channel'] = 'web';
-            $request['browserInfo']['screenWidth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_WIDTH];
-            $request['browserInfo']['screenHeight'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_HEIGHT];
-            $request['browserInfo']['colorDepth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH];
-            $request['browserInfo']['timeZoneOffset'] = $additionalData[AdyenCcDataAssignObserver::TIMEZONE_OFFSET];
-            $request['browserInfo']['language'] = $additionalData[AdyenCcDataAssignObserver::LANGUAGE];
-
-            if ($javaEnabled = $additionalData[AdyenCcDataAssignObserver::JAVA_ENABLED]) {
-                $request['browserInfo']['javaEnabled'] = $javaEnabled;
-            } else {
-                $request['browserInfo']['javaEnabled'] = false;
-            }
         } else {
             $request['additionalData']['allow3DS2'] = false;
             $request['origin'] = $this->adyenHelper->getOrigin();
@@ -341,7 +330,7 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringData($areaCode, int $storeId, $additionalData, $request = [])
+    public function buildRecurringData($areaCode, int $storeId, $request = [])
     {
         // If the vault feature is on this logic is handled in the VaultDataBuilder
         if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
@@ -362,11 +351,6 @@ class Requests extends AbstractHelper
                 $request['enableRecurring'] = true;
             } else {
                 $request['enableRecurring'] = false;
-            }
-
-            // value can be 0,1 or true
-            if (!empty($additionalData[AdyenCcDataAssignObserver::STORE_CC])) {
-                $request['paymentMethod']['storeDetails'] = true;
             }
         }
 

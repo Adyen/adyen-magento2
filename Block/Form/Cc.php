@@ -67,22 +67,14 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         $this->checkoutSession = $checkoutSession;
     }
 
-    /**
-     * @return string
-     */
-    public function getCheckoutCardComponentJs()
-    {
-        return $this->adyenHelper->getCheckoutCardComponentJs($this->checkoutSession->getQuote()->getStore()->getId());
-    }
-
-    /**
-     * @return string
-     * @throws \Adyen\AdyenException
-     */
-    public function getCheckoutOriginKeys()
-    {
-        return $this->adyenHelper->getOriginKeyForBaseUrl();
-    }
+	/**
+	 * @return string
+	 * @throws \Adyen\AdyenException
+	 */
+	public function getCheckoutOriginKeys()
+	{
+		return $this->adyenHelper->getOriginKeyForBaseUrl();
+	}
 
     /**
      * @return string

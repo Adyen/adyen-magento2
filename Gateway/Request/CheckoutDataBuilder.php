@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
@@ -82,14 +83,17 @@ class CheckoutDataBuilder implements BuilderInterface
         // do not send email
         $order->setCanSendNewEmailFlag(false);
 
-        $requestBodyPaymentMethod['type'] = $payment->getAdditionalInformation(
-            AdyenHppDataAssignObserver::BRAND_CODE
-        );
+        $componentStateData = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::STATE_DATA);
+        $requestBody = array_merge($requestBody, $componentStateData);
 
-        // Additional data for payment methods with issuer list
-        if ($payment->getAdditionalInformation(AdyenHppDataAssignObserver::ISSUER_ID)) {
-            $requestBodyPaymentMethod['issuer'] = $payment->getAdditionalInformation(
-                AdyenHppDataAssignObserver::ISSUER_ID
+
+        if (empty($requestBody['paymentMethod']['type']) && !empty(
+            $payment->getAdditionalInformation(
+                AdyenHppDataAssignObserver::BRAND_CODE
+            )
+            )) {
+            $requestBody['paymentMethod']['type'] = $payment->getAdditionalInformation(
+                AdyenHppDataAssignObserver::BRAND_CODE
             );
         }
 
@@ -97,59 +101,24 @@ class CheckoutDataBuilder implements BuilderInterface
                 \Magento\Framework\UrlInterface::URL_TYPE_LINK
             ) . 'adyen/process/result';
 
-        // Additional data for ACH
-        if ($payment->getAdditionalInformation("bankAccountNumber")) {
-            $requestBody['bankAccount']['bankAccountNumber'] = $payment->getAdditionalInformation("bankAccountNumber");
-        }
-
-        if ($payment->getAdditionalInformation("bankLocationId")) {
-            $requestBody['bankAccount']['bankLocationId'] = $payment->getAdditionalInformation("bankLocationId");
-        }
-
-        if ($payment->getAdditionalInformation("bankAccountOwnerName")) {
-            $requestBody['bankAccount']['ownerName'] = $payment->getAdditionalInformation("bankAccountOwnerName");
-        }
-
-        // Additional data for open invoice payment
+        // TODO set order payment extra data -> mapping required
         if ($payment->getAdditionalInformation("gender")) {
             $order->setCustomerGender(
-                $this->gender->getMagentoGenderFromAdyenGender(
+                \Adyen\Payment\Model\Gender::getMagentoGenderFromAdyenGender(
                     $payment->getAdditionalInformation("gender")
                 )
             );
-            $requestBodyPaymentMethod['personalDetails']['gender'] = $payment->getAdditionalInformation("gender");
         }
 
         if ($payment->getAdditionalInformation("dob")) {
             $order->setCustomerDob($payment->getAdditionalInformation("dob"));
-
-            $requestBodyPaymentMethod['personalDetails']['dateOfBirth'] = $this->adyenHelper->formatDate(
-                $payment->getAdditionalInformation("dob"),
-                'Y-m-d'
-            );
         }
 
         if ($payment->getAdditionalInformation("telephone")) {
             $order->getBillingAddress()->setTelephone($payment->getAdditionalInformation("telephone"));
-            $requestBodyPaymentMethod['personalDetails']['telephoneNumber'] = $payment->getAdditionalInformation(
-                "telephone"
-            );
         }
 
-        if ($payment->getAdditionalInformation("ssn")) {
-            $requestBodyPaymentMethod['personalDetails']['socialSecurityNumber'] =
-                $payment->getAdditionalInformation("ssn");
-        }
-
-        // Additional data for sepa direct debit
-        if ($payment->getAdditionalInformation("ownerName")) {
-            $requestBodyPaymentMethod['sepa.ownerName'] = $payment->getAdditionalInformation("ownerName");
-        }
-
-        if ($payment->getAdditionalInformation("ibanNumber")) {
-            $requestBodyPaymentMethod['sepa.ibanNumber'] = $payment->getAdditionalInformation("ibanNumber");
-        }
-
+        // TODO new function isOpenInvoiceLineItemNeeded
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
                 $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
             ) || $this->adyenHelper->isPaymentMethodAfterpayTouchMethod(
@@ -163,6 +132,7 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         // Ratepay specific Fingerprint
+        // TODO check if this is still necessary or if there is a component that can handle this
         if ($payment->getAdditionalInformation("df_value") && $this->adyenHelper->isPaymentMethodRatepayMethod(
                 $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
             )) {
@@ -183,16 +153,17 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         if ($payment->getMethod() == \Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider::CODE) {
-            $boletoTypes = $this->adyenHelper->getAdyenBoletoConfigData('boletotypes');
+            // TODO check if this is coming from the component now
+            /*$boletoTypes = $this->adyenHelper->getAdyenBoletoConfigData('boletotypes');
             $boletoTypes = explode(',', $boletoTypes);
 
             if (count($boletoTypes) == 1) {
                 $requestBody['selectedBrand'] = $boletoTypes[0];
-                $requestBodyPaymentMethod['type'] = $boletoTypes[0];
+                $requestBody['paymentMethod']['type'] = $boletoTypes[0];
             } else {
                 $requestBody['selectedBrand'] = $payment->getAdditionalInformation("boleto_type");
-                $requestBodyPaymentMethod['type'] = $payment->getAdditionalInformation("boleto_type");
-            }
+                $requestBody['paymentMethod']['type'] = $payment->getAdditionalInformation("boleto_type");
+            }*/
 
             $deliveryDays = (int)$this->adyenHelper->getAdyenBoletoConfigData("delivery_days", $storeId);
             $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
@@ -213,7 +184,23 @@ class CheckoutDataBuilder implements BuilderInterface
             $order->setCanSendNewEmailFlag(true);
         }
 
-        $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
+        // if installments is set and card type is credit card add it into the request
+        $numberOfInstallments = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) ?: 0;
+        $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE) ?: 'credit';
+        if ($numberOfInstallments > 0) {
+            $requestBody['installments']['value'] = $numberOfInstallments;
+        }
+
+        // if card type is debit then change the issuer type and unset the installments field
+        if ($comboCardType == 'debit') {
+            if ($selectedDebitBrand = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'))) {
+                $requestBody['additionalData']['overwriteBrand'] = true;
+                $requestBody['selectedBrand'] = $selectedDebitBrand;
+                $requestBody['paymentMethod']['type'] = $selectedDebitBrand;
+            }
+            unset($requestBody['installments']);
+        }
+
         $request['body'] = $requestBody;
 
         return $request;
@@ -311,5 +298,20 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         return $formFields;
+    }
+
+    /**
+     * @param string $brand
+     * @return string
+     */
+    private function getSelectedDebitBrand($brand)
+    {
+        if ($brand == 'VI') {
+            return 'electron';
+        }
+        if ($brand == 'MC') {
+            return 'maestro';
+        }
+        return null;
     }
 }

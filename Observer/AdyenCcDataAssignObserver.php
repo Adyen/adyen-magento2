@@ -24,50 +24,31 @@
 namespace Adyen\Payment\Observer;
 
 use Magento\Framework\Event\Observer;
-use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 
 class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 {
-    const CC_TYPE = 'cc_type';
-    const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
-    const STORE_CC = 'store_cc';
-    const ENCRYPTED_CREDIT_CARD_NUMBER = 'number';
-    const ENCRYPTED_SECURITY_CODE = 'cvc';
-    const ENCRYPTED_EXPIRY_MONTH = 'expiryMonth';
-    const ENCRYPTED_EXPIRY_YEAR = 'expiryYear';
-    const HOLDER_NAME = 'holderName';
-    const VARIANT = 'variant';
-    const JAVA_ENABLED = 'java_enabled';
-    const SCREEN_COLOR_DEPTH = 'screen_color_depth';
-    const SCREEN_WIDTH = 'screen_width';
-    const SCREEN_HEIGHT = 'screen_height';
-    const TIMEZONE_OFFSET = 'timezone_offset';
-    const LANGUAGE = 'language';
-    const GUEST_EMAIL = 'guestEmail';
-    const COMBO_CARD_TYPE = 'combo_card_type';
-
     /**
+     * Approved root level keys from additional data array
+     *
      * @var array
      */
-    protected $additionalInformationList = [
-        self::CC_TYPE,
-        self::NUMBER_OF_INSTALLMENTS,
-        self::STORE_CC,
-        self::ENCRYPTED_CREDIT_CARD_NUMBER,
-        self::ENCRYPTED_SECURITY_CODE,
-        self::ENCRYPTED_EXPIRY_MONTH,
-        self::ENCRYPTED_EXPIRY_YEAR,
-        self::HOLDER_NAME,
-        self::VARIANT,
-        self::JAVA_ENABLED,
-        self::SCREEN_COLOR_DEPTH,
-        self::SCREEN_WIDTH,
-        self::SCREEN_HEIGHT,
-        self::TIMEZONE_OFFSET,
-        self::LANGUAGE,
-        self::GUEST_EMAIL,
-        self::COMBO_CARD_TYPE
+    protected $approvedAdditionalDataKeys = [
+        self::STATE_DATA,
+        self::COMBO_CARD_TYPE,
+        self::NUMBER_OF_INSTALLMENTS
+    ];
+
+    /**
+     * Approved root level keys from the checkout component's state data object
+     *
+     * @var array
+     */
+    protected $approvedStateDataKeys = [
+        self::BROWSER_INFO,
+        self::PAYMENT_METHOD,
+        self::RISK_DATA,
+        self::STORE_PAYMENT_METHOD
     ];
 
     /**
@@ -76,27 +57,20 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
      */
     public function execute(Observer $observer)
     {
+        // Get request fields
         $data = $this->readDataArgument($observer);
 
-        $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
-        if (!is_array($additionalData)) {
-            return;
-        }
+        $additionalData = $this->getValidatedAdditionalData($data);
 
+        // Set additional data in the payment
         $paymentInfo = $this->readPaymentModelArgument($observer);
+        foreach ($additionalData as $key => $data) {
+            $paymentInfo->setAdditionalInformation($key, $data);
+        }
 
         // set ccType
-        if (!empty($additionalData['cc_type'])) {
-            $paymentInfo->setCcType($additionalData['cc_type']);
-        }
-
-        foreach ($this->additionalInformationList as $additionalInformationKey) {
-            if (isset($additionalData[$additionalInformationKey])) {
-                $paymentInfo->setAdditionalInformation(
-                    $additionalInformationKey,
-                    $additionalData[$additionalInformationKey]
-                );
-            }
+        if (!empty($additionalData[self::CC_TYPE])) {
+            $paymentInfo->setCcType($additionalData[self::CC_TYPE]);
         }
     }
 }

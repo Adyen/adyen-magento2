@@ -4,37 +4,23 @@
  */
 define(
     [
+        'ko',
         'underscore',
         'Magento_Checkout/js/model/quote',
-        'Adyen_Payment/js/model/adyen-method-list',
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/url-builder',
-        'mage/storage'
+        'mage/storage',
+        'Adyen_Payment/js/bundle',
     ],
-    function (_, quote, methodList, customer, urlBuilder, storage) {
+    function (ko, _, quote, customer, urlBuilder, storage, adyenComponent) {
         'use strict';
-
+        var checkoutComponent = {};
+        var paymentMethods = ko.observable({})
         return {
-            /**
-             * Populate the list of payment methods
-             * @param {Array} methods
-             */
-            setPaymentMethods: function (methods) {
-                methodList(methods);
-            },
-            /**
-             * Get the list of available payment methods.
-             * @returns {Array}
-             */
-            getAvailablePaymentMethods: function () {
-                return methodList();
-            },
             /**
              * Retrieve the list of available payment methods from the server
              */
-            retrieveAvailablePaymentMethods: function (callback) {
-                var self = this;
-
+            retrieveAvailablePaymentMethods: function () {
                 // retrieve payment methods
                 var serviceUrl,
                     payload;
@@ -51,21 +37,30 @@ define(
                     shippingAddress: quote.shippingAddress()
                 };
 
-                storage.post(
+                return storage.post(
                     serviceUrl,
-                    JSON.stringify(payload)
-                ).done(
-                    function (response) {
-                        self.setPaymentMethods(response);
-                        if (callback) {
-                            callback();
-                        }
-                    }
-                ).fail(
-                    function () {
-                        self.setPaymentMethods([]);
-                    }
+                    JSON.stringify(payload),
+                    true
                 )
+            },
+            /**
+             * The results that the 3DS2 components returns in the onComplete callback needs to be sent to the
+             * backend to the /adyen/threeDS2Process endpoint and based on the response render a new threeDS2
+             * component or place the order (validateThreeDS2OrPlaceOrder)
+             * @param response
+             */
+            processThreeDS2: function (data) {
+                var payload = {
+                    "payload": JSON.stringify(data)
+                };
+
+                var serviceUrl = urlBuilder.createUrl('/adyen/threeDS2Process', {});
+
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(payload),
+                    true
+                );
             },
             getOrderPaymentStatus: function (orderId) {
                 var serviceUrl = urlBuilder.createUrl('/adyen/orders/:orderId/payment-status', {
@@ -73,6 +68,29 @@ define(
                 });
 
                 return storage.get(serviceUrl);
+            },
+            initCheckoutComponent: function(paymentMethodsResponse, originKey, locale, environment, ) {
+                checkoutComponent = new AdyenCheckout({
+                    locale: locale,
+                    originKey: originKey,
+                    environment: environment,
+                    paymentMethodsResponse: paymentMethodsResponse,
+                    consentCheckbox: false,
+                    visibility: {
+                        personalDetails: 'editable',
+                        billingAddress: 'editable',
+                        separateDeliveryAddress: 'hidden',
+                        deliveryAddress: 'hidden'
+                    }
+                });
+
+                paymentMethods(paymentMethodsResponse.paymentMethods);
+            },
+            getCheckoutComponent: function() {
+                return checkoutComponent;
+            },
+            getPaymentMethodsObservable: function() {
+                return paymentMethods;
             }
         };
     }
