@@ -205,6 +205,18 @@ define(
                             return;
                         }
 
+                        var city = '';
+                        var country = '';
+                        var postalCode = '';
+                        var street = '';
+
+                        if (!!quote && !!quote.shippingAddress()) {
+                             city = quote.shippingAddress().city;
+                             country = quote.shippingAddress().countryId;
+                             postalCode = quote.shippingAddress().postcode;
+                             street = quote.shippingAddress().street.join(" ");
+                        }
+
                         /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
                         var configuration = {
                             showPayButton: showPayButton,
