@@ -26,7 +26,7 @@ namespace Adyen\Payment\Observer;
 use Magento\Framework\Event\Observer;
 use Magento\Quote\Api\Data\PaymentInterface;
 
-class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
+class AdyenCcDataAssignObserver extends AdyenAbstractDataAssignObserver
 {
     /**
      * Approved root level keys from additional data array
