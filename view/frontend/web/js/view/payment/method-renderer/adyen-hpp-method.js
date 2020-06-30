@@ -198,6 +198,9 @@ define(
                             showPayButton = true;
                         }
 
+                        console.log(paymentMethod.type);
+                        console.log(paymentMethod.details);
+
                         // If the details are empty and the pay button does not needs to be rendered by the component
                         // simply skip rendering the adyen checkout component
                         if (!paymentMethod.details && !showPayButton) {
@@ -220,15 +223,15 @@ define(
                         /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
                         var configuration = {
                             showPayButton: showPayButton,
-                            data: {
+                            /*data: {
                                 billingAddress: {
-                                    city: quote.shippingAddress().city,
-                                    country: quote.shippingAddress().countryId,
+                                    city: city,
+                                    country: country,
                                     houseNumberOrName: '',
-                                    postalCode: quote.shippingAddress().postcode,
-                                    street: quote.shippingAddress().street.join(" ")
+                                    postalCode: postalCode,
+                                    street: street
                                 }
-                            },
+                            },*/
                             onChange: function (state) {
                                 if (!!state.isValid) {
                                     result.stateData = state.data;
@@ -240,9 +243,12 @@ define(
                             }
                         };
 
+                        console.log(configuration);
+
                         try {
                             self.checkoutComponent.create(result.getBrandCode(), configuration).mount('#adyen-alternative-payment-container-' + result.getBrandCode());
                         } catch (err) {
+                            console.log(err);
                             // The component does not exist yet
                         }
                     };
