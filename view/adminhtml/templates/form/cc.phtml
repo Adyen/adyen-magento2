@@ -111,7 +111,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                  */
                 var secureFieldsInitialize = function () {
 
-                    if (!"<?php $block->getCheckoutOriginKeys(); ?>") {
+                    if (!"<?= $block->getCheckoutOriginKeys(); ?>") {
                         document.getElementById('noApiKey').style = "visibility: visible; display:inline-block";
                         return;
                     }
