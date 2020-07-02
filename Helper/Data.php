@@ -93,7 +93,7 @@ class Data extends AbstractHelper
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
-    protected $adyenLogger;
+    public $adyenLogger;
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface

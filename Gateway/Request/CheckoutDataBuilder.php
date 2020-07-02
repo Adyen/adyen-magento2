@@ -85,7 +85,7 @@ class CheckoutDataBuilder implements BuilderInterface
 
         $componentStateData = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::STATE_DATA);
         $requestBody = array_merge($requestBody, $componentStateData);
-
+        $this->adyenHelper->adyenLogger->addAdyenDebug("Checkout data builder" . json_encode($requestBody));
 
         if (empty($requestBody['paymentMethod']['type']) && !empty(
             $payment->getAdditionalInformation(

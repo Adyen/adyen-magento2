@@ -37,7 +37,17 @@ abstract class AdyenAbstractDataAssignObserver extends AbstractDataAssignObserve
     const CC_TYPE = 'cc_type';
     const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
     const COMBO_CARD_TYPE = 'combo_card_type';
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    public $adyenHelper;
 
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper
+
+    ) {
+        $this->adyenHelper = $adyenHelper;
+    }
     /**
      * @param DataObject $data
      * @return array
@@ -50,6 +60,7 @@ abstract class AdyenAbstractDataAssignObserver extends AbstractDataAssignObserve
             return [];
         }
 
+        $this->adyenHelper->adyenLogger->addAdyenDebug("----Data" . $additionalData);
         // Get a validated additional data array
         $additionalData = $this->getArrayOnlyWithApprovedKeys($additionalData, $this->approvedAdditionalDataKeys);
 

@@ -36,7 +36,7 @@ class Requests extends AbstractHelper
     /**
      * @var \Adyen\Payment\Helper\Data
      */
-    private $adyenHelper;
+    public $adyenHelper;
 
     /**
      * Requests constructor.
@@ -138,6 +138,10 @@ class Requests extends AbstractHelper
 
                 if ($lastName = $billingAddress->getLastname()) {
                     $request['shopperName']['lastName'] = $lastName;
+                }
+
+                if ($dateOfBirth = $billingAddress->getDateOfBirth()) {
+                    $request['paymentMethod']['personalDetails']['dateOfBirth'] = $dateOfBirth;
                 }
             }
 

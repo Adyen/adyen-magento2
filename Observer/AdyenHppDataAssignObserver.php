@@ -33,6 +33,19 @@ class AdyenHppDataAssignObserver extends AdyenAbstractDataAssignObserver
      *
      * @var array
      */
+
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    private $adyenHelper;
+
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper
+
+    ) {
+        $this->adyenHelper = $adyenHelper;
+
+    }
     protected $approvedAdditionalDataKeys = [
         self::STATE_DATA,
         self::BRAND_CODE
@@ -57,9 +70,9 @@ class AdyenHppDataAssignObserver extends AdyenAbstractDataAssignObserver
     {
         // Get request fields
         $data = $this->readDataArgument($observer);
-
+        $this->adyenHelper->adyenLogger->addAdyenDebug("--Data" . json_encode($data));
         $additionalData = $this->getValidatedAdditionalData($data);
-
+        $this->adyenHelper->adyenLogger->addAdyenDebug("Additional--Data" . json_encode($additionalData));
         // Set additional data in the payment
         $paymentInfo = $this->readPaymentModelArgument($observer);
         foreach ($additionalData as $key => $data) {

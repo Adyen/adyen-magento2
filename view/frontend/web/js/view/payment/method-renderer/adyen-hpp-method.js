@@ -212,18 +212,49 @@ define(
                         var country = '';
                         var postalCode = '';
                         var street = '';
+                        var firstName = '';
+                        var lastName = '';
+                        var telephone = '';
+                        var email = '';
+                        var shopperGender = '';
+                        var shopperDateOfBirth = '';
 
                         if (!!quote && !!quote.shippingAddress()) {
-                             city = quote.shippingAddress().city;
-                             country = quote.shippingAddress().countryId;
-                             postalCode = quote.shippingAddress().postcode;
-                             street = quote.shippingAddress().street.join(" ");
+                            city = quote.shippingAddress().city;
+                            country = quote.shippingAddress().countryId;
+                            postalCode = quote.shippingAddress().postcode;
+                            street = quote.shippingAddress().street.join(" ");
+                            firstName = quote.shippingAddress().firstname;
+                            lastName = quote.shippingAddress().lastname;
+                            telephone = quote.shippingAddress().telephone;
+                            email = customerData.email;
+                            shopperGender = customerData.gender;
+                            shopperDateOfBirth = customerData.dob;
+                        }
+
+                        function getAdyenGender(gender) {
+                            if (gender == 1) {
+                                return 'MALE';
+                            } else if (gender == 2) {
+                                return 'FEMALE';
+                            }
+                            return 'UNKNOWN';
+
                         }
 
                         /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
                         var configuration = {
                             showPayButton: showPayButton,
-                            /*data: {
+                            countryCode: country,
+                            data: {
+                                personalDetails: {
+                                    firstName: firstName,
+                                    lastName: lastName,
+                                    telephoneNumber: telephone,
+                                    shopperEmail: email,
+                                    gender: getAdyenGender(shopperGender),
+                                    dateOfBirth:shopperDateOfBirth
+                                },
                                 billingAddress: {
                                     city: city,
                                     country: country,
@@ -231,7 +262,7 @@ define(
                                     postalCode: postalCode,
                                     street: street
                                 }
-                            },*/
+                            },
                             onChange: function (state) {
                                 if (!!state.isValid) {
                                     result.stateData = state.data;
