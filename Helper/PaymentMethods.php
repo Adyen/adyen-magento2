@@ -273,7 +273,7 @@ class PaymentMethods extends AbstractHelper
 
         throw new \Exception(
             \sprintf(
-                'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float > `0.0`, got %f.',
+                'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float > `0.0`, got `%f`.',
                 $this->getQuote()->getEntityId(),
                 $grandTotal
             )
