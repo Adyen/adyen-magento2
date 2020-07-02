@@ -173,7 +173,7 @@ class PaymentMethods extends AbstractHelper
             "countryCode" => $this->getCurrentCountryCode($store, $country),
             "amount" => [
                 "currency" => $currencyCode,
-                "value" => (int)$this->adyenHelper->formatAmount(
+                "value" => $this->adyenHelper->formatAmount(
                     $this->getCurrentPaymentAmount(),
                     $currencyCode
                 ),
@@ -252,15 +252,32 @@ class PaymentMethods extends AbstractHelper
         return $paymentMethods;
     }
 
-    /**
-     * @return bool|int
-     */
-    protected function getCurrentPaymentAmount()
+    protected function getCurrentPaymentAmount(): float
     {
-        if (($grandTotal = $this->getQuote()->getGrandTotal()) > 0) {
+        $grandTotal = $this->getQuote()->getGrandTotal();
+
+        if (!\is_numeric($grandTotal)) {
+            throw new \Exception(
+                \sprintf(
+                    'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a numeric value.',
+                    $this->getQuote()->getEntityId()
+                )
+            );
+        }
+
+        $grandTotal = (float) $grandTotal;
+
+        if ($grandTotal > 0.0) {
             return $grandTotal;
         }
-        return 10;
+
+        throw new \Exception(
+            \sprintf(
+                'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float > `0.0`, got %f.',
+                $this->getQuote()->getEntityId(),
+                $grandTotal
+            )
+        );
     }
 
     /**
