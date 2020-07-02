@@ -30,6 +30,7 @@ use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
+use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\InvoiceRepository;
 use Magento\Sales\Model\Order\Shipment;
 use Psr\Log\LoggerInterface;
@@ -123,6 +124,7 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
             // set transaction id so you can do a online refund from credit memo
             $pspReference = $order->getPayment()->getAdyenPspReference();
             $invoice->setTransactionId($pspReference);
+            $invoice->setRequestedCaptureCase(Invoice::CAPTURE_ONLINE);
             $invoice->register()->pay();
             $this->invoiceRepository->save($invoice);
         } catch (Throwable $e) {
