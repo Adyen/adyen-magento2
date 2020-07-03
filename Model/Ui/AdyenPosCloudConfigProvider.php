@@ -28,9 +28,8 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 
 class AdyenPosCloudConfigProvider implements ConfigProviderInterface
 {
-
     const CODE = 'adyen_pos_cloud';
-    
+
     /**
      * Request object
      *

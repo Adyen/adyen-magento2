@@ -25,20 +25,26 @@
 // @codingStandardsIgnoreFile
 
 ?>
-<?php
-$_info = $this->getInfo();
-?>
 
 <dl class="payment-method adyen_pos_cloud">
-    <dt class="title"><?php echo $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
+    <dt class="title"><?= $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
     <style>
-        table.terminal-api-receipt{margin-top: 10px}
-        td.terminal-api-receipt-name{padding:inherit; font-weight: 700}
-        td.terminal-api-receipt-value{padding:inherit;}
-        tr.terminal-api-receipt{padding-bottom: 5px;}
+        table.terminal-api-receipt {
+            margin-top: 10px
+        }
+
+        td.terminal-api-receipt-name {
+            padding: inherit;
+            font-weight: 700
+        }
+
+        td.terminal-api-receipt-value {
+            padding: inherit;
+        }
+
+        tr.terminal-api-receipt {
+            padding-bottom: 5px;
+        }
     </style>
-    <?php
-    $receipt = $this->getMethod()->getInfoInstance()->getAdditionalInformation('receipt');
-    echo $receipt;
-    ?>
+    <?= $block->escapeHtml($block->getMethod()->getInfoInstance()->getAdditionalInformation('receipt')); ?>
 </dl>

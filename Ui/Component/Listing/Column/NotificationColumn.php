@@ -25,7 +25,6 @@ namespace Adyen\Payment\Ui\Component\Listing\Column;
 
 class NotificationColumn extends \Magento\Ui\Component\Listing\Columns\Column
 {
-
     /**
      * @var \Magento\Sales\Api\Data\OrderInterface
      */
@@ -56,7 +55,6 @@ class NotificationColumn extends \Magento\Ui\Component\Listing\Columns\Column
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
-
     /**
      * Style and format Adyen notification columns
      *
@@ -65,13 +63,11 @@ class NotificationColumn extends \Magento\Ui\Component\Listing\Columns\Column
      */
     public function prepareDataSource(array $dataSource)
     {
-
         if (empty($dataSource['data']['items'])) {
             return $dataSource;
         }
 
         foreach ($dataSource['data']['items'] as & $item) {
-
             $class = "grid-severity-critical";
             if ($item["success"] == "true") {
                 $class = "grid-severity-notice";
@@ -93,7 +89,6 @@ class NotificationColumn extends \Magento\Ui\Component\Listing\Columns\Column
             $this->orderInterface->unsetData();
             $order = $this->orderInterface->loadByIncrementId($item["merchant_reference"]);
             if ($order->getId()) {
-
                 $orderUrl = $this->backendHelper->getUrl("sales/order/view", ["order_id" => $order->getId()]);
                 $item["merchant_reference"] = sprintf(
                     '<a href="%s">%s</a>',
@@ -108,9 +103,7 @@ class NotificationColumn extends \Magento\Ui\Component\Listing\Columns\Column
                     ),
                     $item["pspreference"]
                 );
-
             }
-
         }
 
         return $dataSource;

@@ -24,60 +24,112 @@
 
 namespace Adyen\Payment\Observer\Adminhtml;
 
+use Adyen\Payment\Helper\Data as AdyenHelper;
+use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
+use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Model\Order\InvoiceRepository;
+use Magento\Sales\Model\Order\Shipment;
+use Psr\Log\LoggerInterface;
+use Throwable;
 
-/**
- * Class DataAssignObserver
- */
 class BeforeShipmentObserver extends AbstractDataAssignObserver
 {
-
     private $adyenHelper;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * @var InvoiceRepository
+     */
+    private $invoiceRepository;
 
     /**
      * BeforeShipmentObserver constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param AdyenHelper $adyenHelper
+     * @param AdyenLogger $logger
+     * @param InvoiceRepository $invoiceRepository
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        AdyenHelper $adyenHelper,
+        AdyenLogger $logger,
+        InvoiceRepository $invoiceRepository
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->logger = $logger;
+        $this->invoiceRepository = $invoiceRepository;
     }
 
     /**
      * @param Observer $observer
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws Exception
      */
     public function execute(Observer $observer)
     {
-        $shipment = $observer->getEvent()->getShipment();
+        /** @var Shipment $shipment */
+        $shipment = $observer->getEvent()->getData('shipment');
         $order = $shipment->getOrder();
-        $captureOnShipment = $this->adyenHelper->getConfigData('capture_on_shipment', 'adyen_abstract', $order->getStoreId());
 
-        if ($this->isPaymentMethodAdyen($order) && $captureOnShipment) {
-            $payment = $order->getPayment();
-            $brandCode = $payment->getAdditionalInformation(
-                \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
+        if (!$this->isPaymentMethodAdyen($order)) {
+            $this->logger->info(
+                "Payment method is not from Adyen for order id {$order->getId()}",
+                ['observer' => 'BeforeShipmentObserver']
             );
+            return;
+        }
 
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
-                if ($order->canInvoice()) {
-                    try {
-                        $invoice = $order->prepareInvoice();
-                        $invoice->getOrder()->setIsInProcess(true);
+        $captureOnShipment = $this->adyenHelper->getConfigData(
+            'capture_on_shipment',
+            'adyen_abstract',
+            $order->getStoreId()
+        );
 
-                        // set transaction id so you can do a online refund from credit memo
-                        $pspReference = $order->getPayment()->getAdyenPspReference();
-                        $invoice->setTransactionId($pspReference);
-                        $invoice->register()->pay();
-                        $invoice->save();
-                    } catch (\Exception $e) {
-                        throw new \Exception(sprintf('Error saving invoice. The error message is:', $e->getMessage()));
-                    }
-                }
-            }
+        if (!$captureOnShipment) {
+            $this->logger->info(
+                "Capture on shipment not configured for order id {$order->getId()}",
+                ['observer' => 'BeforeShipmentObserver']
+            );
+            return;
+        }
+
+        $payment = $order->getPayment();
+        $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+
+        if (!$this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
+            $this->logger->info(
+                "Payment method is from Adyen but isn't OpenInvoice for order id {$order->getId()}",
+                ['observer' => 'BeforeShipmentObserver']
+            );
+            return;
+        }
+
+        if (!$order->canInvoice()) {
+            $this->logger->info(
+                "Cannot invoice order with id {$order->getId()}",
+                ['observer' => 'BeforeShipmentObserver']
+            );
+            return;
+        }
+
+        try {
+            $invoice = $order->prepareInvoice();
+            $invoice->getOrder()->setIsInProcess(true);
+
+            // set transaction id so you can do a online refund from credit memo
+            $pspReference = $order->getPayment()->getAdyenPspReference();
+            $invoice->setTransactionId($pspReference);
+            $invoice->setRequestedCaptureCase(Invoice::CAPTURE_ONLINE);
+            $invoice->register()->pay();
+            $this->invoiceRepository->save($invoice);
+        } catch (Throwable $e) {
+            $this->logger->error($e);
+            throw new Exception('Error saving invoice. The error message is: ' . $e->getMessage());
         }
     }
 

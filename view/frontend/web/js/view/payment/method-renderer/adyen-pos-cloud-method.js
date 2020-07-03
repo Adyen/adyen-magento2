@@ -96,7 +96,7 @@ define(
                 return storage.post(
                     serviceUrl,
                     JSON.stringify(payload)
-                ).always(function(){
+                ).always(function () {
                     self.placeOrderPos()});
                 return false;
             },
@@ -114,7 +114,7 @@ define(
                 ).fail(
                     function (response) {
                         if (response.responseText.indexOf("In Progress") > -1) {
-                            window.setTimeout(function(){
+                            window.setTimeout(function () {
                                 self.placeOrderPos()},5000);
                             return;
                         }
@@ -128,7 +128,7 @@ define(
                     }
                 )
             },
-            getConnectedTerminals: function() {
+            getConnectedTerminals: function () {
                 var connectedTerminals = [];
                 const connectedTerminalsList = window.checkoutConfig.payment.adyenPos.connectedTerminals;
 

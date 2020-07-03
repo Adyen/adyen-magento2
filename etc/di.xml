@@ -900,13 +900,6 @@
         </arguments>
     </virtualType>
 
-    <!--Checkout Response validator-->
-    <virtualType name="CheckoutResponseValidator" type="Adyen\Payment\Gateway\Validator\CheckoutResponseValidator">
-        <arguments>
-            <argument name="loggerInterface" xsi:type="object">Adyen\Payment\Logger\AdyenLogger</argument>
-        </arguments>
-    </virtualType>
-
     <virtualType name="PosCloudResponseValidator" type="Adyen\Payment\Gateway\Validator\PosCloudResponseValidator">
         <arguments>
             <argument name="loggerInterface" xsi:type="object">Adyen\Payment\Logger\AdyenLogger</argument>
@@ -1057,6 +1050,7 @@
                 <item name="payment/adyen_abstract/debug" xsi:type="string">1</item>
                 <item name="payment/adyen_apple_pay/full_path_location_pem_file_test" xsi:type="string">1</item>
                 <item name="payment/adyen_apple_pay/full_path_location_pem_file_live" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/notifications_ip_hmac_check" xsi:type="string">1</item>
             </argument>
             <argument name="sensitive" xsi:type="array">
                 <item name="payment/adyen_abstract/merchant_account" xsi:type="string">1</item>
@@ -1075,6 +1069,8 @@
                 <item name="payment/adyen_apple_pay/merchant_identifier_test" xsi:type="string">1</item>
                 <item name="payment/adyen_apple_pay/merchant_identifier_live" xsi:type="string">1</item>
                 <item name="payment/adyen_google_pay/merchant_identifier" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/notification_hmac_key_test" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/notification_hmac_key_live" xsi:type="string">1</item>
             </argument>
         </arguments>
     </type>

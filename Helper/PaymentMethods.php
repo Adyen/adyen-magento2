@@ -50,10 +50,10 @@ class PaymentMethods extends AbstractHelper
      */
     protected $session;
 
-	/**
-	 * @var \Magento\Framework\Locale\ResolverInterface
-	 */
-	protected $localeResolver;
+    /**
+     * @var \Magento\Framework\Locale\ResolverInterface
+     */
+    protected $localeResolver;
 
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
@@ -97,7 +97,7 @@ class PaymentMethods extends AbstractHelper
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param Data $adyenHelper
      * @param \Magento\Checkout\Model\Session $session
-	 * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
+     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param \Magento\Framework\App\RequestInterface $request
@@ -110,7 +110,7 @@ class PaymentMethods extends AbstractHelper
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $session,
-		\Magento\Framework\Locale\ResolverInterface $localeResolver,
+        \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\App\RequestInterface $request,
@@ -122,7 +122,7 @@ class PaymentMethods extends AbstractHelper
         $this->config = $config;
         $this->adyenHelper = $adyenHelper;
         $this->session = $session;
-		$this->localeResolver = $localeResolver;
+        $this->localeResolver = $localeResolver;
         $this->adyenLogger = $adyenLogger;
         $this->assetRepo = $assetRepo;
         $this->request = $request;
@@ -195,7 +195,6 @@ class PaymentMethods extends AbstractHelper
         $paymentMethods = [];
         if (isset($responseData['paymentMethods'])) {
             foreach ($responseData['paymentMethods'] as $paymentMethod) {
-
                 $paymentMethodCode = $paymentMethod['type'];
                 $paymentMethod = $this->fieldMapPaymentMethod($paymentMethod);
 
@@ -218,14 +217,20 @@ class PaymentMethods extends AbstractHelper
                     }
 
                     $params = [];
-                    $params = array_merge([
-                        'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
-                        '_secure' => $this->request->isSecure(),
-                        'theme' => $themeCode
-                    ], $params);
+                    $params = array_merge(
+                        [
+                            'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                            '_secure' => $this->request->isSecure(),
+                            'theme' => $themeCode
+                        ],
+                        $params
+                    );
 
-                    $asset = $this->assetRepo->createAsset('Adyen_Payment::images/logos/' .
-                        $paymentMethodCode . '.png', $params);
+                    $asset = $this->assetRepo->createAsset(
+                        'Adyen_Payment::images/logos/' .
+                        $paymentMethodCode . '.png',
+                        $params
+                    );
 
                     $placeholder = $this->assetSource->findSource($asset);
 
@@ -257,7 +262,6 @@ class PaymentMethods extends AbstractHelper
         }
         return 10;
     }
-
 
     /**
      * @param $store
@@ -332,7 +336,6 @@ class PaymentMethods extends AbstractHelper
      */
     protected function getPaymentMethodsResponse($requestParams, $store)
     {
-
         // initialize the adyen client
         $client = $this->adyenHelper->initializeAdyenClient($store->getId());
 
@@ -382,7 +385,6 @@ class PaymentMethods extends AbstractHelper
      */
     public function getConnectedTerminals()
     {
-
         $storeId = $this->getQuote()->getStoreId();
 
         // initialize the adyen client

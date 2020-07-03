@@ -25,7 +25,6 @@ namespace Adyen\Payment\Model\Billing;
 
 class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 {
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -97,11 +96,13 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 
         //Billing agreement SEPA
         if (isset($data['bank']['iban'])) {
-            $this->setAgreementLabel(__(
-                '%1, %2',
-                $data['bank']['iban'],
-                $data['bank']['ownerName']
-            ));
+            $this->setAgreementLabel(
+                __(
+                    '%1, %2',
+                    $data['bank']['iban'],
+                    $data['bank']['ownerName']
+                )
+            );
         }
 
         // Billing agreement is CC
@@ -188,7 +189,11 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
             !isset($contractDetail['expiryDate']) ||
             !isset($contractDetail['paymentMethod'])
         ) {
-            $this->_errors[] = __('"In the Additional data in API response section, select: Card bin, Card summary, Expiry Date, Cardholder name, Recurring details and Variant to create billing agreements immediately after the payment is authorized."');
+            $this->_errors[] = __(
+                '"In the Additional data in API response section, select: Card bin, 
+                Card summary, Expiry Date, Cardholder name, Recurring details and Variant 
+                to create billing agreements immediately after the payment is authorized."'
+            );
             return $this;
         }
         // Billing agreement is CC
@@ -262,7 +267,8 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         return $this;
     }
 
-    public function getErrors() {
+    public function getErrors()
+    {
         return $this->_errors;
     }
 }

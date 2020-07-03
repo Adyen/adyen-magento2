@@ -25,7 +25,6 @@ namespace Adyen\Payment\Model\Config\Source;
 
 class DemoMode implements \Magento\Framework\Option\ArrayInterface
 {
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */

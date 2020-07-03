@@ -34,12 +34,11 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 
 class VaultDetailsHandler implements HandlerInterface
 {
-
     const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
     const CARD_SUMMARY = 'cardSummary';
     const EXPIRY_DATE = 'expiryDate';
     const PAYMENT_METHOD = 'paymentMethod';
-    const ADDITIONAL_DATA_ERRORS = array(
+    const ADDITIONAL_DATA_ERRORS = [
         self::RECURRING_DETAIL_REFERENCE => 'Missing Token in Result please enable in ' .
             'Settings -> API URLs and Response menu in the Adyen Customer Area Recurring details setting',
         self::CARD_SUMMARY => 'Missing cardSummary in Result please login to the adyen portal ' .
@@ -48,7 +47,7 @@ class VaultDetailsHandler implements HandlerInterface
             'Settings -> API URLs and Response and enable the Expiry date property',
         self::PAYMENT_METHOD => 'Missing paymentMethod in Result please login to the adyen portal and go to ' .
             'Settings -> API URLs and Response and enable the Variant property'
-    );
+    ];
 
     /**
      * @var PaymentTokenFactoryInterface
@@ -117,8 +116,10 @@ class VaultDetailsHandler implements HandlerInterface
                 $extensionAttributes->setVaultPaymentToken($paymentToken);
             } else {
                 $this->adyenLogger->error(
-                    sprintf('Failure trying to save credit card token in vault for order %s',
-                        $payment->getOrder()->getIncrementId())
+                    sprintf(
+                        'Failure trying to save credit card token in vault for order %s',
+                        $payment->getOrder()->getIncrementId()
+                    )
                 );
             }
         }
@@ -133,7 +134,6 @@ class VaultDetailsHandler implements HandlerInterface
      */
     private function getVaultPaymentToken(array $response, $payment)
     {
-
         if (empty($response['additionalData'])) {
             return null;
         }
@@ -150,15 +150,17 @@ class VaultDetailsHandler implements HandlerInterface
         }
 
         try {
-
             // Check if paymentToken exists already
-            $paymentToken = $this->paymentTokenManagement->getByGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE],
-                $payment->getMethodInstance()->getCode(), $payment->getOrder()->getCustomerId());
+            $paymentToken = $this->paymentTokenManagement->getByGatewayToken(
+                $additionalData[self::RECURRING_DETAIL_REFERENCE],
+                $payment->getMethodInstance()->getCode(),
+                $payment->getOrder()->getCustomerId()
+            );
 
             $paymentTokenSaveRequired = false;
 
             // In case the payment token does not exist, create it based on the additionalData
-            if (is_null($paymentToken)) {
+            if ($paymentToken === null) {
                 /** @var PaymentTokenInterface $paymentToken */
                 $paymentToken = $this->paymentTokenFactory->create(
                     PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
@@ -226,6 +228,7 @@ class VaultDetailsHandler implements HandlerInterface
 
     /**
      * Get payment extension attributes
+     *
      * @param InfoInterface $payment
      * @return OrderPaymentExtensionInterface
      */

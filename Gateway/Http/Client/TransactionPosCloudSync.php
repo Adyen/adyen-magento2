@@ -144,7 +144,8 @@ class TransactionPosCloudSync implements ClientInterface
                 $errorMsg = __('In Progress');
                 throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
             } else {
-                $paymentResponse = $statusResponse['RepeatedMessageResponse']['RepeatedResponseMessageBody']['PaymentResponse'];
+                $paymentResponse = $statusResponse['RepeatedMessageResponse']['RepeatedResponseMessageBody']
+                ['PaymentResponse'];
             }
         } else {
             // probably SaleToPOIRequest, that means terminal unreachable, log the response as error

@@ -20,15 +20,13 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Observer;
 
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 
-/**
- * Class DataAssignObserver
- */
 class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
 {
     const SOCIAL_SECURITY_NUMBER = 'social_security_number';
@@ -61,6 +59,7 @@ class AdyenBoletoDataAssignObserver extends AbstractDataAssignObserver
     ) {
         $this->adyenHelper = $adyenHelper;
     }
+
     /**
      * @param Observer $observer
      * @return void

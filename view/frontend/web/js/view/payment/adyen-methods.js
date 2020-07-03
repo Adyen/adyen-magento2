@@ -81,10 +81,10 @@ define(
                     document.head.appendChild(googlepayscript);
                 }
             },
-            getCheckoutCardComponentSource: function() {
+            getCheckoutCardComponentSource: function () {
                 return window.checkoutConfig.payment.checkoutCardComponentSource;
             },
-            isGooglePayEnabled: function() {
+            isGooglePayEnabled: function () {
                 return window.checkoutConfig.payment.adyenGooglePay.active;
             }
         });

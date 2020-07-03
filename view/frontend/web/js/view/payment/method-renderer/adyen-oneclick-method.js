@@ -232,14 +232,14 @@ define(
                                             self.isPlaceOrderActionAllowed(true);
                                         }
                                     ).done(
-                                    function (orderId) {
-                                        self.afterPlaceOrder();
-                                        adyenPaymentService.getOrderPaymentStatus(orderId)
+                                        function (orderId) {
+                                            self.afterPlaceOrder();
+                                            adyenPaymentService.getOrderPaymentStatus(orderId)
                                             .done(function (responseJSON) {
                                                 self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
                                             });
-                                    }
-                                );
+                                        }
+                                    );
                             }
                             return false;
                         },
@@ -388,9 +388,9 @@ define(
                                                 fullScreenLoader.stopLoader();
                                             });
                                         },
-                                        onError: function (error) {
-                                            console.log(JSON.stringify(error));
-                                        }
+                                    onError: function (error) {
+                                        console.log(JSON.stringify(error));
+                                    }
                                     });
                             }
 
@@ -413,7 +413,7 @@ define(
                                     {
                                         "key": "cardDetails.cvc",
                                         "type": "cvc"
-                                    }
+                                }
                                 ];
                             }
                         },
@@ -531,11 +531,11 @@ define(
                 }
                 return null;
             }),
-            placeOrderHandler: null,
-            validateHandler: null,
-            setPlaceOrderHandler: function (handler) {
-                this.placeOrderHandler = handler;
-            },
+        placeOrderHandler: null,
+        validateHandler: null,
+        setPlaceOrderHandler: function (handler) {
+            this.placeOrderHandler = handler;
+        },
             setValidateHandler: function (handler) {
                 this.validateHandler = handler;
             },

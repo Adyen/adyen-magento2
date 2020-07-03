@@ -30,9 +30,6 @@ use Magento\Vault\Model\Ui\TokenUiComponentProviderInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
 use Magento\Framework\UrlInterface;
 
-/**
- * Class TokenUiComponentProvider
- */
 class TokenUiComponentProvider implements TokenUiComponentProviderInterface
 {
     /**
@@ -59,6 +56,7 @@ class TokenUiComponentProvider implements TokenUiComponentProviderInterface
 
     /**
      * Get UI component for token
+     *
      * @param PaymentTokenInterface $paymentToken
      * @return TokenUiComponentInterface
      */

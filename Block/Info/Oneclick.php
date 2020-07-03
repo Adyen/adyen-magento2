@@ -25,7 +25,6 @@ namespace Adyen\Payment\Block\Info;
 
 class Oneclick extends Cc
 {
-
     /**
      * @var string
      */

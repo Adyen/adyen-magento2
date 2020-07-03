@@ -39,9 +39,9 @@ class Adapter extends Method\Adapter
      */
     protected $_paymentRequest;
 
-
     /**
      * Adapter constructor.
+     *
      * @param \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest
      * @param ManagerInterface $eventManager
      * @param ValueHandlerPoolInterface $valueHandlerPool

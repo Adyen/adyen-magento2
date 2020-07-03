@@ -20,19 +20,17 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Observer;
 
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 
-/**
- * Class DataAssignObserver
- */
 class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
 {
     const RECURRING_DETAIL_REFERENCE = 'recurring_detail_reference';
-	const ENCRYPTED_SECURITY_CODE = 'cvc';
+    const ENCRYPTED_SECURITY_CODE = 'cvc';
     const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
     const VARIANT = 'variant';
     const JAVA_ENABLED = 'java_enabled';
@@ -47,7 +45,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
      */
     protected $additionalInformationList = [
         self::RECURRING_DETAIL_REFERENCE,
-		self::ENCRYPTED_SECURITY_CODE,
+        self::ENCRYPTED_SECURITY_CODE,
         self::NUMBER_OF_INSTALLMENTS,
         self::VARIANT,
         self::JAVA_ENABLED,
@@ -70,6 +68,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
 
     /**
      * AdyenCcDataAssignObserver constructor.
+     *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
