@@ -252,13 +252,16 @@ class PaymentMethods extends AbstractHelper
         return $paymentMethods;
     }
 
-    protected function getCurrentPaymentAmount(): float
+    /**
+     * @return float
+     */
+    protected function getCurrentPaymentAmount()
     {
         $grandTotal = $this->getQuote()->getGrandTotal();
 
-        if (!\is_numeric($grandTotal)) {
+        if (!is_numeric($grandTotal)) {
             throw new \Exception(
-                \sprintf(
+                sprintf(
                     'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a numeric value.',
                     $this->getQuote()->getEntityId()
                 )
@@ -272,7 +275,7 @@ class PaymentMethods extends AbstractHelper
         }
 
         throw new \Exception(
-            \sprintf(
+            sprintf(
                 'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float > `0.0`, got `%f`.',
                 $this->getQuote()->getEntityId(),
                 $grandTotal
