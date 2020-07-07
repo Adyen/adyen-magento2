@@ -117,56 +117,41 @@ class Requests extends AbstractHelper
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
                 !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
             ) {
-                if ($customerEmail = $billingAddress->getEmail()) {
+                if (!isset($request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::SHOPPER_EMAIL]) && $customerEmail = $billingAddress->getEmail()) {
                     $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::SHOPPER_EMAIL] = $customerEmail;
                 }
 
-                if ($customerTelephone = trim($billingAddress->getTelephone())) {
+                if (!isset($additionalData[self::STATE_DATA][self::TELEPHONE_NUMBER])&& $customerTelephone = trim($billingAddress->getTelephone())) {
                     $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::TELEPHONE_NUMBER] = $customerTelephone;
                 }
-                if ($firstName = $billingAddress->getFirstname()) {
+                if (!isset($additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::FIRST_NAME]) && $firstName = $billingAddress->getFirstname()) {
                     $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::FIRST_NAME] = $firstName;
                 }
 
-                if ($lastName = $billingAddress->getLastname()) {
+                if (!isset($additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::LAST_NAME]) && $lastName = $billingAddress->getLastname()) {
                     $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::LAST_NAME] = $lastName;
                 }
             } else {
-                if ($customerEmail = $billingAddress->getEmail()) {
+                if (!isset($request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::SHOPPER_EMAIL]) && $customerEmail = $billingAddress->getEmail(
+                    )) {
                     $request[self::SHOPPER_EMAIL] = $customerEmail;
                 }
-                if ($customerTelephone = trim($billingAddress->getTelephone())) {
+                if (!isset($additionalData[self::STATE_DATA][self::TELEPHONE_NUMBER]) && $customerTelephone = trim(
+                        $billingAddress->getTelephone()
+                    )) {
                     $request[self::TELEPHONE_NUMBER] = $customerTelephone;
                 }
-                if ($firstName = $billingAddress->getFirstname()) {
+                if (!isset($additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::FIRST_NAME]) && $firstName = $billingAddress->getFirstname(
+                    )) {
                     $request[self::SHOPPER_NAME][self::FIRST_NAME] = $firstName;
                 }
-
-                if ($lastName = $billingAddress->getLastname()) {
+                if (!isset($additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::LAST_NAME]) && $lastName = $billingAddress->getLastname(
+                    )) {
                     $request[self::SHOPPER_NAME][self::LAST_NAME] = $lastName;
                 }
-
-                if ($dateOfBirth = $billingAddress->getDateOfBirth()) {
+                if (!isset($additionalData[self::STATE_DATA][self::DATE_OF_BIRTH]) && $dateOfBirth = $billingAddress->getDateOfBirth(
+                    )) {
                     $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::DATE_OF_BIRTH] = $dateOfBirth;
-                }
-            }
-
-            //if payment method is afterpay_default override the parameters with the provided ones
-            if ($paymentMethod == 'afterpay_default') {
-                if (isset($additionalData[self::STATE_DATA][self::SHOPPER_EMAIL])) {
-                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::SHOPPER_EMAIL] = $additionalData[self::STATE_DATA][self::SHOPPER_EMAIL];
-                }
-                if (isset($additionalData[self::STATE_DATA][self::TELEPHONE_NUMBER])) {
-                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::TELEPHONE_NUMBER] = $additionalData[self::STATE_DATA][self::TELEPHONE_NUMBER];
-                }
-                if (isset($additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::FIRST_NAME])) {
-                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::FIRST_NAME] = $additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::FIRST_NAME];
-                }
-                if (isset($additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::LAST_NAME])) {
-                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::LAST_NAME] = $additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::LAST_NAME];
-                }
-                if (isset($additionalData[self::STATE_DATA][self::DATE_OF_BIRTH])) {
-                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::DATE_OF_BIRTH] = $additionalData[self::STATE_DATA][self::DATE_OF_BIRTH];
                 }
             }
 
