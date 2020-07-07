@@ -33,10 +33,9 @@ class AdyenHppDataAssignObserver extends AdyenAbstractDataAssignObserver
      */
     public $checkoutStateDataValidator;
 
-    public $adyenHelper;
-
     public function __construct(
         \Adyen\Service\Validator\CheckoutStateDataValidator $checkoutStateDataValidator
+
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
     }
