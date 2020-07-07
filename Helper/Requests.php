@@ -106,9 +106,9 @@ class Requests extends AbstractHelper
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
                 !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
             ) {
-                $request['paymentMethod']['personalDetails']['shopperEmail'] = $additionalData['guestEmail'];
+                $request[self::PAYMENT_METHOD][self::SHOPPER_EMAIL] = $additionalData['guestEmail'];
             } else {
-                $request['shopperEmail'] = $additionalData['guestEmail'];
+                $request[self::SHOPPER_EMAIL] = $additionalData['guestEmail'];
             }
         }
 
@@ -118,36 +118,36 @@ class Requests extends AbstractHelper
                 !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
             ) {
                 if ($customerEmail = $billingAddress->getEmail()) {
-                    $request['paymentMethod']['personalDetails']['shopperEmail'] = $customerEmail;
+                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::SHOPPER_EMAIL] = $customerEmail;
                 }
 
                 if ($customerTelephone = trim($billingAddress->getTelephone())) {
-                    $request['paymentMethod']['personalDetails']['telephoneNumber'] = $customerTelephone;
+                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::TELEPHONE_NUMBER] = $customerTelephone;
                 }
                 if ($firstName = $billingAddress->getFirstname()) {
-                    $request['paymentMethod']['personalDetails'][] = $firstName;
+                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::FIRST_NAME] = $firstName;
                 }
 
                 if ($lastName = $billingAddress->getLastname()) {
-                    $request['paymentMethod']['personalDetails']['lastName'] = $lastName;
+                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::LAST_NAME] = $lastName;
                 }
             } else {
                 if ($customerEmail = $billingAddress->getEmail()) {
-                    $request['shopperEmail'] = $customerEmail;
+                    $request[self::SHOPPER_EMAIL] = $customerEmail;
                 }
                 if ($customerTelephone = trim($billingAddress->getTelephone())) {
-                    $request['telephoneNumber'] = $customerTelephone;
+                    $request[self::TELEPHONE_NUMBER] = $customerTelephone;
                 }
                 if ($firstName = $billingAddress->getFirstname()) {
-                    $request['shopperName']['firstName'] = $firstName;
+                    $request[self::SHOPPER_NAME][self::FIRST_NAME] = $firstName;
                 }
 
                 if ($lastName = $billingAddress->getLastname()) {
-                    $request['shopperName']['lastName'] = $lastName;
+                    $request[self::SHOPPER_NAME][self::LAST_NAME] = $lastName;
                 }
 
                 if ($dateOfBirth = $billingAddress->getDateOfBirth()) {
-                    $request['paymentMethod']['personalDetails']['dateOfBirth'] = $dateOfBirth;
+                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::DATE_OF_BIRTH] = $dateOfBirth;
                 }
             }
 
