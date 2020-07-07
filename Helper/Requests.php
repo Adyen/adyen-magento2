@@ -36,7 +36,7 @@ class Requests extends AbstractHelper
     /**
      * @var \Adyen\Payment\Helper\Data
      */
-    public $adyenHelper;
+    private $adyenHelper;
 
     /**
      * Requests constructor.
@@ -91,11 +91,6 @@ class Requests extends AbstractHelper
         if ($payment) {
             $paymentMethod = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
         }
-        $this->adyenHelper->adyenLogger->addAdyenDebug("this is the billingAddress" . json_encode($billingAddress));
-        $this->adyenHelper->adyenLogger->addAdyenDebug("this is the additionalData" . json_encode($additionalData));
-        $this->adyenHelper->adyenLogger->addAdyenDebug("this is the payment" . json_encode($payment));
-        $this->adyenHelper->adyenLogger->addAdyenDebug("this is the request" . json_encode($request));
-
         // In case of virtual product and guest checkout there is a workaround to get the guest's email address
         if (!empty($additionalData['guestEmail'])) {
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
@@ -171,8 +166,6 @@ class Requests extends AbstractHelper
 
             $request['shopperLocale'] = $this->adyenHelper->getCurrentLocaleCode($storeId);
         }
-
-        $this->adyenHelper->adyenLogger->addAdyenDebug("Checkout data builder request" . json_encode($request));
         return $request;
     }
 

@@ -67,7 +67,6 @@ class CustomerDataBuilder implements BuilderInterface
             $additionalInformation,
             []
         );
-        $this->adyenRequestsHelper->adyenHelper->adyenLogger->addAdyenDebug("Customer data builder" . json_encode($request));
 
         return $request;
     }
