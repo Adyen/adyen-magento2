@@ -91,6 +91,10 @@ class Requests extends AbstractHelper
         if ($payment) {
             $paymentMethod = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
         }
+        $this->adyenHelper->adyenLogger->addAdyenDebug("this is the billingAddress" . json_encode($billingAddress));
+        $this->adyenHelper->adyenLogger->addAdyenDebug("this is the additionalData" . json_encode($additionalData));
+        $this->adyenHelper->adyenLogger->addAdyenDebug("this is the payment" . json_encode($payment));
+        $this->adyenHelper->adyenLogger->addAdyenDebug("this is the request" . json_encode($request));
 
         // In case of virtual product and guest checkout there is a workaround to get the guest's email address
         if (!empty($additionalData['guestEmail'])) {
@@ -115,7 +119,6 @@ class Requests extends AbstractHelper
                 if ($customerTelephone = trim($billingAddress->getTelephone())) {
                     $request['paymentMethod']['personalDetails']['telephoneNumber'] = $customerTelephone;
                 }
-
                 if ($firstName = $billingAddress->getFirstname()) {
                     $request['paymentMethod']['personalDetails']['firstName'] = $firstName;
                 }
@@ -127,11 +130,9 @@ class Requests extends AbstractHelper
                 if ($customerEmail = $billingAddress->getEmail()) {
                     $request['shopperEmail'] = $customerEmail;
                 }
-
                 if ($customerTelephone = trim($billingAddress->getTelephone())) {
                     $request['telephoneNumber'] = $customerTelephone;
                 }
-
                 if ($firstName = $billingAddress->getFirstname()) {
                     $request['shopperName']['firstName'] = $firstName;
                 }
@@ -145,6 +146,25 @@ class Requests extends AbstractHelper
                 }
             }
 
+            //if payment method is afterpay_default override the parameters with the provided ones
+            if ($paymentMethod == 'afterpay_default') {
+                if (isset($additionalData['state_data']['shopperEmail'])) {
+                    $request['paymentMethod']['personalDetails']['shopperEmail'] = $additionalData['state_data']['shopperEmail'];
+                }
+                if (isset($additionalData['state_data']['telephoneNumber'])) {
+                    $request['paymentMethod']['personalDetails']['telephoneNumber'] = $additionalData['state_data']['telephoneNumber'];
+                }
+                if (isset($additionalData['state_data']['shopperName']['firstName'])) {
+                    $request['paymentMethod']['personalDetails']['firstName'] = $additionalData['state_data']['shopperName']['firstName'];
+                }
+                if (isset($additionalData['state_data']['shopperEmail']['lastName'])) {
+                    $request['paymentMethod']['personalDetails']['lastName'] = $additionalData['state_data']['shopperName']['lastName'];
+                }
+                if (isset($additionalData['state_data']['dateOfBirth'])) {
+                    $request['paymentMethod']['personalDetails']['dateOfBirth'] = $additionalData['state_data']['dateOfBirth'];
+                }
+            }
+
             if ($countryId = $billingAddress->getCountryId()) {
                 $request['countryCode'] = $countryId;
             }
@@ -152,6 +172,7 @@ class Requests extends AbstractHelper
             $request['shopperLocale'] = $this->adyenHelper->getCurrentLocaleCode($storeId);
         }
 
+        $this->adyenHelper->adyenLogger->addAdyenDebug("Checkout data builder request" . json_encode($request));
         return $request;
     }
 
@@ -265,7 +286,6 @@ class Requests extends AbstractHelper
                 $request['deliveryAddress'] = $requestDelivery;
             }
         }
-
         return $request;
     }
 

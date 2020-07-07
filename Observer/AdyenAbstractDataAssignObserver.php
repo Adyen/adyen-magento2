@@ -60,7 +60,6 @@ abstract class AdyenAbstractDataAssignObserver extends AbstractDataAssignObserve
             return [];
         }
 
-        $this->adyenHelper->adyenLogger->addAdyenDebug("----Data" . $additionalData);
         // Get a validated additional data array
         $additionalData = $this->getArrayOnlyWithApprovedKeys($additionalData, $this->approvedAdditionalDataKeys);
 
@@ -68,11 +67,6 @@ abstract class AdyenAbstractDataAssignObserver extends AbstractDataAssignObserve
         $stateData = [];
         if (!empty($additionalData[self::STATE_DATA])) {
             $stateData = json_decode($additionalData[self::STATE_DATA], true);
-        }
-
-        // Get validated state data array
-        if (!empty($stateData)) {
-            $stateData = $this->getArrayOnlyWithApprovedKeys($stateData, $this->approvedStateDataKeys);
         }
 
         // Replace state data with the decoded and validated state data

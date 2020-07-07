@@ -52,6 +52,16 @@ class AdyenCcDataAssignObserver extends AdyenAbstractDataAssignObserver
     ];
 
     /**
+     * @var \Adyen\Service\Validator\CheckoutStateDataValidator
+     */
+    public $checkoutStateDataValidator;
+
+    public function __construct(
+        \Adyen\Service\Validator\CheckoutStateDataValidator $checkoutStateDataValidator
+    ) {
+        $this->checkoutStateDataValidator = $checkoutStateDataValidator;
+    }
+    /**
      * @param Observer $observer
      * @return void
      */
@@ -61,7 +71,7 @@ class AdyenCcDataAssignObserver extends AdyenAbstractDataAssignObserver
         $data = $this->readDataArgument($observer);
 
         $additionalData = $this->getValidatedAdditionalData($data);
-
+        $additionalData[self::STATE_DATA] = $this->checkoutStateDataValidator->getValidatedAdditionalData($additionalData[self::STATE_DATA]);
         // Set additional data in the payment
         $paymentInfo = $this->readPaymentModelArgument($observer);
         foreach ($additionalData as $key => $data) {

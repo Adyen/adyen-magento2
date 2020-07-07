@@ -23,8 +23,8 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Observer\Adminhtml\AdyenSateDataValidator;
 use Magento\Framework\Event\Observer;
-use Magento\Quote\Api\Data\PaymentInterface;
 
 class AdyenHppDataAssignObserver extends AdyenAbstractDataAssignObserver
 {
@@ -37,14 +37,19 @@ class AdyenHppDataAssignObserver extends AdyenAbstractDataAssignObserver
     /**
      * @var \Adyen\Payment\Helper\Data
      */
-    private $adyenHelper;
+    public $adyenHelper;
+    /**
+     * @var \Adyen\Service\Validator\CheckoutStateDataValidator
+     */
+    public $checkoutStateDataValidator;
 
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Service\Validator\CheckoutStateDataValidator $checkoutStateDataValidator
 
     ) {
         $this->adyenHelper = $adyenHelper;
-
+        $this->checkoutStateDataValidator = $checkoutStateDataValidator;
     }
     protected $approvedAdditionalDataKeys = [
         self::STATE_DATA,
@@ -70,9 +75,10 @@ class AdyenHppDataAssignObserver extends AdyenAbstractDataAssignObserver
     {
         // Get request fields
         $data = $this->readDataArgument($observer);
-        $this->adyenHelper->adyenLogger->addAdyenDebug("--Data" . json_encode($data));
         $additionalData = $this->getValidatedAdditionalData($data);
-        $this->adyenHelper->adyenLogger->addAdyenDebug("Additional--Data" . json_encode($additionalData));
+        $this->adyenHelper->adyenLogger->addAdyenDebug("AdyenHppDataAssignObserver--AdditionalData" . json_encode($additionalData));
+        $additionalData[self::STATE_DATA] = $this->checkoutStateDataValidator->getValidatedAdditionalData($additionalData[self::STATE_DATA]);
+        $this->adyenHelper->adyenLogger->addAdyenDebug("AdyenHppDataAssignObserver--AdditionalData--After" . json_encode($additionalData));
         // Set additional data in the payment
         $paymentInfo = $this->readPaymentModelArgument($observer);
         foreach ($additionalData as $key => $data) {
