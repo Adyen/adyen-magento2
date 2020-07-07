@@ -91,6 +91,7 @@ class CheckoutDataBuilder implements BuilderInterface
                 AdyenHppDataAssignObserver::BRAND_CODE
             )
             )) {
+
             $requestBody['paymentMethod']['type'] = $payment->getAdditionalInformation(
                 AdyenHppDataAssignObserver::BRAND_CODE
             );

@@ -33,6 +33,16 @@ use Magento\Quote\Api\Data\PaymentInterface;
 
 class Requests extends AbstractHelper
 {
+    const TELEPHONE_NUMBER = 'telephoneNumber';
+    const FIRST_NAME = 'firstName';
+    const LAST_NAME = 'lastName';
+    const SHOPPER_NAME = 'shopperName';
+    const DATE_OF_BIRTH = 'dateOfBirth';
+    const SHOPPER_EMAIL = 'shopperEmail';
+    const STATE_DATA = 'state_data';
+    const PAYMENT_METHOD = 'paymentMethod';
+    const PERSONAL_DETAILS = 'personalDetails';
+
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -115,7 +125,7 @@ class Requests extends AbstractHelper
                     $request['paymentMethod']['personalDetails']['telephoneNumber'] = $customerTelephone;
                 }
                 if ($firstName = $billingAddress->getFirstname()) {
-                    $request['paymentMethod']['personalDetails']['firstName'] = $firstName;
+                    $request['paymentMethod']['personalDetails'][] = $firstName;
                 }
 
                 if ($lastName = $billingAddress->getLastname()) {
@@ -143,20 +153,20 @@ class Requests extends AbstractHelper
 
             //if payment method is afterpay_default override the parameters with the provided ones
             if ($paymentMethod == 'afterpay_default') {
-                if (isset($additionalData['state_data']['shopperEmail'])) {
-                    $request['paymentMethod']['personalDetails']['shopperEmail'] = $additionalData['state_data']['shopperEmail'];
+                if (isset($additionalData[self::STATE_DATA][self::SHOPPER_EMAIL])) {
+                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::SHOPPER_EMAIL] = $additionalData[self::STATE_DATA][self::SHOPPER_EMAIL];
                 }
-                if (isset($additionalData['state_data']['telephoneNumber'])) {
-                    $request['paymentMethod']['personalDetails']['telephoneNumber'] = $additionalData['state_data']['telephoneNumber'];
+                if (isset($additionalData[self::STATE_DATA][self::TELEPHONE_NUMBER])) {
+                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::TELEPHONE_NUMBER] = $additionalData[self::STATE_DATA][self::TELEPHONE_NUMBER];
                 }
-                if (isset($additionalData['state_data']['shopperName']['firstName'])) {
-                    $request['paymentMethod']['personalDetails']['firstName'] = $additionalData['state_data']['shopperName']['firstName'];
+                if (isset($additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::FIRST_NAME])) {
+                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::FIRST_NAME] = $additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::FIRST_NAME];
                 }
-                if (isset($additionalData['state_data']['shopperEmail']['lastName'])) {
-                    $request['paymentMethod']['personalDetails']['lastName'] = $additionalData['state_data']['shopperName']['lastName'];
+                if (isset($additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::LAST_NAME])) {
+                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::LAST_NAME] = $additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::LAST_NAME];
                 }
-                if (isset($additionalData['state_data']['dateOfBirth'])) {
-                    $request['paymentMethod']['personalDetails']['dateOfBirth'] = $additionalData['state_data']['dateOfBirth'];
+                if (isset($additionalData[self::STATE_DATA][self::DATE_OF_BIRTH])) {
+                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::DATE_OF_BIRTH] = $additionalData[self::STATE_DATA][self::DATE_OF_BIRTH];
                 }
             }
 

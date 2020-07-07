@@ -67,7 +67,6 @@ class CustomerDataBuilder implements BuilderInterface
             $additionalInformation,
             []
         );
-
         return $request;
     }
 }
