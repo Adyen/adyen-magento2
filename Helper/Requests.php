@@ -39,9 +39,8 @@ class Requests extends AbstractHelper
     const SHOPPER_NAME = 'shopperName';
     const DATE_OF_BIRTH = 'dateOfBirth';
     const SHOPPER_EMAIL = 'shopperEmail';
-    const STATE_DATA = 'state_data';
-    const PAYMENT_METHOD = 'paymentMethod';
-    const PERSONAL_DETAILS = 'personalDetails';
+    const COUNTRY_CODE = 'countryCode';
+    const SHOPPER_LOCALE = 'shopperLocale';
 
     /**
      * @var \Adyen\Payment\Helper\Data
@@ -82,8 +81,8 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param null $payment
      * @param null $additionalData
-     * @return array
      * @param array $request
+     * @return array
      */
     public function buildCustomerData(
         $billingAddress,
@@ -101,66 +100,49 @@ class Requests extends AbstractHelper
         if ($payment) {
             $paymentMethod = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
         }
+
+        // TODO is it still needed?
         // In case of virtual product and guest checkout there is a workaround to get the guest's email address
-        if (!empty($additionalData['guestEmail'])) {
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
-                !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
-            ) {
-                $request[self::PAYMENT_METHOD][self::SHOPPER_EMAIL] = $additionalData['guestEmail'];
-            } else {
-                $request[self::SHOPPER_EMAIL] = $additionalData['guestEmail'];
-            }
+        if (!empty($additionalData['guestEmail']) && empty($request[self::SHOPPER_EMAIL])) {
+            $request[self::SHOPPER_EMAIL] = $additionalData['guestEmail'];
         }
 
         if (!empty($billingAddress)) {
-            // Openinvoice (klarna and afterpay BUT not afterpay touch) methods requires different request format
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
-                !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
+            if (empty($request[self::SHOPPER_EMAIL]) && $customerEmail = $billingAddress->getEmail()) {
+                $request[self::SHOPPER_EMAIL] = $customerEmail;
+            }
+
+            if (empty($request[self::TELEPHONE_NUMBER]) &&
+                $customerTelephone = trim($billingAddress->getTelephone())
             ) {
-                if (!isset($request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::SHOPPER_EMAIL]) && $customerEmail = $billingAddress->getEmail()) {
-                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::SHOPPER_EMAIL] = $customerEmail;
-                }
-
-                if (!isset($additionalData[self::STATE_DATA][self::TELEPHONE_NUMBER])&& $customerTelephone = trim($billingAddress->getTelephone())) {
-                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::TELEPHONE_NUMBER] = $customerTelephone;
-                }
-                if (!isset($additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::FIRST_NAME]) && $firstName = $billingAddress->getFirstname()) {
-                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::FIRST_NAME] = $firstName;
-                }
-
-                if (!isset($additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::LAST_NAME]) && $lastName = $billingAddress->getLastname()) {
-                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::LAST_NAME] = $lastName;
-                }
-            } else {
-                if (!isset($request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::SHOPPER_EMAIL]) && $customerEmail = $billingAddress->getEmail(
-                    )) {
-                    $request[self::SHOPPER_EMAIL] = $customerEmail;
-                }
-                if (!isset($additionalData[self::STATE_DATA][self::TELEPHONE_NUMBER]) && $customerTelephone = trim(
-                        $billingAddress->getTelephone()
-                    )) {
-                    $request[self::TELEPHONE_NUMBER] = $customerTelephone;
-                }
-                if (!isset($additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::FIRST_NAME]) && $firstName = $billingAddress->getFirstname(
-                    )) {
-                    $request[self::SHOPPER_NAME][self::FIRST_NAME] = $firstName;
-                }
-                if (!isset($additionalData[self::STATE_DATA][self::SHOPPER_NAME][self::LAST_NAME]) && $lastName = $billingAddress->getLastname(
-                    )) {
-                    $request[self::SHOPPER_NAME][self::LAST_NAME] = $lastName;
-                }
-                if (!isset($additionalData[self::STATE_DATA][self::DATE_OF_BIRTH]) && $dateOfBirth = $billingAddress->getDateOfBirth(
-                    )) {
-                    $request[self::PAYMENT_METHOD][self::PERSONAL_DETAILS][self::DATE_OF_BIRTH] = $dateOfBirth;
-                }
+                $request[self::TELEPHONE_NUMBER] = $customerTelephone;
             }
 
-            if ($countryId = $billingAddress->getCountryId()) {
-                $request['countryCode'] = $countryId;
+            if (empty($request[self::SHOPPER_NAME][self::FIRST_NAME]) &&
+                $firstName = $billingAddress->getFirstname()
+            ) {
+                $request[self::SHOPPER_NAME][self::FIRST_NAME] = $firstName;
             }
 
-            $request['shopperLocale'] = $this->adyenHelper->getCurrentLocaleCode($storeId);
+            if (empty($request[self::SHOPPER_NAME][self::LAST_NAME]) &&
+                $firstName = $billingAddress->getLastname()
+            ) {
+                $request[self::SHOPPER_NAME][self::LAST_NAME] = $firstName;
+            }
+
+            if (empty($request[self::DATE_OF_BIRTH]) && $dateOfBirth = $billingAddress->getDateOfBirth()) {
+                $request[self::DATE_OF_BIRTH] = $dateOfBirth;
+            }
+
+            if (empty($request[self::COUNTRY_CODE]) && $countryId = $billingAddress->getCountryId()) {
+                $request[self::COUNTRY_CODE] = $countryId;
+            }
+
+            if (empty($request[self::SHOPPER_LOCALE])) {
+                $request[self::SHOPPER_LOCALE] = $this->adyenHelper->getCurrentLocaleCode($storeId);
+            }
         }
+        
         return $request;
     }
 
@@ -387,42 +369,54 @@ class Requests extends AbstractHelper
             $request['paymentMethod']['type'] = 'scheme';
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) &&
+        if (!empty(
+            $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]
+            ) &&
             $cardNumber = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
             [AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) {
             $request['paymentMethod']['encryptedCardNumber'] = $cardNumber;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) &&
+        if (!empty(
+            $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]
+            ) &&
             $expiryMonth = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
             [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) {
             $request['paymentMethod']['encryptedExpiryMonth'] = $expiryMonth;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) &&
+        if (!empty(
+            $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]
+            ) &&
             $expiryYear = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
             [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) {
             $request['paymentMethod']['encryptedExpiryYear'] = $expiryYear;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::HOLDER_NAME]) && $holderName =
+        if (!empty(
+            $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::HOLDER_NAME]
+            ) && $holderName =
                 $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::HOLDER_NAME]) {
             $request['paymentMethod']['holderName'] = $holderName;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) &&
+        if (!empty(
+            $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]
+            ) &&
             $securityCode = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
             [AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) {
             $request['paymentMethod']['encryptedSecurityCode'] = $securityCode;
         }
 
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]) &&
+        if (!empty(
+            $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+            [AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]
+            ) &&
             $recurringDetailReference = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
             [AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]
         ) {
@@ -449,8 +443,10 @@ class Requests extends AbstractHelper
         }
 
         // if installments is set add it into the request
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-        [AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS])) {
+        if (!empty(
+        $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
+        [AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS]
+        )) {
             if (($numberOfInstallment = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
                 [AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS]) > 0) {
                 $request['installments']['value'] = $numberOfInstallment;
