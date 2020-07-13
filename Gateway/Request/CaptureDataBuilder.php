@@ -100,7 +100,10 @@ class CaptureDataBuilder implements BuilderInterface
         // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
         $latestInvoice = $invoices->getLastItem();
 
-        foreach ($latestInvoice->getItems() as $invoiceItem) {
+        foreach ($latestInvoice->getItems() as $invoiceItem) {            
+            if ($invoiceItem->getOrderItem()->getParentItem()) {
+                continue;
+            }
             ++$count;
             $numberOfItems = (int)$invoiceItem->getQty();
             $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
