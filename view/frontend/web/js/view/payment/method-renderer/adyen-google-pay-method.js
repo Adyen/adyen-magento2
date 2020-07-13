@@ -65,12 +65,6 @@ define(
             getCode: function () {
                 return 'adyen_google_pay';
             },
-            getData: function () {
-                return {
-                    'method': this.item.method,
-                    'additional_data': {}
-                };
-            },
             isActive: function () {
                 return true;
             },
