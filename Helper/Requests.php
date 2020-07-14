@@ -48,9 +48,9 @@ class Requests extends AbstractHelper
     private $adyenHelper;
 
     /**
-     * @var \Magento\Customer\Model\Customer
+     * @var \Magento\Customer\Api\CustomerRepositoryInterface
      */
-    private $customer;
+    private $customerRepository;
 
     /**
      * Requests constructor.
@@ -59,10 +59,10 @@ class Requests extends AbstractHelper
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Customer\Model\Customer $customer
+        \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
     ) {
         $this->adyenHelper = $adyenHelper;
-        $this->customer = $customer;
+        $this->customerRepository = $customerRepository;
     }
 
     /**
@@ -102,15 +102,13 @@ class Requests extends AbstractHelper
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
 
-            $this->customer->load($customerId);
+            $customer = $this->customerRepository->getById($customerId);
 
-            $this->adyenHelper->adyenLogger->addAdyenDebug('Customer ' . json_encode($this->customer));
-
-            $this->adyenHelper->adyenLogger->addAdyenDebug('Customer dob ' . json_encode($this->customer->getDateOfBirth()));
-
-            if (empty($request[self::DATE_OF_BIRTH]) && $dateOfBirth = $this->customer->getDateOfBirth()) {
+            if (empty($request[self::DATE_OF_BIRTH]) && $dateOfBirth = $customer->getDob()) {
                 $request[self::DATE_OF_BIRTH] = $dateOfBirth;
             }
+
+            //TODO check if Gender can be retrieved
         }
 
         $paymentMethod = '';
