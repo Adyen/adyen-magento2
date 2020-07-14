@@ -227,7 +227,13 @@ define(
                             firstName = quote.shippingAddress().firstname;
                             lastName = quote.shippingAddress().lastname;
                             telephone = quote.shippingAddress().telephone;
-                            email = customerData.email;
+
+                            if (!!customerData.email) {
+                                email = customerData.email;
+                            } else if (!!quote.guestEmail) {
+                                email = quote.guestEmail;
+                            }
+
                             shopperGender = customerData.gender;
                             shopperDateOfBirth = customerData.dob;
                         }

@@ -116,14 +116,6 @@ class Requests extends AbstractHelper
             $paymentMethod = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
         }
 
-        $this->adyenHelper->adyenLogger->addAdyenDebug('Guest vs logged in user email ' . json_encode($billingAddress->getEmail()));
-
-        // TODO is it still needed?
-        // In case of virtual product and guest checkout there is a workaround to get the guest's email address
-        if (!empty($additionalData['guestEmail']) && empty($request[self::SHOPPER_EMAIL])) {
-            $request[self::SHOPPER_EMAIL] = $additionalData['guestEmail'];
-        }
-
         if (!empty($billingAddress)) {
             if (empty($request[self::SHOPPER_EMAIL]) && $customerEmail = $billingAddress->getEmail()) {
                 $request[self::SHOPPER_EMAIL] = $customerEmail;
