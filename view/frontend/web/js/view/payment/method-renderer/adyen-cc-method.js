@@ -122,7 +122,7 @@ define(
                 // installments configuration
                 var installmentsConfiguration = this.getAllInstallments();
                 // TODO get config from admin configuration
-                installmentsConfiguration = '[[0,2,3],[2,3,3]]'; // DUmmy data for testing
+                installmentsConfiguration = []; // DUmmy data for testing
 
                 var placeOrderAllowed = self.placeOrderAllowed.bind(self);
 
@@ -141,7 +141,7 @@ define(
                     holderNameRequired: true,
                     enableStoreDetails: self.getEnableStoreDetails(),
                     groupTypes: self.getAvailableCardTypeAltCodes(),
-                    installments: installmentsConfiguration,
+                    installmentOptions: installmentsConfiguration,
                     onChange: handleOnChange
                 };
 
