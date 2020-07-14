@@ -48,14 +48,21 @@ class Requests extends AbstractHelper
     private $adyenHelper;
 
     /**
+     * @var \Magento\Customer\Model\Customer
+     */
+    private $customer;
+
+    /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Customer\Model\Customer $customer
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->customer = $customer;
     }
 
     /**
@@ -94,12 +101,24 @@ class Requests extends AbstractHelper
     ) {
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
+
+            $this->customer->load($customerId);
+
+            $this->adyenHelper->adyenLogger->addAdyenDebug('Customer ' . json_encode($this->customer));
+
+            $this->adyenHelper->adyenLogger->addAdyenDebug('Customer dob ' . json_encode($this->customer->getDateOfBirth()));
+
+            if (empty($request[self::DATE_OF_BIRTH]) && $dateOfBirth = $this->customer->getDateOfBirth()) {
+                $request[self::DATE_OF_BIRTH] = $dateOfBirth;
+            }
         }
 
         $paymentMethod = '';
         if ($payment) {
             $paymentMethod = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
         }
+
+        $this->adyenHelper->adyenLogger->addAdyenDebug('Guest vs logged in user email ' . json_encode($billingAddress->getEmail()));
 
         // TODO is it still needed?
         // In case of virtual product and guest checkout there is a workaround to get the guest's email address
@@ -128,10 +147,6 @@ class Requests extends AbstractHelper
                 $firstName = $billingAddress->getLastname()
             ) {
                 $request[self::SHOPPER_NAME][self::LAST_NAME] = $firstName;
-            }
-
-            if (empty($request[self::DATE_OF_BIRTH]) && $dateOfBirth = $billingAddress->getDateOfBirth()) {
-                $request[self::DATE_OF_BIRTH] = $dateOfBirth;
             }
 
             if (empty($request[self::COUNTRY_CODE]) && $countryId = $billingAddress->getCountryId()) {
