@@ -698,14 +698,13 @@ define(
                 self.actionComponent = self.checkoutComponent.createFromAction(action).mount(actionNode);
             },
             handleOnAdditionalDetails: function (state, component) {
-
                 var self = this;
 
                 // call endpoint with state.data
-                debugger;
                 var request = state.data;
                 request.orderId = self.orderId;
 
+                // Using the same processor as 3DS2, refactor to generic name in a upcomming release will be breaking change for merchants.
                 threeds2.processThreeDS2(request).done(function () {
                     $.mage.redirect(
                         window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
