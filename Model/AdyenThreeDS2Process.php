@@ -157,7 +157,6 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         $response = [];
 
         if ($result['resultCode'] != 'Authorised') {
-
             $this->checkoutSession->restoreQuote();
 
             // Always cancel the order if the paymenth has failed
