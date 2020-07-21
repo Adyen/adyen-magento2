@@ -77,7 +77,6 @@ define(
                 return this;
             }, initialize: function () {
 
-                this.messageContainer
 
                 var self = this;
                 this._super();
