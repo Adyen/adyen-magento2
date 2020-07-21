@@ -148,9 +148,6 @@ define(
                     self.googlePayAllowed(false);
                 });
             },
-            getCheckoutEnvironment: function () {
-                return window.checkoutConfig.payment.adyenGooglePay.checkoutEnvironment;
-            },
             isGooglePayAllowed: function () {
                 if (this.googlePayAllowed()) {
                     return true;
