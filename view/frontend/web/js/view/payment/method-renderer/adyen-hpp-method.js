@@ -35,20 +35,24 @@ define(
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Checkout/js/action/place-order',
         'uiLayout',
-        'Magento_Ui/js/model/messages'
+        'Magento_Ui/js/model/messages',
+        'Adyen_Payment/js/model/threeds2',
+        'Magento_Checkout/js/model/error-processor',
+        'adyenCheckout'
     ],
-    function (ko, $, Component, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader, placeOrderAction, layout, Messages) {
+    function (ko, $, Component, selectPaymentMethodAction, quote, checkoutData, additionalValidators, storage, urlBuilder, adyenPaymentService, customer, fullScreenLoader, placeOrderAction, layout, Messages, threeds2, errorProcessor, AdyenCheckout) {
         'use strict';
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
-        var messageComponents;
         var shippingAddressCountryCode = quote.shippingAddress().countryId;
         var unsupportedPaymentMethods = ['scheme', 'boleto', 'bcmc_mobile_QR', 'wechatpay', /^bcmc$/, "applepay", "paywithgoogle"];
+        var popupModal;
         /**
          * Shareble adyen checkout component
          * @type {AdyenCheckout}
          */
         var checkoutComponent;
+        var orderId;
 
         return Component.extend({
             self: this,
@@ -73,6 +77,8 @@ define(
                 return this;
             }, initialize: function () {
 
+                this.messageContainer
+
                 var self = this;
                 this._super();
 
@@ -83,7 +89,10 @@ define(
                  * @type {AdyenCheckout}
                  */
                 self.checkoutComponent = new AdyenCheckout({
-                    locale: self.getLocale()
+                    locale: self.getLocale(),
+                    onAdditionalDetails: self.handleOnAdditionalDetails.bind(self),
+                    originKey: self.getOriginKey(),
+                    environment: self.getCheckoutEnvironment()
                 });
 
                 // reset variable:
@@ -108,27 +117,6 @@ define(
                         document.body.appendChild(ratepayScriptTag);
                     }
 
-                    // create component needs to be in initialize method
-                    var messageComponents = {};
-                    _.map(paymentMethods, function (value) {
-
-                        var messageContainer = new Messages();
-                        var name = 'messages-' + self.getBrandCodeFromPaymentMethod(value);
-                        var messagesComponent = {
-                            parent: self.name,
-                            name: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
-                            displayArea: 'messages-' + self.getBrandCodeFromPaymentMethod(value),
-                            component: 'Magento_Ui/js/view/messages',
-                            config: {
-                                messageContainer: messageContainer
-                            }
-                        };
-                        layout([messagesComponent]);
-
-                        messageComponents[name] = messageContainer;
-                    });
-                    self.messageComponents = messageComponents;
-
                     fullScreenLoader.stopLoader();
                 });
             },
@@ -152,6 +140,20 @@ define(
                         return accumulator;
                     }
 
+                    var messageContainer = new Messages();
+                    var name = 'messages-' + self.getBrandCodeFromPaymentMethod(value);
+                    var messagesComponent = {
+                        parent: self.name,
+                        name: name,
+                        displayArea: name,
+                        component: 'Magento_Ui/js/view/messages',
+                        config: {
+                            messageContainer: messageContainer
+                        }
+                    };
+                    layout([messagesComponent]);
+
+
                     var result = {};
 
                     /**
@@ -174,12 +176,39 @@ define(
                     result.getCode = function () {
                         return self.item.method;
                     };
+                    result.getMessageName = function () {
+                        return 'messages-' + self.getBrandCodeFromPaymentMethod(value)
+                    };
+                    result.getMessageContainer = function () {
+                        return messageContainer;
+                    }
                     result.validate = function () {
                         return self.validate(result.getBrandCode());
                     };
-                    result.placeRedirectOrder = function placeRedirectOrder(data)
-                    {
-                        return self.placeRedirectOrder(data);
+                    result.placeRedirectOrder = function placeRedirectOrder(data) {
+
+                        // Place Order but use our own redirect url after
+                        fullScreenLoader.startLoader();
+                        $('.hpp-message').slideUp();
+                        self.isPlaceOrderActionAllowed(false);
+
+                        $.when(
+                            placeOrderAction(data, self.currentMessageContainer)
+                        ).fail(
+                            function (response) {
+                                self.isPlaceOrderActionAllowed(true);
+                                fullScreenLoader.stopLoader();
+                                self.showErrorMessage(response);
+                            }
+                        ).done(
+                            function (orderId) {
+                                self.afterPlaceOrder();
+                                adyenPaymentService.getOrderPaymentStatus(orderId)
+                                    .done(function (responseJSON) {
+                                        self.validateActionOrPlaceOrder(responseJSON, orderId);
+                                    });
+                            }
+                        )
                     };
 
                     /**
@@ -459,6 +488,44 @@ define(
                         }).mount(document.getElementById('afterPayContainer'));
                     };
 
+                    result.continueToAdyenBrandCode = function () {
+                        // set payment method to adyen_hpp
+                        var self = this;
+
+                        if (this.validate() && additionalValidators.validate()) {
+                            var data = {};
+                            data.method = self.method;
+
+                            var additionalData = {};
+                            additionalData.brand_code = self.value;
+
+                            if (self.hasIssuersAvailable()) {
+                                additionalData.issuer_id = this.issuer();
+                            } else if (self.isPaymentMethodOpenInvoiceMethod()) {
+                                additionalData.gender = this.gender();
+                                additionalData.dob = this.dob();
+                                additionalData.telephone = this.telephone();
+                                additionalData.ssn = this.ssn();
+                                if (brandCode() == "ratepay") {
+                                    additionalData.df_value = this.getRatePayDeviceIdentToken();
+                                }
+                            } else if (self.isSepaDirectDebit()) {
+                                additionalData.ownerName = this.ownerName();
+                                additionalData.ibanNumber = this.ibanNumber();
+                            } else if (self.isAch()) {
+                                additionalData.bankAccountOwnerName = this.ownerName();
+                                additionalData.bankAccountNumber = this.bankAccountNumber();
+                                additionalData.bankLocationId = this.bankLocationId();
+                            }
+
+                            data.additional_data = additionalData;
+                            this.placeRedirectOrder(data);
+                        }
+
+                        return false;
+                    }
+
+
                     if (result.hasIssuersProperty()) {
                         if (!result.hasIssuersAvailable()) {
                             return false;
@@ -530,42 +597,6 @@ define(
                     }
                 });
             },
-            continueToAdyenBrandCode: function () {
-                // set payment method to adyen_hpp
-                var self = this;
-
-                if (this.validate() && additionalValidators.validate()) {
-                    var data = {};
-                    data.method = self.method;
-
-                    var additionalData = {};
-                    additionalData.brand_code = self.value;
-
-                    if (self.hasIssuersAvailable()) {
-                        additionalData.issuer_id = this.issuer();
-                    } else if (self.isPaymentMethodOpenInvoiceMethod()) {
-                        additionalData.gender = this.gender();
-                        additionalData.dob = this.dob();
-                        additionalData.telephone = this.telephone();
-                        additionalData.ssn = this.ssn();
-                        if (brandCode() == "ratepay") {
-                            additionalData.df_value = this.getRatePayDeviceIdentToken();
-                        }
-                    } else if (self.isSepaDirectDebit()) {
-                        additionalData.ownerName = this.ownerName();
-                        additionalData.ibanNumber = this.ibanNumber();
-                    } else if (self.isAch()) {
-                        additionalData.bankAccountOwnerName = this.ownerName();
-                        additionalData.bankAccountNumber = this.bankAccountNumber();
-                        additionalData.bankLocationId = this.bankLocationId();
-                    }
-
-                    data.additional_data = additionalData;
-                    this.placeRedirectOrder(data);
-                }
-
-                return false;
-            },
             selectPaymentMethodBrandCode: function () {
                 var self = this;
 
@@ -589,44 +620,20 @@ define(
 
                 return true;
             },
-            placeRedirectOrder: function (data) {
-                // Place Order but use our own redirect url after
-                var self = this;
-                fullScreenLoader.startLoader();
+            /**
+             * This method is a workaround to close the modal in the right way and reconstruct the ActionModal.
+             * This will solve issues when you cancel the 3DS2 challenge and retry the payment
+             */
+            closeModal: function (popupModal) {
+                popupModal.modal("closeModal");
+                $('.ActionModal').remove();
+                $('.modals-overlay').remove();
+                $('body').removeClass('_has-modal');
 
-                var messageContainer = this.messageContainer;
-                if (brandCode()) {
-                    messageContainer = self.messageComponents['messages-' + brandCode()];
-                }
-
-                $('.hpp-message').slideUp();
-
-                this.isPlaceOrderActionAllowed(false);
-                $.when(
-                    placeOrderAction(data, messageContainer)
-                ).fail(
-                    function (response) {
-                        fullScreenLoader.stopLoader();
-                        if (!!response['responseJSON'].parameters) {
-                            $("#messages-" + brandCode()).text((response['responseJSON'].message).replace('%1', response['responseJSON'].parameters[0])).slideDown();
-                        } else {
-                            $("#messages-" + brandCode()).text(response['responseJSON'].message).slideDown();
-                        }
-
-                        setTimeout(function () {
-                            $("#messages-" + brandCode()).slideUp();
-                        }, 10000);
-                        self.isPlaceOrderActionAllowed(true);
-                        fullScreenLoader.stopLoader();
-                    }
-                ).done(
-                    function () {
-                        self.afterPlaceOrder();
-                        $.mage.redirect(
-                            window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
-                        );
-                    }
-                )
+                // reconstruct the ActionModal container again otherwise component can not find the ActionModal
+                $('#ActionWrapper').append("<div id=\"ActionModal\">" +
+                    "<div id=\"ActionContainer\"></div>" +
+                    "</div>");
             },
             isBrandCodeChecked: ko.computed(function () {
 
@@ -639,9 +646,94 @@ define(
                 }
                 return null;
             }),
-        isIconEnabled: function () {
-            return window.checkoutConfig.payment.adyen.showLogo;
-        },
+            isIconEnabled: function () {
+                return window.checkoutConfig.payment.adyen.showLogo;
+            },
+            /**
+             * Based on the response we can start a action component or redirect
+             * @param responseJSON
+             */
+            validateActionOrPlaceOrder: function (responseJSON, orderId) {
+                var self = this;
+                var response = JSON.parse(responseJSON);
+
+                if (!!response.action) {
+                    // render component
+                    self.orderId = orderId;
+                    self.renderActionComponent(response.action);
+                } else {
+                    $.mage.redirect(
+                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
+                    );
+                }
+            },
+            /**
+             * Rendering the 3DS2.0 components
+             * To do the device fingerprint at the response of IdentifyShopper render the threeDS2DeviceFingerprint
+             * component
+             * To render the challenge for the customer at the response of ChallengeShopper render the
+             * threeDS2Challenge component
+             * Both of them is going to be rendered in a Magento dialog popup
+             *
+             * @param type
+             * @param token
+             */
+            renderActionComponent: function (action) {
+                var self = this;
+                var actionNode = document.getElementById('ActionContainer');
+
+
+                fullScreenLoader.stopLoader();
+
+                self.popupModal = $('#ActionModal').modal({
+                    // disable user to hide popup
+                    clickableOverlay: false,
+                    responsive: true,
+                    innerScroll: false,
+                    // empty buttons, we don't need that
+                    buttons: [],
+                    modalClass: 'ActionModal'
+                });
+
+                self.popupModal.modal("openModal");
+                self.actionComponent = self.checkoutComponent.createFromAction(action).mount(actionNode);
+            },
+            handleOnAdditionalDetails: function (state, component) {
+
+                var self = this;
+
+                // call endpoint with state.data
+                debugger;
+                var request = state.data;
+                request.orderId = self.orderId;
+
+                threeds2.processThreeDS2(request).done(function () {
+                    $.mage.redirect(
+                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
+                    );
+                }).fail(function (response) {
+                    fullScreenLoader.stopLoader();
+                    self.closeModal(self.popupModal);
+                    errorProcessor.process(response, self.currentMessageContainer);
+                    self.isPlaceOrderActionAllowed(true);
+                    self.showErrorMessage(response);
+                });
+            },
+            /**
+             * Issue with the default currentMessageContainer needs to be resolved for now just throw manually the eror message
+             * @param response
+             */
+            showErrorMessage: function (response) {
+                if (!!response['responseJSON'].parameters) {
+                    $("#messages-" + brandCode()).text((response['responseJSON'].message).replace('%1', response['responseJSON'].parameters[0])).slideDown();
+                } else {
+                    $("#messages-" + brandCode()).text(response['responseJSON'].message).slideDown();
+                }
+
+                setTimeout(function () {
+                    $("#messages-" + brandCode()).slideUp();
+                }, 10000);
+            },
             validate: function (brandCode) {
                 var form = '#payment_form_' + this.getCode() + '_' + brandCode;
                 var validate = $(form).validation() && $(form).validation('isValid');
@@ -709,6 +801,12 @@ define(
                 return arr.filter(function (item) {
                     return typeof item !== 'undefined';
                 });
+            },
+            getOriginKey: function () {
+                return window.checkoutConfig.payment.adyen.originKey;
+            },
+            getCheckoutEnvironment: function () {
+                return window.checkoutConfig.payment.adyen.checkoutEnvironment;
             }
         });
     }

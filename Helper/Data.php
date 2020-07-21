@@ -34,6 +34,7 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
+    // Only used for backend orders! Checkout in front-end is using different checkout version see web folder
     const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
     const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
 
@@ -680,12 +681,16 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param null|int|string $storeId
+     * @param string $storeId
      * @return mixed
      */
     public function getAdyenGooglePayMerchantIdentifier($storeId = null)
     {
-        return $this->getAdyenGooglePayConfigData('merchant_identifier', $storeId);
+        $value = $this->getAdyenGooglePayConfigData('merchant_identifier', $storeId);
+        if($value === null) {
+            return '';
+        }
+        return $value;
     }
 
     /**

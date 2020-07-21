@@ -26,6 +26,7 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 
 class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentStatusInterface
 {
@@ -87,6 +88,15 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
 
             return $this->adyenHelper->buildThreeDS2ProcessResponseJson($type, $token);
         }
+
+
+        if ($payment->getMethod() === AdyenHppConfigProvider::CODE) {
+            $additionalInformation = $payment->getAdditionalInformation();
+            if (!empty($additionalInformation['action'])) {
+                return json_encode(['action' => $additionalInformation['action']]);
+            }
+        }
+
         return true;
     }
 }

@@ -23,7 +23,7 @@
 
 namespace Adyen\Payment\Model;
 
-use \Adyen\Payment\Api\AdyenThreeDS2ProcessInterface;
+use Adyen\Payment\Api\AdyenThreeDS2ProcessInterface;
 
 class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
 {
@@ -92,6 +92,8 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         } else {
             // Create order by order id
             $order = $this->orderFactory->create()->load($payload['orderId']);
+            // don't send orderId to adyen. Improve that orderId and state.data are separated in payload
+            unset($payload['orderId']);
         }
 
         $payment = $order->getPayment();
@@ -99,14 +101,14 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         // Init payments/details request
         $result = [];
 
-        if ($paymentData = $payment->getAdditionalInformation("threeDS2PaymentData")) {
+        if ($paymentData = $payment->getAdditionalInformation("adyenPaymentData")) {
             // Add payment data into the request object
             $request = [
-                "paymentData" => $payment->getAdditionalInformation("threeDS2PaymentData")
+                "paymentData" => $payment->getAdditionalInformation("adyenPaymentData")
             ];
 
             // unset payment data from additional information
-            $payment->unsAdditionalInformation("threeDS2PaymentData");
+            $payment->unsAdditionalInformation("adyenPaymentData");
         } else {
             $this->adyenLogger->error("3D secure 2.0 failed, payment data not found");
             throw new \Magento\Framework\Exception\LocalizedException(
@@ -119,7 +121,10 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             $request['details']['threeds2.fingerprint'] = $payload['details']['threeds2.fingerprint'];
         } elseif (!empty($payload['details']['threeds2.challengeResult'])) {
             $request['details']['threeds2.challengeResult'] = $payload['details']['threeds2.challengeResult'];
+        } elseif (!empty($payload)) {
+            $request = $payload;
         }
+
 
         // Send the request
         try {
@@ -152,6 +157,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         $response = [];
 
         if ($result['resultCode'] != 'Authorised') {
+
             $this->checkoutSession->restoreQuote();
 
             // Always cancel the order if the paymenth has failed
@@ -160,6 +166,12 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             }
 
             $order->cancel()->save();
+
+            $this->adyenLogger->error(
+                sprintf("Payment details call failed for action or 3ds2 payment method, resultcode is %s Raw API responds: %s",
+                    $result['resultCode'],
+                    print_r($result, true)
+                ));
 
             throw new \Magento\Framework\Exception\LocalizedException(__('The payment is REFUSED.'));
         }

@@ -41,7 +41,8 @@ define(
         'Magento_Checkout/js/action/place-order',
         'Adyen_Payment/js/model/threeds2',
         'Magento_Checkout/js/model/error-processor',
-        'Adyen_Payment/js/model/adyen-payment-service'
+        'Adyen_Payment/js/model/adyen-payment-service',
+        'adyenCheckout'
     ],
     function (
         ko,
@@ -64,7 +65,8 @@ define(
         placeOrderAction,
         threeds2,
         errorProcessor,
-        adyenPaymentService
+        adyenPaymentService,
+        AdyenCheckout
     ) {
 
         'use strict';
@@ -257,30 +259,14 @@ define(
                             }
                             var oneClickCardNode = document.getElementById('cvcContainer-' + self.value);
 
-                            // this should be fixed in new version of checkout card component
-                            var hideCVC = false;
-                            if (this.hasVerification()) {
-                                if (self.agreement_data.variant == "maestro") {
-                                    // for maestro cvc is optional
-                                    self.placeOrderAllowed(true);
-                                }
-                            } else {
-                                hideCVC = true;
-                            }
 
                             var oneClickCard = checkout
                                 .create('card', {
-                                    type: self.agreement_data.variant,
-                                    hideCVC: hideCVC,
-                                    details: self.getOneclickDetails(),
-                                    storedDetails: {
-                                        "card": {
-                                            "expiryMonth": self.agreement_data.card.expiryMonth,
-                                            "expiryYear": self.agreement_data.card.expiryYear,
-                                            "holderName": self.agreement_data.card.holderName,
-                                            "number": self.agreement_data.card.number
-                                        }
-                                    },
+                                    brand: self.agreement_data.variant,
+                                    storedPaymentMethodId: this.value,
+                                    expiryMonth: self.agreement_data.card.expiryMonth,
+                                    expiryYear: self.agreement_data.card.expiryYear,
+                                    holderName: self.agreement_data.card.holderName,
                                     onChange: function (state, component) {
                                         if (state.isValid) {
                                             self.placeOrderAllowed(true);
@@ -303,8 +289,6 @@ define(
                                     }
                                 })
                                 .mount(oneClickCardNode);
-
-
                             window.adyencheckout = oneClickCard;
                         },
                         /**
@@ -397,27 +381,6 @@ define(
                             self.threeDS2Component.mount(threeDS2Node);
                         },
                         /**
-                         * We use the billingAgreements to save the oneClick stored payments but we don't store the
-                         * details object that we get from the paymentMethods call. This function is a fix for BCMC.
-                         * When we render the stored payments dynamically from the paymentMethods call response it
-                         * should be removed
-                         * @returns {*}
-                         */
-                        getOneclickDetails: function () {
-                            var self = this;
-
-                            if (self.agreement_data.variant === 'bcmc') {
-                                return [];
-                            } else {
-                                return [
-                                    {
-                                        "key": "cardDetails.cvc",
-                                        "type": "cvc"
-                                }
-                                ];
-                            }
-                        },
-                        /**
                          * Builds the payment details part of the payment information reqeust
                          *
                          * @returns {{method: *, additional_data: {variant: *, recurring_detail_reference: *, number_of_installments: *, cvc: (string|*), expiryMonth: *, expiryYear: *}}}
@@ -485,7 +448,7 @@ define(
                             return $.when(
                                 placeOrderAction(this.getData(), this.getMessageContainer())
                             );
-                        },
+                        }
                     }
                 });
 
@@ -567,10 +530,10 @@ define(
                 return window.checkoutConfig.payment.adyenOneclick.locale;
             },
             getOriginKey: function () {
-                return window.checkoutConfig.payment.adyenOneclick.originKey;
+                return window.checkoutConfig.payment.adyen.originKey;
             },
             getCheckoutEnvironment: function () {
-                return window.checkoutConfig.payment.adyenOneclick.checkoutEnvironment;
+                return window.checkoutConfig.payment.adyen.checkoutEnvironment;
             }
         });
     }
