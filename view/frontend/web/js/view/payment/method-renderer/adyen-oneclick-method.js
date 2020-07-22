@@ -259,9 +259,15 @@ define(
                             }
                             var oneClickCardNode = document.getElementById('cvcContainer-' + self.value);
 
+                            var hideCVC = false;
+                            // hide cvc if contract has been stored as recurring
+                            if (!this.hasVerification()) {
+                                hideCVC = true;
+                            }
 
                             var oneClickCard = checkout
                                 .create('card', {
+                                    hideCVC: hideCVC,
                                     brand: self.agreement_data.variant,
                                     storedPaymentMethodId: this.value,
                                     expiryMonth: self.agreement_data.card.expiryMonth,
