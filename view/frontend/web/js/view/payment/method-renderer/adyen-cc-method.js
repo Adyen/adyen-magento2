@@ -39,7 +39,8 @@ define(
         'Adyen_Payment/js/threeds2-js-utils',
         'Adyen_Payment/js/model/threeds2',
         'Magento_Checkout/js/model/error-processor',
-        'Adyen_Payment/js/model/adyen-payment-service'
+        'Adyen_Payment/js/model/adyen-payment-service',
+        'adyenCheckout'
     ],
     function (
         $,
@@ -60,7 +61,8 @@ define(
         threeDS2Utils,
         threeds2,
         errorProcessor,
-        adyenPaymentService
+        adyenPaymentService,
+        AdyenCheckout
     ) {
 
         'use strict';
@@ -88,7 +90,9 @@ define(
 
                 // initialize adyen component for general use
                 this.checkout = new AdyenCheckout({
-                    locale: this.getLocale()
+                    locale: this.getLocale(),
+                    originKey: this.getOriginKey(),
+                    environment: this.getCheckoutEnvironment()
                 });
 
                 return this;
@@ -135,6 +139,7 @@ define(
                 // installments
                 var allInstallments = self.getAllInstallments();
                 var cardNode = document.getElementById('cardContainer');
+
 
                 self.cardComponent = self.checkout.create('card', {
                     originKey: self.getOriginKey(),
@@ -230,9 +235,9 @@ define(
                                     fullScreenLoader.stopLoader();
                                 });
                             },
-                        onError: function (error) {
-                            console.log(JSON.stringify(error));
-                        }
+                            onError: function (error) {
+                                console.log(JSON.stringify(error));
+                            }
                         });
 
                     self.threeDS2IdentifyComponent.mount(threeDS2Node);
@@ -269,9 +274,9 @@ define(
                                     fullScreenLoader.stopLoader();
                                 });
                             },
-                        onError: function (error) {
-                            console.log(JSON.stringify(error));
-                        }
+                            onError: function (error) {
+                                console.log(JSON.stringify(error));
+                            }
                         });
                     self.threeDS2ChallengeComponent.mount(threeDS2Node);
                 }
@@ -296,7 +301,7 @@ define(
              * @returns {{method: *}}
              */
             getData: function () {
-                const browserInfo = threeDS2Utils.getBrowserInfo();
+                var browserInfo = threeDS2Utils.getBrowserInfo();
 
                 var data = {
                     'method': this.item.method,
@@ -356,14 +361,14 @@ define(
                                 self.isPlaceOrderActionAllowed(true);
                             }
                         ).done(
-                            function (orderId) {
-                                self.afterPlaceOrder();
-                                adyenPaymentService.getOrderPaymentStatus(orderId)
+                        function (orderId) {
+                            self.afterPlaceOrder();
+                            adyenPaymentService.getOrderPaymentStatus(orderId)
                                 .done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
                                 });
-                            }
-                        );
+                        }
+                    );
                 }
                 return false;
             },
@@ -457,10 +462,10 @@ define(
                 return window.checkoutConfig.payment.adyenCc.methodCode;
             },
             getOriginKey: function () {
-                return window.checkoutConfig.payment.adyenCc.originKey;
+                return window.checkoutConfig.payment.adyen.originKey;
             },
             getCheckoutEnvironment: function () {
-                return window.checkoutConfig.payment.adyenCc.checkoutEnvironment;
+                return window.checkoutConfig.payment.adyen.checkoutEnvironment;
             },
             getLocale: function () {
                 return window.checkoutConfig.payment.adyenCc.locale;

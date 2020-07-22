@@ -144,10 +144,6 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         );
 
         $config['payment']['adyenOneclick']['methodCode'] = self::CODE;
-        $config['payment']['adyenOneclick']['originKey'] = $this->_adyenHelper->getOriginKeyForBaseUrl();
-        $config['payment']['adyenOneclick']['checkoutEnvironment'] = $this->_adyenHelper->getCheckoutEnvironment(
-            $this->_storeManager->getStore()->getId()
-        );
         $config['payment']['adyenOneclick']['locale'] = $this->_adyenHelper->getStoreLocale(
             $this->_storeManager->getStore()->getId()
         );
