@@ -64,7 +64,6 @@ define(
         /** Add view logic here if needed */
         return Component.extend({
             initialize: function () {
-                var self = this;
                 this._super();
 
                 if (this.isGooglePayEnabled()) {
