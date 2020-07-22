@@ -104,7 +104,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         if ($paymentData = $payment->getAdditionalInformation("adyenPaymentData")) {
             // Add payment data into the request object
             $request = [
-                "paymentData" => $payment->getAdditionalInformation("adyenPaymentData")
+                "paymentData" => $paymentData
             ];
 
             // unset payment data from additional information
