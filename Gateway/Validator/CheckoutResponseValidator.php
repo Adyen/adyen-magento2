@@ -68,6 +68,7 @@ class CheckoutResponseValidator extends AbstractValidator
         $errorMessages = [];
         // validate result
         if (!empty($response['resultCode'])) {
+            $payment->setAdditionalInformation('resultCode', $response['resultCode']);
             switch ($response['resultCode']) {
                 case "IdentifyShopper":
                     $payment->setAdditionalInformation('threeDSType', $response['resultCode']);

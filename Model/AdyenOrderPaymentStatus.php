@@ -25,8 +25,8 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 
 class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentStatusInterface
 {
@@ -90,9 +90,15 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
         }
 
 
+        /**
+         * If payment method result is Pending and action is provided provide component action back to checkout
+         */
         if ($payment->getMethod() === AdyenHppConfigProvider::CODE) {
             $additionalInformation = $payment->getAdditionalInformation();
-            if (!empty($additionalInformation['action'])) {
+            if (
+                !empty($additionalInformation['action']) &&
+                $additionalInformation['resultCode'] == 'Pending'
+            ) {
                 return json_encode(['action' => $additionalInformation['action']]);
             }
         }
