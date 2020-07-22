@@ -270,7 +270,7 @@ class PaymentMethods extends AbstractHelper
 
         $grandTotal = (float) $grandTotal;
 
-        if ($grandTotal > 0.0) {
+        if ($grandTotal > 0) {
             return $grandTotal;
         }
 
