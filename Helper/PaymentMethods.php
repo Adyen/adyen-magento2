@@ -413,6 +413,5 @@ class PaymentMethods extends AbstractHelper
         }
 
         return $responseData;
-        return [];
     }
 }
