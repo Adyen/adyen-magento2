@@ -34,6 +34,7 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
+    // Only used for backend orders! Checkout in front-end is using different checkout version see web folder
     const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
     const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
 
@@ -443,7 +444,7 @@ class Data extends AbstractHelper
      * gives back global configuration values
      *
      * @param $field
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenAbstractConfigData($field, $storeId = null)
@@ -455,7 +456,7 @@ class Data extends AbstractHelper
      * gives back global configuration values as boolean
      *
      * @param $field
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenAbstractConfigDataFlag($field, $storeId = null)
@@ -467,7 +468,7 @@ class Data extends AbstractHelper
      * Gives back adyen_cc configuration values
      *
      * @param $field
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenCcConfigData($field, $storeId = null)
@@ -479,7 +480,7 @@ class Data extends AbstractHelper
      * Gives back adyen_cc configuration values as flag
      *
      * @param $field
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenCcConfigDataFlag($field, $storeId = null)
@@ -491,7 +492,7 @@ class Data extends AbstractHelper
      * Gives back adyen_cc_vault configuration values as flag
      *
      * @param $field
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenCcVaultConfigDataFlag($field, $storeId = null)
@@ -503,7 +504,7 @@ class Data extends AbstractHelper
      * Gives back adyen_hpp configuration values
      *
      * @param $field
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenHppConfigData($field, $storeId = null)
@@ -515,7 +516,7 @@ class Data extends AbstractHelper
      * Gives back adyen_hpp configuration values as flag
      *
      * @param $field
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenHppConfigDataFlag($field, $storeId = null)
@@ -527,7 +528,7 @@ class Data extends AbstractHelper
      * Gives back adyen_oneclick configuration values
      *
      * @param $field
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenOneclickConfigData($field, $storeId = null)
@@ -539,7 +540,7 @@ class Data extends AbstractHelper
      * Gives back adyen_oneclick configuration values as flag
      *
      * @param $field
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenOneclickConfigDataFlag($field, $storeId = null)
@@ -549,7 +550,7 @@ class Data extends AbstractHelper
 
     /**
      * @param $field
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return bool|mixed
      */
     public function getAdyenPosCloudConfigData($field, $storeId = null)
@@ -559,7 +560,7 @@ class Data extends AbstractHelper
 
     /**
      * @param $field
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return bool|mixed
      */
     public function getAdyenPosCloudConfigDataFlag($field, $storeId = null)
@@ -571,7 +572,7 @@ class Data extends AbstractHelper
      * Gives back adyen_pay_by_mail configuration values
      *
      * @param $field
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenPayByMailConfigData($field, $storeId = null)
@@ -583,7 +584,7 @@ class Data extends AbstractHelper
      * Gives back adyen_pay_by_mail configuration values as flag
      *
      * @param $field
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenPayByMailConfigDataFlag($field, $storeId = null)
@@ -595,7 +596,7 @@ class Data extends AbstractHelper
      * Gives back adyen_boleto configuration values
      *
      * @param $field
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenBoletoConfigData($field, $storeId = null)
@@ -607,7 +608,7 @@ class Data extends AbstractHelper
      * Gives back adyen_boleto configuration values as flag
      *
      * @param $field
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenBoletoConfigDataFlag($field, $storeId = null)
@@ -619,7 +620,7 @@ class Data extends AbstractHelper
      * Gives back adyen_apple_pay configuration values
      *
      * @param $field
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenApplePayConfigData($field, $storeId = null)
@@ -628,7 +629,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenApplePayMerchantIdentifier($storeId = null)
@@ -642,7 +643,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenApplePayPemFileLocation($storeId = null)
@@ -659,7 +660,7 @@ class Data extends AbstractHelper
      * Gives back adyen_google_pay configuration values
      *
      * @param $field
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getAdyenGooglePayConfigData($field, $storeId = null)
@@ -671,7 +672,7 @@ class Data extends AbstractHelper
      * Gives back adyen_google_pay configuration values
      *
      * @param $field
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function isAdyenGooglePayEnabled($storeId = null)
@@ -680,12 +681,16 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param null $storeId
+     * @param string $storeId
      * @return mixed
      */
     public function getAdyenGooglePayMerchantIdentifier($storeId = null)
     {
-        return $this->getAdyenGooglePayConfigData('merchant_identifier', $storeId);
+        $value = $this->getAdyenGooglePayConfigData('merchant_identifier', $storeId);
+        if($value === null) {
+            return '';
+        }
+        return $value;
     }
 
     /**
@@ -722,7 +727,7 @@ class Data extends AbstractHelper
     /**
      * Check if configuration is set to demo mode
      *
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function isDemoMode($storeId = null)
@@ -743,7 +748,7 @@ class Data extends AbstractHelper
     /**
      * Retrieve the API key
      *
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return string
      */
     public function getAPIKey($storeId = null)
@@ -773,7 +778,7 @@ class Data extends AbstractHelper
     /**
      * Retrieve the webserver username
      *
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return string
      */
     public function getWsUsername($storeId = null)
@@ -789,7 +794,7 @@ class Data extends AbstractHelper
     /**
      * Retrieve the Live endpoint prefix key
      *
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return string
      */
     public function getLiveEndpointPrefix($storeId = null)
@@ -867,11 +872,11 @@ class Data extends AbstractHelper
      *
      * @param $field
      * @param $paymentMethodCode
-     * @param $storeId
+     * @param null|int|string $storeId
      * @param bool|false $flag
      * @return bool|mixed
      */
-    public function getConfigData($field, $paymentMethodCode, $storeId, $flag = false)
+    public function getConfigData($field, $paymentMethodCode, $storeId = null, $flag = false)
     {
         $path = 'payment/' . $paymentMethodCode . '/' . $field;
 
@@ -1391,7 +1396,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return string the X API Key for the specified or current store
      */
     public function getPosApiKey($storeId = null)
@@ -1407,7 +1412,7 @@ class Data extends AbstractHelper
     /**
      * Return the Store ID for the current store/mode
      *
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function getPosStoreId($storeId = null)
@@ -1421,7 +1426,7 @@ class Data extends AbstractHelper
      * return the merchant account name defined in required settings.
      *
      * @param $paymentMethod
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return string
      */
     public function getAdyenMerchantAccount($paymentMethod, $storeId = null)
@@ -1476,7 +1481,7 @@ class Data extends AbstractHelper
     /**
      * Initializes and returns Adyen Client and sets the required parameters of it
      *
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @param string|null $apiKey
      * @return \Adyen\Client
      * @throws \Adyen\AdyenException
@@ -1573,7 +1578,7 @@ class Data extends AbstractHelper
      * Get origin key for a specific origin using the adyen api library client
      *
      * @param $origin
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return string
      * @throws \Adyen\AdyenException
      */
@@ -1604,7 +1609,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return string
      */
     public function getCheckoutEnvironment($storeId = null)
@@ -1627,7 +1632,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return string
      */
     public function getCheckoutCardComponentJs($storeId = null)
@@ -1722,7 +1727,7 @@ class Data extends AbstractHelper
     /**
      * For backwards compatibility get the recurringType used for HPP + current billing agreements
      *
-     * @param null $storeId
+     * @param null|int|string $storeId
      * @return null|string
      */
     public function getRecurringTypeFromOneclickRecurringSetting($storeId = null)
@@ -1762,7 +1767,7 @@ class Data extends AbstractHelper
     /**
      * Check if CreditCard vault is enabled
      *
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function isCreditCardVaultEnabled($storeId = null)
@@ -1786,7 +1791,7 @@ class Data extends AbstractHelper
     /**
      * Check if 3DS2.0 is enabled for credit cards
      *
-     * @param int|null $storeId
+     * @param null|int|string $storeId
      * @return mixed
      */
     public function isCreditCardThreeDS2Enabled($storeId = null)
@@ -1849,7 +1854,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param int $storeId
+     * @param null|int|string $storeId
      * @return mixed|string
      */
     public function getCurrentLocaleCode($storeId)

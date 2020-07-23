@@ -68,6 +68,7 @@ class CheckoutResponseValidator extends AbstractValidator
         $errorMessages = [];
         // validate result
         if (!empty($response['resultCode'])) {
+            $payment->setAdditionalInformation('resultCode', $response['resultCode']);
             switch ($response['resultCode']) {
                 case "IdentifyShopper":
                     $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
@@ -75,7 +76,7 @@ class CheckoutResponseValidator extends AbstractValidator
                         'threeDS2Token',
                         $response['authentication']['threeds2.fingerprintToken']
                     );
-                    $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
+                    $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
                     break;
                 case "ChallengeShopper":
                     $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
@@ -83,7 +84,7 @@ class CheckoutResponseValidator extends AbstractValidator
                         'threeDS2Token',
                         $response['authentication']['threeds2.challengeToken']
                     );
-                    $payment->setAdditionalInformation('threeDS2PaymentData', $response['paymentData']);
+                    $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
                     break;
                 case "Authorised":
                 case "Received":
@@ -120,6 +121,12 @@ class CheckoutResponseValidator extends AbstractValidator
                     }
                     if (!empty($response['pspReference'])) {
                         $payment->setAdditionalInformation('pspReference', $response['pspReference']);
+                    }
+                    break;
+                case 'Pending':
+                    $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
+                    if (!empty($response['action'])) {
+                        $payment->setAdditionalInformation('action', $response['action']);
                     }
                     break;
                 case "RedirectShopper":
