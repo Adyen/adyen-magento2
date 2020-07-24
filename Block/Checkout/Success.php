@@ -32,22 +32,28 @@ class Success extends \Magento\Framework\View\Element\Template
     /**
      * @var \Magento\Sales\Model\Order $order
      */
-    protected $_order;
+    protected $order;
 
     /**
      * @var \Magento\Checkout\Model\Session
      */
-    protected $_checkoutSession;
+    protected $checkoutSession;
 
     /**
      * @var \Magento\Checkout\Model\OrderFactory
      */
-    protected $_orderFactory;
+    protected $orderFactory;
+
 
     /**
-     * @var \Magento\Framework\Pricing\Helper\Data
+     * @var \Adyen\Payment\Helper\Data
      */
-    public $priceHelper;
+    protected $adyenHelper;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
 
     /**
      * Success constructor.
@@ -63,11 +69,15 @@ class Success extends \Magento\Framework\View\Element\Template
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Framework\Pricing\Helper\Data $priceHelper,
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
         array $data = []
     ) {
-        $this->_checkoutSession = $checkoutSession;
-        $this->_orderFactory = $orderFactory;
+        $this->checkoutSession = $checkoutSession;
+        $this->orderFactory = $orderFactory;
         $this->priceHelper = $priceHelper;
+        $this->adyenHelper = $adyenHelper;
+        $this->storeManager = $storeManager;
         parent::__construct($context, $data);
     }
 
@@ -152,13 +162,54 @@ class Success extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * If PresentToShopper resultCode and action has provided render this with the checkout component on the success page
+     * @return bool
+     */
+    public function renderAction()
+    {
+        if (
+            !empty($this->getOrder()->getPayment()->getAdditionalInformation('resultCode')) &&
+            $this->getOrder()->getPayment()->getAdditionalInformation('resultCode') == 'PresentToShopper' &&
+            !empty($this->getOrder()->getPayment()->getAdditionalInformation('action'))
+        ) {
+            return true;
+        }
+        return false;
+    }
+
+    public function getAction()
+    {
+        return json_encode($this->getOrder()->getPayment()->getAdditionalInformation('action'));
+    }
+
+    public function getLocale()
+    {
+        return $this->adyenHelper->getCurrentLocaleCode(
+            $this->storeManager->getStore()->getId()
+        );
+    }
+
+    public function getOriginKey()
+    {
+        return $this->adyenHelper->getOriginKeyForBaseUrl();
+    }
+
+    public function getEnvironment()
+    {
+        return $this->adyenHelper->getCheckoutEnvironment(
+            $this->storeManager->getStore()->getId()
+        );
+    }
+
+
+    /**
      * @return \Magento\Sales\Model\Order
      */
     public function getOrder()
     {
-        if ($this->_order == null) {
-            $this->_order = $this->_orderFactory->create()->load($this->_checkoutSession->getLastOrderId());
+        if ($this->order == null) {
+            $this->order = $this->orderFactory->create()->load($this->checkoutSession->getLastOrderId());
         }
-        return $this->_order;
+        return $this->order;
     }
 }

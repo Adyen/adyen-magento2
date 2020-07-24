@@ -22,10 +22,15 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-<body>
-    <referenceContainer name="order.success.additional.info">
-        <block class="Adyen\Payment\Block\Checkout\Success" name="onepage.success.adyen_payment" template="checkout/success.phtml" cacheable="false"/>
-    </referenceContainer>
-</body>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Adyen_Payment::css/styles.css"/>
+    </head>
+    <body>
+        <referenceContainer name="order.success.additional.info">
+            <block class="Adyen\Payment\Block\Checkout\Success" name="onepage.success.adyen_payment"
+                   template="checkout/success.phtml" cacheable="false"/>
+        </referenceContainer>
+    </body>
 </page>
