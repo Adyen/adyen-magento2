@@ -35,9 +35,9 @@
         ], function ($, AdyenCheckout) {
             var action = JSON.parse('<?= $block->escapeHtml($block->getAction()); ?>');
             var checkoutComponent = new AdyenCheckout({
-                locale: '<?php echo $block->getLocale(); ?>',
-                environment: '<?php echo $block->getEnvironment(); ?>',
-                originKey: '<?php echo $block->getOriginKey(); ?>'
+                locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
+                environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
+                originKey: '<?= $block->escapeHtml($block->getOriginKey()); ?>'
             });
             try {
                 checkoutComponent.createFromAction(action).mount('#ActionContainer');
