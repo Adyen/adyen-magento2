@@ -31,7 +31,7 @@
             'jquery',
             'adyenCheckout3101'  // the alias for "mage/accordion"
         ], function ($, AdyenCheckout) {
-            var action = JSON.parse('<?= $block->escapeHtml($block->getAction()); ?>');
+            var action = JSON.parse('<?= $block->getAction(); ?>');
             var checkoutComponent = new AdyenCheckout({
                 locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
                 environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
