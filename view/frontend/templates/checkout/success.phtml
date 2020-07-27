@@ -25,8 +25,6 @@
  * @var \Adyen\Payment\Block\Checkout\Success $block
  */
 ?>
-
-
 <?php if ($block->renderAction()): ?>
     <script type="text/javascript">
         require([
@@ -46,13 +44,8 @@
             }
         });
     </script>
-
-
     <div id="ActionContainer"></div>
-
-
 <?php else: ?>
-
     <?php if ($block->isBoletoPayment()): ?>
     <?php
     $boletoData = $block->getBoletoData();
