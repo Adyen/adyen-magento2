@@ -39,8 +39,11 @@
                 environment: '<?php echo $block->getEnvironment(); ?>',
                 originKey: '<?php echo $block->getOriginKey(); ?>'
             });
-            var actionNode = document.getElementById('ActionContainer');
-            checkoutComponent.createFromAction(action).mount(actionNode);
+            try {
+                checkoutComponent.createFromAction(action).mount('#ActionContainer');
+            } catch(err) {
+                // Action component cannot be created
+            }
         });
     </script>
 
