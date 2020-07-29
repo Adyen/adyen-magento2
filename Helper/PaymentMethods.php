@@ -405,7 +405,7 @@ class PaymentMethods extends AbstractHelper
      */
     public function getConnectedTerminals()
     {
-        $storeId = $this->getQuote()->getStoreId();
+        $storeId = $this->session->getQuote()->getStoreId();
 
         // initialize the adyen client
         $client = $this->adyenHelper->initializeAdyenClient($storeId, $this->adyenHelper->getPosApiKey($storeId));

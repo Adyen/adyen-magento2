@@ -32,9 +32,10 @@ define(
         'Magento_Checkout/js/model/url-builder',
         'Magento_Checkout/js/model/full-screen-loader',
         'mage/url',
-        'Magento_Vault/js/view/payment/vault-enabler'
+        'Magento_Vault/js/view/payment/vault-enabler',
+        'adyenCheckout'
     ],
-    function (ko, $, Component, placeOrderAction, quote, urlBuilder, fullScreenLoader, url, VaultEnabler) {
+    function (ko, $, Component, placeOrderAction, quote, urlBuilder, fullScreenLoader, url, VaultEnabler, AdyenCheckout) {
         'use strict';
 
         /**
@@ -89,6 +90,8 @@ define(
                 var googlePayNode = document.getElementById('googlePay');
                 self.checkoutComponent = new AdyenCheckout({
                     locale: self.getLocale(),
+                    originKey: self.getOriginKey(),
+                    environment: self.getCheckoutEnvironment(),
                     risk: {
                         enabled: false
                     }
@@ -111,9 +114,11 @@ define(
                     currency: quote.totals().quote_currency_code,
                     totalPriceStatus: 'FINAL',
 
+                    // empty onSubmit to resolve javascript issues.
+                    onSubmit: function() {},
                     onChange: function (state) {
                         if (!!state.isValid) {
-                            self.googlePayToken(state.data.paymentMethod["paywithgoogle.token"]);
+                            self.googlePayToken(state.data.paymentMethod.googlePayToken);
                             self.getPlaceOrderDeferredObject()
                                 .fail(
                                     function () {
@@ -142,9 +147,6 @@ define(
                     console.log(error);
                     self.googlePayAllowed(false);
                 });
-            },
-            getCheckoutEnvironment: function () {
-                return window.checkoutConfig.payment.adyenGooglePay.checkoutEnvironment;
             },
             isGooglePayAllowed: function () {
                 if (this.googlePayAllowed()) {
@@ -206,6 +208,12 @@ define(
             },
             getVaultCode: function () {
                 return "adyen_google_pay_vault";
+            },
+            getOriginKey: function () {
+                return window.checkoutConfig.payment.adyen.originKey;
+            },
+            getCheckoutEnvironment: function () {
+                return window.checkoutConfig.payment.adyen.checkoutEnvironment;
             }
         });
     }

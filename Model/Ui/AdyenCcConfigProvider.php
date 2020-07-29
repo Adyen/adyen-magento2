@@ -157,10 +157,6 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();
 
-        $config['payment']['adyenCc']['originKey'] = $this->_adyenHelper->getOriginKeyForBaseUrl();
-        $config['payment']['adyenCc']['checkoutEnvironment'] = $this->_adyenHelper->getCheckoutEnvironment(
-            $this->storeManager->getStore()->getId()
-        );
 
         // has installments by default false
         $config['payment']['adyenCc']['hasInstallments'] = false;
