@@ -31,7 +31,7 @@
             'jquery',
             'adyenCheckout3101'
         ], function ($, AdyenCheckout) {
-            var action = JSON.parse('<?= $block->getAction(); ?>');
+            var action = JSON.parse('<?= /* @noEscape */ $block->getAction(); ?>');
             var checkoutComponent = new AdyenCheckout({
                 locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
                 environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
