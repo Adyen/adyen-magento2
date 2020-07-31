@@ -14,7 +14,8 @@ var config = {
     },
     map: {
         '*': {
-            'adyenCheckout':  'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.4.0/adyen.js'
+            'adyenCheckout':  'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.4.0/adyen.js',
+            'adyenCheckout3101': 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.10.1/adyen.js'
         }
     }
 };
