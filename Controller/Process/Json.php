@@ -356,12 +356,6 @@ class Json extends \Magento\Framework\App\Action\Action
         if (!empty($_SERVER['REMOTE_ADDR'])) {
             array_push($ipAddress, $_SERVER['REMOTE_ADDR']);
         }
-        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            array_push($ipAddress, $_SERVER['HTTP_X_FORWARDED_FOR']);
-        }
-        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-            array_push($ipAddress, $_SERVER['HTTP_CLIENT_IP']);
-        }
 
         return $this->ipAddressHelper->isIpAddressValid($ipAddress);
     }
