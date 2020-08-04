@@ -150,6 +150,10 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBodyPaymentMethod['sepa.ibanNumber'] = $payment->getAdditionalInformation("ibanNumber");
         }
 
+        if ($payment->getAdditionalInformation("storePaymentMethod")) {
+            $requestBodyPaymentMethod['storePaymentMethod'] = $payment->getAdditionalInformation("storePaymentMethod");
+        }
+
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
                 $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
             ) || $this->adyenHelper->isPaymentMethodAfterpayTouchMethod(

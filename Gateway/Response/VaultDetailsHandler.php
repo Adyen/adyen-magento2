@@ -106,8 +106,11 @@ class VaultDetailsHandler implements HandlerInterface
         $orderPayment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
         $payment = $orderPayment->getPayment();
-
-        if ($this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId())) {
+        
+        // TODO add new configuration for HPP vault and add new helper function isHppVaultEnabled()
+        if ($this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId()) ||
+            $this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())
+        ) {
             // add vault payment token entity to extension attributes
             $paymentToken = $this->getVaultPaymentToken($response, $payment);
 
@@ -180,11 +183,17 @@ class VaultDetailsHandler implements HandlerInterface
             $paymentToken->setExpiresAt($this->getExpirationDate($additionalData[self::EXPIRY_DATE]));
 
             $details = [
-                'type' => $additionalData[self::PAYMENT_METHOD],
-                'maskedCC' => $additionalData[self::CARD_SUMMARY],
-                'expirationDate' => $additionalData[self::EXPIRY_DATE]
+                'type' => $additionalData[self::PAYMENT_METHOD]
             ];
+            
+            if (!empty($additionalData[self::CARD_SUMMARY])) {
+                $details['maskedCC'] =  $additionalData[self::CARD_SUMMARY];
+            }
 
+            if (!empty($additionalData[self::EXPIRY_DATE])) {
+                $details['expirationDate'] =  $additionalData[self::EXPIRY_DATE];
+            }
+            
             $paymentToken->setTokenDetails(json_encode($details));
 
             // If the token is updated, it needs to be saved to keep the changes

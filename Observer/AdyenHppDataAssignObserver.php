@@ -39,6 +39,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
     const OWNER_NAME = 'ownerName';
     const BANK_ACCOUNT_OWNER_NAME = 'bankAccountOwnerName';
     const IBAN_NUMBER = 'ibanNumber';
+    const STORE_PAYMENT_METHOD = 'storePaymentMethod';
     const BANK_ACCOUNT_NUMBER = 'bankAccountNumber';
     const BANK_LOCATIONID = 'bankLocationId';
 
@@ -56,6 +57,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         self::OWNER_NAME,
         self::BANK_ACCOUNT_OWNER_NAME,
         self::IBAN_NUMBER,
+        self::STORE_PAYMENT_METHOD,
         self::BANK_ACCOUNT_NUMBER,
         self::BANK_LOCATIONID
     ];
