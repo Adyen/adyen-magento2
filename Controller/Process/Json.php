@@ -351,12 +351,10 @@ class Json extends \Magento\Framework\App\Action\Action
     protected function isIpValid()
     {
         $ipAddress = [];
-
         //Getting remote and possibly forwarded IP addresses
         if (!empty($_SERVER['REMOTE_ADDR'])) {
-            array_push($ipAddress, $_SERVER['REMOTE_ADDR']);
+            $ipAddress = explode(',', $_SERVER['REMOTE_ADDR']);
         }
-
         return $this->ipAddressHelper->isIpAddressValid($ipAddress);
     }
 
