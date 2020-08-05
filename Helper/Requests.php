@@ -313,7 +313,7 @@ class Requests extends AbstractHelper
     {
         if ($this->adyenHelper->isCreditCardThreeDS2Enabled($storeId)) {
             $request['additionalData']['allow3DS2'] = true;
-            $request['origin'] = $this->adyenHelper->getOrigin();
+            $request['origin'] = $this->adyenHelper->getOrigin($storeId);
             $request['channel'] = 'web';
             $request['browserInfo']['screenWidth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_WIDTH];
             $request['browserInfo']['screenHeight'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_HEIGHT];
