@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Adyen\Payment\Model\ApplicationInfo;
 
 /**
@@ -1567,7 +1568,7 @@ class Data extends AbstractHelper
 
         if (!$originKey = $this->cache->load($cacheKey)) {
             if ($originKey = $this->getOriginKeyForOrigin($origin, $storeId)) {
-                $this->cache->save($originKey, $cacheKey, [], 60 * 60 * 24);
+                $this->cache->save($originKey, $cacheKey, [ConfigCache::CACHE_TAG], 60 * 60 * 24);
             }
         }
 
