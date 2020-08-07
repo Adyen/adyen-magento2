@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
+use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Vault\Model\Ui\VaultConfigProvider;
 
@@ -39,14 +40,24 @@ class Requests extends AbstractHelper
     private $adyenHelper;
 
     /**
+     * Logging instance
+     *
+     * @var \Adyen\Payment\Logger\AdyenLogger
+     */
+    protected $_logger;
+
+    /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -83,8 +94,14 @@ class Requests extends AbstractHelper
         $additionalData = null,
         $request = []
     ) {
+
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
+        }
+        elseif ($this->adyenHelper->isGuestTokenizationEnabled($storeId)){
+            $uuid = Uuid::generateV4();
+            $guestCustomerId = $uuid;
+            $request['shopperReference'] = $guestCustomerId;
         }
 
         $paymentMethod = '';
@@ -341,8 +358,13 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringData($areaCode, int $storeId, $additionalData, $request = [])
+    public function buildRecurringData($areaCode, int $storeId, $additionalData, $customerId, $request = [])
     {
+        $isGuestUser = false;
+        if ($customerId > 0) {
+            $isGuestUser = true;
+        }
+
         // If the vault feature is on this logic is handled in the VaultDataBuilder
         if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
             if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
@@ -352,7 +374,7 @@ class Requests extends AbstractHelper
             $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
             $enableRecurring = $this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', $storeId);
 
-            if ($enableOneclick) {
+            if ($enableOneclick && !$isGuestUser) {
                 $request['enableOneClick'] = true;
             } else {
                 $request['enableOneClick'] = false;

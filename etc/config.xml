@@ -103,6 +103,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <group>adyen</group>
+                <guest_checkout_tokenisation>0</guest_checkout_tokenisation>
             </adyen_oneclick>
             <adyen_hpp>
                 <active>0</active>
