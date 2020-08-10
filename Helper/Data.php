@@ -1042,7 +1042,7 @@ class Data extends AbstractHelper
 
     public function isGuestTokenizationEnabled($storeId)
     {
-        return !$this->getAdyenOneclickConfigDataFlag('guest_checkout_tokenisation', $storeId);
+        return $this->getAdyenOneclickConfigDataFlag('guest_checkout_tokenisation', $storeId);
     }
 
     /**
