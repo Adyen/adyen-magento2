@@ -58,5 +58,10 @@
                 <config_path>payment/adyen_oneclick/share_billing_agreement</config_path>
             </field>
         </group>
+        <field id="guest_checkout_tokenisation" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Enable guest checkout tokenisation</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_oneclick/guest_checkout_tokenisation</config_path>
+        </field>
     </group>
 </include>

@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
+use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Vault\Model\Ui\VaultConfigProvider;
 
@@ -37,12 +38,12 @@ class Requests extends AbstractHelper
      * @var \Adyen\Payment\Helper\Data
      */
     private $adyenHelper;
-
     /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
      */
+
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper
     ) {
@@ -85,6 +86,11 @@ class Requests extends AbstractHelper
     ) {
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
+        }
+        elseif ($this->adyenHelper->isGuestTokenizationEnabled($storeId)){
+            $uuid = Uuid::generateV4();
+            $guestCustomerId =  $payment->getOrder()->getIncrementId() . $uuid;
+            $request['shopperReference'] = $guestCustomerId;
         }
 
         $paymentMethod = '';
@@ -341,8 +347,13 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringData($areaCode, int $storeId, $additionalData, $request = [])
+    public function buildRecurringData($areaCode, int $storeId, $additionalData, $customerId, $request = [])
     {
+        $isGuestUser = true;
+        if ($customerId > 0) {
+            $isGuestUser = false;
+        }
+
         // If the vault feature is on this logic is handled in the VaultDataBuilder
         if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
             if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
@@ -351,8 +362,7 @@ class Requests extends AbstractHelper
 
             $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
             $enableRecurring = $this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', $storeId);
-
-            if ($enableOneclick) {
+            if ($enableOneclick && !$isGuestUser) {
                 $request['enableOneClick'] = true;
             } else {
                 $request['enableOneClick'] = false;
@@ -365,7 +375,7 @@ class Requests extends AbstractHelper
             }
 
             // value can be 0,1 or true
-            if (!empty($additionalData[AdyenCcDataAssignObserver::STORE_CC])) {
+            if (!empty($additionalData[AdyenCcDataAssignObserver::STORE_CC]) || ($isGuestUser && $this->adyenHelper->isGuestTokenizationEnabled($storeId))) {
                 $request['paymentMethod']['storeDetails'] = true;
             }
         }
