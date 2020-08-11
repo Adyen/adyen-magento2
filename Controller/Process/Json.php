@@ -205,7 +205,7 @@ class Json extends \Magento\Framework\App\Action\Action
      */
     protected function _processNotification($response, $notificationMode)
     {
-        if ($this->configHelper->getNotificationsIpHmacCheck()) {
+        if ($this->configHelper->getNotificationsIpCheck()) {
             //Validate if the notification comes from a verified IP
             if (!$this->isIpValid()) {
                 $this->_adyenLogger->addAdyenNotification(
@@ -213,17 +213,21 @@ class Json extends \Magento\Framework\App\Action\Action
                 );
                 return false;
             }
-
-            if ($this->hmacSignature->isHmacSupportedEventCode($response)) {
-                //Validate the Hmac calculation
-                if (!$this->hmacSignature->isValidNotificationHMAC($this->configHelper->getNotificationsHmacKey(),
-                    $response)) {
-                    $this->_adyenLogger->addAdyenNotification('HMAC key validation failed ' . print_r($response, 1));
-                    return false;
+            if ($this->configHelper->getNotificationsHmacCheck()) {
+                if ($this->hmacSignature->isHmacSupportedEventCode($response)) {
+                    //Validate the Hmac calculation
+                    if (!$this->hmacSignature->isValidNotificationHMAC(
+                        $this->configHelper->getNotificationsHmacKey(),
+                        $response
+                    )) {
+                        $this->_adyenLogger->addAdyenNotification(
+                            'HMAC key validation failed ' . print_r($response, 1)
+                        );
+                        return false;
+                    }
                 }
             }
         }
-
         // validate the notification
         if ($this->authorised($response)) {
             // log the notification
@@ -347,18 +351,10 @@ class Json extends \Magento\Framework\App\Action\Action
     protected function isIpValid()
     {
         $ipAddress = [];
-
         //Getting remote and possibly forwarded IP addresses
         if (!empty($_SERVER['REMOTE_ADDR'])) {
-            array_push($ipAddress, $_SERVER['REMOTE_ADDR']);
+            $ipAddress = explode(',', $_SERVER['REMOTE_ADDR']);
         }
-        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            array_push($ipAddress, $_SERVER['HTTP_X_FORWARDED_FOR']);
-        }
-        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-            array_push($ipAddress, $_SERVER['HTTP_CLIENT_IP']);
-        }
-
         return $this->ipAddressHelper->isIpAddressValid($ipAddress);
     }
 
