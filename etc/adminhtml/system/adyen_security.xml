@@ -33,19 +33,30 @@
                 </p>
             ]]>
         </comment>
-        <field id="notifications_ip_hmac_check" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Check notification's IP address and HMAC signature</label>
+        <field id="notifications_hmac_check" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Check notification's HMAC signature</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/adyen_abstract/notifications_ip_hmac_check</config_path>
+            <config_path>payment/adyen_abstract/notifications_hmac_check</config_path>
             <comment>
                 <![CDATA[
-                If enabled notifications will be accepted only when the IP address matches Adyen's servers and the HMAC
+                If enabled notifications will be accepted only when the HMAC
                 signature is verified. To learn more about these settings refer to
                 <a target="_blank" href="https://docs.adyen.com/plugins/magento-2/set-up-the-plugin-in-magento">Adyen documentation</a>.
                 ]]>
             </comment>
         </field>
-        <field id="notification_hmac_key_test" translate="label" type="obscure" sortOrder="20" showInDefault="1"
+        <field id="notifications_ip_check" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Check notification's IP address</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/notifications_ip_check</config_path>
+            <comment>
+                <![CDATA[
+                If enabled notifications will be accepted only when the IP address matches Adyen's servers. To learn more about these settings refer to
+                <a target="_blank" href="https://docs.adyen.com/plugins/magento-2/set-up-the-plugin-in-magento">Adyen documentation</a>.
+                ]]>
+            </comment>
+        </field>
+        <field id="notification_hmac_key_test" translate="label" type="obscure" sortOrder="30" showInDefault="1"
                showInWebsite="1" showInStore="1">
             <label>HMAC key test</label>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
@@ -57,7 +68,7 @@
                 ]]>
             </tooltip>
         </field>
-        <field id="notification_hmac_key_live" translate="label" type="obscure" sortOrder="30" showInDefault="1"
+        <field id="notification_hmac_key_live" translate="label" type="obscure" sortOrder="40" showInDefault="1"
                showInWebsite="1" showInStore="1">
             <label>HMAC key live</label>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>

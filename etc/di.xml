@@ -1050,7 +1050,8 @@
                 <item name="payment/adyen_abstract/debug" xsi:type="string">1</item>
                 <item name="payment/adyen_apple_pay/full_path_location_pem_file_test" xsi:type="string">1</item>
                 <item name="payment/adyen_apple_pay/full_path_location_pem_file_live" xsi:type="string">1</item>
-                <item name="payment/adyen_abstract/notifications_ip_hmac_check" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/notifications_ip_check" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/notifications_hmac_check" xsi:type="string">1</item>
             </argument>
             <argument name="sensitive" xsi:type="array">
                 <item name="payment/adyen_abstract/merchant_account" xsi:type="string">1</item>
