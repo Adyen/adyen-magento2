@@ -42,7 +42,6 @@ class Requests extends AbstractHelper
      * Requests constructor.
      *
      * @param Data $adyenHelper
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
 
     public function __construct(
