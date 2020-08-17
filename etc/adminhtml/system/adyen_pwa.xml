@@ -36,7 +36,7 @@
 
         <field id="payments_origin_url" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Payment Origin URL</label>
-            <tooltip>Only relevant if you process payment from an external url different to that of magento</tooltip>
+            <tooltip>Only relevant if you process payments from an external URL different to that of Magento</tooltip>
             <config_path>payment/adyen_abstract/payment_origin_url</config_path>
         </field>
 
