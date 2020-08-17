@@ -397,7 +397,6 @@ class Result extends \Magento\Framework\App\Action\Action
                 $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->
                 getAdditionalInformation('paymentData');
 
-
                 // remove paymentData from db
                 $this->_session->getLastRealOrder()->getPayment()->unsAdditionalInformation('paymentData');
                 $this->_session->getLastRealOrder()->getPayment()->save();
