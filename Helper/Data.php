@@ -1538,7 +1538,7 @@ class Data extends AbstractHelper
     /**
      * @return string
      */
-    public function getOrigin()
+    public function getOrigin($storeId)
     {
         if ( $paymentOriginUrl = $this->getAdyenAbstractConfigData("payment_origin_url", $storeId) ) {
             return $paymentOriginUrl;
