@@ -1536,6 +1536,7 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @param null|int|string $storeId
      * @return string
      */
     public function getOrigin($storeId)
