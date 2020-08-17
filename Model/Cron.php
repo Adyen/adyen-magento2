@@ -1945,7 +1945,6 @@ class Cron
     {
         $statusObject = $this->_orderStatusCollection->create()
             ->addFieldToFilter('main_table.status', $status)
-            ->addFieldToFilter('state_table.is_default', true)
             ->joinStates()
             ->getFirstItem();
 
