@@ -392,7 +392,6 @@ class Result extends \Magento\Framework\App\Action\Action
         if (!empty($this->_session->getLastRealOrder()) &&
             !empty($this->_session->getLastRealOrder()->getPayment())
         ) {
-
             if (!empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation('paymentData'))) {
                 $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->
                 getAdditionalInformation('paymentData');
