@@ -107,7 +107,9 @@ class VaultDetailsHandler implements HandlerInterface
 
         $payment = $orderPayment->getPayment();
 
-        if ($this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId())) {
+        if ($this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId()) ||
+            $this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())
+        ) {
             // add vault payment token entity to extension attributes
             $paymentToken = $this->getVaultPaymentToken($response, $payment);
 

@@ -1782,6 +1782,16 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Check if alternative payment methods vault is enabled
+     *
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function isHppVaultEnabled($storeId = null)
+    {
+        return $this->getAdyenHppConfigData('store_alternative_payment_method', $storeId);
+    }
+    /**
      * Checks if the house number needs to be sent to the Adyen API separately or as it is in the street field
      *
      * @param $country
