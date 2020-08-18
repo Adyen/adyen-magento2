@@ -402,7 +402,7 @@ class Result extends \Magento\Framework\App\Action\Action
             }
 
             // for pending payment that redirect we store this under adyenPaymentData
-            // we need to refactor the code in the plugin that all paymentData is stored in paymentData and not in adyenPaymentData
+            // TODO: refactor the code in the plugin that all paymentData is stored in paymentData and not in adyenPaymentData
             if (!empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation('adyenPaymentData'))) {
                 $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->
                 getAdditionalInformation("adyenPaymentData");
