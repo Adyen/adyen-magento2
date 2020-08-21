@@ -334,7 +334,7 @@ class Requests extends AbstractHelper
             }
         } else {
             $request['additionalData']['allow3DS2'] = false;
-            $request['origin'] = $this->adyenHelper->getOrigin();
+            $request['origin'] = $this->adyenHelper->getOrigin($storeId);
             $request['channel'] = 'web';
         }
 
