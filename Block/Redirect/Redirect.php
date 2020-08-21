@@ -470,14 +470,16 @@ class Redirect extends \Magento\Payment\Block\Form
     }
 
     /**
-     * @return string
+     * @return mixed
      */
     public function getTermUrl()
     {
-        return $this->getUrl(
-            'adyen/process/redirect',
-            ['_secure' => $this->_getRequest()->isSecure()]
-        );
+        $payment=$this->getPayment();
+        if ($termUrl = $payment->getAdditionalInformation('termUrl')) {
+            return $termUrl;
+        }
+
+        throw new AdyenException("No termUrl is provided.");
     }
 
     /**
