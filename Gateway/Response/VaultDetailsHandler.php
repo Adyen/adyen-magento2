@@ -107,12 +107,17 @@ class VaultDetailsHandler implements HandlerInterface
 
         $payment = $orderPayment->getPayment();
 
-        if ($this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId()) ||
-            $this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())
-        ) {
+        $this->adyenLogger->addAdyenDebug("Before the token");
+        $this->adyenLogger->addAdyenDebug("is hpp enable?" .  (bool)$this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId()));
+
+        //check if the pm is sepa direct, separate the if statements
+//        if($this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())){
+//
+//        }
+        if ($this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId())) {
             // add vault payment token entity to extension attributes
             $paymentToken = $this->getVaultPaymentToken($response, $payment);
-
+            $this->adyenLogger->addAdyenDebug("The paymentToken" . $paymentToken);
             if (null !== $paymentToken) {
                 $extensionAttributes = $this->getExtensionAttributes($payment);
                 $extensionAttributes->setVaultPaymentToken($paymentToken);
@@ -182,10 +187,16 @@ class VaultDetailsHandler implements HandlerInterface
             $paymentToken->setExpiresAt($this->getExpirationDate($additionalData[self::EXPIRY_DATE]));
 
             $details = [
-                'type' => $additionalData[self::PAYMENT_METHOD],
-                'maskedCC' => $additionalData[self::CARD_SUMMARY],
-                'expirationDate' => $additionalData[self::EXPIRY_DATE]
+                'type' => $additionalData[self::PAYMENT_METHOD]
             ];
+
+            if (!empty($additionalData[self::CARD_SUMMARY])) {
+                $details['maskedCC'] =  $additionalData[self::CARD_SUMMARY];
+            }
+
+            if (!empty($additionalData[self::EXPIRY_DATE])) {
+                $details['expirationDate'] =  $additionalData[self::EXPIRY_DATE];
+            }
 
             $paymentToken->setTokenDetails(json_encode($details));
 

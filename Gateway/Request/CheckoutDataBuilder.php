@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
@@ -32,6 +33,11 @@ class CheckoutDataBuilder implements BuilderInterface
      * @var \Adyen\Payment\Helper\Data
      */
     private $adyenHelper;
+
+    /**
+     * @var \Adyen\Payment\Helper\Config
+    */
+    private $adyenConfig;
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
@@ -49,21 +55,32 @@ class CheckoutDataBuilder implements BuilderInterface
     private $gender;
 
     /**
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @var AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
+     * @param \Adyen\Payment\Helper\Data $adyenHelper,
+     * @param \Adyen\Payment\Helper\Config $adyenConfig,
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Quote\Api\CartRepositoryInterface $cartRepository
-     * @param \Adyen\Payment\Model\Gender $gender
+     * @param \Adyen\Payment\Model\Gender $gender,
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Helper\Config $adyenConfig,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Quote\Api\CartRepositoryInterface $cartRepository,
-        \Adyen\Payment\Model\Gender $gender
+        \Adyen\Payment\Model\Gender $gender,
+        AdyenLogger $adyenLogger
+
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
         $this->cartRepository = $cartRepository;
         $this->gender = $gender;
+        $this->adyenLogger = $adyenLogger;
+        $this->adyenConfig = $adyenConfig;
     }
 
     /**
@@ -150,8 +167,10 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBodyPaymentMethod['sepa.ibanNumber'] = $payment->getAdditionalInformation("ibanNumber");
         }
 
-        if ($payment->getAdditionalInformation("storePaymentMethod")) {
-            $requestBodyPaymentMethod['storePaymentMethod'] = $payment->getAdditionalInformation("storePaymentMethod");
+
+        if ( $this->adyenConfig->isStoreAlternativePaymentMethodEnabled($storeId)
+            && $this->adyenHelper->isPaymentMethodSepaDirectDebit($payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE))) {
+            $requestBodyPaymentMethod['storePaymentMethod'] = true;
         }
 
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(

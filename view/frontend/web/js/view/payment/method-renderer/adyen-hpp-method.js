@@ -70,7 +70,6 @@ define(
                         'telephone',
                         'ownerName',
                         'ibanNumber',
-                        'storePaymentMethod',
                         'ssn',
                         'bankAccountNumber',
                         'bankLocationId'
@@ -419,9 +418,9 @@ define(
                             countryCode: self.getLocale(),
                             onChange: function (state) {
                                 if (!!state.isValid) {
+                                    console.log(state.data.paymentMethod);
                                     result.ownerName(state.data.paymentMethod["sepa.ownerName"]);
                                     result.ibanNumber(state.data.paymentMethod["sepa.ibanNumber"]);
-                                    result.storePaymentMethod(state.data.paymentMethod["storePaymentMethod"]);
                                     result.isPlaceOrderAllowed(true);
                                 } else {
                                     result.isPlaceOrderAllowed(false);
@@ -513,7 +512,6 @@ define(
                             } else if (self.isSepaDirectDebit()) {
                                 additionalData.ownerName = this.ownerName();
                                 additionalData.ibanNumber = this.ibanNumber();
-                                additionalData.storePaymentMethod = this.storePaymentMethod();
                             } else if (self.isAch()) {
                                 additionalData.bankAccountOwnerName = this.ownerName();
                                 additionalData.bankAccountNumber = this.bankAccountNumber();
@@ -560,7 +558,6 @@ define(
                     } else if (result.isSepaDirectDebit()) {
                         result.ownerName = ko.observable(null);
                         result.ibanNumber = ko.observable(null);
-                        result.storePaymentMethod = ko.observable(null);
                     } else if (result.isAch()) {
                         result.ownerName = ko.observable(null);
                         result.bankAccountNumber = ko.observable(null);

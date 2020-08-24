@@ -1118,6 +1118,20 @@ class Data extends AbstractHelper
      * @param $paymentMethod
      * @return bool
      */
+    public function isPaymentMethodSepaDirectDebit($paymentMethod)
+    {
+        if (strpos($paymentMethod, 'sepadirectdebit') !== false) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * @param $paymentMethod
+     * @return bool
+     */
     public function doesPaymentMethodSkipDetails($paymentMethod)
     {
         if ($this->isPaymentMethodOpenInvoiceMethod($paymentMethod) ||
@@ -1781,16 +1795,6 @@ class Data extends AbstractHelper
         return $this->getAdyenCcVaultConfigDataFlag('active', $storeId);
     }
 
-    /**
-     * Check if alternative payment methods vault is enabled
-     *
-     * @param null|int|string $storeId
-     * @return mixed
-     */
-    public function isHppVaultEnabled($storeId = null)
-    {
-        return $this->getAdyenHppConfigData('store_alternative_payment_method', $storeId);
-    }
     /**
      * Checks if the house number needs to be sent to the Adyen API separately or as it is in the street field
      *
