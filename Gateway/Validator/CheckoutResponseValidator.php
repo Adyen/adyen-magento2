@@ -171,7 +171,7 @@ class CheckoutResponseValidator extends AbstractValidator
                             $termUrl = $response['redirect']['data']['TermUrl'];
                         }
 
-                        if ($paReq && $md && $redirectUrl && $paymentData && $redirectMethod) {
+                        if ($paReq && $md && $termUrl && $redirectUrl && $paymentData && $redirectMethod) {
                             $payment->setAdditionalInformation('redirectUrl', $redirectUrl);
                             $payment->setAdditionalInformation('redirectMethod', $redirectMethod);
                             $payment->setAdditionalInformation('paRequest', $paReq);
