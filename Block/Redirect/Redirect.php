@@ -474,8 +474,7 @@ class Redirect extends \Magento\Payment\Block\Form
      */
     public function getTermUrl()
     {
-        $payment=$this->getPayment();
-        if ($termUrl = $payment->getAdditionalInformation('termUrl')) {
+        if ($termUrl = $this->getPayment()->getAdditionalInformation('termUrl')) {
             return $termUrl;
         }
 
