@@ -38,11 +38,6 @@
             <frontend_class>validate-number</frontend_class>
             <config_path>payment/adyen_hpp/sort_order</config_path>
         </field>
-        <field id="store_alternative_payment_method" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Enable store alternative payment method token</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/adyen_hpp/store_alternative_payment_method</config_path>
-        </field>
         <group id="adyen_hpp_openinvoice_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="100">
             <label>Klarna\RatePay\Afterpay Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
