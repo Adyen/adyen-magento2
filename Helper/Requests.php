@@ -349,7 +349,7 @@ class Requests extends AbstractHelper
     {
         $request['redirectFromIssuerMethod'] = 'GET';
         $request['redirectToIssuerMethod'] = 'POST';
-        $request['returnUrl'] = $this->adyenHelper->getOrigin() . '/adyen/process/result';
+        $request['returnUrl'] = $this->adyenHelper->getOrigin() . '/adyen/process/redirect';
 
         return $request;
     }
