@@ -107,13 +107,6 @@ class VaultDetailsHandler implements HandlerInterface
 
         $payment = $orderPayment->getPayment();
 
-        $this->adyenLogger->addAdyenDebug("Before the token");
-        $this->adyenLogger->addAdyenDebug("is hpp enable?" .  (bool)$this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId()));
-
-        //check if the pm is sepa direct, separate the if statements
-//        if($this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())){
-//
-//        }
         if ($this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId())) {
             // add vault payment token entity to extension attributes
             $paymentToken = $this->getVaultPaymentToken($response, $payment);

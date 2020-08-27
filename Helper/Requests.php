@@ -38,16 +38,24 @@ class Requests extends AbstractHelper
      * @var \Adyen\Payment\Helper\Data
      */
     private $adyenHelper;
+
+    /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    private $adyenConfig;
+
     /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
+     * @param Config $adyenConfig ;
      */
-
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Helper\Config $adyenConfig
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->adyenConfig = $adyenConfig;
     }
 
     /**
@@ -353,7 +361,10 @@ class Requests extends AbstractHelper
         if ($customerId > 0) {
             $isGuestUser = false;
         }
-
+        //active
+        if ( $this->adyenConfig->isStoreAlternativePaymentMethodEnabled($storeId)) {
+            $request['storePaymentMethod'] = true;
+        }
         // If the vault feature is on this logic is handled in the VaultDataBuilder
         if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
             if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
