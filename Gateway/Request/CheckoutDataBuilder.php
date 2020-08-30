@@ -50,10 +50,10 @@ class CheckoutDataBuilder implements BuilderInterface
 
 
     /**
-     * @param \Adyen\Payment\Helper\Data $adyenHelper,
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Quote\Api\CartRepositoryInterface $cartRepository
-     * @param \Adyen\Payment\Model\Gender $gender,
+     * @param \Adyen\Payment\Model\Gender $gender
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
