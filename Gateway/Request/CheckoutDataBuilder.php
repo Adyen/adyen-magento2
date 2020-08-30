@@ -23,7 +23,6 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
-use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
@@ -54,10 +53,6 @@ class CheckoutDataBuilder implements BuilderInterface
      */
     private $gender;
 
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
 
     /**
      * @param \Adyen\Payment\Helper\Data $adyenHelper,
@@ -71,15 +66,12 @@ class CheckoutDataBuilder implements BuilderInterface
         \Adyen\Payment\Helper\Config $adyenConfig,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Quote\Api\CartRepositoryInterface $cartRepository,
-        \Adyen\Payment\Model\Gender $gender,
-        AdyenLogger $adyenLogger
-
+        \Adyen\Payment\Model\Gender $gender
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
         $this->cartRepository = $cartRepository;
         $this->gender = $gender;
-        $this->adyenLogger = $adyenLogger;
         $this->adyenConfig = $adyenConfig;
     }
 

@@ -41,11 +41,14 @@ class CheckoutResponseValidator extends AbstractValidator
      * GeneralResponseValidator constructor.
      *
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
+     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
     public function __construct(
         \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Helper\Data $adyenHelper
     ) {
+        $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         parent::__construct($resultFactory);
     }
