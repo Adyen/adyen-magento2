@@ -34,11 +34,6 @@ class CheckoutDataBuilder implements BuilderInterface
     private $adyenHelper;
 
     /**
-     * @var \Adyen\Payment\Helper\Config
-    */
-    private $adyenConfig;
-
-    /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     private $storeManager;
@@ -56,14 +51,12 @@ class CheckoutDataBuilder implements BuilderInterface
 
     /**
      * @param \Adyen\Payment\Helper\Data $adyenHelper,
-     * @param \Adyen\Payment\Helper\Config $adyenConfig,
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Quote\Api\CartRepositoryInterface $cartRepository
      * @param \Adyen\Payment\Model\Gender $gender,
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Helper\Config $adyenConfig,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Quote\Api\CartRepositoryInterface $cartRepository,
         \Adyen\Payment\Model\Gender $gender
@@ -72,7 +65,6 @@ class CheckoutDataBuilder implements BuilderInterface
         $this->storeManager = $storeManager;
         $this->cartRepository = $cartRepository;
         $this->gender = $gender;
-        $this->adyenConfig = $adyenConfig;
     }
 
     /**

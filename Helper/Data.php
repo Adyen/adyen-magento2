@@ -1118,20 +1118,6 @@ class Data extends AbstractHelper
      * @param $paymentMethod
      * @return bool
      */
-    public function isPaymentMethodSepaDirectDebit($paymentMethod)
-    {
-        if (strpos($paymentMethod, 'sepadirectdebit') !== false) {
-            return true;
-        }
-
-        return false;
-    }
-
-
-    /**
-     * @param $paymentMethod
-     * @return bool
-     */
     public function doesPaymentMethodSkipDetails($paymentMethod)
     {
         if ($this->isPaymentMethodOpenInvoiceMethod($paymentMethod) ||

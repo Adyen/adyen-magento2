@@ -110,7 +110,6 @@ class VaultDetailsHandler implements HandlerInterface
         if ($this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId())) {
             // add vault payment token entity to extension attributes
             $paymentToken = $this->getVaultPaymentToken($response, $payment);
-            $this->adyenLogger->addAdyenDebug("The paymentToken" . $paymentToken);
             if (null !== $paymentToken) {
                 $extensionAttributes = $this->getExtensionAttributes($payment);
                 $extensionAttributes->setVaultPaymentToken($paymentToken);
