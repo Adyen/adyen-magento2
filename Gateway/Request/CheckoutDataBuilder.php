@@ -48,7 +48,6 @@ class CheckoutDataBuilder implements BuilderInterface
      */
     private $gender;
 
-
     /**
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
