@@ -32,9 +32,16 @@ use Magento\Framework\App\AreaList;
 use Magento\Framework\Phrase\Renderer\Placeholder;
 use Magento\Framework\Phrase;
 use Magento\Sales\Model\OrderRepository;
+use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
+use Magento\Vault\Api\PaymentTokenRepositoryInterface;
+use Magento\Vault\Model\PaymentTokenManagement;
 
 class Cron
 {
+    const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
+    const EXPIRY_DATE = 'expiryDate';
+    const PAYMENT_METHOD = 'paymentMethod';
+
     /**
      * Logging instance
      *
@@ -240,6 +247,16 @@ class Cron
     protected $configHelper;
 
     /**
+     * @var PaymentTokenManagement
+     */
+    private $paymentTokenManagement;
+
+    /**
+     * @var
+     */
+    private $paymentTokenRepository;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -262,6 +279,8 @@ class Cron
      * @param OrderRepository $orderRepository
      * @param ResourceModel\Billing\Agreement $agreementResourceModel
      * @param \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder
+     * @param PaymentTokenManagement $paymentTokenManagement
+     * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -451,7 +470,7 @@ class Cron
                         $this->_adyenLogger->addAdyenNotificationCronjob('Going to cancel the order');
 
                         // if payment is API check, check if API result pspreference is the same as reference
-                        if ($this->_eventCode == NOTIFICATION::AUTHORISATION 
+                        if ($this->_eventCode == NOTIFICATION::AUTHORISATION
                         && $this->_getPaymentMethodType() == 'api') {
                             // don't cancel the order becasue order was successfull through api
                             $this->_adyenLogger->addAdyenNotificationCronjob(
@@ -493,7 +512,7 @@ class Cron
                     }
                 } else {
                     // Notification is successful
-                    $this->_processNotification();
+                    $this->_processNotification($notification);
                 }
 
                 try {
@@ -935,7 +954,7 @@ class Cron
     /**
      * Process the Notification
      */
-    protected function _processNotification()
+    protected function _processNotification($notification)
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Processing the notification');
         $_paymentCode = $this->_paymentMethodCode();
@@ -1063,8 +1082,8 @@ class Cron
                  */
                 if (!$isOrderCc && strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
-                        "Order is not a credit card, 
-                    or the payment method in the notification does not match the payment method of the order, 
+                        "Order is not a credit card,
+                    or the payment method in the notification does not match the payment method of the order,
                     skipping OFFER_CLOSED"
                     );
                     break;
@@ -1184,7 +1203,7 @@ class Cron
                         $billingAgreement = $this->_billingAgreementFactory->create();
                         $billingAgreement->load($recurringDetailReference, 'reference_id');
                         // check if BA exists
-                        if (!($billingAgreement && $billingAgreement->getAgreementId() > 0 
+                        if (!($billingAgreement && $billingAgreement->getAgreementId() > 0
                         && $billingAgreement->isValid())) {
                             // create new
                             $this->_adyenLogger->addAdyenNotificationCronjob("Creating new Billing Agreement");
@@ -1232,7 +1251,58 @@ class Cron
                     $this->_adyenLogger->addAdyenNotificationCronjob($message);
                     $comment = $this->_order->addStatusHistoryComment($message);
                     $this->_order->addRelatedObject($comment);
-                } else {
+                }
+                //store recurring contract for alternative payments methods
+                if ($this->configHelper->isStoreAlternativePaymentMethodEnabled()){
+                    $paymentTokenAlternativePaymentMethod = null;
+                    try {
+                        //get the payment
+                        $payment = $this->_order->getPayment();
+                        //get additional data
+                        $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
+                            $notification->getAdditionalData()
+                        ) : "";
+                        $paymentTokenAlternativePaymentMethod = null;
+                        if ($additionalData && is_array($additionalData)) {
+                            // Check if $paymentTokenAlternativePaymentMethod exists already
+                            $paymentTokenAlternativePaymentMethod = $this->paymentTokenManagement->getByGatewayToken(
+                                $additionalData[self::RECURRING_DETAIL_REFERENCE],
+                                $payment->getMethodInstance()->getCode(),
+                                $this->_order->getCustomerId()
+                            );
+
+                            $paymentTokenAlternativePaymentMethodSaveRequired = false;
+
+                            // In case the payment token for this payment method does not exist, create it based on the additionalData
+                            if ($paymentTokenAlternativePaymentMethod === null) {
+                                /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
+                                $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
+                                    PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
+                                );
+
+                                $paymentTokenAlternativePaymentMethod->setGatewayToken(
+                                    $additionalData[self::RECURRING_DETAIL_REFERENCE]
+                                );
+                                if (!empty($additionalData['paymentMethodVariant'])) {
+                                    $additionalData[self::PAYMENT_METHOD] = $additionalData['paymentMethodVariant'];
+                                    $paymentTokenAlternativePaymentMethod->setIsVisible(false);
+                                }
+                            } else {
+                                $paymentTokenAlternativePaymentMethodSaveRequired = true;
+                            }
+                            $paymentTokenAlternativePaymentMethod->setExpiresAt($this->getExpirationDate($additionalData[self::EXPIRY_DATE]));
+
+                            // If the token is updated, it needs to be saved to keep the changes
+                            if ($paymentTokenAlternativePaymentMethodSaveRequired) {
+                                $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
+                            }
+                        }
+
+                    } catch (\Exception $exception) {
+                        $message = $exception->getMessage();
+                    }
+                }
+                else {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         'Ignore recurring_contract notification because Vault feature is enabled'
                     );
@@ -1457,7 +1527,7 @@ class Cron
 
             if (!$createPendingInvoice) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'Setting pending invoice is off so don\'t create 
+                    'Setting pending invoice is off so don\'t create
                     an invoice wait for the capture notification'
                 );
                 return;
@@ -2008,7 +2078,7 @@ class Cron
         $this->notifierPool->addNotice(
             __("Adyen: Refund for order #%1 has failed", $this->_merchantReference),
             __(
-                "Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area 
+                "Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area
                 and trigger this refund manually or contact our support.",
                 $this->_reason,
                 $this->_pspReference
