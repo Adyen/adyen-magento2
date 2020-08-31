@@ -390,11 +390,29 @@ class Result extends \Magento\Framework\App\Action\Action
         $request = [];
 
         if (!empty($this->_session->getLastRealOrder()) &&
-            !empty($this->_session->getLastRealOrder()->getPayment()) &&
-            !empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("paymentData"))
+            !empty($this->_session->getLastRealOrder()->getPayment())
         ) {
-            $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->
-            getAdditionalInformation("paymentData");
+            if (!empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation('paymentData'))) {
+                $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->
+                getAdditionalInformation('paymentData');
+
+                // remove paymentData from db
+                $this->_session->getLastRealOrder()->getPayment()->unsAdditionalInformation('paymentData');
+                $this->_session->getLastRealOrder()->getPayment()->save();
+            }
+
+            // for pending payment that redirect we store this under adyenPaymentData
+            // TODO: refactor the code in the plugin that all paymentData is stored in paymentData and not in adyenPaymentData
+            if (!empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation('adyenPaymentData'))) {
+                $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->
+                getAdditionalInformation("adyenPaymentData");
+
+                // remove paymentData from db
+                $this->_session->getLastRealOrder()->getPayment()->unsAdditionalInformation('adyenPaymentData');
+                $this->_session->getLastRealOrder()->getPayment()->save();
+            }
+        } else {
+            $this->_adyenLogger->addError("Can't load the order id from the session");
         }
 
         $request["details"] = $response;

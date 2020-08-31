@@ -350,6 +350,19 @@ class Requests extends AbstractHelper
     }
 
     /**
+     * @param array $request
+     * @return array
+     */
+    public function buildRedirectData($request = [])
+    {
+        $request['redirectFromIssuerMethod'] = 'GET';
+        $request['redirectToIssuerMethod'] = 'POST';
+        $request['returnUrl'] = $this->adyenHelper->getOrigin() . '/adyen/process/redirect';
+
+        return $request;
+    }
+
+    /**
      * @param $request
      * @param $areaCode
      * @param $storeId

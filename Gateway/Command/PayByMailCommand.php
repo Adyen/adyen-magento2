@@ -157,8 +157,8 @@ class PayByMailCommand implements CommandInterface
 
         // if directory lookup is enabled use the billingadress as countrycode
         if ($countryCode == false) {
-            if (is_object($order->getBillingAddress()) && $order->getBillingAddress()->getCountry() != "") {
-                $countryCode = $order->getBillingAddress()->getCountry();
+            if (is_object($order->getBillingAddress()) && $order->getBillingAddress()->getCountryId() != "") {
+                $countryCode = $order->getBillingAddress()->getCountryId();
             } else {
                 $countryCode = "";
             }
