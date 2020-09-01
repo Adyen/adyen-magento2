@@ -58,7 +58,11 @@ class RedirectDataBuilder implements BuilderInterface
      */
     public function build(array $buildSubject)
     {
-        $request['body'] = $this->adyenRequestsHelper->buildRedirectData([]);
+        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
+        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        $payment = $paymentDataObject->getPayment();
+        $storeId = $payment->getOrder()->getStoreId();
+        $request['body'] = $this->adyenRequestsHelper->buildRedirectData($storeId, []);
 
         return $request;
     }
