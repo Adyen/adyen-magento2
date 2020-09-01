@@ -1571,8 +1571,8 @@ class Data extends AbstractHelper
      */
     public function getOriginKeyForBaseUrl()
     {
-        $origin = $this->getOrigin();
         $storeId = $this->storeManager->getStore()->getId();
+        $origin = $this->getOrigin($storeId);
         $cacheKey = 'Adyen_origin_key_for_' . $origin . '_' . $storeId;
 
         if (!$originKey = $this->cache->load($cacheKey)) {

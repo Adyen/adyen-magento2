@@ -345,11 +345,11 @@ class Requests extends AbstractHelper
      * @param array $request
      * @return array
      */
-    public function buildRedirectData($request = [])
+    public function buildRedirectData($storeId, $request = [])
     {
         $request['redirectFromIssuerMethod'] = 'GET';
         $request['redirectToIssuerMethod'] = 'POST';
-        $request['returnUrl'] = $this->adyenHelper->getOrigin() . '/adyen/process/redirect';
+        $request['returnUrl'] = $this->adyenHelper->getOrigin($storeId) . '/adyen/process/redirect';
 
         return $request;
     }
