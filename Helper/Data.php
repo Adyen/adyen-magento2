@@ -1541,10 +1541,14 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @param null|int|string $storeId
      * @return string
      */
-    public function getOrigin()
+    public function getOrigin($storeId)
     {
+        if ( $paymentOriginUrl = $this->getAdyenAbstractConfigData("payment_origin_url", $storeId) ) {
+            return $paymentOriginUrl;
+        }
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $state = $objectManager->get(\Magento\Framework\App\State::class);
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
