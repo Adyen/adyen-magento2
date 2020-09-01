@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Adyen\Payment\Model\ApplicationInfo;
 
 /**
@@ -1040,6 +1041,11 @@ class Data extends AbstractHelper
         return !$this->getAdyenOneclickConfigDataFlag('share_billing_agreement', $storeId);
     }
 
+    public function isGuestTokenizationEnabled($storeId)
+    {
+        return $this->getAdyenOneclickConfigDataFlag('guest_checkout_tokenization', $storeId);
+    }
+
     /**
      * @param $paymentMethod
      * @return bool
@@ -1535,10 +1541,14 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @param null|int|string $storeId
      * @return string
      */
-    public function getOrigin()
+    public function getOrigin($storeId)
     {
+        if ( $paymentOriginUrl = $this->getAdyenAbstractConfigData("payment_origin_url", $storeId) ) {
+            return $paymentOriginUrl;
+        }
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $state = $objectManager->get(\Magento\Framework\App\State::class);
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
@@ -1561,13 +1571,13 @@ class Data extends AbstractHelper
      */
     public function getOriginKeyForBaseUrl()
     {
-        $origin = $this->getOrigin();
         $storeId = $this->storeManager->getStore()->getId();
+        $origin = $this->getOrigin($storeId);
         $cacheKey = 'Adyen_origin_key_for_' . $origin . '_' . $storeId;
 
         if (!$originKey = $this->cache->load($cacheKey)) {
             if ($originKey = $this->getOriginKeyForOrigin($origin, $storeId)) {
-                $this->cache->save($originKey, $cacheKey, [], 60 * 60 * 24);
+                $this->cache->save($originKey, $cacheKey, [ConfigCache::CACHE_TAG], 60 * 60 * 24);
             }
         }
 

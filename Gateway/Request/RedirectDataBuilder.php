@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -25,7 +25,7 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-class RecurringDataBuilder implements BuilderInterface
+class RedirectDataBuilder implements BuilderInterface
 {
     /**
      * @var \Magento\Framework\App\State
@@ -38,7 +38,7 @@ class RecurringDataBuilder implements BuilderInterface
     private $adyenRequestsHelper;
 
     /**
-     * RecurringDataBuilder constructor.
+     * RedirectDataBuilder constructor.
      *
      * @param \Magento\Framework\Model\Context $context
      * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
@@ -62,16 +62,8 @@ class RecurringDataBuilder implements BuilderInterface
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         $storeId = $payment->getOrder()->getStoreId();
-        $areaCode = $this->appState->getAreaCode();
-        $customerId =  $payment->getOrder()->getCustomerId();
-        $additionalInformation = $payment->getAdditionalInformation();
-        $request['body'] = $this->adyenRequestsHelper->buildRecurringData(
-            $areaCode,
-            $storeId,
-            $additionalInformation,
-            $customerId,
-            []
-        );
+        $request['body'] = $this->adyenRequestsHelper->buildRedirectData($storeId, []);
+
         return $request;
     }
 }
