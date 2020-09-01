@@ -155,96 +155,97 @@ class Redirect extends \Magento\Framework\App\Action\Action
         if ($active && $success != true) {
             $this->_adyenLogger->addAdyenResult("3D secure is active");
 
-            // check if it is already processed
-            if ($this->getRequest()->isPost()) {
+            // check if the GET request contains the required 3DS params
+            if ($this->getRequest()->getParam('PaRes') && $this->getRequest()->getParam('MD')) {
                 $this->_adyenLogger->addAdyenResult("Process 3D secure payment");
-                $requestMD = $this->getRequest()->getPost('MD');
-                $requestPaRes = $this->getRequest()->getPost('PaRes');
-                $md = $order->getPayment()->getAdditionalInformation('md');
+                $requestMD = $this->getRequest()->getParam('MD');
+                $requestPaRes = $this->getRequest()->getParam('PaRes');
 
-                if ($requestMD == $md) {
-                    $order->getPayment()->setAdditionalInformation('paResponse', $requestPaRes);
+                //Reset the payment's additional info to the new MD and PaRes
+                $order->getPayment()->setAdditionalInformation('md', $requestMD);
+                $order->getPayment()->setAdditionalInformation('paRequest', $requestPaRes);
 
-                    try {
-                        $result = $this->_authorise3d($order->getPayment());
-                        $responseCode = $result['resultCode'];
-                    } catch (\Exception $e) {
-                        $this->_adyenLogger->addAdyenResult("Process 3D secure payment was refused");
-                        $responseCode = 'Refused';
-                    }
+                $order->getPayment()->setAdditionalInformation('paResponse', $requestPaRes);
 
-                    $this->_adyenLogger->addAdyenResult("Process 3D secure payment result is: " . $responseCode);
+                try {
+                    $result = $this->_authorise3d($order->getPayment());
+                    $responseCode = $result['resultCode'];
+                } catch (\Exception $e) {
+                    $this->_adyenLogger->addAdyenResult("Process 3D secure payment was refused");
+                    $responseCode = 'Refused';
+                }
 
-                    // check if authorise3d was successful
-                    if ($responseCode == 'Authorised') {
-                        $order->addStatusHistoryComment(__('3D-secure validation was successful'))->save();
-                        // set back to false so when pressed back button on the success page
-                        // it will reactivate 3D secure
-                        $order->getPayment()->setAdditionalInformation('3dActive', '');
-                        $order->getPayment()->setAdditionalInformation('3dSuccess', true);
+                $this->_adyenLogger->addAdyenResult("Process 3D secure payment result is: " . $responseCode);
 
-                        if (!$this->_adyenHelper->isCreditCardVaultEnabled() &&
-                            !empty($result['additionalData']['recurring.recurringDetailReference'])) {
-                            $this->_adyenHelper->createAdyenBillingAgreement($order, $result['additionalData']);
-                        } elseif (!empty($result['additionalData']['recurring.recurringDetailReference'])
-                        ) {
-                            try {
-                                $additionalData = $result['additionalData'];
-                                $token = $additionalData['recurring.recurringDetailReference'];
-                                $expirationDate = $additionalData['expiryDate'];
-                                $cardType = $additionalData['paymentMethod'];
-                                $cardSummary = $additionalData['cardSummary'];
-                                /** @var PaymentTokenInterface $paymentToken */
-                                $paymentToken = $this->paymentTokenFactory->create(
-                                    PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
-                                );
-                                $paymentToken->setGatewayToken($token);
-                                $paymentToken->setExpiresAt($this->getExpirationDate($expirationDate));
-                                $details = [
-                                    'type' => $cardType,
-                                    'maskedCC' => $cardSummary,
-                                    'expirationDate' => $expirationDate
-                                ];
-                                $paymentToken->setTokenDetails(json_encode($details));
-                                $extensionAttributes = $this->getExtensionAttributes($order->getPayment());
-                                $extensionAttributes->setVaultPaymentToken($paymentToken);
-                                $orderPayment = $order->getPayment()->setExtensionAttributes($extensionAttributes);
-                                $add = $this->serializer->unserialize($orderPayment->getAdditionalData());
-                                $add['force_save'] = true;
-                                $orderPayment->setAdditionalData($this->serializer->serialize($add));
-                                $this->orderPaymentResource->save($orderPayment);
-                            } catch (\Exception $e) {
-                                $this->_adyenLogger->error((string)$e->getMessage());
-                            }
+                // check if authorise3d was successful
+                if ($responseCode == 'Authorised') {
+                    $order->addStatusHistoryComment(__('3D-secure validation was successful'))->save();
+                    // set back to false so when pressed back button on the success page
+                    // it will reactivate 3D secure
+                    $order->getPayment()->setAdditionalInformation('3dActive', '');
+                    $order->getPayment()->setAdditionalInformation('3dSuccess', true);
+
+                    if (!$this->_adyenHelper->isCreditCardVaultEnabled() &&
+                        !empty($result['additionalData']['recurring.recurringDetailReference'])) {
+                        $this->_adyenHelper->createAdyenBillingAgreement($order, $result['additionalData']);
+                    } elseif (!empty($result['additionalData']['recurring.recurringDetailReference'])
+                    ) {
+                        try {
+                            $additionalData = $result['additionalData'];
+                            $token = $additionalData['recurring.recurringDetailReference'];
+                            $expirationDate = $additionalData['expiryDate'];
+                            $cardType = $additionalData['paymentMethod'];
+                            $cardSummary = $additionalData['cardSummary'];
+                            /** @var PaymentTokenInterface $paymentToken */
+                            $paymentToken = $this->paymentTokenFactory->create(
+                                PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
+                            );
+                            $paymentToken->setGatewayToken($token);
+                            $paymentToken->setExpiresAt($this->getExpirationDate($expirationDate));
+                            $details = [
+                                'type' => $cardType,
+                                'maskedCC' => $cardSummary,
+                                'expirationDate' => $expirationDate
+                            ];
+                            $paymentToken->setTokenDetails(json_encode($details));
+                            $extensionAttributes = $this->getExtensionAttributes($order->getPayment());
+                            $extensionAttributes->setVaultPaymentToken($paymentToken);
+                            $orderPayment = $order->getPayment()->setExtensionAttributes($extensionAttributes);
+                            $add = $this->serializer->unserialize($orderPayment->getAdditionalData());
+                            $add['force_save'] = true;
+                            $orderPayment->setAdditionalData($this->serializer->serialize($add));
+                            $this->orderPaymentResource->save($orderPayment);
+                        } catch (\Exception $e) {
+                            $this->_adyenLogger->error((string)$e->getMessage());
                         }
-
-                        $this->_orderRepository->save($order);
-
-                        $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
-                    } else {
-                        /*
-                         * Since responseCode!='Authorised' the order could be cancelled immediately,
-                         * but redirect payments can have multiple conflicting responses.
-                         * The order will be cancelled if an Authorization
-                         * Success=False notification is processed instead
-                        */
-                        $order->addStatusHistoryComment(
-                            __(
-                                '3D-secure validation was unsuccessful. This order will be cancelled when the related 
-                                notification has been processed.'
-                            )
-                        )->save();
-
-                        $this->messageManager->addErrorMessage("3D-secure validation was unsuccessful");
-
-                        // reactivate the quote
-                        $session = $this->_getCheckout();
-
-                        // restore the quote
-                        $session->restoreQuote();
-
-                        $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
                     }
+
+                    $this->_orderRepository->save($order);
+
+                    $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
+                } else {
+                    /*
+                     * Since responseCode!='Authorised' the order could be cancelled immediately,
+                     * but redirect payments can have multiple conflicting responses.
+                     * The order will be cancelled if an Authorization
+                     * Success=False notification is processed instead
+                    */
+                    $order->addStatusHistoryComment(
+                        __(
+                            '3D-secure validation was unsuccessful. This order will be cancelled when the related 
+                                notification has been processed.'
+                        )
+                    )->save();
+
+                    $this->messageManager->addErrorMessage("3D-secure validation was unsuccessful");
+
+                    // reactivate the quote
+                    $session = $this->_getCheckout();
+
+                    // restore the quote
+                    $session->restoreQuote();
+
+                    $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
                 }
             } else {
                 $this->_adyenLogger->addAdyenResult("Customer was redirected to bank for 3D-secure validation.");
