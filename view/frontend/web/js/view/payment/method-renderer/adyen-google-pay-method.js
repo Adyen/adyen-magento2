@@ -174,8 +174,8 @@ define(
             context: function () {
                 return this;
             },
-            validate: function () {
-                return this.additionalValidators.validate(true);
+            validate: function (hideErrors) {
+                return this.additionalValidators.validate(hideErrors);
             },
             getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
@@ -216,9 +216,6 @@ define(
             },
             getCheckoutEnvironment: function () {
                 return window.checkoutConfig.payment.adyen.checkoutEnvironment;
-            },
-            onPaymentMethodContentClick: function (data, event) {
-                $(this.googlePayNode).find('button').prop('disabled', !this.validate());
             }
         });
     }
