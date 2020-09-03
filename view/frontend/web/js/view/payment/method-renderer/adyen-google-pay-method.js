@@ -84,7 +84,7 @@ define(
                 this.vaultEnabler.setPaymentCode(this.getVaultCode());
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
                 this._super();
-                },
+            },
 
             renderGooglePay: function () {
                 this.googlePayNode = document.getElementById('googlePay');
