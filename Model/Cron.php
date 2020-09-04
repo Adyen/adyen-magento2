@@ -247,14 +247,29 @@ class Cron
     protected $configHelper;
 
     /**
+     * @var
+     */
+    protected $_recurringDetailReference;
+
+    /**
+     * @var
+     */
+    protected $_expiryDate;
+
+    /**
      * @var PaymentTokenManagement
      */
     private $paymentTokenManagement;
 
     /**
-     * @var
+     * @var PaymentTokenFactoryInterface
      */
-    private $paymentTokenRepository;
+    protected $paymentTokenFactory;
+
+    /**
+     * @var PaymentTokenRepositoryInterface
+     */
+    protected $paymentTokenRepository;
 
     /**
      * Cron constructor.
@@ -280,6 +295,7 @@ class Cron
      * @param ResourceModel\Billing\Agreement $agreementResourceModel
      * @param \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder
      * @param PaymentTokenManagement $paymentTokenManagement
+     * @param PaymentTokenFactoryInterface $paymentTokenFactory
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      */
     public function __construct(
@@ -306,7 +322,10 @@ class Cron
         \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Magento\Framework\Notification\NotifierInterface $notifierPool,
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezone,
-        \Adyen\Payment\Helper\Config $configHelper
+        \Adyen\Payment\Helper\Config $configHelper,
+        PaymentTokenManagement  $paymentTokenManagement,
+        PaymentTokenFactoryInterface $paymentTokenFactory,
+        PaymentTokenRepositoryInterface $paymentTokenRepository
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -332,6 +351,9 @@ class Cron
         $this->notifierPool = $notifierPool;
         $this->timezone = $timezone;
         $this->configHelper = $configHelper;
+        $this->paymentTokenManagement = $paymentTokenManagement;
+        $this->paymentTokenFactory = $paymentTokenFactory;
+        $this->paymentTokenRepository = $paymentTokenRepository;
     }
 
     /**
@@ -604,6 +626,12 @@ class Cron
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()
         ) : "";
+        if (!empty($additionalData[self::RECURRING_DETAIL_REFERENCE])) {
+            $this->_recurringDetailReference = $additionalData[self::RECURRING_DETAIL_REFERENCE];
+        }
+        if (!empty($additionalData[self::EXPIRY_DATE])) {
+            $this->_expiryDate = $additionalData[self::EXPIRY_DATE];
+        }
 
         // boleto data
         if ($this->_paymentMethodCode() == "adyen_boleto") {
@@ -1256,50 +1284,60 @@ class Cron
                 if ($this->configHelper->isStoreAlternativePaymentMethodEnabled()){
                     $paymentTokenAlternativePaymentMethod = null;
                     try {
+
                         //get the payment
                         $payment = $this->_order->getPayment();
-                        //get additional data
-                        $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
-                            $notification->getAdditionalData()
-                        ) : "";
-                        $paymentTokenAlternativePaymentMethod = null;
-                        if ($additionalData && is_array($additionalData)) {
+                        $customerId = $this->_order->getCustomerId();
+
+                        $this->_adyenLogger->addAdyenNotificationCronjob(
+                            '$paymentMethodCode ' . $this->_paymentMethod
+                        );
+                        if (!empty($this->_recurringDetailReference)) {
                             // Check if $paymentTokenAlternativePaymentMethod exists already
                             $paymentTokenAlternativePaymentMethod = $this->paymentTokenManagement->getByGatewayToken(
-                                $additionalData[self::RECURRING_DETAIL_REFERENCE],
+                                $this->_recurringDetailReference,
                                 $payment->getMethodInstance()->getCode(),
-                                $this->_order->getCustomerId()
+                                $payment->getOrder()->getCustomerId()
                             );
-
-                            $paymentTokenAlternativePaymentMethodSaveRequired = false;
 
                             // In case the payment token for this payment method does not exist, create it based on the additionalData
                             if ($paymentTokenAlternativePaymentMethod === null) {
+
                                 /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
                                 $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
                                     PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
                                 );
 
                                 $paymentTokenAlternativePaymentMethod->setGatewayToken(
-                                    $additionalData[self::RECURRING_DETAIL_REFERENCE]
+                                    $this->_recurringDetailReference
                                 );
-                                if (!empty($additionalData['paymentMethodVariant'])) {
-                                    $additionalData[self::PAYMENT_METHOD] = $additionalData['paymentMethodVariant'];
-                                    $paymentTokenAlternativePaymentMethod->setIsVisible(false);
-                                }
-                            } else {
-                                $paymentTokenAlternativePaymentMethodSaveRequired = true;
+                                $paymentTokenAlternativePaymentMethod->setCustomerId($customerId);
+                                $paymentTokenAlternativePaymentMethod->setPaymentMethodCode($this->_paymentMethod);
+                                $paymentTokenAlternativePaymentMethod->setPublicHash($this->_paymentMethod);
                             }
-                            $paymentTokenAlternativePaymentMethod->setExpiresAt($this->getExpirationDate($additionalData[self::EXPIRY_DATE]));
 
-                            // If the token is updated, it needs to be saved to keep the changes
-                            if ($paymentTokenAlternativePaymentMethodSaveRequired) {
-                                $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
-                            }
+                            $paymentTokenAlternativePaymentMethod->setExpiresAt($this->getExpirationDate($this->_expiryDate));
+
+                            $details = [
+                                'type' => $this->_paymentMethod
+                            ];
+
+                            $details['expirationDate'] =  $this->_expiryDate;
+
+                            $paymentTokenAlternativePaymentMethod->setTokenDetails(json_encode($details));
+                            $this->_adyenLogger->addAdyenNotificationCronjob(
+                                'Before save payment method '
+                            );
+                            $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
+                            $this->_adyenLogger->addAdyenNotificationCronjob(
+                                'After save payment method '
+                            );
                         }
-
                     } catch (\Exception $exception) {
                         $message = $exception->getMessage();
+                        $this->_adyenLogger->addAdyenNotificationCronjob(
+                            "An error occurred while saving the payment method " . $message
+                        );
                     }
                 }
                 else {
@@ -2137,5 +2175,33 @@ class Cron
             $this->_order->addStatusHistoryComment($comment);
             $this->_order->save();
         }
+    }
+
+    /**
+     * @param $expirationDate
+     * @return string
+     * @throws \Exception
+     */
+    private function getExpirationDate($expirationDate)
+    {
+        $expirationDate = explode('/', $expirationDate);
+
+        //add leading zero to month
+        $month = sprintf('%02d', $expirationDate[0]);
+
+        $expDate = new \DateTime(
+            $expirationDate[1]
+            . '-'
+            . $month
+            . '-'
+            . '01'
+            . ' '
+            . '00:00:00',
+            new \DateTimeZone('UTC')
+        );
+
+        // add one month
+        $expDate->add(new \DateInterval('P1M'));
+        return $expDate->format('Y-m-d 00:00:00');
     }
 }
