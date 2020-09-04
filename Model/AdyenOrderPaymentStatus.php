@@ -100,6 +100,17 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
                 $additionalInformation['resultCode'] == 'Pending'
             ) {
                 return json_encode(['action' => $additionalInformation['action']]);
+            } else if ($additionalInformation['resultCode'] == 'RedirectShopper') {
+                return json_encode([
+                    'action' => [
+                        'type' => 'redirect',
+                        'method' => $additionalInformation['redirectMethod'],
+                        'url' => $additionalInformation['redirectUrl'],
+                        'paymentData' => $additionalInformation['paymentData'],
+                        'paymentMethodType' => $additionalInformation['brand_code']
+                    ],
+                    'details' => $additionalInformation['details']
+                ]);
             }
         }
 
