@@ -205,27 +205,25 @@ class Json extends \Magento\Framework\App\Action\Action
      */
     protected function _processNotification($response, $notificationMode)
     {
-        if ($this->configHelper->getNotificationsIpCheck()) {
-            //Validate if the notification comes from a verified IP
-            if (!$this->isIpValid()) {
+        //Validate if Ip check is enabled and if the notification comes from a verified IP
+        if ($this->configHelper->getNotificationsIpCheck() && !$this->isIpValid()) {
+            $this->_adyenLogger->addAdyenNotification(
+                "Notification has been rejected because the IP address could not be verified"
+            );
+            return false;
+        }
+        if ($this->configHelper->getNotificationsHmacCheck() && $this->hmacSignature->isHmacSupportedEventCode(
+                $response
+            )) {
+            //Validate the Hmac calculation
+            if (!$this->hmacSignature->isValidNotificationHMAC(
+                $this->configHelper->getNotificationsHmacKey(),
+                $response
+            )) {
                 $this->_adyenLogger->addAdyenNotification(
-                    "Notification has been rejected because the IP address could not be verified"
+                    'HMAC key validation failed ' . print_r($response, 1)
                 );
                 return false;
-            }
-        }
-        if ($this->configHelper->getNotificationsHmacCheck()) {
-            if ($this->hmacSignature->isHmacSupportedEventCode($response)) {
-                //Validate the Hmac calculation
-                if (!$this->hmacSignature->isValidNotificationHMAC(
-                    $this->configHelper->getNotificationsHmacKey(),
-                    $response
-                )) {
-                    $this->_adyenLogger->addAdyenNotification(
-                        'HMAC key validation failed ' . print_r($response, 1)
-                    );
-                    return false;
-                }
             }
         }
 
