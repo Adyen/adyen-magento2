@@ -41,7 +41,6 @@ class Cron
     const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
     const EXPIRY_DATE = 'expiryDate';
     const PAYMENT_METHOD = 'paymentMethod';
-    const ALTERNATIVE_PAYMENT_METHOD_CODE = 'adyen_alternative_payment_method';
 
     /**
      * Logging instance
@@ -1285,7 +1284,6 @@ class Cron
                 if ($this->configHelper->isStoreAlternativePaymentMethodEnabled()){
                     $paymentTokenAlternativePaymentMethod = null;
                     try {
-
                         //get the payment
                         $payment = $this->_order->getPayment();
                         $customerId = $this->_order->getCustomerId();
@@ -1304,6 +1302,7 @@ class Cron
                             // In case the payment token for this payment method does not exist, create it based on the additionalData
                             if ($paymentTokenAlternativePaymentMethod === null) {
 
+
                                 /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
                                 $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
                                     PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
@@ -1313,7 +1312,7 @@ class Cron
                                     $this->_recurringDetailReference
                                 );
                                 $paymentTokenAlternativePaymentMethod->setCustomerId($customerId);
-                                $paymentTokenAlternativePaymentMethod->setPaymentMethodCode(self::ALTERNATIVE_PAYMENT_METHOD_CODE);
+                                $paymentTokenAlternativePaymentMethod->setPaymentMethodCode('adyen_hpp');
                             }
 
                             $paymentTokenAlternativePaymentMethod->setExpiresAt($this->getExpirationDate($this->_expiryDate));
@@ -1325,13 +1324,7 @@ class Cron
                             $details['expirationDate'] =  $this->_expiryDate;
 
                             $paymentTokenAlternativePaymentMethod->setTokenDetails(json_encode($details));
-                            $this->_adyenLogger->addAdyenNotificationCronjob(
-                                'Before save payment method '
-                            );
                             $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
-                            $this->_adyenLogger->addAdyenNotificationCronjob(
-                                'After save payment method '
-                            );
                         }
                     } catch (\Exception $exception) {
                         $message = $exception->getMessage();

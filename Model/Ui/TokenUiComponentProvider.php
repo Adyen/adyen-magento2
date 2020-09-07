@@ -32,7 +32,6 @@ use Magento\Framework\UrlInterface;
 
 class TokenUiComponentProvider implements TokenUiComponentProviderInterface
 {
-    const ALTERNATIVE_PAYMENT_METHOD_CODE = 'adyen_alternative_payment_method';
     /**
      * @var TokenUiComponentInterfaceFactory
      */
