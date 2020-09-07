@@ -41,6 +41,7 @@ class Cron
     const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
     const EXPIRY_DATE = 'expiryDate';
     const PAYMENT_METHOD = 'paymentMethod';
+    const ALTERNATIVE_PAYMENT_METHOD_CODE = 'adyen_alternative_payment_method';
 
     /**
      * Logging instance
@@ -1312,8 +1313,7 @@ class Cron
                                     $this->_recurringDetailReference
                                 );
                                 $paymentTokenAlternativePaymentMethod->setCustomerId($customerId);
-                                $paymentTokenAlternativePaymentMethod->setPaymentMethodCode($this->_paymentMethod);
-                                $paymentTokenAlternativePaymentMethod->setPublicHash($this->_paymentMethod);
+                                $paymentTokenAlternativePaymentMethod->setPaymentMethodCode(self::ALTERNATIVE_PAYMENT_METHOD_CODE);
                             }
 
                             $paymentTokenAlternativePaymentMethod->setExpiresAt($this->getExpirationDate($this->_expiryDate));
