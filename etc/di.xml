@@ -53,6 +53,15 @@
             <argument name="vaultProvider" xsi:type="object">AdyenPaymentCcFacade</argument>
         </arguments>
     </virtualType>
+    <virtualType name="AdyenPaymentHppVaultFacade" type="Magento\Vault\Model\Method\Vault">
+        <arguments>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::HPP_VAULT_CODE
+            </argument>
+            <argument name="config" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentHppVaultPaymentValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">AdyenPaymentHppFacade</argument>
+        </arguments>
+    </virtualType>
     <virtualType name="AdyenPaymentGooglePayVaultFacade" type="Magento\Vault\Model\Method\Vault">
         <arguments>
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenGooglePayConfigProvider::GOOGLE_PAY_VAULT_CODE
@@ -140,10 +149,23 @@
             <argument name="configInterface" xsi:type="object">AdyenPaymentCcVaultConfig</argument>
         </arguments>
     </virtualType>
+    <virtualType name="AdyenPaymentHppVaultPaymentValueHandler" type="VaultPaymentDefaultValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
+        </arguments>
+    </virtualType>
     <virtualType name="AdyenPaymentCcVaultPaymentValueHandlerPool" type="VaultPaymentValueHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="default" xsi:type="string">AdyenPaymentCcVaultPaymentValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AdyenPaymentHppVaultPaymentValueHandlerPool" type="VaultPaymentValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AdyenPaymentHppVaultPaymentValueHandler</item>
             </argument>
         </arguments>
     </virtualType>
@@ -280,6 +302,12 @@
     <virtualType name="AdyenPaymentCcVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenCcConfigProvider::CC_VAULT_CODE
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentHppVaultConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::HPP_VAULT_CODE
             </argument>
         </arguments>
     </virtualType>

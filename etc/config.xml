@@ -73,6 +73,14 @@
                     <tokenFormat>Adyen\Payment\Model\InstantPurchase\CreditCard\TokenFormatter</tokenFormat>
                 </instant_purchase>
             </adyen_cc_vault>
+            <adyen_hpp_vault>
+                <model>AdyenPaymentHppVaultFacade</model>
+                <title>Alternative Payment Methods (Adyen)</title>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\CreditCard\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\CreditCard\TokenFormatter</tokenFormat>
+                </instant_purchase>
+            </adyen_hpp_vault>
             <adyen_google_pay_vault>
                 <model>AdyenPaymentGooglePayVaultFacade</model>
                 <title>Stored Cards (Adyen)</title>
