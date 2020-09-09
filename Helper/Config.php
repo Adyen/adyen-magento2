@@ -150,7 +150,7 @@ class Config
      */
     public function isStoreAlternativePaymentMethodEnabled($storeId = null)
     {
-        return $this->adyenHelper->getAdyenOneclickConfigData('store_alternative_payment_method', $storeId);
+        return $this->adyenHelper->getAdyenHppVaultConfigDataFlag('active', $storeId);
     }
 
     /**

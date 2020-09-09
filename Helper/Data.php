@@ -526,6 +526,18 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Gives back adyen_hpp_vault configuration values as flag
+     *
+     * @param $field
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function getAdyenHppVaultConfigDataFlag($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_hpp_vault', $storeId, true);
+    }
+
+    /**
      * Gives back adyen_oneclick configuration values
      *
      * @param $field
