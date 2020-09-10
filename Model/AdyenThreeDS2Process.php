@@ -147,6 +147,15 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
                 $result['authentication']['threeds2.challengeToken']
             );
         }
+        //Fallback for 3DS in case of redirect
+        if (!empty($result['resultCode']) &&
+            $result['resultCode'] === 'RedirectShopper'
+        ) {
+            $response['type'] =  $result['resultCode'];
+            $response['action']= $result['action'];
+
+            return json_encode($response);
+        }
 
         // Save the payments response because we are going to need it during the place order flow
         $payment->setAdditionalInformation("paymentsResponse", $result);

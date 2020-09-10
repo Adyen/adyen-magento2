@@ -281,6 +281,22 @@ define(
                     self.threeDS2ChallengeComponent.mount(threeDS2Node);
                 }
             },
+            threedsfallback: function (action) {
+                var actionNode = document.getElementById('ActionContainer');
+
+                self.popupModal = $('#ActionModal').modal({
+                    // disable user to hide popup
+                    clickableOverlay: false,
+                    responsive: true,
+                    innerScroll: false,
+                    // empty buttons, we don't need that
+                    buttons: [],
+                    modalClass: 'ActionModal'
+                });
+
+                self.popupModal.modal("openModal");
+                self.threedsfallbackComponent = self.checkout.createFromAction(action).mount(actionNode);
+            },
             /**
              * This method is a workaround to close the modal in the right way and reconstruct the threeDS2Modal.
              * This will solve issues when you cancel the 3DS2 challenge and retry the payment
@@ -384,6 +400,11 @@ define(
                     // render component
                     self.renderThreeDS2Component(response.type, response.token, orderId);
                 } else {
+                    if(response.type==='RedirectShopper' ){
+                        console.log("Hey threedsfallback 1");
+                        self.threedsfallback( response.action);
+                    }
+
                     window.location.replace(url.build(
                         window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
                     ));
