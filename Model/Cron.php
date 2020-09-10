@@ -1305,7 +1305,7 @@ class Cron
 
                                 /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
                                 $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
-                                    PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
+                                    PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT
                                 );
 
                                 $paymentTokenAlternativePaymentMethod->setGatewayToken(
