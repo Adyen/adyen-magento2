@@ -401,10 +401,8 @@ define(
                     self.renderThreeDS2Component(response.type, response.token, orderId);
                 } else {
                     if(response.type==='RedirectShopper' ){
-                        console.log("Hey threedsfallback 1");
                         self.threedsfallback( response.action);
                     }
-
                     window.location.replace(url.build(
                         window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
                     ));
