@@ -68,8 +68,7 @@ class TransactionPayment implements ClientInterface
         }
 
         $client = $this->adyenHelper->initializeAdyenClient();
-
-        $service = new \Adyen\Service\Checkout($client);
+        $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         $requestOptions = [];
 
