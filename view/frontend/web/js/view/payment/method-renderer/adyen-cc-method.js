@@ -401,12 +401,13 @@ define(
                     // render component
                     self.renderThreeDS2Component(response.type, response.token, orderId);
                 } else {
-                    if(response.type==='RedirectShopper' ){
-                        self.threedsfallback( response.action);
+                    if (response.type === 'RedirectShopper') {
+                        self.threedsfallback(response.action);
+                    } else {
+                        window.location.replace(url.build(
+                            window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
+                        ));
                     }
-                    window.location.replace(url.build(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
-                    ));
                 }
             },
             /**
