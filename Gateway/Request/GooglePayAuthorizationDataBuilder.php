@@ -26,7 +26,6 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Magento\Setup\Exception;
 
 class GooglePayAuthorizationDataBuilder implements BuilderInterface
 {
@@ -63,11 +62,7 @@ class GooglePayAuthorizationDataBuilder implements BuilderInterface
         $requestBody['paymentMethod']['type'] = 'paywithgoogle';
         // get payment data
         if ($token) {
-            try {
-                $requestBody['paymentMethod']['paywithgoogle.token'] = $token;
-            } catch (\Exception $exception) {
-                $this->adyenLogger->addAdyenDebug("exception: " . $exception->getMessage());
-            }
+            $requestBody['paymentMethod']['paywithgoogle.token'] = $token;
         } else {
             $this->adyenLogger->addAdyenDebug("PaymentToken is empty");
         }

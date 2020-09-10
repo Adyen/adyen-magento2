@@ -25,7 +25,6 @@
 namespace Adyen\Payment\Gateway\Response;
 
 use Magento\Payment\Gateway\Response\HandlerInterface;
-use Magento\Setup\Exception;
 
 class PaymentPosCloudHandler implements HandlerInterface
 {
@@ -59,7 +58,7 @@ class PaymentPosCloudHandler implements HandlerInterface
      * @param array $handlingSubject
      * @param array $paymentResponse
      * @return void
-     * @throws Exception
+     * @throws \Exception
      */
     public function handle(array $handlingSubject, array $paymentResponse)
     {
@@ -122,7 +121,7 @@ class PaymentPosCloudHandler implements HandlerInterface
             // set transaction(payment)
         } else {
             $this->adyenLogger->error("Missing POS Transaction ID");
-            throw new Exception("Missing POS Transaction ID");
+            throw new \Exception("Missing POS Transaction ID");
         }
 
         // do not close transaction so you can do a cancel() and void
