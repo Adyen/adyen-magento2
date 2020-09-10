@@ -282,6 +282,7 @@ define(
                 }
             },
             threedsfallback: function (action) {
+                var self = this;
                 var actionNode = document.getElementById('ActionContainer');
 
                 self.popupModal = $('#ActionModal').modal({
