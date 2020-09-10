@@ -64,7 +64,7 @@ class ApplePayAuthorizationDataBuilder implements BuilderInterface
         // get payment data
         if ($token) {
             $parsedToken = json_decode($token);
-            $requestBody['paymentMethod']['applepay.token'] = base64_encode(json_encode($parsedToken->token->paymentData));;
+            $requestBody['paymentMethod']['applepay.token'] = base64_encode(json_encode($parsedToken->token->paymentData));
         } else {
             $this->_adyenLogger->addAdyenDebug("PaymentToken is empty");
         }
