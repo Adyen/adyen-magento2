@@ -228,7 +228,7 @@ class VaultDetailsHandler implements HandlerInterface
 
         // add one month
         $expDate->add(new \DateInterval('P1M'));
-        return $expDate->format('Y-m-d 00:00:00');
+        return $expDate->format('Y-m-d H:i:s');
     }
 
     /**

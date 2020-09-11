@@ -418,7 +418,6 @@ define(
                             countryCode: self.getLocale(),
                             onChange: function (state) {
                                 if (!!state.isValid) {
-                                    console.log(state.data.paymentMethod);
                                     result.ownerName(state.data.paymentMethod["sepa.ownerName"]);
                                     result.ibanNumber(state.data.paymentMethod["sepa.ibanNumber"]);
                                     result.isPlaceOrderAllowed(true);

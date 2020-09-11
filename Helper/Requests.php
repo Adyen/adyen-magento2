@@ -327,7 +327,7 @@ class Requests extends AbstractHelper
     {
         if ($this->adyenHelper->isCreditCardThreeDS2Enabled($storeId)) {
             $request['additionalData']['allow3DS2'] = true;
-            $request['origin'] = $this->adyenHelper->getOrigin();
+            $request['origin'] = $this->adyenHelper->getOrigin($storeId);
             $request['channel'] = 'web';
             $request['browserInfo']['screenWidth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_WIDTH];
             $request['browserInfo']['screenHeight'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_HEIGHT];
@@ -342,7 +342,7 @@ class Requests extends AbstractHelper
             }
         } else {
             $request['additionalData']['allow3DS2'] = false;
-            $request['origin'] = $this->adyenHelper->getOrigin();
+            $request['origin'] = $this->adyenHelper->getOrigin($storeId);
             $request['channel'] = 'web';
         }
 
@@ -353,11 +353,11 @@ class Requests extends AbstractHelper
      * @param array $request
      * @return array
      */
-    public function buildRedirectData($request = [])
+    public function buildRedirectData($storeId, $request = [])
     {
         $request['redirectFromIssuerMethod'] = 'GET';
         $request['redirectToIssuerMethod'] = 'POST';
-        $request['returnUrl'] = $this->adyenHelper->getOrigin() . '/adyen/process/redirect';
+        $request['returnUrl'] = $this->adyenHelper->getOrigin($storeId) . '/adyen/process/redirect';
 
         return $request;
     }

@@ -65,7 +65,7 @@ class TokenHppUiComponentProvider implements TokenUiComponentProviderInterface
         $details = json_decode($paymentToken->getTokenDetails() ?: '{}', true);
         $details['icon'] = $this->adyenHelper->getVariantIcon($details['type']);
 
-        $component = $this->componentFactory->create(
+        return $this->componentFactory->create(
             [
                 'config' => [
                     'code' => AdyenHppConfigProvider::HPP_VAULT_CODE,
@@ -75,6 +75,5 @@ class TokenHppUiComponentProvider implements TokenUiComponentProviderInterface
                 'name' => 'Adyen_Payment/js/view/payment/method-renderer/vault'
             ]
         );
-        return $component;
     }
 }

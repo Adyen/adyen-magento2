@@ -535,7 +535,7 @@ class Cron
                     }
                 } else {
                     // Notification is successful
-                    $this->_processNotification($notification);
+                    $this->_processNotification();
                 }
 
                 try {
@@ -983,7 +983,7 @@ class Cron
     /**
      * Process the Notification
      */
-    protected function _processNotification($notification)
+    protected function _processNotification()
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Processing the notification');
         $_paymentCode = $this->_paymentMethodCode();
@@ -2196,6 +2196,6 @@ class Cron
 
         // add one month
         $expDate->add(new \DateInterval('P1M'));
-        return $expDate->format('Y-m-d 00:00:00');
+        return $expDate->format('Y-m-d H:i:s');
     }
 }

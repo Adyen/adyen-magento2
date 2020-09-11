@@ -1553,10 +1553,14 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @param null|int|string $storeId
      * @return string
      */
-    public function getOrigin()
+    public function getOrigin($storeId)
     {
+        if ( $paymentOriginUrl = $this->getAdyenAbstractConfigData("payment_origin_url", $storeId) ) {
+            return $paymentOriginUrl;
+        }
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $state = $objectManager->get(\Magento\Framework\App\State::class);
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
@@ -1579,8 +1583,8 @@ class Data extends AbstractHelper
      */
     public function getOriginKeyForBaseUrl()
     {
-        $origin = $this->getOrigin();
         $storeId = $this->storeManager->getStore()->getId();
+        $origin = $this->getOrigin($storeId);
         $cacheKey = 'Adyen_origin_key_for_' . $origin . '_' . $storeId;
 
         if (!$originKey = $this->cache->load($cacheKey)) {
