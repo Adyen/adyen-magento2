@@ -149,11 +149,6 @@
             <argument name="configInterface" xsi:type="object">AdyenPaymentCcVaultConfig</argument>
         </arguments>
     </virtualType>
-    <virtualType name="AdyenPaymentHppVaultPaymentValueHandler" type="VaultPaymentDefaultValueHandler">
-        <arguments>
-            <argument name="configInterface" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
-        </arguments>
-    </virtualType>
     <virtualType name="AdyenPaymentCcVaultPaymentValueHandlerPool" type="VaultPaymentValueHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
@@ -161,7 +156,11 @@
             </argument>
         </arguments>
     </virtualType>
-
+    <virtualType name="AdyenPaymentHppVaultPaymentValueHandler" type="VaultPaymentDefaultValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
+        </arguments>
+    </virtualType>
     <virtualType name="AdyenPaymentHppVaultPaymentValueHandlerPool" type="VaultPaymentValueHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
@@ -400,6 +399,17 @@
         </arguments>
     </virtualType>
 
+    <virtualType name="AdyenPaymentHppVaultAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AdyenPaymentHppVaultAuthorizeRequest</argument>
+            <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionAuthorization
+            </argument>
+            <argument name="validator" xsi:type="object">GeneralResponseValidator</argument>
+            <argument name="handler" xsi:type="object">AdyenPaymentHppVaultResponseHandlerComposite</argument>
+        </arguments>
+    </virtualType>
+
     <virtualType name="AdyenPaymentHppCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
         <arguments>
             <argument name="commands" xsi:type="array">
@@ -624,6 +634,21 @@
         </arguments>
     </virtualType>
 
+    <virtualType name="AdyenPaymentHppVaultResponseHandlerComposite"
+                 type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="payment_details" xsi:type="string">
+                    Adyen\Payment\Gateway\Response\PaymentAuthorisationDetailsHandler
+                </item>
+                <item name="payment_comments" xsi:type="string">
+                    Adyen\Payment\Gateway\Response\PaymentCommentHistoryHandler
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+
     <virtualType name="AdyenPaymentOneclickAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
@@ -652,6 +677,22 @@
                 <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CheckoutDataBuilder</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AdyenPaymentHppVaultAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="merchantaccount" xsi:type="string">
+                    Adyen\Payment\Gateway\Request\MerchantAccountDataBuilder
+                </item>
+                <item name="customer" xsi:type="string">Adyen\Payment\Gateway\Request\CustomerDataBuilder</item>
+                <item name="customerip" xsi:type="string">Adyen\Payment\Gateway\Request\CustomerIpDataBuilder</item>
+                <item name="address" xsi:type="string">Adyen\Payment\Gateway\Request\AddressDataBuilder</item>
+                <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
+                <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
+                <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringVaultDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>

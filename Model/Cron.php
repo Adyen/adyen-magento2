@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Model;
 
+use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Webapi\Exception;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
@@ -1312,7 +1313,7 @@ class Cron
                                     $this->_recurringDetailReference
                                 );
                                 $paymentTokenAlternativePaymentMethod->setCustomerId($customerId);
-                                $paymentTokenAlternativePaymentMethod->setPaymentMethodCode('adyen_hpp');
+                                $paymentTokenAlternativePaymentMethod->setPaymentMethodCode(AdyenHppConfigProvider::CODE);
                             }
 
                             $paymentTokenAlternativePaymentMethod->setExpiresAt($this->getExpirationDate($this->_expiryDate));
