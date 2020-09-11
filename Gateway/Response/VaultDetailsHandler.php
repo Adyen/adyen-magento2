@@ -25,9 +25,11 @@ namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 use Magento\Payment\Model\InfoInterface;
+use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
