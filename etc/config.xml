@@ -230,5 +230,12 @@
                 <group>adyen</group>
             </adyen_google_pay>
         </payment>
+        <dev>
+            <js>
+                <minify_exclude>
+                    <adyen_payment>/3.4.0/adyen</adyen_payment>
+                </minify_exclude>
+            </js>
+        </dev>
     </default>
 </config>
