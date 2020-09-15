@@ -233,12 +233,12 @@
         <dev>
             <js>
                 <minify_exclude>
-                    <adyen_payment>/adyen</adyen_payment>
+                    <adyen_payment>adyen.com/checkoutshopper</adyen_payment>
                 </minify_exclude>
             </js>
             <css>
                 <minify_exclude>
-                    <adyen_payment>/adyen</adyen_payment>
+                    <adyen_payment>adyen.com/checkoutshopper</adyen_payment>
                 </minify_exclude>
             </css>
         </dev>
