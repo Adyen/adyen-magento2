@@ -233,12 +233,12 @@
         <dev>
             <js>
                 <minify_exclude>
-                    <adyen_payment>/3.4.0/adyen</adyen_payment>
+                    <adyen_payment>/adyen</adyen_payment>
                 </minify_exclude>
             </js>
             <css>
                 <minify_exclude>
-                    <adyen_payment>/3.4.0/adyen</adyen_payment>
+                    <adyen_payment>/adyen</adyen_payment>
                 </minify_exclude>
             </css>
         </dev>
