@@ -24,47 +24,60 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\AdyenThreeDS2ProcessInterface;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Checkout\Model\Session;
+use Magento\Sales\Model\OrderFactory;
 
 class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
 {
     /**
-     * @var \Magento\Checkout\Model\Session
+     * @var Session
      */
     private $checkoutSession;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
 
     /**
-     * @var \Magento\Sales\Model\OrderFactory
+     * @var OrderFactory
      */
     private $orderFactory;
 
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
+     * @var AdyenLogger
      */
     private $adyenLogger;
 
     /**
+     * @var Vault
+     */
+    private $vaultHelper;
+
+    /**
      * AdyenThreeDS2Process constructor.
      *
-     * @param \Magento\Checkout\Model\Session $checkoutSession
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Sales\Model\OrderFactory $orderFactory
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param Session $checkoutSession
+     * @param Data $adyenHelper
+     * @param OrderFactory $orderFactory
+     * @param AdyenLogger $adyenLogger
+     * @param Vault $vaultHelper
      */
     public function __construct(
-        \Magento\Checkout\Model\Session $checkoutSession,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Sales\Model\OrderFactory $orderFactory,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+        Session $checkoutSession,
+        Data $adyenHelper,
+        OrderFactory $orderFactory,
+        AdyenLogger $adyenLogger,
+        Vault $vaultHelper
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
         $this->orderFactory = $orderFactory;
         $this->adyenLogger = $adyenLogger;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -147,9 +160,20 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
                 $result['authentication']['threeds2.challengeToken']
             );
         }
+        //Fallback for 3DS in case of redirect
+        if (!empty($result['resultCode']) &&
+            $result['resultCode'] === 'RedirectShopper'
+        ) {
+            $response['type'] =  $result['resultCode'];
+            $response['action']= $result['action'];
+
+            return json_encode($response);
+        }
 
         // Save the payments response because we are going to need it during the place order flow
         $payment->setAdditionalInformation("paymentsResponse", $result);
+
+        $this->vaultHelper->saveRecurringDetails($payment, $result['additionalData']);
 
         // To actually save the additional info changes into the quote
         $order->save();
