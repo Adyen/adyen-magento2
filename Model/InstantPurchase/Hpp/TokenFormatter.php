@@ -57,7 +57,7 @@ class TokenFormatter implements PaymentTokenFormatterInterface
             $hppType = $details['type'];
         }
 
-        $formatted = sprintf(
+        return sprintf(
             '%s: %s, %s: %s (%s: %s)',
             __('SEPA'),
             $hppType,
@@ -66,7 +66,5 @@ class TokenFormatter implements PaymentTokenFormatterInterface
             __('expires'),
             $details['expirationDate']
         );
-
-        return $formatted;
     }
 }

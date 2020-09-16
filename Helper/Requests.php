@@ -386,17 +386,9 @@ class Requests extends AbstractHelper
 
             $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
             $enableRecurring = $this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', $storeId);
-            if ($enableOneclick && !$isGuestUser) {
-                $request['enableOneClick'] = true;
-            } else {
-                $request['enableOneClick'] = false;
-            }
 
-            if ($enableRecurring) {
-                $request['enableRecurring'] = true;
-            } else {
-                $request['enableRecurring'] = false;
-            }
+            $request['enableOneClick'] = (bool)($enableOneclick && !$isGuestUser);
+            $request['enableRecurring'] = (bool)$enableRecurring;
 
             // value can be 0,1 or true
             if (!empty($additionalData[AdyenCcDataAssignObserver::STORE_CC]) || ($isGuestUser && $this->adyenHelper->isGuestTokenizationEnabled($storeId))) {
