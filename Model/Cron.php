@@ -25,6 +25,7 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Webapi\Exception;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
@@ -273,6 +274,11 @@ class Cron
     protected $paymentTokenRepository;
 
     /**
+     * @var EncryptorInterface
+     */
+    protected $encryptor;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -326,7 +332,8 @@ class Cron
         \Adyen\Payment\Helper\Config $configHelper,
         PaymentTokenManagement  $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
-        PaymentTokenRepositoryInterface $paymentTokenRepository
+        PaymentTokenRepositoryInterface $paymentTokenRepository,
+        EncryptorInterface $encryptor
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -355,6 +362,7 @@ class Cron
         $this->paymentTokenManagement = $paymentTokenManagement;
         $this->paymentTokenFactory = $paymentTokenFactory;
         $this->paymentTokenRepository = $paymentTokenRepository;
+        $this->encryptor = $encryptor;
     }
 
     /**
@@ -1306,23 +1314,27 @@ class Cron
 
                                 /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
                                 $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
-                                    PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT
+                                    PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
                                 );
 
-                                $paymentTokenAlternativePaymentMethod->setGatewayToken(
-                                    $this->_recurringDetailReference
-                                );
-                                $paymentTokenAlternativePaymentMethod->setCustomerId($customerId);
-                                $paymentTokenAlternativePaymentMethod->setPaymentMethodCode(AdyenHppConfigProvider::CODE);
+                                $details = [
+                                    'type' => $this->_paymentMethod,
+                                    'maskedCC' => $payment->getAdditionalInformation()['ibanNumber'],
+                                    'expirationDate' => $this->_expiryDate
+                                ];
+
+                                $paymentTokenAlternativePaymentMethod->setCustomerId($customerId)
+                                    ->setGatewayToken($this->_recurringDetailReference)
+                                    ->setPaymentMethodCode(AdyenHppConfigProvider::CODE)
+                                    ->setPublicHash($this->encryptor->getHash($customerId));
+
+                            } else {
+                                $details = json_decode($paymentTokenAlternativePaymentMethod->getTokenDetails());
+                                $details['expirationDate'] = $this->_expiryDate;
                             }
 
                             $paymentTokenAlternativePaymentMethod->setExpiresAt($this->getExpirationDate($this->_expiryDate));
 
-                            $details = [
-                                'type' => $this->_paymentMethod
-                            ];
-
-                            $details['expirationDate'] =  $this->_expiryDate;
 
                             $paymentTokenAlternativePaymentMethod->setTokenDetails(json_encode($details));
                             $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
@@ -1333,8 +1345,7 @@ class Cron
                             "An error occurred while saving the payment method " . $message
                         );
                     }
-                }
-                else {
+                } else {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         'Ignore recurring_contract notification because Vault feature is enabled'
                     );

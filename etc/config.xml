@@ -78,7 +78,7 @@
                 <title>Alternative Payment Methods (Adyen)</title>
                 <instant_purchase>
                     <available>Adyen\Payment\Model\InstantPurchase\CreditCard\AvailabilityChecker</available>
-                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\CreditCard\TokenFormatter</tokenFormat>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Hpp\TokenFormatter</tokenFormat>
                 </instant_purchase>
             </adyen_hpp_vault>
             <adyen_google_pay_vault>
