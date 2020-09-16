@@ -23,78 +23,25 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
-use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
-use Magento\Payment\Gateway\Response\HandlerInterface;
-use Magento\Payment\Model\InfoInterface;
-use Magento\Vault\Model\PaymentTokenManagement;
+use Adyen\Payment\Helper\Vault;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
-use Magento\Vault\Api\PaymentTokenRepositoryInterface;
+use Magento\Payment\Gateway\Helper\SubjectReader;
+use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class VaultDetailsHandler implements HandlerInterface
 {
-    const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
-    const CARD_SUMMARY = 'cardSummary';
-    const EXPIRY_DATE = 'expiryDate';
-    const PAYMENT_METHOD = 'paymentMethod';
-    const ADDITIONAL_DATA_ERRORS = [
-        self::RECURRING_DETAIL_REFERENCE => 'Missing Token in Result please enable in ' .
-            'Settings -> API URLs and Response menu in the Adyen Customer Area Recurring details setting',
-        self::CARD_SUMMARY => 'Missing cardSummary in Result please login to the adyen portal ' .
-            'and go to Settings -> API URLs and Response and enable the Card summary property',
-        self::EXPIRY_DATE => 'Missing expiryDate in Result please login to the adyen portal and go to ' .
-            'Settings -> API URLs and Response and enable the Expiry date property',
-        self::PAYMENT_METHOD => 'Missing paymentMethod in Result please login to the adyen portal and go to ' .
-            'Settings -> API URLs and Response and enable the Variant property'
-    ];
-
     /**
-     * @var PaymentTokenFactoryInterface
+     * @var Vault
      */
-    protected $paymentTokenFactory;
-
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
-
-    /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
-     * @var PaymentTokenManagement
-     */
-    private $paymentTokenManagement;
-
-    /**
-     * @var
-     */
-    private $paymentTokenRepository;
+    private $vaultHelper;
 
     /**
      * VaultDetailsHandler constructor.
-     *
-     * @param PaymentTokenFactoryInterface $paymentTokenFactory
-     * @param AdyenLogger $adyenLogger
-     * @param Data $adyenHelper
-     * @param PaymentTokenManagement $paymentTokenManagement
-     * @param PaymentTokenRepositoryInterface $paymentTokenRepository
+     * @param Vault $vaultHelper
      */
-    public function __construct(
-        PaymentTokenFactoryInterface $paymentTokenFactory,
-        AdyenLogger $adyenLogger,
-        Data $adyenHelper,
-        PaymentTokenManagement $paymentTokenManagement,
-        PaymentTokenRepositoryInterface $paymentTokenRepository
-    ) {
-        $this->adyenLogger = $adyenLogger;
-        $this->adyenHelper = $adyenHelper;
-        $this->paymentTokenFactory = $paymentTokenFactory;
-        $this->paymentTokenManagement = $paymentTokenManagement;
-        $this->paymentTokenRepository = $paymentTokenRepository;
+    public function __construct(Vault $vaultHelper)
+    {
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -244,6 +191,8 @@ class VaultDetailsHandler implements HandlerInterface
             $extensionAttributes = $this->paymentExtensionFactory->create();
             $payment->setExtensionAttributes($extensionAttributes);
         }
-        return $extensionAttributes;
+        /** @var PaymentDataObject $orderPayment */
+        $orderPayment = SubjectReader::readPayment($handlingSubject);
+        $this->vaultHelper->saveRecurringDetails($orderPayment->getPayment(), $response['additionalData']);
     }
 }
