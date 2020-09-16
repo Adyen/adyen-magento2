@@ -1340,7 +1340,6 @@ class Cron
                                     ->setGatewayToken($this->_recurringDetailReference)
                                     ->setPaymentMethodCode(AdyenHppConfigProvider::CODE)
                                     ->setPublicHash($this->encryptor->getHash($customerId));
-
                             } else {
                                 $details = json_decode($paymentTokenAlternativePaymentMethod->getTokenDetails());
                                 $details['expirationDate'] = $this->_expiryDate;
