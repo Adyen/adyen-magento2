@@ -86,9 +86,37 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
                 $token = $additionalInformation['threeDS2Token'];
             }
 
+            if ($additionalInformation['resultCode'] === 'RedirectShopper') {
+                if (!empty($additionalInformation['3dSuccess'])) {
+                    return json_encode([
+                        'threeDS2' => false,
+                        'type' => '3dSuccess'
+                    ]);
+                }
+                return json_encode([
+                    'threeDS2' => false,
+                    'type' => $type,
+                    'action' => [
+                        'type' => 'redirect',
+                        'method' => $additionalInformation['redirectMethod'],
+                        'url' => $additionalInformation['redirectUrl'],
+                        'paymentData' => $additionalInformation['paymentData'],
+                        'paymentMethodType' => 'scheme',
+                        'data' => [
+                            'MD' => $additionalInformation['md'],
+                            'PaReq' => $additionalInformation['paRequest'],
+                            'TermUrl' => $additionalInformation['termUrl'],
+                        ]
+                    ],
+                    'details' => [
+                        ["key" => "MD", "type"  => "text"],
+                        ["key" => "PaRes", "type" => "text"]
+                    ],
+                ]);
+            }
+
             return $this->adyenHelper->buildThreeDS2ProcessResponseJson($type, $token);
         }
-
 
         /**
          * If payment method result is Pending and action is provided provide component action back to checkout
@@ -100,7 +128,7 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
                 $additionalInformation['resultCode'] == 'Pending'
             ) {
                 return json_encode(['action' => $additionalInformation['action']]);
-            } else if ($additionalInformation['resultCode'] == 'RedirectShopper') {
+            } else if ($additionalInformation['resultCode'] === 'RedirectShopper') {
                 return json_encode([
                     'action' => [
                         'type' => 'redirect',

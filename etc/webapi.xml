@@ -65,6 +65,13 @@
         </resources>
     </route>
 
+    <route url="/V1/adyen/threeDSProcess" method="POST">
+        <service class="Adyen\Payment\Api\AdyenThreeDSProcessInterface" method="headlessAuthorize"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
     <route url="/V1/adyen/originKey" method="GET">
         <service class="Adyen\Payment\Api\AdyenOriginKeyInterface" method="getOriginKey"/>
         <resources>

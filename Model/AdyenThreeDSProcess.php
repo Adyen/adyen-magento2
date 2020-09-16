@@ -111,6 +111,29 @@ class AdyenThreeDSProcess implements AdyenThreeDSProcessInterface
     /**
      * {@inheridoc}
      */
+    public function headlessAuthorize($orderId, $payload)
+    {
+        // Decode payload from frontend
+        $payload = json_decode($payload, true);
+
+        // Validate JSON that has just been parsed if it was in a valid format
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('3D secure failed because the request was not a valid JSON')
+            );
+        }
+
+        $order = $this->orderFactory->create()->load($orderId);
+        return $this->authorize(
+            $order,
+            $payload['MD'],
+            $payload['PaRes']
+        );
+    }
+
+    /**
+     * {@inheridoc}
+     */
     public function authorize(Order $order, $requestMD, $requestPaRes): string
     {
         $active = null;

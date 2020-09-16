@@ -34,6 +34,17 @@ interface AdyenThreeDSProcessInterface
     const NEEDS_REDIRECT = "NEEDS_REDIRECT";
 
     /**
+     * Allow remote PWA to run an authorization process when Customers
+     * are redirected on the shop
+     *
+     * @param string $orderId
+     * @param string $payload
+     * @return string
+     * @api
+     */
+    public function headlessAuthorize($orderId, $payload);
+
+    /**
      * Shared authorization logic across all frontend (native or PWA)
      * for handling a redirect after 3DS auth
      *
