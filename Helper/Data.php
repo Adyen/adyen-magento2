@@ -1798,6 +1798,17 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Check if HPP vault is enabled
+     *
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function isHppVaultEnabled($storeId = null)
+    {
+        return $this->getAdyenHppVaultConfigDataFlag('active', $storeId);
+    }
+
+    /**
      * Checks if the house number needs to be sent to the Adyen API separately or as it is in the street field
      *
      * @param $country

@@ -92,11 +92,12 @@ class Vault
 
     public function saveRecurringDetails($payment, array $additionalData)
     {
-        if (!$this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId())) {
+        if (!$this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId()) &&
+            !$this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())) {
             return;
         }
 
-        if(!$this->validateAdditionalData($additionalData)) {
+        if (!$this->validateAdditionalData($additionalData)) {
             return;
         }
 
@@ -156,11 +157,15 @@ class Vault
 
         $paymentToken->setExpiresAt($this->getExpirationDate($additionalData[self::EXPIRY_DATE]));
 
-        $details = [
-            'type' => $additionalData[self::PAYMENT_METHOD],
-            'maskedCC' => $additionalData[self::CARD_SUMMARY],
-            'expirationDate' => $additionalData[self::EXPIRY_DATE]
-        ];
+        $details = ['type' => $additionalData[self::PAYMENT_METHOD]];
+
+        if (!empty($additionalData[self::CARD_SUMMARY])) {
+            $details['maskedCC'] =  $additionalData[self::CARD_SUMMARY];
+        }
+
+        if (!empty($additionalData[self::EXPIRY_DATE])) {
+            $details['expirationDate'] =  $additionalData[self::EXPIRY_DATE];
+        }
 
         $paymentToken->setTokenDetails(json_encode($details));
 
@@ -201,7 +206,7 @@ class Vault
         $expirationDate = explode('/', $expirationDate);
 
         $expDate = new DateTime(
-            //add leading zero to month
+        //add leading zero to month
             sprintf("%s-%02d-01 00:00:00", $expirationDate[1], $expirationDate[0]),
             new DateTimeZone('UTC')
         );
