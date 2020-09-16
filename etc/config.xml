@@ -240,5 +240,17 @@
                 <group>adyen</group>
             </adyen_google_pay>
         </payment>
+        <dev>
+            <js>
+                <minify_exclude>
+                    <adyen_payment>adyen.com/checkoutshopper</adyen_payment>
+                </minify_exclude>
+            </js>
+            <css>
+                <minify_exclude>
+                    <adyen_payment>adyen.com/checkoutshopper</adyen_payment>
+                </minify_exclude>
+            </css>
+        </dev>
     </default>
 </config>

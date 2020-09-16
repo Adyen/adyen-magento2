@@ -24,7 +24,7 @@
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_oneclick" translate="label" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label><![CDATA[Stored Payment Methods]]></label>
+        <label><![CDATA[Stored Payment Methods - Requires Adyen Credit Card]]></label>
         <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment><![CDATA[During checkout shoppers can choose to have their payment details remembered and stored for trusted websites in Adyen’s highly secure platform. Adyen takes care of this process for its customers. Shoppers can then select the stored payment method in the checkout.]]></comment>
