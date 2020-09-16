@@ -1290,7 +1290,7 @@ class Cron
                     $this->_order->addRelatedObject($comment);
                 }
                 //store recurring contract for alternative payments methods
-                if ($this->configHelper->isStoreAlternativePaymentMethodEnabled()){
+                if ($_paymentCode == 'adyen_hpp' && $this->configHelper->isStoreAlternativePaymentMethodEnabled()) {
                     $paymentTokenAlternativePaymentMethod = null;
                     try {
                         //get the payment
