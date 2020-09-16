@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Model;
 
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -279,6 +280,11 @@ class Cron
     protected $encryptor;
 
     /**
+     * @var Vault
+     */
+    protected $vaultHelper;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -301,9 +307,15 @@ class Cron
      * @param OrderRepository $orderRepository
      * @param ResourceModel\Billing\Agreement $agreementResourceModel
      * @param \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder
+     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     * @param \Magento\Framework\Notification\NotifierInterface $notifierPool
+     * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezone
+     * @param \Adyen\Payment\Helper\Config $configHelper
      * @param PaymentTokenManagement $paymentTokenManagement
      * @param PaymentTokenFactoryInterface $paymentTokenFactory
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
+     * @param EncryptorInterface $encryptor
+     * @param Vault $vaultHelper
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -333,7 +345,8 @@ class Cron
         PaymentTokenManagement  $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
-        EncryptorInterface $encryptor
+        EncryptorInterface $encryptor,
+        Vault $vaultHelper
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -363,6 +376,7 @@ class Cron
         $this->paymentTokenFactory = $paymentTokenFactory;
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->encryptor = $encryptor;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -1311,7 +1325,6 @@ class Cron
                             // In case the payment token for this payment method does not exist, create it based on the additionalData
                             if ($paymentTokenAlternativePaymentMethod === null) {
 
-
                                 /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
                                 $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
                                     PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
@@ -1333,8 +1346,11 @@ class Cron
                                 $details['expirationDate'] = $this->_expiryDate;
                             }
 
-                            $paymentTokenAlternativePaymentMethod->setExpiresAt($this->getExpirationDate($this->_expiryDate));
-
+                            $paymentTokenAlternativePaymentMethod->setExpiresAt(
+                                $this->vaultHelper->getExpirationDate(
+                                    $this->_expiryDate
+                                )
+                            );
 
                             $paymentTokenAlternativePaymentMethod->setTokenDetails(json_encode($details));
                             $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
@@ -2180,33 +2196,5 @@ class Cron
             $this->_order->addStatusHistoryComment($comment);
             $this->_order->save();
         }
-    }
-
-    /**
-     * @param $expirationDate
-     * @return string
-     * @throws \Exception
-     */
-    private function getExpirationDate($expirationDate)
-    {
-        $expirationDate = explode('/', $expirationDate);
-
-        //add leading zero to month
-        $month = sprintf('%02d', $expirationDate[0]);
-
-        $expDate = new \DateTime(
-            $expirationDate[1]
-            . '-'
-            . $month
-            . '-'
-            . '01'
-            . ' '
-            . '00:00:00',
-            new \DateTimeZone('UTC')
-        );
-
-        // add one month
-        $expDate->add(new \DateInterval('P1M'));
-        return $expDate->format('Y-m-d H:i:s');
     }
 }
