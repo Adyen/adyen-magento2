@@ -284,18 +284,6 @@ define(
             threedsfallback: function (action) {
                 var self = this;
                 var actionNode = document.getElementById('ActionContainer');
-
-                self.popupModal = $('#ActionModal').modal({
-                    // disable user to hide popup
-                    clickableOverlay: false,
-                    responsive: true,
-                    innerScroll: false,
-                    // empty buttons, we don't need that
-                    buttons: [],
-                    modalClass: 'ActionModal'
-                });
-
-                self.popupModal.modal("openModal");
                 self.threedsfallbackComponent = self.checkout.createFromAction(action).mount(actionNode);
             },
             /**
