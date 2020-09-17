@@ -38,16 +38,24 @@ class Requests extends AbstractHelper
      * @var \Adyen\Payment\Helper\Data
      */
     private $adyenHelper;
+
+    /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    private $adyenConfig;
+
     /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
+     * @param Config $adyenConfig ;
      */
-
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Helper\Config $adyenConfig
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->adyenConfig = $adyenConfig;
     }
 
     /**
@@ -366,7 +374,10 @@ class Requests extends AbstractHelper
         if ($customerId > 0) {
             $isGuestUser = false;
         }
-
+        //active
+        if ( $this->adyenConfig->isStoreAlternativePaymentMethodEnabled($storeId)) {
+            $request['storePaymentMethod'] = true;
+        }
         // If the vault feature is on this logic is handled in the VaultDataBuilder
         if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
             if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
@@ -375,17 +386,9 @@ class Requests extends AbstractHelper
 
             $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
             $enableRecurring = $this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', $storeId);
-            if ($enableOneclick && !$isGuestUser) {
-                $request['enableOneClick'] = true;
-            } else {
-                $request['enableOneClick'] = false;
-            }
 
-            if ($enableRecurring) {
-                $request['enableRecurring'] = true;
-            } else {
-                $request['enableRecurring'] = false;
-            }
+            $request['enableOneClick'] = $enableOneclick && !$isGuestUser;
+            $request['enableRecurring'] = (bool)$enableRecurring;
 
             // value can be 0,1 or true
             if (!empty($additionalData[AdyenCcDataAssignObserver::STORE_CC]) || ($isGuestUser && $this->adyenHelper->isGuestTokenizationEnabled($storeId))) {
