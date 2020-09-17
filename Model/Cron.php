@@ -41,10 +41,6 @@ use Magento\Vault\Model\PaymentTokenManagement;
 
 class Cron
 {
-    const RECURRING_DETAIL_REFERENCE = 'recurring.recurringDetailReference';
-    const EXPIRY_DATE = 'expiryDate';
-    const PAYMENT_METHOD = 'paymentMethod';
-
     /**
      * Logging instance
      *
@@ -280,11 +276,6 @@ class Cron
     protected $encryptor;
 
     /**
-     * @var Vault
-     */
-    protected $vaultHelper;
-
-    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -315,7 +306,6 @@ class Cron
      * @param PaymentTokenFactoryInterface $paymentTokenFactory
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      * @param EncryptorInterface $encryptor
-     * @param Vault $vaultHelper
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -345,8 +335,7 @@ class Cron
         PaymentTokenManagement  $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
-        EncryptorInterface $encryptor,
-        Vault $vaultHelper
+        EncryptorInterface $encryptor
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -376,7 +365,6 @@ class Cron
         $this->paymentTokenFactory = $paymentTokenFactory;
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->encryptor = $encryptor;
-        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -649,11 +637,11 @@ class Cron
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()
         ) : "";
-        if (!empty($additionalData[self::RECURRING_DETAIL_REFERENCE])) {
-            $this->_recurringDetailReference = $additionalData[self::RECURRING_DETAIL_REFERENCE];
+        if (!empty($additionalData[Vault::RECURRING_DETAIL_REFERENCE])) {
+            $this->_recurringDetailReference = $additionalData[Vault::RECURRING_DETAIL_REFERENCE];
         }
-        if (!empty($additionalData[self::EXPIRY_DATE])) {
-            $this->_expiryDate = $additionalData[self::EXPIRY_DATE];
+        if (!empty($additionalData[Vault::EXPIRY_DATE])) {
+            $this->_expiryDate = $additionalData[Vault::EXPIRY_DATE];
         }
 
         // boleto data
@@ -1346,7 +1334,7 @@ class Cron
                             }
 
                             $paymentTokenAlternativePaymentMethod->setExpiresAt(
-                                $this->vaultHelper->getExpirationDate(
+                                $this->getExpirationDate(
                                     $this->_expiryDate
                                 )
                             );
@@ -2195,5 +2183,25 @@ class Cron
             $this->_order->addStatusHistoryComment($comment);
             $this->_order->save();
         }
+    }
+
+    /**
+     * @param $expirationDate
+     * @return string
+     * @throws Exception
+     */
+    private function getExpirationDate($expirationDate)
+    {
+        $expirationDate = explode('/', $expirationDate);
+
+        $expDate = new DateTime(
+        //add leading zero to month
+            sprintf("%s-%02d-01 00:00:00", $expirationDate[1], $expirationDate[0]),
+            new DateTimeZone('UTC')
+        );
+
+        // add one month
+        $expDate->add(new DateInterval('P1M'));
+        return $expDate->format('Y-m-d H:i:s');
     }
 }

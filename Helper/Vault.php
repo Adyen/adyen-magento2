@@ -201,7 +201,7 @@ class Vault
      * @return string
      * @throws Exception
      */
-    public function getExpirationDate($expirationDate)
+    private function getExpirationDate($expirationDate)
     {
         $expirationDate = explode('/', $expirationDate);
 
