@@ -121,7 +121,7 @@
                 <ratepay_id>oj9GsQ</ratepay_id>
                 <sort_order>3</sort_order>
                 <payment_action>authorize</payment_action>
-                <can_initialize>0</can_initialize>
+                <can_initialize>1</can_initialize>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>1</can_use_checkout>
                 <can_capture>1</can_capture>
