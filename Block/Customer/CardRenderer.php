@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Block\Customer;
 
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Helper\Data;
 use Magento\Framework\View\Element\Template;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
@@ -55,7 +56,7 @@ class CardRenderer extends AbstractCardRenderer
      */
     public function canRender(PaymentTokenInterface $token)
     {
-        return $token->getPaymentMethodCode() === AdyenCcConfigProvider::CODE;
+        return $token->getPaymentMethodCode() === AdyenCcConfigProvider::CODE ||$token->getPaymentMethodCode() === AdyenHppConfigProvider::CODE;
     }
 
     /**
@@ -63,7 +64,7 @@ class CardRenderer extends AbstractCardRenderer
      */
     public function getNumberLast4Digits()
     {
-        return $this->getTokenDetails()['maskedCC'];
+        return !empty($this->getTokenDetails()['maskedCC']) ? $this->getTokenDetails()['maskedCC'] : "";
     }
 
     /**

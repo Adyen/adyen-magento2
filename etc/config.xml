@@ -73,6 +73,14 @@
                     <tokenFormat>Adyen\Payment\Model\InstantPurchase\CreditCard\TokenFormatter</tokenFormat>
                 </instant_purchase>
             </adyen_cc_vault>
+            <adyen_hpp_vault>
+                <model>AdyenPaymentHppVaultFacade</model>
+                <title>Alternative Payment Methods (Adyen)</title>
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\CreditCard\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\Hpp\TokenFormatter</tokenFormat>
+                </instant_purchase>
+            </adyen_hpp_vault>
             <adyen_google_pay_vault>
                 <model>AdyenPaymentGooglePayVaultFacade</model>
                 <title>Stored Cards (Adyen)</title>
@@ -113,7 +121,7 @@
                 <ratepay_id>oj9GsQ</ratepay_id>
                 <sort_order>3</sort_order>
                 <payment_action>authorize</payment_action>
-                <can_initialize>1</can_initialize>
+                <can_initialize>0</can_initialize>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>1</can_use_checkout>
                 <can_capture>1</can_capture>
@@ -123,6 +131,8 @@
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
+                <can_authorize_vault>1</can_authorize_vault>
+                <can_capture_vault>1</can_capture_vault>
                 <group>adyen</group>
             </adyen_hpp>
             <adyen_pos_cloud>
