@@ -38,6 +38,9 @@ use Magento\Sales\Model\OrderRepository;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
+use DateInterval;
+use DateTime;
+use DateTimeZone;
 
 class Cron
 {
