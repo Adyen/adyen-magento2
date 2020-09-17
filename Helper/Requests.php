@@ -38,7 +38,6 @@ class Requests extends AbstractHelper
      * @var \Adyen\Payment\Helper\Data
      */
     private $adyenHelper;
-
     /**
      * @var \Adyen\Payment\Helper\Config
      */
@@ -50,6 +49,7 @@ class Requests extends AbstractHelper
      * @param Data $adyenHelper
      * @param Config $adyenConfig ;
      */
+
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Helper\Config $adyenConfig
