@@ -389,7 +389,7 @@ define(
                     // render component
                     self.renderThreeDS2Component(response.type, response.token, orderId);
                 } else {
-                    if (response.type === 'RedirectShopper') {
+                    if (response.type === 'RedirectShopper' && response.action) {
                         self.threedsfallback(response.action);
                     } else {
                         window.location.replace(url.build(
