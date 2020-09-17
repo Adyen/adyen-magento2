@@ -1315,7 +1315,6 @@ class Cron
 
                             // In case the payment token for this payment method does not exist, create it based on the additionalData
                             if ($paymentTokenAlternativePaymentMethod === null) {
-
                                 $this->_adyenLogger->addAdyenNotificationCronjob('Creating new gateway token');
                                 /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
                                 $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
