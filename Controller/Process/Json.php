@@ -226,7 +226,6 @@ class Json extends \Magento\Framework\App\Action\Action
                 return false;
             }
         }
-
         // validate the notification
         if ($this->authorised($response)) {
             // log the notification
