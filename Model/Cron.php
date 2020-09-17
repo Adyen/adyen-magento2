@@ -1316,6 +1316,7 @@ class Cron
                             // In case the payment token for this payment method does not exist, create it based on the additionalData
                             if ($paymentTokenAlternativePaymentMethod === null) {
 
+                                $this->_adyenLogger->addAdyenNotificationCronjob('Creating new gateway token');
                                 /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
                                 $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
                                     PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
@@ -1332,6 +1333,8 @@ class Cron
                                     ->setPaymentMethodCode(AdyenHppConfigProvider::CODE)
                                     ->setPublicHash($this->encryptor->getHash($customerId));
                             } else {
+                                $this->_adyenLogger->addAdyenNotificationCronjob('Gateway token already ' .
+                                    'exists, updating expiration date');
                                 $details = json_decode($paymentTokenAlternativePaymentMethod->getTokenDetails());
                                 $details['expirationDate'] = $this->_expiryDate;
                             }
@@ -1344,6 +1347,7 @@ class Cron
 
                             $paymentTokenAlternativePaymentMethod->setTokenDetails(json_encode($details));
                             $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
+                            $this->_adyenLogger->addAdyenNotificationCronjob('New gateway token saved');
                         }
                     } catch (\Exception $exception) {
                         $message = $exception->getMessage();
