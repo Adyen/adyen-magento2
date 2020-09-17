@@ -35,19 +35,21 @@ use Magento\Quote\Api\Data\PaymentInterface;
 class Requests extends AbstractHelper
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
+
     /**
-     * Requests constructor.
-     *
-     * @param Data $adyenHelper
+     * @var \Magento\Framework\UrlInterface
      */
+    private $urlBuilder;
 
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Framework\UrlInterface $urlBuilder
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->urlBuilder = $urlBuilder;
     }
 
     /**
@@ -349,7 +351,9 @@ class Requests extends AbstractHelper
     {
         $request['redirectFromIssuerMethod'] = 'GET';
         $request['redirectToIssuerMethod'] = 'POST';
-        $request['returnUrl'] = $this->adyenHelper->getOrigin($storeId) . '/adyen/process/redirect';
+        $request['returnUrl'] = $this->urlBuilder->getUrl(
+            'adyen/process/redirect'
+        );
 
         return $request;
     }
