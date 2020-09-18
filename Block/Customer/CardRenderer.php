@@ -56,7 +56,7 @@ class CardRenderer extends AbstractCardRenderer
      */
     public function canRender(PaymentTokenInterface $token)
     {
-        return $token->getPaymentMethodCode() === AdyenCcConfigProvider::CODE ||$token->getPaymentMethodCode() === AdyenHppConfigProvider::CODE;
+        return $token->getPaymentMethodCode() === AdyenCcConfigProvider::CODE;
     }
 
     /**

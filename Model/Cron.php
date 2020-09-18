@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -1318,7 +1319,7 @@ class Cron
                                 $this->_adyenLogger->addAdyenNotificationCronjob('Creating new gateway token');
                                 /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
                                 $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
-                                    PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
+                                    PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT
                                 );
 
                                 $details = [
@@ -1329,7 +1330,7 @@ class Cron
 
                                 $paymentTokenAlternativePaymentMethod->setCustomerId($customerId)
                                     ->setGatewayToken($this->_recurringDetailReference)
-                                    ->setPaymentMethodCode(AdyenHppConfigProvider::CODE)
+                                    ->setPaymentMethodCode(AdyenCcConfigProvider::CODE)
                                     ->setPublicHash($this->encryptor->getHash($customerId));
                             } else {
                                 $this->_adyenLogger->addAdyenNotificationCronjob('Gateway token already ' .

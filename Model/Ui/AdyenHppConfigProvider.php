@@ -30,7 +30,6 @@ use Magento\Directory\Helper\Data;
 class AdyenHppConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'adyen_hpp';
-    const HPP_VAULT_CODE = 'adyen_hpp_vault';
 
     /**
      * @var PaymentHelper
