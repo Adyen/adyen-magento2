@@ -141,7 +141,18 @@ class Config
         }
         return $this->encryptor->decrypt(trim($key));
     }
-   
+
+    /**
+     * Check if alternative payment methods vault is enabled
+     *
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function isStoreAlternativePaymentMethodEnabled($storeId = null)
+    {
+        return $this->adyenHelper->getAdyenHppVaultConfigDataFlag('active', $storeId);
+    }
+
     /**
      * Retrieve information from payment configuration
      *
