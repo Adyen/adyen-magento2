@@ -381,8 +381,10 @@ class Requests extends AbstractHelper
         if ($customerId > 0) {
             $isGuestUser = false;
         }
-        //active
-        if ( $this->adyenConfig->isStoreAlternativePaymentMethodEnabled($storeId)) {
+        //Setting storePaymentMethod flag if PM is SEPA and store PM config is enabled
+        if (!empty($additionalData['brand_code']) &&
+            $additionalData['brand_code'] == 'sepadirectdebit' &&
+            $this->adyenConfig->isStoreAlternativePaymentMethodEnabled($storeId)) {
             $request['storePaymentMethod'] = true;
         }
         // If the vault feature is on this logic is handled in the VaultDataBuilder
