@@ -85,4 +85,11 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+
+    <route url="/V1/adyen/orders/:orderId/payment-details" method="POST">
+        <service class="Adyen\Payment\Api\AdyenOrderPaymentDetailsInterface" method="getDetails"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>
