@@ -76,7 +76,7 @@ class TokenFormatter implements PaymentTokenFormatterInterface
                 $ccType = $details['type'];
             }
 
-            $formatted = sprintf(
+            return sprintf(
                 '%s: %s, %s: %s (%s: %s)',
                 __('Credit Card'),
                 $ccType,
@@ -107,7 +107,5 @@ class TokenFormatter implements PaymentTokenFormatterInterface
                 $details['expirationDate']
             );
         }
-
-        return $formatted;
     }
 }
