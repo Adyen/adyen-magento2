@@ -1306,13 +1306,17 @@ class Cron
                         $this->_adyenLogger->addAdyenNotificationCronjob(
                             '$paymentMethodCode ' . $this->_paymentMethod
                         );
-                        if (!empty($this->_recurringDetailReference)) {
+                        if (!empty($this->_pspReference)) {
                             // Check if $paymentTokenAlternativePaymentMethod exists already
                             $paymentTokenAlternativePaymentMethod = $this->paymentTokenManagement->getByGatewayToken(
-                                $this->_recurringDetailReference,
+                                $this->_pspReference,
                                 $payment->getMethodInstance()->getCode(),
                                 $payment->getOrder()->getCustomerId()
                             );
+
+                            //Expiration date for SEPA tokens: date of notification processing + 1 month
+                            $now = new DateTime('now', new DateTimeZone('UTC'));
+                            $expDate = $now->add(new DateInterval('P1M'));
 
                             // In case the payment token for this payment method does not exist, create it based on the additionalData
                             if ($paymentTokenAlternativePaymentMethod === null) {
@@ -1325,25 +1329,21 @@ class Cron
                                 $details = [
                                     'type' => $this->_paymentMethod,
                                     'maskedCC' => $payment->getAdditionalInformation()['ibanNumber'],
-                                    'expirationDate' => $this->_expiryDate
+                                    'expirationDate' => $expDate->format('m / Y')
                                 ];
 
                                 $paymentTokenAlternativePaymentMethod->setCustomerId($customerId)
-                                    ->setGatewayToken($this->_recurringDetailReference)
+                                    ->setGatewayToken($this->_pspReference)
                                     ->setPaymentMethodCode(AdyenCcConfigProvider::CODE)
-                                    ->setPublicHash($this->encryptor->getHash($customerId));
+                                    ->setPublicHash($this->encryptor->getHash($customerId . $this->_pspReference));
                             } else {
                                 $this->_adyenLogger->addAdyenNotificationCronjob('Gateway token already ' .
                                     'exists, updating expiration date');
                                 $details = json_decode($paymentTokenAlternativePaymentMethod->getTokenDetails());
-                                $details['expirationDate'] = $this->_expiryDate;
+                                $details['expirationDate'] = $expDate->format('m / Y');
                             }
 
-                            $paymentTokenAlternativePaymentMethod->setExpiresAt(
-                                $this->getExpirationDate(
-                                    $this->_expiryDate
-                                )
-                            );
+                            $paymentTokenAlternativePaymentMethod->setExpiresAt($expDate->format('Y-m-d H:i:s'));
 
                             $paymentTokenAlternativePaymentMethod->setTokenDetails(json_encode($details));
                             $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
@@ -2190,25 +2190,5 @@ class Cron
             $this->_order->addStatusHistoryComment($comment);
             $this->_order->save();
         }
-    }
-
-    /**
-     * @param $expirationDate
-     * @return string
-     * @throws Exception
-     */
-    private function getExpirationDate($expirationDate)
-    {
-        $expirationDate = explode('/', $expirationDate);
-
-        $expDate = new DateTime(
-        //add leading zero to month
-            sprintf("%s-%02d-01 00:00:00", $expirationDate[1], $expirationDate[0]),
-            new DateTimeZone('UTC')
-        );
-
-        // add one month
-        $expDate->add(new DateInterval('P1M'));
-        return $expDate->format('Y-m-d H:i:s');
     }
 }
