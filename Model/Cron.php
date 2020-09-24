@@ -1314,9 +1314,6 @@ class Cron
                                 $payment->getOrder()->getCustomerId()
                             );
 
-                            //Expiration date for SEPA tokens: date of notification processing + 1 month
-                            $now = new DateTime('now', new DateTimeZone('UTC'));
-                            $expDate = $now->add(new DateInterval('P1M'));
 
                             // In case the payment token for this payment method does not exist, create it based on the additionalData
                             if ($paymentTokenAlternativePaymentMethod === null) {
@@ -1329,7 +1326,7 @@ class Cron
                                 $details = [
                                     'type' => $this->_paymentMethod,
                                     'maskedCC' => $payment->getAdditionalInformation()['ibanNumber'],
-                                    'expirationDate' => $expDate->format('m / Y')
+                                    'expirationDate' => 'N/A'
                                 ];
 
                                 $paymentTokenAlternativePaymentMethod->setCustomerId($customerId)
@@ -1337,12 +1334,12 @@ class Cron
                                     ->setPaymentMethodCode(AdyenCcConfigProvider::CODE)
                                     ->setPublicHash($this->encryptor->getHash($customerId . $this->_pspReference));
                             } else {
-                                $this->_adyenLogger->addAdyenNotificationCronjob('Gateway token already ' .
-                                    'exists, updating expiration date');
-                                $details = json_decode($paymentTokenAlternativePaymentMethod->getTokenDetails());
-                                $details['expirationDate'] = $expDate->format('m / Y');
+                                $this->_adyenLogger->addAdyenNotificationCronjob('Gateway token already exists');
                             }
 
+                            //SEPA tokens don't expire. The expiration date is set 10 years from now
+                            $expDate = new DateTime('now', new DateTimeZone('UTC'));
+                            $expDate->add(new DateInterval('P10Y'));
                             $paymentTokenAlternativePaymentMethod->setExpiresAt($expDate->format('Y-m-d H:i:s'));
 
                             $paymentTokenAlternativePaymentMethod->setTokenDetails(json_encode($details));
