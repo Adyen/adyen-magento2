@@ -82,12 +82,14 @@ class Vault
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
         PaymentTokenManagement $paymentTokenManagement,
-        PaymentTokenFactoryInterface $paymentTokenFactory
+        PaymentTokenFactoryInterface $paymentTokenFactory,
+        PaymentTokenRepositoryInterface $paymentTokenRepository
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
         $this->paymentTokenManagement = $paymentTokenManagement;
         $this->paymentTokenFactory = $paymentTokenFactory;
+        $this->paymentTokenRepository = $paymentTokenRepository;
     }
 
     public function saveRecurringDetails($payment, array $additionalData)

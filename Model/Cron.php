@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -1305,44 +1306,41 @@ class Cron
                         $this->_adyenLogger->addAdyenNotificationCronjob(
                             '$paymentMethodCode ' . $this->_paymentMethod
                         );
-                        if (!empty($this->_recurringDetailReference)) {
+                        if (!empty($this->_pspReference)) {
                             // Check if $paymentTokenAlternativePaymentMethod exists already
                             $paymentTokenAlternativePaymentMethod = $this->paymentTokenManagement->getByGatewayToken(
-                                $this->_recurringDetailReference,
+                                $this->_pspReference,
                                 $payment->getMethodInstance()->getCode(),
                                 $payment->getOrder()->getCustomerId()
                             );
+
 
                             // In case the payment token for this payment method does not exist, create it based on the additionalData
                             if ($paymentTokenAlternativePaymentMethod === null) {
                                 $this->_adyenLogger->addAdyenNotificationCronjob('Creating new gateway token');
                                 /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
                                 $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
-                                    PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
+                                    PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT
                                 );
 
                                 $details = [
                                     'type' => $this->_paymentMethod,
                                     'maskedCC' => $payment->getAdditionalInformation()['ibanNumber'],
-                                    'expirationDate' => $this->_expiryDate
+                                    'expirationDate' => 'N/A'
                                 ];
 
                                 $paymentTokenAlternativePaymentMethod->setCustomerId($customerId)
-                                    ->setGatewayToken($this->_recurringDetailReference)
-                                    ->setPaymentMethodCode(AdyenHppConfigProvider::CODE)
-                                    ->setPublicHash($this->encryptor->getHash($customerId));
+                                    ->setGatewayToken($this->_pspReference)
+                                    ->setPaymentMethodCode(AdyenCcConfigProvider::CODE)
+                                    ->setPublicHash($this->encryptor->getHash($customerId . $this->_pspReference));
                             } else {
-                                $this->_adyenLogger->addAdyenNotificationCronjob('Gateway token already ' .
-                                    'exists, updating expiration date');
-                                $details = json_decode($paymentTokenAlternativePaymentMethod->getTokenDetails());
-                                $details['expirationDate'] = $this->_expiryDate;
+                                $this->_adyenLogger->addAdyenNotificationCronjob('Gateway token already exists');
                             }
 
-                            $paymentTokenAlternativePaymentMethod->setExpiresAt(
-                                $this->getExpirationDate(
-                                    $this->_expiryDate
-                                )
-                            );
+                            //SEPA tokens don't expire. The expiration date is set 10 years from now
+                            $expDate = new DateTime('now', new DateTimeZone('UTC'));
+                            $expDate->add(new DateInterval('P10Y'));
+                            $paymentTokenAlternativePaymentMethod->setExpiresAt($expDate->format('Y-m-d H:i:s'));
 
                             $paymentTokenAlternativePaymentMethod->setTokenDetails(json_encode($details));
                             $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
@@ -2189,25 +2187,5 @@ class Cron
             $this->_order->addStatusHistoryComment($comment);
             $this->_order->save();
         }
-    }
-
-    /**
-     * @param $expirationDate
-     * @return string
-     * @throws Exception
-     */
-    private function getExpirationDate($expirationDate)
-    {
-        $expirationDate = explode('/', $expirationDate);
-
-        $expDate = new DateTime(
-        //add leading zero to month
-            sprintf("%s-%02d-01 00:00:00", $expirationDate[1], $expirationDate[0]),
-            new DateTimeZone('UTC')
-        );
-
-        // add one month
-        $expDate->add(new DateInterval('P1M'));
-        return $expDate->format('Y-m-d H:i:s');
     }
 }
