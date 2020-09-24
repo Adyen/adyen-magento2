@@ -250,16 +250,6 @@ class Cron
     protected $configHelper;
 
     /**
-     * @var
-     */
-    protected $_recurringDetailReference;
-
-    /**
-     * @var
-     */
-    protected $_expiryDate;
-
-    /**
      * @var PaymentTokenManagement
      */
     private $paymentTokenManagement;
