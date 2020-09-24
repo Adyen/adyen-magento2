@@ -641,12 +641,6 @@ class Cron
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()
         ) : "";
-        if (!empty($additionalData[Vault::RECURRING_DETAIL_REFERENCE])) {
-            $this->_recurringDetailReference = $additionalData[Vault::RECURRING_DETAIL_REFERENCE];
-        }
-        if (!empty($additionalData[Vault::EXPIRY_DATE])) {
-            $this->_expiryDate = $additionalData[Vault::EXPIRY_DATE];
-        }
 
         // boleto data
         if ($this->_paymentMethodCode() == "adyen_boleto") {
