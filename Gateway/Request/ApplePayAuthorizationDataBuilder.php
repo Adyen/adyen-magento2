@@ -26,7 +26,6 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Magento\Setup\Exception;
 
 class ApplePayAuthorizationDataBuilder implements BuilderInterface
 {
@@ -65,13 +64,7 @@ class ApplePayAuthorizationDataBuilder implements BuilderInterface
         // get payment data
         if ($token) {
             $parsedToken = json_decode($token);
-            $paymentData = $parsedToken->token->paymentData;
-            try {
-                $paymentData = base64_encode(json_encode($paymentData));
-                $requestBody['paymentMethod']['applepay.token'] = $paymentData;
-            } catch (\Exception $exception) {
-                $this->_adyenLogger->addAdyenDebug("exception: " . $exception->getMessage());
-            }
+            $requestBody['paymentMethod']['applepay.token'] = base64_encode(json_encode($parsedToken->token->paymentData));
         } else {
             $this->_adyenLogger->addAdyenDebug("PaymentToken is empty");
         }

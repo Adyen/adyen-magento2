@@ -35,19 +35,35 @@ use Magento\Quote\Api\Data\PaymentInterface;
 class Requests extends AbstractHelper
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
+
+    /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    private $adyenConfig;
+
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
+    private $urlBuilder;
+
     /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
+     * @param Config $adyenConfig
+     * @param \Magento\Framework\UrlInterface $urlBuilder
      */
-
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Helper\Config $adyenConfig,
+        \Magento\Framework\UrlInterface $urlBuilder
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->adyenConfig = $adyenConfig;
+        $this->urlBuilder = $urlBuilder;
     }
 
     /**
@@ -349,8 +365,7 @@ class Requests extends AbstractHelper
     {
         $request['redirectFromIssuerMethod'] = 'GET';
         $request['redirectToIssuerMethod'] = 'POST';
-        $request['returnUrl'] = $this->adyenHelper->getOrigin($storeId) . '/adyen/process/redirect';
-
+        $request['returnUrl'] = $this->urlBuilder->getUrl('adyen/process/redirect');
         return $request;
     }
 
@@ -366,7 +381,12 @@ class Requests extends AbstractHelper
         if ($customerId > 0) {
             $isGuestUser = false;
         }
-
+        //Setting storePaymentMethod flag if PM is SEPA and store PM config is enabled
+        if (!empty($additionalData['brand_code']) &&
+            $additionalData['brand_code'] == 'sepadirectdebit' &&
+            $this->adyenConfig->isStoreAlternativePaymentMethodEnabled($storeId)) {
+            $request['storePaymentMethod'] = true;
+        }
         // If the vault feature is on this logic is handled in the VaultDataBuilder
         if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
             if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
@@ -375,17 +395,9 @@ class Requests extends AbstractHelper
 
             $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
             $enableRecurring = $this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', $storeId);
-            if ($enableOneclick && !$isGuestUser) {
-                $request['enableOneClick'] = true;
-            } else {
-                $request['enableOneClick'] = false;
-            }
 
-            if ($enableRecurring) {
-                $request['enableRecurring'] = true;
-            } else {
-                $request['enableRecurring'] = false;
-            }
+            $request['enableOneClick'] = $enableOneclick && !$isGuestUser;
+            $request['enableRecurring'] = (bool)$enableRecurring;
 
             // value can be 0,1 or true
             if (!empty($additionalData[AdyenCcDataAssignObserver::STORE_CC]) || ($isGuestUser && $this->adyenHelper->isGuestTokenizationEnabled($storeId))) {

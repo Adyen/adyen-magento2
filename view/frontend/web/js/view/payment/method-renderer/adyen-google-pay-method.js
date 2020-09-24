@@ -28,6 +28,7 @@ define(
         'jquery',
         'Magento_Checkout/js/view/payment/default',
         'Magento_Checkout/js/action/place-order',
+        'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/model/url-builder',
         'Magento_Checkout/js/model/full-screen-loader',
@@ -35,7 +36,7 @@ define(
         'Magento_Vault/js/view/payment/vault-enabler',
         'adyenCheckout'
     ],
-    function (ko, $, Component, placeOrderAction, quote, urlBuilder, fullScreenLoader, url, VaultEnabler, AdyenCheckout) {
+    function (ko, $, Component, placeOrderAction, additionalValidators, quote, urlBuilder, fullScreenLoader, url, VaultEnabler, AdyenCheckout) {
         'use strict';
 
         /**
@@ -78,16 +79,17 @@ define(
                 return this;
             }, initialize: function () {
                 var self = this;
+                this.additionalValidators = additionalValidators;
                 this.vaultEnabler = new VaultEnabler();
                 this.vaultEnabler.setPaymentCode(this.getVaultCode());
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
                 this._super();
-
             },
 
             renderGooglePay: function () {
+                this.googlePayNode = document.getElementById('googlePay');
+
                 var self = this;
-                var googlePayNode = document.getElementById('googlePay');
                 self.checkoutComponent = new AdyenCheckout({
                     locale: self.getLocale(),
                     originKey: self.getOriginKey(),
@@ -137,12 +139,12 @@ define(
                     buttonColor: 'black', // default/black/white
                     buttonType: 'long', // long/short
                     showButton: true // show or hide the Google Pay button
-
                 });
                 var promise = googlepay.isAvailable();
                 promise.then(function (success) {
                     self.googlePayAllowed(true);
-                    googlepay.mount(googlePayNode);
+                    googlepay.mount(self.googlePayNode);
+                    $(self.googlePayNode).find('button').prop('disabled', true);
                 }, function (error) {
                     console.log(error);
                     self.googlePayAllowed(false);
@@ -172,8 +174,8 @@ define(
             context: function () {
                 return this;
             },
-            validate: function () {
-                return true;
+            validate: function (hideErrors) {
+                return this.additionalValidators.validate(hideErrors);
             },
             getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];

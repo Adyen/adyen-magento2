@@ -24,48 +24,39 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Adyen\AdyenException;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
-use Magento\Setup\Exception;
 
 class PaymentPosCloudHandler implements HandlerInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
 
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
+     * @var AdyenLogger
      */
     private $adyenLogger;
 
-    /**
-     * PaymentPosCloudHandler constructor.
-     *
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     */
     public function __construct(
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        AdyenLogger $adyenLogger,
+        Data $adyenHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
     }
 
     /**
-     * Handles response
-     *
-     * @param array $handlingSubject
-     * @param array $paymentResponse
-     * @return void
-     * @throws Exception
+     * {@inheritdoc}
      */
     public function handle(array $handlingSubject, array $paymentResponse)
     {
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
+        $paymentDataObject = SubjectReader::readPayment($handlingSubject);
 
-        /** @var OrderPaymentInterface $payment */
         $payment = $paymentDataObject->getPayment();
 
         // set transaction not to processing by default wait for notification
@@ -76,10 +67,10 @@ class PaymentPosCloudHandler implements HandlerInterface
 
         if (!empty($paymentResponse['Response']['AdditionalResponse'])
         ) {
-            $pairs = explode('&', $paymentResponse['Response']['AdditionalResponse']);
+            $pairs = \explode('&', $paymentResponse['Response']['AdditionalResponse']);
 
             foreach ($pairs as $pair) {
-                $nv = explode('=', $pair);
+                $nv = \explode('=', $pair);
 
                 if ($nv[0] == 'recurring.recurringDetailReference') {
                     $recurringDetailReference = $nv[1];
@@ -93,7 +84,7 @@ class PaymentPosCloudHandler implements HandlerInterface
                 $maskedPan = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['MaskedPan'];
                 $expiryDate = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']
                 ['SensitiveCardData']['ExpiryDate']; // 1225
-                $expiryDate = substr($expiryDate, 0, 2) . '/' . substr($expiryDate, 2, 2);
+                $expiryDate = \substr($expiryDate, 0, 2) . '/' . \substr($expiryDate, 2, 2);
                 $brand = $paymentResponse['PaymentResult']['PaymentInstrumentData']['CardData']['PaymentBrand'];
 
                 // create additionalData so we can use the helper
@@ -101,7 +92,7 @@ class PaymentPosCloudHandler implements HandlerInterface
                 $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
                 $additionalData['cardBin'] = $recurringDetailReference;
                 $additionalData['cardHolderName'] = '';
-                $additionalData['cardSummary'] = substr($maskedPan, -4);
+                $additionalData['cardSummary'] = \substr($maskedPan, -4);
                 $additionalData['expiryDate'] = $expiryDate;
                 $additionalData['paymentMethod'] = $brand;
                 $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
@@ -122,7 +113,7 @@ class PaymentPosCloudHandler implements HandlerInterface
             // set transaction(payment)
         } else {
             $this->adyenLogger->error("Missing POS Transaction ID");
-            throw new Exception("Missing POS Transaction ID");
+            throw new AdyenException("Missing POS Transaction ID");
         }
 
         // do not close transaction so you can do a cancel() and void
