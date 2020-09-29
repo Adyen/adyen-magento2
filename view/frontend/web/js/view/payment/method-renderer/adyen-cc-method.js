@@ -40,7 +40,8 @@ define(
         'Adyen_Payment/js/model/threeds2',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
-        'adyenCheckout'
+        'adyenCheckout',
+        'Adyen_Payment/js/bundle'
     ],
     function (
         $,
@@ -62,7 +63,8 @@ define(
         threeds2,
         errorProcessor,
         adyenPaymentService,
-        AdyenCheckout
+        AdyenCheckout,
+        AdyenComponent
     ) {
 
         'use strict';
