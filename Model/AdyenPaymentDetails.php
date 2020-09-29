@@ -23,14 +23,14 @@
 
 namespace Adyen\Payment\Model;
 
-use Adyen\Payment\Api\AdyenThreeDS2ProcessInterface;
+use Adyen\Payment\Api\AdyenPaymentDetailsInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Checkout\Model\Session;
 use Magento\Sales\Model\OrderFactory;
 
-class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
+class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
 {
     /**
      * @var Session
@@ -58,7 +58,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
     private $vaultHelper;
 
     /**
-     * AdyenThreeDS2Process constructor.
+     * AdyenPaymentDetails constructor.
      *
      * @param Session $checkoutSession
      * @param Data $adyenHelper
