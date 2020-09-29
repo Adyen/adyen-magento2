@@ -229,7 +229,7 @@ define(
                                 self.threeDS2IdentifyComponent.unmount();
                                 var request = result.data;
                                 request.orderId = orderId;
-                                paymentDetails.paymentDetails(request).done(function (responseJSON) {
+                                paymentDetails.process(request).done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
                                 }).fail(function (result) {
                                     errorProcessor.process(result, self.messageContainer);
@@ -268,7 +268,7 @@ define(
                                 fullScreenLoader.startLoader();
                                 var request = result.data;
                                 request.orderId = orderId;
-                                paymentDetails.paymentDetails(request).done(function (responseJSON) {
+                                paymentDetails.process(request).done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON, orderId);
                                 }).fail(function (result) {
                                     errorProcessor.process(result, self.messageContainer);

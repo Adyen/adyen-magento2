@@ -752,7 +752,7 @@ define(
           request.orderId = self.orderId;
 
           // Using the same processor as 3DS2, refactor to generic name in a upcomming release will be breaking change for merchants.
-          paymentDetails.paymentDetails(request).done(function() {
+          paymentDetails.process(request).done(function() {
             $.mage.redirect(
                 window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl,
             );

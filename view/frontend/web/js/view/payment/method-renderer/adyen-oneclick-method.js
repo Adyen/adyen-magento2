@@ -350,7 +350,7 @@ function(
                         onComplete: function(result) {
                           var request = result.data;
                           request.orderId = orderId;
-                          paymentDetails.paymentDetails(request).
+                          paymentDetails.process(request).
                               done(function(responseJSON) {
                                 self.validateThreeDS2OrPlaceOrder(responseJSON,
                                     orderId);
@@ -389,7 +389,7 @@ function(
                           fullScreenLoader.startLoader();
                           var request = result.data;
                           request.orderId = orderId;
-                          paymentDetails.paymentDetails(request).
+                          paymentDetails.process(request).
                               done(function(responseJSON) {
                                 self.validateThreeDS2OrPlaceOrder(responseJSON,
                                     orderId);

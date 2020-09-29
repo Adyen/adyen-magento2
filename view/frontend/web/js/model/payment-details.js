@@ -16,7 +16,7 @@ define(
              * component or place the order (validateThreeDS2OrPlaceOrder)
              * @param response
              */
-            paymentDetails: function (data) {
+            process: function (data) {
                 var payload = {
                     "payload": JSON.stringify(data)
                 };
