@@ -36,7 +36,7 @@ class PaymentInformationResetOrderId
         try {
             $this->checkoutSession->getQuote()->setReservedOrderId(null);
         } catch (\Exception $e) {
-            $this->adyenLogger->error($e->getMessage());
+            $this->adyenLogger->error("Failed to reset reservedOrderId " . $e->getMessage());
         }
     }
 }
