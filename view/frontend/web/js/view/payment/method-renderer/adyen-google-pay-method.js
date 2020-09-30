@@ -215,7 +215,7 @@ define(
                 return window.checkoutConfig.payment.adyen.originKey;
             },
             getCheckoutEnvironment: function () {
-                return window.checkoutConfig.payment.adyen.checkoutEnvironment;
+                return window.checkoutConfig.payment.adyenGooglePay.checkoutEnvironment;
             }
         });
     }
