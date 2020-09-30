@@ -22,7 +22,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Observer\Adminhtml;
+namespace Adyen\Payment\Observer;
 
 use Adyen\Payment\Helper\Data as AdyenHelper;
 use Adyen\Payment\Logger\AdyenLogger;
