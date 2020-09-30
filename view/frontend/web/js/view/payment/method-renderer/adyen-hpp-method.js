@@ -36,7 +36,7 @@ define(
       'Magento_Checkout/js/action/place-order',
       'uiLayout',
       'Magento_Ui/js/model/messages',
-      'Adyen_Payment/js/model/threeds2',
+      'Adyen_Payment/js/model/payment-details',
       'Magento_Checkout/js/model/error-processor',
       'adyenCheckout',
       'Adyen_Payment/js/bundle'
@@ -57,7 +57,7 @@ define(
         placeOrderAction,
         layout,
         Messages,
-        threeds2,
+        paymentDetails,
         errorProcessor,
         AdyenCheckout,
         AdyenComponent
@@ -752,7 +752,7 @@ define(
           request.orderId = self.orderId;
 
           // Using the same processor as 3DS2, refactor to generic name in a upcomming release will be breaking change for merchants.
-          threeds2.processThreeDS2(request).done(function() {
+          paymentDetails.process(request).done(function() {
             $.mage.redirect(
                 window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl,
             );

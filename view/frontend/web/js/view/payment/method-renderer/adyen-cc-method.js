@@ -37,7 +37,7 @@ define(
         'Magento_Paypal/js/action/set-payment-method',
         'Magento_Checkout/js/action/select-payment-method',
         'Adyen_Payment/js/threeds2-js-utils',
-        'Adyen_Payment/js/model/threeds2',
+        'Adyen_Payment/js/model/payment-details',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
         'adyenCheckout',
@@ -60,7 +60,7 @@ define(
         setPaymentMethodAction,
         selectPaymentMethodAction,
         threeDS2Utils,
-        threeds2,
+        paymentDetails,
         errorProcessor,
         adyenPaymentService,
         AdyenCheckout,
@@ -229,7 +229,7 @@ define(
                                 self.threeDS2IdentifyComponent.unmount();
                                 var request = result.data;
                                 request.orderId = orderId;
-                                threeds2.processThreeDS2(request).done(function (responseJSON) {
+                                paymentDetails.process(request).done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
                                 }).fail(function (result) {
                                     errorProcessor.process(result, self.messageContainer);
@@ -268,7 +268,7 @@ define(
                                 fullScreenLoader.startLoader();
                                 var request = result.data;
                                 request.orderId = orderId;
-                                threeds2.processThreeDS2(request).done(function (responseJSON) {
+                                paymentDetails.process(request).done(function (responseJSON) {
                                     self.validateThreeDS2OrPlaceOrder(responseJSON, orderId);
                                 }).fail(function (result) {
                                     errorProcessor.process(result, self.messageContainer);
