@@ -22,7 +22,6 @@
  */
 
 namespace Adyen\Payment\Plugin;
-
 use Magento\Quote\Api\CartRepositoryInterface;
 
 class PaymentInformationResetOrderId
