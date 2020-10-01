@@ -1028,11 +1028,13 @@
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10"/>
     </type>
-    <type name="Magento\Checkout\Model\PaymentInformationManagement">
-        <plugin name="AdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\PaymentInformationResetOrderId" sortOrder="10"/>
+    <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
+        <plugin name="AdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\PaymentInformationResetOrderId"
+                sortOrder="10"/>
     </type>
-    <type name="Magento\Checkout\Model\GuestPaymentInformationManagement">
-        <plugin name="AdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\PaymentInformationResetOrderId" sortOrder="10"/>
+    <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
+        <plugin name="GuestAdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\GuestPaymentInformationResetOrderId"
+                sortOrder="10"/>
     </type>
 
     <!--Notifications overview-->

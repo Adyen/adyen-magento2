@@ -24,7 +24,7 @@
 namespace Adyen\Payment\Plugin;
 use Magento\Quote\Api\CartRepositoryInterface;
 
-class PaymentInformationResetOrderId
+class GuestPaymentInformationResetOrderId
 {
     /**
      * Quote repository.
@@ -39,7 +39,7 @@ class PaymentInformationResetOrderId
     protected $adyenLogger;
 
     /**
-     * PaymentInformationResetOrderId constructor.
+     * GuestPaymentInformationResetOrderId constructor.
      * @param CartRepositoryInterface $quoteRepository
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
@@ -53,11 +53,11 @@ class PaymentInformationResetOrderId
     }
 
     /**
-     * @param \Magento\Checkout\Api\PaymentInformationManagementInterface $subject
+     * @param \Magento\Checkout\Api\GuestPaymentInformationManagementInterface $subject
      * @param $cartId
      */
     public function beforeSavePaymentInformationAndPlaceOrder(
-        \Magento\Checkout\Api\PaymentInformationManagementInterface $subject,
+        \Magento\Checkout\Api\GuestPaymentInformationManagementInterface $subject,
         $cartId
     ) {
         try {
