@@ -1029,7 +1029,7 @@
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10"/>
     </type>
     <type name="Magento\Checkout\Model\PaymentInformationManagement">
-        <plugin name="AdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\PaymentInformationResetOrderId" sortOrder="20"/>
+        <plugin name="AdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\PaymentInformationResetOrderId" sortOrder="10"/>
     </type>
     <type name="Magento\Checkout\Model\GuestPaymentInformationManagement">
         <plugin name="AdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\PaymentInformationResetOrderId" sortOrder="30"/>
