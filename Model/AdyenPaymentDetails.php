@@ -23,12 +23,15 @@
 
 namespace Adyen\Payment\Model;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Api\AdyenPaymentDetailsInterface;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Checkout\Model\Session;
-use Magento\Sales\Model\OrderFactory;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Api\OrderRepositoryInterface;
 
 class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
 {
@@ -43,11 +46,6 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
     private $adyenHelper;
 
     /**
-     * @var OrderFactory
-     */
-    private $orderFactory;
-
-    /**
      * @var AdyenLogger
      */
     private $adyenLogger;
@@ -58,26 +56,39 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
     private $vaultHelper;
 
     /**
+     * @var OrderRepositoryInterface
+     */
+    private $orderRepository;
+
+    /**
+     * @var PaymentResponseHandler
+     */
+    private $paymentResponseHandler;
+
+    /**
      * AdyenPaymentDetails constructor.
      *
      * @param Session $checkoutSession
      * @param Data $adyenHelper
-     * @param OrderFactory $orderFactory
      * @param AdyenLogger $adyenLogger
      * @param Vault $vaultHelper
+     * @param OrderRepositoryInterface $orderRepository
+     * @param PaymentResponseHandler $paymentResponseHandler
      */
     public function __construct(
         Session $checkoutSession,
         Data $adyenHelper,
-        OrderFactory $orderFactory,
         AdyenLogger $adyenLogger,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        OrderRepositoryInterface $orderRepository,
+        PaymentResponseHandler $paymentResponseHandler
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
-        $this->orderFactory = $orderFactory;
         $this->adyenLogger = $adyenLogger;
         $this->vaultHelper = $vaultHelper;
+        $this->orderRepository = $orderRepository;
+        $this->paymentResponseHandler = $paymentResponseHandler;
     }
 
     /**
@@ -92,128 +103,54 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
 
         // Validate JSON that has just been parsed if it was in a valid format
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Magento\Framework\Exception\LocalizedException(
-                __('3D secure 2.0 failed because the request was not a valid JSON')
-            );
+            throw new LocalizedException(__('Payment details call failed because the request was not a valid JSON'));
         }
 
+        //Get order from payload and remove orderId from the array
         if (empty($payload['orderId'])) {
-            $order = $this->getOrder();
-            // In the next major release remove support for retrieving order from session and throw exception instead
-            //throw new \Magento\Framework\Exception\LocalizedException
-            //(__('3D secure 2.0 failed because of a missing order id'));
+            throw new LocalizedException
+            (__('Payment details call failed because of a missing order ID'));
         } else {
-            // Create order by order id
-            $order = $this->orderFactory->create()->load($payload['orderId']);
-            // don't send orderId to adyen. Improve that orderId and state.data are separated in payload
+            $order = $this->orderRepository->get($payload['orderId']);
+            //TODO send state.data from frontend so no unsetting is necessary
             unset($payload['orderId']);
         }
 
         $payment = $order->getPayment();
 
-        // Init payments/details request
-        $result = [];
-
         if ($paymentData = $payment->getAdditionalInformation("adyenPaymentData")) {
             // Add payment data into the request object
-            $request = [
-                "paymentData" => $paymentData
-            ];
-
+            $payload["paymentData"] = $paymentData;
             // unset payment data from additional information
             $payment->unsAdditionalInformation("adyenPaymentData");
         } else {
-            $this->adyenLogger->error("3D secure 2.0 failed, payment data not found");
-            throw new \Magento\Framework\Exception\LocalizedException(
-                __('3D secure 2.0 failed, payment data not found')
-            );
+            $message = "Payment details call failed, payment data not found";
+            $this->adyenLogger->error($message);
+            throw new LocalizedException(__($message));
         }
-
-        // Depends on the component's response we send a fingerprint or the challenge result
-        if (!empty($payload['details']['threeds2.fingerprint'])) {
-            $request['details']['threeds2.fingerprint'] = $payload['details']['threeds2.fingerprint'];
-        } elseif (!empty($payload['details']['threeds2.challengeResult'])) {
-            $request['details']['threeds2.challengeResult'] = $payload['details']['threeds2.challengeResult'];
-        } elseif (!empty($payload)) {
-            $request = $payload;
-        }
-
 
         // Send the request
         try {
             $client = $this->adyenHelper->initializeAdyenClient($order->getStoreId());
             $service = $this->adyenHelper->createAdyenCheckoutService($client);
-
-            $result = $service->paymentsDetails($request);
-        } catch (\Adyen\AdyenException $e) {
-            $this->adyenLogger->error("3D secure 2.0 failed" . $e->getMessage());
-            throw new \Magento\Framework\Exception\LocalizedException(__('3D secure 2.0 failed'));
+            $paymentDetails = $service->paymentsDetails($payload);
+        } catch (AdyenException $e) {
+            $this->adyenLogger->error("Payment details call failed: " . $e->getMessage());
+            throw new LocalizedException(__('Payment details call failed'));
         }
 
-        // Check if result is challenge shopper, if yes return the token
-        if (!empty($result['resultCode']) &&
-            $result['resultCode'] === 'ChallengeShopper' &&
-            !empty($result['authentication']['threeds2.challengeToken'])
-        ) {
-            return $this->adyenHelper->buildThreeDS2ProcessResponseJson(
-                $result['resultCode'],
-                $result['authentication']['threeds2.challengeToken']
-            );
-        }
-        //Fallback for 3DS in case of redirect
-        if (!empty($result['resultCode']) &&
-            $result['resultCode'] === 'RedirectShopper'
-        ) {
-            $response['type'] =  $result['resultCode'];
-            $response['action']= $result['action'];
-
-            return json_encode($response);
+        //TODO test this with payments that return additionalData
+        //TODO check for Authorized result code and move to the handler
+        if (!empty($paymentDetails['additionalData'])) {
+            $this->vaultHelper->saveRecurringDetails($payment, $paymentDetails['additionalData']);
         }
 
-        // Save the payments response because we are going to need it during the place order flow
-        $payment->setAdditionalInformation("paymentsResponse", $result);
+        //TODO check if order save is necessary to save additionalData
 
-        $this->vaultHelper->saveRecurringDetails($payment, $result['additionalData']);
-
-        // To actually save the additional info changes into the quote
-        $order->save();
-
-        $response = [];
-
-        if ($result['resultCode'] != 'Authorised') {
+        if (!$this->paymentResponseHandler->handlePaymentResponse($paymentDetails, $payment, $order)) {
             $this->checkoutSession->restoreQuote();
-
-            // Always cancel the order if the paymenth has failed
-            if (!$order->canCancel()) {
-                $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
-            }
-
-            $order->cancel()->save();
-
-            $this->adyenLogger->error(
-                sprintf("Payment details call failed for action or 3ds2 payment method, resultcode is %s Raw API responds: %s",
-                    $result['resultCode'],
-                    print_r($result, true)
-                ));
-
-            throw new \Magento\Framework\Exception\LocalizedException(__('The payment is REFUSED.'));
+            throw new LocalizedException(__('The payment is REFUSED.'));
         }
-
-        $response['result'] = $result['resultCode'];
-        return json_encode($response);
-    }
-
-    /**
-     * Get order object
-     *
-     * @return \Magento\Sales\Model\Order
-     * @deprecated Will be removed in 7.0.0
-     */
-    protected function getOrder()
-    {
-        $incrementId = $this->checkoutSession->getLastRealOrderId();
-        $order = $this->orderFactory->create()->loadByIncrementId($incrementId);
-
-        return $order;
+        return json_encode($this->paymentResponseHandler->formatPaymentResponse($paymentDetails['resultCode']));
     }
 }
