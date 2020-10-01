@@ -216,6 +216,9 @@ define(
             },
             getCheckoutEnvironment: function () {
                 return window.checkoutConfig.payment.adyenGooglePay.checkoutEnvironment;
+            },
+            onPaymentMethodContentChange: function (data, event) {
+                $(this.googlePayNode).find('button').prop('disabled', !this.validate());
             }
         });
     }
