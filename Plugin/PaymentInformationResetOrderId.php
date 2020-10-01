@@ -4,37 +4,46 @@
 namespace Adyen\Payment\Plugin;
 
 
-use mysql_xdevapi\Exception;
+use Magento\Quote\Api\CartRepositoryInterface;
 
 class PaymentInformationResetOrderId
 {
     /**
-     * @var \Magento\Checkout\Model\Session
+     * Quote repository.
      *
+     * @var \Magento\Quote\Api\CartRepositoryInterface
      */
-    protected $checkoutSession;
+    protected $quoteRepository;
+
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
     protected $adyenLogger;
+
     /**
      * PaymentInformationResetOrderId constructor.
-     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param CartRepositoryInterface $quoteRepository
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      */
     public function __construct(
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Magento\Checkout\Model\Session $checkoutSession
+        CartRepositoryInterface $quoteRepository,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
     )
     {
+        $this->quoteRepository = $quoteRepository;
         $this->adyenLogger = $adyenLogger;
-        $this->checkoutSession = $checkoutSession;
     }
 
-    public function beforeSavePaymentInformationAndPlaceOrder()
-    {
+    /**
+     * @param \Magento\Checkout\Api\PaymentInformationManagementInterface $subject
+     * @param $cartId
+     */
+    public function beforeSavePaymentInformationAndPlaceOrder(
+        \Magento\Checkout\Api\PaymentInformationManagementInterface $subject,
+        $cartId
+    ) {
         try {
-            $this->checkoutSession->getQuote()->setReservedOrderId(null);
+            $this->quoteRepository->get($cartId)->setReservedOrderId(null);
         } catch (\Exception $e) {
             $this->adyenLogger->error("Failed to reset reservedOrderId " . $e->getMessage());
         }
