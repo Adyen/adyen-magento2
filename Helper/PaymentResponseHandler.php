@@ -62,10 +62,15 @@ class PaymentResponseHandler
             case self::REDIRECT_SHOPPER:
             case self::IDENTIFY_SHOPPER:
             case self::CHALLENGE_SHOPPER:
-            case self::PRESENT_TO_SHOPPER:
             case self::PENDING:
                 return [
                     "isFinal" => false,
+                    "resultCode" => $resultCode,
+                    "action" => $action
+                ];
+            case self::PRESENT_TO_SHOPPER:
+                return [
+                    "isFinal" => true,
                     "resultCode" => $resultCode,
                     "action" => $action
                 ];
