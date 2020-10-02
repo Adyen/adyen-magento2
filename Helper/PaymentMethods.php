@@ -396,40 +396,4 @@ class PaymentMethods extends AbstractHelper
     {
         return $this->getQuote()->getCustomerId();
     }
-
-    /**
-     * @return array|mixed
-     * @throws \Adyen\AdyenException
-     */
-    public function getConnectedTerminals()
-    {
-        $storeId = $this->session->getQuote()->getStoreId();
-
-        // initialize the adyen client
-        $client = $this->adyenHelper->initializeAdyenClient($storeId, $this->adyenHelper->getPosApiKey($storeId));
-
-        // initialize service
-        $service = $this->adyenHelper->createAdyenPosPaymentService($client);
-
-        $requestParams = [
-            "merchantAccount" => $this->adyenHelper->getAdyenMerchantAccount('adyen_pos_cloud', $storeId),
-        ];
-
-        // In case the POS store id is set, provide in the request
-        if (!empty($this->adyenHelper->getPosStoreId($storeId))) {
-            $requestParams['store'] = $this->adyenHelper->getPosStoreId($storeId);
-        }
-
-        try {
-            $responseData = $service->getConnectedTerminals($requestParams);
-        } catch (\Adyen\AdyenException $e) {
-            $this->adyenLogger->error(
-                "The getConnectedTerminals response is empty check your Adyen configuration in Magento."
-            );
-            // return empty result
-            return [];
-        }
-
-        return $responseData;
-    }
 }
