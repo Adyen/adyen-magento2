@@ -24,26 +24,27 @@
 
 namespace Adyen\Payment\Model;
 
+use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
-use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Sales\Api\OrderRepositoryInterface;
 
-class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentStatusInterface
+class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
 {
     /**
-     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     * @var OrderRepositoryInterface
      */
     protected $orderRepository;
 
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
+     * @var AdyenLogger
      */
     protected $adyenLogger;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     protected $adyenHelper;
 
@@ -55,16 +56,16 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
     /**
      * AdyenOrderPaymentStatus constructor.
      *
-     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param OrderRepositoryInterface $orderRepository
+     * @param AdyenLogger $adyenLogger
+     * @param Data $adyenHelper
      * @param PaymentResponseHandler $paymentResponseHandler
      */
     public function __construct(
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Helper\PaymentResponseHandler $paymentResponseHandler
+        OrderRepositoryInterface $orderRepository,
+        AdyenLogger $adyenLogger,
+        Data $adyenHelper,
+        PaymentResponseHandler $paymentResponseHandler
     ) {
         $this->orderRepository = $orderRepository;
         $this->adyenLogger = $adyenLogger;
