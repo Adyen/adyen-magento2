@@ -46,11 +46,6 @@ class PaymentMethods extends AbstractHelper
     protected $adyenHelper;
 
     /**
-     * @var \Magento\Checkout\Model\Session
-     */
-    protected $session;
-
-    /**
      * @var \Magento\Framework\Locale\ResolverInterface
      */
     protected $localeResolver;
@@ -96,7 +91,6 @@ class PaymentMethods extends AbstractHelper
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param Data $adyenHelper
-     * @param \Magento\Checkout\Model\Session $session
      * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
@@ -109,7 +103,6 @@ class PaymentMethods extends AbstractHelper
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Checkout\Model\Session $session,
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Framework\View\Asset\Repository $assetRepo,
@@ -121,7 +114,6 @@ class PaymentMethods extends AbstractHelper
         $this->quoteRepository = $quoteRepository;
         $this->config = $config;
         $this->adyenHelper = $adyenHelper;
-        $this->session = $session;
         $this->localeResolver = $localeResolver;
         $this->adyenLogger = $adyenLogger;
         $this->assetRepo = $assetRepo;
@@ -171,33 +163,42 @@ class PaymentMethods extends AbstractHelper
             return [];
         }
 
-        $currencyCode = $this->getCurrentCurrencyCode($store);
-
-        $adyFields = [
+        $request = [
             "channel" => "Web",
             "merchantAccount" => $merchantAccount,
             "countryCode" => $this->getCurrentCountryCode($store, $country),
-            "amount" => [
-                "currency" => $currencyCode,
-                "value" => $this->adyenHelper->formatAmount(
-                    $this->getCurrentPaymentAmount(),
-                    $currencyCode
-                ),
-            ],
-            "shopperReference" => $this->getCurrentShopperReference(),
-            "shopperLocale" => $this->adyenHelper->getCurrentLocaleCode($store->getId())
         ];
+
+        if (!empty($this->getCurrentShopperReference())) {
+            $request["shopperReference"] = $this->getCurrentShopperReference();
+        }
+
+        if (!empty($this->adyenHelper->getCurrentLocaleCode($store->getId()))) {
+            $request["shopperLocale"] = $this->adyenHelper->getCurrentLocaleCode($store->getId());
+        }
+        $currencyCode = $this->getCurrentCurrencyCode($store);
+        if (!empty($currencyCode)) {
+            $request["amount"]["currency"] = $currencyCode;
+        }
+
+        $amountValue = $this->adyenHelper->formatAmount(
+            $this->getCurrentPaymentAmount(),
+            !empty($currencyCode) ? $currencyCode : null
+        );
+
+        if (!empty($amountValue)) {
+            $request["amount"]["value"] = $amountValue;
+        }
 
         $billingAddress = $quote->getBillingAddress();
 
         if (!empty($billingAddress)) {
             if ($customerTelephone = trim($billingAddress->getTelephone())) {
-                $adyFields['telephoneNumber'] = $customerTelephone;
+                $request['telephoneNumber'] = $customerTelephone;
             }
         }
 
-        //do the call to get the payment response data
-        $responseData = $this->getPaymentMethodsResponse($adyFields, $store);
+        $responseData = $this->getPaymentMethodsResponse($request, $store);
 
         if (empty($responseData['paymentMethods'])) {
             return [];
@@ -259,9 +260,10 @@ class PaymentMethods extends AbstractHelper
 
                 $paymentMethodsExtraDetails[$paymentMethodCode]['icon'] = $icon;
 
+                //todo check if it is needed
                 // check if payment method is an open invoice method
                 $paymentMethodsExtraDetails[$paymentMethodCode]['isOpenInvoice'] =
-                    $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
+                     $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
             }
         }
 
