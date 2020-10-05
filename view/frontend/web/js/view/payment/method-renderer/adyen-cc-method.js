@@ -212,46 +212,6 @@ define(
                 } catch (e) {
                     console.log(e);
                 }
-
-                if (false == "ChallengeShopper") {
-                    fullScreenLoader.stopLoader();
-
-                    var popupModal = $('#threeDS2Modal').modal({
-                        // disable user to hide popup
-                        clickableOverlay: false,
-                        responsive: true,
-                        innerScroll: false,
-                        // empty buttons, we don't need that
-                        buttons: [],
-                        modalClass: 'threeDS2Modal'
-                    });
-
-                    popupModal.modal("openModal");
-
-                    self.threeDS2ChallengeComponent = self.checkout
-                        .create('threeDS2Challenge', {
-                            challengeToken: token,
-                            size: '05',
-                            onComplete: function (result) {
-                                self.threeDS2ChallengeComponent.unmount();
-                                self.closeModal(popupModal);
-                                fullScreenLoader.startLoader();
-                                var request = result.data;
-                                request.orderId = orderId;
-                                paymentDetails.process(request).done(function (responseJSON) {
-                                    self.handleAdyenResult(responseJSON, orderId);
-                                }).fail(function (result) {
-                                    errorProcessor.process(result, self.messageContainer);
-                                    self.isPlaceOrderActionAllowed(true);
-                                    fullScreenLoader.stopLoader();
-                                });
-                            },
-                            onError: function (error) {
-                                console.log(JSON.stringify(error));
-                            }
-                        });
-                    self.threeDS2ChallengeComponent.mount(threeDS2Node);
-                }
             },
             /**
              * This method is a workaround to close the modal in the right way and reconstruct the threeDS2Modal.
@@ -361,12 +321,6 @@ define(
                 } else {
                     // Handle action
                     self.handleAction(response.action, orderId);
-
-                    /*if (response.type === 'RedirectShopper' && response.action) {
-                        self.threedsfallback(response.action);
-                    } else {
-
-                    }*/
                 }
             },
             handleOnAdditionalDetails: function (result) {
@@ -375,8 +329,22 @@ define(
                 var request = result.data;
                 request.orderId = self.orderId;
 
+                fullScreenLoader.stopLoader();
+
+                var popupModal = $('#cc_actionModal').modal({
+                    // disable user to hide popup
+                    clickableOverlay: false,
+                    responsive: true,
+                    innerScroll: false,
+                    // empty buttons, we don't need that
+                    buttons: [],
+                    modalClass: 'cc_actionModal'
+                });
+
+                popupModal.modal("openModal");
+
                 paymentDetails.process(request).done(function (responseJSON) {
-                    self.handleAdyenResult(responseJSON, orderId)
+                    self.handleAdyenResult(responseJSON, self.orderId)
                 }).fail(function (result) {
                     errorProcessor.process(result, self.messageContainer);
                     self.isPlaceOrderActionAllowed(true);
