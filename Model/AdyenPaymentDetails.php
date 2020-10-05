@@ -151,6 +151,17 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
             $this->checkoutSession->restoreQuote();
             throw new LocalizedException(__('The payment is REFUSED.'));
         }
-        return json_encode($this->paymentResponseHandler->formatPaymentResponse($paymentDetails['resultCode']));
+
+        $action = null;
+        if (!empty($paymentDetails['action'])) {
+            $action = $paymentDetails['action'];
+        }
+
+        $additionalData = null;
+        if (!empty($paymentDetails['additionalData'])) {
+            $additionalData = $paymentDetails['additionalData'];
+        }
+
+        return json_encode($this->paymentResponseHandler->formatPaymentResponse($paymentDetails['resultCode'], $action, $additionalData));
     }
 }
