@@ -209,28 +209,30 @@ define(
             },
           };
         },
-
-        /**
-         * Return the formatted currency. Adyen accepts the currency in multiple formats.
-         * @param $amount
-         * @param $currency
-         * @return string
-         */
-        formatAmount: function(amount, format) {
-          return Math.round(amount * (Math.pow(10, format)));
-        },
-        isVaultEnabled: function() {
-          return this.vaultEnabler.isVaultEnabled();
-        },
-        getVaultCode: function() {
-          return 'adyen_google_pay_vault';
-        },
-        getOriginKey: function() {
-          return window.checkoutConfig.payment.adyen.originKey;
-        },
-        getCheckoutEnvironment: function() {
-          return window.checkoutConfig.payment.adyen.checkoutEnvironment;
-        },
-      });
-    },
+            /**
+             * Return the formatted currency. Adyen accepts the currency in multiple formats.
+             * @param $amount
+             * @param $currency
+             * @return string
+             */
+            formatAmount: function (amount, format) {
+                return Math.round(amount * (Math.pow(10, format)))
+            },
+            isVaultEnabled: function () {
+                return this.vaultEnabler.isVaultEnabled();
+            },
+            getVaultCode: function () {
+                return "adyen_google_pay_vault";
+            },
+            getOriginKey: function () {
+                return window.checkoutConfig.payment.adyen.originKey;
+            },
+            getCheckoutEnvironment: function () {
+                return window.checkoutConfig.payment.adyenGooglePay.checkoutEnvironment;
+            },
+            onPaymentMethodContentChange: function (data, event) {
+                $(this.googlePayNode).find('button').prop('disabled', !this.validate());
+            }
+        });
+    }
 );
