@@ -322,18 +322,22 @@ class PaymentMethods extends AbstractHelper
         $country,
         \Magento\Quote\Model\Quote $quote
     ) {
+        $currencyCode = $this->getCurrentCurrencyCode($store);
+
         $paymentMethodRequest = [
             "channel" => "Web",
             "merchantAccount" => $merchantAccount,
             "countryCode" => $this->getCurrentCountryCode($store, $country),
-            "shopperLocale" => $this->adyenHelper->getCurrentLocaleCode($store->getId())
+            "shopperLocale" => $this->adyenHelper->getCurrentLocaleCode($store->getId()),
+            "amount" => [
+                "currency" => $currencyCode
+            ]
         ];
 
         if (!empty($this->getCurrentShopperReference())) {
             $paymentMethodRequest["shopperReference"] = $this->getCurrentShopperReference();
         }
-        $currencyCode = $this->getCurrentCurrencyCode($store);
-        $paymentMethodRequest["amount"]["currency"] = $currencyCode;
+
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
 
         if (!empty($amountValue)) {
