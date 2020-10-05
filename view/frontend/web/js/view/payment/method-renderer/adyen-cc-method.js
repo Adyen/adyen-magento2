@@ -77,7 +77,8 @@ define(
                 creditCardOwner: '',
                 storeCc: false,
                 installment: '',
-                creditCardDetailsValid: false
+                creditCardDetailsValid: false,
+                orderId: 0
             },
             /**
              * @returns {exports.initialize}
@@ -90,9 +91,11 @@ define(
 
                 // initialize adyen component for general use
                 this.checkout = new AdyenCheckout({
+                    hasHolderName: true,
                     locale: this.getLocale(),
                     originKey: this.getOriginKey(),
-                    environment: this.getCheckoutEnvironment()
+                    environment: this.getCheckoutEnvironment(),
+                    onAdditionalDetails: this.handleOnAdditionalDetails.bind(this)
                 });
 
                 return this;
@@ -142,11 +145,7 @@ define(
 
 
                 self.cardComponent = self.checkout.create('card', {
-                    originKey: self.getOriginKey(),
-                    environment: self.getCheckoutEnvironment(),
                     type: 'card',
-                    hasHolderName: true,
-                    holderNameRequired: true,
                     enableStoreDetails: self.getEnableStoreDetails(),
                     groupTypes: self.getAvailableCardTypeAltCodes(),
 
@@ -204,44 +203,17 @@ define(
                     }
                 }).mount(cardNode);
             },
-            /**
-             * Rendering the 3DS2.0 components
-             * To do the device fingerprint at the response of IdentifyShopper render the threeDS2DeviceFingerprint
-             * component
-             * To render the challenge for the customer at the response of ChallengeShopper render the
-             * threeDS2Challenge component
-             * Both of them is going to be rendered in a Magento dialog popup
-             *
-             * @param type
-             * @param token
-             */
-            renderThreeDS2Component: function (type, token, orderId) {
+
+            handleAction: function (action, orderId) {
                 var self = this;
-                var threeDS2Node = document.getElementById('threeDS2Container');
 
-                if (type == "IdentifyShopper") {
-                    self.threeDS2IdentifyComponent = self.checkout
-                        .create('threeDS2DeviceFingerprint', {
-                            fingerprintToken: token,
-                            onComplete: function (result) {
-                                self.threeDS2IdentifyComponent.unmount();
-                                var request = result.data;
-                                request.orderId = orderId;
-                                paymentDetails.process(request).done(function (responseJSON) {
-                                    self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
-                                }).fail(function (result) {
-                                    errorProcessor.process(result, self.messageContainer);
-                                    self.isPlaceOrderActionAllowed(true);
-                                    fullScreenLoader.stopLoader();
-                                });
-                            },
-                            onError: function (error) {
-                                console.log(JSON.stringify(error));
-                            }
-                        });
+                try {
+                    var component = self.checkout.createFromAction(action).mount('#cc_actionContainer');
+                } catch (e) {
+                    console.log(e);
+                }
 
-                    self.threeDS2IdentifyComponent.mount(threeDS2Node);
-                } else if (type == "ChallengeShopper") {
+                if (false == "ChallengeShopper") {
                     fullScreenLoader.stopLoader();
 
                     var popupModal = $('#threeDS2Modal').modal({
@@ -267,7 +239,7 @@ define(
                                 var request = result.data;
                                 request.orderId = orderId;
                                 paymentDetails.process(request).done(function (responseJSON) {
-                                    self.validateThreeDS2OrPlaceOrder(responseJSON, orderId);
+                                    self.handleAdyenResult(responseJSON, orderId);
                                 }).fail(function (result) {
                                     errorProcessor.process(result, self.messageContainer);
                                     self.isPlaceOrderActionAllowed(true);
@@ -281,24 +253,19 @@ define(
                     self.threeDS2ChallengeComponent.mount(threeDS2Node);
                 }
             },
-            threedsfallback: function (action) {
-                var self = this;
-                var actionNode = document.getElementById('ActionContainer');
-                self.threedsfallbackComponent = self.checkout.createFromAction(action).mount(actionNode);
-            },
             /**
              * This method is a workaround to close the modal in the right way and reconstruct the threeDS2Modal.
              * This will solve issues when you cancel the 3DS2 challenge and retry the payment
              */
             closeModal: function (popupModal) {
                 popupModal.modal("closeModal");
-                $('.threeDS2Modal').remove();
+                $('.cc_actionModal').remove();
                 $('.modals-overlay').remove();
                 $('body').removeClass('_has-modal');
 
                 // reconstruct the threeDS2Modal container again otherwise component can not find the threeDS2Modal
-                $('#threeDS2Wrapper').append("<div id=\"threeDS2Modal\">" +
-                    "<div id=\"threeDS2Container\"></div>" +
+                $('#cc_actionModalWrapper').append("<div id=\"cc_actionModal\">" +
+                    "<div id=\"cc_actionContainer\"></div>" +
                     "</div>");
             },
             /**
@@ -368,9 +335,10 @@ define(
                         ).done(
                         function (orderId) {
                             self.afterPlaceOrder();
+                            self.orderId = orderId;
                             adyenPaymentService.getOrderPaymentStatus(orderId)
                                 .done(function (responseJSON) {
-                                    self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
+                                    self.handleAdyenResult(responseJSON, orderId)
                                 });
                         }
                     );
@@ -381,22 +349,39 @@ define(
              * Based on the response we can start a 3DS2 validation or place the order
              * @param responseJSON
              */
-            validateThreeDS2OrPlaceOrder: function (responseJSON, orderId) {
+            handleAdyenResult: function (responseJSON, orderId) {
                 var self = this;
                 var response = JSON.parse(responseJSON);
 
-                if (!!response.threeDS2) {
-                    // render component
-                    self.renderThreeDS2Component(response.type, response.token, orderId);
+                if (!!response.isFinal) {
+                    // Status is final redirect to the redirectUrl
+                    window.location.replace(url.build(
+                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
+                    ));
                 } else {
-                    if (response.type === 'RedirectShopper' && response.action) {
+                    // Handle action
+                    self.handleAction(response.action, orderId);
+
+                    /*if (response.type === 'RedirectShopper' && response.action) {
                         self.threedsfallback(response.action);
                     } else {
-                        window.location.replace(url.build(
-                            window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
-                        ));
-                    }
+
+                    }*/
                 }
+            },
+            handleOnAdditionalDetails: function (result) {
+                var self = this;
+
+                var request = result.data;
+                request.orderId = self.orderId;
+
+                paymentDetails.process(request).done(function (responseJSON) {
+                    self.handleAdyenResult(responseJSON, orderId)
+                }).fail(function (result) {
+                    errorProcessor.process(result, self.messageContainer);
+                    self.isPlaceOrderActionAllowed(true);
+                    fullScreenLoader.stopLoader();
+                });
             },
             /**
              * Validates the payment date when clicking the pay button
