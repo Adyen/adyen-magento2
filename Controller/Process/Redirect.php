@@ -148,7 +148,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
         if ($order->getPayment()) {
             $active = $order->getPayment()->getAdditionalInformation('3dActive');
             $success = $order->getPayment()->getAdditionalInformation('3dSuccess');
-            $checkoutAPM = $order->getPayment()->getAdditionalInformation('checkoutAPM');
         }
 
         // check if 3D secure is active. If not just go to success page
@@ -247,27 +246,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
 
                     $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
                 }
-            } else {
-                $this->_adyenLogger->addAdyenResult("Customer was redirected to bank for 3D-secure validation.");
-                $order->addStatusHistoryComment(
-                    __(
-                        'Customer was redirected to bank for 3D-secure validation. Once the shopper authenticated, 
-                        the order status will be updated accordingly. 
-                        <br />Make sure that your notifications are being processed! 
-                        <br />If the order is stuck on this status, the shopper abandoned the session. 
-                        The payment can be seen as unsuccessful. 
-                        <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. 
-                        Please contact Adyen Support to enable this.'
-                    )
-                )->save();
-                $this->_view->loadLayout();
-                $this->_view->getLayout()->initMessages();
-                $this->_view->renderLayout();
             }
-        } elseif (!empty($checkoutAPM)) {
-            $this->_view->loadLayout();
-            $this->_view->getLayout()->initMessages();
-            $this->_view->renderLayout();
         } else {
             $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
         }
