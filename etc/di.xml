@@ -367,7 +367,7 @@
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionAuthorization
             </argument>
-            <argument name="validator" xsi:type="object">GeneralResponseValidator</argument>
+            <argument name="validator" xsi:type="object">CheckoutResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentCcVaultResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
@@ -884,14 +884,6 @@
     <virtualType name="AdyenGooglePayCountryValidator" type="Magento\Payment\Gateway\Validator\CountryValidator">
         <arguments>
             <argument name="config" xsi:type="object">AdyenPaymentGooglePayConfig</argument>
-        </arguments>
-    </virtualType>
-
-
-    <!--General Response validator-->
-    <virtualType name="GeneralResponseValidator" type="Adyen\Payment\Gateway\Validator\GeneralResponseValidator">
-        <arguments>
-            <argument name="loggerInterface" xsi:type="object">Adyen\Payment\Logger\AdyenLogger</argument>
         </arguments>
     </virtualType>
 
