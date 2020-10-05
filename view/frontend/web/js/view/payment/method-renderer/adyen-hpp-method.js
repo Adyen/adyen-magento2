@@ -38,7 +38,6 @@ define(
       'Magento_Ui/js/model/messages',
       'Adyen_Payment/js/model/payment-details',
       'Magento_Checkout/js/model/error-processor',
-      'adyenCheckout',
       'Adyen_Payment/js/bundle'
     ],
     function(
@@ -59,7 +58,6 @@ define(
         Messages,
         paymentDetails,
         errorProcessor,
-        AdyenCheckout,
         AdyenComponent
     ) {
       'use strict';
