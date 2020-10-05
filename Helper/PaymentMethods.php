@@ -207,7 +207,7 @@ class PaymentMethods extends AbstractHelper
         $paymentMethods = $responseData['paymentMethods'];
         $response['paymentMethodsResponse'] = $responseData;
 
-        // Add extra details per payment mmethod
+        // Add extra details per payment method
         $paymentMethodsExtraDetails = [];
 
         if ($this->adyenHelper->showLogos()) {
