@@ -164,7 +164,6 @@ class PaymentMethods extends AbstractHelper
         }
 
         $paymentMethodRequest = $this->getPaymentMethodsRequest($merchantAccount, $store, $country, $quote);
-
         $responseData = $this->getPaymentMethodsResponse($paymentMethodRequest, $store);
 
         if (empty($responseData['paymentMethods'])) {
@@ -176,9 +175,7 @@ class PaymentMethods extends AbstractHelper
 
         // Add extra details per payment method
         $paymentMethodsExtraDetails = [];
-
-        $paymentMethodsExtraDetails = $this->addLogosPaymentMethods($paymentMethods, $paymentMethodsExtraDetails);
-
+        $paymentMethodsExtraDetails = $this->showLogosPaymentMethods($paymentMethods, $paymentMethodsExtraDetails);
         $response['paymentMethodsExtraDetails'] = $paymentMethodsExtraDetails;
 
         //TODO this should be the implemented with an interface
@@ -329,17 +326,15 @@ class PaymentMethods extends AbstractHelper
             "channel" => "Web",
             "merchantAccount" => $merchantAccount,
             "countryCode" => $this->getCurrentCountryCode($store, $country),
-            "shopperLocale" => $this->adyenHelper->getCurrentLocaleCode($store->getId()),
-            "amount" => [
-                "currency" => $this->getCurrentCurrencyCode($store)
-            ]
+            "shopperLocale" => $this->adyenHelper->getCurrentLocaleCode($store->getId())
         ];
 
         if (!empty($this->getCurrentShopperReference())) {
             $paymentMethodRequest["shopperReference"] = $this->getCurrentShopperReference();
         }
-
-        $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount());
+        $currencyCode = $this->getCurrentCurrencyCode($store);
+        $paymentMethodRequest["amount"]["currency"] = $currencyCode;
+        $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
 
         if (!empty($amountValue)) {
             $paymentMethodRequest["amount"]["value"] = $amountValue;
