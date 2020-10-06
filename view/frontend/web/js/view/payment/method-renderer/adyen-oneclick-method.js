@@ -42,9 +42,7 @@ define(
       'Adyen_Payment/js/model/payment-details',
       'Magento_Checkout/js/model/error-processor',
       'Adyen_Payment/js/model/adyen-payment-service',
-      'adyenCheckout',
-    ]
-'Adyen_Payment/js/bundle';
+      'Adyen_Payment/js/bundle',
 ],
 
 function(
@@ -69,8 +67,7 @@ function(
     paymentDetails,
     errorProcessor,
     adyenPaymentService,
-    AdyenCheckout,
-    AdyenComponent,
+    AdyenComponent
 ) {
 
   'use strict';

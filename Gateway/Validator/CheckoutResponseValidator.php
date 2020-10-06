@@ -69,25 +69,27 @@ class CheckoutResponseValidator extends AbstractValidator
         // validate result
         if (!empty($response['resultCode'])) {
             $payment->setAdditionalInformation('resultCode', $response['resultCode']);
+
+            if (!empty($response['action'])) {
+                $payment->setAdditionalInformation('action', $response['action']);
+            }
+
+            if (!empty($response['additionalData'])) {
+                $payment->setAdditionalInformation('additionalData', $response['additionalData']);
+            }
+
+            if (!empty($response['pspReference'])) {
+                $payment->setAdditionalInformation('pspReference', $response['pspReference']);
+            }
+
+            if (!empty($response['paymentData'])) {
+                $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
+            }
+
             switch ($response['resultCode']) {
-                case "IdentifyShopper":
-                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
-                    $payment->setAdditionalInformation(
-                        'threeDS2Token',
-                        $response['authentication']['threeds2.fingerprintToken']
-                    );
-                    $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
-                    break;
-                case "ChallengeShopper":
-                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
-                    $payment->setAdditionalInformation(
-                        'threeDS2Token',
-                        $response['authentication']['threeds2.challengeToken']
-                    );
-                    $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
-                    break;
                 case "Authorised":
                 case "Received":
+                    // TODO refactor since the full additionalData is stored in additionalInformation already
                     // For banktransfers store all bankTransfer details
                     if (!empty($response['additionalData']['bankTransfer.owner'])) {
                         foreach ($response['additionalData'] as $key => $value) {
@@ -115,21 +117,14 @@ class CheckoutResponseValidator extends AbstractValidator
                     }
                     $payment->setAdditionalInformation('pspReference', $response['pspReference']);
                     break;
+                case "IdentifyShopper":
+                case "ChallengeShopper":
                 case "PresentToShopper":
-                    if (!empty($response['action'])) {
-                        $payment->setAdditionalInformation('action', $response['action']);
-                    }
-                    if (!empty($response['pspReference'])) {
-                        $payment->setAdditionalInformation('pspReference', $response['pspReference']);
-                    }
-                    break;
                 case 'Pending':
-                    $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
-                    if (!empty($response['action'])) {
-                        $payment->setAdditionalInformation('action', $response['action']);
-                    }
+                    // nothing extra
                     break;
                 case "RedirectShopper":
+                    // TODO refactor this resultCode handling
                     $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
 
                     $redirectUrl = null;
