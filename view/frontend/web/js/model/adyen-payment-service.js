@@ -6,29 +6,14 @@ define(
     [
         'underscore',
         'Magento_Checkout/js/model/quote',
-        'Adyen_Payment/js/model/adyen-method-list',
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/url-builder',
         'mage/storage'
     ],
-    function (_, quote, methodList, customer, urlBuilder, storage) {
+    function (_, quote, customer, urlBuilder, storage) {
         'use strict';
 
         return {
-            /**
-             * Populate the list of payment methods
-             * @param {Array} methods
-             */
-            setPaymentMethods: function (methods) {
-                methodList(methods);
-            },
-            /**
-             * Get the list of available payment methods.
-             * @returns {Array}
-             */
-            getAvailablePaymentMethods: function () {
-                return methodList();
-            },
             /**
              * Retrieve the list of available payment methods from the server
              */
