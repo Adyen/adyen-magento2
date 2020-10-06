@@ -39,7 +39,6 @@ define(
       'Magento_Checkout/js/model/url-builder',
       'mage/storage',
       'Magento_Checkout/js/action/place-order',
-      'Adyen_Payment/js/model/payment-details',
       'Magento_Checkout/js/model/error-processor',
       'Adyen_Payment/js/model/adyen-payment-service',
       'Adyen_Payment/js/bundle',
@@ -64,7 +63,6 @@ function(
     urlBuilder,
     storage,
     placeOrderAction,
-    paymentDetails,
     errorProcessor,
     adyenPaymentService,
     AdyenComponent
@@ -347,7 +345,7 @@ function(
                         onComplete: function(result) {
                           var request = result.data;
                           request.orderId = orderId;
-                          paymentDetails.process(request).
+                          adyenPaymentService.paymentDetails(request).
                               done(function(responseJSON) {
                                 self.validateThreeDS2OrPlaceOrder(responseJSON,
                                     orderId);
@@ -386,7 +384,7 @@ function(
                           fullScreenLoader.startLoader();
                           var request = result.data;
                           request.orderId = orderId;
-                          paymentDetails.process(request).
+                          adyenPaymentService.paymentDetails(request).
                               done(function(responseJSON) {
                                 self.validateThreeDS2OrPlaceOrder(responseJSON,
                                     orderId);

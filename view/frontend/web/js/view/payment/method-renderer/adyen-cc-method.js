@@ -37,7 +37,6 @@ define(
         'Magento_Paypal/js/action/set-payment-method',
         'Magento_Checkout/js/action/select-payment-method',
         'Adyen_Payment/js/threeds2-js-utils',
-        'Adyen_Payment/js/model/payment-details',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/bundle'
@@ -59,7 +58,6 @@ define(
         setPaymentMethodAction,
         selectPaymentMethodAction,
         threeDS2Utils,
-        paymentDetails,
         errorProcessor,
         adyenPaymentService,
         AdyenComponent
@@ -343,7 +341,7 @@ define(
 
                 popupModal.modal("openModal");
 
-                paymentDetails.process(request).done(function (responseJSON) {
+                adyenPaymentService.paymentDetails(request).done(function (responseJSON) {
                     self.handleAdyenResult(responseJSON, self.orderId)
                 }).fail(function (result) {
                     errorProcessor.process(result, self.messageContainer);
