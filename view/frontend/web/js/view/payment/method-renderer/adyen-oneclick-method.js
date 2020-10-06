@@ -33,7 +33,6 @@ define(
       'uiLayout',
       'Magento_Ui/js/model/messages',
       'mage/url',
-      'Adyen_Payment/js/threeds2-js-utils',
       'Magento_Checkout/js/model/full-screen-loader',
       'Magento_Paypal/js/action/set-payment-method',
       'Magento_Checkout/js/model/url-builder',
@@ -57,7 +56,6 @@ function(
     layout,
     Messages,
     url,
-    threeDS2Utils,
     fullScreenLoader,
     setPaymentMethodAction,
     urlBuilder,
@@ -411,7 +409,8 @@ function(
                */
               getData: function() {
                 var self = this;
-                var browserInfo = threeDS2Utils.getBrowserInfo();
+                // todo use state.data
+                var browserInfo = [];
 
                 return {
                   'method': self.method,

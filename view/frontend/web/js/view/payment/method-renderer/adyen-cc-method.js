@@ -36,7 +36,6 @@ define(
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Paypal/js/action/set-payment-method',
         'Magento_Checkout/js/action/select-payment-method',
-        'Adyen_Payment/js/threeds2-js-utils',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/bundle'
@@ -57,7 +56,6 @@ define(
         fullScreenLoader,
         setPaymentMethodAction,
         selectPaymentMethodAction,
-        threeDS2Utils,
         errorProcessor,
         adyenPaymentService,
         AdyenComponent
@@ -231,7 +229,8 @@ define(
              * @returns {{method: *}}
              */
             getData: function () {
-                var browserInfo = threeDS2Utils.getBrowserInfo();
+                // todo use state data
+                var browserInfo = [];
 
                 var data = {
                     'method': this.item.method,
