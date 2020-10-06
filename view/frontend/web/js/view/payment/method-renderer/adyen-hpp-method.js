@@ -37,7 +37,7 @@ define(
       'uiLayout',
       'Magento_Ui/js/model/messages',
       'Magento_Checkout/js/model/error-processor',
-      'Adyen_Payment/js/bundle'
+      'Adyen_Payment/js/bundle',
     ],
     function(
         ko,
@@ -56,7 +56,7 @@ define(
         layout,
         Messages,
         errorProcessor,
-        AdyenComponent
+        AdyenComponent,
     ) {
       'use strict';
       var brandCode = ko.observable(null);
@@ -105,32 +105,25 @@ define(
 
           fullScreenLoader.startLoader();
 
-          /**
-           * Create sherable checkout component
-           * @type {AdyenCheckout}
-           */
-          self.checkoutComponent = new AdyenCheckout({
-            locale: self.getLocale(),
-            onAdditionalDetails: self.handleOnAdditionalDetails.bind(self),
-            originKey: self.getOriginKey(),
-            environment: self.getCheckoutEnvironment(),
-          });
+          // TODO if ratepay component is ready this following block can be removed
+          var component = adyenPaymentService.getCheckoutComponent();
 
-          // reset variable:
-          adyenPaymentService.setPaymentMethods();
+          if (!!component) {
+            var paymentMethods = component.paymentMethodsResponse.paymentMethods;
 
-          adyenPaymentService.retrieveAvailablePaymentMethods(function() {
-            var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
+            // TODO check if still needed with checkout component
             if (JSON.stringify(paymentMethods).indexOf('ratepay') > -1) {
               var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
               var dfValueRatePay = self.getRatePayDeviceIdentToken();
 
+              // TODO check if still needed with checkout component
               window.di = {
                 t: dfValueRatePay.replace(':', ''),
                 v: ratePayId,
                 l: 'Checkout',
               };
 
+              // TODO check if still needed with checkout component
               // Load Ratepay script
               var ratepayScriptTag = document.createElement('script');
               ratepayScriptTag.src = '//d.ratepay.com/' + ratePayId + '/di.js';
@@ -139,21 +132,42 @@ define(
             }
 
             fullScreenLoader.stopLoader();
-          });
+          }
         },
         getAdyenHppPaymentMethods: function() {
           var self = this;
+          // TODO use an observer instead
           var currentShippingAddressCountryCode = quote.shippingAddress().countryId;
 
           // retrieve new payment methods if country code changed
           if (shippingAddressCountryCode != currentShippingAddressCountryCode) {
             fullScreenLoader.startLoader();
-            adyenPaymentService.retrieveAvailablePaymentMethods();
+            // TODO outsource it since it's already used in the adyen-method.js
+            adyenPaymentService.getPaymentMethods().
+                done(function(paymentMethods) {
+                  paymentMethods = JSON.parse(paymentMethods);
+                  /**
+                   * Create sherable checkout component
+                   * @type {AdyenCheckout}
+                   */
+                  adyenPaymentService.initCheckoutComponent({
+                    locale: adyenConfiguration.getLocale(),
+                    originKey: adyenConfiguration.getOriginKey(),
+                    environment: adyenConfiguration.getCheckoutEnvironment(),
+                    paymentMethodsResponse: paymentMethods.paymentMethodsResponse,
+                  });
+
+                }).
+                fail(function() {
+
+                });
             shippingAddressCountryCode = currentShippingAddressCountryCode;
             fullScreenLoader.stopLoader();
           }
 
-          var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
+          var checkoutComponent = adyenPaymentService.getCheckoutComponent();
+
+          var paymentMethods = checkoutComponent.paymentMethodsResponse.paymentMethods;
 
           var paymentList = _.reduce(paymentMethods,
               function(accumulator, value) {
