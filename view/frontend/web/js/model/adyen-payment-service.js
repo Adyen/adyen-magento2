@@ -15,41 +15,29 @@ define(
 
         return {
             /**
-             * Retrieve the list of available payment methods from the server
+             * Retrieve the list of available payment methods from Adyen
              */
-            retrieveAvailablePaymentMethods: function (callback) {
-                var self = this;
+            getPaymentMethods: function () {
 
-                // retrieve payment methods
-                var serviceUrl,
-                    payload;
+                // url for guest users
+                var serviceUrl = urlBuilder.createUrl('/guest-carts/:cartId/retrieve-adyen-payment-methods', {
+                    cartId: quote.getQuoteId()
+                });
+
+                // url for logged in users
                 if (customer.isLoggedIn()) {
                     serviceUrl = urlBuilder.createUrl('/carts/mine/retrieve-adyen-payment-methods', {});
-                } else {
-                    serviceUrl = urlBuilder.createUrl('/guest-carts/:cartId/retrieve-adyen-payment-methods', {
-                        cartId: quote.getQuoteId()
-                    });
                 }
 
-                payload = {
+                // Construct payload for the retrieve payment methods request
+                var payload = {
                     cartId: quote.getQuoteId(),
                     shippingAddress: quote.shippingAddress()
                 };
 
-                storage.post(
+                return storage.post(
                     serviceUrl,
                     JSON.stringify(payload)
-                ).done(
-                    function (response) {
-                        self.setPaymentMethods(response);
-                        if (callback) {
-                            callback();
-                        }
-                    }
-                ).fail(
-                    function () {
-                        self.setPaymentMethods([]);
-                    }
                 )
             },
             getOrderPaymentStatus: function (orderId) {
