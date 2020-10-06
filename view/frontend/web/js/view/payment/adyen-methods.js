@@ -24,11 +24,15 @@
 define(
     [
         'uiComponent',
-        'Magento_Checkout/js/model/payment/renderer-list'
+        'Magento_Checkout/js/model/payment/renderer-list',
+        'Adyen_Payment/js/model/adyen-payment-service',
+        'Adyen_Payment/js/model/adyen-configuration'
     ],
     function (
         Component,
-        rendererList
+        rendererList,
+        adyenPaymentService,
+        adyenConfiguration
     ) {
         'use strict';
         rendererList.push(
@@ -65,6 +69,24 @@ define(
         return Component.extend({
             initialize: function () {
                 this._super();
+
+                // Retrieve adyen payment methods
+                adyenPaymentService.getPaymentMethods().done(function(paymentMethods) {
+                    paymentMethods = JSON.parse(paymentMethods);
+                    /**
+                     * Create sherable checkout component
+                     * @type {AdyenCheckout}
+                     */
+                    adyenPaymentService.initCheckoutComponent({
+                        locale: adyenConfiguration.getLocale(),
+                        originKey: adyenConfiguration.getOriginKey(),
+                        environment: adyenConfiguration.getCheckoutEnvironment(),
+                        paymentMethodsResponse: paymentMethods.paymentMethodsResponse
+                    });
+
+                }).fail(function() {
+
+                })
 
                 if (this.isGooglePayEnabled()) {
                     var googlepayscript = document.createElement('script');
