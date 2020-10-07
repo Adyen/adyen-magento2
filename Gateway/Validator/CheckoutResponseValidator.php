@@ -38,10 +38,11 @@ class CheckoutResponseValidator extends AbstractValidator
     private $adyenHelper;
 
     /**
-     * GeneralResponseValidator constructor.
+     * CheckoutResponseValidator constructor.
      *
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
@@ -107,15 +108,41 @@ class CheckoutResponseValidator extends AbstractValidator
                         }
                     }
 
-                    // Save cc_type if available in the response
-                    if (!empty($response['additionalData']['paymentMethod'])) {
-                        $ccType = $this->adyenHelper->getMagentoCreditCartType(
-                            $response['additionalData']['paymentMethod']
+                    // TODO doudle check this
+                if (isset($response['additionalData']) && is_array($response['additionalData'])) {
+                    $additionalData = $response['additionalData'];
+                    if (isset($additionalData['boletobancario.dueDate'])) {
+                        $payment->setAdditionalInformation(
+                            'dueDate',
+                            $additionalData['boletobancario.dueDate']
                         );
-                        $payment->setAdditionalInformation('cc_type', $ccType);
-                        $payment->setCcType($ccType);
                     }
-                    $payment->setAdditionalInformation('pspReference', $response['pspReference']);
+
+                    if (isset($additionalData['boletobancario.expirationDate'])) {
+                        $payment->setAdditionalInformation(
+                            'expirationDate',
+                            $additionalData['boletobancario.expirationDate']
+                        );
+                    }
+
+                    if (isset($additionalData['boletobancario.url'])) {
+                        $payment->setAdditionalInformation(
+                            'url',
+                            $additionalData['boletobancario.url']
+                        );
+                    }
+                }
+
+                // Save cc_type if available in the response
+                if (!empty($response['additionalData']['paymentMethod'])) {
+                    $ccType = $this->adyenHelper->getMagentoCreditCartType(
+                        $response['additionalData']['paymentMethod']
+                    );
+                    $payment->setAdditionalInformation('cc_type', $ccType);
+                    $payment->setCcType($ccType);
+                }
+
+
                     break;
                 case "IdentifyShopper":
                 case "ChallengeShopper":
@@ -124,80 +151,13 @@ class CheckoutResponseValidator extends AbstractValidator
                     // nothing extra
                     break;
                 case "RedirectShopper":
-                    // TODO refactor this resultCode handling
-                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
-
-                    $redirectUrl = null;
-                    $paymentData = null;
-
-                    if (!empty($response['redirect']['url'])) {
-                        $redirectUrl = $response['redirect']['url'];
-                    }
-
-                    if (!empty($response['redirect']['method'])) {
-                        $redirectMethod = $response['redirect']['method'];
-                    }
-
-                    if (!empty($response['paymentData'])) {
-                        $paymentData = $response['paymentData'];
-                    }
-
-                    // If the redirect data is there then the payment is a card payment with 3d secure
+                    // todo check if needed
                     if (
                         isset($response['redirect']['data']['PaReq']) &&
                         isset($response['redirect']['data']['MD']) &&
                         isset($response['redirect']['data']['TermUrl'])
                     ) {
-                        $paReq = null;
-                        $md = null;
-                        $termUrl = null;
-
                         $payment->setAdditionalInformation('3dActive', true);
-
-                        if (!empty($response['redirect']['data']['PaReq'])) {
-                            $paReq = $response['redirect']['data']['PaReq'];
-                        }
-
-                        if (!empty($response['redirect']['data']['MD'])) {
-                            $md = $response['redirect']['data']['MD'];
-                        }
-
-                        if (!empty($response['redirect']['data']['TermUrl'])) {
-                            $termUrl = $response['redirect']['data']['TermUrl'];
-                        }
-
-                        if ($paReq && $md && $termUrl && $redirectUrl && $paymentData && $redirectMethod) {
-                            $payment->setAdditionalInformation('redirectUrl', $redirectUrl);
-                            $payment->setAdditionalInformation('redirectMethod', $redirectMethod);
-                            $payment->setAdditionalInformation('paRequest', $paReq);
-                            $payment->setAdditionalInformation('md', $md);
-                            $payment->setAdditionalInformation('termUrl', $termUrl);
-                            $payment->setAdditionalInformation('paymentData', $paymentData);
-                        } else {
-                            $isValid = false;
-                            $errorMsg = __('3D secure is not valid.');
-                            $this->adyenLogger->error($errorMsg);
-                            $errorMessages[] = $errorMsg;
-                        }
-                        // otherwise it is an alternative payment method which only requires the
-                        // redirect url to be present
-                    } else {
-                        // Flag to show we are in the checkoutAPM flow
-                        $payment->setAdditionalInformation('checkoutAPM', true);
-
-                        if (!empty($response['details'])) {
-                            $payment->setAdditionalInformation('details', $response['details']);
-                        }
-                        if ($redirectUrl && $paymentData && $redirectMethod) {
-                            $payment->setAdditionalInformation('redirectUrl', $redirectUrl);
-                            $payment->setAdditionalInformation('redirectMethod', $redirectMethod);
-                            $payment->setAdditionalInformation('paymentData', $paymentData);
-                        } else {
-                            $isValid = false;
-                            $errorMsg = __('Payment method is not valid.');
-                            $this->adyenLogger->error($errorMsg);
-                            $errorMessages[] = $errorMsg;
-                        }
                     }
                     break;
                 case "Refused":

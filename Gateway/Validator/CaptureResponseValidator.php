@@ -33,7 +33,7 @@ class CaptureResponseValidator extends AbstractValidator
     private $adyenLogger;
 
     /**
-     * GeneralResponseValidator constructor.
+     * CaptureResponseValidator constructor.
      *
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
