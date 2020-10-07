@@ -78,7 +78,9 @@ class CheckoutDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
-        $requestBody = [];
+
+        // Initialize the request body with the validated state data
+        $requestBody = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::STATE_DATA);
 
         // do not send email
         $order->setCanSendNewEmailFlag(false);
@@ -231,6 +233,13 @@ class CheckoutDataBuilder implements BuilderInterface
             }
             unset($requestBody['installments']);
         }
+
+        if ($this->adyenHelper->isCreditCardThreeDS2Enabled($storeId)) {
+            $requestBody['additionalData']['allow3DS2'] = true;
+        }
+
+        $requestBody['origin'] = $this->adyenHelper->getOrigin($storeId);
+        $requestBody['channel'] = 'web';
 
         $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
         $request['body'] = $requestBody;
