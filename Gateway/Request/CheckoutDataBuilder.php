@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
@@ -213,10 +214,43 @@ class CheckoutDataBuilder implements BuilderInterface
             $order->setCanSendNewEmailFlag(true);
         }
 
+        // if installments is set and card type is credit card add it into the request
+        $numberOfInstallments = $payment->getAdditionalInformation(
+            AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
+        ) ?: 0;
+        $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE) ?: 'credit';
+        if ($numberOfInstallments > 0) {
+            $requestBody['installments']['value'] = $numberOfInstallments;
+        }
+        // if card type is debit then change the issuer type and unset the installments field
+        if ($comboCardType == 'debit') {
+            if ($selectedDebitBrand = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'))) {
+                $requestBody['additionalData']['overwriteBrand'] = true;
+                $requestBody['selectedBrand'] = $selectedDebitBrand;
+                $requestBody['paymentMethod']['type'] = $selectedDebitBrand;
+            }
+            unset($requestBody['installments']);
+        }
+
         $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
         $request['body'] = $requestBody;
 
         return $request;
+    }
+
+    /**
+     * @param string $brand
+     * @return string
+     */
+    private function getSelectedDebitBrand($brand)
+    {
+        if ($brand == 'VI') {
+            return 'electron';
+        }
+        if ($brand == 'MC') {
+            return 'maestro';
+        }
+        return null;
     }
 
     /**
