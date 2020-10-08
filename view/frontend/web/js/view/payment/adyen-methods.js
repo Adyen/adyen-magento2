@@ -71,19 +71,9 @@ define(
                 this._super();
 
                 // Retrieve adyen payment methods
-                adyenPaymentService.getPaymentMethods().done(function(paymentMethods) {
+                adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
                     paymentMethods = JSON.parse(paymentMethods);
-                    /**
-                     * Create sherable checkout component
-                     * @type {AdyenCheckout}
-                     */
-                    adyenPaymentService.initCheckoutComponent({
-                        locale: adyenConfiguration.getLocale(),
-                        originKey: adyenConfiguration.getOriginKey(),
-                        environment: adyenConfiguration.getCheckoutEnvironment(),
-                        paymentMethodsResponse: paymentMethods.paymentMethodsResponse
-                    });
-
+                    adyenPaymentService.setPaymentMethods(paymentMethods);
                 }).fail(function() {
 
                 })

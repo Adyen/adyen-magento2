@@ -106,10 +106,10 @@ define(
           fullScreenLoader.startLoader();
 
           // TODO if ratepay component is ready this following block can be removed
-          var component = adyenPaymentService.getCheckoutComponent();
+          var paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
 
-          if (!!component) {
-            var paymentMethods = component.paymentMethodsResponse.paymentMethods;
+          if (!!paymentMethodsResponse) {
+            var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
 
             // TODO check if still needed with checkout component
             if (JSON.stringify(paymentMethods).indexOf('ratepay') > -1) {
@@ -165,9 +165,9 @@ define(
             fullScreenLoader.stopLoader();
           }
 
-          var checkoutComponent = adyenPaymentService.getCheckoutComponent();
+          var paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
 
-          var paymentMethods = checkoutComponent.paymentMethodsResponse.paymentMethods;
+          var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
 
           var paymentList = _.reduce(paymentMethods,
               function(accumulator, value) {
