@@ -14,7 +14,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -25,91 +25,75 @@ define(
         'ko',
         'Magento_Payment/js/view/payment/cc-form',
         'Magento_Customer/js/model/customer',
-        'Magento_Payment/js/model/credit-card-validation/credit-card-data',
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/quote',
         'Adyen_Payment/js/model/installments',
         'mage/url',
         'Magento_Vault/js/view/payment/vault-enabler',
         'Magento_Checkout/js/model/url-builder',
-        'mage/storage',
         'Magento_Checkout/js/model/full-screen-loader',
-        'Magento_Paypal/js/action/set-payment-method',
-        'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
+        'Adyen_Payment/js/model/adyen-configuration',
         'Adyen_Payment/js/bundle'
     ],
-    function (
+    function(
         $,
         ko,
         Component,
         customer,
-        creditCardData,
         additionalValidators,
         quote,
         installmentsHelper,
         url,
         VaultEnabler,
         urlBuilder,
-        storage,
         fullScreenLoader,
-        setPaymentMethodAction,
-        selectPaymentMethodAction,
         errorProcessor,
         adyenPaymentService,
-        AdyenComponent
+        adyenConfiguration,
+        adyenComponent
     ) {
-
         'use strict';
-
         return Component.extend({
             // need to duplicate as without the button will never activate on first time page view
-            isPlaceOrderActionAllowed: ko.observable(quote.billingAddress() != null),
+            isPlaceOrderActionAllowed: ko.observable(
+                quote.billingAddress() != null),
             comboCardOption: ko.observable('credit'),
 
             defaults: {
                 template: 'Adyen_Payment/payment/cc-form',
-                creditCardOwner: '',
-                storeCc: false,
-                installment: '',
-                creditCardDetailsValid: false,
-                orderId: 0
+                installment: '', // keep it until the component implements installments
+                orderId: 0, // TODO is this the best place to store it?
             },
             /**
              * @returns {exports.initialize}
              */
-            initialize: function () {
+            initialize: function() {
                 this._super();
                 this.vaultEnabler = new VaultEnabler();
                 this.vaultEnabler.setPaymentCode(this.getVaultCode());
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
 
-                // initialize adyen component for general use
-                this.checkout = new AdyenCheckout({
-                    hasHolderName: true,
-                    locale: this.getLocale(),
-                    originKey: this.getOriginKey(),
-                    environment: this.getCheckoutEnvironment(),
-                    onAdditionalDetails: this.handleOnAdditionalDetails.bind(this)
-                });
+                this.checkoutComponent = new AdyenCheckout({
+                        hasHolderName: true,
+                        locale: adyenConfiguration.getLocale(),
+                        originKey: adyenConfiguration.getOriginKey(),
+                        environment: adyenConfiguration.getCheckoutEnvironment(),
+                        paymentMethodsResponse: adyenPaymentService.getPaymentMethods().paymentMethodsResponse,
+                        onAdditionalDetails: this.handleOnAdditionalDetails.bind(this)
+                    },
+                );
 
                 return this;
             },
-            initObservable: function () {
-                this._super()
-                    .observe([
-                        'creditCardType',
-                        'creditCardOwner',
-                        'creditCardNumber',
-                        'securityCode',
-                        'expiryMonth',
-                        'expiryYear',
-                        'installment',
-                        'installments',
-                        'creditCardDetailsValid',
-                        'placeOrderAllowed'
-                    ]);
+            initObservable: function() {
+                this._super().observe([
+                    'creditCardType', // TODO check if still needed
+                    'installment',
+                    'installments',
+                    'placeOrderAllowed',
+                ]);
 
                 return this;
             },
@@ -117,8 +101,10 @@ define(
              * Returns true if card details can be stored
              * @returns {*|boolean}
              */
-            getEnableStoreDetails: function () {
-                return this.canCreateBillingAgreement() && !this.isVaultEnabled();
+            getEnableStoreDetails: function() {
+                // TODO refactor the configuration for this
+                return this.canCreateBillingAgreement() &&
+                    !this.isVaultEnabled();
             },
             /**
              * Renders the secure fields,
@@ -126,7 +112,7 @@ define(
              * sets up the callbacks for card components and
              * set up the installments
              */
-            renderSecureFields: function () {
+            renderSecureFields: function() {
                 var self = this;
 
                 if (!self.getOriginKey()) {
@@ -137,36 +123,24 @@ define(
 
                 // installments
                 var allInstallments = self.getAllInstallments();
-                var cardNode = document.getElementById('cardContainer');
 
-
-                self.cardComponent = self.checkout.create('card', {
-                    type: 'card',
+                self.cardComponent = self.checkoutComponent.create('card', {
                     enableStoreDetails: self.getEnableStoreDetails(),
                     groupTypes: self.getAvailableCardTypeAltCodes(),
-
-                    onChange: function (state, component) {
-                        if (!!state.isValid && !component.state.errors.encryptedSecurityCode) {
-                            self.storeCc = !!state.data.storePaymentMethod;
-                            self.creditCardNumber(state.data.paymentMethod.encryptedCardNumber);
-                            self.expiryMonth(state.data.paymentMethod.encryptedExpiryMonth);
-                            self.expiryYear(state.data.paymentMethod.encryptedExpiryYear);
-                            self.securityCode(state.data.paymentMethod.encryptedSecurityCode);
-                            self.creditCardOwner(state.data.paymentMethod.holderName);
-                            self.creditCardDetailsValid(true);
-                            self.placeOrderAllowed(true);
-                        } else {
-                            self.creditCardDetailsValid(false);
-                            self.placeOrderAllowed(false);
-                        }
+                    onChange: function(state, component) {
+                        self.placeOrderAllowed(!!state.isValid);
                     },
-                    onBrand: function (state) {
+                    // Keep onBrand as is until checkout component supports installments
+                    onBrand: function(state) {
                         // Define the card type
                         // translate adyen card type to magento card type
-                        var creditCardType = self.getCcCodeByAltCode(state.brand);
+                        var creditCardType = self.getCcCodeByAltCode(
+                            state.brand);
                         if (creditCardType) {
                             // If the credit card type is already set, check if it changed or not
-                            if (!self.creditCardType() || self.creditCardType() && self.creditCardType() != creditCardType) {
+                            if (!self.creditCardType() ||
+                                self.creditCardType() &&
+                                self.creditCardType() != creditCardType) {
                                 var numberOfInstallments = [];
 
                                 if (creditCardType in allInstallments) {
@@ -176,7 +150,9 @@ define(
                                     var precision = quote.getPriceFormat().precision;
                                     var currencyCode = quote.totals().quote_currency_code;
 
-                                    numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(installmentCreditcard, grandTotal, precision, currencyCode);
+                                    numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(
+                                        installmentCreditcard, grandTotal,
+                                        precision, currencyCode);
                                 }
 
                                 if (numberOfInstallments) {
@@ -187,24 +163,25 @@ define(
                             }
 
                             // for BCMC as this is not a core payment method inside magento use maestro as brand detection
-                            if (creditCardType == "BCMC") {
-                                self.creditCardType("MI");
+                            if (creditCardType == 'BCMC') {
+                                self.creditCardType('MI');
                             } else {
                                 self.creditCardType(creditCardType);
                             }
                         } else {
-                            self.creditCardType("")
+                            self.creditCardType('');
                             self.installments(0);
                         }
                     }
-                }).mount(cardNode);
+                }).mount('#cardContainer');
             },
 
-            handleAction: function (action, orderId) {
+            handleAction: function(action, orderId) {
                 var self = this;
 
                 try {
-                    var component = self.checkout.createFromAction(action).mount('#cc_actionContainer');
+                    var component = self.checkoutComponent.createFromAction(
+                        action).mount('#cc_actionContainer');
                 } catch (e) {
                     console.log(e);
                 }
@@ -213,45 +190,31 @@ define(
              * This method is a workaround to close the modal in the right way and reconstruct the threeDS2Modal.
              * This will solve issues when you cancel the 3DS2 challenge and retry the payment
              */
-            closeModal: function (popupModal) {
-                popupModal.modal("closeModal");
+            closeModal: function(popupModal) {
+                popupModal.modal('closeModal');
                 $('.cc_actionModal').remove();
                 $('.modals-overlay').remove();
                 $('body').removeClass('_has-modal');
 
                 // reconstruct the threeDS2Modal container again otherwise component can not find the threeDS2Modal
-                $('#cc_actionModalWrapper').append("<div id=\"cc_actionModal\">" +
-                    "<div id=\"cc_actionContainer\"></div>" +
-                    "</div>");
+                $('#cc_actionModalWrapper').
+                    append('<div id="cc_actionModal">' +
+                        '<div id="cc_actionContainer"></div>' +
+                        '</div>');
             },
             /**
              * Get data for place order
              * @returns {{method: *}}
              */
-            getData: function () {
-                // todo use state data
-                var browserInfo = [];
-
+            getData: function() {
                 var data = {
                     'method': this.item.method,
                     additional_data: {
+                        'stateData': JSON.stringify(this.cardComponent.data),
                         'guestEmail': quote.guestEmail,
                         'cc_type': this.creditCardType(),
-                        'number': this.creditCardNumber(),
-                        'cvc': this.securityCode(),
-                        'expiryMonth': this.expiryMonth(),
-                        'expiryYear': this.expiryYear(),
-                        'holderName': this.creditCardOwner(),
-                        'store_cc': this.storeCc,
-                        'number_of_installments': this.installment(),
-                        'java_enabled': browserInfo.javaEnabled,
-                        'screen_color_depth': browserInfo.colorDepth,
-                        'screen_width': browserInfo.screenWidth,
-                        'screen_height': browserInfo.screenHeight,
-                        'timezone_offset': browserInfo.timeZoneOffset,
-                        'language': browserInfo.language,
-                        'combo_card_type': this.comboCardOption()
-                    }
+                        'combo_card_type': this.comboCardOption(),
+                    },
                 };
                 this.vaultEnabler.visitAdditionalData(data);
                 return data;
@@ -260,8 +223,11 @@ define(
              * Returns state of place order button
              * @returns {boolean}
              */
-            isButtonActive: function () {
-                return this.isActive() && this.getCode() == this.isChecked() && this.isPlaceOrderActionAllowed() && this.placeOrderAllowed();
+            isButtonActive: function() {
+                // TODO check if isPlaceOrderActionAllowed and placeOrderAllowed are both needed
+                return this.isActive() && this.getCode() == this.isChecked() &&
+                    this.isPlaceOrderActionAllowed() &&
+                    this.placeOrderAllowed();
             },
             /**
              * Custom place order function
@@ -272,7 +238,7 @@ define(
              * @param event
              * @returns {boolean}
              */
-            placeOrder: function (data, event) {
+            placeOrder: function(data, event) {
                 var self = this;
 
                 if (event) {
@@ -283,21 +249,21 @@ define(
                     fullScreenLoader.startLoader();
                     self.isPlaceOrderActionAllowed(false);
 
-                    self.getPlaceOrderDeferredObject()
-                        .fail(
-                            function () {
-                                fullScreenLoader.stopLoader();
-                                self.isPlaceOrderActionAllowed(true);
-                            }
-                        ).done(
-                        function (orderId) {
+                    self.getPlaceOrderDeferredObject().fail(
+                        function() {
+                            fullScreenLoader.stopLoader();
+                            self.isPlaceOrderActionAllowed(true);
+                        },
+                    ).done(
+                        function(orderId) {
                             self.afterPlaceOrder();
                             self.orderId = orderId;
-                            adyenPaymentService.getOrderPaymentStatus(orderId)
-                                .done(function (responseJSON) {
-                                    self.handleAdyenResult(responseJSON, orderId)
+                            adyenPaymentService.getOrderPaymentStatus(orderId).
+                                done(function(responseJSON) {
+                                    self.handleAdyenResult(responseJSON,
+                                        orderId);
                                 });
-                        }
+                        },
                     );
                 }
                 return false;
@@ -306,21 +272,22 @@ define(
              * Based on the response we can start a 3DS2 validation or place the order
              * @param responseJSON
              */
-            handleAdyenResult: function (responseJSON, orderId) {
+            handleAdyenResult: function(responseJSON, orderId) {
                 var self = this;
                 var response = JSON.parse(responseJSON);
 
                 if (!!response.isFinal) {
                     // Status is final redirect to the redirectUrl
                     window.location.replace(url.build(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
+                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl,
                     ));
                 } else {
                     // Handle action
                     self.handleAction(response.action, orderId);
                 }
             },
-            handleOnAdditionalDetails: function (result) {
+            handleOnAdditionalDetails: function(result) {
+
                 var self = this;
 
                 var request = result.data;
@@ -328,6 +295,7 @@ define(
 
                 fullScreenLoader.stopLoader();
 
+                // TODO outsource creating the modal
                 var popupModal = $('#cc_actionModal').modal({
                     // disable user to hide popup
                     clickableOverlay: false,
@@ -335,72 +303,54 @@ define(
                     innerScroll: false,
                     // empty buttons, we don't need that
                     buttons: [],
-                    modalClass: 'cc_actionModal'
+                    modalClass: 'cc_actionModal',
                 });
 
-                popupModal.modal("openModal");
+                popupModal.modal('openModal');
 
-                adyenPaymentService.paymentDetails(request).done(function (responseJSON) {
-                    self.handleAdyenResult(responseJSON, self.orderId)
-                }).fail(function (result) {
-                    errorProcessor.process(result, self.messageContainer);
-                    self.isPlaceOrderActionAllowed(true);
-                    fullScreenLoader.stopLoader();
-                });
+                adyenPaymentService.paymentDetails(request).
+                    done(function(responseJSON) {
+                        self.handleAdyenResult(responseJSON, self.orderId);
+                    }).
+                    fail(function(result) {
+                        errorProcessor.process(result, self.messageContainer);
+                        self.isPlaceOrderActionAllowed(true);
+                        fullScreenLoader.stopLoader();
+                    });
             },
             /**
              * Validates the payment date when clicking the pay button
              *
              * @returns {boolean}
              */
-            validate: function () {
-                var self = this;
-
+            validate: function() {
                 var form = 'form[data-role=adyen-cc-form]';
 
-                var validate = $(form).validation() && $(form).validation('isValid');
+                var validate = $(form).validation() &&
+                    $(form).validation('isValid') &&
+                    this.cardComponent.isValid;
 
                 if (!validate) {
+                    this.cardComponent.showValidation();
                     return false;
                 }
 
                 return true;
             },
-            /**
-             * Validates if the typed in card holder is valid
-             * - length validation, can not be empty
-             *
-             * @returns {boolean}
-             */
-            isCardOwnerValid: function () {
-                if (this.creditCardOwner().length == 0) {
-                    return false;
-                }
 
-                return true;
-            },
-            /**
-             * The card component send the card details validity in a callback which is saved in the
-             * creditCardDetailsValid observable
-             *
-             * @returns {*}
-             */
-            isCreditCardDetailsValid: function () {
-                return this.creditCardDetailsValid();
-            },
             /**
              * Translates the card type alt code (used in Adyen) to card type code (used in Magento) if it's available
              *
              * @param altCode
              * @returns {*}
              */
-            getCcCodeByAltCode: function (altCode) {
+            getCcCodeByAltCode: function(altCode) {
                 var ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
                 if (ccTypes.hasOwnProperty(altCode)) {
                     return ccTypes[altCode];
                 }
 
-                return "";
+                return '';
             },
             /**
              * Get available card types translated to the Adyen card type codes
@@ -408,7 +358,8 @@ define(
              *
              * @returns {string[]}
              */
-            getAvailableCardTypeAltCodes: function () {
+            // TODO check if we still need to rely on this or we can rely on the paymentMethods response types
+            getAvailableCardTypeAltCodes: function() {
                 var ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
                 return Object.keys(ccTypes);
             },
@@ -417,52 +368,30 @@ define(
              *
              * @returns {*}
              */
-            getCode: function () {
+            getCode: function() {
                 return window.checkoutConfig.payment.adyenCc.methodCode;
             },
-            getOriginKey: function () {
-                return window.checkoutConfig.payment.adyen.originKey;
-            },
-            getCheckoutEnvironment: function () {
-                return window.checkoutConfig.payment.adyen.checkoutEnvironment;
-            },
-            getLocale: function () {
-                return window.checkoutConfig.payment.adyenCc.locale;
-            },
-            isActive: function () {
-                return true;
-            },
-            getControllerName: function () {
-                return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
-            },
-            getPlaceOrderUrl: function () {
-                return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
-            },
-            canCreateBillingAgreement: function () {
+            canCreateBillingAgreement: function() {
                 if (customer.isLoggedIn()) {
                     return window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
                 }
 
                 return false;
             },
-            isShowLegend: function () {
-                return true;
-            },
-            showLogo: function () {
-                return window.checkoutConfig.payment.adyen.showLogo;
-            },
-            getIcons: function (type) {
-                return window.checkoutConfig.payment.adyenCc.icons.hasOwnProperty(type)
+            getIcons: function(type) {
+                return window.checkoutConfig.payment.adyenCc.icons.hasOwnProperty(
+                    type)
                     ? window.checkoutConfig.payment.adyenCc.icons[type]
-                    : false
+                    : false;
             },
-            hasInstallments: function () {
-                return this.comboCardOption() === 'credit' && window.checkoutConfig.payment.adyenCc.hasInstallments;
+            hasInstallments: function() {
+                return this.comboCardOption() === 'credit' &&
+                    window.checkoutConfig.payment.adyenCc.hasInstallments;
             },
-            getAllInstallments: function () {
+            getAllInstallments: function() {
                 return window.checkoutConfig.payment.adyenCc.installments;
             },
-            areComboCardsEnabled: function () {
+            areComboCardsEnabled: function() {
                 if (quote.billingAddress() === null) {
                     return false;
                 }
@@ -470,32 +399,52 @@ define(
                 var currencyCode = quote.totals().quote_currency_code;
                 var allowedCurrenciesByCountry = {
                     'BR': 'BRL',
-                    'MX': 'MXN'
+                    'MX': 'MXN',
                 };
                 return allowedCurrenciesByCountry[countryId] &&
                     currencyCode === allowedCurrenciesByCountry[countryId];
             },
-            setPlaceOrderHandler: function (handler) {
-                this.placeOrderHandler = handler;
-            },
-            setValidateHandler: function (handler) {
-                this.validateHandler = handler;
-            },
-            context: function () {
-                return this;
+            getOriginKey: function() {
+                return adyenConfiguration.getOriginKey();
             },
             /**
              * @returns {Bool}
              */
-            isVaultEnabled: function () {
+            isVaultEnabled: function() {
                 return this.vaultEnabler.isVaultEnabled();
             },
             /**
              * @returns {String}
              */
-            getVaultCode: function () {
+            getVaultCode: function() {
                 return window.checkoutConfig.payment[this.getCode()].vaultCode;
-            }
+            },
+
+            // Default payment functions
+            setPlaceOrderHandler: function(handler) {
+                this.placeOrderHandler = handler;
+            },
+            setValidateHandler: function(handler) {
+                this.validateHandler = handler;
+            },
+            context: function() {
+                return this;
+            },
+            isShowLegend: function() {
+                return true;
+            },
+            showLogo: function() {
+                return adyenConfiguration.showLogo();
+            },
+            isActive: function() {
+                return true;
+            },
+            getControllerName: function() {
+                return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
+            },
+            getPlaceOrderUrl: function() {
+                return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
+            },
         });
-    }
+    },
 );
