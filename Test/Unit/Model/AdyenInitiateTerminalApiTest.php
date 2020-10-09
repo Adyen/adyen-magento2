@@ -50,6 +50,7 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
         $checkoutSession = $this->getSimpleMock(\Magento\Checkout\Model\Session::class);
         $storeManager = $this->getSimpleMock(\Magento\Store\Model\StoreManagerInterface::class);
         $productMetadata = $this->getSimpleMock(\Magento\Framework\App\ProductMetadataInterface::class);
+        $chargedCurrency = $this->getSimpleMock(\Adyen\Payment\Helper\ChargedCurrency::class);
 
         $store = $this->getSimpleMock(\Magento\Store\Api\Data\StoreInterface::class);
         $storeManager->method('getStore')
@@ -82,7 +83,8 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
             $adyenLogger,
             $checkoutSession,
             $storeManager,
-            $productMetadata
+            $productMetadata,
+            $chargedCurrency
         );
     }
 
