@@ -173,7 +173,9 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         // Save the payments response because we are going to need it during the place order flow
         $payment->setAdditionalInformation("paymentsResponse", $result);
 
-        $this->vaultHelper->saveRecurringDetails($payment, $result['additionalData']);
+        if (!empty($result['additionalData'])) {
+            $this->vaultHelper->saveRecurringDetails($payment, $result['additionalData']);
+        }
 
         // To actually save the additional info changes into the quote
         $order->save();
