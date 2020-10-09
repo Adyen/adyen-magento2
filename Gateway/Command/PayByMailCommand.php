@@ -23,7 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Command;
 
-use Magento\Payment\Gateway\Command;
+use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Payment\Gateway\CommandInterface;
 
 class PayByMailCommand implements CommandInterface
@@ -39,18 +39,25 @@ class PayByMailCommand implements CommandInterface
     protected $_adyenLogger;
 
     /**
+     * @var ChargedCurrency
+     */
+    protected $chargedCurrency;
+
+    /**
      * PayByMailCommand constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Framework\Locale\ResolverInterface $resolver
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param ChargedCurrency $chargedCurrency
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -127,7 +134,7 @@ class PayByMailCommand implements CommandInterface
         $order = $payment->getOrder();
 
         $realOrderId = $order->getRealOrderId();
-        $orderCurrencyCode = $order->getOrderCurrencyCode();
+        $orderCurrencyCode = $this->chargedCurrency->getOrderCurrencyCode($order);
         $storeId = $order->getStore()->getId();
 
         // check if paybymail has it's own skin

@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 /**
@@ -46,19 +47,27 @@ class RefundDataBuilder implements BuilderInterface
     protected $adyenInvoiceCollectionFactory;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * RefundDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory
+     * @param ChargedCurrency $chargedCurrency
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory,
-        \Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory $adyenInvoiceCollectionFactory
+        \Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory $adyenInvoiceCollectionFactory,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->orderPaymentCollectionFactory = $orderPaymentCollectionFactory;
         $this->adyenInvoiceCollectionFactory = $adyenInvoiceCollectionFactory;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -74,7 +83,7 @@ class RefundDataBuilder implements BuilderInterface
         $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
         $pspReference = $payment->getCcTransId();
-        $currency = $payment->getOrder()->getOrderCurrencyCode();
+        $currency = $this->chargedCurrency->getRefundCurrencyCode($payment->getOrder());
         $storeId = $order->getStoreId();
         $method = $payment->getMethod();
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
@@ -185,7 +194,7 @@ class RefundDataBuilder implements BuilderInterface
     {
         $formFields = [];
         $count = 0;
-        $currency = $payment->getOrder()->getOrderCurrencyCode();
+        $currency = $this->chargedCurrency->getRefundCurrencyCode($payment->getOrder());
 
         /**
          * @var \Magento\Sales\Model\Order\Creditmemo $creditMemo

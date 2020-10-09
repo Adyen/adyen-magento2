@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
@@ -49,6 +50,11 @@ class CheckoutDataBuilder implements BuilderInterface
     private $gender;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Quote\Api\CartRepositoryInterface $cartRepository
@@ -58,12 +64,14 @@ class CheckoutDataBuilder implements BuilderInterface
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Quote\Api\CartRepositoryInterface $cartRepository,
-        \Adyen\Payment\Model\Gender $gender
+        \Adyen\Payment\Model\Gender $gender,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
         $this->cartRepository = $cartRepository;
         $this->gender = $gender;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -234,7 +242,7 @@ class CheckoutDataBuilder implements BuilderInterface
 
         /** @var \Magento\Quote\Model\Quote $cart */
         $cart = $this->cartRepository->get($order->getQuoteId());
-        $currency = $cart->getCurrency();
+        $currency = $this->chargedCurrency->getOrderCurrencyCode($order);
         $discountAmount = 0;
 
         foreach ($cart->getAllVisibleItems() as $item) {

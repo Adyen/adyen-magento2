@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 /**
@@ -36,13 +37,22 @@ class CaptureDataBuilder implements BuilderInterface
     private $adyenHelper;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * CaptureDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param ChargedCurrency $chargedCurrency
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
-    {
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        ChargedCurrency $chargedCurrency
+    ) {
         $this->adyenHelper = $adyenHelper;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -60,7 +70,7 @@ class CaptureDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
 
         $pspReference = $payment->getCcTransId();
-        $currency = $payment->getOrder()->getOrderCurrencyCode();
+        $currency = $this->chargedCurrency->getOrderCurrencyCode($payment->getOrder());
 
         $amount = $this->adyenHelper->formatAmount($amount, $currency);
 
@@ -93,7 +103,7 @@ class CaptureDataBuilder implements BuilderInterface
     {
         $formFields = [];
         $count = 0;
-        $currency = $payment->getOrder()->getOrderCurrencyCode();
+        $currency = $this->chargedCurrency->getOrderCurrencyCode($payment->getOrder());
 
         $invoices = $payment->getOrder()->getInvoiceCollection();
 

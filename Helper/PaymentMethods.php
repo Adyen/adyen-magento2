@@ -91,6 +91,11 @@ class PaymentMethods extends AbstractHelper
     protected $quote;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * PaymentMethods constructor.
      *
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
@@ -116,7 +121,8 @@ class PaymentMethods extends AbstractHelper
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\View\Asset\Source $assetSource,
         \Magento\Framework\View\DesignInterface $design,
-        \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider
+        \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->quoteRepository = $quoteRepository;
         $this->config = $config;
@@ -129,6 +135,7 @@ class PaymentMethods extends AbstractHelper
         $this->assetSource = $assetSource;
         $this->design = $design;
         $this->themeProvider = $themeProvider;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -165,7 +172,8 @@ class PaymentMethods extends AbstractHelper
             return [];
         }
 
-        $currencyCode = $this->getCurrentCurrencyCode($store);
+        $currencyCode = $this->chargedCurrency->getQuoteCurrencyCode($quote) ?:
+            $this->chargedCurrency->getStoreCurrencyCode($store);
 
         $adyFields = [
             "channel" => "Web",
@@ -281,15 +289,6 @@ class PaymentMethods extends AbstractHelper
                 $grandTotal
             )
         );
-    }
-
-    /**
-     * @param $store
-     * @return mixed
-     */
-    protected function getCurrentCurrencyCode($store)
-    {
-        return $this->getQuote()->getQuoteCurrencyCode() ?: $store->getBaseCurrencyCode();
     }
 
     /**
