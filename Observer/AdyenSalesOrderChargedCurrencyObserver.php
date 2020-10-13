@@ -48,8 +48,9 @@ class AdyenSalesOrderChargedCurrencyObserver implements ObserverInterface
     {
         /** @var \Magento\Sales\Model\Order $order */
         $order = $observer->getEvent()->getOrder();
-
-        //TODO only save it for Adyen PMs?
-        $order->setAdyenChargedCurrency($this->chargedCurrency->getOrderCurrencyCode($order));
+        $paymentMethod = $order->getPayment()->getMethod();
+        if (strpos($paymentMethod, 'adyen_') !== false) {
+            $order->setAdyenChargedCurrency($this->chargedCurrency->getOrderAmountCurrency($order)->getCurrencyCode());
+        }
     }
 }

@@ -128,7 +128,7 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
         );
 
         $quote = $this->checkoutSession->getQuote();
-        $currency = $this->chargedCurrency->getQuoteCurrencyCode($quote);
+        $currency = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
         $adyenGooglePayConfig['format'] = $this->adyenHelper->decimalNumbers($currency);
 
         $adyenGooglePayConfig['merchantIdentifier'] = $this->adyenHelper->getAdyenGooglePayMerchantIdentifier($this->storeManager->getStore()->getId());

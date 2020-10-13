@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Model\AdyenAmountCurrency;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\Store;
@@ -42,25 +43,34 @@ class ChargedCurrency
         $this->config = $config;
     }
 
-    public function getOrderCurrencyCode(Order $order)
+    public function getOrderAmountCurrency(Order $order)
     {
         $chargedCurrency = $this->config->getChargedCurrency($order->getStoreId());
         if ($chargedCurrency == self::BASE) {
-            return $order->getGlobalCurrencyCode();
+            return new AdyenAmountCurrency($order->getBaseGrandTotal(), $order->getGlobalCurrencyCode());
         }
-        return $order->getOrderCurrencyCode();
+        return new AdyenAmountCurrency($order->getGrandTotal(), $order->getOrderCurrencyCode());
     }
 
-    public function getQuoteCurrencyCode(Quote $quote)
+    public function getItemAmountCurrency(Quote\Item $item)
+    {
+        $chargedCurrency = $this->config->getChargedCurrency($item->getStoreId());
+        if ($chargedCurrency == self::BASE) {
+            return new AdyenAmountCurrency($item->getPrice(), $item->getQuote()->getBaseCurrencyCode());
+        }
+        return new AdyenAmountCurrency($item->getPrice(), $item->getQuote()->getQuoteCurrencyCode());
+    }
+
+    public function getQuoteAmountCurrency(Quote $quote)
     {
         $chargedCurrency = $this->config->getChargedCurrency($quote->getStoreId());
         if ($chargedCurrency == self::BASE) {
-            return $quote->getBaseCurrencyCode();
+            return new AdyenAmountCurrency($quote->getBaseGrandTotal(), $quote->getBaseCurrencyCode());
         }
-        return $quote->getQuoteCurrencyCode();
+        return new AdyenAmountCurrency($quote->getGrandTotal(), $quote->getQuoteCurrencyCode());
     }
 
-    public function getStoreCurrencyCode(Store $store)
+    public function getStoreAmountCurrency(Store $store)
     {
         $chargedCurrency = $this->config->getChargedCurrency($store->getStoreId());
         if ($chargedCurrency == self::BASE) {

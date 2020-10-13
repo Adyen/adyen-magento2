@@ -242,7 +242,8 @@ class CheckoutDataBuilder implements BuilderInterface
 
         /** @var \Magento\Quote\Model\Quote $cart */
         $cart = $this->cartRepository->get($order->getQuoteId());
-        $currency = $this->chargedCurrency->getOrderCurrencyCode($order);
+        $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
+        $currency = $amountCurrency->getCurrencyCode();
         $discountAmount = 0;
 
         foreach ($cart->getAllVisibleItems() as $item) {
@@ -251,7 +252,12 @@ class CheckoutDataBuilder implements BuilderInterface
             // Summarize the discount amount item by item
             $discountAmount += $item->getDiscountAmount();
 
-            $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($item->getPrice(), $currency);
+            $itemAmountCurrency = $this->chargedCurrency->getItemAmountCurrency($item);
+
+            $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
+                $itemAmountCurrency->getAmount(),
+                $itemAmountCurrency->getCurrencyCode()
+            );
 
             $taxAmount = $item->getPrice() * ($item->getTaxPercent() / 100);
             $formattedTaxAmount = $this->adyenHelper->formatAmount($taxAmount, $currency);

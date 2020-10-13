@@ -150,10 +150,17 @@ class PayByMailCommand implements CommandInterface
             $hmacKey = $this->_adyenHelper->getHmacPayByMail();
         }
 
-        $amount = $this->_adyenHelper->formatAmount(
-            $paymentAmount ?: $order->getGrandTotal(),
-            $orderCurrencyCode
-        );
+        if ($paymentAmount) {
+            //This is a payment for a remaining order balance and the order currency should be used
+            $orderCurrencyCode = $order->getOrderCurrencyCode();
+            $amount = $this->_adyenHelper->formatAmount($paymentAmount, $orderCurrencyCode);
+        } else {
+            //This is a new order payment, currency/amount depends on the charged_currency config
+            $adyenAmount = $this->chargedCurrency->getOrderAmountCurrency($order);
+            $orderCurrencyCode = $adyenAmount->getCurrencyCode();
+            $amount = $this->_adyenHelper->formatAmount($adyenAmount->getAmount(), $adyenAmount->getCurrencyCode());
+        }
+
         $merchantAccount = trim($this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId));
         $shopperEmail = $order->getCustomerEmail();
         $customerId = $order->getCustomerId();

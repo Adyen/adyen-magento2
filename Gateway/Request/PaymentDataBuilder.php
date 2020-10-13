@@ -65,8 +65,9 @@ class PaymentDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $fullOrder = $payment->getOrder();
 
-        $currencyCode = $this->chargedCurrency->getOrderCurrencyCode($fullOrder);
-        $amount = $fullOrder->getGrandTotal();
+        $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($fullOrder);
+        $currencyCode = $amountCurrency->getCurrencyCode();
+        $amount = $amountCurrency->getAmount();
         $reference = $order->getOrderIncrementId();
         $paymentMethod = $payment->getMethod();
 
