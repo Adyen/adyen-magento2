@@ -66,12 +66,13 @@ class CheckoutResponseValidator extends AbstractValidator
         $payment->setAdditionalInformation('3dActive', false);
         $isValid = true;
         $errorMessages = [];
+        $resultCode = $response['resultCode'];
         // validate result
-        if (!empty($response['resultCode'])) {
-            $payment->setAdditionalInformation('resultCode', $response['resultCode']);
-            switch ($response['resultCode']) {
+        if (!empty($resultCode)) {
+            $payment->setAdditionalInformation('resultCode', $resultCode);
+            switch ($resultCode) {
                 case "IdentifyShopper":
-                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
+                    $payment->setAdditionalInformation('threeDSType', $resultCode);
                     $payment->setAdditionalInformation(
                         'threeDS2Token',
                         $response['authentication']['threeds2.fingerprintToken']
@@ -79,7 +80,7 @@ class CheckoutResponseValidator extends AbstractValidator
                     $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
                     break;
                 case "ChallengeShopper":
-                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
+                    $payment->setAdditionalInformation('threeDSType', $resultCode);
                     $payment->setAdditionalInformation(
                         'threeDS2Token',
                         $response['authentication']['threeds2.challengeToken']
@@ -130,7 +131,7 @@ class CheckoutResponseValidator extends AbstractValidator
                     }
                     break;
                 case "RedirectShopper":
-                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
+                    $payment->setAdditionalInformation('threeDSType', $resultCode);
 
                     $redirectUrl = null;
                     $paymentData = null;
