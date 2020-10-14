@@ -79,7 +79,7 @@ class Redirect extends Action implements CsrfAwareActionInterface, HttpPostActio
 
         $resultLayout = $this->resultLayoutFactory->create();
         $resultLayout->addDefaultHandle();
-        $resultLayout->getLayout()->getUpdate()->load(['adyen_transparent_payment_redirect']);
+        $resultLayout->getLayout()->getUpdate()->load(['transparent_payment_redirect']);
 
         return $resultLayout;
     }

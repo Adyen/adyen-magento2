@@ -21,12 +21,13 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-/** @var \Magento\Payment\Block\Transparent\Redirect $block */
+/** @var Adyen\Payment\Block\Transparent\Redirect $block */
 $params = $block->getPostParams();
 $redirectUrl = $block->getRedirectUrl();
 ?>
-<html>
-<head></head>
+<!DOCTYPE html>
+<html lang="en" xml:lang="en"
+<head><title></title></head>
 <body onload="document.forms['proxy_form'].submit()">
 <form id="proxy_form" action="<?= $block->escapeUrl($redirectUrl) ?>"
       method="POST" hidden enctype="application/x-www-form-urlencoded" class="no-display">

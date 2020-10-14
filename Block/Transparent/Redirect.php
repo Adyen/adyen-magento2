@@ -24,8 +24,7 @@
 namespace Adyen\Payment\Block\Transparent;
 
 use Magento\Framework\View\Element\Template;
-use Magento\Framework\View\Element\Template\Context;
-use Magento\Framework\Url;
+use Magento\Framework\UrlInterface;
 
 class Redirect extends Template
 {
@@ -38,14 +37,15 @@ class Redirect extends Template
      * @var UrlInterface
      */
     private $url;
+
     /**
-     * @param Context $context
+     * @param Template\Context $context
      * @param UrlInterface $url
      * @param array $data
      */
     public function __construct(
-        Context $context,
-        Url $url,
+        Template\Context $context,
+        \Magento\Framework\Url $url,
         array $data = []
     ) {
         $this->url = $url;
@@ -60,6 +60,7 @@ class Redirect extends Template
      */
     public function getRedirectUrl()
     {
+        //todo Change the controller path in the $this->getUrl( in this file Block/Redirect/Redirect.php to adyen/transparent/redirect
         return $this->url->getUrl($this->getData(self::ROUTE_PATH));
     }
 
@@ -84,6 +85,4 @@ class Redirect extends Template
         }
         return $params;
     }
-
-
 }

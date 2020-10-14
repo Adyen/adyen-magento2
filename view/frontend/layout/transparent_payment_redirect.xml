@@ -26,10 +26,7 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
     <container name="root" label="Root">
         <block class="Adyen\Payment\Block\Transparent\Redirect" name="adyen_transparent_redirect"
-               template="/view/frontend/templates/transparent/redirect.phtml">
-<!--            <arguments>-->
-<!--                <argument name="route_path" xsi:type="string">paypal/transparent/response</argument>-->
-<!--            </arguments>-->
+               template="templates/transparent/redirect.phtml">
         </block>
     </container>
 </layout>
