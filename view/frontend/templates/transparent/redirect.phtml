@@ -26,7 +26,7 @@ $params = $block->getPostParams();
 $redirectUrl = $block->getRedirectUrl();
 ?>
 <!DOCTYPE html>
-<html lang="en" xml:lang="en"
+<html lang="en" xml:lang="en">
 <head><title></title></head>
 <body onload="document.forms['proxy_form'].submit()">
 <form id="proxy_form" action="<?= $block->escapeUrl($redirectUrl) ?>"
