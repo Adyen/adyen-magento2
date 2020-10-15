@@ -60,8 +60,7 @@ class Redirect extends Template
      */
     public function getRedirectUrl()
     {
-        //todo Change the controller path in the $this->getUrl( in this file Block/Redirect/Redirect.php to adyen/transparent/redirect
-        return $this->url->getUrl($this->getData(self::ROUTE_PATH));
+        return $this->url->getUrl("adyen/process/redirect");
     }
 
     /**
@@ -76,13 +75,14 @@ class Redirect extends Template
      */
     public function getPostParams()
     {
-        $params = [];
-        foreach ($this->_request->getPostValue() as $name => $value) {
-            if (!empty($value) && mb_detect_encoding($value, 'UTF-8', true) === false) {
-                $value = utf8_encode($value);
-            }
-            $params[$name] = $value;
-        }
-        return $params;
+        return (array)$this->_request->getPostValue();
+//        $params = [];
+//        foreach ($this->_request->getPostValue() as $name => $value) {
+//            if (!empty($value) && mb_detect_encoding($value, 'UTF-8', true) === false) {
+//                $value = utf8_encode($value);
+//            }
+//            $params[$name] = $value;
+//        }
+//        return $params;
     }
 }

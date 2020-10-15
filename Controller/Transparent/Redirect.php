@@ -28,6 +28,7 @@ use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\View\Result\LayoutFactory;
+use Magento\Framework\App\Action\Context;
 
 class Redirect extends Action implements CsrfAwareActionInterface, HttpPostActionInterface
 {
@@ -47,11 +48,13 @@ class Redirect extends Action implements CsrfAwareActionInterface, HttpPostActio
      * @param LayoutFactory $resultLayoutFactory
      */
     public function __construct(
+        Context $context,
         \Adyen\Payment\Logger\AdyenLogger $_adyenLogger,
         LayoutFactory $resultLayoutFactory)
     {
         $this->_adyenLogger = $_adyenLogger;
         $this->resultLayoutFactory = $resultLayoutFactory;
+        parent::__construct($context);
     }
 
     /**
@@ -72,14 +75,14 @@ class Redirect extends Action implements CsrfAwareActionInterface, HttpPostActio
 
     public function execute()
     {
-        $gatewayResponse = (array)$this->getRequest()->getPostValue();
+        $gatewayResponse = $this->getRequest()->getPostValue();
         $this->_adyenLogger->addAdyenDebug(
-            ['Adyen 3DS1 redirect:' => $gatewayResponse]
+            'Adyen 3DS1 redirect:' . json_encode($gatewayResponse)
         );
 
         $resultLayout = $this->resultLayoutFactory->create();
         $resultLayout->addDefaultHandle();
-        $resultLayout->getLayout()->getUpdate()->load(['transparent_payment_redirect']);
+        $resultLayout->getLayout()->getUpdate()->load(['adyen_transparent_redirect']);
 
         return $resultLayout;
     }

@@ -26,7 +26,7 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
     <container name="root" label="Root">
         <block class="Adyen\Payment\Block\Transparent\Redirect" name="adyen_transparent_redirect"
-               template="templates/transparent/redirect.phtml">
+               template="transparent/redirect.phtml" cacheable="false">
         </block>
     </container>
 </layout>
