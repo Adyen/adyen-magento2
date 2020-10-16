@@ -29,18 +29,14 @@ use Magento\Framework\UrlInterface;
 class Redirect extends Template
 {
     /**
-     * Route path key to make redirect url.
-     */
-    const ROUTE_PATH = 'route_path';
-
-    /**
      * @var UrlInterface
      */
     private $url;
 
     /**
+     * Redirect constructor.
      * @param Template\Context $context
-     * @param UrlInterface $url
+     * @param \Magento\Framework\Url $url
      * @param array $data
      */
     public function __construct(
@@ -54,9 +50,7 @@ class Redirect extends Template
 
     /**
      * Returns url for redirect.
-     *
-     * @return string
-     * @since 100.3.5
+     * @return string|null
      */
     public function getRedirectUrl()
     {
@@ -65,24 +59,10 @@ class Redirect extends Template
 
     /**
      * Returns params to be redirected.
-     *
-     * Encodes invalid UTF-8 values to UTF-8 to prevent character escape error.
-     * Some payment methods, send data in merchant defined language encoding
-     * which can be different from the system character encoding (UTF-8).
-     *
      * @return array
-     * @since 100.3.5
      */
     public function getPostParams()
     {
         return (array)$this->_request->getPostValue();
-//        $params = [];
-//        foreach ($this->_request->getPostValue() as $name => $value) {
-//            if (!empty($value) && mb_detect_encoding($value, 'UTF-8', true) === false) {
-//                $value = utf8_encode($value);
-//            }
-//            $params[$name] = $value;
-//        }
-//        return $params;
     }
 }

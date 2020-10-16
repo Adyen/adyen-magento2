@@ -73,6 +73,9 @@ class Redirect extends Action implements CsrfAwareActionInterface, HttpPostActio
         return null;
     }
 
+    /**
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function execute()
     {
         $gatewayResponse = $this->getRequest()->getPostValue();
@@ -81,7 +84,6 @@ class Redirect extends Action implements CsrfAwareActionInterface, HttpPostActio
         );
 
         $resultLayout = $this->resultLayoutFactory->create();
-        $resultLayout->addDefaultHandle();
         $resultLayout->getLayout()->getUpdate()->load(['adyen_transparent_redirect']);
 
         return $resultLayout;
