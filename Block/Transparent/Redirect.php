@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Block\Transparent;
 
+use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\UrlInterface;
 
@@ -69,11 +70,11 @@ class Redirect extends Template
     public function getPostParams()
     {
         $postParams = (array)$this->_request->getPostValue();
-        $whitelist = array('MD', 'PaRes');
-        $filteredPostParams = array_intersect_key($postParams, array_flip($whitelist));
+        $allowedPostParams = array('MD', 'PaRes');
+        $postParams = DataArrayValidator::getArrayOnlyWithApprovedKeys($postParams, $allowedPostParams);
         $this->_adyenLogger->addAdyenDebug(
-            'Adyen 3DS1 PostParams result' . json_encode($filteredPostParams)
+            'Adyen 3DS1 PostParams result' . json_encode($postParams)
         );
-        return $filteredPostParams;
+        return $postParams;
     }
 }
