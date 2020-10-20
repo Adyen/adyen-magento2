@@ -72,7 +72,7 @@ class Redirect extends Template
         $postParams = (array)$this->_request->getPostValue();
         $allowedPostParams = array('MD', 'PaRes');
         $postParams = DataArrayValidator::getArrayOnlyWithApprovedKeys($postParams, $allowedPostParams);
-        $this->_adyenLogger->addAdyenDebug(
+        $this->adyenLogger->addAdyenDebug(
             'Adyen 3DS1 PostParams forwarded to process redirect endpoint' 
         );
         return $postParams;
