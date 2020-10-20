@@ -79,7 +79,7 @@ class Redirect extends Action implements CsrfAwareActionInterface, HttpPostActio
     public function execute()
     {
         $gatewayResponse = $this->getRequest()->getPostValue();
-        $this->_adyenLogger->addAdyenDebug(
+        $this->adyenLogger->addAdyenDebug(
             'Adyen 3DS1 redirect response'
         );
 
