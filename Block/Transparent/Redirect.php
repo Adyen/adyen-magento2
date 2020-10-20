@@ -36,7 +36,7 @@ class Redirect extends Template
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
-    protected $_adyenLogger;
+    protected $adyenLogger;
     /**
      * Redirect constructor.
      * @param Template\Context $context
@@ -46,11 +46,11 @@ class Redirect extends Template
     public function __construct(
         Template\Context $context,
         \Magento\Framework\Url $url,
-        \Adyen\Payment\Logger\AdyenLogger $_adyenLogger,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         array $data = []
     ) {
         $this->url = $url;
-        $this->_adyenLogger = $_adyenLogger;
+        $this->adyenLogger = $adyenLogger;
         parent::__construct($context, $data);
     }
 
@@ -73,7 +73,7 @@ class Redirect extends Template
         $allowedPostParams = array('MD', 'PaRes');
         $postParams = DataArrayValidator::getArrayOnlyWithApprovedKeys($postParams, $allowedPostParams);
         $this->_adyenLogger->addAdyenDebug(
-            'Adyen 3DS1 PostParams result' . json_encode($postParams)
+            'Adyen 3DS1 PostParams forwarded to process redirect endpoint' 
         );
         return $postParams;
     }
