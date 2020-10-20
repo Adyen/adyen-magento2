@@ -162,7 +162,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
                 $requestPaRes = $this->getRequest()->getPost('PaRes');
                 $md = $order->getPayment()->getAdditionalInformation('md');
 
-                if ($requestMD == $md) {
+             
                     $order->getPayment()->setAdditionalInformation('paResponse', $requestPaRes);
 
                     try {
@@ -245,7 +245,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
 
                         $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
                     }
-                }
+                
             } else {
                 $this->_adyenLogger->addAdyenResult("Customer was redirected to bank for 3D-secure validation.");
                 $order->addStatusHistoryComment(

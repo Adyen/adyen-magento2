@@ -35,7 +35,7 @@ class Redirect extends Action implements CsrfAwareActionInterface, HttpPostActio
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
-    protected $_adyenLogger;
+    protected $adyenLogger;
 
     /**
      * @var LayoutFactory
@@ -49,10 +49,10 @@ class Redirect extends Action implements CsrfAwareActionInterface, HttpPostActio
      */
     public function __construct(
         Context $context,
-        \Adyen\Payment\Logger\AdyenLogger $_adyenLogger,
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         LayoutFactory $resultLayoutFactory)
     {
-        $this->_adyenLogger = $_adyenLogger;
+        $this->adyenLogger = $adyenLogger;
         $this->resultLayoutFactory = $resultLayoutFactory;
         parent::__construct($context);
     }
@@ -80,7 +80,7 @@ class Redirect extends Action implements CsrfAwareActionInterface, HttpPostActio
     {
         $gatewayResponse = $this->getRequest()->getPostValue();
         $this->_adyenLogger->addAdyenDebug(
-            'Adyen 3DS1 redirect:' . json_encode($gatewayResponse)
+            'Adyen 3DS1 redirect response'
         );
 
         $resultLayout = $this->resultLayoutFactory->create();
