@@ -1035,7 +1035,9 @@
         <plugin name="GuestAdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\GuestPaymentInformationResetOrderId"
                 sortOrder="10"/>
     </type>
-
+    <type name="Magento\Framework\Session\SessionStartChecker">
+        <plugin name="AdyenTransparentSessionChecker" type="Adyen\Payment\Plugin\TransparentSessionChecker" sortOrder="10"/>
+    </type>
     <!--Notifications overview-->
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
