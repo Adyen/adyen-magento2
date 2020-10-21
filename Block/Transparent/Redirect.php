@@ -25,12 +25,11 @@ namespace Adyen\Payment\Block\Transparent;
 
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Framework\View\Element\Template;
-use Magento\Framework\UrlInterface;
 
 class Redirect extends Template
 {
     /**
-     * @var UrlInterface
+     * @var Url
      */
     private $url;
     /**
@@ -73,7 +72,7 @@ class Redirect extends Template
         $allowedPostParams = array('MD', 'PaRes');
         $postParams = DataArrayValidator::getArrayOnlyWithApprovedKeys($postParams, $allowedPostParams);
         $this->adyenLogger->addAdyenDebug(
-            'Adyen 3DS1 PostParams forwarded to process redirect endpoint' 
+            'Adyen 3DS1 PostParams forwarded to process redirect endpoint'
         );
         return $postParams;
     }
