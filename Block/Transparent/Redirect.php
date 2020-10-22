@@ -29,7 +29,7 @@ use Magento\Framework\View\Element\Template;
 class Redirect extends Template
 {
     /**
-     * @var Url
+     * @var \Magento\Framework\UrlInterface
      */
     private $url;
     /**
@@ -39,12 +39,12 @@ class Redirect extends Template
     /**
      * Redirect constructor.
      * @param Template\Context $context
-     * @param \Magento\Framework\Url $url
+     * @param \Magento\Framework\UrlInterface $url
      * @param array $data
      */
     public function __construct(
         Template\Context $context,
-        \Magento\Framework\Url $url,
+        \Magento\Framework\UrlInterface $url,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         array $data = []
     ) {
@@ -59,7 +59,7 @@ class Redirect extends Template
      */
     public function getRedirectUrl()
     {
-        return $this->url->getUrl("adyen/process/redirect");
+        return $this->url->getUrl("adyen/process/redirect"); //TODO this will be replaced by getOrigin() for PWA integrations
     }
 
     /**
