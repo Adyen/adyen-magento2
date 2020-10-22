@@ -27,8 +27,6 @@ namespace Adyen\Payment\Observer;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Payment\Observer\AbstractDataAssignObserver;
-use Magento\Quote\Api\Data\PaymentInterface;
 
 class AdyenSalesOrderChargedCurrencyObserver implements ObserverInterface
 {
