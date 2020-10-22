@@ -56,9 +56,19 @@ class ChargedCurrency
     {
         $chargedCurrency = $this->config->getChargedCurrency($item->getStoreId());
         if ($chargedCurrency == self::BASE) {
-            return new AdyenAmountCurrency($item->getPrice(), $item->getQuote()->getBaseCurrencyCode());
+            return new AdyenAmountCurrency(
+                $item->getBasePrice(),
+                $item->getQuote()->getBaseCurrencyCode(),
+                $item->getBaseDiscountAmount(),
+                ($item->getTaxPercent() / 100) * $item->$item->getBasePrice()
+            );
         }
-        return new AdyenAmountCurrency($item->getPrice(), $item->getQuote()->getQuoteCurrencyCode());
+        return new AdyenAmountCurrency(
+            $item->getRowTotal() / $item->getQty(),
+            $item->getQuote()->getQuoteCurrencyCode(),
+            $item->getDiscountAmount(),
+            ($item->getTaxPercent() / 100) * ($item->getRowTotal() / $item->getQty())
+        );
     }
 
     public function getQuoteAmountCurrency(Quote $quote)
