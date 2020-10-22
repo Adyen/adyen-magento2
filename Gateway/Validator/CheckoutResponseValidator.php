@@ -67,9 +67,10 @@ class CheckoutResponseValidator extends AbstractValidator
         $payment->setAdditionalInformation('3dActive', false);
         $isValid = true;
         $errorMessages = [];
+        $resultCode = $response['resultCode'];
         // validate result
-        if (!empty($response['resultCode'])) {
-            $payment->setAdditionalInformation('resultCode', $response['resultCode']);
+        if (!empty($resultCode)) {
+            $payment->setAdditionalInformation('resultCode', $resultCode);
 
             if (!empty($response['action'])) {
                 $payment->setAdditionalInformation('action', $response['action']);
@@ -87,7 +88,7 @@ class CheckoutResponseValidator extends AbstractValidator
                 $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
             }
 
-            switch ($response['resultCode']) {
+            switch ($resultCode) {
                 case "Authorised":
                 case "Received":
                     // TODO refactor since the full additionalData is stored in additionalInformation already
