@@ -155,16 +155,10 @@ class Redirect extends \Magento\Framework\App\Action\Action
         if ($active && $success != true) {
             $this->_adyenLogger->addAdyenResult("3D secure is active");
 
-            // check if the GET request contains the required 3DS params
-            if ($this->getRequest()->getParam('PaRes') && $this->getRequest()->getParam('MD')) {
+            // check if  it is already processed
+            if ($this->getRequest()->isPost()) {
                 $this->_adyenLogger->addAdyenResult("Process 3D secure payment");
-                $requestMD = $this->getRequest()->getParam('MD');
-                $requestPaRes = $this->getRequest()->getParam('PaRes');
-
-                //Reset the payment's additional info to the new MD and PaRes
-                $order->getPayment()->setAdditionalInformation('md', $requestMD);
-                $order->getPayment()->setAdditionalInformation('paRequest', $requestPaRes);
-
+                $requestPaRes = $this->getRequest()->getPost('PaRes');
                 $order->getPayment()->setAdditionalInformation('paResponse', $requestPaRes);
 
                 try {
@@ -219,7 +213,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
                             $this->_adyenLogger->error((string)$e->getMessage());
                         }
                     }
-
                     $this->_orderRepository->save($order);
 
                     $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
@@ -232,7 +225,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
                     */
                     $order->addStatusHistoryComment(
                         __(
-                            '3D-secure validation was unsuccessful. This order will be cancelled when the related 
+                            '3D-secure validation was unsuccessful. This order will be cancelled when the related
                                 notification has been processed.'
                         )
                     )->save();
@@ -251,12 +244,12 @@ class Redirect extends \Magento\Framework\App\Action\Action
                 $this->_adyenLogger->addAdyenResult("Customer was redirected to bank for 3D-secure validation.");
                 $order->addStatusHistoryComment(
                     __(
-                        'Customer was redirected to bank for 3D-secure validation. Once the shopper authenticated, 
-                        the order status will be updated accordingly. 
-                        <br />Make sure that your notifications are being processed! 
-                        <br />If the order is stuck on this status, the shopper abandoned the session. 
-                        The payment can be seen as unsuccessful. 
-                        <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. 
+                        'Customer was redirected to bank for 3D-secure validation. Once the shopper authenticated,
+                        the order status will be updated accordingly.
+                        <br />Make sure that your notifications are being processed!
+                        <br />If the order is stuck on this status, the shopper abandoned the session.
+                        The payment can be seen as unsuccessful.
+                        <br />The order can be automatically cancelled based on the OFFER_CLOSED notification.
                         Please contact Adyen Support to enable this.'
                     )
                 )->save();

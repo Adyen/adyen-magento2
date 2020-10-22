@@ -151,12 +151,10 @@ class CheckoutResponseValidator extends AbstractValidator
                     // If the redirect data is there then the payment is a card payment with 3d secure
                     if (
                         isset($response['redirect']['data']['PaReq']) &&
-                        isset($response['redirect']['data']['MD']) &&
-                        isset($response['redirect']['data']['TermUrl'])
+                        isset($response['redirect']['data']['MD'])
                     ) {
                         $paReq = null;
                         $md = null;
-                        $termUrl = null;
 
                         $payment->setAdditionalInformation('3dActive', true);
 
@@ -168,16 +166,11 @@ class CheckoutResponseValidator extends AbstractValidator
                             $md = $response['redirect']['data']['MD'];
                         }
 
-                        if (!empty($response['redirect']['data']['TermUrl'])) {
-                            $termUrl = $response['redirect']['data']['TermUrl'];
-                        }
-
-                        if ($paReq && $md && $termUrl && $redirectUrl && $paymentData && $redirectMethod) {
+                        if ($paReq && $md && $redirectUrl && $paymentData && $redirectMethod) {
                             $payment->setAdditionalInformation('redirectUrl', $redirectUrl);
                             $payment->setAdditionalInformation('redirectMethod', $redirectMethod);
                             $payment->setAdditionalInformation('paRequest', $paReq);
                             $payment->setAdditionalInformation('md', $md);
-                            $payment->setAdditionalInformation('termUrl', $termUrl);
                             $payment->setAdditionalInformation('paymentData', $paymentData);
                         } else {
                             $isValid = false;
