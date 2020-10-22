@@ -249,18 +249,20 @@ class CheckoutDataBuilder implements BuilderInterface
         foreach ($cart->getAllVisibleItems() as $item) {
             $numberOfItems = (int)$item->getQty();
 
-            // Summarize the discount amount item by item
-            $discountAmount += $item->getDiscountAmount();
-
             $itemAmountCurrency = $this->chargedCurrency->getItemAmountCurrency($item);
+
+            // Summarize the discount amount item by item
+            $discountAmount += $itemAmountCurrency->getDiscountAmount();
 
             $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
                 $itemAmountCurrency->getAmount(),
                 $itemAmountCurrency->getCurrencyCode()
             );
 
-            $taxAmount = $item->getPrice() * ($item->getTaxPercent() / 100);
-            $formattedTaxAmount = $this->adyenHelper->formatAmount($taxAmount, $currency);
+            $formattedTaxAmount = $this->adyenHelper->formatAmount(
+                $itemAmountCurrency->getTaxAmount(),
+                $itemAmountCurrency->getCurrencyCode()
+            );
             $formattedTaxPercentage = $item->getTaxPercent() * 100;
 
             $formFields['lineItems'][] = [
@@ -278,7 +280,7 @@ class CheckoutDataBuilder implements BuilderInterface
         // Discount cost
         if ($discountAmount != 0) {
             $description = __('Discount');
-            $itemAmount = -$this->adyenHelper->formatAmount($discountAmount, $currency);
+            $itemAmount = -$this->adyenHelper->formatAmount($discountAmount, $itemAmountCurrency->getCurrencyCode());
             $itemVatAmount = "0";
             $itemVatPercentage = "0";
             $numberOfItems = 1;
