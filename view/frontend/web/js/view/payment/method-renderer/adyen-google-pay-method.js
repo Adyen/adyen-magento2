@@ -34,7 +34,6 @@ define(
       'Magento_Checkout/js/model/full-screen-loader',
       'mage/url',
       'Magento_Vault/js/view/payment/vault-enabler',
-      'adyenCheckout',
       'Adyen_Payment/js/bundle',
     ],
     function(
@@ -48,16 +47,9 @@ define(
         fullScreenLoader,
         url,
         VaultEnabler,
-        AdyenCheckout,
-        AdyenComponent,
+        AdyenComponent
     ) {
       'use strict';
-
-      /**
-       * Shareble adyen checkout component
-       * @type {AdyenCheckout}
-       */
-      var checkoutComponent;
 
       return Component.extend({
         self: this,
@@ -90,8 +82,8 @@ define(
             'googlePayAllowed',
           ]);
           return this;
-        }, initialize: function() {
-          var self = this;
+        },
+        initialize: function() {
           this.additionalValidators = additionalValidators;
           this.vaultEnabler = new VaultEnabler();
           this.vaultEnabler.setPaymentCode(this.getVaultCode());
@@ -125,8 +117,7 @@ define(
             },
 
             // Payment
-            amount: self.formatAmount(quote.totals().grand_total,
-                self.getFormat()),
+            amount: self.formatAmount(quote.totals().grand_total, self.getFormat()),
             currency: quote.totals().quote_currency_code,
             totalPriceStatus: 'FINAL',
 
@@ -154,21 +145,19 @@ define(
             buttonType: 'long', // long/short
             showButton: true, // show or hide the Google Pay button
           });
-          var promise = googlepay.isAvailable();
-          promise.then(function(success) {
+          googlepay.isAvailable().then(function() {
             self.googlePayAllowed(true);
             googlepay.mount(self.googlePayNode);
-            $(self.googlePayNode).find('button').prop('disabled', true);
+            self.googlePayNode.addEventListener('click', function () {
+                self.validate();
+            });
           }, function(error) {
             console.log(error);
             self.googlePayAllowed(false);
           });
         },
         isGooglePayAllowed: function() {
-          if (this.googlePayAllowed()) {
-            return true;
-          }
-          return false;
+          return !!this.googlePayAllowed();
         },
         getMerchantAccount: function() {
           return window.checkoutConfig.payment.adyenGooglePay.merchantAccount;
@@ -211,12 +200,12 @@ define(
         },
             /**
              * Return the formatted currency. Adyen accepts the currency in multiple formats.
-             * @param $amount
-             * @param $currency
+             * @param amount
+             * @param format
              * @return string
              */
             formatAmount: function (amount, format) {
-                return Math.round(amount * (Math.pow(10, format)))
+                return Math.round(amount * (Math.pow(10, format))).toString();
             },
             isVaultEnabled: function () {
                 return this.vaultEnabler.isVaultEnabled();
@@ -230,8 +219,8 @@ define(
             getCheckoutEnvironment: function () {
                 return window.checkoutConfig.payment.adyenGooglePay.checkoutEnvironment;
             },
-            onPaymentMethodContentChange: function (data, event) {
-                $(this.googlePayNode).find('button').prop('disabled', !this.validate());
+            onPaymentMethodContentChange: function () {
+                $(this.googlePayNode).toggleClass('disabled', !this.validate());
             }
         });
     }
