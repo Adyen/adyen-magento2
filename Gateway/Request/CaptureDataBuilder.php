@@ -70,7 +70,7 @@ class CaptureDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
 
         $pspReference = $payment->getCcTransId();
-        $currency = $this->chargedCurrency->getOrderCurrencyCode($payment->getOrder());
+        $currency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder())->getCurrencyCode();
 
         $amount = $this->adyenHelper->formatAmount($amount, $currency);
 
@@ -103,7 +103,7 @@ class CaptureDataBuilder implements BuilderInterface
     {
         $formFields = [];
         $count = 0;
-        $currency = $this->chargedCurrency->getOrderCurrencyCode($payment->getOrder());
+        $currency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder())->getCurrencyCode();
 
         $invoices = $payment->getOrder()->getInvoiceCollection();
 
