@@ -45,7 +45,7 @@ class TransparentSessionChecker
     }
 
     /**
-     * Prevents session starting while instantiating PayPal transparent redirect controller.
+     * Prevents session starting while instantiating Adyen transparent redirect controller.
      *
      * @param SessionStartChecker $subject
      * @param bool $result
