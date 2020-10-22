@@ -30,6 +30,10 @@ use Magento\Store\Model\Store;
 
 class ChargedCurrency
 {
+    /**
+     * @var string
+     * Charged currency value when Global/Website is selected
+     */
     const BASE = "base";
 
     /**
@@ -43,6 +47,10 @@ class ChargedCurrency
         $this->config = $config;
     }
 
+    /**
+     * @param Order $order
+     * @return AdyenAmountCurrency
+     */
     public function getOrderAmountCurrency(Order $order)
     {
         $chargedCurrency = $this->config->getChargedCurrency($order->getStoreId());
@@ -52,6 +60,10 @@ class ChargedCurrency
         return new AdyenAmountCurrency($order->getGrandTotal(), $order->getOrderCurrencyCode());
     }
 
+    /**
+     * @param Quote\Item $item
+     * @return AdyenAmountCurrency
+     */
     public function getItemAmountCurrency(Quote\Item $item)
     {
         $chargedCurrency = $this->config->getChargedCurrency($item->getStoreId());
@@ -71,6 +83,10 @@ class ChargedCurrency
         );
     }
 
+    /**
+     * @param Quote $quote
+     * @return AdyenAmountCurrency
+     */
     public function getQuoteAmountCurrency(Quote $quote)
     {
         $chargedCurrency = $this->config->getChargedCurrency($quote->getStoreId());
@@ -80,6 +96,10 @@ class ChargedCurrency
         return new AdyenAmountCurrency($quote->getGrandTotal(), $quote->getQuoteCurrencyCode());
     }
 
+    /**
+     * @param Store $store
+     * @return string|null
+     */
     public function getStoreAmountCurrency(Store $store)
     {
         $chargedCurrency = $this->config->getChargedCurrency($store->getStoreId());
@@ -89,6 +109,10 @@ class ChargedCurrency
         return $store->getCurrentCurrencyCode();
     }
 
+    /**
+     * @param Order $order
+     * @return string|null
+     */
     public function getRefundCurrencyCode(Order $order)
     {
         $chargedCurrency = $order->getAdyenChargedCurrency();
