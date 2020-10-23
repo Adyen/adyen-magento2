@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -16,15 +15,24 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
-    <container name="root">
-        <block class="Adyen\Payment\Block\Redirect\Redirect" name="adyen-redirect-form"
-               template="redirect/redirect.phtml" cacheable="false"/>
-    </container>
-</layout>
+
+/** @var Adyen\Payment\Block\Transparent\Redirect $block */
+$params = $block->getPostParams();
+$redirectUrl = $block->getRedirectUrl();
+?>
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head><title></title></head>
+<body onload="document.forms['proxy_form'].submit()">
+<form id="proxy_form" action="<?= $block->escapeUrl($redirectUrl) ?>"
+      method="POST" >
+    <?php foreach ($params as $name => $value):?>
+        <input value="<?= $block->escapeHtmlAttr($value) ?>" name="<?= $block->escapeHtmlAttr($name) ?>" type="hidden"/>
+    <?php endforeach?>
+</body>
+</html>
