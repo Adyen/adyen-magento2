@@ -560,7 +560,6 @@
                 <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CcAuthorizationDataBuilder</item>
                 <item name="vault" xsi:type="string">Adyen\Payment\Gateway\Request\VaultDataBuilder</item>
                 <item name="threeds2" xsi:type="string">Adyen\Payment\Gateway\Request\ThreeDS2DataBuilder</item>
-                <item name="redirect" xsi:type="string">Adyen\Payment\Gateway\Request\RedirectDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1028,7 +1027,9 @@
         <plugin name="GuestAdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\GuestPaymentInformationResetOrderId"
                 sortOrder="10"/>
     </type>
-
+    <type name="Magento\Framework\Session\SessionStartChecker">
+        <plugin name="AdyenTransparentSessionChecker" type="Adyen\Payment\Plugin\TransparentSessionChecker" sortOrder="10"/>
+    </type>
     <!--Notifications overview-->
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
