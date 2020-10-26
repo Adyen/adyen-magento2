@@ -328,6 +328,7 @@ class Requests extends AbstractHelper
     /**
      * @param array $request
      * @return array
+     * @deprecated
      */
     public function buildRedirectData($storeId, $request = [])
     {
