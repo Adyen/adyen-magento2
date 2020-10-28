@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -28,7 +28,6 @@ use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 use \Adyen\Service\Validator\CheckoutStateDataValidator;
 use \Adyen\Service\Validator\DataArrayValidator;
-
 
 class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
 {
@@ -59,13 +58,11 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     /**
      * AdyenCcDataAssignObserver constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param CheckoutStateDataValidator $checkoutStateDataValidator
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
         CheckoutStateDataValidator $checkoutStateDataValidator
     ) {
-        $this->adyenHelper = $adyenHelper;
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
     }
 
