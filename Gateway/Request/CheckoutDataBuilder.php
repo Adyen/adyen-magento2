@@ -85,17 +85,6 @@ class CheckoutDataBuilder implements BuilderInterface
         // do not send email
         $order->setCanSendNewEmailFlag(false);
 
-        $requestBodyPaymentMethod['type'] = $payment->getAdditionalInformation(
-            AdyenHppDataAssignObserver::BRAND_CODE
-        );
-
-        // Additional data for payment methods with issuer list
-        if ($payment->getAdditionalInformation(AdyenHppDataAssignObserver::ISSUER_ID)) {
-            $requestBodyPaymentMethod['issuer'] = $payment->getAdditionalInformation(
-                AdyenHppDataAssignObserver::ISSUER_ID
-            );
-        }
-
         $requestBody['returnUrl'] = $this->storeManager->getStore()->getBaseUrl(
                 \Magento\Framework\UrlInterface::URL_TYPE_LINK
             ) . 'adyen/process/result';
@@ -111,46 +100,6 @@ class CheckoutDataBuilder implements BuilderInterface
 
         if ($payment->getAdditionalInformation("bankAccountOwnerName")) {
             $requestBody['bankAccount']['ownerName'] = $payment->getAdditionalInformation("bankAccountOwnerName");
-        }
-
-        // Additional data for open invoice payment
-        if ($payment->getAdditionalInformation("gender")) {
-            $order->setCustomerGender(
-                $this->gender->getMagentoGenderFromAdyenGender(
-                    $payment->getAdditionalInformation("gender")
-                )
-            );
-            $requestBodyPaymentMethod['personalDetails']['gender'] = $payment->getAdditionalInformation("gender");
-        }
-
-        if ($payment->getAdditionalInformation("dob")) {
-            $order->setCustomerDob($payment->getAdditionalInformation("dob"));
-
-            $requestBodyPaymentMethod['personalDetails']['dateOfBirth'] = $this->adyenHelper->formatDate(
-                $payment->getAdditionalInformation("dob"),
-                'Y-m-d'
-            );
-        }
-
-        if ($payment->getAdditionalInformation("telephone")) {
-            $order->getBillingAddress()->setTelephone($payment->getAdditionalInformation("telephone"));
-            $requestBodyPaymentMethod['personalDetails']['telephoneNumber'] = $payment->getAdditionalInformation(
-                "telephone"
-            );
-        }
-
-        if ($payment->getAdditionalInformation("ssn")) {
-            $requestBodyPaymentMethod['personalDetails']['socialSecurityNumber'] =
-                $payment->getAdditionalInformation("ssn");
-        }
-
-        // Additional data for sepa direct debit
-        if ($payment->getAdditionalInformation("ownerName")) {
-            $requestBodyPaymentMethod['sepa.ownerName'] = $payment->getAdditionalInformation("ownerName");
-        }
-
-        if ($payment->getAdditionalInformation("ibanNumber")) {
-            $requestBodyPaymentMethod['sepa.ibanNumber'] = $payment->getAdditionalInformation("ibanNumber");
         }
 
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
@@ -241,7 +190,10 @@ class CheckoutDataBuilder implements BuilderInterface
         $requestBody['origin'] = $this->adyenHelper->getOrigin($storeId);
         $requestBody['channel'] = 'web';
 
-        $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
+        if (isset($requestBodyPaymentMethod)) {
+            $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
+        }
+
         $request['body'] = $requestBody;
 
         return $request;
