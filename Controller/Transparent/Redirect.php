@@ -23,14 +23,11 @@
 
 namespace Adyen\Payment\Controller\Transparent;
 use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\App\CsrfAwareActionInterface;
-use Magento\Framework\App\Request\InvalidRequestException;
-use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\Request\Http as Http;
 use Magento\Framework\View\Result\LayoutFactory;
 use Magento\Framework\App\Action\Context;
 
-class Redirect extends Action implements CsrfAwareActionInterface, HttpPostActionInterface
+class Redirect extends Action
 {
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
@@ -50,27 +47,18 @@ class Redirect extends Action implements CsrfAwareActionInterface, HttpPostActio
     public function __construct(
         Context $context,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        LayoutFactory $resultLayoutFactory)
-    {
+        LayoutFactory $resultLayoutFactory
+    ) {
         $this->adyenLogger = $adyenLogger;
         $this->resultLayoutFactory = $resultLayoutFactory;
         parent::__construct($context);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function validateForCsrf(RequestInterface $request): ?bool
-    {
-        return true;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
-    {
-        return null;
+        if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
+            $request = $this->getRequest();
+            if ($request instanceof Http && $request->isPost()) {
+                $request->setParam('isAjax', true);
+                $request->getHeaders()->addHeaderLine('X_REQUESTED_WITH', 'XMLHttpRequest');
+            }
+        }
     }
 
     /**
