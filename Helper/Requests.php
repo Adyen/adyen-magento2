@@ -103,7 +103,7 @@ class Requests extends AbstractHelper
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
         }
-        elseif ($this->adyenHelper->isGuestTokenizationEnabled($storeId)){
+        else {
             $uuid = Uuid::generateV4();
             $guestCustomerId =  $payment->getOrder()->getIncrementId() . $uuid;
             $request['shopperReference'] = $guestCustomerId;
