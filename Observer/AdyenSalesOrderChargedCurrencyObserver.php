@@ -24,22 +24,22 @@
 
 namespace Adyen\Payment\Observer;
 
-use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Adyen\Payment\Helper\Config;
 
 class AdyenSalesOrderChargedCurrencyObserver implements ObserverInterface
 {
 
     /**
-     * @var ChargedCurrency $chargedCurrency
+     * @var Config $config
      */
-    private $chargedCurrency;
+    private $config;
 
     public function __construct(
-        ChargedCurrency $chargedCurrency
+        Config $config
     ) {
-        $this->chargedCurrency = $chargedCurrency;
+        $this->config = $config;
     }
 
     public function execute(Observer $observer)
@@ -48,7 +48,7 @@ class AdyenSalesOrderChargedCurrencyObserver implements ObserverInterface
         $order = $observer->getEvent()->getOrder();
         $paymentMethod = $order->getPayment()->getMethod();
         if (strpos($paymentMethod, 'adyen_') !== false) {
-            $order->setAdyenChargedCurrency($this->chargedCurrency->getOrderAmountCurrency($order)->getCurrencyCode());
+            $order->setAdyenChargedCurrency($this->config->getChargedCurrency($order->getStoreId()));
         }
     }
 }
