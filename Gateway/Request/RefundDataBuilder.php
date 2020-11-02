@@ -78,12 +78,14 @@ class RefundDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
+        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject); //TODO which one of these to use?
 
         $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
         $pspReference = $payment->getCcTransId();
-        $currency = $this->chargedCurrency->getRefundCurrencyCode($payment->getOrder());
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder(), false);
+        $currency = $orderAmountCurrency->getCurrencyCode();
+        $amount = $orderAmountCurrency->getAmount(); //TODO which one of these to use?
         $storeId = $order->getStoreId();
         $method = $payment->getMethod();
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
@@ -194,7 +196,9 @@ class RefundDataBuilder implements BuilderInterface
     {
         $formFields = [];
         $count = 0;
-        $currency = $this->chargedCurrency->getRefundCurrencyCode($payment->getOrder());
+        $currency = $this->chargedCurrency
+            ->getOrderAmountCurrency($payment->getOrder(), false)
+            ->getCurrencyCode();
 
         /**
          * @var \Magento\Sales\Model\Order\Creditmemo $creditMemo
@@ -203,16 +207,18 @@ class RefundDataBuilder implements BuilderInterface
 
         foreach ($creditMemo->getItems() as $refundItem) {
             ++$count;
+            $itemAmountCurrency = $this->chargedCurrency->getCreditMemoItemAmountCurrency($refundItem);
+
             $numberOfItems = (int)$refundItem->getQty();
 
             $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
                 $formFields,
                 $count,
                 $refundItem->getName(),
-                $refundItem->getPrice(),
+                $itemAmountCurrency->getAmount(),
                 $currency,
-                $refundItem->getTaxAmount(),
-                $refundItem->getPriceInclTax(),
+                $itemAmountCurrency->getTaxAmount(),
+                $itemAmountCurrency->getAmount() + $itemAmountCurrency->getTaxAmount(),
                 $refundItem->getOrderItem()->getTaxPercent(),
                 $numberOfItems,
                 $payment,

@@ -26,7 +26,9 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Invoice;
 use Magento\Store\Model\Store;
+use Magento\Sales\Api\Data\CreditmemoItemInterface;
 
 class ChargedCurrency
 {
@@ -49,38 +51,20 @@ class ChargedCurrency
 
     /**
      * @param Order $order
+     * @param bool $orderPlacement true if fetching the order's data when it is being placed,
+     * false to get the data according to the charged_currency already saved for the order
+     *
      * @return AdyenAmountCurrency
      */
-    public function getOrderAmountCurrency(Order $order)
+    public function getOrderAmountCurrency(Order $order, bool $orderPlacement = true)
     {
-        $chargedCurrency = $this->config->getChargedCurrency($order->getStoreId());
+        $chargedCurrency = $orderPlacement
+            ? $this->config->getChargedCurrency($order->getStoreId())
+            : $order->getAdyenChargedCurrency();
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency($order->getBaseGrandTotal(), $order->getGlobalCurrencyCode());
         }
         return new AdyenAmountCurrency($order->getGrandTotal(), $order->getOrderCurrencyCode());
-    }
-
-    /**
-     * @param Quote\Item $item
-     * @return AdyenAmountCurrency
-     */
-    public function getItemAmountCurrency(Quote\Item $item)
-    {
-        $chargedCurrency = $this->config->getChargedCurrency($item->getStoreId());
-        if ($chargedCurrency == self::BASE) {
-            return new AdyenAmountCurrency(
-                $item->getBasePrice(),
-                $item->getQuote()->getBaseCurrencyCode(),
-                $item->getBaseDiscountAmount(),
-                ($item->getTaxPercent() / 100) * $item->$item->getBasePrice()
-            );
-        }
-        return new AdyenAmountCurrency(
-            $item->getRowTotal() / $item->getQty(),
-            $item->getQuote()->getQuoteCurrencyCode(),
-            $item->getDiscountAmount(),
-            ($item->getTaxPercent() / 100) * ($item->getRowTotal() / $item->getQty())
-        );
     }
 
     /**
@@ -97,28 +81,117 @@ class ChargedCurrency
     }
 
     /**
-     * @param Store $store
-     * @return string|null
+     * @param Quote\Item $item
+     * @return AdyenAmountCurrency
      */
-    public function getStoreAmountCurrency(Store $store)
+    public function getQuoteItemAmountCurrency(Quote\Item $item)
     {
-        $chargedCurrency = $this->config->getChargedCurrency($store->getStoreId());
+        $chargedCurrency = $this->config->getChargedCurrency($item->getStoreId());
         if ($chargedCurrency == self::BASE) {
-            return $store->getBaseCurrencyCode();
+            return new AdyenAmountCurrency(
+                $item->getBasePrice(),
+                $item->getQuote()->getBaseCurrencyCode(),
+                $item->getBaseDiscountAmount(),
+                ($item->getTaxPercent() / 100) * $item->getBasePrice()
+            );
         }
-        return $store->getCurrentCurrencyCode();
+        return new AdyenAmountCurrency(
+            $item->getRowTotal() / $item->getQty(),
+            $item->getQuote()->getQuoteCurrencyCode(),
+            $item->getDiscountAmount(),
+            ($item->getTaxPercent() / 100) * ($item->getRowTotal() / $item->getQty())
+        );
     }
 
     /**
-     * @param Order $order
-     * @return string|null
+     * @param Invoice\Item $item
+     * @return AdyenAmountCurrency
      */
-    public function getRefundCurrencyCode(Order $order)
+    public function getInvoiceItemAmountCurrency(Invoice\Item $item)
     {
-        $chargedCurrency = $order->getAdyenChargedCurrency();
-        if (empty($chargedCurrency)) {
-            return $order->getOrderCurrencyCode();
+        $chargedCurrency = $item->getInvoice()->getOrder()->getAdyenChargedCurrency();
+        if ($chargedCurrency == self::BASE) {
+            return new AdyenAmountCurrency(
+                $item->getBasePrice(),
+                $item->getInvoice()->getBaseCurrencyCode(),
+                null,
+                $item->getBaseTaxAmount()
+            );
         }
-        return $chargedCurrency;
+        return new AdyenAmountCurrency(
+            $item->getPrice(),
+            $item->getInvoice()->getBaseCurrencyCode(),
+            null,
+            $item->getTaxAmount()
+        );
+    }
+
+    /**
+     * @param CreditmemoItemInterface $item
+     * @return AdyenAmountCurrency
+     */
+    public function getCreditMemoItemAmountCurrency(CreditmemoItemInterface $item)
+    {
+        $chargedCurrency = $item->getCreditMemo()->getInvoice()->getOrder()->getAdyenChargedCurrency();
+        if ($chargedCurrency == self::BASE) {
+            return new AdyenAmountCurrency(
+                $item->getBasePrice(),
+                $item->getInvoice()->getBaseCurrencyCode(),
+                null,
+                $item->getBaseTaxAmount()
+            );
+        }
+        return new AdyenAmountCurrency(
+            $item->getPrice(),
+            $item->getCreditMemo()->getInvoice()->getBaseCurrencyCode(),
+            null,
+            $item->getTaxAmount()
+        );
+    }
+
+    /**
+     * @param CreditmemoItemInterface $item
+     * @return AdyenAmountCurrency
+     */
+    public function getQuoteShippingAmountCurrency(Quote $quote)
+    {
+        $chargedCurrency = $this->config->getChargedCurrency($quote->getStoreId());
+        if ($chargedCurrency == self::BASE) {
+            return new AdyenAmountCurrency(
+                $quote->getShippingAddress()->getBaseShippingAmount(),
+                $quote->getBaseCurrencyCode(),
+                $quote->getShippingAddress()->getBaseShippingDiscountAmount(),
+                $quote->getShippingAddress()->getBaseShippingTaxAmount()
+            );
+        }
+        return new AdyenAmountCurrency(
+            $quote->getShippingAddress()->getShippingAmount(),
+            $quote->getCurrencyCode(),
+            $quote->getShippingAddress()->getShippingDiscountAmount(),
+            $quote->getShippingAddress()->getShippingTaxAmount()
+        );
+    }
+
+    /**
+     * @param \Magento\Sales\Model\Order\Invoice $invoice
+     * @return AdyenAmountCurrency
+     */
+    public function getInvoiceShippingAmountCurrency(Invoice $invoice)
+    {
+        $chargedCurrency = $invoice->getOrder()->getAdyenChargedCurrency();
+        if ($chargedCurrency == self::BASE) {
+            return new AdyenAmountCurrency(
+                $invoice->getBaseShippingAmount(),
+                $invoice->getBaseCurrencyCode(),
+                null,
+                $invoice->getBaseShippingTaxAmount()
+            );
+        }
+        return new AdyenAmountCurrency(
+            $invoice->getShippingAmount(),
+            $invoice->getOrderCurrencyCode(),
+            null,
+            $invoice->getShippingTaxAmount()
+        );
     }
 }

@@ -65,13 +65,15 @@ class CaptureDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
+        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject); //TODO which one of these to use?
 
         $payment = $paymentDataObject->getPayment();
+        $order = $payment->getOrder();
 
         $pspReference = $payment->getCcTransId();
-        $currency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder())->getCurrencyCode();
-
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
+        $currency = $orderAmountCurrency->getCurrencyCode();
+        $amount = $orderAmountCurrency->getAmount(); //TODO which one of these to use?
         $amount = $this->adyenHelper->formatAmount($amount, $currency);
 
         $modificationAmount = ['currency' => $currency, 'value' => $amount];
@@ -103,27 +105,32 @@ class CaptureDataBuilder implements BuilderInterface
     {
         $formFields = [];
         $count = 0;
-        $currency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder())->getCurrencyCode();
+        $order = $payment->getOrder();
+        $invoices = $order->getInvoiceCollection();
 
-        $invoices = $payment->getOrder()->getInvoiceCollection();
+        $currency = $this->chargedCurrency
+            ->getOrderAmountCurrency($payment->getOrder(), false)
+            ->getCurrencyCode();
 
         // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
         $latestInvoice = $invoices->getLastItem();
 
-        foreach ($latestInvoice->getItems() as $invoiceItem) {            
+        /* @var \Magento\Sales\Model\Order\Invoice\Item $invoiceItem */
+        foreach ($latestInvoice->getItems() as $invoiceItem) {
             if ($invoiceItem->getOrderItem()->getParentItem()) {
                 continue;
             }
             ++$count;
+            $itemAmountCurrency = $this->chargedCurrency->getInvoiceItemAmountCurrency($invoiceItem);
             $numberOfItems = (int)$invoiceItem->getQty();
             $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
                 $formFields,
                 $count,
                 $invoiceItem->getName(),
-                $invoiceItem->getPrice(),
+                $itemAmountCurrency->getAmount(),
                 $currency,
-                $invoiceItem->getTaxAmount(),
-                $invoiceItem->getPriceInclTax(),
+                $itemAmountCurrency->getTaxAmount(),
+                $itemAmountCurrency->getAmount() + $itemAmountCurrency->getTaxAmount(),
                 $invoiceItem->getOrderItem()->getTaxPercent(),
                 $numberOfItems,
                 $payment,
@@ -134,13 +141,14 @@ class CaptureDataBuilder implements BuilderInterface
         // Shipping cost
         if ($latestInvoice->getShippingAmount() > 0) {
             ++$count;
+            $adyenInvoiceShippingAmount = $this->chargedCurrency->getInvoiceShippingAmountCurrency($latestInvoice);
             $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
                 $formFields,
                 $count,
-                $payment->getOrder(),
-                $latestInvoice->getShippingAmount(),
-                $latestInvoice->getShippingTaxAmount(),
-                $currency,
+                $order,
+                $adyenInvoiceShippingAmount->getAmount(),
+                $adyenInvoiceShippingAmount->getTaxAmount(),
+                $adyenInvoiceShippingAmount->getCurrencyCode(),
                 $payment
             );
         }

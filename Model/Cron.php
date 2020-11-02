@@ -30,6 +30,7 @@ use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Webapi\Exception;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Framework\App\Area;
@@ -159,6 +160,16 @@ class Cron
      * @var
      */
     protected $_value;
+
+    /**
+     * @var
+     */
+    protected $orderAmount;
+
+    /**
+     * @var
+     */
+    protected $orderCurrency;
 
     /**
      * @var
@@ -692,6 +703,20 @@ class Cron
                 $this->ratepayDescriptor = $ratepayDescriptor;
             }
         }
+
+        $this->declareOrderVariables();
+    }
+
+    /**
+     * Declare private variables with order charged amount and currency
+     *
+     * @return void
+     */
+    private function declareOrderVariables()
+    {
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($this->_order, false);
+        $this->orderAmount = $orderAmountCurrency->getAmount();
+        $this->orderCurrency = $orderAmountCurrency->getCurrencyCode();
     }
 
     /**
@@ -721,11 +746,9 @@ class Cron
         $success = (!empty($this->_reason)) ? "$successResult <br />reason:$this->_reason" : $successResult;
 
         if ($this->_eventCode == Notification::REFUND || $this->_eventCode == Notification::CAPTURE) {
-            $currency = $this->chargedCurrency->getOrderCurrencyCode($this->_order);
-
             // check if it is a full or partial refund
             $amount = $this->_value;
-            $orderAmount = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $currency);
+            $orderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
 
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 'amount notification:' . $amount . ' amount order:' . $orderAmount
@@ -1380,9 +1403,8 @@ class Cron
                 ->getFirstItem();
 
             if ($orderPayment->getId() > 0) {
-                $currency = $this->chargedCurrency->getOrderCurrencyCode($this->_order);
-                $amountRefunded = $amountRefunded = $orderPayment->getTotalRefunded() +
-                    $this->_adyenHelper->originalAmount($this->_value, $currency);
+                $amountRefunded = $orderPayment->getTotalRefunded() +
+                    $this->_adyenHelper->originalAmount($this->_value, $this->orderCurrency);
                 $orderPayment->setUpdatedAt(new \DateTime());
                 $orderPayment->setTotalRefunded($amountRefunded);
                 $orderPayment->save();
@@ -1403,8 +1425,7 @@ class Cron
             // refund is done through adyen backoffice so create a credit memo
             $order = $this->_order;
             if ($order->canCreditmemo()) {
-                $currency = $this->chargedCurrency->getOrderCurrencyCode($this->_order);
-                $amount = $this->_adyenHelper->originalAmount($this->_value, $currency);
+                $amount = $this->_adyenHelper->originalAmount($this->_value, $this->orderCurrency);
                 $order->getPayment()->registerRefundNotification($amount);
 
                 $this->_adyenLogger->addAdyenNotificationCronjob('Created credit memo for order');
@@ -1578,8 +1599,7 @@ class Cron
         }
 
         // validate if amount is total amount
-        $orderCurrencyCode = $this->chargedCurrency->getOrderCurrencyCode($this->_order);
-        $amount = $this->_adyenHelper->originalAmount($this->_value, $orderCurrencyCode);
+        $amount = $this->_adyenHelper->originalAmount($this->_value, $this->orderCurrency);
 
         try {
             // add to order payment
@@ -1603,7 +1623,7 @@ class Cron
             );
         }
 
-        if ($this->_isTotalAmount($paymentObj->getEntityId(), $orderCurrencyCode)) {
+        if ($this->_isTotalAmount($paymentObj->getEntityId(), $this->orderCurrency)) {
             $this->_createInvoice();
         } else {
             $this->_adyenLogger->addAdyenNotificationCronjob(
@@ -1840,7 +1860,10 @@ class Cron
         );
 
         // get total amount of the order
-        $grandTotal = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $orderCurrencyCode);
+        $grandTotal = (int)$this->_adyenHelper->formatAmount(
+            $this->orderAmount,
+            $orderCurrencyCode
+        );
 
         // check if total amount of the order is authorised
         $res = $this->_adyenOrderPaymentCollectionFactory
@@ -1964,9 +1987,8 @@ class Cron
         $this->_adyenLogger->addAdyenNotificationCronjob('Set order to authorised');
 
         // if full amount is captured create invoice
-        $currency = $this->chargedCurrency->getOrderCurrencyCode($this->_order);
         $amount = $this->_value;
-        $orderAmount = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $currency);
+        $orderAmount = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $this->orderCurrency);
 
         // create invoice for the capture notification if you are on manual capture
         if ($createInvoice == true && $amount == $orderAmount) {

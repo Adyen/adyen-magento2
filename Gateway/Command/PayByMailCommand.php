@@ -134,7 +134,6 @@ class PayByMailCommand implements CommandInterface
         $order = $payment->getOrder();
 
         $realOrderId = $order->getRealOrderId();
-        $orderCurrencyCode = $this->chargedCurrency->getOrderCurrencyCode($order);
         $storeId = $order->getStore()->getId();
 
         // check if paybymail has it's own skin
