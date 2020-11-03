@@ -96,7 +96,6 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
             'payment' => [
                 self::CODE => [
                     'isActive' => true,
-                    'vaultCode' => self::GOOGLE_PAY_VAULT_CODE,
                     'redirectUrl' => $this->urlBuilder->getUrl(
                         'adyen/process/redirect/',
                         ['_secure' => $this->_getRequest()->isSecure()]
