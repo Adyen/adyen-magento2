@@ -117,7 +117,7 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
                 $token = $additionalInformation['token'];
             }
 
-            return $this->adyenHelper->buildThreeDS2ProcessResponseJson($type, $token);
+            return $this->adyenHelper->buildThreeDSProcessResponseJson($type, $token);
         }
 
         return true;

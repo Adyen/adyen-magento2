@@ -160,9 +160,16 @@ define(
              */
             validateThreeDSOrPlaceOrder: function (responseJSON, orderId) {
                 var self = this;
-                window.location.replace(url.build(
-                    window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
-                ));
+                var response = JSON.parse(responseJSON);
+                var googlepayRedirectUrl = '';
+                if (response.type === 'RedirectShopper') {
+                    googlepayRedirectUrl = window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
+                } else {
+                    window.location.replace(url.build(
+                        googlepayRedirectUrl = window.checkoutConfig.payment[quote.paymentMethod().method].successUrl
+                    ));
+                }
+                window.location.replace(url.build(googlepayRedirectUrl));
             },
             isGooglePayAllowed: function () {
                 if (this.googlePayAllowed()) {
