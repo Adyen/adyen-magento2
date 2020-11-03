@@ -159,7 +159,6 @@ define(
              * @param responseJSON
              */
             validateThreeDSOrPlaceOrder: function (responseJSON, orderId) {
-                var self = this;
                 var response = JSON.parse(responseJSON);
                 var googlepayRedirectUrl = '';
                 if (response.type === 'RedirectShopper') {
