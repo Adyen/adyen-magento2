@@ -25,6 +25,7 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenGooglePayConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 
@@ -101,6 +102,22 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
             ) {
                 return json_encode(['action' => $additionalInformation['action']]);
             }
+        }
+        /**
+         * If payment method is google pay
+         */
+        if ($payment->getMethod() === AdyenGooglePayConfigProvider::CODE) {
+            $additionalInformation = $payment->getAdditionalInformation();
+            $type = null;
+            if (!empty($additionalInformation['threeDSType'])) {
+                $type = $additionalInformation['threeDSType'];
+            }
+            $token = null;
+            if (!empty($additionalInformation['token'])) {
+                $token = $additionalInformation['token'];
+            }
+
+            return $this->adyenHelper->buildThreeDS2ProcessResponseJson($type, $token);
         }
 
         return true;
