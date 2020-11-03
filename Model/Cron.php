@@ -748,13 +748,13 @@ class Cron
         if ($this->_eventCode == Notification::REFUND || $this->_eventCode == Notification::CAPTURE) {
             // check if it is a full or partial refund
             $amount = $this->_value;
-            $orderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
+            $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
 
             $this->_adyenLogger->addAdyenNotificationCronjob(
-                'amount notification:' . $amount . ' amount order:' . $orderAmount
+                'amount notification:' . $amount . ' amount order:' . $formattedOrderAmount
             );
 
-            if ($amount == $orderAmount) {
+            if ($amount == $formattedOrderAmount) {
                 $this->_order->setData(
                     'adyen_notification_event_code',
                     $this->_eventCode . " : " . strtoupper($successResult)
@@ -1872,16 +1872,16 @@ class Cron
 
         if ($res && isset($res[0]) && is_array($res[0])) {
             $amount = $res[0]['total_amount'];
-            $orderAmount = $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode);
+            $formattedOrderAmount = $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode);
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 sprintf(
                     'The grandtotal amount is %s and the total order amount that is authorised is: %s',
                     $grandTotal,
-                    $orderAmount
+                    $formattedOrderAmount
                 )
             );
 
-            if ($grandTotal == $orderAmount) {
+            if ($grandTotal == $formattedOrderAmount) {
                 $this->_adyenLogger->addAdyenNotificationCronjob('AUTHORISATION has the full amount');
                 return true;
             } else {
@@ -1988,12 +1988,12 @@ class Cron
 
         // if full amount is captured create invoice
         $amount = $this->_value;
-        $orderAmount = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $this->orderCurrency);
+        $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $this->orderCurrency);
 
         // create invoice for the capture notification if you are on manual capture
-        if ($createInvoice == true && $amount == $orderAmount) {
+        if ($createInvoice == true && $amount == $formattedOrderAmount) {
             $this->_adyenLogger->addAdyenNotificationCronjob(
-                'amount notification:' . $amount . ' amount order:' . $orderAmount
+                'amount notification:' . $amount . ' amount order:' . $formattedOrderAmount
             );
             $this->_createInvoice();
         }
