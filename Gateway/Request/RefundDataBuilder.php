@@ -78,14 +78,12 @@ class RefundDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject); //TODO which one of these to use?
-
         $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
         $pspReference = $payment->getCcTransId();
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder(), false);
         $currency = $orderAmountCurrency->getCurrencyCode();
-        $amount = $orderAmountCurrency->getAmount(); //TODO which one of these to use?
+        $amount = $orderAmountCurrency->getAmount();
         $storeId = $order->getStoreId();
         $method = $payment->getMethod();
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);

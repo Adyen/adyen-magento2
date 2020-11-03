@@ -65,15 +65,12 @@ class CaptureDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject); //TODO which one of these to use?
-
         $payment = $paymentDataObject->getPayment();
         $order = $payment->getOrder();
-
         $pspReference = $payment->getCcTransId();
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
         $currency = $orderAmountCurrency->getCurrencyCode();
-        $amount = $orderAmountCurrency->getAmount(); //TODO which one of these to use?
+        $amount = $orderAmountCurrency->getAmount();
         $amount = $this->adyenHelper->formatAmount($amount, $currency);
 
         $modificationAmount = ['currency' => $currency, 'value' => $amount];
