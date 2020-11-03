@@ -33,12 +33,15 @@ class AdyenAmountCurrency
 
     protected $currencyCode;
 
-    public function __construct($amount, $currencyCode, $discountAmount = 0, $taxAmount = 0)
+    protected $amountDue;
+
+    public function __construct($amount, $currencyCode, $discountAmount = 0, $taxAmount = 0, $amountDue = 0)
     {
         $this->amount = $amount;
         $this->currencyCode = $currencyCode;
         $this->discountAmount = $discountAmount;
         $this->taxAmount = $taxAmount;
+        $this->amountDue = $amountDue;
     }
 
     public function getAmount()
@@ -59,5 +62,10 @@ class AdyenAmountCurrency
     public function getTaxAmount()
     {
         return $this->taxAmount;
+    }
+
+    public function getAmountDue()
+    {
+        return $this->amountDue;
     }
 }

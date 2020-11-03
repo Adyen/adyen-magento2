@@ -62,9 +62,21 @@ class ChargedCurrency
             ? $this->config->getChargedCurrency($order->getStoreId())
             : $order->getAdyenChargedCurrency();
         if ($chargedCurrency == self::BASE) {
-            return new AdyenAmountCurrency($order->getBaseGrandTotal(), $order->getGlobalCurrencyCode());
+            return new AdyenAmountCurrency(
+                $order->getBaseGrandTotal(),
+                $order->getGlobalCurrencyCode(),
+                null,
+                null,
+                $order->getBaseTotalDue()
+            );
         }
-        return new AdyenAmountCurrency($order->getGrandTotal(), $order->getOrderCurrencyCode());
+        return new AdyenAmountCurrency(
+            $order->getGrandTotal(),
+            $order->getOrderCurrencyCode(),
+            null,
+            null,
+            $order->getTotalDue()
+        );
     }
 
     /**
