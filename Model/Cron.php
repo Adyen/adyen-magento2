@@ -1991,7 +1991,7 @@ class Cron
         $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $this->orderCurrency);
 
         // create invoice for the capture notification if you are on manual capture
-        if ($createInvoice == true && $amount == $formattedOrderAmount) {
+        if ($createInvoice && $amount == $formattedOrderAmount) {
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 'amount notification:' . $amount . ' amount order:' . $formattedOrderAmount
             );
