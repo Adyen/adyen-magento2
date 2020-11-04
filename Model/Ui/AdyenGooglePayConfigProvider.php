@@ -97,6 +97,10 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'isActive' => true,
                     'redirectUrl' => $this->urlBuilder->getUrl(
+                        'adyen/process/redirect/',
+                        ['_secure' => $this->_getRequest()->isSecure()]
+                    ),
+                    'successUrl' => $this->urlBuilder->getUrl(
                         'checkout/onepage/success/',
                         ['_secure' => $this->_getRequest()->isSecure()]
                     )
