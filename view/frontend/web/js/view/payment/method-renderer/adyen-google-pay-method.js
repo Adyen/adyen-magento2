@@ -133,7 +133,7 @@ define(
                                     self.afterPlaceOrder();
                                     adyenPaymentService.getOrderPaymentStatus(orderId)
                                         .done(function (responseJSON) {
-                                            self.validateThreeDSOrPlaceOrder(responseJSON, orderId)
+                                            self.validateThreeDSOrPlaceOrder(responseJSON)
                                         });
                                 }
                             );
@@ -158,7 +158,7 @@ define(
              * Based on the response we can start a 3DS2 validation or place the order
              * @param responseJSON
              */
-            validateThreeDSOrPlaceOrder: function (responseJSON, orderId) {
+            validateThreeDSOrPlaceOrder: function (responseJSON) {
                 var response = JSON.parse(responseJSON);
                 var googlepayRedirectUrl = '';
                 if (response && response.type === 'RedirectShopper') {
