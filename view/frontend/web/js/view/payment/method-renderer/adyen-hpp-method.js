@@ -67,7 +67,6 @@ define(
         var popupModal;
         var brandCode = ko.observable(null);
         var paymentMethod = ko.observable(null);
-        var components = {};
 
         return Component.extend({
             self: this,

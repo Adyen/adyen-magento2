@@ -180,7 +180,7 @@ define(
                 var self = this;
 
                 try {
-                    var component = self.checkoutComponent.createFromAction(
+                    self.checkoutComponent.createFromAction(
                         action).mount('#cc_actionContainer');
                 } catch (e) {
                     console.log(e);
@@ -312,8 +312,8 @@ define(
                     done(function(responseJSON) {
                         self.handleAdyenResult(responseJSON, self.orderId);
                     }).
-                    fail(function(result) {
-                        errorProcessor.process(result, self.messageContainer);
+                    fail(function(response) {
+                        errorProcessor.process(response, self.messageContainer);
                         self.isPlaceOrderActionAllowed(true);
                         fullScreenLoader.stopLoader();
                     });
