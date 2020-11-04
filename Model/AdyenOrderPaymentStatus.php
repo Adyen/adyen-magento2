@@ -108,16 +108,9 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
          */
         if ($payment->getMethod() === AdyenGooglePayConfigProvider::CODE) {
             $additionalInformation = $payment->getAdditionalInformation();
-            $type = null;
             if (!empty($additionalInformation['threeDSType'])) {
-                $type = $additionalInformation['threeDSType'];
+                return json_encode(['type' => $additionalInformation['threeDSType']]);
             }
-            $token = null;
-            if (!empty($additionalInformation['token'])) {
-                $token = $additionalInformation['token'];
-            }
-
-            return $this->adyenHelper->buildThreeDSProcessResponseJson($type, $token);
         }
 
         return true;

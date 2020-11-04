@@ -1885,25 +1885,6 @@ class Data extends AbstractHelper
 
         return json_encode($response);
     }
-    /**
-     * @param string|null $type
-     * @param string|null $token
-     * @return string
-     */
-    public function buildThreeDSProcessResponseJson($type = null, $token = null)
-    {
-        $response = ['threeDS2' => false];
-
-        if (!empty($type)) {
-            $response['type'] = $type;
-        }
-
-        if ($type && $token) {
-            $response['token'] = $token;
-        }
-
-        return json_encode($response);
-    }
 
     /**
      * @param null|int|string $storeId

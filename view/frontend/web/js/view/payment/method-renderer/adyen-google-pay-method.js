@@ -161,7 +161,7 @@ define(
             validateThreeDSOrPlaceOrder: function (responseJSON, orderId) {
                 var response = JSON.parse(responseJSON);
                 var googlepayRedirectUrl = '';
-                if (response.type === 'RedirectShopper') {
+                if (response && response.type === 'RedirectShopper') {
                     googlepayRedirectUrl = window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
                 } else {
                     window.location.replace(url.build(
