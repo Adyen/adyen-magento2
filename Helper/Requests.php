@@ -358,16 +358,6 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param array $request
-     * @return array
-     * @deprecated
-     */
-    public function buildRedirectData($storeId, $request = [])
-    {
-        return $this->urlBuilder->getUrl('adyen/transparent/redirect');
-    }
-
-    /**
      * @param $request
      * @param $areaCode
      * @param $storeId
