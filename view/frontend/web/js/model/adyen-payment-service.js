@@ -10,6 +10,7 @@ define(
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
         'Adyen_Payment/js/bundle',
+        'ko'
     ],
     function(
         _,
@@ -18,10 +19,11 @@ define(
         urlBuilder,
         storage,
         adyenComponent,
+        ko
     ) {
         'use strict';
         return {
-            paymentMethods: {},
+            paymentMethods: ko.observable({}),
 
             /**
              * Retrieve the list of available payment methods from Adyen
@@ -54,7 +56,7 @@ define(
                 return this.paymentMethods;
             },
             setPaymentMethods: function(paymentMethods) {
-                this.paymentMethods = paymentMethods;
+                this.paymentMethods(paymentMethods);
             },
             getOrderPaymentStatus: function(orderId) {
                 var serviceUrl = urlBuilder.createUrl(

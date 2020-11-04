@@ -71,7 +71,6 @@ define(
 
         return Component.extend({
             self: this,
-            shippingAddressCountryCode: quote.shippingAddress().countryId,
             defaults: {
                 template: 'Adyen_Payment/payment/hpp-form',
                 orderId: 0,
@@ -81,6 +80,7 @@ define(
                 this._super().observe([
                     'brandCode',
                     'paymentMethod',
+                    'adyenPaymentMethods'
                 ]);
                 return this;
             },
@@ -90,8 +90,16 @@ define(
 
                 fullScreenLoader.startLoader();
 
-                // TODO if ratepay component is ready this following block can be removed
-                var paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
+                var paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+
+                paymentMethodsObserver.subscribe(function(paymentMethodsResponse) {
+                    self.loadAdyenPaymentMethods(paymentMethodsResponse);
+                });
+
+                self.loadAdyenPaymentMethods(paymentMethodsObserver());
+            },
+            loadAdyenPaymentMethods: function(paymentMethodsResponse) {
+                var self = this;
 
                 if (!!paymentMethodsResponse) {
                     var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
@@ -101,7 +109,7 @@ define(
                             locale: adyenConfiguration.getLocale(),
                             originKey: adyenConfiguration.getOriginKey(),
                             environment: adyenConfiguration.getCheckoutEnvironment(),
-                            paymentMethodsResponse: paymentMethodsResponse,
+                            paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
                             onAdditionalDetails: this.handleOnAdditionalDetails.bind(
                                 this),
                         },
@@ -128,39 +136,12 @@ define(
                         document.body.appendChild(ratepayScriptTag);
                     }
 
+                    self.adyenPaymentMethods(self.getAdyenHppPaymentMethods(paymentMethodsResponse));
                     fullScreenLoader.stopLoader();
                 }
             },
-            getAdyenHppPaymentMethods: function() {
+            getAdyenHppPaymentMethods: function(paymentMethodsResponse) {
                 var self = this;
-                // TODO use an observer instead
-                var currentShippingAddressCountryCode = quote.shippingAddress().countryId;
-
-                // retrieve new payment methods if country code changed
-                if (self.shippingAddressCountryCode !=
-                    currentShippingAddressCountryCode) {
-                    fullScreenLoader.startLoader();
-                    // TODO outsource it since it's already used in the adyen-method.js
-                    /*adyenPaymentService.getPaymentMethods().
-                        done(function(paymentMethods) {
-                          paymentMethods = JSON.parse(paymentMethods);
-
-                          adyenPaymentService.initCheckoutComponent({
-                            locale: adyenConfiguration.getLocale(),
-                            originKey: adyenConfiguration.getOriginKey(),
-                            environment: adyenConfiguration.getCheckoutEnvironment(),
-                            paymentMethodsResponse: paymentMethods.paymentMethodsResponse,
-                          });
-
-                        }).
-                        fail(function() {
-
-                        });*/
-                    shippingAddressCountryCode = currentShippingAddressCountryCode;
-                    fullScreenLoader.stopLoader();
-                }
-
-                var paymentMethodsResponse = adyenPaymentService.getPaymentMethods();
 
                 var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
 
@@ -278,7 +259,7 @@ define(
                             const showPayButtonPaymentMethods = [
                                 'paypal',
                                 'applePay',
-                                'googlePay',
+                                'googlePay'
                             ];
 
                             if (showPayButtonPaymentMethods.includes(
@@ -340,8 +321,8 @@ define(
                             var configuration = Object.assign(paymentMethod, {
                                 showPayButton: showPayButton,
                                 countryCode: country,
-                                currencyCode: 'EUR', //TODO
-                                amount: 1000, //TODO
+                                currencyCode: quote.totals().quote_currency_code,
+                                amount: quote.totals().grand_total, //TODO minor units and PW-2029 adjustment
                                 data: {
                                     personalDetails: {
                                         firstName: firstName,
@@ -361,7 +342,7 @@ define(
                                 },
                                 onChange: function(state) {
                                     result.isPlaceOrderAllowed(state.isValid);
-                                },
+                                }
                             });
 
                             try {
@@ -499,14 +480,15 @@ define(
                 var self = this;
                 var response = JSON.parse(responseJSON);
 
-                if (!!response.action) {
-                    // render component
-                    self.orderId = orderId;
-                    self.renderActionComponent(response.action);
-                } else {
+                if (!!response.isFinal) {
+                    // Status is final redirect to the redirectUrl
                     $.mage.redirect(
                         window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl,
                     );
+                } else {
+                    // render component
+                    self.orderId = orderId;
+                    self.renderActionComponent(response.action);
                 }
             },
 
