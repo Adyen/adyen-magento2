@@ -78,6 +78,7 @@ class RefundDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        $buildSubjectAmount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
         $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
         $pspReference = $payment->getCcTransId();
@@ -87,7 +88,6 @@ class RefundDataBuilder implements BuilderInterface
         $storeId = $order->getStoreId();
         $method = $payment->getMethod();
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
-        $grandTotal = $payment->getOrder()->getGrandTotal();
 
         // check if it contains a split payment
         $orderPaymentCollection = $this->orderPaymentCollectionFactory
@@ -110,7 +110,7 @@ class RefundDataBuilder implements BuilderInterface
                 $orderPaymentCollection->addPaymentFilterDescending($payment->getId());
             } elseif ($refundStrategy == "3") {
                 // refund based on ratio
-                $ratio = $amount / $grandTotal;
+                $ratio = $buildSubjectAmount / $amount;
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
             }
 

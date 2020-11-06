@@ -133,6 +133,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 
         $quote = $this->checkoutSession->getQuote();
         $payment = $quote->getPayment();
+        $adyenAmountCurrency = $this->chargedCurrency->getQuoteAmountCurrency($quote);
         $payment->setMethod(AdyenPosCloudConfigProvider::CODE);
         $reference = $quote->reserveOrderId()->getReservedOrderId();
 
@@ -171,8 +172,8 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
                                 [
                                     'AmountsReq' =>
                                         [
-                                            'Currency' => $this->chargedCurrency->getQuoteAmountCurrency($quote),
-                                            'RequestedAmount' => doubleval($quote->getGrandTotal())
+                                            'Currency' => $adyenAmountCurrency->getCurrencyCode(),
+                                            'RequestedAmount' => doubleval($adyenAmountCurrency->getAmount())
                                         ]
                                 ]
                         ]

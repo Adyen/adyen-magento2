@@ -1988,7 +1988,7 @@ class Cron
 
         // if full amount is captured create invoice
         $amount = $this->_value;
-        $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $this->orderCurrency);
+        $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
 
         // create invoice for the capture notification if you are on manual capture
         if ($createInvoice && $amount == $formattedOrderAmount) {
