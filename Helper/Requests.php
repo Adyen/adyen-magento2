@@ -358,19 +358,6 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param array $request
-     * @return array
-     * @deprecated
-     */
-    public function buildRedirectData($storeId, $request = [])
-    {
-        $request['redirectFromIssuerMethod'] = 'GET';
-        $request['redirectToIssuerMethod'] = 'POST';
-        $request['returnUrl'] = $this->urlBuilder->getUrl('adyen/process/redirect');
-        return $request;
-    }
-
-    /**
      * @param $request
      * @param $areaCode
      * @param $storeId
