@@ -297,10 +297,11 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         // Shipping cost
-        if ($cart->getShippingAddress()->getShippingAmount() > 0 || $cart->getShippingAddress()->getShippingTaxAmount(
-            ) > 0) {
+        if ($cart->getShippingAddress()->getShippingAmount() > 0 ||
+            $cart->getShippingAddress()->getShippingTaxAmount() > 0
+        ) {
 
-            $shippingAmountCurrency=$this->chargedCurrency->getQuoteShippingAmountCurrency($cart);
+            $shippingAmountCurrency = $this->chargedCurrency->getQuoteShippingAmountCurrency($cart);
 
             $priceExcludingTax = $shippingAmountCurrency->getAmount();
 
