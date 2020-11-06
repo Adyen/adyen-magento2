@@ -164,6 +164,11 @@ class Cron
     /**
      * @var
      */
+    protected $_currency;
+
+    /**
+     * @var
+     */
     protected $orderAmount;
 
     /**
@@ -646,6 +651,7 @@ class Cron
         $this->_paymentMethod = $notification->getPaymentMethod();
         $this->_reason = $notification->getReason();
         $this->_value = $notification->getAmountValue();
+        $this->_currency = $notification->getAmountCurrency();
         $this->_live = $notification->getLive();
 
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
@@ -1404,7 +1410,7 @@ class Cron
 
             if ($orderPayment->getId() > 0) {
                 $amountRefunded = $orderPayment->getTotalRefunded() +
-                    $this->_adyenHelper->originalAmount($this->_value, $this->orderCurrency);
+                    $this->_adyenHelper->originalAmount($this->_value, $this->_currency);
                 $orderPayment->setUpdatedAt(new \DateTime());
                 $orderPayment->setTotalRefunded($amountRefunded);
                 $orderPayment->save();
@@ -1425,7 +1431,7 @@ class Cron
             // refund is done through adyen backoffice so create a credit memo
             $order = $this->_order;
             if ($order->canCreditmemo()) {
-                $amount = $this->_adyenHelper->originalAmount($this->_value, $this->orderCurrency);
+                $amount = $this->_adyenHelper->originalAmount($this->_value, $this->_currency);
                 $order->getPayment()->registerRefundNotification($amount);
 
                 $this->_adyenLogger->addAdyenNotificationCronjob('Created credit memo for order');
@@ -1599,7 +1605,7 @@ class Cron
         }
 
         // validate if amount is total amount
-        $amount = $this->_adyenHelper->originalAmount($this->_value, $this->orderCurrency);
+        $amount = $this->_adyenHelper->originalAmount($this->_value, $this->_currency);
 
         try {
             // add to order payment
@@ -1862,7 +1868,7 @@ class Cron
         // get total amount of the order
         $grandTotal = (int)$this->_adyenHelper->formatAmount(
             $this->orderAmount,
-            $orderCurrencyCode
+            $this->orderCurrency
         );
 
         // check if total amount of the order is authorised
