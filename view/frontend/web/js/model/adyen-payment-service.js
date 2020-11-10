@@ -36,17 +36,10 @@ define(
                 var self = this;
 
                 // retrieve payment methods
-                var serviceUrl,
-                    payload;
-                if (customer.isLoggedIn()) {
-                    serviceUrl = urlBuilder.createUrl('/carts/mine/retrieve-adyen-payment-methods', {});
-                } else {
-                    serviceUrl = urlBuilder.createUrl('/guest-carts/:cartId/retrieve-adyen-payment-methods', {
-                        cartId: quote.getQuoteId()
-                    });
-                }
-
-                payload = {
+                var options = customer.isLoggedIn() ? {} : { cartId: quote.getQuoteId() };
+                var url = customer.isLoggedIn() ? '/carts/mine/retrieve-adyen-payment-methods' : '/guest-carts/:cartId/retrieve-adyen-payment-methods';
+                var serviceUrl = urlBuilder.createUrl(url, options); 
+                var payload = {
                     cartId: quote.getQuoteId(),
                     shippingAddress: quote.shippingAddress()
                 };
