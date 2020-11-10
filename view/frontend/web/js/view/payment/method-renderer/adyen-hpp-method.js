@@ -330,7 +330,7 @@ define(
                      * @returns {*}
                      */
                     result.getIssuers = function () {
-                        return result.hasIssuersAvailable())
+                        return result.hasIssuersAvailable()
                             ? value.details[result.findIssuersProperty()].items
                             : [];
                     };
