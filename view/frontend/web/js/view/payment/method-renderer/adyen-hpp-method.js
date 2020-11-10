@@ -99,7 +99,15 @@ define(
 
                 adyenPaymentService.retrieveAvailablePaymentMethods(function () {
                     var paymentMethods = adyenPaymentService.getAvailablePaymentMethods();
-                    if (JSON.stringify(paymentMethods).indexOf("ratepay") > -1) {
+                    var paymentMethodsStr;
+                    
+                    try {
+                        paymentMethodsStr = JSON.stringify(paymentMethods);
+                    } catch (e) {
+                        // Failed to stringify paymentMethods
+                    }
+                    
+                    if (paymentMethodsStr.indexOf("ratepay") > -1) {
                         var ratePayId = window.checkoutConfig.payment.adyenHpp.ratePayId;
                         var dfValueRatePay = self.getRatePayDeviceIdentToken();
 
@@ -124,7 +132,7 @@ define(
                 var currentShippingAddressCountryCode = quote.shippingAddress().countryId;
 
                 // retrieve new payment methods if country code changed
-                if (shippingAddressCountryCode != currentShippingAddressCountryCode) {
+                if (shippingAddressCountryCode !== currentShippingAddressCountryCode) {
                     fullScreenLoader.startLoader();
                     adyenPaymentService.retrieveAvailablePaymentMethods();
                     shippingAddressCountryCode = currentShippingAddressCountryCode;
@@ -252,33 +260,21 @@ define(
                      * @returns {boolean}
                      */
                     result.isPaymentMethodKlarna = function () {
-                        if (result.getBrandCode() === "klarna") {
-                            return true;
-                        }
-
-                        return false;
+                        return result.getBrandCode() === "klarna";
                     };
                     /**
                      * Checks if payment method is after pay
                      * @returns {boolean}
                      */
                     result.isPaymentMethodAfterPay = function () {
-                        if (result.getBrandCode() === "afterpay_default") {
-                            return true;
-                        }
-
-                        return false;
+                        return result.getBrandCode() === "afterpay_default";
                     };
                     /**
                      * Checks if payment method is after pay touch
                      * @returns {boolean}
                      */
                     result.isPaymentMethodAfterPayTouch = function () {
-                        if (result.getBrandCode() === "afterpaytouch") {
-                            return true;
-                        }
-
-                        return false;
+                        return result.getBrandCode() === "afterpaytouch";
                     };
                     /**
                      * Get personal number (SSN) length based on the buyer's country
@@ -320,65 +316,43 @@ define(
                      * @returns {boolean}
                      */
                     result.hasIssuersProperty = function () {
-                        if (result.findIssuersProperty() !== false) {
-                            return true;
-                        }
-
-                        return false;
+                        return !!result.findIssuersProperty()
                     };
                     /**
                      * Checks if the payment method has issuer(s) available
                      * @returns {boolean}
                      */
                     result.hasIssuersAvailable = function () {
-                        if (result.hasIssuersProperty() && value.details[result.findIssuersProperty()].items.length > 0) {
-                            return true;
-                        }
-
-                        return false;
+                        return result.hasIssuersProperty() && value.details[result.findIssuersProperty()].items.length > 0
                     };
                     /**
                      * Returns the issuers for a payment method
                      * @returns {*}
                      */
                     result.getIssuers = function () {
-                        if (result.hasIssuersAvailable()) {
-                            return value.details[result.findIssuersProperty()].items;
-                        }
-
-                        return [];
+                        return result.hasIssuersAvailable())
+                            ? value.details[result.findIssuersProperty()].items
+                            : [];
                     };
                     /**
                      * Checks if payment method is iDeal
                      * @returns {boolean}
                      */
                     result.isIdeal = function () {
-                        if (result.getBrandCode().indexOf("ideal") >= 0) {
-                            return true;
-                        }
-
-                        return false;
+                        return result.getBrandCode().indexOf("ideal") >= 0;
                     };
                     /**
                      * Checks if payment method is ACH
                      * @returns {boolean}
                      */
                     result.isAch = function () {
-                        if (result.getBrandCode().indexOf("ach") == 0) {
-                            return true;
-                        }
-
-                        return false;
+                        return result.getBrandCode().indexOf("ach") == 0;
                     };
                     /**
                      * Checks if payment method is sepa direct debit
                      */
                     result.isSepaDirectDebit = function () {
-                        if (result.getBrandCode().indexOf("sepadirectdebit") >= 0) {
-                            return true;
-                        }
-
-                        return false;
+                        return result.getBrandCode().indexOf("sepadirectdebit") >= 0
                     };
                     /**
                      * Renders the secure fields,
