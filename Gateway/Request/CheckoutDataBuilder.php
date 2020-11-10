@@ -300,7 +300,6 @@ class CheckoutDataBuilder implements BuilderInterface
         if ($cart->getShippingAddress()->getShippingAmount() > 0 ||
             $cart->getShippingAddress()->getShippingTaxAmount() > 0
         ) {
-
             $shippingAmountCurrency = $this->chargedCurrency->getQuoteShippingAmountCurrency($cart);
 
             $priceExcludingTax = $shippingAmountCurrency->getAmount();
