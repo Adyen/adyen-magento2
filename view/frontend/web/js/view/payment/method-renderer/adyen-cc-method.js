@@ -171,7 +171,7 @@ define(
                         var creditCardType = self.getCcCodeByAltCode(state.brand);
                         if (creditCardType) {
                             // If the credit card type is already set, check if it changed or not
-                            if (!self.creditCardType() || self.creditCardType() && self.creditCardType() != creditCardType) {
+                            if (!self.creditCardType() || self.creditCardType() !== creditCardType) {
                                 var numberOfInstallments = [];
 
                                 if (creditCardType in allInstallments) {
@@ -190,13 +190,9 @@ define(
                                     self.installments(0);
                                 }
                             }
-
+                            
                             // for BCMC as this is not a core payment method inside magento use maestro as brand detection
-                            if (creditCardType == "BCMC") {
-                                self.creditCardType("MI");
-                            } else {
-                                self.creditCardType(creditCardType);
-                            }
+                            self.creditCardType(creditCardType == "BCMC" ? "MI" : creditCardType);
                         } else {
                             self.creditCardType("")
                             self.installments(0);
@@ -219,24 +215,26 @@ define(
                 var self = this;
                 var threeDS2Node = document.getElementById('threeDS2Container');
 
-                if (type == "IdentifyShopper") {
+                if (type === "IdentifyShopper") {
+                    var onComplete = function (result) {
+                        self.threeDS2IdentifyComponent.unmount();
+                        var request = result.data;
+                        request.orderId = orderId;
+                        threeds2.processThreeDS2(request).done(function (responseJSON) {
+                            self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
+                        }).fail(function (result) {
+                            errorProcessor.process(result, self.messageContainer);
+                            self.isPlaceOrderActionAllowed(true);
+                            fullScreenLoader.stopLoader();
+                        });
+                    };
+                    
                     self.threeDS2IdentifyComponent = self.checkout
                         .create('threeDS2DeviceFingerprint', {
                             fingerprintToken: token,
-                            onComplete: function (result) {
-                                self.threeDS2IdentifyComponent.unmount();
-                                var request = result.data;
-                                request.orderId = orderId;
-                                threeds2.processThreeDS2(request).done(function (responseJSON) {
-                                    self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
-                                }).fail(function (result) {
-                                    errorProcessor.process(result, self.messageContainer);
-                                    self.isPlaceOrderActionAllowed(true);
-                                    fullScreenLoader.stopLoader();
-                                });
-                            },
+                            onComplete: onComplete,
                             onError: function (error) {
-                                console.log(JSON.stringify(error));
+                                // console.log(JSON.stringify(error));
                             }
                         });
 
@@ -255,25 +253,26 @@ define(
                     });
 
                     popupModal.modal("openModal");
+                    var onComplete = function (result) {
+                        self.threeDS2ChallengeComponent.unmount();
+                        self.closeModal(popupModal);
+                        fullScreenLoader.startLoader();
+                        var request = result.data;
+                        request.orderId = orderId;
+                        threeds2.processThreeDS2(request).done(function (responseJSON) {
+                            self.validateThreeDS2OrPlaceOrder(responseJSON, orderId);
+                        }).fail(function (result) {
+                            errorProcessor.process(result, self.messageContainer);
+                            self.isPlaceOrderActionAllowed(true);
+                            fullScreenLoader.stopLoader();
+                        });
+                    };
 
                     self.threeDS2ChallengeComponent = self.checkout
                         .create('threeDS2Challenge', {
                             challengeToken: token,
                             size: '05',
-                            onComplete: function (result) {
-                                self.threeDS2ChallengeComponent.unmount();
-                                self.closeModal(popupModal);
-                                fullScreenLoader.startLoader();
-                                var request = result.data;
-                                request.orderId = orderId;
-                                threeds2.processThreeDS2(request).done(function (responseJSON) {
-                                    self.validateThreeDS2OrPlaceOrder(responseJSON, orderId);
-                                }).fail(function (result) {
-                                    errorProcessor.process(result, self.messageContainer);
-                                    self.isPlaceOrderActionAllowed(true);
-                                    fullScreenLoader.stopLoader();
-                                });
-                            },
+                            onComplete: onComplete,
                             onError: function (error) {
                                 console.log(JSON.stringify(error));
                             }
@@ -410,11 +409,7 @@ define(
 
                 var validate = $(form).validation() && $(form).validation('isValid');
 
-                if (!validate) {
-                    return false;
-                }
-
-                return true;
+                return validate
             },
             /**
              * Validates if the typed in card holder is valid
@@ -423,11 +418,7 @@ define(
              * @returns {boolean}
              */
             isCardOwnerValid: function () {
-                if (this.creditCardOwner().length == 0) {
-                    return false;
-                }
-
-                return true;
+                return !!this.creditCardOwner().length;
             },
             /**
              * The card component send the card details validity in a callback which is saved in the
@@ -446,11 +437,7 @@ define(
              */
             getCcCodeByAltCode: function (altCode) {
                 var ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
-                if (ccTypes.hasOwnProperty(altCode)) {
-                    return ccTypes[altCode];
-                }
-
-                return "";
+                return ccTypes.hasOwnProperty(altCode)) ? ccTypes[altCode] : "";
             },
             /**
              * Get available card types translated to the Adyen card type codes
@@ -489,11 +476,7 @@ define(
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
             },
             canCreateBillingAgreement: function () {
-                if (customer.isLoggedIn()) {
-                    return window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
-                }
-
-                return false;
+                return customer.isLoggedIn() && window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
             },
             isShowLegend: function () {
                 return true;
@@ -503,8 +486,7 @@ define(
             },
             getIcons: function (type) {
                 return window.checkoutConfig.payment.adyenCc.icons.hasOwnProperty(type)
-                    ? window.checkoutConfig.payment.adyenCc.icons[type]
-                    : false
+                    && window.checkoutConfig.payment.adyenCc.icons[type];
             },
             hasInstallments: function () {
                 return this.comboCardOption() === 'credit' && window.checkoutConfig.payment.adyenCc.hasInstallments;
