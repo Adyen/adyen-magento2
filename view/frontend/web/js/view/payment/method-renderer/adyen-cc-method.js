@@ -409,7 +409,7 @@ define(
 
                 var validate = $(form).validation() && $(form).validation('isValid');
 
-                return validate
+                return !!validate
             },
             /**
              * Validates if the typed in card holder is valid
@@ -437,7 +437,7 @@ define(
              */
             getCcCodeByAltCode: function (altCode) {
                 var ccTypes = window.checkoutConfig.payment.ccform.availableTypesByAlt[this.getCode()];
-                return ccTypes.hasOwnProperty(altCode)) ? ccTypes[altCode] : "";
+                return ccTypes.hasOwnProperty(altCode) ? ccTypes[altCode] : "";
             },
             /**
              * Get available card types translated to the Adyen card type codes
