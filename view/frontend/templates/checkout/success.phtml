@@ -62,6 +62,7 @@
     <?php
     $banktranferData = $block->getBankTransferData();
     $order = $block->getOrder();
+    $orderAmountCurrency=$block->geAdyenAmountCurrency();
     ?>
     <h2><?= $block->escapeHtml(__('Pay using Bank transfer')); ?></h2>
     <p><?= $block->escapeHtml(
@@ -69,11 +70,11 @@
         ); ?></p>
     <table>
         <tbody>
-        <?php if (!empty($order->getGrandTotal())): ?>
+        <?php if (!empty($orderAmountCurrency->getAmount())): ?>
             <tr>
                 <th scope="row"><?= $block->escapeHtml(__('Amount')); ?></th>
                 <td><?= /* @noEscape */
-                    $order->formatPrice($order->getGrandTotal()); ?></td>
+                    $order->formatPrice($orderAmountCurrency->getAmount()); ?></td>
             </tr>
         <?php endif; ?>
 

@@ -23,6 +23,9 @@
 
 namespace Adyen\Payment\Block\Checkout;
 
+use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Model\AdyenAmountCurrency;
+
 /**
  * Billing agreement information on Order success page
  */
@@ -56,6 +59,11 @@ class Success extends \Magento\Framework\View\Element\Template
     protected $storeManager;
 
     /**
+     * @var ChargedCurrency
+     */
+    protected $chargedCurrency;
+
+    /**
      * Success constructor.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
@@ -71,6 +79,7 @@ class Success extends \Magento\Framework\View\Element\Template
         \Magento\Framework\Pricing\Helper\Data $priceHelper,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
+        ChargedCurrency $chargedCurrency,
         array $data = []
     ) {
         $this->checkoutSession = $checkoutSession;
@@ -78,6 +87,7 @@ class Success extends \Magento\Framework\View\Element\Template
         $this->priceHelper = $priceHelper;
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
+        $this->chargedCurrency = $chargedCurrency;
         parent::__construct($context, $data);
     }
 
@@ -211,5 +221,13 @@ class Success extends \Magento\Framework\View\Element\Template
             $this->order = $this->orderFactory->create()->load($this->checkoutSession->getLastOrderId());
         }
         return $this->order;
+    }
+
+    /**
+     * @return AdyenAmountCurrency
+     */
+    public function geAdyenAmountCurrency()
+    {
+        return $this->chargedCurrency->getOrderAmountCurrency($this->order, false);
     }
 }

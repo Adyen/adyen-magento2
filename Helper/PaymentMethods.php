@@ -91,6 +91,11 @@ class PaymentMethods extends AbstractHelper
     protected $quote;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * PaymentMethods constructor.
      *
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
@@ -116,7 +121,8 @@ class PaymentMethods extends AbstractHelper
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\View\Asset\Source $assetSource,
         \Magento\Framework\View\DesignInterface $design,
-        \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider
+        \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->quoteRepository = $quoteRepository;
         $this->config = $config;
@@ -129,6 +135,7 @@ class PaymentMethods extends AbstractHelper
         $this->assetSource = $assetSource;
         $this->design = $design;
         $this->themeProvider = $themeProvider;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -165,17 +172,17 @@ class PaymentMethods extends AbstractHelper
             return [];
         }
 
-        $currencyCode = $this->getCurrentCurrencyCode($store);
+        $amountCurrency = $this->chargedCurrency->getQuoteAmountCurrency($quote);
 
         $adyFields = [
             "channel" => "Web",
             "merchantAccount" => $merchantAccount,
             "countryCode" => $this->getCurrentCountryCode($store, $country),
             "amount" => [
-                "currency" => $currencyCode,
+                "currency" => $amountCurrency->getCurrencyCode(),
                 "value" => $this->adyenHelper->formatAmount(
                     $this->getCurrentPaymentAmount(),
-                    $currencyCode
+                    $amountCurrency->getCurrencyCode()
                 ),
             ],
             "shopperReference" => $this->getCurrentShopperReference(),
@@ -257,9 +264,9 @@ class PaymentMethods extends AbstractHelper
      */
     protected function getCurrentPaymentAmount()
     {
-        $grandTotal = $this->getQuote()->getGrandTotal();
+        $total = $this->chargedCurrency->getQuoteAmountCurrency($this->getQuote())->getAmount();
 
-        if (!is_numeric($grandTotal)) {
+        if (!is_numeric($total)) {
             throw new \Exception(
                 sprintf(
                     'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a numeric value.',
@@ -268,28 +275,19 @@ class PaymentMethods extends AbstractHelper
             );
         }
 
-        $grandTotal = (float) $grandTotal;
+        $total = (float)$total;
 
-        if ($grandTotal > 0) {
-            return $grandTotal;
+        if ($total > 0) {
+            return $total;
         }
 
         throw new \Exception(
             sprintf(
                 'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float > `0`, got `%f`.',
                 $this->getQuote()->getEntityId(),
-                $grandTotal
+                $total
             )
         );
-    }
-
-    /**
-     * @param $store
-     * @return mixed
-     */
-    protected function getCurrentCurrencyCode($store)
-    {
-        return $this->getQuote()->getQuoteCurrencyCode() ?: $store->getBaseCurrencyCode();
     }
 
     /**

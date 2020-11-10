@@ -24,6 +24,7 @@
 
 namespace Adyen\Payment\Model\Ui;
 
+use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Payment\Helper\Data as PaymentHelper;
 
@@ -61,12 +62,18 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
     private $storeManager;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * AdyenGooglePayConfigProvider constructor.
      *
      * @param PaymentHelper $paymentHelper
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param ChargedCurrency $chargedCurrency
      */
     public function __construct(
         PaymentHelper $paymentHelper,
@@ -74,7 +81,8 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Checkout\Model\Session $checkoutSession
+        \Magento\Checkout\Model\Session $checkoutSession,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->paymentHelper = $paymentHelper;
         $this->adyenHelper = $adyenHelper;
@@ -82,6 +90,7 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
         $this->urlBuilder = $urlBuilder;
         $this->storeManager = $storeManager;
         $this->checkoutSession = $checkoutSession;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -119,7 +128,7 @@ class AdyenGooglePayConfigProvider implements ConfigProviderInterface
         );
 
         $quote = $this->checkoutSession->getQuote();
-        $currency = $quote->getCurrency();
+        $currency = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
         $adyenGooglePayConfig['format'] = $this->adyenHelper->decimalNumbers($currency);
 
         $adyenGooglePayConfig['merchantIdentifier'] = $this->adyenHelper->getAdyenGooglePayMerchantIdentifier($this->storeManager->getStore()->getId());

@@ -61,15 +61,16 @@ $_isDemoMode = $block->isDemoMode();
     <?php
     $banktranferData = $block->getBankTransferData();
     $order = $block->getOrder();
+    $orderAmountCurrency = $block->getOrderAmountCurrency();
     ?>
 
     <div>
         <table class="edit-order-table" style="text-align:left; margin-top:5px; margin-bottom:0;">
             <tbody>
-            <?php if (!empty($order->getGrandTotal())): ?>
+            <?php if (!empty($orderAmountCurrency->getAmount())): ?>
                 <tr>
                     <th scope="row"><?= $block->escapeHtml(__('Amount')); ?></th>
-                    <td><?= /* @noEscape */ $order->formatPrice($order->getGrandTotal()); ?></td>
+                    <td><?= /* @noEscape */ $order->formatPrice($orderAmountCurrency->getAmount()); ?></td>
                 </tr>
             <?php endif; ?>
 

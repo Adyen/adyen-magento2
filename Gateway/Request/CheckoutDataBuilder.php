@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
@@ -49,6 +50,11 @@ class CheckoutDataBuilder implements BuilderInterface
     private $gender;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Quote\Api\CartRepositoryInterface $cartRepository
@@ -58,12 +64,14 @@ class CheckoutDataBuilder implements BuilderInterface
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Quote\Api\CartRepositoryInterface $cartRepository,
-        \Adyen\Payment\Model\Gender $gender
+        \Adyen\Payment\Model\Gender $gender,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
         $this->cartRepository = $cartRepository;
         $this->gender = $gender;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -234,19 +242,27 @@ class CheckoutDataBuilder implements BuilderInterface
 
         /** @var \Magento\Quote\Model\Quote $cart */
         $cart = $this->cartRepository->get($order->getQuoteId());
-        $currency = $cart->getCurrency();
+        $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
+        $currency = $amountCurrency->getCurrencyCode();
         $discountAmount = 0;
 
         foreach ($cart->getAllVisibleItems() as $item) {
             $numberOfItems = (int)$item->getQty();
 
+            $itemAmountCurrency = $this->chargedCurrency->getQuoteItemAmountCurrency($item);
+
             // Summarize the discount amount item by item
-            $discountAmount += $item->getDiscountAmount();
+            $discountAmount += $itemAmountCurrency->getDiscountAmount();
 
-            $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($item->getPrice(), $currency);
+            $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
+                $itemAmountCurrency->getAmount(),
+                $itemAmountCurrency->getCurrencyCode()
+            );
 
-            $taxAmount = $item->getPrice() * ($item->getTaxPercent() / 100);
-            $formattedTaxAmount = $this->adyenHelper->formatAmount($taxAmount, $currency);
+            $formattedTaxAmount = $this->adyenHelper->formatAmount(
+                $itemAmountCurrency->getTaxAmount(),
+                $itemAmountCurrency->getCurrencyCode()
+            );
             $formattedTaxPercentage = $item->getTaxPercent() * 100;
 
             $formFields['lineItems'][] = [
@@ -264,7 +280,7 @@ class CheckoutDataBuilder implements BuilderInterface
         // Discount cost
         if ($discountAmount != 0) {
             $description = __('Discount');
-            $itemAmount = -$this->adyenHelper->formatAmount($discountAmount, $currency);
+            $itemAmount = -$this->adyenHelper->formatAmount($discountAmount, $itemAmountCurrency->getCurrencyCode());
             $itemVatAmount = "0";
             $itemVatPercentage = "0";
             $numberOfItems = 1;
@@ -281,13 +297,15 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         // Shipping cost
-        if ($cart->getShippingAddress()->getShippingAmount() > 0 || $cart->getShippingAddress()->getShippingTaxAmount(
-            ) > 0) {
-            $priceExcludingTax = $cart->getShippingAddress()->getShippingAmount() - $cart->getShippingAddress(
-                )->getShippingTaxAmount();
+        if ($cart->getShippingAddress()->getShippingAmount() > 0 ||
+            $cart->getShippingAddress()->getShippingTaxAmount() > 0
+        ) {
+            $shippingAmountCurrency = $this->chargedCurrency->getQuoteShippingAmountCurrency($cart);
+
+            $priceExcludingTax = $shippingAmountCurrency->getAmount();
 
             $formattedTaxAmount = $this->adyenHelper->formatAmount(
-                $cart->getShippingAddress()->getShippingTaxAmount(),
+                $shippingAmountCurrency->getTaxAmount(),
                 $currency
             );
 
@@ -296,8 +314,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $formattedTaxPercentage = 0;
 
             if ($priceExcludingTax !== 0) {
-                $formattedTaxPercentage = $cart->getShippingAddress()->getShippingTaxAmount(
-                    ) / $priceExcludingTax * 100 * 100;
+                $formattedTaxPercentage = $shippingAmountCurrency->getTaxAmount() / $priceExcludingTax * 100 * 100;
             }
 
             $formFields['lineItems'][] = [

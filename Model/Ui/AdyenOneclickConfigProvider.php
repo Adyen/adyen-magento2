@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Model\Ui;
 
+use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Payment\Helper\Data as PaymentHelper;
 
@@ -71,6 +72,11 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
     private $ccConfig;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * AdyenOneclickConfigProvider constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -80,6 +86,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Magento\Payment\Model\CcConfig $ccConfig
+     * @param ChargedCurrency $chargedCurrency
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
@@ -88,7 +95,8 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         \Magento\Checkout\Model\Session $session,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Payment\Model\CcConfig $ccConfig
+        \Magento\Payment\Model\CcConfig $ccConfig,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
@@ -97,6 +105,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         $this->_storeManager = $storeManager;
         $this->_urlBuilder = $urlBuilder;
         $this->ccConfig = $ccConfig;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -178,7 +187,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         if ($this->_customerSession->isLoggedIn()) {
             $customerId = $this->_customerSession->getCustomerId();
             $storeId = $this->_storeManager->getStore()->getId();
-            $grandTotal = $this->_getQuote()->getGrandTotal();
+            $grandTotal = $this->chargedCurrency->getQuoteAmountCurrency($this->_getQuote())->getAmount();
             $recurringType = $this->_getRecurringContractType();
 
             $billingAgreements = $this->_adyenHelper->getOneClickPaymentMethods(

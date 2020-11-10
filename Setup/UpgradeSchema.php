@@ -71,6 +71,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion540($setup);
         }
 
+        if (version_compare($context->getVersion(), '6.7.0', '<')) {
+            $this->updateSchemaVersion670($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -400,6 +404,35 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $tableName,
             \Adyen\Payment\Model\Notification::ERROR_MESSAGE,
             $adyenNotificationErrorMessageColumn
+        );
+    }
+
+    /**
+     * Upgrade to 6.7.0
+     *
+     * New sales_order column for the currency charged based on the Adyen config option (base or display)
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     */
+    public function updateSchemaVersion670(SchemaSetupInterface $setup)
+    {
+        $connection = $setup->getConnection();
+        $tableName = $setup->getTable('sales_order');
+
+        $adyenChargedCurrencyColumn = [
+            'type' => Table::TYPE_TEXT,
+            'length' => 255,
+            'nullable' => true,
+            'default' => null,
+            'comment' => 'Charged currency depending on Adyen config option',
+            'after' => 'adyen_notification_event_code_success'
+        ];
+
+        $connection->addColumn(
+            $tableName,
+            'adyen_charged_currency',
+            $adyenChargedCurrencyColumn
         );
     }
 }
