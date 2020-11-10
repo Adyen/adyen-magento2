@@ -70,11 +70,7 @@ define(
 
                 var numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(allInstallments, grandTotal, precision, currencyCode);
 
-                if (numberOfInstallments) {
-                    self.installments(numberOfInstallments);
-                } else {
-                    self.installments(0);
-                }
+                self.installments(numberOfInstallments || 0);
             },
             initiate: function () {
                 var self = this,
@@ -86,11 +82,17 @@ define(
                 serviceUrl = urlBuilder.createUrl('/adyen/initiate', {});
                 fullScreenLoader.startLoader();
 
-                var payload = {
-                    "payload": JSON.stringify({
-                        terminal_id: self.terminalId(),
-                        number_of_installments: self.installment()
-                    })
+                var payload = {};
+
+                try {
+                    payload = {
+                        payload: JSON.stringify({
+                            terminal_id: self.terminalId(),
+                            number_of_installments: self.installment()
+                        })
+                    }
+                } catch (e) {
+                    // Handle JSON.stringify error
                 }
 
                 return storage.post(
@@ -98,7 +100,6 @@ define(
                     JSON.stringify(payload)
                 ).always(function () {
                     self.placeOrderPos()});
-                return false;
             },
 
             posComplete: function () {
@@ -129,19 +130,10 @@ define(
                 )
             },
             getConnectedTerminals: function () {
-                var connectedTerminals = [];
                 const connectedTerminalsList = window.checkoutConfig.payment.adyenPos.connectedTerminals;
-
-                for (var i = 0; i < connectedTerminalsList.length; i++) {
-                    connectedTerminals.push(
-                        {
-                            key: connectedTerminalsList[i],
-                            value: connectedTerminalsList[i]
-                        }
-                    );
-                }
-
-                return connectedTerminals;
+                return connectedTerminalsList.map(function(connectedTerminal){
+                    return { key: connectedTerminal, value: connectedTerminal }
+                })
             },
             /**
              * Get data for place order
@@ -149,10 +141,10 @@ define(
              */
             getData: function () {
                 return {
-                    'method': this.item.method,
+                    method: this.item.method,
                     additional_data: {
-                        'terminal_id': this.terminalId(),
-                        'number_of_installments': this.installment(),
+                        terminal_id: this.terminalId(),
+                        number_of_installments: this.installment(),
                     }
                 };
             },
@@ -176,7 +168,7 @@ define(
              * @returns {boolean}
              */
             isButtonActive: function () {
-                return this.isActive() && this.getCode() == this.isChecked() && this.getConnectedTerminals().length > 0 && this.validate();
+                return this.isActive() && this.getCode() === this.isChecked() && this.getConnectedTerminals().length && this.validate();
             },
         });
     }
