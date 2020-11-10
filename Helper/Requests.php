@@ -116,51 +116,24 @@ class Requests extends AbstractHelper
 
         // In case of virtual product and guest checkout there is a workaround to get the guest's email address
         if (!empty($additionalData['guestEmail'])) {
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
-                !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
-            ) {
-                $request['paymentMethod']['personalDetails']['shopperEmail'] = $additionalData['guestEmail'];
-            } else {
-                $request['shopperEmail'] = $additionalData['guestEmail'];
-            }
+            $request['shopperEmail'] = $additionalData['guestEmail'];
         }
 
         if (!empty($billingAddress)) {
-            // Openinvoice (klarna and afterpay BUT not afterpay touch) methods requires different request format
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
-                !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
-            ) {
-                if ($customerEmail = $billingAddress->getEmail()) {
-                    $request['paymentMethod']['personalDetails']['shopperEmail'] = $customerEmail;
-                }
+            if ($customerEmail = $billingAddress->getEmail()) {
+                $request['shopperEmail'] = $customerEmail;
+            }
 
-                if ($customerTelephone = trim($billingAddress->getTelephone())) {
-                    $request['paymentMethod']['personalDetails']['telephoneNumber'] = $customerTelephone;
-                }
+            if ($customerTelephone = trim($billingAddress->getTelephone())) {
+                $request['telephoneNumber'] = $customerTelephone;
+            }
 
-                if ($firstName = $billingAddress->getFirstname()) {
-                    $request['paymentMethod']['personalDetails']['firstName'] = $firstName;
-                }
+            if ($firstName = $billingAddress->getFirstname()) {
+                $request['shopperName']['firstName'] = $firstName;
+            }
 
-                if ($lastName = $billingAddress->getLastname()) {
-                    $request['paymentMethod']['personalDetails']['lastName'] = $lastName;
-                }
-            } else {
-                if ($customerEmail = $billingAddress->getEmail()) {
-                    $request['shopperEmail'] = $customerEmail;
-                }
-
-                if ($customerTelephone = trim($billingAddress->getTelephone())) {
-                    $request['telephoneNumber'] = $customerTelephone;
-                }
-
-                if ($firstName = $billingAddress->getFirstname()) {
-                    $request['shopperName']['firstName'] = $firstName;
-                }
-
-                if ($lastName = $billingAddress->getLastname()) {
-                    $request['shopperName']['lastName'] = $lastName;
-                }
+            if ($lastName = $billingAddress->getLastname()) {
+                $request['shopperName']['lastName'] = $lastName;
             }
 
             if ($countryId = $billingAddress->getCountryId()) {
@@ -320,38 +293,6 @@ class Requests extends AbstractHelper
 
         if (!empty($_SERVER['HTTP_ACCEPT'])) {
             $request['browserInfo']['acceptHeader'] = $_SERVER['HTTP_ACCEPT'];
-        }
-
-        return $request;
-    }
-
-    /**
-     * @param array $request
-     * @param $additionalData
-     * @param $storeId
-     * @return array
-     */
-    public function buildThreeDS2Data($additionalData, $storeId, $request = [])
-    {
-        if ($this->adyenHelper->isCreditCardThreeDS2Enabled($storeId)) {
-            $request['additionalData']['allow3DS2'] = true;
-            $request['origin'] = $this->adyenHelper->getOrigin($storeId);
-            $request['channel'] = 'web';
-            $request['browserInfo']['screenWidth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_WIDTH];
-            $request['browserInfo']['screenHeight'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_HEIGHT];
-            $request['browserInfo']['colorDepth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH];
-            $request['browserInfo']['timeZoneOffset'] = $additionalData[AdyenCcDataAssignObserver::TIMEZONE_OFFSET];
-            $request['browserInfo']['language'] = $additionalData[AdyenCcDataAssignObserver::LANGUAGE];
-
-            if ($javaEnabled = $additionalData[AdyenCcDataAssignObserver::JAVA_ENABLED]) {
-                $request['browserInfo']['javaEnabled'] = $javaEnabled;
-            } else {
-                $request['browserInfo']['javaEnabled'] = false;
-            }
-        } else {
-            $request['additionalData']['allow3DS2'] = false;
-            $request['origin'] = $this->adyenHelper->getOrigin($storeId);
-            $request['channel'] = 'web';
         }
 
         return $request;

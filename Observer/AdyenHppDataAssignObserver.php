@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,6 +23,8 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Service\Validator\CheckoutStateDataValidator;
+use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
@@ -30,35 +32,37 @@ use Magento\Quote\Api\Data\PaymentInterface;
 class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
 {
     const BRAND_CODE = 'brand_code';
-    const ISSUER_ID = 'issuer_id';
-    const GENDER = 'gender';
-    const DOB = 'dob';
-    const TELEPHONE = 'telephone';
     const DF_VALUE = 'df_value';
-    const SSN = 'ssn';
-    const OWNER_NAME = 'ownerName';
-    const BANK_ACCOUNT_OWNER_NAME = 'bankAccountOwnerName';
-    const IBAN_NUMBER = 'ibanNumber';
-    const BANK_ACCOUNT_NUMBER = 'bankAccountNumber';
-    const BANK_LOCATIONID = 'bankLocationId';
+    const GUEST_EMAIL = 'guestEmail';
+    const STATE_DATA = 'stateData';
 
     /**
+     * Approved root level keys from additional data array
+     *
      * @var array
      */
-    protected $additionalInformationList = [
+    private static $approvedAdditionalDataKeys = [
         self::BRAND_CODE,
-        self::ISSUER_ID,
-        self::GENDER,
-        self::DOB,
-        self::TELEPHONE,
         self::DF_VALUE,
-        self::SSN,
-        self::OWNER_NAME,
-        self::BANK_ACCOUNT_OWNER_NAME,
-        self::IBAN_NUMBER,
-        self::BANK_ACCOUNT_NUMBER,
-        self::BANK_LOCATIONID
+        self::GUEST_EMAIL,
+        self::STATE_DATA
     ];
+
+    /**
+     * @var CheckoutStateDataValidator
+     */
+    protected $checkoutStateDataValidator;
+
+    /**
+     * AdyenHppDataAssignObserver constructor.
+     *
+     * @param CheckoutStateDataValidator $checkoutStateDataValidator
+     */
+    public function __construct(
+        CheckoutStateDataValidator $checkoutStateDataValidator
+    ) {
+        $this->checkoutStateDataValidator = $checkoutStateDataValidator;
+    }
 
     /**
      * @param Observer $observer
@@ -66,26 +70,46 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
      */
     public function execute(Observer $observer)
     {
+        // Get request fields
         $data = $this->readDataArgument($observer);
 
+        // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
         if (!is_array($additionalData)) {
             return;
         }
 
-        $paymentInfo = $this->readPaymentModelArgument($observer);
+        // Get a validated additional data array
+        $additionalData = DataArrayValidator::getArrayOnlyWithApprovedKeys(
+            $additionalData,
+            self::$approvedAdditionalDataKeys
+        );
 
-        if (isset($additionalData[self::BRAND_CODE])) {
-            $paymentInfo->setCcType($additionalData[self::BRAND_CODE]);
+        // json decode state data
+        $stateData = [];
+        if (!empty($additionalData[self::STATE_DATA])) {
+            $stateData = json_decode($additionalData[self::STATE_DATA], true);
         }
 
-        foreach ($this->additionalInformationList as $additionalInformationKey) {
-            if (isset($additionalData[$additionalInformationKey])) {
-                $paymentInfo->setAdditionalInformation(
-                    $additionalInformationKey,
-                    $additionalData[$additionalInformationKey]
-                );
-            }
+        // Get validated state data array
+        if (!empty($stateData)) {
+            $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData(
+                $stateData
+            );
+        }
+
+        // Replace state data with the decoded and validated state data
+        $additionalData[self::STATE_DATA] = $stateData;
+
+        // Set additional data in the payment
+        $paymentInfo = $this->readPaymentModelArgument($observer);
+        foreach ($additionalData as $key => $data) {
+            $paymentInfo->setAdditionalInformation($key, $data);
+        }
+
+        // set ccType
+        if (!empty($additionalData[self::BRAND_CODE])) {
+            $paymentInfo->setCcType($additionalData[self::BRAND_CODE]);
         }
     }
 }

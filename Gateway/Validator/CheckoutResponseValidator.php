@@ -67,9 +67,10 @@ class CheckoutResponseValidator extends AbstractValidator
         $payment->setAdditionalInformation('3dActive', false);
         $isValid = true;
         $errorMessages = [];
-        $resultCode = $response['resultCode'];
+
         // validate result
-        if (!empty($resultCode)) {
+        if (!empty($response['resultCode'])) {
+            $resultCode = $response['resultCode'];
             $payment->setAdditionalInformation('resultCode', $resultCode);
 
             if (!empty($response['action'])) {
@@ -149,59 +150,8 @@ class CheckoutResponseValidator extends AbstractValidator
                 case "ChallengeShopper":
                 case "PresentToShopper":
                 case 'Pending':
-                    // nothing extra
-                    break;
                 case "RedirectShopper":
-                    // todo check if needed
-                    if (
-                        isset($response['redirect']['data']['PaReq']) &&
-                        isset($response['redirect']['data']['MD'])
-                    ) {
-                        $paReq = null;
-                        $md = null;
-
-                        $payment->setAdditionalInformation('3dActive', true);
-
-                        if (!empty($response['redirect']['data']['PaReq'])) {
-                            $paReq = $response['redirect']['data']['PaReq'];
-                        }
-
-                        if (!empty($response['redirect']['data']['MD'])) {
-                            $md = $response['redirect']['data']['MD'];
-                        }
-
-                        if ($paReq && $md && $redirectUrl && $paymentData && $redirectMethod) {
-                            $payment->setAdditionalInformation('redirectUrl', $redirectUrl);
-                            $payment->setAdditionalInformation('redirectMethod', $redirectMethod);
-                            $payment->setAdditionalInformation('paRequest', $paReq);
-                            $payment->setAdditionalInformation('md', $md);
-                            $payment->setAdditionalInformation('paymentData', $paymentData);
-                        } else {
-                            $isValid = false;
-                            $errorMsg = __('3D secure is not valid.');
-                            $this->adyenLogger->error($errorMsg);
-                            $errorMessages[] = $errorMsg;
-                        }
-                        // otherwise it is an alternative payment method which only requires the
-                        // redirect url to be present
-                    } else {
-                        // Flag to show we are in the checkoutAPM flow
-                        $payment->setAdditionalInformation('checkoutAPM', true);
-
-                        if (!empty($response['details'])) {
-                            $payment->setAdditionalInformation('details', $response['details']);
-                        }
-                        if ($redirectUrl && $paymentData && $redirectMethod) {
-                            $payment->setAdditionalInformation('redirectUrl', $redirectUrl);
-                            $payment->setAdditionalInformation('redirectMethod', $redirectMethod);
-                            $payment->setAdditionalInformation('paymentData', $paymentData);
-                        } else {
-                            $isValid = false;
-                            $errorMsg = __('Payment method is not valid.');
-                            $this->adyenLogger->error($errorMsg);
-                            $errorMessages[] = $errorMsg;
-                        }
-                    }
+                    // nothing extra
                     break;
                 case "Refused":
                     $errorMsg = __('The payment is REFUSED.');
