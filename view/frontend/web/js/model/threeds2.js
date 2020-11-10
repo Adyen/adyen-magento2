@@ -17,15 +17,11 @@ define(
              * @param response
              */
             processThreeDS2: function (data) {
-                var payload = {
-                    "payload": JSON.stringify(data)
-                };
-
                 var serviceUrl = urlBuilder.createUrl('/adyen/threeDS2Process', {});
 
                 return storage.post(
                     serviceUrl,
-                    JSON.stringify(payload),
+                    JSON.stringify({ payload: JSON.stringify(data) }),
                     true
                 );
             }
