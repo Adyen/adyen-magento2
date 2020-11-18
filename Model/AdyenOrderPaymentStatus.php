@@ -24,43 +24,53 @@
 
 namespace Adyen\Payment\Model;
 
-use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentResponseHandler;
+use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Adyen\Payment\Model\Ui\AdyenGooglePayConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 
-class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentStatusInterface
+class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
 {
     /**
-     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     * @var OrderRepositoryInterface
      */
     protected $orderRepository;
 
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
+     * @var AdyenLogger
      */
     protected $adyenLogger;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     protected $adyenHelper;
 
     /**
+     * @var PaymentResponseHandler
+     */
+    private $paymentResponseHandler;
+
+    /**
      * AdyenOrderPaymentStatus constructor.
      *
-     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param OrderRepositoryInterface $orderRepository
+     * @param AdyenLogger $adyenLogger
+     * @param Data $adyenHelper
+     * @param PaymentResponseHandler $paymentResponseHandler
      */
     public function __construct(
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        OrderRepositoryInterface $orderRepository,
+        AdyenLogger $adyenLogger,
+        Data $adyenHelper,
+        PaymentResponseHandler $paymentResponseHandler
     ) {
         $this->orderRepository = $orderRepository;
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
+        $this->paymentResponseHandler = $paymentResponseHandler;
     }
 
     /**
@@ -69,39 +79,23 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
      */
     public function getOrderPaymentStatus($orderId)
     {
-        $order = $this->orderRepository->get($orderId);
-        $payment = $order->getPayment();
-
-        if ($payment->getMethod() === AdyenCcConfigProvider::CODE ||
-            $payment->getMethod() === AdyenOneclickConfigProvider::CODE
-        ) {
-            $additionalInformation = $payment->getAdditionalInformation();
-
-            $type = null;
-            if (!empty($additionalInformation['threeDSType'])) {
-                $type = $additionalInformation['threeDSType'];
-            }
-
-            $token = null;
-            if (!empty($additionalInformation['threeDS2Token'])) {
-                $token = $additionalInformation['threeDS2Token'];
-            }
-
-            return $this->adyenHelper->buildThreeDS2ProcessResponseJson($type, $token);
+        try {
+            $order = $this->orderRepository->get($orderId);
+        } catch (NoSuchEntityException $exception) {
+            $this->adyenLogger->addError('Order not found.');
+            return json_encode(
+                $this->paymentResponseHandler->formatPaymentResponse(PaymentResponseHandler::ERROR)
+            );
         }
 
+        $payment = $order->getPayment();
+        $additionalInformation = $payment->getAdditionalInformation();
 
-        /**
-         * If payment method result is Pending and action is provided provide component action back to checkout
-         */
-        if ($payment->getMethod() === AdyenHppConfigProvider::CODE) {
-            $additionalInformation = $payment->getAdditionalInformation();
-            if (
-                !empty($additionalInformation['action']) &&
-                $additionalInformation['resultCode'] == 'Pending'
-            ) {
-                return json_encode(['action' => $additionalInformation['action']]);
-            }
+        if (empty($additionalInformation['resultCode'])) {
+            $this->adyenLogger->addInfo('resultCode is empty in the payment\'s additional information');
+            return json_encode(
+                $this->paymentResponseHandler->formatPaymentResponse(PaymentResponseHandler::ERROR)
+            );
         }
         /**
          * If payment method is google pay
@@ -113,6 +107,10 @@ class AdyenOrderPaymentStatus implements \Adyen\Payment\Api\AdyenOrderPaymentSta
             }
         }
 
-        return true;
+        return json_encode($this->paymentResponseHandler->formatPaymentResponse(
+            $additionalInformation['resultCode'],
+            !empty($additionalInformation['action']) ? $additionalInformation['action'] : null,
+            !empty($additionalInformation['additionalData']) ? $additionalInformation['additionalData'] : null
+        ));
     }
 }
