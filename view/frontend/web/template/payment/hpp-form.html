@@ -64,8 +64,11 @@
                 <!--/ko-->
             </div>
 
-            <form class="form" data-role="adyen-hpp-form" action="#" method="post" data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + $parent.getCode() + '_' + brandCode}">
-                <fieldset class="fieldset" data-bind='attr: {id: "payment_fieldset_" + $parent.getCode() + "_" + brandCode}'>
+            <form class="form" data-role="adyen-hpp-form" action="#" method="post"
+                  data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + $parent.getCode() + '_' + brandCode}">
+                <legend>Brand Code</legend>
+                <fieldset class="fieldset"
+                          data-bind='attr: {id: "payment_fieldset_" + $parent.getCode() + "_" + brandCode}'>
                     <div data-bind='attr: {id: "adyen-alternative-payment-container-" + brandCode}'
                          afterRender="renderCheckoutComponent()"></div>
                 </fieldset>
