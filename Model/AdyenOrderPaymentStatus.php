@@ -30,6 +30,7 @@ use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Adyen\Payment\Model\Ui\AdyenGooglePayConfigProvider;
+use \Magento\Framework\Exception\NoSuchEntityException;
 
 class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
 {
