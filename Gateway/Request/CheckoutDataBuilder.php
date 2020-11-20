@@ -23,7 +23,9 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
@@ -85,21 +87,12 @@ class CheckoutDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
-        $requestBody = [];
+
+        // Initialize the request body with the validated state data
+        $requestBody = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::STATE_DATA);
 
         // do not send email
         $order->setCanSendNewEmailFlag(false);
-
-        $requestBodyPaymentMethod['type'] = $payment->getAdditionalInformation(
-            AdyenHppDataAssignObserver::BRAND_CODE
-        );
-
-        // Additional data for payment methods with issuer list
-        if ($payment->getAdditionalInformation(AdyenHppDataAssignObserver::ISSUER_ID)) {
-            $requestBodyPaymentMethod['issuer'] = $payment->getAdditionalInformation(
-                AdyenHppDataAssignObserver::ISSUER_ID
-            );
-        }
 
         $requestBody['returnUrl'] = $this->storeManager->getStore()->getBaseUrl(
                 \Magento\Framework\UrlInterface::URL_TYPE_LINK
@@ -116,46 +109,6 @@ class CheckoutDataBuilder implements BuilderInterface
 
         if ($payment->getAdditionalInformation("bankAccountOwnerName")) {
             $requestBody['bankAccount']['ownerName'] = $payment->getAdditionalInformation("bankAccountOwnerName");
-        }
-
-        // Additional data for open invoice payment
-        if ($payment->getAdditionalInformation("gender")) {
-            $order->setCustomerGender(
-                $this->gender->getMagentoGenderFromAdyenGender(
-                    $payment->getAdditionalInformation("gender")
-                )
-            );
-            $requestBodyPaymentMethod['personalDetails']['gender'] = $payment->getAdditionalInformation("gender");
-        }
-
-        if ($payment->getAdditionalInformation("dob")) {
-            $order->setCustomerDob($payment->getAdditionalInformation("dob"));
-
-            $requestBodyPaymentMethod['personalDetails']['dateOfBirth'] = $this->adyenHelper->formatDate(
-                $payment->getAdditionalInformation("dob"),
-                'Y-m-d'
-            );
-        }
-
-        if ($payment->getAdditionalInformation("telephone")) {
-            $order->getBillingAddress()->setTelephone($payment->getAdditionalInformation("telephone"));
-            $requestBodyPaymentMethod['personalDetails']['telephoneNumber'] = $payment->getAdditionalInformation(
-                "telephone"
-            );
-        }
-
-        if ($payment->getAdditionalInformation("ssn")) {
-            $requestBodyPaymentMethod['personalDetails']['socialSecurityNumber'] =
-                $payment->getAdditionalInformation("ssn");
-        }
-
-        // Additional data for sepa direct debit
-        if ($payment->getAdditionalInformation("ownerName")) {
-            $requestBodyPaymentMethod['sepa.ownerName'] = $payment->getAdditionalInformation("ownerName");
-        }
-
-        if ($payment->getAdditionalInformation("ibanNumber")) {
-            $requestBodyPaymentMethod['sepa.ibanNumber'] = $payment->getAdditionalInformation("ibanNumber");
         }
 
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
@@ -221,10 +174,53 @@ class CheckoutDataBuilder implements BuilderInterface
             $order->setCanSendNewEmailFlag(true);
         }
 
-        $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
+        // if installments is set and card type is credit card add it into the request
+        $numberOfInstallments = $payment->getAdditionalInformation(
+            AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
+        ) ?: 0;
+        $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE) ?: 'credit';
+        if ($numberOfInstallments > 0) {
+            $requestBody['installments']['value'] = $numberOfInstallments;
+        }
+        // if card type is debit then change the issuer type and unset the installments field
+        if ($comboCardType == 'debit') {
+            if ($selectedDebitBrand = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'))) {
+                $requestBody['additionalData']['overwriteBrand'] = true;
+                $requestBody['selectedBrand'] = $selectedDebitBrand;
+                $requestBody['paymentMethod']['type'] = $selectedDebitBrand;
+            }
+            unset($requestBody['installments']);
+        }
+
+        if ($this->adyenHelper->isCreditCardThreeDS2Enabled($storeId)) {
+            $requestBody['additionalData']['allow3DS2'] = true;
+        }
+
+        $requestBody['origin'] = $this->adyenHelper->getOrigin($storeId);
+        $requestBody['channel'] = 'web';
+
+        if (isset($requestBodyPaymentMethod)) {
+            $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
+        }
+
         $request['body'] = $requestBody;
 
         return $request;
+    }
+
+    /**
+     * @param string $brand
+     * @return string
+     */
+    private function getSelectedDebitBrand($brand)
+    {
+        if ($brand == 'VI') {
+            return 'electron';
+        }
+        if ($brand == 'MC') {
+            return 'maestro';
+        }
+        return null;
     }
 
     /**
@@ -267,7 +263,6 @@ class CheckoutDataBuilder implements BuilderInterface
 
             $formFields['lineItems'][] = [
                 'id' => $item->getId(),
-                'itemId' => $item->getId(),
                 'amountExcludingTax' => $formattedPriceExcludingTax,
                 'taxAmount' => $formattedTaxAmount,
                 'description' => $item->getName(),
@@ -318,7 +313,7 @@ class CheckoutDataBuilder implements BuilderInterface
             }
 
             $formFields['lineItems'][] = [
-                'itemId' => 'shippingCost',
+                'id' => 'shippingCost',
                 'amountExcludingTax' => $formattedPriceExcludingTax,
                 'taxAmount' => $formattedTaxAmount,
                 'description' => $order->getShippingDescription(),

@@ -24,11 +24,19 @@
 define(
     [
         'uiComponent',
-        'Magento_Checkout/js/model/payment/renderer-list'
+        'Magento_Checkout/js/model/payment/renderer-list',
+        'Adyen_Payment/js/model/adyen-payment-service',
+        'Adyen_Payment/js/model/adyen-configuration',
+        'Magento_Checkout/js/model/quote',
+        'Magento_Checkout/js/model/full-screen-loader',
     ],
     function (
         Component,
-        rendererList
+        rendererList,
+        adyenPaymentService,
+        adyenConfiguration,
+        quote,
+        fullScreenLoader
     ) {
         'use strict';
         rendererList.push(
@@ -65,6 +73,25 @@ define(
         return Component.extend({
             initialize: function () {
                 this._super();
+
+                var shippingAddressCountry = "";
+                quote.shippingAddress.subscribe(function(address) {
+                    // In case the country hasn't changed don't retrieve new payment methods
+                    if (shippingAddressCountry === quote.shippingAddress().countryId) {
+                        return;
+                    }
+
+                    shippingAddressCountry = quote.shippingAddress().countryId;
+                    fullScreenLoader.startLoader();
+                    // Retrieve adyen payment methods
+                    adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
+                        paymentMethods = JSON.parse(paymentMethods);
+                        adyenPaymentService.setPaymentMethods(paymentMethods);
+                        fullScreenLoader.stopLoader();
+                    }).fail(function() {
+
+                    })
+                });
 
                 if (this.isGooglePayEnabled()) {
                     var googlepayscript = document.createElement('script');

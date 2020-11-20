@@ -24,7 +24,7 @@
 
 namespace Adyen\Payment\Api;
 
-interface AdyenThreeDS2ProcessInterface
+interface AdyenPaymentDetailsInterface
 {
     /**
      * @param string $payload

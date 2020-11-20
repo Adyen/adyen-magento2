@@ -148,7 +148,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
         if ($order->getPayment()) {
             $active = $order->getPayment()->getAdditionalInformation('3dActive');
             $success = $order->getPayment()->getAdditionalInformation('3dSuccess');
-            $checkoutAPM = $order->getPayment()->getAdditionalInformation('checkoutAPM');
         }
 
         // check if 3D secure is active. If not just go to success page
@@ -257,10 +256,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
                 $this->_view->getLayout()->initMessages();
                 $this->_view->renderLayout();
             }
-        } elseif (!empty($checkoutAPM)) {
-            $this->_view->loadLayout();
-            $this->_view->getLayout()->initMessages();
-            $this->_view->renderLayout();
         } else {
             $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
         }
