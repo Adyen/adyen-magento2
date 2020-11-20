@@ -17,7 +17,7 @@ jobs:
       with:
         php-version: ${{ matrix.php-version }}
         tools: composer:v1, 
-    - name: npm install, lint and test
+    - name: Test plugin installation
       run: |
         echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
         composer install --prefer-dist
