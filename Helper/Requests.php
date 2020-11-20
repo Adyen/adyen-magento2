@@ -300,7 +300,6 @@ class Requests extends AbstractHelper
 
     /**
      * @param array $request
-<<<<<<< HEAD
      * @param $additionalData
      * @param $storeId
      * @return array
