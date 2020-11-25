@@ -1066,7 +1066,8 @@ class Data extends AbstractHelper
     {
         if (strpos($paymentMethod, 'afterpay') !== false ||
             strpos($paymentMethod, 'klarna') !== false ||
-            strpos($paymentMethod, 'ratepay') !== false
+            strpos($paymentMethod, 'ratepay') !== false ||
+            strpos($paymentMethod, 'facilypay_') !== false
         ) {
             return true;
         }
