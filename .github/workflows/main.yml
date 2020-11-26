@@ -1,0 +1,27 @@
+name: Main CI workflow
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        php-version: [7.2, 7.3, 7.4]
+    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use PHP ${{ matrix.php-version }}
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        tools: composer:v1, 
+    - name: Test plugin installation
+      run: |
+        echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
+        composer install --prefer-dist
+      env:
+        CI: true
+        MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
+        MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
