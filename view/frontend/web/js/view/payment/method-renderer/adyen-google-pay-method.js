@@ -148,7 +148,7 @@ define(
                 promise.then(function (success) {
                     self.googlePayAllowed(true);
                     googlepay.mount(self.googlePayNode);
-                    $(self.googlePayNode).find('button').prop('disabled', true);
+                    $(self.googlePayNode).find('button').prop('disabled', !self.validate(true));
                 }, function (error) {
                     console.log(error);
                     self.googlePayAllowed(false);
