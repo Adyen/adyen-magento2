@@ -66,7 +66,7 @@ class CheckoutResponseValidator extends AbstractValidator
         $payment->setAdditionalInformation('3dActive', false);
         $isValid = true;
         $errorMessages = [];
-        $resultCode = $response['resultCode'];
+        $resultCode = array_key_exists("resultCode", $response) ? $response['resultCode']:'';
         // validate result
         if (!empty($resultCode)) {
             $payment->setAdditionalInformation('resultCode', $resultCode);
