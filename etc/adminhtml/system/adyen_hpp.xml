@@ -33,10 +33,15 @@
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_hpp/active</config_path>
         </field>
-        <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+        <field id="sort_order" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Sort Order</label>
             <frontend_class>validate-number</frontend_class>
             <config_path>payment/adyen_hpp/sort_order</config_path>
+        </field>
+        <field id="adyen_hpp_vault_active" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Store alternative payment methods</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_hpp_vault/active</config_path>
         </field>
         <group id="adyen_hpp_openinvoice_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="100">
             <label>Klarna\RatePay\Afterpay Settings</label>

@@ -20,15 +20,13 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Observer;
 
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 
-/**
- * Class DataAssignObserver
- */
 class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
 {
     const BRAND_CODE = 'brand_code';
@@ -38,12 +36,11 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
     const TELEPHONE = 'telephone';
     const DF_VALUE = 'df_value';
     const SSN = 'ssn';
-	const OWNER_NAME = 'ownerName';
+    const OWNER_NAME = 'ownerName';
     const BANK_ACCOUNT_OWNER_NAME = 'bankAccountOwnerName';
-	const IBAN_NUMBER = 'ibanNumber';
+    const IBAN_NUMBER = 'ibanNumber';
     const BANK_ACCOUNT_NUMBER = 'bankAccountNumber';
     const BANK_LOCATIONID = 'bankLocationId';
-
 
     /**
      * @var array
@@ -56,9 +53,9 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         self::TELEPHONE,
         self::DF_VALUE,
         self::SSN,
-		self::OWNER_NAME,
+        self::OWNER_NAME,
         self::BANK_ACCOUNT_OWNER_NAME,
-		self::IBAN_NUMBER,
+        self::IBAN_NUMBER,
         self::BANK_ACCOUNT_NUMBER,
         self::BANK_LOCATIONID
     ];
@@ -77,7 +74,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         }
 
         $paymentInfo = $this->readPaymentModelArgument($observer);
-        
+
         if (isset($additionalData[self::BRAND_CODE])) {
             $paymentInfo->setCcType($additionalData[self::BRAND_CODE]);
         }

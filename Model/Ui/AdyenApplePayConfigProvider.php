@@ -29,7 +29,6 @@ use Magento\Payment\Helper\Data as PaymentHelper;
 
 class AdyenApplePayConfigProvider implements ConfigProviderInterface
 {
-
     const CODE = 'adyen_apple_pay';
 
     /**

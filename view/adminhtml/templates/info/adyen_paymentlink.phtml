@@ -23,13 +23,15 @@
 
 /** @var \Adyen\Payment\Block\Info\PaymentLink $block */
 ?>
-<br />
+<br/>
 <div class="admin__page-section-item-title">
-    <span class="title"><?php echo __('Adyen Payment Link');?></span>
+    <span class="title"><?= $block->escapeHtml(__('Adyen Payment Link')); ?></span>
 </div>
 <p id="paymentlink"></p>
-<a href="<?=$block->getPaymentLinkUrl();?>" onclick="copyToClipboard(event, '<?=$block->getPaymentLinkUrl();?>')" style="cursor:pointer;">
-    <?php echo __('Copy payment link to clipboard'); ?>
+<a href="<?= $block->escapeHtml($block->getPaymentLinkUrl()); ?>"
+   onclick="copyToClipboard(event, '<?= $block->escapeHtml($block->getPaymentLinkUrl()); ?>')"
+   style="cursor:pointer;">
+    <?= $block->escapeHtml(__('Copy payment link to clipboard')); ?>
 </a>
 
 <script type="text/javascript">

@@ -28,13 +28,16 @@ define(
         'jquery',
         'Magento_Checkout/js/view/payment/default',
         'Magento_Checkout/js/action/place-order',
+        'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/model/url-builder',
         'Magento_Checkout/js/model/full-screen-loader',
         'mage/url',
-        'Magento_Vault/js/view/payment/vault-enabler'
+        'Magento_Vault/js/view/payment/vault-enabler',
+        'Adyen_Payment/js/model/adyen-payment-service',
+        'adyenCheckout'
     ],
-    function (ko, $, Component, placeOrderAction, quote, urlBuilder, fullScreenLoader, url, VaultEnabler) {
+    function (ko, $, Component, placeOrderAction, additionalValidators, quote, urlBuilder, fullScreenLoader, url, VaultEnabler, adyenPaymentService,AdyenCheckout) {
         'use strict';
 
         /**
@@ -65,12 +68,6 @@ define(
             getCode: function () {
                 return 'adyen_google_pay';
             },
-            getData: function () {
-                return {
-                    'method': this.item.method,
-                    'additional_data': {}
-                };
-            },
             isActive: function () {
                 return true;
             },
@@ -83,18 +80,21 @@ define(
                 return this;
             }, initialize: function () {
                 var self = this;
+                this.additionalValidators = additionalValidators;
                 this.vaultEnabler = new VaultEnabler();
                 this.vaultEnabler.setPaymentCode(this.getVaultCode());
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
                 this._super();
-
             },
 
             renderGooglePay: function () {
+                this.googlePayNode = document.getElementById('googlePay');
+
                 var self = this;
-                var googlePayNode = document.getElementById('googlePay');
                 self.checkoutComponent = new AdyenCheckout({
                     locale: self.getLocale(),
+                    originKey: self.getOriginKey(),
+                    environment: self.getCheckoutEnvironment(),
                     risk: {
                         enabled: false
                     }
@@ -117,9 +117,11 @@ define(
                     currency: quote.totals().quote_currency_code,
                     totalPriceStatus: 'FINAL',
 
+                    // empty onSubmit to resolve javascript issues.
+                    onSubmit: function() {},
                     onChange: function (state) {
                         if (!!state.isValid) {
-                            self.googlePayToken(state.data.paymentMethod["paywithgoogle.token"]);
+                            self.googlePayToken(state.data.paymentMethod.googlePayToken);
                             self.getPlaceOrderDeferredObject()
                                 .fail(
                                     function () {
@@ -127,30 +129,46 @@ define(
                                         self.isPlaceOrderActionAllowed(true);
                                     }
                                 ).done(
-                                function () {
+                                function (orderId) {
                                     self.afterPlaceOrder();
-                                    window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
-
+                                    adyenPaymentService.getOrderPaymentStatus(orderId)
+                                        .done(function (responseJSON) {
+                                            self.validateThreeDSOrPlaceOrder(responseJSON)
+                                        });
                                 }
                             );
                         }
+
                     },
                     buttonColor: 'black', // default/black/white
                     buttonType: 'long', // long/short
                     showButton: true // show or hide the Google Pay button
-
                 });
                 var promise = googlepay.isAvailable();
                 promise.then(function (success) {
                     self.googlePayAllowed(true);
-                    googlepay.mount(googlePayNode);
+                    googlepay.mount(self.googlePayNode);
+                    $(self.googlePayNode).find('button').prop('disabled', !self.validate(true));
                 }, function (error) {
                     console.log(error);
                     self.googlePayAllowed(false);
                 });
             },
-            getCheckoutEnvironment: function () {
-                return window.checkoutConfig.payment.adyenGooglePay.checkoutEnvironment;
+            /**
+             * Based on the response we can start a 3DS2 validation or place the order
+             * @param responseJSON
+             */
+            validateThreeDSOrPlaceOrder: function (responseJSON) {
+                var response = JSON.parse(responseJSON);
+                if (response && response.type === 'RedirectShopper') {
+                    window.location.replace(url.build(
+                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
+                    ));
+                } else {
+                    window.location.replace(url.build(
+                        window.checkoutConfig.payment[quote.paymentMethod().method].successUrl
+                    ));
+                }
             },
             isGooglePayAllowed: function () {
                 if (this.googlePayAllowed()) {
@@ -176,8 +194,8 @@ define(
             context: function () {
                 return this;
             },
-            validate: function () {
-                return true;
+            validate: function (hideErrors) {
+                return this.additionalValidators.validate(hideErrors);
             },
             getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
@@ -212,6 +230,15 @@ define(
             },
             getVaultCode: function () {
                 return "adyen_google_pay_vault";
+            },
+            getOriginKey: function () {
+                return window.checkoutConfig.payment.adyen.originKey;
+            },
+            getCheckoutEnvironment: function () {
+                return window.checkoutConfig.payment.adyenGooglePay.checkoutEnvironment;
+            },
+            onPaymentMethodContentChange: function (data, event) {
+                $(this.googlePayNode).find('button').prop('disabled', !this.validate());
             }
         });
     }

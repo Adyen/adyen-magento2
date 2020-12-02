@@ -33,7 +33,6 @@ use Magento\Framework\Setup\SchemaSetupInterface;
  */
 class UpgradeSchema implements UpgradeSchemaInterface
 {
-
     const ADYEN_ORDER_PAYMENT = 'adyen_order_payment';
     const ADYEN_INVOICE = 'adyen_invoice';
 
@@ -66,6 +65,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         if (version_compare($context->getVersion(), '2.2.1', '<')) {
             $this->updateSchemaVersion221($setup);
+        }
+
+        if (version_compare($context->getVersion(), '5.4.0', '<')) {
+            $this->updateSchemaVersion540($setup);
         }
 
         $setup->endSetup();
@@ -275,7 +278,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
         );
     }
 
-
     /**
      * Upgrade to 2.0.7
      *
@@ -305,7 +307,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
     public function updateSchemaVersion221(SchemaSetupInterface $setup)
     {
-
         $table = $setup->getConnection()
             ->newTable($setup->getTable(self::ADYEN_INVOICE))
             ->addColumn(
@@ -358,5 +359,47 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ->setComment('Adyen Invoice');
 
         $setup->getConnection()->createTable($table);
+    }
+
+    /**
+     * Upgrade to 5.4.0
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     */
+    public function updateSchemaVersion540(SchemaSetupInterface $setup)
+    {
+        $connection = $setup->getConnection();
+        $tableName = $setup->getTable('adyen_notification');
+
+        $adyenNotificationErrorCountColumn = [
+            'type' => Table::TYPE_INTEGER,
+            'length' => 1,
+            'nullable' => true,
+            'default' => 0,
+            'comment' => 'Adyen Notification Process Error Count',
+            'after' => \Adyen\Payment\Model\Notification::PROCESSING
+        ];
+
+        $adyenNotificationErrorMessageColumn = [
+            'type' => Table::TYPE_TEXT,
+            'length' => null,
+            'nullable' => true,
+            'default' => null,
+            'comment' => 'Adyen Notification Process Error Message',
+            'after' => \Adyen\Payment\Model\Notification::ERROR_COUNT
+        ];
+
+        $connection->addColumn(
+            $tableName,
+            \Adyen\Payment\Model\Notification::ERROR_COUNT,
+            $adyenNotificationErrorCountColumn
+        );
+
+        $connection->addColumn(
+            $tableName,
+            \Adyen\Payment\Model\Notification::ERROR_MESSAGE,
+            $adyenNotificationErrorMessageColumn
+        );
     }
 }

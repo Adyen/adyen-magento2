@@ -27,9 +27,7 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 
 class AdyenCcConfigProvider implements ConfigProviderInterface
 {
-
     const CODE = 'adyen_cc';
-
     const CC_VAULT_CODE = 'adyen_cc_vault';
 
     /**
@@ -118,25 +116,30 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
                     'vaultCode' => self::CC_VAULT_CODE,
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'adyen/process/redirect/', ['_secure' => $this->_getRequest()->isSecure()])
+                        'adyen/process/redirect/',
+                        ['_secure' => $this->_getRequest()->isSecure()]
+                    )
                 ]
             ]
         ];
 
         $methodCode = self::CODE;
 
-        $config = array_merge_recursive($config, [
-            'payment' => [
-                'ccform' => [
-                    'availableTypes' => [$methodCode => $this->getCcAvailableTypes()],
-                    'availableTypesByAlt' => [$methodCode => $this->getCcAvailableTypesByAlt()],
-                    'months' => [$methodCode => $this->getCcMonths()],
-                    'years' => [$methodCode => $this->getCcYears()],
-                    'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
-                    'cvvImageUrl' => [$methodCode => $this->getCvvImageUrl()]
+        $config = array_merge_recursive(
+            $config,
+            [
+                'payment' => [
+                    'ccform' => [
+                        'availableTypes' => [$methodCode => $this->getCcAvailableTypes()],
+                        'availableTypesByAlt' => [$methodCode => $this->getCcAvailableTypesByAlt()],
+                        'months' => [$methodCode => $this->getCcMonths()],
+                        'years' => [$methodCode => $this->getCcYears()],
+                        'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
+                        'cvvImageUrl' => [$methodCode => $this->getCvvImageUrl()]
+                    ]
                 ]
             ]
-        ]);
+        );
 
         $enableOneclick = $this->_adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
 
@@ -147,13 +150,13 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
 
         $config['payment']['adyenCc']['methodCode'] = self::CODE;
 
-        $config['payment']['adyenCc']['locale'] = $this->_adyenHelper->getStoreLocale($this->storeManager->getStore()->getId());
+        $config['payment']['adyenCc']['locale'] = $this->_adyenHelper->getStoreLocale(
+            $this->storeManager->getStore()->getId()
+        );
 
         $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();
 
-        $config['payment']['adyenCc']['originKey'] = $this->_adyenHelper->getOriginKeyForBaseUrl();
-        $config['payment']['adyenCc']['checkoutEnvironment'] = $this->_adyenHelper->getCheckoutEnvironment($this->storeManager->getStore()->getId());
 
         // has installments by default false
         $config['payment']['adyenCc']['hasInstallments'] = false;
@@ -292,4 +295,3 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         return $this->_request;
     }
 }
-

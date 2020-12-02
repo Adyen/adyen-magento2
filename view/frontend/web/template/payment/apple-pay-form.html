@@ -21,7 +21,9 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
+
 <!-- ko if: isApplePayAllowed() -->
+<div id="apple-pay-payment-method">
 <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}, visible: isApplePayVisible()">
     <div class="payment-method-title field choice">
         <input type="radio"
@@ -59,5 +61,6 @@
 
 
     </div>
+</div>
 </div>
 <!--/ko-->

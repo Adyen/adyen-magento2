@@ -29,4 +29,7 @@
     <arg value="p"/>
     <arg value="n"/>
     <rule ref="Magento2"/>
+    <rule ref="PSR2">
+        <exclude-pattern>*.js</exclude-pattern>
+    </rule>
 </ruleset>

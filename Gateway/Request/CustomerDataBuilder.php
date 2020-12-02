@@ -20,13 +20,11 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Gateway\Request;
 
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-/**
- * Class CustomerDataBuilder
- */
 class CustomerDataBuilder implements BuilderInterface
 {
     /**
@@ -39,14 +37,13 @@ class CustomerDataBuilder implements BuilderInterface
      *
      * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
      */
-	public function __construct(
+    public function __construct(
         \Adyen\Payment\Helper\Requests $adyenRequestsHelper
-	)
-	{
+    ) {
         $this->adyenRequestsHelper = $adyenRequestsHelper;
-	}
+    }
 
-	/**
+    /**
      * Add shopper data into request
      *
      * @param array $buildSubject
@@ -62,7 +59,14 @@ class CustomerDataBuilder implements BuilderInterface
         $billingAddress = $order->getBillingAddress();
         $storeId = $order->getStoreId();
         $additionalInformation = $payment->getAdditionalInformation();
-        $request['body'] = $this->adyenRequestsHelper->buildCustomerData([], $customerId, $billingAddress, $storeId, $payment, $additionalInformation);
+        $request['body'] = $this->adyenRequestsHelper->buildCustomerData(
+            $billingAddress,
+            $storeId,
+            $customerId,
+            $payment,
+            $additionalInformation,
+            []
+        );
         return $request;
     }
 }

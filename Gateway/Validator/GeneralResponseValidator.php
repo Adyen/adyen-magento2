@@ -68,14 +68,16 @@ class GeneralResponseValidator extends AbstractValidator
         $errorMessages = [];
 
         // validate result
-        if ($response && isset($response['resultCode'])) {
+        if (!empty($response['resultCode'])) {
             switch ($response['resultCode']) {
                 case "Authorised":
                     $payment->setAdditionalInformation('pspReference', $response['pspReference']);
 
                     // Save cc_type if available in the response
                     if (!empty($response['additionalData']['paymentMethod'])) {
-                        $ccType = $this->adyenHelper->getMagentoCreditCartType($response['additionalData']['paymentMethod']);
+                        $ccType = $this->adyenHelper->getMagentoCreditCartType(
+                            $response['additionalData']['paymentMethod']
+                        );
                         $payment->setAdditionalInformation('cc_type', $ccType);
                         $payment->setCcType($ccType);
                     }
@@ -139,9 +141,14 @@ class GeneralResponseValidator extends AbstractValidator
             }
         } else {
             $errorMsg = __('Error with payment method please select different payment method.');
+
+            if (!empty($response['error'])) {
+                $this->adyenLogger->error($response['error']);
+            }
+
             throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
         }
-        
+
         return $this->createResult($isValid, $errorMessages);
     }
 }

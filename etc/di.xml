@@ -660,6 +660,7 @@
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
                 <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\ApplePayAuthorizationDataBuilder</item>
+                <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -899,13 +900,6 @@
         </arguments>
     </virtualType>
 
-    <!--Checkout Response validator-->
-    <virtualType name="CheckoutResponseValidator" type="Adyen\Payment\Gateway\Validator\CheckoutResponseValidator">
-        <arguments>
-            <argument name="loggerInterface" xsi:type="object">Adyen\Payment\Logger\AdyenLogger</argument>
-        </arguments>
-    </virtualType>
-
     <virtualType name="PosCloudResponseValidator" type="Adyen\Payment\Gateway\Validator\PosCloudResponseValidator">
         <arguments>
             <argument name="loggerInterface" xsi:type="object">Adyen\Payment\Logger\AdyenLogger</argument>
@@ -913,6 +907,7 @@
     </virtualType>
 
     <preference for="Magento\Paypal\Model\Billing\Agreement" type="Adyen\Payment\Model\Billing\Agreement" />
+    <preference for="Magento\Payment\Gateway\Data\Order\AddressAdapter" type="Adyen\Payment\Gateway\Data\Order\AddressAdapter"/>
     <type name="Adyen\Payment\Logger\Handler\AdyenDebug">
         <arguments>
             <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
@@ -1026,13 +1021,68 @@
                 type="Adyen\Payment\Model\AdyenThreeDS2Process"/>
     <preference for="Adyen\Payment\Api\AdyenOriginKeyInterface"
                 type="Adyen\Payment\Model\AdyenOriginKey"/>
+    <preference for="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface"
+                type="Adyen\Payment\Model\AdyenOrderPaymentStatus"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10"/>
     </type>
     <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
-        <plugin name="AdyenPaymentInformationManagementAddPaymentInfo" type="Adyen\Payment\Plugin\PaymentInformationManagement" sortOrder="10"/>
+        <plugin name="AdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\PaymentInformationResetOrderId"
+                sortOrder="10"/>
     </type>
     <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
-        <plugin name="AdyenGuestPaymentInformationManagementAddPaymentInfo" type="Adyen\Payment\Plugin\GuestPaymentInformationManagement" sortOrder="10"/>
+        <plugin name="GuestAdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\GuestPaymentInformationResetOrderId"
+                sortOrder="10"/>
+    </type>
+    <type name="Magento\Framework\Session\SessionStartChecker">
+        <plugin name="AdyenTransparentSessionChecker" type="Adyen\Payment\Plugin\TransparentSessionChecker" sortOrder="10"/>
+    </type>
+    <!--Notifications overview-->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="adyen_notifications_overview_data_source" xsi:type="string">Adyen\Payment\Model\ResourceModel\Notification\UiComponentCollection</item>
+            </argument>
+        </arguments>
+    </type>
+    <virtualType name="Adyen\Payment\Model\ResourceModel\Notification\UiComponentCollection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">adyen_notification</argument>
+            <argument name="resourceModel" xsi:type="string">Adyen\Payment\Model\ResourceModel\Notification</argument>
+        </arguments>
+    </virtualType>
+
+    <!--Sensitive and system-specific configuration-->
+    <type name="Magento\Config\Model\Config\TypePool">
+        <arguments>
+            <argument name="environment" xsi:type="array">
+                <item name="payment/adyen_abstract/demo_mode" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/debug" xsi:type="string">1</item>
+                <item name="payment/adyen_apple_pay/full_path_location_pem_file_test" xsi:type="string">1</item>
+                <item name="payment/adyen_apple_pay/full_path_location_pem_file_live" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/notifications_ip_check" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/notifications_hmac_check" xsi:type="string">1</item>
+            </argument>
+            <argument name="sensitive" xsi:type="array">
+                <item name="payment/adyen_abstract/merchant_account" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/api_key_test" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/api_key_live" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/notification_username" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/notification_password" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/live_endpoint_url_prefix" xsi:type="string">1</item>
+                <item name="payment/adyen_pos_cloud/pos_merchant_account" xsi:type="string">1</item>
+                <item name="payment/adyen_pos_cloud/api_key_test" xsi:type="string">1</item>
+                <item name="payment/adyen_pos_cloud/api_key_live" xsi:type="string">1</item>
+                <item name="payment/adyen_pos_cloud/pos_store_id" xsi:type="string">1</item>
+                <item name="payment/adyen_pay_by_mail/skin_code" xsi:type="string">1</item>
+                <item name="payment/adyen_pay_by_mail/hmac_test" xsi:type="string">1</item>
+                <item name="payment/adyen_pay_by_mail/hmac_live" xsi:type="string">1</item>
+                <item name="payment/adyen_apple_pay/merchant_identifier_test" xsi:type="string">1</item>
+                <item name="payment/adyen_apple_pay/merchant_identifier_live" xsi:type="string">1</item>
+                <item name="payment/adyen_google_pay/merchant_identifier" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/notification_hmac_key_test" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/notification_hmac_key_live" xsi:type="string">1</item>
+            </argument>
+        </arguments>
     </type>
 </config>

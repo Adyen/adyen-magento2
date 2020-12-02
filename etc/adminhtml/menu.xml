@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../Magento/Backend/etc/menu.xsd">
+    <menu>
+        <add id="Adyen_Payment::adyen" title="Adyen" module="Adyen_Payment" sortOrder="100" parent="Magento_Backend::system" resource="Adyen_Payment::adyen"/>
+        <add id="Adyen_Payment::notifications_overview" title="Notifications Overview" module="Adyen_Payment" sortOrder="10" parent="Adyen_Payment::adyen" action="adyen/notifications/overview" resource="Adyen_Payment::notifications_overview"/>
+    </menu>
+</config>

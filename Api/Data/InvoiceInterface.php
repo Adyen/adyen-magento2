@@ -87,7 +87,7 @@ interface InvoiceInterface
     public function getOriginalReference();
 
     /**
-     * @param $originalReference
+     * @param  $originalReference
      * @return mixed
      */
     public function setOriginalReference($originalReference);

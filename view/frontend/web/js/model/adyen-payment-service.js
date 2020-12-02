@@ -52,7 +52,8 @@ define(
                 };
 
                 storage.post(
-                    serviceUrl, JSON.stringify(payload)
+                    serviceUrl,
+                    JSON.stringify(payload)
                 ).done(
                     function (response) {
                         self.setPaymentMethods(response);
@@ -61,10 +62,17 @@ define(
                         }
                     }
                 ).fail(
-                    function (response) {
+                    function () {
                         self.setPaymentMethods([]);
                     }
                 )
+            },
+            getOrderPaymentStatus: function (orderId) {
+                var serviceUrl = urlBuilder.createUrl('/adyen/orders/:orderId/payment-status', {
+                    orderId: orderId
+                });
+
+                return storage.get(serviceUrl);
             }
         };
     }

@@ -27,7 +27,6 @@ use Magento\Payment\Gateway\Validator\AbstractValidator;
 
 class CancelResponseValidator extends AbstractValidator
 {
-
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
@@ -61,9 +60,14 @@ class CancelResponseValidator extends AbstractValidator
         // The available response codes that the API can return in case of successfull cancellation
         $expectedResponses = ['[cancelOrRefund-received]', '[cancel-received]'];
 
-        if (!in_array($response['response'], $expectedResponses)) {
+        if (empty($response['response']) || !in_array($response['response'], $expectedResponses)) {
             $errorMsg = __('Error with cancellation');
             $this->adyenLogger->error($errorMsg);
+
+            if (!empty($response['error'])) {
+                $this->adyenLogger->error($response['error']);
+            }
+
             $errorMessages[] = $errorMsg;
         }
 

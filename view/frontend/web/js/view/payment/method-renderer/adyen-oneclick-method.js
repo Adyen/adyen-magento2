@@ -40,9 +40,34 @@ define(
         'mage/storage',
         'Magento_Checkout/js/action/place-order',
         'Adyen_Payment/js/model/threeds2',
-        'Magento_Checkout/js/model/error-processor'
+        'Magento_Checkout/js/model/error-processor',
+        'Adyen_Payment/js/model/adyen-payment-service',
+        'adyenCheckout'
     ],
-    function (ko, _, $, Component, selectPaymentMethodAction, additionalValidators, quote, checkoutData, redirectOnSuccessAction, layout, Messages, url, threeDS2Utils, fullScreenLoader, setPaymentMethodAction, urlBuilder, storage, placeOrderAction, threeds2, errorProcessor) {
+    function (
+        ko,
+        _,
+        $,
+        Component,
+        selectPaymentMethodAction,
+        additionalValidators,
+        quote,
+        checkoutData,
+        redirectOnSuccessAction,
+        layout,
+        Messages,
+        url,
+        threeDS2Utils,
+        fullScreenLoader,
+        setPaymentMethodAction,
+        urlBuilder,
+        storage,
+        placeOrderAction,
+        threeds2,
+        errorProcessor,
+        adyenPaymentService,
+        AdyenCheckout
+    ) {
 
         'use strict';
 
@@ -55,6 +80,7 @@ define(
         var isValid = ko.observable(false);
 
         return Component.extend({
+            isPlaceOrderActionAllowed: ko.observable(quote.billingAddress() != null),
             defaults: {
                 template: 'Adyen_Payment/payment/oneclick-form',
                 recurringDetailReference: '',
@@ -172,7 +198,7 @@ define(
 
 
                         isButtonActive: function () {
-                            return self.isActive() && this.getCode() == self.isChecked() && self.isBillingAgreementChecked() && this.placeOrderAllowed();
+                            return self.isActive() && this.getCode() == self.isChecked() && self.isBillingAgreementChecked() && this.placeOrderAllowed() && self.isPlaceOrderActionAllowed();
                         },
                         /**
                          * Custom place order function
@@ -208,11 +234,14 @@ define(
                                             self.isPlaceOrderActionAllowed(true);
                                         }
                                     ).done(
-                                    function (response) {
-                                        self.afterPlaceOrder();
-                                        self.validateThreeDS2OrPlaceOrder(response);
-                                    }
-                                );
+                                        function (orderId) {
+                                            self.afterPlaceOrder();
+                                            adyenPaymentService.getOrderPaymentStatus(orderId)
+                                            .done(function (responseJSON) {
+                                                self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
+                                            });
+                                        }
+                                    );
                             }
                             return false;
                         },
@@ -230,30 +259,20 @@ define(
                             }
                             var oneClickCardNode = document.getElementById('cvcContainer-' + self.value);
 
-                            // this should be fixed in new version of checkout card component
                             var hideCVC = false;
-                            if (this.hasVerification()) {
-                                if (self.agreement_data.variant == "maestro") {
-                                    // for maestro cvc is optional
-                                    self.placeOrderAllowed(true);
-                                }
-                            } else {
+                            // hide cvc if contract has been stored as recurring
+                            if (!this.hasVerification()) {
                                 hideCVC = true;
                             }
 
                             var oneClickCard = checkout
                                 .create('card', {
-                                    type: self.agreement_data.variant,
                                     hideCVC: hideCVC,
-                                    details: self.getOneclickDetails(),
-                                    storedDetails: {
-                                        "card": {
-                                            "expiryMonth": self.agreement_data.card.expiryMonth,
-                                            "expiryYear": self.agreement_data.card.expiryYear,
-                                            "holderName": self.agreement_data.card.holderName,
-                                            "number": self.agreement_data.card.number
-                                        }
-                                    },
+                                    brand: self.agreement_data.variant,
+                                    storedPaymentMethodId: this.value,
+                                    expiryMonth: self.agreement_data.card.expiryMonth,
+                                    expiryYear: self.agreement_data.card.expiryYear,
+                                    holderName: self.agreement_data.card.holderName,
                                     onChange: function (state, component) {
                                         if (state.isValid) {
                                             self.placeOrderAllowed(true);
@@ -276,21 +295,19 @@ define(
                                     }
                                 })
                                 .mount(oneClickCardNode);
-
-
                             window.adyencheckout = oneClickCard;
                         },
                         /**
                          * Based on the response we can start a 3DS2 validation or place the order
                          * @param responseJSON
                          */
-                        validateThreeDS2OrPlaceOrder: function (responseJSON) {
+                        validateThreeDS2OrPlaceOrder: function (responseJSON, orderId) {
                             var self = this;
                             var response = JSON.parse(responseJSON);
 
                             if (!!response.threeDS2) {
                                 // render component
-                                self.renderThreeDS2Component(response.type, response.token);
+                                self.renderThreeDS2Component(response.type, response.token, orderId);
                             } else {
                                 window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
                             }
@@ -306,7 +323,7 @@ define(
                          * @param type
                          * @param token
                          */
-                        renderThreeDS2Component: function (type, token) {
+                        renderThreeDS2Component: function (type, token, orderId) {
                             var self = this;
 
                             var threeDS2Node = document.getElementById('threeDS2ContainerOneClick');
@@ -315,8 +332,10 @@ define(
                                 self.threeDS2Component = checkout.create('threeDS2DeviceFingerprint', {
                                     fingerprintToken: token,
                                     onComplete: function (result) {
-                                        threeds2.processThreeDS2(result.data).done(function (responseJSON) {
-                                            self.validateThreeDS2OrPlaceOrder(responseJSON)
+                                        var request = result.data;
+                                        request.orderId = orderId;
+                                        threeds2.processThreeDS2(request).done(function (responseJSON) {
+                                            self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
                                         }).fail(function (result) {
                                             errorProcessor.process(result, self.getMessageContainer());
                                             self.isPlaceOrderActionAllowed(true);
@@ -334,6 +353,8 @@ define(
                                 var popupModal = $('#threeDS2ModalOneClick').modal({
                                     // disable user to hide popup
                                     clickableOverlay: false,
+                                    responsive: true,
+                                    innerScroll: false,
                                     // empty buttons, we don't need that
                                     buttons: [],
                                     modalClass: 'threeDS2Modal'
@@ -347,42 +368,23 @@ define(
                                         onComplete: function (result) {
                                             popupModal.modal("closeModal");
                                             fullScreenLoader.startLoader();
-                                            threeds2.processThreeDS2(result.data).done(function (responseJSON) {
-                                                self.validateThreeDS2OrPlaceOrder(responseJSON)
+                                            var request = result.data;
+                                            request.orderId = orderId;
+                                            threeds2.processThreeDS2(request).done(function (responseJSON) {
+                                                self.validateThreeDS2OrPlaceOrder(responseJSON, orderId)
                                             }).fail(function (result) {
                                                 errorProcessor.process(result, self.getMessageContainer());
                                                 self.isPlaceOrderActionAllowed(true);
                                                 fullScreenLoader.stopLoader();
                                             });
                                         },
-                                        onError: function (error) {
-                                            console.log(JSON.stringify(error));
-                                        }
+                                    onError: function (error) {
+                                        console.log(JSON.stringify(error));
+                                    }
                                     });
                             }
 
                             self.threeDS2Component.mount(threeDS2Node);
-                        },
-                        /**
-                         * We use the billingAgreements to save the oneClick stored payments but we don't store the
-                         * details object that we get from the paymentMethods call. This function is a fix for BCMC.
-                         * When we render the stored payments dynamically from the paymentMethods call response it
-                         * should be removed
-                         * @returns {*}
-                         */
-                        getOneclickDetails: function () {
-                            var self = this;
-
-                            if (self.agreement_data.variant === 'bcmc') {
-                                return [];
-                            } else {
-                                return [
-                                    {
-                                        "key": "cardDetails.cvc",
-                                        "type": "cvc"
-                                    }
-                                ];
-                            }
                         },
                         /**
                          * Builds the payment details part of the payment information reqeust
@@ -452,7 +454,7 @@ define(
                             return $.when(
                                 placeOrderAction(this.getData(), this.getMessageContainer())
                             );
-                        },
+                        }
                     }
                 });
 
@@ -496,14 +498,13 @@ define(
                 if (quote.paymentMethod().method == paymentMethod()) {
                     return recurringDetailReference();
                 }
-
                 return null;
             }),
-            placeOrderHandler: null,
-            validateHandler: null,
-            setPlaceOrderHandler: function (handler) {
-                this.placeOrderHandler = handler;
-            },
+        placeOrderHandler: null,
+        validateHandler: null,
+        setPlaceOrderHandler: function (handler) {
+            this.placeOrderHandler = handler;
+        },
             setValidateHandler: function (handler) {
                 this.validateHandler = handler;
             },
@@ -535,10 +536,10 @@ define(
                 return window.checkoutConfig.payment.adyenOneclick.locale;
             },
             getOriginKey: function () {
-                return window.checkoutConfig.payment.adyenOneclick.originKey;
+                return window.checkoutConfig.payment.adyen.originKey;
             },
             getCheckoutEnvironment: function () {
-                return window.checkoutConfig.payment.adyenOneclick.checkoutEnvironment;
+                return window.checkoutConfig.payment.adyen.checkoutEnvironment;
             }
         });
     }

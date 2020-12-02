@@ -71,4 +71,11 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+
+    <route url="/V1/adyen/orders/:orderId/payment-status" method="GET">
+        <service class="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface" method="getOrderPaymentStatus"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>

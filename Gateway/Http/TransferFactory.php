@@ -29,7 +29,6 @@ use Magento\Payment\Gateway\Http\TransferInterface;
 
 class TransferFactory implements TransferFactoryInterface
 {
-
     /**
      * @var TransferBuilder
      */
@@ -54,6 +53,10 @@ class TransferFactory implements TransferFactoryInterface
     {
         if (!empty($request['headers'])) {
             $this->transferBuilder->setHeaders($request['headers']);
+        }
+
+        if (!empty($request['clientConfig'])) {
+            $this->transferBuilder->setClientConfig($request['clientConfig']);
         }
 
         $transfer = $this->transferBuilder

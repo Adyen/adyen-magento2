@@ -30,7 +30,6 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
  */
 class RefundDataBuilder implements BuilderInterface
 {
-
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -48,6 +47,7 @@ class RefundDataBuilder implements BuilderInterface
 
     /**
      * RefundDataBuilder constructor.
+     *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory
      */
@@ -79,7 +79,6 @@ class RefundDataBuilder implements BuilderInterface
         $method = $payment->getMethod();
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
         $grandTotal = $payment->getOrder()->getGrandTotal();
-
 
         // check if it contains a split payment
         $orderPaymentCollection = $this->orderPaymentCollectionFactory
@@ -173,9 +172,8 @@ class RefundDataBuilder implements BuilderInterface
                 $requestBody[0]["additionalData"] = $openInvoiceFields;
             }
         }
-
+        $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
         $request['body'] = $requestBody;
-
         return $request;
     }
 

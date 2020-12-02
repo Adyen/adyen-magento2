@@ -29,4 +29,18 @@ class Boleto extends AbstractInfo
      * @var string
      */
     protected $_template = 'Adyen_Payment::info/adyen_boleto.phtml';
+
+    /**
+     * @param $data string
+     * @return string
+     */
+    public function getPaymentActionData($data)
+    {
+        $paymentAction = $this->getMethod()->getInfoInstance()->getAdditionalInformation('action');
+        if (empty($paymentAction[$data])) {
+            return '';
+        }
+
+        return $paymentAction[$data];
+    }
 }

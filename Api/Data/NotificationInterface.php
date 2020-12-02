@@ -82,6 +82,18 @@ interface NotificationInterface
      */
     const ADDITIONAL_DATA = 'additional_data';
     /*
+     * Processing
+     */
+    const PROCESSING = 'processing';
+    /*
+     * Error count
+     */
+    const ERROR_COUNT = 'error_count';
+    /*
+     * Error message
+     */
+    const ERROR_MESSAGE = 'error_message';
+    /*
      * Created-at timestamp.
      */
     const CREATED_AT = 'created_at';
@@ -89,7 +101,6 @@ interface NotificationInterface
      * Updated-at timestamp.
      */
     const UPDATED_AT = 'updated_at';
-
 
     /**
      * Gets the ID for the notification.
@@ -120,7 +131,6 @@ interface NotificationInterface
      * @return $this
      */
     public function setPspreference($pspreference);
-
 
     /**
      * Sets OriginalReference.

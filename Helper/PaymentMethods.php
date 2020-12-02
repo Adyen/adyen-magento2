@@ -50,10 +50,10 @@ class PaymentMethods extends AbstractHelper
      */
     protected $session;
 
-	/**
-	 * @var \Magento\Framework\Locale\ResolverInterface
-	 */
-	protected $localeResolver;
+    /**
+     * @var \Magento\Framework\Locale\ResolverInterface
+     */
+    protected $localeResolver;
 
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
@@ -86,13 +86,18 @@ class PaymentMethods extends AbstractHelper
     protected $themeProvider;
 
     /**
+     * @var \Magento\Quote\Model\Quote
+     */
+    protected $quote;
+
+    /**
      * PaymentMethods constructor.
      *
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param Data $adyenHelper
      * @param \Magento\Checkout\Model\Session $session
-	 * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
+     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param \Magento\Framework\App\RequestInterface $request
@@ -105,7 +110,7 @@ class PaymentMethods extends AbstractHelper
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $session,
-		\Magento\Framework\Locale\ResolverInterface $localeResolver,
+        \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\App\RequestInterface $request,
@@ -117,7 +122,7 @@ class PaymentMethods extends AbstractHelper
         $this->config = $config;
         $this->adyenHelper = $adyenHelper;
         $this->session = $session;
-		$this->localeResolver = $localeResolver;
+        $this->localeResolver = $localeResolver;
         $this->adyenLogger = $adyenLogger;
         $this->assetRepo = $assetRepo;
         $this->request = $request;
@@ -133,41 +138,51 @@ class PaymentMethods extends AbstractHelper
     {
         // get quote from quoteId
         $quote = $this->quoteRepository->getActive($quoteId);
-        $store = $quote->getStore();
 
-        $paymentMethods = $this->fetchAlternativeMethods($store, $country);
+        // If quote cannot be found early return the empty paymentMethods array
+        if (empty($quote)) {
+            return [];
+        }
+
+        $this->setQuote($quote);
+
+        $paymentMethods = $this->fetchAlternativeMethods($country);
         return $paymentMethods;
     }
 
     /**
-     * @param $store
      * @param $country
      * @return array
      */
-    protected function fetchAlternativeMethods($store, $country)
+    protected function fetchAlternativeMethods($country)
     {
-        $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData('merchant_account');
+        $quote = $this->getQuote();
+        $store = $quote->getStore();
+
+        $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData('merchant_account', $store->getId());
 
         if (!$merchantAccount) {
             return [];
         }
+
+        $currencyCode = $this->getCurrentCurrencyCode($store);
 
         $adyFields = [
             "channel" => "Web",
             "merchantAccount" => $merchantAccount,
             "countryCode" => $this->getCurrentCountryCode($store, $country),
             "amount" => [
-                "currency" => $this->getCurrentCurrencyCode($store),
-                "value" => (int)$this->adyenHelper->formatAmount(
+                "currency" => $currencyCode,
+                "value" => $this->adyenHelper->formatAmount(
                     $this->getCurrentPaymentAmount(),
-                    $this->getCurrentCurrencyCode($store)
+                    $currencyCode
                 ),
             ],
             "shopperReference" => $this->getCurrentShopperReference(),
             "shopperLocale" => $this->adyenHelper->getCurrentLocaleCode($store->getId())
         ];
 
-        $billingAddress = $this->getQuote()->getBillingAddress();
+        $billingAddress = $quote->getBillingAddress();
 
         if (!empty($billingAddress)) {
             if ($customerTelephone = trim($billingAddress->getTelephone())) {
@@ -180,7 +195,6 @@ class PaymentMethods extends AbstractHelper
         $paymentMethods = [];
         if (isset($responseData['paymentMethods'])) {
             foreach ($responseData['paymentMethods'] as $paymentMethod) {
-
                 $paymentMethodCode = $paymentMethod['type'];
                 $paymentMethod = $this->fieldMapPaymentMethod($paymentMethod);
 
@@ -203,14 +217,20 @@ class PaymentMethods extends AbstractHelper
                     }
 
                     $params = [];
-                    $params = array_merge([
-                        'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
-                        '_secure' => $this->request->isSecure(),
-                        'theme' => $themeCode
-                    ], $params);
+                    $params = array_merge(
+                        [
+                            'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                            '_secure' => $this->request->isSecure(),
+                            'theme' => $themeCode
+                        ],
+                        $params
+                    );
 
-                    $asset = $this->assetRepo->createAsset('Adyen_Payment::images/logos/' .
-                        $paymentMethodCode . '.png', $params);
+                    $asset = $this->assetRepo->createAsset(
+                        'Adyen_Payment::images/logos/' .
+                        $paymentMethodCode . '.png',
+                        $params
+                    );
 
                     $placeholder = $this->assetSource->findSource($asset);
 
@@ -233,16 +253,35 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
-     * @return bool|int
+     * @return float
      */
     protected function getCurrentPaymentAmount()
     {
-        if (($grandTotal = $this->getQuote()->getGrandTotal()) > 0) {
+        $grandTotal = $this->getQuote()->getGrandTotal();
+
+        if (!is_numeric($grandTotal)) {
+            throw new \Exception(
+                sprintf(
+                    'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a numeric value.',
+                    $this->getQuote()->getEntityId()
+                )
+            );
+        }
+
+        $grandTotal = (float) $grandTotal;
+
+        if ($grandTotal > 0) {
             return $grandTotal;
         }
-        return 10;
-    }
 
+        throw new \Exception(
+            sprintf(
+                'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float > `0`, got `%f`.',
+                $this->getQuote()->getEntityId(),
+                $grandTotal
+            )
+        );
+    }
 
     /**
      * @param $store
@@ -317,9 +356,8 @@ class PaymentMethods extends AbstractHelper
      */
     protected function getPaymentMethodsResponse($requestParams, $store)
     {
-
         // initialize the adyen client
-        $client = $this->adyenHelper->initializeAdyenClient($this->getQuote()->getStoreId());
+        $client = $this->adyenHelper->initializeAdyenClient($store->getId());
 
         // initialize service
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
@@ -342,7 +380,15 @@ class PaymentMethods extends AbstractHelper
      */
     protected function getQuote()
     {
-        return $this->session->getQuote();
+        return $this->quote;
+    }
+
+    /**
+     * @param \Magento\Quote\Model\Quote $quote
+     */
+    protected function setQuote(\Magento\Quote\Model\Quote $quote)
+    {
+        $this->quote = $quote;
     }
 
     /**
@@ -359,8 +405,7 @@ class PaymentMethods extends AbstractHelper
      */
     public function getConnectedTerminals()
     {
-
-        $storeId = $this->getQuote()->getStoreId();
+        $storeId = $this->session->getQuote()->getStoreId();
 
         // initialize the adyen client
         $client = $this->adyenHelper->initializeAdyenClient($storeId, $this->adyenHelper->getPosApiKey($storeId));

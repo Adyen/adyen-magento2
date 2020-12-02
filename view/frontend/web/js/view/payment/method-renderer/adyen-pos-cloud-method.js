@@ -60,15 +60,15 @@ define(
             },
             initialize: function () {
                 this._super();
-                let self = this;
+                var self = this;
 
                 // installments
-                let allInstallments = self.getAllInstallments();
-                let grandTotal = quote.totals().grand_total;
-                let precision = quote.getPriceFormat().precision;
-                let currencyCode = quote.totals().quote_currency_code;
+                var allInstallments = self.getAllInstallments();
+                var grandTotal = quote.totals().grand_total;
+                var precision = quote.getPriceFormat().precision;
+                var currencyCode = quote.totals().quote_currency_code;
 
-                let numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(allInstallments, grandTotal, precision, currencyCode);
+                var numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(allInstallments, grandTotal, precision, currencyCode);
 
                 if (numberOfInstallments) {
                     self.installments(numberOfInstallments);
@@ -86,7 +86,7 @@ define(
                 serviceUrl = urlBuilder.createUrl('/adyen/initiate', {});
                 fullScreenLoader.startLoader();
 
-                let payload = {
+                var payload = {
                     "payload": JSON.stringify({
                         terminal_id: self.terminalId(),
                         number_of_installments: self.installment()
@@ -96,7 +96,7 @@ define(
                 return storage.post(
                     serviceUrl,
                     JSON.stringify(payload)
-                ).always(function(){
+                ).always(function () {
                     self.placeOrderPos()});
                 return false;
             },
@@ -114,7 +114,7 @@ define(
                 ).fail(
                     function (response) {
                         if (response.responseText.indexOf("In Progress") > -1) {
-                            window.setTimeout(function(){
+                            window.setTimeout(function () {
                                 self.placeOrderPos()},5000);
                             return;
                         }
@@ -128,11 +128,11 @@ define(
                     }
                 )
             },
-            getConnectedTerminals: function() {
-                let connectedTerminals = [];
+            getConnectedTerminals: function () {
+                var connectedTerminals = [];
                 const connectedTerminalsList = window.checkoutConfig.payment.adyenPos.connectedTerminals;
 
-                for (let i = 0; i < connectedTerminalsList.length; i++) {
+                for (var i = 0; i < connectedTerminalsList.length; i++) {
                     connectedTerminals.push(
                         {
                             key: connectedTerminalsList[i],

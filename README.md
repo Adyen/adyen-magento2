@@ -12,7 +12,9 @@ Inside Adyen toggle the following settings on inside the API and Responses secti
 * Variant
 
 ## Requirements
-This plugin supports Magento2 version 2.2.8 and higher.
+This plugin supports Magento2 version 
+* 2.2.9 and higher
+* 2.3.1 and higher
 
 ## Contributing
 We strongly encourage you to join us in contributing to this repository so everyone can benefit from:
@@ -37,20 +39,25 @@ For more information see our [installation section](https://docs.adyen.com/devel
 
 
 ## Setup Cron
-Make sure that your Magento cron is running every minute. We are using a cronjob to process the notifications, our webhook service. The cronjob will be executed every minute. It only executes the notifications that have been received at least 2 minutes ago. This is to ensure that Magento has created the order, and all save after events are executed. A handy tool to get insight into your cronjobs is AOE scheduler. You can download this tool through Magento Connect or GitHub.
-If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html" target="_blank">this is described here</a>
+Make sure that your Magento cron is running every minute. We are using a cronjob to process the notifications (our webhook service) and to update Adyen servers' IP addresses. The cronjobs will be executed every minute.
 
-We have defined this:
 ```
 <group id="adyen_payment">
     <job name="adyen_payment_process_notification" instance="Adyen\Payment\Model\Cron" method="processNotification">
         <schedule>*/1 * * * *</schedule>
     </job>
+    <job name="adyen_payment_server_address_caching" instance="Adyen\Payment\Cron\ServerIpAddress" method="execute">
+        <schedule>*/1 * * * *</schedule>
+    </job>
 </group>
 ```
 
+The notification processing service queries the records that have been received at least 2 minutes ago. This is to ensure that Magento has created the order, and all save after events are executed. A handy tool to get insight into your cronjobs is AOE scheduler. You can download this tool through Magento Connect or GitHub.
+
+If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html" target="_blank">this is described here</a>
+
 ## Support
-You can create issues on our Magento Repository. In case of specific problems with your account, please contact  <a href="mailto:support@adyen.com">support@adyen.com</a>.
+If you have a feature request, or spotted a bug or a technical problem, create a GitHub issue. For other questions, contact our [support team](https://support.adyen.com/hc/en-us/requests/new?ticket_form_id=360000705420).
 
 ## API Library
 This module is using the Adyen APIs Library for PHP for all (API) connections to Adyen.

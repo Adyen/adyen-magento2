@@ -32,12 +32,12 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
     /**
      * @var \Adyen\Payment\Helper\Data
      */
-    protected $_adyenHelper;
+    protected $adyenHelper;
 
-	/**
-	 * @var \Magento\Store\Model\StoreManagerInterface
-	 */
-	protected $storeManager;
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
 
     /**
      * AdyenGenericConfigProvider constructor.
@@ -48,8 +48,8 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
-        $this->_adyenHelper = $adyenHelper;
-		$this->storeManager = $storeManager;
+        $this->adyenHelper = $adyenHelper;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -63,34 +63,26 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
             'payment' => []
         ];
         // show logos turned on by default
-        if ($this->_showLogos()) {
+        if ($this->showLogos()) {
             $config['payment']['adyen']['showLogo'] = true;
         } else {
             $config['payment']['adyen']['showLogo'] = false;
         }
 
-		$config['payment']['checkoutCardComponentSource'] = $this->_adyenHelper->getCheckoutCardComponentJs($this->storeManager->getStore()->getId());
+        $config['payment']['adyen']['originKey'] = $this->adyenHelper->getOriginKeyForBaseUrl();
+        $config['payment']['adyen']['checkoutEnvironment'] = $this->adyenHelper->getCheckoutEnvironment(
+            $this->storeManager->getStore()->getId()
+        );
 
         return $config;
     }
 
     /**
-     * Return redirect URL for method
-     *
-     * @param string $code
-     * @return mixed
-     */
-    protected function getMethodRedirectUrl($code)
-    {
-        return $this->_methods[$code]->getCheckoutRedirectUrl();
-    }
-
-    /**
      * @return bool
      */
-    protected function _showLogos()
+    protected function showLogos()
     {
-        $showLogos = $this->_adyenHelper->getAdyenAbstractConfigData('title_renderer');
+        $showLogos = $this->adyenHelper->getAdyenAbstractConfigData('title_renderer');
         if ($showLogos == \Adyen\Payment\Model\Config\Source\RenderMode::MODE_TITLE_IMAGE) {
             return true;
         }
