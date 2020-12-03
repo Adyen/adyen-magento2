@@ -103,7 +103,7 @@ class Requests extends AbstractHelper
         if ($customerId > 0) {
             $request['shopperReference'] = $customerId;
         }
-        elseif ($this->adyenHelper->isGuestTokenizationEnabled($storeId)){
+        else {
             $uuid = Uuid::generateV4();
             $guestCustomerId =  $payment->getOrder()->getIncrementId() . $uuid;
             $request['shopperReference'] = $guestCustomerId;
@@ -354,18 +354,6 @@ class Requests extends AbstractHelper
             $request['channel'] = 'web';
         }
 
-        return $request;
-    }
-
-    /**
-     * @param array $request
-     * @return array
-     */
-    public function buildRedirectData($storeId, $request = [])
-    {
-        $request['redirectFromIssuerMethod'] = 'GET';
-        $request['redirectToIssuerMethod'] = 'POST';
-        $request['returnUrl'] = $this->urlBuilder->getUrl('adyen/process/redirect');
         return $request;
     }
 

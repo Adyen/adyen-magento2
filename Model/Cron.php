@@ -326,7 +326,7 @@ class Cron
         \Magento\Framework\Notification\NotifierInterface $notifierPool,
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezone,
         \Adyen\Payment\Helper\Config $configHelper,
-        PaymentTokenManagement  $paymentTokenManagement,
+        PaymentTokenManagement $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
         EncryptorInterface $encryptor
@@ -487,10 +487,13 @@ class Cron
                 // check if success is true of false
                 if (strcmp($this->_success, 'false') == 0 || strcmp($this->_success, '0') == 0) {
                     /*
-                     * Only cancel the order when it is in state pending, payment review or
+                     * Only cancel the order when it is in state new, pending_payment, or payment review
+                     * After order creation alternative payment methods (HPP) has state new and status pending
+                     * while card payments has payment_review state and status
                      * if the ORDER_CLOSED is failed (means split payment has not be successful)
                      */
-                    if ($this->_order->getState() === \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT ||
+                    if ($this->_order->getState() === \Magento\Sales\Model\Order::STATE_NEW ||
+                        $this->_order->getState() === \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT ||
                         $this->_order->getState() === \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW ||
                         $this->_eventCode == Notification::ORDER_CLOSED
                     ) {
@@ -498,7 +501,7 @@ class Cron
 
                         // if payment is API check, check if API result pspreference is the same as reference
                         if ($this->_eventCode == NOTIFICATION::AUTHORISATION
-                        && $this->_getPaymentMethodType() == 'api') {
+                            && $this->_getPaymentMethodType() == 'api') {
                             // don't cancel the order becasue order was successfull through api
                             $this->_adyenLogger->addAdyenNotificationCronjob(
                                 'order is not cancelled because api result was succesfull'
@@ -512,13 +515,20 @@ class Cron
                             if ($previousAdyenEventCode != "AUTHORISATION : TRUE" ||
                                 $this->_eventCode == Notification::ORDER_CLOSED
                             ) {
-                                // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
-                                if ($this->_order->getState() === \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW &&
-                                    $this->configHelper->getNotificationsCanCancel($this->_order->getStoreId())
-                                ) {
-                                    $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                                if ($this->configHelper->getNotificationsCanCancel($this->_order->getStoreId())) {
+                                    // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
+                                    if ($this->_order->getState() === \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW
+                                    ) {
+                                        $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                                    }
+
+                                    $this->_holdCancelOrder(false);
+                                } else {
+                                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                                        'order is not cancelled because "notifications_can_cancel" configuration' .
+                                        'is false.'
+                                    );
                                 }
-                                $this->_holdCancelOrder(false);
                             } else {
                                 $this->_order->setData('adyen_notification_event_code', $previousAdyenEventCode);
                                 $this->_adyenLogger->addAdyenNotificationCronjob(
@@ -1231,7 +1241,7 @@ class Cron
                         $billingAgreement->load($recurringDetailReference, 'reference_id');
                         // check if BA exists
                         if (!($billingAgreement && $billingAgreement->getAgreementId() > 0
-                        && $billingAgreement->isValid())) {
+                            && $billingAgreement->isValid())) {
                             // create new
                             $this->_adyenLogger->addAdyenNotificationCronjob("Creating new Billing Agreement");
                             $this->_order->getPayment()->setBillingAgreementData(

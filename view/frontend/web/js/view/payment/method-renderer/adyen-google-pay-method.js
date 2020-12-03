@@ -34,9 +34,10 @@ define(
         'Magento_Checkout/js/model/full-screen-loader',
         'mage/url',
         'Magento_Vault/js/view/payment/vault-enabler',
+        'Adyen_Payment/js/model/adyen-payment-service',
         'adyenCheckout'
     ],
-    function (ko, $, Component, placeOrderAction, additionalValidators, quote, urlBuilder, fullScreenLoader, url, VaultEnabler, AdyenCheckout) {
+    function (ko, $, Component, placeOrderAction, additionalValidators, quote, urlBuilder, fullScreenLoader, url, VaultEnabler, adyenPaymentService,AdyenCheckout) {
         'use strict';
 
         /**
@@ -128,13 +129,16 @@ define(
                                         self.isPlaceOrderActionAllowed(true);
                                     }
                                 ).done(
-                                    function () {
-                                        self.afterPlaceOrder();
-                                        window.location.replace(url.build(window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl));
-
-                                    }
-                                );
+                                function (orderId) {
+                                    self.afterPlaceOrder();
+                                    adyenPaymentService.getOrderPaymentStatus(orderId)
+                                        .done(function (responseJSON) {
+                                            self.validateThreeDSOrPlaceOrder(responseJSON)
+                                        });
+                                }
+                            );
                         }
+
                     },
                     buttonColor: 'black', // default/black/white
                     buttonType: 'long', // long/short
@@ -144,11 +148,27 @@ define(
                 promise.then(function (success) {
                     self.googlePayAllowed(true);
                     googlepay.mount(self.googlePayNode);
-                    $(self.googlePayNode).find('button').prop('disabled', true);
+                    $(self.googlePayNode).find('button').prop('disabled', !self.validate(true));
                 }, function (error) {
                     console.log(error);
                     self.googlePayAllowed(false);
                 });
+            },
+            /**
+             * Based on the response we can start a 3DS2 validation or place the order
+             * @param responseJSON
+             */
+            validateThreeDSOrPlaceOrder: function (responseJSON) {
+                var response = JSON.parse(responseJSON);
+                if (response && response.type === 'RedirectShopper') {
+                    window.location.replace(url.build(
+                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
+                    ));
+                } else {
+                    window.location.replace(url.build(
+                        window.checkoutConfig.payment[quote.paymentMethod().method].successUrl
+                    ));
+                }
             },
             isGooglePayAllowed: function () {
                 if (this.googlePayAllowed()) {
@@ -215,7 +235,10 @@ define(
                 return window.checkoutConfig.payment.adyen.originKey;
             },
             getCheckoutEnvironment: function () {
-                return window.checkoutConfig.payment.adyen.checkoutEnvironment;
+                return window.checkoutConfig.payment.adyenGooglePay.checkoutEnvironment;
+            },
+            onPaymentMethodContentChange: function (data, event) {
+                $(this.googlePayNode).find('button').prop('disabled', !this.validate());
             }
         });
     }

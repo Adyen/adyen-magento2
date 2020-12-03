@@ -38,6 +38,10 @@
         </label>
     </div>
 
+    <!-- ko foreach: getRegion('messages') -->
+    <!-- ko template: getTemplate() --><!-- /ko -->
+    <!--/ko-->
+    
     <div class="payment-method-content" data-bind="event: { change: onPaymentMethodContentChange }">
         <div class="payment-method-billing-address">
             <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
@@ -45,7 +49,7 @@
             <!--/ko-->
         </div>
 
-         <div class="checkout-agreements-block" afterRender="bindDomEventListener">
+         <div class="checkout-agreements-block">
             <!-- ko foreach: $parent.getRegion('before-place-order') -->
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->

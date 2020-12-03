@@ -66,12 +66,13 @@ class CheckoutResponseValidator extends AbstractValidator
         $payment->setAdditionalInformation('3dActive', false);
         $isValid = true;
         $errorMessages = [];
+        $resultCode = array_key_exists("resultCode", $response) ? $response['resultCode']:'';
         // validate result
-        if (!empty($response['resultCode'])) {
-            $payment->setAdditionalInformation('resultCode', $response['resultCode']);
-            switch ($response['resultCode']) {
+        if (!empty($resultCode)) {
+            $payment->setAdditionalInformation('resultCode', $resultCode);
+            switch ($resultCode) {
                 case "IdentifyShopper":
-                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
+                    $payment->setAdditionalInformation('threeDSType', $resultCode);
                     $payment->setAdditionalInformation(
                         'threeDS2Token',
                         $response['authentication']['threeds2.fingerprintToken']
@@ -79,7 +80,7 @@ class CheckoutResponseValidator extends AbstractValidator
                     $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
                     break;
                 case "ChallengeShopper":
-                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
+                    $payment->setAdditionalInformation('threeDSType', $resultCode);
                     $payment->setAdditionalInformation(
                         'threeDS2Token',
                         $response['authentication']['threeds2.challengeToken']
@@ -130,7 +131,7 @@ class CheckoutResponseValidator extends AbstractValidator
                     }
                     break;
                 case "RedirectShopper":
-                    $payment->setAdditionalInformation('threeDSType', $response['resultCode']);
+                    $payment->setAdditionalInformation('threeDSType', $resultCode);
 
                     $redirectUrl = null;
                     $paymentData = null;
@@ -150,12 +151,10 @@ class CheckoutResponseValidator extends AbstractValidator
                     // If the redirect data is there then the payment is a card payment with 3d secure
                     if (
                         isset($response['redirect']['data']['PaReq']) &&
-                        isset($response['redirect']['data']['MD']) &&
-                        isset($response['redirect']['data']['TermUrl'])
+                        isset($response['redirect']['data']['MD'])
                     ) {
                         $paReq = null;
                         $md = null;
-                        $termUrl = null;
 
                         $payment->setAdditionalInformation('3dActive', true);
 
@@ -167,16 +166,11 @@ class CheckoutResponseValidator extends AbstractValidator
                             $md = $response['redirect']['data']['MD'];
                         }
 
-                        if (!empty($response['redirect']['data']['TermUrl'])) {
-                            $termUrl = $response['redirect']['data']['TermUrl'];
-                        }
-
-                        if ($paReq && $md && $termUrl && $redirectUrl && $paymentData && $redirectMethod) {
+                        if ($paReq && $md && $redirectUrl && $paymentData && $redirectMethod) {
                             $payment->setAdditionalInformation('redirectUrl', $redirectUrl);
                             $payment->setAdditionalInformation('redirectMethod', $redirectMethod);
                             $payment->setAdditionalInformation('paRequest', $paReq);
                             $payment->setAdditionalInformation('md', $md);
-                            $payment->setAdditionalInformation('termUrl', $termUrl);
                             $payment->setAdditionalInformation('paymentData', $paymentData);
                         } else {
                             $isValid = false;
