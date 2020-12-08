@@ -54,6 +54,10 @@ class VaultDetailsHandler implements HandlerInterface
         }
         /** @var PaymentDataObject $orderPayment */
         $orderPayment = SubjectReader::readPayment($handlingSubject);
-        $this->vaultHelper->saveRecurringDetails($orderPayment->getPayment(), $response['additionalData']);
+        $additionalData = $orderPayment->getPayment()->getAdditionalInformation();
+        $tokenEnabler = array_key_exists("is_active_payment_token_enabler", $additionalData) ? $additionalData['is_active_payment_token_enabler']:false;
+        if ($tokenEnabler) {
+            $this->vaultHelper->saveRecurringDetails($orderPayment->getPayment(), $response['additionalData']);
+        }
     }
 }
