@@ -270,6 +270,11 @@ class Cron
     protected $encryptor;
 
     /**
+     * @var \Adyen\Util\OpenInvoice
+     */
+    private $openInvoice;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -300,6 +305,7 @@ class Cron
      * @param PaymentTokenFactoryInterface $paymentTokenFactory
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      * @param EncryptorInterface $encryptor
+     * @param \Adyen\Util\OpenInvoice $openInvoice
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -329,7 +335,8 @@ class Cron
         PaymentTokenManagement $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
-        EncryptorInterface $encryptor
+        EncryptorInterface $encryptor,
+        \Adyen\Util\OpenInvoice $openInvoice
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -359,6 +366,7 @@ class Cron
         $this->paymentTokenFactory = $paymentTokenFactory;
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->encryptor = $encryptor;
+        $this->openInvoice = $openInvoice;
     }
 
     /**
@@ -752,7 +760,7 @@ class Cron
         }
 
         // if payment method is klarna, ratepay or openinvoice/afterpay show the reservartion number
-        if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
+        if ($this->openInvoice->isOpenInvoicePaymentMethod(
             $this->_paymentMethod) && !empty($this->_klarnaReservationNumber)) {
             $klarnaReservationNumberText = "<br /> reservationNumber: " . $this->_klarnaReservationNumber;
         } else {
@@ -1688,7 +1696,7 @@ class Cron
 
             // if auto capture mode for openinvoice is turned on then use auto capture
             if ($captureModeOpenInvoice == true &&
-                $this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod)
+                $this->openInvoice->isOpenInvoicePaymentMethod($this->_paymentMethod)
             ) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'This payment method is configured to be working as auto capture '
@@ -1722,7 +1730,7 @@ class Cron
              * online capture after delivery, use Magento backend to online invoice
              * (if the option auto capture mode for openinvoice is not set)
              */
-            if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod)) {
+            if ($this->openInvoice->isOpenInvoicePaymentMethod($this->_paymentMethod)) {
                 $this->_adyenLogger->addAdyenNotificationCronjob
                 (
                     'Capture mode for klarna is by default set to manual'
@@ -1754,7 +1762,7 @@ class Cron
         $paymentMethod = $this->_paymentMethod;
 
         // For all openinvoice methods manual capture is the default
-        if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod)) {
+        if ($this->openInvoice->isOpenInvoicePaymentMethod($paymentMethod)) {
             return true;
         }
 

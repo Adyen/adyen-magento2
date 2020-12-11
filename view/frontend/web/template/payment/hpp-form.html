@@ -145,7 +145,7 @@
                         <div class="checkout-component-dock" afterRender="renderAfterPayComponent()" data-bind="attr: { id: 'afterPayContainer'}"></div>
                     <!--/ko-->
 
-                    <!-- ko if: isPaymentMethodOtherOpenInvoiceMethod() -->
+                    <!-- ko if: isOpenInvoicePaymentMethod() -->
 
                         <div class="field gender required">
                                 <label data-bind="attr: {for: getCode() + '_gender_type_' + value}" class="label">

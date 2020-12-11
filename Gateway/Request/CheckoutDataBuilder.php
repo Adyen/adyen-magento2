@@ -49,21 +49,30 @@ class CheckoutDataBuilder implements BuilderInterface
     private $gender;
 
     /**
+     * @var \Adyen\Util\OpenInvoice
+     */
+    private $openInvoice;
+
+
+    /**
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Quote\Api\CartRepositoryInterface $cartRepository
      * @param \Adyen\Payment\Model\Gender $gender
+     * @param \Adyen\Util\OpenInvoice $openInvoice
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Quote\Api\CartRepositoryInterface $cartRepository,
-        \Adyen\Payment\Model\Gender $gender
+        \Adyen\Payment\Model\Gender $gender,
+        \Adyen\Util\OpenInvoice $openInvoice
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
         $this->cartRepository = $cartRepository;
         $this->gender = $gender;
+        $this->openInvoice = $openInvoice;
     }
 
     /**
@@ -150,7 +159,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBodyPaymentMethod['sepa.ibanNumber'] = $payment->getAdditionalInformation("ibanNumber");
         }
 
-        if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
+        if ($this->openInvoice->isOpenInvoicePaymentMethod(
                 $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
             ) || $this->adyenHelper->isPaymentMethodAfterpayTouchMethod(
                 $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)

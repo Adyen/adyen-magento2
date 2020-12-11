@@ -49,21 +49,29 @@ class Requests extends AbstractHelper
      */
     private $urlBuilder;
 
+    /*
+     * @var \Adyen\Util\OpenInvoice
+     */
+    private $openInvoice;
+
     /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
      * @param Config $adyenConfig
      * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param \Adyen\Util\OpenInvoice
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Helper\Config $adyenConfig,
-        \Magento\Framework\UrlInterface $urlBuilder
+        \Magento\Framework\UrlInterface $urlBuilder,
+        \Adyen\Util\OpenInvoice $openInvoice
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->urlBuilder = $urlBuilder;
+        $this->openInvoice = $openInvoice;
     }
 
     /**
@@ -116,8 +124,8 @@ class Requests extends AbstractHelper
 
         // In case of virtual product and guest checkout there is a workaround to get the guest's email address
         if (!empty($additionalData['guestEmail'])) {
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
-                !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
+            if ($this->openInvoice->isOpenInvoicePaymentMethod($paymentMethod) &&
+                !$this->openInvoice->isAfterPayTouchPaymentMethod($paymentMethod)
             ) {
                 $request['paymentMethod']['personalDetails']['shopperEmail'] = $additionalData['guestEmail'];
             } else {
@@ -127,8 +135,8 @@ class Requests extends AbstractHelper
 
         if (!empty($billingAddress)) {
             // Openinvoice (klarna and afterpay BUT not afterpay touch) methods requires different request format
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
-                !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
+            if ($this->openInvoice->isOpenInvoicePaymentMethod($paymentMethod)&&
+                !$this->openInvoice->isAfterPayTouchPaymentMethod($paymentMethod)
             ) {
                 if ($customerEmail = $billingAddress->getEmail()) {
                     $request['paymentMethod']['personalDetails']['shopperEmail'] = $customerEmail;

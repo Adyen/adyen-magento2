@@ -35,14 +35,21 @@ class CaptureDataBuilder implements BuilderInterface
      */
     private $adyenHelper;
 
+    /*
+     * @var \Adyen\Util\OpenInvoice;
+     */
+    private $openInvoice;
     /**
      * CaptureDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Adyen\Util\OpenInvoice;
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
+    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Util\OpenInvoice $openInvoice)
     {
         $this->adyenHelper = $adyenHelper;
+        $this->openInvoice = $openInvoice;
     }
 
     /**
@@ -75,7 +82,7 @@ class CaptureDataBuilder implements BuilderInterface
             \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
         );
 
-        if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
+        if ($this->openInvoice->isOpenInvoicePaymentMethod($brandCode)) {
             $openInvoiceFields = $this->getOpenInvoiceData($payment);
             $requestBody["additionalData"] = $openInvoiceFields;
         }

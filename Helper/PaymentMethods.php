@@ -91,6 +91,11 @@ class PaymentMethods extends AbstractHelper
     protected $quote;
 
     /**
+     * @var \Adyen\Util\OpenInvoice
+     */
+    private $openInvoice;
+
+    /**
      * PaymentMethods constructor.
      *
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
@@ -104,6 +109,7 @@ class PaymentMethods extends AbstractHelper
      * @param \Magento\Framework\View\Asset\Source $assetSource
      * @param \Magento\Framework\View\DesignInterface $design
      * @param \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider
+     * @param \Adyen\Util\OpenInvoice $openInvoice
      */
     public function __construct(
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
@@ -116,7 +122,8 @@ class PaymentMethods extends AbstractHelper
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\View\Asset\Source $assetSource,
         \Magento\Framework\View\DesignInterface $design,
-        \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider
+        \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider,
+        \Adyen\Util\OpenInvoice $openInvoice
     ) {
         $this->quoteRepository = $quoteRepository;
         $this->config = $config;
@@ -129,6 +136,7 @@ class PaymentMethods extends AbstractHelper
         $this->assetSource = $assetSource;
         $this->design = $design;
         $this->themeProvider = $themeProvider;
+        $this->openInvoice = $openInvoice;
     }
 
     /**
@@ -199,8 +207,8 @@ class PaymentMethods extends AbstractHelper
                 $paymentMethod = $this->fieldMapPaymentMethod($paymentMethod);
 
                 // check if payment method is an openinvoice method
-                $paymentMethod['isPaymentMethodOpenInvoiceMethod'] =
-                    $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
+                $paymentMethod['isOpenInvoicePaymentMethod'] =
+                    $this->openInvoice->isOpenInvoicePaymentMethod($paymentMethodCode);
 
                 // add icon location in result
                 if ($this->adyenHelper->showLogos()) {

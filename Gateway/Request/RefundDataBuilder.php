@@ -45,20 +45,27 @@ class RefundDataBuilder implements BuilderInterface
      */
     protected $adyenInvoiceCollectionFactory;
 
+    /*
+     * @var \Adyen\Util\OpenInvoice
+     */
+    private $openInvoice;
     /**
      * RefundDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory
+     * @param \Adyen\Util\OpenInvoice $openInvoice
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory,
-        \Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory $adyenInvoiceCollectionFactory
+        \Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory $adyenInvoiceCollectionFactory,
+        \Adyen\Util\OpenInvoice $openInvoice
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->orderPaymentCollectionFactory = $orderPaymentCollectionFactory;
         $this->adyenInvoiceCollectionFactory = $adyenInvoiceCollectionFactory;
+        $this->openInvoice = $openInvoice;
     }
 
     /**
@@ -165,7 +172,7 @@ class RefundDataBuilder implements BuilderInterface
                 \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
             );
 
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
+            if ( $this->openInvoice->isOpenInvoicePaymentMethod($brandCode)) {
                 $openInvoiceFields = $this->getOpenInvoiceData($payment);
 
                 //There is only one payment, so we add the fields to the first(and only) result

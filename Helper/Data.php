@@ -145,6 +145,11 @@ class Data extends AbstractHelper
     private $componentRegistrar;
 
     /**
+     * @var \Adyen\Util\OpenInvoice
+     */
+    private $openInvoice;
+
+    /**
      * Data constructor.
      *
      * @param \Magento\Framework\App\Helper\Context $context
@@ -168,6 +173,7 @@ class Data extends AbstractHelper
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param \Magento\Backend\Helper\Data $helperBackend
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     * @param \Adyen\Util\OpenInvoice $openInvoice
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -191,7 +197,8 @@ class Data extends AbstractHelper
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Magento\Backend\Helper\Data $helperBackend,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Magento\Framework\Component\ComponentRegistrarInterface $componentRegistrar
+        \Magento\Framework\Component\ComponentRegistrarInterface $componentRegistrar,
+        \Adyen\Util\OpenInvoice $openInvoice
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -215,6 +222,7 @@ class Data extends AbstractHelper
         $this->helperBackend = $helperBackend;
         $this->serializer = $serializer;
         $this->componentRegistrar = $componentRegistrar;
+        $this->openInvoice = $openInvoice;
     }
 
     /**
@@ -1061,6 +1069,7 @@ class Data extends AbstractHelper
     /**
      * @param $paymentMethod
      * @return bool
+     * @depecated 
      */
     public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
     {
@@ -1133,7 +1142,7 @@ class Data extends AbstractHelper
      */
     public function doesPaymentMethodSkipDetails($paymentMethod)
     {
-        if ($this->isPaymentMethodOpenInvoiceMethod($paymentMethod) ||
+        if ($this->openInvoice->isOpenInvoicePaymentMethod($paymentMethod) ||
             $this->isPaymentMethodMolpayMethod($paymentMethod) ||
             $this->isPaymentMethodOneyMethod($paymentMethod)
         ) {

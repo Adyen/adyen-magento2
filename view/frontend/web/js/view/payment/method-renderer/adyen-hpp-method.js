@@ -225,22 +225,22 @@ define(
                     };
                     /**
                      * Checks if payment method is open invoice
-                     * @returns {*|isPaymentMethodOpenInvoiceMethod}
+                     * @returns {*|isOpenInvoicePaymentMethod}
                      */
-                    result.isPaymentMethodOpenInvoiceMethod = function () {
-                        return value.isPaymentMethodOpenInvoiceMethod;
+                    result.isOpenInvoicePaymentMethod = function () {
+                        return value.isOpenInvoicePaymentMethod;
                     };
                     /**
                      * Checks if payment method is open invoice but not in the list below
                      * [klarna, afterpay]
                      * @returns {boolean}
                      */
-                    result.isPaymentMethodOtherOpenInvoiceMethod = function () {
+                    result.isOpenInvoicePaymentMethod = function () {
                         if (
                             !result.isPaymentMethodAfterPay() &&
                             !result.isPaymentMethodKlarna() &&
                             !result.isPaymentMethodAfterPayTouch() &&
-                            value.isPaymentMethodOpenInvoiceMethod
+                            value.isOpenInvoicePaymentMethod
                         ) {
                             return true;
                         }
@@ -500,7 +500,7 @@ define(
 
                             if (self.hasIssuersAvailable()) {
                                 additionalData.issuer_id = this.issuer();
-                            } else if (self.isPaymentMethodOpenInvoiceMethod()) {
+                            } else if (self.isOpenInvoicePaymentMethod()) {
                                 additionalData.gender = this.gender();
                                 additionalData.dob = this.dob();
                                 additionalData.telephone = this.telephone();
@@ -532,7 +532,7 @@ define(
 
                         result.issuerIds = result.getIssuers();
                         result.issuer = ko.observable(null);
-                    } else if (value.isPaymentMethodOpenInvoiceMethod) {
+                    } else if (value.isOpenInvoicePaymentMethod) {
                         result.telephone = ko.observable(quote.shippingAddress().telephone);
                         result.gender = ko.observable(window.checkoutConfig.payment.adyenHpp.gender);
                         result.dob = ko.observable(window.checkoutConfig.payment.adyenHpp.dob);

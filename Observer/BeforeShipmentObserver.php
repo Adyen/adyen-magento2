@@ -50,20 +50,27 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
     private $invoiceRepository;
 
     /**
+     * @var \Adyen\Util\OpenInvoice
+     */
+    private $openInvoice;
+    /**
      * BeforeShipmentObserver constructor.
      *
      * @param AdyenHelper $adyenHelper
      * @param AdyenLogger $logger
      * @param InvoiceRepository $invoiceRepository
+     * @param \Adyen\Util\OpenInvoice $openInvoice
      */
     public function __construct(
         AdyenHelper $adyenHelper,
         AdyenLogger $logger,
-        InvoiceRepository $invoiceRepository
+        InvoiceRepository $invoiceRepository,
+        \Adyen\Util\OpenInvoice $openInvoice
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->logger = $logger;
         $this->invoiceRepository = $invoiceRepository;
+        $this->openInvoice = $openInvoice;
     }
 
     /**
@@ -101,7 +108,7 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
         $payment = $order->getPayment();
         $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
 
-        if (!$this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
+        if (!$this->openInvoice->isOpenInvoicePaymentMethod($brandCode)) {
             $this->logger->info(
                 "Payment method is from Adyen but isn't OpenInvoice for order id {$order->getId()}",
                 ['observer' => 'BeforeShipmentObserver']
