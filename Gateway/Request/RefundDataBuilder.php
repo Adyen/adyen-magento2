@@ -172,7 +172,7 @@ class RefundDataBuilder implements BuilderInterface
                 \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
             );
 
-            if ( $this->openInvoice->isOpenInvoicePaymentMethod($brandCode)) {
+            if ($this->openInvoice->isOpenInvoicePaymentMethod($brandCode)) {
                 $openInvoiceFields = $this->getOpenInvoiceData($payment);
 
                 //There is only one payment, so we add the fields to the first(and only) result
