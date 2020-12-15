@@ -162,12 +162,7 @@ define(
                                 }
                             }
 
-                            // for BCMC as this is not a core payment method inside magento use maestro as brand detection
-                            if (creditCardType == 'BCMC') {
-                                self.creditCardType('MI');
-                            } else {
-                                self.creditCardType(creditCardType);
-                            }
+                            self.creditCardType(creditCardType);
                         } else {
                             self.creditCardType('');
                             self.installments(0);

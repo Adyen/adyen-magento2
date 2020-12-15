@@ -123,8 +123,7 @@ define(
               totalPriceStatus: 'FINAL',
 
               // empty onSubmit to resolve javascript issues.
-              onSubmit: function () {
-              },
+              onSubmit: function () {},
               onChange: function (state) {
                   if (!!state.isValid) {
                       self.googlePayToken(state.data.paymentMethod.googlePayToken);
@@ -151,9 +150,13 @@ define(
           googlepay.isAvailable().then(function() {
             self.googlePayAllowed(true);
             googlepay.mount(self.googlePayNode);
-            self.googlePayNode.addEventListener('click', function () {
+              $(self.googlePayNode).find('button').prop('disabled', !self.validate(true));
+            // TODO check if it's better
+            /*
+              self.googlePayNode.addEventListener('click', function () {
                 self.validate();
-            });
+              });
+            */
           }, function(error) {
             console.log(error);
             self.googlePayAllowed(false);
