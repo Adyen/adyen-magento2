@@ -27,6 +27,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order;
+use Adyen\Payment\Helper\Vault;
 
 class PaymentResponseHandler
 {
@@ -41,12 +42,36 @@ class PaymentResponseHandler
     const ERROR = 'Error';
     const CANCELLED = 'Cancelled';
 
+    /**
+     * @var AdyenLogger
+     */
     private $adyenLogger;
 
+    /**
+     * @var Data
+     */
+    private $adyenHelper;
+
+    /**
+     * @var Vault
+     */
+    private $vaultHelper;
+
+    /**
+     * PaymentResponseHandler constructor.
+     *
+     * @param AdyenLogger $adyenLogger
+     * @param Data $adyenHelper
+     * @param \Adyen\Payment\Helper\Vault $vaultHelper
+     */
     public function __construct(
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        Data $adyenHelper,
+        Vault $vaultHelper
     ) {
         $this->adyenLogger = $adyenLogger;
+        $this->adyenHelper = $adyenHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
@@ -144,6 +169,24 @@ class PaymentResponseHandler
                 }
                 break;
             case self::AUTHORISED:
+                if (!empty($paymentsResponse['pspReference'])) {
+                    // set pspReference as transactionId
+                    $payment->setCcTransId($paymentsResponse['pspReference']);
+                    $payment->setLastTransId($paymentsResponse['pspReference']);
+
+                    // set transaction
+                    $payment->setTransactionId($paymentsResponse['pspReference']);
+                }
+
+                if (!empty($paymentsResponse['additionalData']['recurring.recurringDetailReference']) &&
+                    $payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE) {
+                    if ($this->adyenHelper->isCreditCardVaultEnabled()) {
+                        $this->vaultHelper->saveRecurringDetails($payment, $paymentDetails['additionalData']);
+                    } else {
+                        $order = $payment->getOrder();
+                        $this->adyenHelper->createAdyenBillingAgreement($order, $paymentsResponse['additionalData']);
+                    }
+                }
             case self::IDENTIFY_SHOPPER:
             case self::CHALLENGE_SHOPPER:
                 break;

@@ -37,6 +37,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     const GUEST_EMAIL = 'guestEmail';
     const COMBO_CARD_TYPE = 'combo_card_type';
     const STATE_DATA = 'stateData';
+    const STORE_PAYMENT_METHOD = 'storePaymentMethod';
 
     /**
      * Approved root level keys from additional data array
@@ -112,6 +113,11 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         // set ccType
         if (!empty($additionalData[self::CC_TYPE])) {
             $paymentInfo->setCcType($additionalData[self::CC_TYPE]);
+        }
+
+        // set storeCc
+        if (!empty($stateData[self::STORE_PAYMENT_METHOD])) {
+            $paymentInfo->setAdditionalInformation(self::STORE_CC, $stateData[self::STORE_PAYMENT_METHOD]);
         }
     }
 }
