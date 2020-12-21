@@ -382,26 +382,61 @@ class Cron
      */
     private function shouldSkipProcessingNotification($notification)
     {
-        // OFFER_CLOSED notifications needs to be at least 10 minutes old to be processed
-        $offerClosedMinDate = new \DateTime();
-        $offerClosedMinDate->modify('-10 minutes');
+        switch ($notification['event_code']) {
+            // Remove OFFER_CLOSED and AUTHORISATION success=false notifications for some time from the processing list
+            // to ensure they won't close any order which has an AUTHORISED notification arrived a bit later than the
+            // OFFER_CLOSED or the AUTHORISATION success=false one.
+            case Notification::OFFER_CLOSED:
+                // OFFER_CLOSED notifications needs to be at least 10 minutes old to be processed
+                $offerClosedMinDate = new \DateTime('-10 minutes');
+                $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
 
-        // Remove OFFER_CLOSED notifications arrived in the last 10 minutes from the list to process to ensure it
-        // won't close any order which has an AUTHORISED notification arrived a bit later than the OFFER_CLOSED one.
-        $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
-        // To get the difference between $offerClosedMinDate and $createdAt, $offerClosedMinDate time in seconds is
-        // deducted from $createdAt time in seconds, divided by 60 and rounded down to integer
-        $minutesUntilProcessing = floor(($createdAt->getTimestamp() - $offerClosedMinDate->getTimestamp()) / 60);
-        if ($notification['event_code'] == Notification::OFFER_CLOSED && $minutesUntilProcessing > 0) {
-            $this->_adyenLogger->addAdyenNotificationCronjob(
-                sprintf(
-                    'OFFER_CLOSED notification %s skipped! Wait %s minute(s) before processing.',
-                    $notification->getEntityId(),
-                    $minutesUntilProcessing
-                )
-            );
+                $minutesUntilProcessing = $createdAt->diff($offerClosedMinDate)->i;
 
-            return true;
+                if ($minutesUntilProcessing > 0) {
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        sprintf(
+                            'OFFER_CLOSED notification (entity_id: %s) for merchant_reference: %s is skipped! Wait %s minute(s) before processing.',
+                            $notification->getEntityId(),
+                            $notification->getMerchantReference(),
+                            $minutesUntilProcessing
+                        )
+                    );
+
+                    return true;
+                }
+
+                break;
+            case Notification::AUTHORISATION:
+                // Only delay success=false notifications processing
+                if (
+                    strcmp($notification['success'], 'true') == 0 ||
+                    strcmp($notification['success'], '1') == 0
+                ) {
+                    // do not skip this notification but process it now
+                    return false;
+                }
+
+                // AUTHORISATION success=false notifications needs to be at least 10 minutes old to be processed
+                $authorisationSuccessFalseMinDate = new \DateTime('-10 minutes');
+                $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
+
+                $minutesUntilProcessing = $createdAt->diff($authorisationSuccessFalseMinDate)->i;
+
+                if ($minutesUntilProcessing > 0) {
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        sprintf(
+                            'AUTHORISATION success=false notification (entity_id: %s) for merchant_reference: %s is skipped! Wait %s minute(s) before processing.',
+                            $notification->getEntityId(),
+                            $notification->getMerchantReference(),
+                            $minutesUntilProcessing
+                        )
+                    );
+
+                    return true;
+                }
+
+                break;
         }
 
         return false;
@@ -753,7 +788,8 @@ class Cron
 
         // if payment method is klarna, ratepay or openinvoice/afterpay show the reservartion number
         if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod(
-            $this->_paymentMethod) && !empty($this->_klarnaReservationNumber)) {
+                $this->_paymentMethod
+            ) && !empty($this->_klarnaReservationNumber)) {
             $klarnaReservationNumberText = "<br /> reservationNumber: " . $this->_klarnaReservationNumber;
         } else {
             $klarnaReservationNumberText = "";
