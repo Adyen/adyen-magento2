@@ -71,6 +71,12 @@
             <fieldset
                     data-bind="attr: {class: 'fieldset payment items ccard ' + getCode(), id: 'payment_form_' + $parent.getCode() + '_' + value}">
 
+                <div id="oneclick_actionModalWrapper">
+                    <div id="oneclick_actionModal">
+                        <div id="oneclick_actionContainer"></div>
+                    </div>
+                </div>
+
                 <!-- ko if: agreement_data.card -->
                 <div class="field number">
                     <label class="label">
@@ -134,10 +140,6 @@
                     </div>
                 </div>
                 <!-- /ko -->
-
-                <div id="threeDS2ModalOneClick">
-                    <div id="threeDS2ContainerOneClick"></div>
-                </div>
 
             </fieldset>
 

@@ -27,7 +27,6 @@ use Adyen\AdyenException;
 use Adyen\Payment\Api\AdyenPaymentDetailsInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
-use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
@@ -51,11 +50,6 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
     private $adyenLogger;
 
     /**
-     * @var Vault
-     */
-    private $vaultHelper;
-
-    /**
      * @var OrderRepositoryInterface
      */
     private $orderRepository;
@@ -71,7 +65,6 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
      * @param Session $checkoutSession
      * @param Data $adyenHelper
      * @param AdyenLogger $adyenLogger
-     * @param Vault $vaultHelper
      * @param OrderRepositoryInterface $orderRepository
      * @param PaymentResponseHandler $paymentResponseHandler
      */
@@ -79,14 +72,12 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
         Session $checkoutSession,
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
-        Vault $vaultHelper,
         OrderRepositoryInterface $orderRepository,
         PaymentResponseHandler $paymentResponseHandler
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
-        $this->vaultHelper = $vaultHelper;
         $this->orderRepository = $orderRepository;
         $this->paymentResponseHandler = $paymentResponseHandler;
     }
@@ -139,14 +130,7 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
             throw new LocalizedException(__('Payment details call failed'));
         }
 
-        //TODO test this with payments that return additionalData
-        //TODO check for Authorized result code and move to the handler
-        if (!empty($paymentDetails['additionalData'])) {
-            $this->vaultHelper->saveRecurringDetails($payment, $paymentDetails['additionalData']);
-        }
-
-        //TODO check if order save is necessary to save additionalData
-
+        // Handle response
         if (!$this->paymentResponseHandler->handlePaymentResponse($paymentDetails, $payment, $order)) {
             $this->checkoutSession->restoreQuote();
             throw new LocalizedException(__('The payment is REFUSED.'));
