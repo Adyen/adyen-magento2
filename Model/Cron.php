@@ -388,14 +388,10 @@ class Cron
             // OFFER_CLOSED or the AUTHORISATION success=false one.
             case Notification::OFFER_CLOSED:
                 // OFFER_CLOSED notifications needs to be at least 10 minutes old to be processed
-                $offerClosedMinDate = new \DateTime();
-                $offerClosedMinDate->modify('-10 minutes');
+                $offerClosedMinDate = new \DateTime('-10 minutes');
                 $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
-                // To get the difference between $offerClosedMinDate and $createdAt, $offerClosedMinDate time in seconds
-                // is deducted from $createdAt time in seconds, divided by 60 and rounded down to integer
-                $minutesUntilProcessing = floor(
-                    ($createdAt->getTimestamp() - $offerClosedMinDate->getTimestamp()) / 60
-                );
+
+                $minutesUntilProcessing = $createdAt->diff($offerClosedMinDate)->i;
 
                 if ($minutesUntilProcessing > 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
@@ -422,13 +418,10 @@ class Cron
                 }
 
                 // AUTHORISATION success=false notifications needs to be at least 10 minutes old to be processed
-                $authorisationSuccessFalseMinDate = new \DateTime();
-                $authorisationSuccessFalseMinDate->modify('-10 minutes');
+                $authorisationSuccessFalseMinDate = new \DateTime('-10 minutes');
                 $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
 
-                $minutesUntilProcessing = floor(
-                    ($createdAt->getTimestamp() - $authorisationSuccessFalseMinDate->getTimestamp()) / 60
-                );
+                $minutesUntilProcessing = $createdAt->diff($authorisationSuccessFalseMinDate)->i;
 
                 if ($minutesUntilProcessing > 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
