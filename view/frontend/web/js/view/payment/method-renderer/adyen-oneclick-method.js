@@ -132,7 +132,6 @@ define(
             },
             handleOnAdditionalDetails: function(result) {
                 var self = this;
-                debugger;
                 var request = result.data;
                 request.orderId = self.orderId;
 
