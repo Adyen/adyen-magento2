@@ -21,8 +21,6 @@
 "ResultUrl authentification failure","ResultUrl authenticatie fout "
 "Order does not exists with increment_id: %1","Bestelling bestaat niet met increment_id: %1"
 "Empty merchantReference","Lege verkoperReferentie"
-"3D-secure validation was successful","3D-beveiligde validatie was succesvol"
-"3D-secure validation was unsuccessful.","3D-beveiligde validatie was niet succesvol."
 "Customer was redirected to bank for 3D-secure validation.","Klant is doorgestuurd naar bank voor 3D-beveiligde validatie."
 "Used existing billing agreement #%s.","Gebruikte bestaande factureringsovereenkomst #%s."
 "Created billing agreement #%1.","Factureringsovereenkomst gemaakt #%1."
