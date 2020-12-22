@@ -121,7 +121,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'isActive' => true,
                     'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'adyen/process/redirect/',
+                        'checkout/onepage/success',
                         ['_secure' => $this->_getRequest()->isSecure()]
                     )
                 ]

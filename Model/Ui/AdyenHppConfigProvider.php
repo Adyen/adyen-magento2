@@ -117,7 +117,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'isActive' => true,
                     'redirectUrl' => $this->urlBuilder->getUrl(
-                        'adyen/process/redirect',
+                        'checkout/onepage/success',
                         ['_secure' => $this->getRequest()->isSecure()]
                     )
                 ]

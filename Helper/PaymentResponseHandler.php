@@ -145,6 +145,10 @@ class PaymentResponseHandler
             $payment->setAdditionalInformation('adyenPaymentData', $paymentsResponse['paymentData']);
         }
 
+        if (!empty($paymentsResponse['details'])) {
+            $payment->setAdditionalInformation('details', $paymentsResponse['details']);
+        }
+
         switch ($paymentsResponse['resultCode']) {
             case self::PRESENT_TO_SHOPPER:
             case self::PENDING:

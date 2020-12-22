@@ -169,6 +169,7 @@ define(
           validateThreeDSOrPlaceOrder: function (responseJSON) {
               var response = JSON.parse(responseJSON);
               if (response && response.type === 'RedirectShopper') {
+                  // TODO do redirect with the component
                   window.location.replace(url.build(
                       window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
                   ));

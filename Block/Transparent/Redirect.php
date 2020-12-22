@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Block\Transparent;
 
+use Adyen\Payment\Helper\Data;
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Framework\View\Element\Template;
 
@@ -32,12 +33,20 @@ class Redirect extends Template
      * @var \Magento\Framework\UrlInterface
      */
     private $url;
+
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
     protected $adyenLogger;
+
+    /**
+     * @var Data
+     */
+    protected $adyenHelper;
+
     /**
      * Redirect constructor.
+     *
      * @param Template\Context $context
      * @param \Magento\Framework\UrlInterface $url
      * @param array $data
@@ -46,24 +55,41 @@ class Redirect extends Template
         Template\Context $context,
         \Magento\Framework\UrlInterface $url,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        Data $adyenHelper,
         array $data = []
     ) {
         $this->url = $url;
         $this->adyenLogger = $adyenLogger;
+        $this->adyenHelper = $adyenHelper;
         parent::__construct($context, $data);
     }
 
     /**
      * Returns url for redirect.
+     *
      * @return string|null
      */
     public function getRedirectUrl()
     {
-        return $this->url->getUrl("adyen/process/redirect"); //TODO this will be replaced by getOrigin() for PWA integrations
+        $pwaOrigin = $this->adyenHelper->getAdyenAbstractConfigData("payment_origin_url", $this->_storeManager->getStore()->getId());
+
+        if ($pwaOrigin) {
+            $returnUrl = $pwaOrigin . "/adyen/process/result";
+        } else {
+            $returnUrl = $this->url->getUrl("adyen/process/result");
+        }
+
+        if (!empty($this->getRequest()->getQueryValue())) {
+            $query = http_build_query($this->getRequest()->getQueryValue(), '', '&');
+            $returnUrl .= '?' . $query;
+        }
+
+        return $returnUrl;
     }
 
     /**
      * Returns params to be redirected.
+     *
      * @return array
      */
     public function getPostParams()
