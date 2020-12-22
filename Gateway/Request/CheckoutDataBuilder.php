@@ -85,6 +85,7 @@ class CheckoutDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
+        /** @var \Magento\Sales\Model\Order $order */
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
 
@@ -96,7 +97,7 @@ class CheckoutDataBuilder implements BuilderInterface
 
         $requestBody['returnUrl'] = $this->storeManager->getStore()->getBaseUrl(
                 \Magento\Framework\UrlInterface::URL_TYPE_LINK
-            ) . 'adyen/transparent/redirect';
+            ) . 'adyen/transparent/redirect?merchantReference=' . $order->getIncrementId();
 
         // Additional data for ACH
         if ($payment->getAdditionalInformation("bankAccountNumber")) {
