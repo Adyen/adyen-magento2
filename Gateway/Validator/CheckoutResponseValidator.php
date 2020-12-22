@@ -90,6 +90,10 @@ class CheckoutResponseValidator extends AbstractValidator
                 $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
             }
 
+            if (!empty($response['details'])) {
+                $payment->setAdditionalInformation('details', $response['details']);
+            }
+
             switch ($resultCode) {
                 case "Authorised":
                 case "Received":
