@@ -72,12 +72,19 @@ class Redirect extends Template
     public function getRedirectUrl()
     {
         $pwaOrigin = $this->adyenHelper->getAdyenAbstractConfigData("payment_origin_url", $this->_storeManager->getStore()->getId());
-        
+
         if ($pwaOrigin) {
-            return $pwaOrigin . "/adyen/process/result";
+            $returnUrl = $pwaOrigin . "/adyen/process/result";
         } else {
-            return $this->url->getUrl("adyen/process/result");
+            $returnUrl = $this->url->getUrl("adyen/process/result");
         }
+
+        if (!empty($this->getRequest()->getQueryValue())) {
+            $query = http_build_query($this->getRequest()->getQueryValue(), '', '&');
+            $returnUrl .= '?' . $query;
+        }
+
+        return $returnUrl;
     }
 
     /**
