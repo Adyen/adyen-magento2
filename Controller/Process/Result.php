@@ -24,6 +24,8 @@
 namespace Adyen\Payment\Controller\Process;
 
 use \Adyen\Payment\Model\Notification;
+use Adyen\Service\Validator\DataArrayValidator;
+use Magento\Framework\App\Request\Http as Http;
 
 class Result extends \Magento\Framework\App\Action\Action
 {
@@ -89,6 +91,13 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->_adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
         parent::__construct($context);
+        if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
+            $request = $this->getRequest();
+            if ($request instanceof Http && $request->isPost()) {
+                $request->setParam('isAjax', true);
+                $request->getHeaders()->addHeaderLine('X_REQUESTED_WITH', 'XMLHttpRequest');
+            }
+        }
     }
 
     /**
@@ -96,6 +105,7 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
+        // GET and POST params together
         $response = $this->getRequest()->getParams();
         $this->_adyenLogger->addAdyenResult(print_r($response, true));
 
@@ -153,6 +163,7 @@ class Result extends \Magento\Framework\App\Action\Action
 
         $this->_adyenLogger->addAdyenResult('Processing ResultUrl');
 
+        // TODO check if needed since response is validated when calling this function
         if (empty($response)) {
             $this->_adyenLogger->addAdyenResult(
                 'Response is empty, please check your webserver that the result url accepts parameters'
@@ -164,52 +175,43 @@ class Result extends \Magento\Framework\App\Action\Action
         }
 
         // If the merchant signature is present, authenticate the result url
+        // TODO validate if merchant signature is still used or can be removed
         if (!empty($response['merchantSig'])) {
             // authenticate result url
             $authStatus = $this->_authenticate($response);
             if (!$authStatus) {
                 throw new \Magento\Framework\Exception\LocalizedException(__('ResultUrl authentification failure'));
             }
-            // Otherwise validate the pazload and get back the response that can be used to finish the order
-        } else {
-            // send the payload verification payment\details request to validate the response
-            $response = $this->validatePayloadAndReturnResponse($response);
         }
 
-        $incrementId = null;
+        // send the payload verification payment\details request to validate the response
+        $response = $this->validatePayloadAndReturnResponse($response);
 
-        if (!empty($response['merchantReference'])) {
-            $incrementId = $response['merchantReference'];
+        $order = $this->_order;
+
+        $this->_eventManager->dispatch(
+            'adyen_payment_process_resulturl_before',
+            [
+                'order' => $order,
+                'adyen_response' => $response
+            ]
+        );
+
+        // TODO is handled in the response?
+        if (isset($response['handled'])) {
+            return $response['handled_response'];
         }
 
-        $order = $this->_getOrder($incrementId);
-        if ($order->getId()) {
-            $this->_eventManager->dispatch(
-                'adyen_payment_process_resulturl_before',
-                [
-                    'order' => $order,
-                    'adyen_response' => $response
-                ]
-            );
-            if (isset($response['handled'])) {
-                return $response['handled_response'];
-            }
+        // update the order
+        $result = $this->_validateUpdateOrder($order, $response);
 
-            // update the order
-            $result = $this->_validateUpdateOrder($order, $response);
-
-            $this->_eventManager->dispatch(
-                'adyen_payment_process_resulturl_after',
-                [
-                    'order' => $order,
-                    'adyen_response' => $response
-                ]
-            );
-        } else {
-            throw new \Magento\Framework\Exception\LocalizedException(
-                __('Order does not exists with increment_id: %1', $incrementId)
-            );
-        }
+        $this->_eventManager->dispatch(
+            'adyen_payment_process_resulturl_after',
+            [
+                'order' => $order,
+                'adyen_response' => $response
+            ]
+        );
 
         return $result;
     }
@@ -382,42 +384,53 @@ class Result extends \Magento\Framework\App\Action\Action
      * @return mixed
      * @throws \Adyen\AdyenException
      */
-    protected function validatePayloadAndReturnResponse($response)
+    protected function validatePayloadAndReturnResponse($result)
     {
         $client = $this->_adyenHelper->initializeAdyenClient($this->storeManager->getStore()->getId());
         $service = $this->_adyenHelper->createAdyenCheckoutService($client);
 
-        $request = [];
-
-        if (!empty($this->_session->getLastRealOrder()) &&
-            !empty($this->_session->getLastRealOrder()->getPayment())
-        ) {
-            if (!empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation('paymentData'))) {
-                $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->
-                getAdditionalInformation('paymentData');
-
-                // remove paymentData from db
-                $this->_session->getLastRealOrder()->getPayment()->unsAdditionalInformation('paymentData');
-                $this->_session->getLastRealOrder()->getPayment()->save();
-            }
-
-            // for pending payment that redirect we store this under adyenPaymentData
-            // TODO: refactor the code in the plugin that all paymentData is stored in paymentData and not in adyenPaymentData
-            if (!empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation('adyenPaymentData'))) {
-                $request['paymentData'] = $this->_session->getLastRealOrder()->getPayment()->
-                getAdditionalInformation("adyenPaymentData");
-
-                // remove paymentData from db
-                $this->_session->getLastRealOrder()->getPayment()->unsAdditionalInformation('adyenPaymentData');
-                $this->_session->getLastRealOrder()->getPayment()->save();
-            }
+        if (!empty($result['merchantReference'])) {
+            $order = $this->_orderFactory->create()->loadByIncrementId($result['merchantReference']);
         } else {
-            $this->_adyenLogger->addError("Can't load the order id from the session");
+            $order = $this->_session->getLastRealOrder();
         }
 
-        $request["details"] = $response;
+        if (!$order->getId()) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Order cannot be loaded')
+            );
+        }
 
-        if (!empty($this->_session->getLastRealOrder()) &&
+        $payment = $order->getPayment();
+
+        $request = [];
+
+        // filter details to match the keys
+        $allowedParams = $payment->getAdditionalInformation('details');
+        $details = $result;
+        $this->_adyenLogger->addAdyenDebug(json_encode($allowedParams));
+        if (!empty($allowedParams)) {
+            $details = DataArrayValidator::getArrayOnlyWithApprovedKeys($details, $allowedParams);
+        }
+
+        $request["details"] = $details;
+
+        if (!empty($payment)) {
+            // for pending payment that redirect we store this under adyenPaymentData
+            // TODO: refactor the code in the plugin that all paymentData is stored in paymentData and not in adyenPaymentData
+            if (!empty($payment->getAdditionalInformation('adyenPaymentData'))) {
+                $request['paymentData'] = $payment->getAdditionalInformation("adyenPaymentData");
+
+                // remove paymentData from db
+                $payment->unsAdditionalInformation('adyenPaymentData');
+                $payment->save();
+            }
+        } else {
+            $this->_adyenLogger->addError("Payment object cannot be loaded from order");
+        }
+
+        // TODO check if this is ever reached
+        /*if (!empty($this->_session->getLastRealOrder()) &&
             !empty($this->_session->getLastRealOrder()->getPayment()) &&
             !empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("details"))
         ) {
@@ -427,10 +440,19 @@ class Result extends \Magento\Framework\App\Action\Action
             if ($key !== false) {
                 $request["details"] = ["returnUrlQueryString" => http_build_query($response)];
             }
-        }
+        }*/
 
         try {
             $response = $service->paymentsDetails($request);
+
+            if ($order->getIncrementId() === $response['details']['merchantReference']) {
+            $this->_order = $order;
+        } else {
+                // TODO error handling
+                $this->_adyenLogger->addError("Wrong merchantReference was set in the query or in the session");
+                // TODO error page
+            }
+
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
