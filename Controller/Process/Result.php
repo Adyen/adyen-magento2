@@ -408,9 +408,13 @@ class Result extends \Magento\Framework\App\Action\Action
         // filter details to match the keys
         $allowedParams = $payment->getAdditionalInformation('details');
         $details = $result;
-        $this->_adyenLogger->addAdyenDebug(json_encode($allowedParams));
         if (!empty($allowedParams)) {
-            $details = DataArrayValidator::getArrayOnlyWithApprovedKeys($details, $allowedParams);
+            $allowedParamsArray = [];
+            // TODO build a validator class which also validates the type of the param
+            foreach ($allowedParams as $allowedParam) {
+                $allowedParamsArray[] = $allowedParam['key'];
+            }
+            $details = DataArrayValidator::getArrayOnlyWithApprovedKeys($details, $allowedParamsArray);
         }
 
         $request["details"] = $details;
@@ -444,9 +448,10 @@ class Result extends \Magento\Framework\App\Action\Action
 
         try {
             $response = $service->paymentsDetails($request);
-
-            if ($order->getIncrementId() === $response['details']['merchantReference']) {
-            $this->_order = $order;
+            if (!empty($response['merchantReference'])) {
+                if ($order->getIncrementId() === $response['merchantReference']) {
+                    $this->_order = $order;
+            }
         } else {
                 // TODO error handling
                 $this->_adyenLogger->addError("Wrong merchantReference was set in the query or in the session");

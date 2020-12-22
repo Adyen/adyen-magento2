@@ -301,6 +301,7 @@ define(
                     modalClass: 'cc_actionModal',
                 });
 
+                // TODO only show modal when it's redirect shopper
                 popupModal.modal('openModal');
 
                 adyenPaymentService.paymentDetails(request).
