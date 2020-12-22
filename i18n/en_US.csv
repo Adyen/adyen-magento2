@@ -21,8 +21,6 @@
 "ResultUrl authentification failure","ResultUrl authentification failure"
 "Order does not exists with increment_id: %1","Order does not exists with increment_id: %1"
 "Empty merchantReference","Empty merchantReference"
-"3D-secure validation was successful","3D-secure validation was successful"
-"3D-secure validation was unsuccessful.","3D-secure validation was unsuccessful."
 "Customer was redirected to bank for 3D-secure validation.","Customer was redirected to bank for 3D-secure validation."
 "Used existing billing agreement #%s.","Used existing billing agreement #%s."
 "Created billing agreement #%1.","Created billing agreement #%1."
