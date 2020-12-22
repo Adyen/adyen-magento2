@@ -390,6 +390,7 @@ class Result extends \Magento\Framework\App\Action\Action
         $service = $this->_adyenHelper->createAdyenCheckoutService($client);
 
         if (!empty($result['merchantReference'])) {
+            //TODO Replace with order repository search for best practice
             $order = $this->_orderFactory->create()->loadByIncrementId($result['merchantReference']);
         } else {
             $order = $this->_session->getLastRealOrder();
