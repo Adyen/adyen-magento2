@@ -150,13 +150,7 @@ define(
           googlepay.isAvailable().then(function() {
             self.googlePayAllowed(true);
             googlepay.mount(self.googlePayNode);
-              $(self.googlePayNode).find('button').prop('disabled', !self.validate(true));
-            // TODO check if it's better
-            /*
-              self.googlePayNode.addEventListener('click', function () {
-                self.validate();
-              });
-            */
+            $(self.googlePayNode).toggleClass('disabled', !self.validate(true));
           }, function(error) {
             console.log(error);
             self.googlePayAllowed(false);

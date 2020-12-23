@@ -59,9 +59,7 @@ define(
         var unsupportedPaymentMethods = [
             'scheme',
             'boleto',
-            'bcmc_mobile_QR',
             'wechatpay',
-            /^bcmc$/,
             'applepay',
             'paywithgoogle'];
         var popupModal;
