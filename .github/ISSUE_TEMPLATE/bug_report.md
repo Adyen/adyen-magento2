@@ -24,7 +24,6 @@ A clear and concise description of what you expected to happen.
 [e.g. 2.4.1]
 
 **Plugin version**
-
 [e.g. 6.6.8]
 
 **Screenshots**
