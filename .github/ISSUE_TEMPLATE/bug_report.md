@@ -21,7 +21,6 @@ Steps to reproduce the behavior:
 A clear and concise description of what you expected to happen.
 
 **Magento version**
-
 [e.g. 2.4.1]
 
 **Plugin version**
