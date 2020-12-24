@@ -309,6 +309,7 @@ define(
                         self.handleAdyenResult(responseJSON, self.orderId);
                     }).
                     fail(function(response) {
+                        self.closeModal(popupModal);
                         errorProcessor.process(response, self.messageContainer);
                         self.isPlaceOrderActionAllowed(true);
                         fullScreenLoader.stopLoader();
