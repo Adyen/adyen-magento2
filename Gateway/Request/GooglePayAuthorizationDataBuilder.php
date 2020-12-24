@@ -40,16 +40,23 @@ class GooglePayAuthorizationDataBuilder implements BuilderInterface
     private $adyenLogger;
 
     /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
      * GooglePayAuthorizationDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
+        $this->storeManager = $storeManager;
     }
 
     public function build(array $buildSubject)
@@ -57,6 +64,8 @@ class GooglePayAuthorizationDataBuilder implements BuilderInterface
         $requestBody = [];
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
+        /** @var \Magento\Sales\Model\Order $order */
+        $order = $payment->getOrder();
         $token = $payment->getAdditionalInformation('token');
 
         $requestBody['paymentMethod']['type'] = 'paywithgoogle';
@@ -66,6 +75,10 @@ class GooglePayAuthorizationDataBuilder implements BuilderInterface
         } else {
             $this->adyenLogger->addAdyenDebug("PaymentToken is empty");
         }
+
+        $requestBody['returnUrl'] = $this->storeManager->getStore()->getBaseUrl(
+                \Magento\Framework\UrlInterface::URL_TYPE_LINK
+            ) . 'adyen/transparent/redirect?merchantReference=' . $order->getIncrementId();
 
         $request['body'] = $requestBody;
 

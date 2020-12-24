@@ -161,17 +161,39 @@ define(
            * @param responseJSON
            */
           validateThreeDSOrPlaceOrder: function (responseJSON) {
+
+              var self = this;
               var response = JSON.parse(responseJSON);
-              if (response && response.type === 'RedirectShopper') {
-                  // TODO do redirect with the component
-                  window.location.replace(url.build(
-                      window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
-                  ));
+
+              if (!!response.isFinal) {
+                  // Status is final redirect to the redirectUrl
+                  $.mage.redirect(
+                      window.checkoutConfig.payment[quote.paymentMethod().method].successUrl,
+                  );
               } else {
-                  window.location.replace(url.build(
-                      window.checkoutConfig.payment[quote.paymentMethod().method].successUrl
-                  ));
+                  // render component
+                  self.renderActionComponent(response.action);
               }
+          },
+          renderActionComponent: function(action) {
+              var self = this;
+              var actionNode = document.getElementById('ActionContainer');
+
+              fullScreenLoader.stopLoader();
+
+              self.popupModal = $('#ActionModal').modal({
+                  // disable user to hide popup
+                  clickableOverlay: false,
+                  responsive: true,
+                  innerScroll: false,
+                  // empty buttons, we don't need that
+                  buttons: [],
+                  modalClass: 'ActionModal',
+              });
+
+              self.popupModal.modal('openModal');
+              self.actionComponent = self.checkoutComponent.createFromAction(
+                  action).mount(actionNode);
           },
           isGooglePayAllowed: function () {
               return !!this.googlePayAllowed();
