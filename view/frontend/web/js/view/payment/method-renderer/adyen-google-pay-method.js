@@ -172,10 +172,10 @@ define(
                   );
               } else {
                   // render component
-                  self.renderActionComponent(response.action);
+                  self.renderActionComponent(response.resultCode, response.action);
               }
           },
-          renderActionComponent: function(action) {
+          renderActionComponent: function(resultCode, action) {
               var self = this;
               var actionNode = document.getElementById('ActionContainer');
 
@@ -191,7 +191,10 @@ define(
                   modalClass: 'ActionModal',
               });
 
-              self.popupModal.modal('openModal');
+              if (resultCode !== 'RedirectShopper') {
+                  self.popupModal.modal('openModal');
+              }
+
               self.actionComponent = self.checkoutComponent.createFromAction(
                   action).mount(actionNode);
           },
