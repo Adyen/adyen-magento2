@@ -320,7 +320,7 @@ class PaymentMethods extends AbstractHelper
         $country,
         \Magento\Quote\Model\Quote $quote
     ) {
-        $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote);
+        $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
 
         $paymentMethodRequest = [
             "channel" => "Web",
