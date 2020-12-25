@@ -36,13 +36,31 @@ class CaptureDataBuilder implements BuilderInterface
     private $adyenHelper;
 
     /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManagerInterface;
+
+    /**
+     * @var \Magento\Framework\Pricing\PriceCurrencyInterface
+     */
+    protected $priceCurrencyInterface;
+
+    /**
      * CaptureDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManagerInterface
+     * @param \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrencyInterface
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Store\Model\StoreManagerInterface $storeManagerInterface,
+        \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrencyInterface
+    )
     {
         $this->adyenHelper = $adyenHelper;
+        $this->storeManagerInterface = $storeManagerInterface;
+        $this->priceCurrencyInterface = $priceCurrencyInterface;
     }
 
     /**
@@ -65,6 +83,20 @@ class CaptureDataBuilder implements BuilderInterface
         $amount = $this->adyenHelper->formatAmount($amount, $currency);
 
         $modificationAmount = ['currency' => $currency, 'value' => $amount];
+
+         // if currency is not equal to base currency we convert the amount to the payment currency
+        if ($currency !== $this->storeManagerInterface->getStore()->getBaseCurrencyCode()) { 
+            // convert amount by currency string
+            $convertedAmount = $this->priceCurrencyInterface->convert(
+                $amount,
+                null,
+                $currency
+            );
+            // append converted amount, round it and make it an integer,
+            // because the value is already the price * 100
+            $modificationAmount['value'] = (int) round($convertedAmount);
+        }
+
         $requestBody = [
             "modificationAmount" => $modificationAmount,
             "reference" => $payment->getOrder()->getIncrementId(),
