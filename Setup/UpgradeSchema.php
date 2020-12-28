@@ -71,8 +71,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion540($setup);
         }
 
-        if (version_compare($context->getVersion(), '6.7.0', '<')) {
-            $this->updateSchemaVersion670($setup);
+        if (version_compare($context->getVersion(), '7.0.0', '<')) {
+            $this->updateSchemaVersion700($setup);
         }
 
         $setup->endSetup();
@@ -408,14 +408,14 @@ class UpgradeSchema implements UpgradeSchemaInterface
     }
 
     /**
-     * Upgrade to 6.7.0
+     * Upgrade to 7.0.0
      *
      * New sales_order column for the currency charged based on the Adyen config option (base or display)
      *
      * @param SchemaSetupInterface $setup
      * @return void
      */
-    public function updateSchemaVersion670(SchemaSetupInterface $setup)
+    public function updateSchemaVersion700(SchemaSetupInterface $setup)
     {
         $connection = $setup->getConnection();
         $tableName = $setup->getTable('sales_order');
