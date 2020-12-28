@@ -69,7 +69,12 @@
             <comment><![CDATA[Provide the unique live url prefix: <strong>[random]-[company name]</strong> from the "API URLs and Response" menu in the Adyen Customer Area. For more information, please check <a href="https://docs.adyen.com/developers/development-resources/live-endpoints#checkoutendpoints">  our documentation</a>.]]></comment>
             <config_path>payment/adyen_abstract/live_endpoint_url_prefix</config_path>
         </field>
-
+        <field id="charged_currency" translate="label" type="hidden" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Charged currency</label>
+            <comment><![CDATA[Currency used for Adyen payment processing. This setting is hidden to ensure processing of payments in the expected currency (Display by default), see <a target="_blank" href="https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#selecting-charged-currency">Adyen docs</a> for more information.]]></comment>
+            <source_model>Adyen\Payment\Model\Config\Source\ChargedCurrency</source_model>
+            <config_path>payment/adyen_abstract/charged_currency</config_path>
+        </field>
         <field id="capture_mode" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Capture Delay</label>
             <tooltip>Immediate is the default. Set to manual if you want to perform the capture of funds manually later (only affects credit cards and a few alternative payment methods). You need to change this setting as well in Adyen Customer Area => Settings => Merchant Settings => Capture Delay. If you have selected a capture delay of a couple of days in Adyen keep it here on immediate</tooltip>
