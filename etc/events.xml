@@ -38,9 +38,6 @@
     <event name="payment_method_assign_data_adyen_boleto">
         <observer name="adyen_boleto_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenBoletoDataAssignObserver" />
     </event>
-    <event name="payment_method_assign_data_adyen_apple_pay">
-        <observer name="adyen_apple_pay_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenApplePayDataAssignObserver" />
-    </event>
     <event name="payment_method_assign_data_adyen_google_pay">
         <observer name="adyen_google_pay_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenGooglePayDataAssignObserver" />
     </event>

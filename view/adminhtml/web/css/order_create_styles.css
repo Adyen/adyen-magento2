@@ -731,13 +731,6 @@
     -webkit-filter:brightness(0) invert(1);
     filter:brightness(0) invert(1)
 }
-.adyen-checkout__applepay__button{
-    height:40px;
-    width:240px
-}
-.adyen-checkout__dropin .adyen-checkout__applepay__button{
-    width:100%
-}
 .adyen-checkout__card-input__form{
     transition:opacity .25s ease-out
 }

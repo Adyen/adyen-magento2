@@ -630,46 +630,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Gives back adyen_apple_pay configuration values
-     *
-     * @param $field
-     * @param null|int|string $storeId
-     * @return mixed
-     */
-    public function getAdyenApplePayConfigData($field, $storeId = null)
-    {
-        return $this->getConfigData($field, 'adyen_apple_pay', $storeId);
-    }
-
-    /**
-     * @param null|int|string $storeId
-     * @return mixed
-     */
-    public function getAdyenApplePayMerchantIdentifier($storeId = null)
-    {
-        $demoMode = $this->getAdyenAbstractConfigDataFlag('demo_mode');
-        if ($demoMode) {
-            return $this->getAdyenApplePayConfigData('merchant_identifier_test', $storeId);
-        } else {
-            return $this->getAdyenApplePayConfigData('merchant_identifier_live', $storeId);
-        }
-    }
-
-    /**
-     * @param null|int|string $storeId
-     * @return mixed
-     */
-    public function getAdyenApplePayPemFileLocation($storeId = null)
-    {
-        $demoMode = $this->getAdyenAbstractConfigDataFlag('demo_mode');
-        if ($demoMode) {
-            return $this->getAdyenApplePayConfigData('full_path_location_pem_file_test', $storeId);
-        } else {
-            return $this->getAdyenApplePayConfigData('full_path_location_pem_file_live', $storeId);
-        }
-    }
-
-    /**
      * Gives back adyen_google_pay configuration values
      *
      * @param $field
@@ -1222,28 +1182,6 @@ class Data extends AbstractHelper
     public function formatLocaleCode($localeCode)
     {
         return str_replace("_", "-", $localeCode);
-    }
-
-    public function getApplePayShippingTypes()
-    {
-        return [
-            [
-                'value' => 'shipping',
-                'label' => __('Shipping Method')
-            ],
-            [
-                'value' => 'delivery',
-                'label' => __('Delivery Method')
-            ],
-            [
-                'value' => 'storePickup',
-                'label' => __('Store Pickup Method')
-            ],
-            [
-                'value' => 'servicePickup',
-                'label' => __('Service Pickup Method')
-            ]
-        ];
     }
 
     public function getUnprocessedNotifications()

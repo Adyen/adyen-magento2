@@ -46,7 +46,6 @@
                 <include path="Adyen_Payment::system/adyen_pos_cloud.xml"/>
                 <include path="Adyen_Payment::system/adyen_pay_by_mail.xml"/>
                 <include path="Adyen_Payment::system/adyen_boleto.xml"/>
-                <include path="Adyen_Payment::system/adyen_apple_pay.xml"/>
                 <include path="Adyen_Payment::system/adyen_google_pay.xml"/>
                 <include path="Adyen_Payment::system/adyen_pwa.xml"/>
             </group>

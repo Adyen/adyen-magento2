@@ -57,10 +57,6 @@ define(
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-boleto-method'
             },
             {
-                type: 'adyen_apple_pay',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-apple-pay-method'
-            },
-            {
                 type: 'adyen_pos_cloud',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-pos-cloud-method'
             },

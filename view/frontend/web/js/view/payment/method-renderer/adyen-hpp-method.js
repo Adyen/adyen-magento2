@@ -60,7 +60,6 @@ define(
             'scheme',
             'boleto',
             'wechatpay',
-            'applepay',
             'paywithgoogle'];
         var popupModal;
         var brandCode = ko.observable(null);
