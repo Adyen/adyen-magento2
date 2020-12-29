@@ -25,8 +25,8 @@ define(
     function () {
       'use strict';
       return {
-        getOriginKey: function () {
-          return window.checkoutConfig.payment.adyen.originKey;
+        getClientKey: function () {
+          return window.checkoutConfig.payment.adyen.clientKey;
         },
         showLogo: function () {
           return window.checkoutConfig.payment.adyen.showLogo;

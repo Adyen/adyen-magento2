@@ -45,8 +45,8 @@
     </div>
     <div class="payment-method-content">
 
-        <!-- ko ifnot: (getOriginKey()) -->
-        <span class="message message-error error"><!-- ko text: $t('Please configure an API Key and a live endpoint prefix(if in Production Mode) in your Adyen Required Settings')--><!-- /ko --></span>
+        <!-- ko ifnot: (getClientKey()) -->
+        <span class="message message-error error"><!-- ko text: $t('Please configure an API Key, a Client Key and a live endpoint prefix(if in Production Mode) in your Adyen Required Settings')--><!-- /ko --></span>
         <!--/ko-->
 
         <!-- ko foreach: $parent.getRegion(getMessageName()) -->

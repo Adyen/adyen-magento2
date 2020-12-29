@@ -69,7 +69,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
             $config['payment']['adyen']['showLogo'] = false;
         }
 
-        $config['payment']['adyen']['originKey'] = $this->adyenHelper->getOriginKeyForBaseUrl();
+        $config['payment']['adyen']['clientKey'] = $this->adyenHelper->getClientKey();
         $config['payment']['adyen']['checkoutEnvironment'] = $this->adyenHelper->getCheckoutEnvironment(
             $this->storeManager->getStore()->getId()
         );

@@ -1611,6 +1611,7 @@ class Data extends AbstractHelper
      *
      * @return string
      * @throws \Adyen\AdyenException
+     * @deprecared please use getClientKey instead
      */
     public function getOriginKeyForBaseUrl()
     {

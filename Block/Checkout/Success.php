@@ -199,9 +199,9 @@ class Success extends \Magento\Framework\View\Element\Template
         );
     }
 
-    public function getOriginKey()
+    public function getClientKey()
     {
-        return $this->adyenHelper->getOriginKeyForBaseUrl();
+        return $this->adyenHelper->getClientKey();
     }
 
     public function getEnvironment()
