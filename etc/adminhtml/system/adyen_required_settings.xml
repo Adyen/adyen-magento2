@@ -63,49 +63,59 @@
             <config_path>payment/adyen_abstract/api_key_live</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding" />
         </field>
-        <field id="live_endpoint_url_prefix" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+        <field id="client_key_test" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Client key for Test</label>
+            <tooltip>If you don't know your Client Key, log in to your Test Customer Area. Navigate to Settings > Users > System, and click on your webservice user, normally this will be ws@Company.YourCompanyAccount. Under Client Key is your Client Key.</tooltip>
+            <config_path>payment/adyen_abstract/client_key_test</config_path>
+        </field>
+        <field id="client_key_live" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Client key for Live</label>
+            <tooltip>If you don't know your Client Key, log in to your Live Customer Area. Navigate to Settings > Users > System, and click on your webservice user, normally this will be ws@Company.YourCompanyAccount. Under Client Key is your Client Key.</tooltip>
+            <config_path>payment/adyen_abstract/client_key_live</config_path>
+        </field>
+        <field id="live_endpoint_url_prefix" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Live endpoint prefix</label>
             <tooltip><![CDATA[e.g. if your live endpoint is: <br/> <i>https://1234a567bcd89ef0-MagentoCompany-checkout-live.adyenpayments.com</i> <br/> please type:  <strong>1234a567bcd89ef0-MagentoCompany</strong> in this field.]]></tooltip>
             <comment><![CDATA[Provide the unique live url prefix: <strong>[random]-[company name]</strong> from the "API URLs and Response" menu in the Adyen Customer Area. For more information, please check <a href="https://docs.adyen.com/developers/development-resources/live-endpoints#checkoutendpoints">  our documentation</a>.]]></comment>
             <config_path>payment/adyen_abstract/live_endpoint_url_prefix</config_path>
         </field>
-        <field id="charged_currency" translate="label" type="hidden" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="charged_currency" translate="label" type="hidden" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Charged currency</label>
             <comment><![CDATA[Currency used for Adyen payment processing. This setting is hidden to ensure processing of payments in the expected currency (Display by default), see <a target="_blank" href="https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#selecting-charged-currency">Adyen docs</a> for more information.]]></comment>
             <source_model>Adyen\Payment\Model\Config\Source\ChargedCurrency</source_model>
             <config_path>payment/adyen_abstract/charged_currency</config_path>
         </field>
-        <field id="capture_mode" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="capture_mode" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Capture Delay</label>
             <tooltip>Immediate is the default. Set to manual if you want to perform the capture of funds manually later (only affects credit cards and a few alternative payment methods). You need to change this setting as well in Adyen Customer Area => Settings => Merchant Settings => Capture Delay. If you have selected a capture delay of a couple of days in Adyen keep it here on immediate</tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
             <config_path>payment/adyen_abstract/capture_mode</config_path>
         </field>
-        <field id="order_status" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
+        <field id="order_status" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Order status: order creation</label>
             <tooltip>Status given to newly created orders before payment result confirmation via server notifications from Adyen.</tooltip>
             <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
             <config_path>payment/adyen_abstract/order_status</config_path>
         </field>
-        <field id="payment_pre_authorized" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
+        <field id="payment_pre_authorized" translate="label" type="select" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Order status: payment authorisation</label>
             <tooltip>Status given to orders after authorisation confirmed by an AUTHORISATION notification from Adyen. Note: an authorisation status via the result URL does not yet trigger this status.</tooltip>
             <source_model>Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
             <config_path>payment/adyen_abstract/payment_pre_authorized</config_path>
         </field>
-        <field id="payment_authorized" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="0">
+        <field id="payment_authorized" translate="label" type="select" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Order status: payment confirmed</label>
             <tooltip>Status given to orders after capture result is confirmed by an AUTHORISATION notification (if capture mode = immediate) or a CAPTURE notification (if capture mode = manual capture) from Adyen.</tooltip>
             <source_model>Magento\Sales\Model\Config\Source\Order\Status\Processing</source_model>
             <config_path>payment/adyen_abstract/payment_authorized</config_path>
         </field>
-        <field id="payment_cancelled" translate="label" type="select" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="0">
+        <field id="payment_cancelled" translate="label" type="select" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Order status: order cancellation</label>
             <tooltip>Status given to orders after order cancellation is confirmed by a CANCEL_OR_REFUND notification from Adyen. If orders are already invoiced, they cannot be cancelled, but will be refunded instead.</tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\Cancelled</source_model>
             <config_path>payment/adyen_abstract/payment_cancelled</config_path>
         </field>
-        <field id="debug" translate="label" type="select" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="0">
+        <field id="debug" translate="label" type="select" sortOrder="160" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Enable debug logging</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/debug</config_path>

@@ -789,6 +789,33 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Retrieve the Client key
+     *
+     * @param null|int|string $storeId
+     * @return string
+     */
+    public function getClientKey($storeId = null)
+    {
+        if ($this->isDemoMode($storeId)) {
+            $clientKey = trim(
+                $this->getAdyenAbstractConfigData(
+                    'client_key_test',
+                    $storeId
+                )
+            );
+        } else {
+            $clientKey = trim(
+                $this->getAdyenAbstractConfigData(
+                    'client_key_live',
+                    $storeId
+                )
+            );
+        }
+
+        return $clientKey;
+    }
+
+    /**
      * Retrieve the webserver username
      *
      * @param null|int|string $storeId
