@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 /**
@@ -46,19 +47,27 @@ class RefundDataBuilder implements BuilderInterface
     protected $adyenInvoiceCollectionFactory;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * RefundDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory
+     * @param ChargedCurrency $chargedCurrency
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $orderPaymentCollectionFactory,
-        \Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory $adyenInvoiceCollectionFactory
+        \Adyen\Payment\Model\ResourceModel\Invoice\CollectionFactory $adyenInvoiceCollectionFactory,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->orderPaymentCollectionFactory = $orderPaymentCollectionFactory;
         $this->adyenInvoiceCollectionFactory = $adyenInvoiceCollectionFactory;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -69,16 +78,16 @@ class RefundDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
-
+        $buildSubjectAmount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
         $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
         $pspReference = $payment->getCcTransId();
-        $currency = $payment->getOrder()->getOrderCurrencyCode();
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder(), false);
+        $currency = $orderAmountCurrency->getCurrencyCode();
+        $amount = $orderAmountCurrency->getAmount();
         $storeId = $order->getStoreId();
         $method = $payment->getMethod();
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
-        $grandTotal = $payment->getOrder()->getGrandTotal();
 
         // check if it contains a split payment
         $orderPaymentCollection = $this->orderPaymentCollectionFactory
@@ -101,7 +110,7 @@ class RefundDataBuilder implements BuilderInterface
                 $orderPaymentCollection->addPaymentFilterDescending($payment->getId());
             } elseif ($refundStrategy == "3") {
                 // refund based on ratio
-                $ratio = $amount / $grandTotal;
+                $ratio = $buildSubjectAmount / $amount;
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
             }
 
@@ -185,7 +194,9 @@ class RefundDataBuilder implements BuilderInterface
     {
         $formFields = [];
         $count = 0;
-        $currency = $payment->getOrder()->getOrderCurrencyCode();
+        $currency = $this->chargedCurrency
+            ->getOrderAmountCurrency($payment->getOrder(), false)
+            ->getCurrencyCode();
 
         /**
          * @var \Magento\Sales\Model\Order\Creditmemo $creditMemo
@@ -194,16 +205,18 @@ class RefundDataBuilder implements BuilderInterface
 
         foreach ($creditMemo->getItems() as $refundItem) {
             ++$count;
+            $itemAmountCurrency = $this->chargedCurrency->getCreditMemoItemAmountCurrency($refundItem);
+
             $numberOfItems = (int)$refundItem->getQty();
 
             $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
                 $formFields,
                 $count,
                 $refundItem->getName(),
-                $refundItem->getPrice(),
+                $itemAmountCurrency->getAmount(),
                 $currency,
-                $refundItem->getTaxAmount(),
-                $refundItem->getPriceInclTax(),
+                $itemAmountCurrency->getTaxAmount(),
+                $itemAmountCurrency->getAmount() + $itemAmountCurrency->getTaxAmount(),
                 $refundItem->getOrderItem()->getTaxPercent(),
                 $numberOfItems,
                 $payment,

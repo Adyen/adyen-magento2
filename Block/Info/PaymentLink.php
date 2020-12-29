@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Block\Info;
 
+use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Framework\View\Element\Template;
 
 class PaymentLink extends AbstractInfo
@@ -37,16 +38,23 @@ class PaymentLink extends AbstractInfo
      */
     private $payByMail;
 
+    /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
         Template\Context $context,
         \Magento\Framework\Registry $registry,
         \Adyen\Payment\Gateway\Command\PayByMailCommand $payByMailCommand,
+        ChargedCurrency $chargedCurrency,
         array $data = []
     ) {
         $this->registry = $registry;
         $this->payByMail = $payByMailCommand;
+        $this->chargedCurrency = $chargedCurrency;
 
         parent::__construct($adyenHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
     }
@@ -74,7 +82,8 @@ class PaymentLink extends AbstractInfo
      */
     public function getPaymentLinkUrl()
     {
-        return $this->payByMail->generatePaymentUrl($this->getPayment(), $this->getOrder()->getTotalDue());
+        $adyenAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($this->getOrder(), false);
+        return $this->payByMail->generatePaymentUrl($this->getPayment(), $adyenAmountCurrency->getAmountDue());
     }
 
     /**

@@ -13,22 +13,25 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment Module
+ * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen B.V.
- * This file is open source and available under the MIT license.
- * See the LICENSE file for more info.
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Api;
+namespace Adyen\Payment\Model\Config\Source;
 
-interface AdyenThreeDS2ProcessInterface
+use Magento\Framework\Data\OptionSourceInterface;
+
+class ChargedCurrency implements OptionSourceInterface
 {
-    /**
-     * @param string $payload
-     * @return string
-     */
-    public function initiate($payload);
+    public function toOptionArray()
+    {
+        return array(
+            ['value' => 'display', 'label' => 'Display currency'],
+            ['value' => 'base', 'label' => 'Global/Website currency']
+        );
+    }
 }

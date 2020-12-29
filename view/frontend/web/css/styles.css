@@ -1638,3 +1638,15 @@
     overflow:auto;
     padding-top: 0;
 }
+
+/**
+ * Configuration for Google Pay
+ */
+#googlePay.disabled {
+    cursor: pointer;
+    opacity: 0.75;
+}
+
+#googlePay.disabled > * {
+    pointer-events: none;
+}

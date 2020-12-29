@@ -1716,7 +1716,7 @@ class Data extends AbstractHelper
                         $billingAgreement->getAgreementId(),
                         $order->getId()
                     )) {
-                        // save into sales_billing_agreement_order
+                        // save into billing_agreement_order
                         $billingAgreement->addOrderRelation($order);
                     }
                     // add to order to save agreement
@@ -1736,6 +1736,7 @@ class Data extends AbstractHelper
             $comment = $order->addStatusHistoryComment($message);
 
             $order->addRelatedObject($comment);
+            $order->save();
         }
     }
 

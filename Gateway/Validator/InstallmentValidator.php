@@ -25,6 +25,7 @@
 
 namespace Adyen\Payment\Gateway\Validator;
 
+use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
 
 class InstallmentValidator extends AbstractValidator
@@ -50,6 +51,11 @@ class InstallmentValidator extends AbstractValidator
     private $quoteRepository;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * InstallmentValidator constructor.
      *
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
@@ -63,12 +69,14 @@ class InstallmentValidator extends AbstractValidator
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Magento\Quote\Model\QuoteRepository $quoteRepository
+        \Magento\Quote\Model\QuoteRepository $quoteRepository,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         $this->serializer = $serializer;
         $this->quoteRepository = $quoteRepository;
+        $this->chargedCurrency = $chargedCurrency;
         parent::__construct($resultFactory);
     }
 
@@ -86,7 +94,7 @@ class InstallmentValidator extends AbstractValidator
         }
         $installmentsEnabled = $this->adyenHelper->getAdyenCcConfigData('enable_installments');
         if ($quote && $installmentsEnabled) {
-            $grandTotal = $quote->getGrandTotal();
+            $grandTotal = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getAmount();
             $installmentsAvailable = $this->adyenHelper->getAdyenCcConfigData('installments');
             $installmentSelected = $payment->getAdditionalInformation('number_of_installments');
             $ccType = $payment->getAdditionalInformation('cc_type');
