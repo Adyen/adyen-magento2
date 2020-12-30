@@ -1058,6 +1058,8 @@
                 <item name="payment/adyen_abstract/merchant_account" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/api_key_test" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/api_key_live" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/client_key_test" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/client_key_live" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/notification_username" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/notification_password" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/live_endpoint_url_prefix" xsi:type="string">1</item>
