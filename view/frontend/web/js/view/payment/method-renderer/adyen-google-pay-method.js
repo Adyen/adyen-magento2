@@ -99,7 +99,7 @@ define(
           var self = this;
           self.checkoutComponent = new AdyenCheckout({
             locale: self.getLocale(),
-            originKey: self.getOriginKey(),
+            clientKey: self.getClientKey(),
             environment: self.getCheckoutEnvironment(),
             risk: {
               enabled: false,
@@ -255,8 +255,8 @@ define(
             getVaultCode: function () {
                 return "adyen_google_pay_vault";
             },
-            getOriginKey: function () {
-                return window.checkoutConfig.payment.adyen.originKey;
+            getClientKey: function () {
+                return window.checkoutConfig.payment.adyen.clientKey;
             },
             getCheckoutEnvironment: function () {
                 return window.checkoutConfig.payment.adyenGooglePay.checkoutEnvironment;

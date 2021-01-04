@@ -78,7 +78,7 @@ define(
                 this.checkoutComponent = new AdyenCheckout({
                         hasHolderName: true,
                         locale: adyenConfiguration.getLocale(),
-                        originKey: adyenConfiguration.getOriginKey(),
+                        clientKey: adyenConfiguration.getClientKey(),
                         environment: adyenConfiguration.getCheckoutEnvironment(),
                         paymentMethodsResponse: adyenPaymentService.getPaymentMethods().paymentMethodsResponse,
                         onAdditionalDetails: this.handleOnAdditionalDetails.bind(this)
@@ -115,7 +115,7 @@ define(
             renderSecureFields: function() {
                 var self = this;
 
-                if (!self.getOriginKey()) {
+                if (!self.getClientKey) {
                     return;
                 }
 
@@ -401,8 +401,8 @@ define(
                 return allowedCurrenciesByCountry[countryId] &&
                     currencyCode === allowedCurrenciesByCountry[countryId];
             },
-            getOriginKey: function() {
-                return adyenConfiguration.getOriginKey();
+            getClientKey: function() {
+                return adyenConfiguration.getClientKey();
             },
             /**
              * @returns {Bool}

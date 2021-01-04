@@ -104,7 +104,7 @@ define(
                     this.checkoutComponent = new AdyenCheckout({
                             hasHolderName: true,
                             locale: adyenConfiguration.getLocale(),
-                            originKey: adyenConfiguration.getOriginKey(),
+                            clientKey: adyenConfiguration.getClientKey(),
                             environment: adyenConfiguration.getCheckoutEnvironment(),
                             paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
                             onAdditionalDetails: this.handleOnAdditionalDetails.bind(

@@ -789,6 +789,22 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Retrieve the Client key
+     *
+     * @param null|int|string $storeId
+     * @return string
+     */
+    public function getClientKey($storeId = null)
+    {
+        return trim(
+            $this->getAdyenAbstractConfigData(
+                $this->isDemoMode($storeId) ? 'client_key_test' : 'client_key_live',
+                $storeId
+            )
+        );
+    }
+
+    /**
      * Retrieve the webserver username
      *
      * @param null|int|string $storeId
@@ -1584,6 +1600,7 @@ class Data extends AbstractHelper
      *
      * @return string
      * @throws \Adyen\AdyenException
+     * @deprecared please use getClientKey instead
      */
     public function getOriginKeyForBaseUrl()
     {

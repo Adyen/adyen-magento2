@@ -35,7 +35,7 @@
             var checkoutComponent = new AdyenCheckout({
                 locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
                 environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
-                originKey: '<?= $block->escapeHtml($block->getOriginKey()); ?>'
+                clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>'
             });
             try {
                 checkoutComponent.createFromAction(action).mount('#ActionContainer');

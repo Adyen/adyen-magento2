@@ -122,7 +122,7 @@ define(
 
                     this.checkoutComponent = new AdyenCheckout({
                             locale: adyenConfiguration.getLocale(),
-                            originKey: adyenConfiguration.getOriginKey(),
+                            clientKey: adyenConfiguration.getClientKey(),
                             environment: adyenConfiguration.getCheckoutEnvironment(),
                             paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
                             onAdditionalDetails: this.handleOnAdditionalDetails.bind(this),
@@ -327,7 +327,7 @@ define(
                              * sets up the callbacks for card components
                              */
                             renderSecureCVC: function() {
-                                if (!this.getOriginKey()) {
+                                if (!this.getClientKey()) {
                                     return;
                                 }
 
@@ -414,8 +414,8 @@ define(
                             getMessageContainer: function() {
                                 return messageContainer;
                             },
-                            getOriginKey: function() {
-                                return adyenConfiguration.getOriginKey();
+                            getClientKey: function() {
+                                return adyenConfiguration.getClientKey();
                             },
                             isPlaceOrderActionAllowed: function() {
                                 return self.isPlaceOrderActionAllowed(); // needed for placeOrder method
