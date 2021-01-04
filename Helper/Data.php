@@ -803,24 +803,6 @@ class Data extends AbstractHelper
             )
         );
     }
-        if ($this->isDemoMode($storeId)) {
-            $clientKey = trim(
-                $this->getAdyenAbstractConfigData(
-                    'client_key_test',
-                    $storeId
-                )
-            );
-        } else {
-            $clientKey = trim(
-                $this->getAdyenAbstractConfigData(
-                    'client_key_live',
-                    $storeId
-                )
-            );
-        }
-
-        return $clientKey;
-    }
 
     /**
      * Retrieve the webserver username
