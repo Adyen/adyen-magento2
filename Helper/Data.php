@@ -1689,8 +1689,7 @@ class Data extends AbstractHelper
                     // create new BA
                     $billingAgreement = $this->billingAgreementFactory->create();
                     $billingAgreement->setStoreId($order->getStoreId());
-                    $billingAgreement->importOrderPayment($order->getPayment());
-                    if ($billingAgreement->getCustomerId() === null) {
+                    $billingAgreement->importOrderPaymentWithRecurringDetailReference($order->getPayment(), $additionalData['recurring.recurringDetailReference']);                    if ($billingAgreement->getCustomerId() === null) {
                         $billingAgreement->setCustomerId($this->getCustomerId($order));
                     }
                     $message = __(
