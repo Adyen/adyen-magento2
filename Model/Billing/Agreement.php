@@ -274,6 +274,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
      * @param $recurringDetailReference
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
+     * todo: refactor or remove this method as those fields are set later
      */
     public function importOrderPaymentWithRecurringDetailReference(Payment $payment, $recurringDetailReference)
     {

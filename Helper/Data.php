@@ -1693,9 +1693,7 @@ class Data extends AbstractHelper
                         $order->getPayment(),
                         $additionalData['recurring.recurringDetailReference']
                     );
-                    if ($billingAgreement->getCustomerId() === null) {
-                        $billingAgreement->setCustomerId($this->getCustomerId($order));
-                    }
+
                     $message = __(
                         'Created billing agreement #%1.',
                         $additionalData['recurring.recurringDetailReference']
