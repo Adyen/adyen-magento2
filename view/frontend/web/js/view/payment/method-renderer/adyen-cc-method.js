@@ -126,7 +126,7 @@ define(
 
                 self.cardComponent = self.checkoutComponent.create('card', {
                     enableStoreDetails: self.getEnableStoreDetails(),
-                    groupTypes: self.getAvailableCardTypeAltCodes(),
+                    brands: self.getAvailableCardTypeAltCodes(),
                     onChange: function(state, component) {
                         self.placeOrderAllowed(!!state.isValid);
                     },
