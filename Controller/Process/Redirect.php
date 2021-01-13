@@ -205,7 +205,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
                             $extensionAttributes = $this->getExtensionAttributes($order->getPayment());
                             $extensionAttributes->setVaultPaymentToken($paymentToken);
                             $orderPayment = $order->getPayment()->setExtensionAttributes($extensionAttributes);
-                            if(!empty($orderPayment->getAdditionalData())){
+                            if (!empty($orderPayment->getAdditionalData())) {
                                 $add = $this->serializer->unserialize($orderPayment->getAdditionalData());
                                 $add['force_save'] = true;
                                 $orderPayment->setAdditionalData($this->serializer->serialize($add));
