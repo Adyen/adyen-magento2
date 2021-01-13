@@ -207,7 +207,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
                             $orderPayment = $order->getPayment()->setExtensionAttributes($extensionAttributes);
                             if (!empty($orderPayment->getAdditionalData())) {
                                 $additionalData = $this->serializer->unserialize($orderPayment->getAdditionalData());
-                                $add['force_save'] = true;
+                                $additionalData['force_save'] = true;
                                 $orderPayment->setAdditionalData($this->serializer->serialize($add));
                                 $this->orderPaymentResource->save($orderPayment);
                             }
