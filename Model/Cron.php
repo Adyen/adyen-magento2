@@ -1289,7 +1289,7 @@ class Cron
 
                             $billingAgreement = $this->_billingAgreementFactory->create();
                             $billingAgreement->setStoreId($this->_order->getStoreId());
-                            $billingAgreement->importOrderPayment($this->_order->getPayment());
+                            $billingAgreement->importOrderPaymentWithRecurringDetailReference($this->_order->getPayment(), $recurringDetailReference);
                             $message = __('Created billing agreement #%1.', $recurringDetailReference);
                         } else {
                             $this->_adyenLogger->addAdyenNotificationCronjob

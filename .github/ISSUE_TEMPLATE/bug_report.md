@@ -20,6 +20,12 @@ Steps to reproduce the behavior:
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
+**Magento version**
+[e.g. 2.4.1]
+
+**Plugin version**
+[e.g. 6.6.8]
+
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 

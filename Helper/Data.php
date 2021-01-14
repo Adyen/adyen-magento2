@@ -1067,7 +1067,10 @@ class Data extends AbstractHelper
         if (strpos($paymentMethod, 'afterpay') !== false ||
             strpos($paymentMethod, 'klarna') !== false ||
             strpos($paymentMethod, 'ratepay') !== false ||
-            strpos($paymentMethod, 'facilypay_') !== false
+            strpos($paymentMethod, 'facilypay_') !== false ||
+            strpos($paymentMethod, 'affirm') !== false ||
+            strpos($paymentMethod, 'clearpay') !== false ||
+            strpos($paymentMethod, 'zip') !== false
         ) {
             return true;
         }
@@ -1686,10 +1689,11 @@ class Data extends AbstractHelper
                     // create new BA
                     $billingAgreement = $this->billingAgreementFactory->create();
                     $billingAgreement->setStoreId($order->getStoreId());
-                    $billingAgreement->importOrderPayment($order->getPayment());
-                    if ($billingAgreement->getCustomerId() === null) {
-                        $billingAgreement->setCustomerId($this->getCustomerId($order));
-                    }
+                    $billingAgreement->importOrderPaymentWithRecurringDetailReference(
+                        $order->getPayment(),
+                        $additionalData['recurring.recurringDetailReference']
+                    );
+
                     $message = __(
                         'Created billing agreement #%1.',
                         $additionalData['recurring.recurringDetailReference']
