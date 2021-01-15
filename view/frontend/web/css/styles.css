@@ -98,11 +98,6 @@
     background-position: 0 -2092px;
 }
 
-.checkout-payment-method .payment-method-title label div.adyen-sprite.adyen_google_pay {
-    background: url(../images/logos/paywithgoogle_small.png) no-repeat;
-    height: 43px;
-}
-
 .checkout-payment-method .input-text._has-datepicker {
     width: 20%;
     margin-right: 10px;

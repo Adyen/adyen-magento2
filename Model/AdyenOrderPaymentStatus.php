@@ -29,7 +29,6 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Adyen\Payment\Model\Ui\AdyenGooglePayConfigProvider;
 use \Magento\Framework\Exception\NoSuchEntityException;
 
 class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
@@ -97,15 +96,6 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
             return json_encode(
                 $this->paymentResponseHandler->formatPaymentResponse(PaymentResponseHandler::ERROR)
             );
-        }
-        /**
-         * If payment method is google pay
-         */
-        if ($payment->getMethod() === AdyenGooglePayConfigProvider::CODE) {
-            $additionalInformation = $payment->getAdditionalInformation();
-            if (!empty($additionalInformation['threeDSType'])) {
-                return json_encode(['type' => $additionalInformation['threeDSType']]);
-            }
         }
 
         return json_encode($this->paymentResponseHandler->formatPaymentResponse(
