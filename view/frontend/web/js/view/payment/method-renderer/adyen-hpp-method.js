@@ -166,6 +166,10 @@ define(
                     result.value = result.getBrandCode();
                     result.name = value;
                     result.method = self.item.method;
+                    result.item = {
+                        "title": value.title,
+                        "method": value.type
+                    };
                     /**
                      * Observable to enable and disable place order buttons for payment methods
                      * Default value is true to be able to send the real hpp requiests that doesn't require any input
