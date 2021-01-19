@@ -119,7 +119,7 @@ define(
              * @returns {*|boolean}
              */
             getEnableStoreDetails: function () {
-                return this.canCreateBillingAgreement() && !this.isVaultEnabled();
+                return this.canCreateBillingAgreement() && this.isVaultEnabled();
             },
             /**
              * Renders the secure fields,
