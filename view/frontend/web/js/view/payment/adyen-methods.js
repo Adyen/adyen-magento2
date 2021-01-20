@@ -84,13 +84,6 @@ define(
 
                     })
                 });
-
-                // todo only include the script when google pay is avaialbe
-                let googlepayscript = document.createElement('script');
-                googlepayscript.src = "https://pay.google.com/gp/p/js/pay.js";
-                googlepayscript.type = "text/javascript";
-                document.head.appendChild(googlepayscript);
-
             }
         });
     }

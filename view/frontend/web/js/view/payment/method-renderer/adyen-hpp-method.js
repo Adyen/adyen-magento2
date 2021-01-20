@@ -179,7 +179,6 @@ define(
                         var result = {
                             isAvailable: ko.observable(true),
                             paymentMethod: paymentMethod,
-                            icon: {},
                             method: self.item.method,
                             /**
                              * Observable to enable and disable place order buttons for payment methods
@@ -316,11 +315,7 @@ define(
                                             // for paypal add a workaround, remove when component fixes it
                                             if (selectedAlternativePaymentMethodType() ===
                                                 'paypal') {
-                                                if (self.validate()) {
-                                                    return true;
-                                                } else {
-                                                    return false;
-                                                }
+                                                return self.validate();
                                             } else {
                                                 if (self.validate()) {
                                                     resolve();
@@ -554,9 +549,6 @@ define(
                 }
             },
             handleOnSubmit: function(state, component) {
-                // set payment method to adyen_hpp
-                var self = this;
-
                 if (this.validate()) {
                     var data = {};
                     data.method = this.getCode();
