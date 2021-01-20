@@ -109,11 +109,6 @@ class Requests extends AbstractHelper
             $request['shopperReference'] = $guestCustomerId;
         }
 
-        $paymentMethod = '';
-        if ($payment) {
-            $paymentMethod = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
-        }
-
         // In case of virtual product and guest checkout there is a workaround to get the guest's email address
         if (!empty($additionalData['guestEmail'])) {
             $request['shopperEmail'] = $additionalData['guestEmail'];
