@@ -544,7 +544,7 @@ define(
                         self.popupModal.modal('openModal');
                     }
 
-                    self.actionComponent = component.createFromAction(action).
+                    self.actionComponent = self.checkoutComponent.createFromAction(action).
                         mount(actionNode);
                 }
             },
