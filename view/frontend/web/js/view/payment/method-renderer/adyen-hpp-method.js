@@ -56,6 +56,7 @@ define(
 
         return Component.extend({
             self: this,
+            isPlaceOrderActionAllowed: ko.observable(quote.billingAddress() != null),
             defaults: {
                 template: 'Adyen_Payment/payment/hpp-form',
                 brandCode: ''
