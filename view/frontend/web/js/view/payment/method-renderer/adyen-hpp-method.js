@@ -391,6 +391,9 @@ define(
                             getRatePayDeviceIdentToken: function() {
                                 return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
                             },
+                            getCode: function() {
+                                return self.getCode();
+                            }
                         };
 
                         accumulator.push(result);
