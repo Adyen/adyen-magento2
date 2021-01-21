@@ -161,12 +161,12 @@ class PaymentResponseHandler
                 if ($order) {
                     $order->addStatusHistoryComment(
                         __(
-                            'Customer was redirected to an external payment page. (In case of card payments the shopper is redirected to the bank for 3D-secure validation.) Once the shopper is authenticated, 
-                        the order status will be updated accordingly. 
-                        <br />Make sure that your notifications are being processed! 
-                        <br />If the order is stuck on this status, the shopper abandoned the session. 
-                        The payment can be seen as unsuccessful. 
-                        <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. 
+                            'Customer was redirected to an external payment page. (In case of card payments the shopper is redirected to the bank for 3D-secure validation.) Once the shopper is authenticated,
+                        the order status will be updated accordingly.
+                        <br />Make sure that your notifications are being processed!
+                        <br />If the order is stuck on this status, the shopper abandoned the session.
+                        The payment can be seen as unsuccessful.
+                        <br />The order can be automatically cancelled based on the OFFER_CLOSED notification.
                         Please contact Adyen Support to enable this.'
                         )
                     )->save();
@@ -194,20 +194,29 @@ class PaymentResponseHandler
             case self::IDENTIFY_SHOPPER:
             case self::CHALLENGE_SHOPPER:
                 break;
-            //These resultCodes cancel the order and log an error
             case self::REFUSED:
+                // Cancel order in case result is refused
+                if (null !== $order) {
+                    // Set order to new so it can be cancelled
+                    $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                    $order->save();
+
+                    $order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
+
+                    if ($order->canCancel()) {
+                        $order->cancel();
+                    } else {
+                        $this->adyenLogger->addAdyenDebug('Order can not be canceled');
+                    }
+                }
             case self::ERROR:
             default:
-                if (!$order->canCancel()) {
-                    $order->setState(Order::STATE_NEW);
-                }
-                //TODO check if order gets cancelled
-                $order->cancel();
                 $this->adyenLogger->error(
                     sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s",
-                        $paymentsResponse['resultCode'],
-                        print_r($paymentsResponse, true)
+                            $paymentsResponse['resultCode'],
+                            print_r($paymentsResponse, true)
                     ));
+
                 return false;
         }
         return true;
