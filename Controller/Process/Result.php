@@ -134,13 +134,13 @@ class Result extends \Magento\Framework\App\Action\Action
                 $failReturnPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
                 $this->_redirect($failReturnPath);
 
-                $currectQuote =  $session->getQuote();
-                if (!empty($currectQuote)) {
+                $currentQuote =  $session->getQuote();
+                if (!empty($currentQuote)) {
                     /**
                      * @var \Magento\Quote\Model\Quote $newQuote
                      */
                     $newQuote = $this->quoteFactory->create();
-                    $currentQuoteId = $currectQuote->getId();
+                    $currentQuoteId = $currentQuote->getId();
 
                     $newQuote->merge($currectQuote);
                     $newQuote->setId($currentQuoteId + 1);
