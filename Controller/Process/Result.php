@@ -104,7 +104,7 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->_adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
         $this->quoteFactory = $quoteFactory;
-        $this->cartRepository =$cartRepository;
+        $this->cartRepository = $cartRepository;
         parent::__construct($context);
     }
 
