@@ -142,13 +142,13 @@ class Result extends \Magento\Framework\App\Action\Action
                     $newQuote = $this->quoteFactory->create();
                     $currentQuoteId = $currentQuote->getId();
 
-                    $newQuote->merge($currectQuote);
+                    $newQuote->merge($currentQuote);
                     $newQuote->setId($currentQuoteId + 1);
                     //Close the oldQuote and set the new
-                    $currectQuote->setIsActive(false);
+                    $currentQuote->setIsActive(false);
                     $newQuote->setIsActive(true);
                     $this->cartRepository->save($newQuote);
-                    $this->cartRepository->save($currectQuote);
+                    $this->cartRepository->save($currentQuote);
                 }
             }
         } else {
