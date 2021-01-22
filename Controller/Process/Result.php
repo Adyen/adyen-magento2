@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Controller\Process;
 
 use \Adyen\Payment\Model\Notification;
+use Magento\Quote\Api\CartRepositoryInterface;
 
 class Result extends \Magento\Framework\App\Action\Action
 {
@@ -63,6 +64,16 @@ class Result extends \Magento\Framework\App\Action\Action
     protected $storeManager;
 
     /**
+     * @var \Magento\Quote\Model\QuoteFactory
+     */
+    protected $quoteFactory;
+
+    /**
+     * @var CartRepositoryInterface
+     */
+    private $cartRepository;
+
+    /**
      * Result constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -72,6 +83,8 @@ class Result extends \Magento\Framework\App\Action\Action
      * @param \Magento\Checkout\Model\Session $session
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Quote\Model\QuoteFactory $quoteFactory
+     * @param CartRepositoryInterface $cartRepository
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -80,7 +93,9 @@ class Result extends \Magento\Framework\App\Action\Action
         \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory,
         \Magento\Checkout\Model\Session $session,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Quote\Model\QuoteFactory $quoteFactory,
+        CartRepositoryInterface $cartRepository
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
@@ -88,6 +103,8 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->_session = $session;
         $this->_adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
+        $this->quoteFactory = $quoteFactory;
+        $this->cartRepository = $cartRepository;
         parent::__construct($context);
     }
 
@@ -98,12 +115,11 @@ class Result extends \Magento\Framework\App\Action\Action
     {
         $response = $this->getRequest()->getParams();
         $this->_adyenLogger->addAdyenResult(print_r($response, true));
-
+        $session = $this->_session;
         if ($response) {
             $result = $this->validateResponse($response);
 
             if ($result) {
-                $session = $this->_session;
                 $session->getQuote()->setIsActive(false)->save();
                 $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
             } else {
@@ -117,6 +133,23 @@ class Result extends \Magento\Framework\App\Action\Action
                 $this->restoreCart($response);
                 $failReturnPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
                 $this->_redirect($failReturnPath);
+
+                $currentQuote =  $session->getQuote();
+                if (!empty($currentQuote)) {
+                    /**
+                     * @var \Magento\Quote\Model\Quote $newQuote
+                     */
+                    $newQuote = $this->quoteFactory->create();
+                    $currentQuoteId = $currentQuote->getId();
+
+                    $newQuote->merge($currentQuote);
+                    $newQuote->setId($currentQuoteId + 1);
+                    //Close the oldQuote and set the new
+                    $currentQuote->setIsActive(false);
+                    $newQuote->setIsActive(true);
+                    $this->cartRepository->save($newQuote);
+                    $this->cartRepository->save($currentQuote);
+                }
             }
         } else {
             // redirect to checkout page
@@ -272,9 +305,9 @@ class Result extends \Magento\Framework\App\Action\Action
                     $comment .= "<br /><br />This request will be send to the bank at the end of the day.";
                 } else {
                     $comment .= "<br /><br />The payment result is not confirmed (yet).
-                                 <br />Once the payment is authorised, the order status will be updated accordingly. 
-                                 <br />If the order is stuck on this status, the payment can be seen as unsuccessful. 
-                                 <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. 
+                                 <br />Once the payment is authorised, the order status will be updated accordingly.
+                                 <br />If the order is stuck on this status, the payment can be seen as unsuccessful.
+                                 <br />The order can be automatically cancelled based on the OFFER_CLOSED notification.
                                  Please contact Adyen Support to enable this.";
                 }
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
@@ -287,7 +320,7 @@ class Result extends \Magento\Framework\App\Action\Action
             case Notification::REFUSED:
                 // if refused there will be a AUTHORIZATION : FALSE notification send only exception is idea
                 $this->_adyenLogger->addAdyenResult(
-                    'Cancel or Hold the order on AUTHORISATION 
+                    'Cancel or Hold the order on AUTHORISATION
                 success = false notification'
                 );
                 $result = false;
