@@ -183,6 +183,7 @@ class PaymentMethods extends AbstractHelper
         // Add extra details per payment method
         $paymentMethodsExtraDetails = [];
         $paymentMethodsExtraDetails = $this->showLogosPaymentMethods($paymentMethods, $paymentMethodsExtraDetails);
+        $paymentMethodsExtraDetails = $this->addExtraConfigurationToPaymentMethods($paymentMethods, $paymentMethodsExtraDetails);
         $response['paymentMethodsExtraDetails'] = $paymentMethodsExtraDetails;
 
         //TODO this should be the implemented with an interface
@@ -416,6 +417,26 @@ class PaymentMethods extends AbstractHelper
                     $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
             }
         }
+        return $paymentMethodsExtraDetails;
+    }
+
+    protected function addExtraConfigurationToPaymentMethods($paymentMethods, array $paymentMethodsExtraDetails) {
+        $quote = $this->getQuote();
+        $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
+        $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
+
+        foreach ($paymentMethods as $paymentMethod) {
+            $paymentMethodCode = $paymentMethod['type'];
+
+            $paymentMethodsExtraDetails[$paymentMethodCode]['configuration'] = [
+                'amount' => [
+                    'value' => $amountValue,
+                    'currency' => $currencyCode
+                ],
+                'currency' => $currencyCode,
+            ];
+        }
+
         return $paymentMethodsExtraDetails;
     }
 }
