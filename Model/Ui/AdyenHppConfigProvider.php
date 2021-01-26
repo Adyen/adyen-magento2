@@ -156,6 +156,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $adyenHppConfig['deviceIdentToken'] = hash("sha256", $this->session->getQuoteId() . date('c'));
         $adyenHppConfig['nordicCountries'] = ['SE', 'NO', 'DK', 'FI'];
 
+        $adyenHppConfig['methodCode'] = self::CODE;
+
         $config['payment']['adyenHpp'] = $adyenHppConfig;
         return $config;
     }

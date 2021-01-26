@@ -57,16 +57,8 @@ define(
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-boleto-method'
             },
             {
-                type: 'adyen_apple_pay',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-apple-pay-method'
-            },
-            {
                 type: 'adyen_pos_cloud',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-pos-cloud-method'
-            },
-            {
-                type: 'adyen_google_pay',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-google-pay-method'
             }
         );
         /** Add view logic here if needed */
@@ -92,16 +84,6 @@ define(
 
                     })
                 });
-
-                if (this.isGooglePayEnabled()) {
-                    var googlepayscript = document.createElement('script');
-                    googlepayscript.src = "https://pay.google.com/gp/p/js/pay.js";
-                    googlepayscript.type = "text/javascript";
-                    document.head.appendChild(googlepayscript);
-                }
-            },
-            isGooglePayEnabled: function () {
-                return window.checkoutConfig.payment.adyenGooglePay.active;
             }
         });
     }

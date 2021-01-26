@@ -127,7 +127,14 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
             $paymentDetails = $service->paymentsDetails($payload);
         } catch (AdyenException $e) {
             $this->adyenLogger->error("Payment details call failed: " . $e->getMessage());
-            throw new LocalizedException(__('Payment details call failed'));
+            $this->checkoutSession->restoreQuote();
+
+            // accept cancellation request, restore quote
+            if (!empty($payload['cancelled'])) {
+                throw new LocalizedException(__('Payment has been cancelled'));
+            } else {
+                throw new LocalizedException(__('Payment details call failed'));
+            }
         }
 
         // Handle response
