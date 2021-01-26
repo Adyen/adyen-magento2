@@ -283,12 +283,6 @@ define(
                                     {
                                         showPayButton: showPayButton,
                                         countryCode: country,
-                                        currency: quote.totals().quote_currency_code,
-                                        amount: { // Use this after above removed
-                                            value: 600, // todo get the real amount
-                                            currency: quote.totals().quote_currency_code,
-                                        },
-                                        totalPriceLabel: 'merchantDisplayName',//merchantDisplayName here,
                                         data: {
                                             personalDetails: {
                                                 firstName: firstName,
@@ -325,6 +319,11 @@ define(
                                             }
                                         },
                                     });
+
+                                // Use extra configuration from the paymentMethodsExtraInfo object if available
+                                if (paymentMethod.type in paymentMethodsExtraInfo && 'configuration' in paymentMethodsExtraInfo[paymentMethod.type]) {
+                                    configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
+                                }
 
                                 try {
                                     const component = self.checkoutComponent.create(
