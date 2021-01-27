@@ -474,7 +474,13 @@ class Redirect extends \Magento\Payment\Block\Form
      */
     public function getTermUrl()
     {
-        return $this->getUrl('adyen/transparent/redirect', ['_secure' => $this->_getRequest()->isSecure()]);
+        //TODO Currently termUrl is always set
+        //so adyen/transparent/redirect is not used for transparent redirects (Old 3DS1 flow)
+        if ($termUrl = $this->getPayment()->getAdditionalInformation('termUrl')) {
+            return $termUrl;
+        } else {
+            return $this->getUrl('adyen/transparent/redirect', ['_secure' => $this->_getRequest()->isSecure()]);
+        }
     }
 
     /**
