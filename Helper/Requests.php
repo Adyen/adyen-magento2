@@ -369,31 +369,32 @@ class Requests extends AbstractHelper
         if ($customerId > 0) {
             $isGuestUser = false;
         }
+        //this is sent in any case
+        $request['shopperInteraction'] = 'Ecommerce';
+
         //Setting storePaymentMethod flag if PM is SEPA and store PM config is enabled
         if (!empty($additionalData['brand_code']) &&
             $additionalData['brand_code'] == 'sepadirectdebit' &&
             $this->adyenConfig->isStoreAlternativePaymentMethodEnabled($storeId)) {
             $request['storePaymentMethod'] = true;
+            $request['recurringProcessingModel'] = 'CardOnFile';
         }
+        $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
+        $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
         // If the vault feature is on this logic is handled in the VaultDataBuilder
-        if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
+        if ($this->adyenHelper->isCreditCardVaultEnabled() && !$isGuestUser) {
             if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
                 $storeId = null;
             }
+            $request['storePaymentMethod'] = true;
+            $request['recurringProcessingModel'] = 'Subscription';
 
-            $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
-            $enableRecurring = $this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', $storeId);
-
-            $shouldStoreCreditCardInfo = !empty($additionalData[AdyenCcDataAssignObserver::STORE_CC]);
-            $request['enableOneClick'] = $enableOneclick && !$isGuestUser && $shouldStoreCreditCardInfo;
-            $request['enableRecurring'] = (bool)$enableRecurring;
-
-            // value can be 0,1 or true
-            if ($shouldStoreCreditCardInfo || ($isGuestUser && $this->adyenHelper->isGuestTokenizationEnabled($storeId))) {
-                $request['paymentMethod']['storeDetails'] = true;
+            if ($enableOneclick) {
+                $request['recurringProcessingModel'] = 'CardOnFile';
             }
+        } else {
+            $request['storePaymentMethod'] = false;
         }
-
         return $request;
     }
 
@@ -455,15 +456,6 @@ class Requests extends AbstractHelper
             [AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]
         ) {
             $request['paymentMethod']['recurringDetailReference'] = $recurringDetailReference;
-        }
-
-        // set customerInteraction
-        $recurringContractType = $this->adyenHelper->getAdyenOneclickConfigData('recurring_payment_type');
-        if (!empty($payload['method']) && $payload['method'] == 'adyen_oneclick'
-            && $recurringContractType == \Adyen\Payment\Model\RecurringType::RECURRING) {
-            $request['shopperInteraction'] = "ContAuth";
-        } else {
-            $request['shopperInteraction'] = "Ecommerce";
         }
 
         /**
