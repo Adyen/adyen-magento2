@@ -69,6 +69,7 @@ define(
 
         return Component.extend({
             self: this,
+            isPlaceOrderActionAllowed: ko.observable(quote.billingAddress() != null),
             defaults: {
                 template: 'Adyen_Payment/payment/hpp-form',
                 orderId: 0,
@@ -180,6 +181,10 @@ define(
                             isAvailable: ko.observable(true),
                             paymentMethod: paymentMethod,
                             method: self.item.method,
+                            item: {
+                                "title": paymentMethod.name,
+                                "method": paymentMethod.type
+                            },
                             /**
                              * Observable to enable and disable place order buttons for payment methods
                              * Default value is true to be able to send the real hpp requiests that doesn't require any input

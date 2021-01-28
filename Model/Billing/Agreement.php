@@ -23,6 +23,8 @@
 
 namespace Adyen\Payment\Model\Billing;
 
+use Magento\Sales\Model\Order\Payment;
+
 class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 {
     /**
@@ -190,8 +192,8 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
             !isset($contractDetail['paymentMethod'])
         ) {
             $this->_errors[] = __(
-                '"In the Additional data in API response section, select: Card bin, 
-                Card summary, Expiry Date, Cardholder name, Recurring details and Variant 
+                '"In the Additional data in API response section, select: Card bin,
+                Card summary, Expiry Date, Cardholder name, Recurring details and Variant
                 to create billing agreements immediately after the payment is authorized."'
             );
             return $this;
@@ -263,6 +265,33 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         }
 
         $this->setAgreementData($agreementData);
+
+        return $this;
+    }
+
+    /**
+     * @param Payment $payment
+     * @param $recurringDetailReference
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * todo: refactor or remove this method as those fields are set later
+     */
+    public function importOrderPaymentWithRecurringDetailReference(Payment $payment, $recurringDetailReference)
+    {
+        $baData = $payment->getBillingAgreementData();
+        $this->_paymentMethodInstance = (isset($baData['method_code']))
+            ? $this->_paymentData->getMethodInstance($baData['method_code'])
+            : $payment->getMethodInstance();
+        if(empty($baData['billing_agreement_id'])){
+            $baData['billing_agreement_id'] = $recurringDetailReference;
+        }
+
+        $this->_paymentMethodInstance->setStore($payment->getMethodInstance()->getStore());
+        $this->setCustomerId($payment->getOrder()->getCustomerId())
+            ->setMethodCode($this->_paymentMethodInstance->getCode())
+            ->setReferenceId($baData['billing_agreement_id'])
+            ->setStatus(self::STATUS_ACTIVE)
+            ->setAgreementLabel($this->_paymentMethodInstance->getTitle());
 
         return $this;
     }
