@@ -24,7 +24,6 @@
 namespace Adyen\Payment\Controller\Process;
 
 use \Adyen\Payment\Model\Notification;
-use Magento\Quote\Api\CartRepositoryInterface;
 
 class Result extends \Magento\Framework\App\Action\Action
 {
@@ -69,9 +68,9 @@ class Result extends \Magento\Framework\App\Action\Action
     protected $quoteFactory;
 
     /**
-     * @var CartRepositoryInterface
+     * @var Quote
      */
-    private $cartRepository;
+    private $quoteHelper;
 
     /**
      * Result constructor.
@@ -83,8 +82,7 @@ class Result extends \Magento\Framework\App\Action\Action
      * @param \Magento\Checkout\Model\Session $session
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Quote\Model\QuoteFactory $quoteFactory
-     * @param CartRepositoryInterface $cartRepository
+     * @param \Adyen\Payment\Helper\Quote $quoteHelper
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -94,8 +92,7 @@ class Result extends \Magento\Framework\App\Action\Action
         \Magento\Checkout\Model\Session $session,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Quote\Model\QuoteFactory $quoteFactory,
-        CartRepositoryInterface $cartRepository
+        \Adyen\Payment\Helper\Quote $quoteHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
@@ -103,8 +100,7 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->_session = $session;
         $this->_adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
-        $this->quoteFactory = $quoteFactory;
-        $this->cartRepository = $cartRepository;
+        $this->quoteHelper = $quoteHelper;
         parent::__construct($context);
     }
 
@@ -115,11 +111,12 @@ class Result extends \Magento\Framework\App\Action\Action
     {
         $response = $this->getRequest()->getParams();
         $this->_adyenLogger->addAdyenResult(print_r($response, true));
-        $session = $this->_session;
+
         if ($response) {
             $result = $this->validateResponse($response);
 
             if ($result) {
+                $session = $this->_session;
                 $session->getQuote()->setIsActive(false)->save();
                 $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
             } else {
@@ -130,26 +127,9 @@ class Result extends \Magento\Framework\App\Action\Action
                         $this->_order->getIncrementId()
                     )
                 );
-                $this->restoreCart($response);
+                $this->replaceCart($response);
                 $failReturnPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
                 $this->_redirect($failReturnPath);
-
-                $currentQuote =  $session->getQuote();
-                if (!empty($currentQuote)) {
-                    /**
-                     * @var \Magento\Quote\Model\Quote $newQuote
-                     */
-                    $newQuote = $this->quoteFactory->create();
-                    $currentQuoteId = $currentQuote->getId();
-
-                    $newQuote->merge($currentQuote);
-                    $newQuote->setId($currentQuoteId + 1);
-                    //Close the oldQuote and set the new
-                    $currentQuote->setIsActive(false);
-                    $newQuote->setIsActive(true);
-                    $this->cartRepository->save($newQuote);
-                    $this->cartRepository->save($currentQuote);
-                }
             }
         } else {
             // redirect to checkout page
@@ -161,12 +141,18 @@ class Result extends \Magento\Framework\App\Action\Action
     /**
      * @param $response
      */
-    protected function restoreCart($response)
+    protected function replaceCart($response)
     {
-        $session = $this->_session;
-
-        // restore the quote
-        $session->restoreQuote();
+        try {
+            $newQuote = $this->quoteHelper->cloneQuote($this->_session->getQuote(), $this->_order);
+            $this->_session->replaceQuote($newQuote);
+        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+            $this->_session->restoreQuote();
+            $this->_adyenLogger->addAdyenResult(
+                'Error when trying to create a new quote, ' .
+                'the previous quote has been restored instead: ' . $e->getMessage()
+            );
+        }
 
         if (isset($response['authResult']) && $response['authResult'] == \Adyen\Payment\Model\Notification::CANCELLED) {
             $this->messageManager->addError(__('You have cancelled the order. Please try again'));
