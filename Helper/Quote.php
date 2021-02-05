@@ -111,7 +111,7 @@ class Quote
             $optionsInfo->setData('qty', $item->getQtyOrdered());
 
             //Add quote item
-            $newQuote->addProduct($productObj, $optionsInfo);
+            $newQuote->addProduct($productObj, $optionsInfo)->calcRowTotal();
         }
 
         //Set as active and apply coupon code
