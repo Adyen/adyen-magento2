@@ -178,7 +178,7 @@ class PaymentMethods extends AbstractHelper
                     $currencyCode
                 ),
             ],
-            "shopperReference" => $this->getCurrentShopperReference(),
+            "shopperReference" => str_pad($this->getCurrentShopperReference(), 3, '0', STR_PAD_LEFT),
             "shopperLocale" => $this->adyenHelper->getCurrentLocaleCode($store->getId())
         ];
 
