@@ -101,7 +101,7 @@ class Requests extends AbstractHelper
         $request = []
     ) {
         if ($customerId > 0) {
-            $request['shopperReference'] = $customerId;
+            $request['shopperReference'] = str_pad($customerId, 3, '0', STR_PAD_LEFT);
         }
         else {
             $uuid = Uuid::generateV4();
