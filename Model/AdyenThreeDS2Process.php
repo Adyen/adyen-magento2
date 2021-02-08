@@ -25,6 +25,7 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\AdyenThreeDS2ProcessInterface;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Checkout\Model\Session;
@@ -58,6 +59,11 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
     private $vaultHelper;
 
     /**
+     * @var Quote
+     */
+    private $quoteHelper;
+
+    /**
      * AdyenThreeDS2Process constructor.
      *
      * @param Session $checkoutSession
@@ -65,19 +71,22 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
      * @param OrderFactory $orderFactory
      * @param AdyenLogger $adyenLogger
      * @param Vault $vaultHelper
+     * @param Quote $quoteHelper
      */
     public function __construct(
         Session $checkoutSession,
         Data $adyenHelper,
         OrderFactory $orderFactory,
         AdyenLogger $adyenLogger,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        Quote $quoteHelper
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
         $this->orderFactory = $orderFactory;
         $this->adyenLogger = $adyenLogger;
         $this->vaultHelper = $vaultHelper;
+        $this->quoteHelper = $quoteHelper;
     }
 
     /**
@@ -183,7 +192,16 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         $response = [];
 
         if ($result['resultCode'] != 'Authorised') {
-            $this->checkoutSession->restoreQuote();
+            try {
+                $newQuote = $this->quoteHelper->cloneQuote($this->checkoutSession->getQuote(), $order);
+                $this->checkoutSession->replaceQuote($newQuote);
+            } catch (\Magento\Framework\Exception\LocalizedException $e) {
+                $this->checkoutSession->restoreQuote();
+                $this->adyenLogger->addAdyenResult(
+                    'Error when trying to create a new quote, ' .
+                    'the previous quote has been restored instead: ' . $e->getMessage()
+                );
+            }
 
             // Always cancel the order if the paymenth has failed
             if (!$order->canCancel()) {
