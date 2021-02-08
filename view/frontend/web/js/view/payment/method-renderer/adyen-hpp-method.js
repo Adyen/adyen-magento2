@@ -257,7 +257,7 @@ define(
                      * @returns {boolean}
                      */
                     result.isPaymentMethodKlarna = function () {
-                        if (result.getBrandCode() === "klarna") {
+                        if (result.getBrandCode().indexOf("klarna") >= 0) {
                             return true;
                         }
 
