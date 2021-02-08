@@ -24,101 +24,44 @@
 
 namespace Adyen\Payment\Helper;
 
-use Magento\Catalog\Model\ProductFactory;
-use Magento\Catalog\Model\ResourceModel\Product as ProductResourceModel;
-use Magento\Framework\DataObject;
-use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Quote\Model\QuoteRepository;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote as QuoteModel;
-use Magento\Quote\Model\QuoteFactory;
-use Magento\Quote\Model\ResourceModel\Quote as QuoteResourceModel;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Item;
-use Magento\Sales\Model\OrderRepository;
 
 class Quote
 {
     /**
-     * @var ProductFactory
+     * @var CartRepositoryInterface
      */
-    private $productFactory;
-
+    private $quoteRepository;
     /**
-     * @var ProductResourceModel
+     * @var CartRepositoryInterface
      */
-    private $productResourceModel;
-
-    /**
-     * @var QuoteModel
-     */
-    private $quoteModel;
-
-    /**
-     * @var QuoteFactory
-     */
-    private $quoteFactory;
-
-    /**
-     * @var QuoteResourceModel
-     */
-    private $quoteResourceModel;
-
-    /**
-     * @var OrderRepository
-     */
-    private $orderRepository;
+    private $cartRepository;
 
     public function __construct(
-        ProductFactory $productFactory,
-        ProductResourceModel $productResourceModel,
-        QuoteModel $quoteModel,
-        QuoteFactory $quoteFactory,
-        QuoteResourceModel $quoteResourceModel,
-        OrderRepository $orderRepository
+        CartRepositoryInterface $cartRepository,
+        QuoteRepository $quoteRepository
     ) {
-        $this->productFactory = $productFactory;
-        $this->productResourceModel = $productResourceModel;
-        $this->quoteModel = $quoteModel;
-        $this->quoteFactory = $quoteFactory;
-        $this->quoteResourceModel = $quoteResourceModel;
-        $this->orderRepository = $orderRepository;
+        $this->cartRepository = $cartRepository;
+        $this->quoteRepository = $quoteRepository;
     }
 
     /**
      * @param QuoteModel $newQuote
      * @param Order $previousOrder
      * @return false|QuoteModel
-     * @throws AlreadyExistsException
      * @throws LocalizedException
      */
     public function cloneQuote(QuoteModel $newQuote, Order $previousOrder)
     {
-        //Add order lines to new quote
-        $items = $previousOrder->getAllVisibleItems();
-        /** @var Item $item */
-        foreach ($items as $item) {
-            //Create new product object to add as quote item
-            $productId = $item->getProduct()->getId();
-            $productObj = $this->productFactory->create();
-            $this->productResourceModel->load($productObj, $productId);
-
-            //Add line options and quantities
-            $options = $item->getProductOptions();
-            $optionsInfo = new DataObject();
-            if (!empty($options['info_buyRequest'])) {
-                $optionsInfo->setData($options['info_buyRequest']);
-            }
-            $optionsInfo->setData('qty', $item->getQtyOrdered());
-
-            //Add quote item
-            $newQuote->addProduct($productObj, $optionsInfo)->calcRowTotal();
-        }
-
-        //Set as active and apply coupon code
-        $this->quoteResourceModel->save(
-            $newQuote->setIsActive(1)
-                ->setCouponCode($previousOrder->getCouponCode())
-                ->collectTotals());
+        $oldQuote = $this->quoteRepository->get($previousOrder->getQuoteId());
+        $newQuote->merge($oldQuote)->collectTotals();
+        $newQuote->setShippingAddress($oldQuote->getShippingAddress());
+        $newQuote->setBillingAddress($oldQuote->getBillingAddress());
+        $this->cartRepository->save($newQuote);
         return $newQuote;
     }
 }
