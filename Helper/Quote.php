@@ -24,6 +24,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\QuoteRepository;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
@@ -89,20 +90,15 @@ class Quote
      */
     protected function cloneQuoteAddresses(QuoteModel $oldQuote, QuoteModel $newQuote)
     {
-        //New quote address objects
-        $quoteShippingAddress = $this->quoteAddressFactory->create();
-        $quoteBillingAddress = $this->quoteAddressFactory->create();
-
-        //Loading with old quote address data
-        $this->quoteAddressResource->load($quoteShippingAddress, $oldQuote->getShippingAddress()->getId());
-        $this->quoteAddressResource->load($quoteBillingAddress, $oldQuote->getBillingAddress()->getId());
-
-        //Unsetting PK and setting new quote ID
-        $quoteShippingAddress->setQuoteId($newQuote->getId())->unsetData('address_id');
-        $quoteBillingAddress->setQuoteId($newQuote->getId())->unsetData('address_id');
-
-        //Saving new addresses
-        $this->quoteAddressResource->save($quoteShippingAddress);
-        $this->quoteAddressResource->save($quoteBillingAddress);
+        foreach ([Address::ADDRESS_TYPE_SHIPPING, Address::ADDRESS_TYPE_BILLING] as $type) {
+            $quoteAddress = $this->quoteAddressFactory->create();
+            if ($type == Address::ADDRESS_TYPE_SHIPPING) {
+                $this->quoteAddressResource->load($quoteAddress, $oldQuote->getShippingAddress()->getId());
+            } else {
+                $this->quoteAddressResource->load($quoteAddress, $oldQuote->getBillingAddress()->getId());
+            }
+            $quoteAddress->setQuoteId($newQuote->getId())->unsetData('address_id');
+            $this->quoteAddressResource->save($quoteAddress);
+        }
     }
 }
