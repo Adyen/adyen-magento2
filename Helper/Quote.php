@@ -25,9 +25,12 @@
 namespace Adyen\Payment\Helper;
 
 use Magento\Quote\Model\QuoteRepository;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote as QuoteModel;
+use Magento\Quote\Model\Quote\AddressFactory as QuoteAddressFactory;
+use Magento\Quote\Model\ResourceModel\Quote\Address as QuoteAddressResource;
 use Magento\Sales\Model\Order;
 
 class Quote
@@ -40,13 +43,25 @@ class Quote
      * @var CartRepositoryInterface
      */
     private $cartRepository;
+    /**
+     * @var QuoteAddressFactory
+     */
+    private $quoteAddressFactory;
+    /**
+     * @var QuoteAddressResource
+     */
+    private $quoteAddressResource;
 
     public function __construct(
         CartRepositoryInterface $cartRepository,
-        QuoteRepository $quoteRepository
+        QuoteRepository $quoteRepository,
+        QuoteAddressFactory $quoteAddressFactory,
+        QuoteAddressResource $quoteAddressResource
     ) {
         $this->cartRepository = $cartRepository;
         $this->quoteRepository = $quoteRepository;
+        $this->quoteAddressFactory = $quoteAddressFactory;
+        $this->quoteAddressResource = $quoteAddressResource;
     }
 
     /**
@@ -62,6 +77,32 @@ class Quote
         $newQuote->setShippingAddress($oldQuote->getShippingAddress());
         $newQuote->setBillingAddress($oldQuote->getBillingAddress());
         $this->cartRepository->save($newQuote);
+        $this->cloneQuoteAddresses($oldQuote, $newQuote);
         return $newQuote;
+    }
+
+    /**
+     * @param QuoteModel $oldQuote
+     * @param QuoteModel $newQuote
+     * @return false|QuoteModel
+     * @throws AlreadyExistsException
+     */
+    protected function cloneQuoteAddresses(QuoteModel $oldQuote, QuoteModel $newQuote)
+    {
+        //New quote address objects
+        $quoteShippingAddress = $this->quoteAddressFactory->create();
+        $quoteBillingAddress = $this->quoteAddressFactory->create();
+
+        //Loading with old quote address data
+        $this->quoteAddressResource->load($quoteShippingAddress, $oldQuote->getShippingAddress()->getId());
+        $this->quoteAddressResource->load($quoteBillingAddress, $oldQuote->getBillingAddress()->getId());
+
+        //Unsetting PK and setting new quote ID
+        $quoteShippingAddress->setQuoteId($newQuote->getId())->unsetData('address_id');
+        $quoteBillingAddress->setQuoteId($newQuote->getId())->unsetData('address_id');
+
+        //Saving new addresses
+        $this->quoteAddressResource->save($quoteShippingAddress);
+        $this->quoteAddressResource->save($quoteBillingAddress);
     }
 }
