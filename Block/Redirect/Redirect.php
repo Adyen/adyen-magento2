@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Block\Redirect;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Model\Config\ThreeDsBehavior;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 class Redirect extends \Magento\Payment\Block\Form
@@ -74,6 +75,16 @@ class Redirect extends \Magento\Payment\Block\Form
     protected $_request;
 
     /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    protected $adyenConfig;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
      * Redirect constructor.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
@@ -85,6 +96,8 @@ class Redirect extends \Magento\Payment\Block\Form
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Tax\Model\Config $taxConfig
      * @param \Magento\Tax\Model\Calculation $taxCalculation
+     * @param \Adyen\Payment\Helper\Config $adyenConfig
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
@@ -95,8 +108,12 @@ class Redirect extends \Magento\Payment\Block\Form
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Tax\Model\Config $taxConfig,
         \Magento\Tax\Model\Calculation $taxCalculation,
+        \Adyen\Payment\Helper\Config $adyenConfig,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
         array $data = []
     ) {
+        $this->adyenConfig = $adyenConfig;
+        $this->storeManager = $storeManager;
         $this->_orderFactory = $orderFactory;
         $this->_checkoutSession = $checkoutSession;
         parent::__construct($context, $data);
@@ -474,7 +491,16 @@ class Redirect extends \Magento\Payment\Block\Form
      */
     public function getTermUrl()
     {
-        return $this->getUrl('adyen/transparent/redirect', ['_secure' => $this->_getRequest()->isSecure()]);
+        $threeDsBehavior = $this->adyenConfig->getThreeDsBehavior($this->storeManager->getStore()->getId());
+
+        if (
+            $threeDsBehavior == ThreeDsBehavior::AUTO
+            && $termUrl = $this->getPayment()->getAdditionalInformation('termUrl')
+        ) {
+            return $termUrl;
+        } else {
+            return $this->getUrl('adyen/transparent/redirect', ['_secure' => $this->_getRequest()->isSecure()]);
+        }
     }
 
     /**
