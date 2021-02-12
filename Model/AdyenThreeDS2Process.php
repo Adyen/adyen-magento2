@@ -192,18 +192,25 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         $response = [];
 
         if ($result['resultCode'] != 'Authorised') {
-            try {
-                $newQuote = $this->quoteHelper->cloneQuote($this->checkoutSession->getQuote(), $order);
-                $this->checkoutSession->replaceQuote($newQuote);
-            } catch (\Magento\Framework\Exception\LocalizedException $e) {
+
+            //If the customer is guest don't attempt to replace the quote as the generated cart ID can't be used
+            //in the frontend. Restore the previous quote instead
+            if ($order->getCustomerIsGuest()){
                 $this->checkoutSession->restoreQuote();
-                $this->adyenLogger->addAdyenResult(
-                    'Error when trying to create a new quote, ' .
-                    'the previous quote has been restored instead: ' . $e->getMessage()
-                );
+            } else {
+                try {
+                    $newQuote = $this->quoteHelper->cloneQuote($this->checkoutSession->getQuote(), $order);
+                    $this->checkoutSession->replaceQuote($newQuote);
+                } catch (\Magento\Framework\Exception\LocalizedException $e) {
+                    $this->checkoutSession->restoreQuote();
+                    $this->adyenLogger->addAdyenResult(
+                        'Error when trying to create a new quote, ' .
+                        'the previous quote has been restored instead: ' . $e->getMessage()
+                    );
+                }
             }
 
-            // Always cancel the order if the paymenth has failed
+            // Always cancel the order if the payment has failed
             if (!$order->canCancel()) {
                 $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
             }
