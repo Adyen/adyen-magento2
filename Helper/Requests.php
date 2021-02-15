@@ -376,24 +376,20 @@ class Requests extends AbstractHelper
         if (!empty($additionalData['brand_code']) &&
             $additionalData['brand_code'] == 'sepadirectdebit' &&
             $this->adyenConfig->isStoreAlternativePaymentMethodEnabled($storeId)) {
-            $request['storePaymentMethod'] = true;
-            $request['recurringProcessingModel'] = 'CardOnFile';
         }
         $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
         $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
         // If the vault feature is on this logic is handled in the VaultDataBuilder
-        if ($this->adyenHelper->isCreditCardVaultEnabled() && !$isGuestUser) {
+        if ($enableVault && !$enableOneclick &&!$isGuestUser) {
             if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
                 $storeId = null;
             }
             $request['storePaymentMethod'] = true;
             $request['recurringProcessingModel'] = 'Subscription';
-
-            if ($enableOneclick) {
-                $request['recurringProcessingModel'] = 'CardOnFile';
-            }
-        } else {
-            $request['storePaymentMethod'] = false;
+        }
+        elseif($enableVault && $enableOneclick) {
+            $request['recurringProcessingModel'] = 'CardOnFile';
+            $request['enableOneClick'] = true;
         }
         return $request;
     }
