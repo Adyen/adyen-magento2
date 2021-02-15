@@ -247,15 +247,24 @@ class Redirect extends \Magento\Framework\App\Action\Action
 
                     // Clone or restore the quote
                     $session = $this->_getCheckout();
-                    try {
-                        $newQuote = $this->quoteHelper->cloneQuote($session->getQuote(), $order);
-                        $session->replaceQuote($newQuote);
-                    } catch (\Magento\Framework\Exception\LocalizedException $e) {
+                    if ($this->_adyenHelper->getConfigData(
+                        "clone_quote",
+                        "adyen_abstract",
+                        $order->getStoreId(),
+                        true
+                    )) {
+                        try {
+                            $newQuote = $this->quoteHelper->cloneQuote($session->getQuote(), $order);
+                            $session->replaceQuote($newQuote);
+                        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+                            $session->restoreQuote();
+                            $this->_adyenLogger->addAdyenResult(
+                                'Error when trying to create a new quote, ' .
+                                'the previous quote has been restored instead: ' . $e->getMessage()
+                            );
+                        }
+                    } else {
                         $session->restoreQuote();
-                        $this->_adyenLogger->addAdyenResult(
-                            'Error when trying to create a new quote, ' .
-                            'the previous quote has been restored instead: ' . $e->getMessage()
-                        );
                     }
 
                     $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
