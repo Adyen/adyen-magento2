@@ -99,16 +99,6 @@ class CcBackendAuthorizationDataBuilder implements BuilderInterface
                 AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
             );
         }
-
-        // Flow for Billing agreements, for Vault check VaultDataBuilder
-        if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
-            if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::STORE_CC)) {
-                $requestBody['enableRecurring'] = true;
-            } else {
-                $requestBody['enableRecurring'] = false;
-            }
-        }
-
         $request['body'] = $requestBody;
 
         return $request;

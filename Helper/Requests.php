@@ -479,31 +479,6 @@ class Requests extends AbstractHelper
         return $request;
     }
 
-
-    /**
-     * @param $request
-     * @param $additionalInformation
-     * @return mixed
-     */
-    public function buildVaultData($payload, $request = [])
-    {
-        if ($this->adyenHelper->isCreditCardVaultEnabled()) {
-            if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE]) &&
-                $payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE] === true ||
-                !empty($payload[VaultConfigProvider::IS_ACTIVE_CODE]) &&
-                $payload[VaultConfigProvider::IS_ACTIVE_CODE] === true
-            ) {
-                // store it only as oneclick otherwise we store oneclick tokens (maestro+bcmc) that will fail
-                //$request['enableRecurring'] = true;
-            } else {
-                // explicity turn this off as merchants have recurring on by default
-                //$request['enableRecurring'] = false;
-            }
-        }
-
-        return $request;
-    }
-
     /**
      * The billing address retrieved from the Quote and the one retrieved from the Order has some differences
      * Therefore we need to check if the getStreetFull function exists and use that if yes, otherwise use the more
