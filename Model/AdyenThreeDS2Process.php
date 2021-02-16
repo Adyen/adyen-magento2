@@ -195,9 +195,13 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
 
             //If the customer is guest don't attempt to replace the quote as the generated cart ID can't be used
             //in the frontend. Restore the previous quote instead
-            if ($order->getCustomerIsGuest()){
-                $this->checkoutSession->restoreQuote();
-            } else {
+            if (!$order->getCustomerIsGuest() &&
+                $this->adyenHelper->getConfigData(
+                    "clone_quote",
+                    "adyen_abstract",
+                    $order->getStoreId(),
+                    true
+                )) {
                 try {
                     $newQuote = $this->quoteHelper->cloneQuote($this->checkoutSession->getQuote(), $order);
                     $this->checkoutSession->replaceQuote($newQuote);
@@ -208,6 +212,8 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
                         'the previous quote has been restored instead: ' . $e->getMessage()
                     );
                 }
+            } else {
+                $this->checkoutSession->restoreQuote();
             }
 
             // Always cancel the order if the payment has failed
