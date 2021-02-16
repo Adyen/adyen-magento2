@@ -369,17 +369,19 @@ class Requests extends AbstractHelper
         if ($customerId > 0) {
             $isGuestUser = false;
         }
-        //this is sent in any case
+        //shopperInteraction is sent in any case as ecommerce
         $request['shopperInteraction'] = 'Ecommerce';
 
         //Setting storePaymentMethod flag if PM is SEPA and store PM config is enabled
         if (!empty($additionalData['brand_code']) &&
             $additionalData['brand_code'] == 'sepadirectdebit' &&
             $this->adyenConfig->isStoreAlternativePaymentMethodEnabled($storeId)) {
+            $request['storePaymentMethod'] = true;
+            return $request;
         }
         $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
         $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
-        // If the vault feature is on this logic is handled in the VaultDataBuilder
+        //recurring
         if ($enableVault && !$enableOneclick &&!$isGuestUser) {
             if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
                 $storeId = null;
@@ -387,6 +389,7 @@ class Requests extends AbstractHelper
             $request['storePaymentMethod'] = true;
             $request['recurringProcessingModel'] = 'Subscription';
         }
+        //oneclick
         elseif($enableVault && $enableOneclick) {
             $request['recurringProcessingModel'] = 'CardOnFile';
             $request['enableOneClick'] = true;
@@ -491,10 +494,10 @@ class Requests extends AbstractHelper
                 $payload[VaultConfigProvider::IS_ACTIVE_CODE] === true
             ) {
                 // store it only as oneclick otherwise we store oneclick tokens (maestro+bcmc) that will fail
-                $request['enableRecurring'] = true;
+                //$request['enableRecurring'] = true;
             } else {
                 // explicity turn this off as merchants have recurring on by default
-                $request['enableRecurring'] = false;
+                //$request['enableRecurring'] = false;
             }
         }
 
