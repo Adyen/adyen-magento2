@@ -155,11 +155,14 @@ class Redirect extends \Magento\Framework\App\Action\Action
         if ($active && $success != true) {
             $this->_adyenLogger->addAdyenResult("3D secure is active");
 
-            // check if  it is already processed
-            if ($this->getRequest()->isPost()) {
+            // Check if the payment has already been processed on the issuer page
+            // POST method for MD/PaRes response. redirectResult GET param for new 3DS1 flow
+            if ($this->getRequest()->isPost() || $this->getRequest()->getParams('redirectResult')) {
                 $this->_adyenLogger->addAdyenResult("Process 3D secure payment");
                 $requestPaRes = $this->getRequest()->getPost('PaRes');
+                $requestRedirectResult = $this->getRequest()->getParam('redirectResult');
                 $order->getPayment()->setAdditionalInformation('paResponse', $requestPaRes);
+                $order->getPayment()->setAdditionalInformation('redirectResult', $requestRedirectResult);
 
                 try {
                     $result = $this->_authorise3d($order->getPayment());

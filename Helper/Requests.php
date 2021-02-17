@@ -101,7 +101,7 @@ class Requests extends AbstractHelper
         $request = []
     ) {
         if ($customerId > 0) {
-            $request['shopperReference'] = $customerId;
+            $request['shopperReference'] = str_pad($customerId, 3, '0', STR_PAD_LEFT);
         }
         else {
             $uuid = Uuid::generateV4();
@@ -354,6 +354,17 @@ class Requests extends AbstractHelper
             $request['channel'] = 'web';
         }
 
+        return $request;
+    }
+
+    /**
+     * @param array $request
+     * @return array
+     */
+    public function buildRedirectData($storeId, $request = [])
+    {
+        $request['returnUrl'] = rtrim($this->adyenHelper->getOrigin($storeId), '/') .
+            '/adyen/process/redirect';
         return $request;
     }
 

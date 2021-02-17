@@ -100,18 +100,27 @@ class PaymentRequest extends DataObject
 
         $md = $payment->getAdditionalInformation('md');
         $paResponse = $payment->getAdditionalInformation('paResponse');
+        $redirectResult = $payment->getAdditionalInformation('redirectResult');
         $paymentData = $payment->getAdditionalInformation('paymentData');
 
+        $payment->unsAdditionalInformation('redirectResult');
         $payment->unsAdditionalInformation('paymentData');
         $payment->unsAdditionalInformation('paRequest');
         $payment->unsAdditionalInformation('md');
 
+        $details = [];
+        if (!empty($md) && !empty($paResponse)) {
+            $details["MD"] = $md;
+            $details["PaRes"] = $paResponse;
+        }
+
+        if (!empty($redirectResult)) {
+            $details["redirectResult"] = $redirectResult;
+        }
+
         $request = [
             "paymentData" => $paymentData,
-            "details" => [
-                "MD" => $md,
-                "PaRes" => $paResponse
-            ]
+            "details" => $details
         ];
 
         try {
