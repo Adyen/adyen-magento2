@@ -37,7 +37,7 @@ use Magento\Sales\Model\Order;
 class Quote
 {
     /**
-     * @var CartRepositoryInterface
+     * @var QuoteRepository
      */
     private $quoteRepository;
     /**
