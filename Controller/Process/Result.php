@@ -63,12 +63,7 @@ class Result extends \Magento\Framework\App\Action\Action
     protected $storeManager;
 
     /**
-     * @var \Magento\Quote\Model\QuoteFactory
-     */
-    protected $quoteFactory;
-
-    /**
-     * @var Quote
+     * @var \Adyen\Payment\Helper\Quote
      */
     private $quoteHelper;
 
