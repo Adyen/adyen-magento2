@@ -94,6 +94,11 @@ class Redirect extends \Magento\Framework\App\Action\Action
     private $serializer;
 
     /**
+     * @var \Adyen\Payment\Helper\Quote
+     */
+    private $quoteHelper;
+
+    /**
      * Redirect constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -105,6 +110,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
      * @param OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory
      * @param OrderPaymentResource $orderPaymentResource
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     * @param \Adyen\Payment\Helper\Quote $quoteHelper
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -115,7 +121,8 @@ class Redirect extends \Magento\Framework\App\Action\Action
         PaymentTokenFactoryInterface $paymentTokenFactory,
         OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
         OrderPaymentResource $orderPaymentResource,
-        \Magento\Framework\Serialize\SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
+        \Adyen\Payment\Helper\Quote $quoteHelper
     ) {
         parent::__construct($context);
         $this->_adyenLogger = $adyenLogger;
@@ -126,6 +133,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
         $this->paymentExtensionFactory = $paymentExtensionFactory;
         $this->orderPaymentResource = $orderPaymentResource;
         $this->serializer = $serializer;
+        $this->quoteHelper = $quoteHelper;
         if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
             $request = $this->getRequest();
             if ($request instanceof Http && $request->isPost()) {
@@ -237,11 +245,27 @@ class Redirect extends \Magento\Framework\App\Action\Action
 
                     $this->messageManager->addErrorMessage("3D-secure validation was unsuccessful");
 
-                    // reactivate the quote
+                    // Clone or restore the quote
                     $session = $this->_getCheckout();
-
-                    // restore the quote
-                    $session->restoreQuote();
+                    if ($this->_adyenHelper->getConfigData(
+                        "clone_quote",
+                        "adyen_abstract",
+                        $order->getStoreId(),
+                        true
+                    )) {
+                        try {
+                            $newQuote = $this->quoteHelper->cloneQuote($session->getQuote(), $order);
+                            $session->replaceQuote($newQuote);
+                        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+                            $session->restoreQuote();
+                            $this->_adyenLogger->addAdyenResult(
+                                'Error when trying to create a new quote, ' .
+                                'the previous quote has been restored instead: ' . $e->getMessage()
+                            );
+                        }
+                    } else {
+                        $session->restoreQuote();
+                    }
 
                     $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
                 }
