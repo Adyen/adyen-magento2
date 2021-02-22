@@ -379,21 +379,13 @@ class Requests extends AbstractHelper
         //shopperInteraction is sent in any case as ecommerce
         $request['shopperInteraction'] = 'Ecommerce';
 
-        //Setting storePaymentMethod flag if PM is SEPA and store PM config is enabled
-      /*  if (!empty($additionalData['brand_code']) &&
-            $additionalData['brand_code'] == 'sepadirectdebit' &&
-            $this->adyenConfig->isStoreAlternativePaymentMethodEnabled($storeId)) {
-            $request['storePaymentMethod'] = true;
-            return $request;
-        }*/
         $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
         $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
 
         // TODO Remove it in version 7
         if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::STORE_CC)) {
-            $requestBody['storePaymentMethod'] = true;
+            $request['storePaymentMethod'] = true;
         }
-        $requestBody['storePaymentMethod'] = true;
         //recurring
         if ($enableVault ) {
 
