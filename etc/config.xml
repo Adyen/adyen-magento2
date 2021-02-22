@@ -39,6 +39,7 @@
                 <enable_recurring>0</enable_recurring>
                 <group>adyen</group>
                 <notifications_can_cancel>1</notifications_can_cancel>
+                <clone_quote>0</clone_quote>
             </adyen_abstract>
             <adyen_cc>
                 <active>1</active>
