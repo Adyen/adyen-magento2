@@ -374,39 +374,41 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringData($areaCode, int $storeId, $additionalData, $customerId, $request = [])
+    public function buildRecurringData( int $storeId, $payment, $request = [])
     {
-        $isGuestUser = true;
-        if ($customerId > 0) {
-            $isGuestUser = false;
-        }
         //shopperInteraction is sent in any case as ecommerce
         $request['shopperInteraction'] = 'Ecommerce';
 
         //Setting storePaymentMethod flag if PM is SEPA and store PM config is enabled
-        if (!empty($additionalData['brand_code']) &&
+      /*  if (!empty($additionalData['brand_code']) &&
             $additionalData['brand_code'] == 'sepadirectdebit' &&
             $this->adyenConfig->isStoreAlternativePaymentMethodEnabled($storeId)) {
             $request['storePaymentMethod'] = true;
             return $request;
-        }
+        }*/
         $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
         $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
-        //recurring
-        if ($enableVault && !$enableOneclick &&!$isGuestUser) {
-            if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
-                $storeId = null;
-            }
-            $request['storePaymentMethod'] = true;
-            $request['recurringProcessingModel'] = 'Subscription';
+
+        // TODO Remove it in version 7
+        if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::STORE_CC)) {
+            $requestBody['storePaymentMethod'] = true;
         }
-        //oneclick
-        elseif($enableVault && $enableOneclick) {
-            $request['recurringProcessingModel'] = 'CardOnFile';
-            $request['enableOneClick'] = true;
+        $requestBody['storePaymentMethod'] = true;
+        //recurring
+        if ($enableVault ) {
+
+            $request['recurringProcessingModel'] = 'Subscription';
+        }else {
+            if($enableOneclick){
+                $request['recurringProcessingModel'] = 'CardOnFile';
+            }else{
+                $request['recurringProcessingModel'] = 'Subscription';
+            }
         }
         return $request;
     }
+
+
 
     /**
      * @param $request
