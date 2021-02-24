@@ -119,7 +119,7 @@ define(
              * @returns {*|boolean}
              */
             getEnableStoreDetails: function () {
-                return this.canCreateBillingAgreement() && !this.isVaultEnabled();
+                return this.isOneClickEnabled();
             },
             /**
              * Renders the secure fields,
@@ -482,9 +482,9 @@ define(
             getPlaceOrderUrl: function () {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
             },
-            canCreateBillingAgreement: function () {
+            isOneClickEnabled: function () {
                 if (customer.isLoggedIn()) {
-                    return window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
+                    return window.checkoutConfig.payment.adyenCc.isOneClickEnabled;
                 }
 
                 return false;

@@ -69,13 +69,9 @@ class OneclickAuthorizationDataBuilder implements BuilderInterface
 
         $payment->unsAdditionalInformation(AdyenOneclickDataAssignObserver::ENCRYPTED_SECURITY_CODE);
 
-        if ($payment->getAdditionalInformation('customer_interaction')) {
-            $shopperInteraction = "Ecommerce";
-        } else {
-            $shopperInteraction = "ContAuth";
-        }
-
-        $requestBody['shopperInteraction'] = $shopperInteraction;
+        // We override the previously set shopperInteraction in the buildRecurringData() to ContAuth here because if
+        // it's a later payment we should always send ContAuth
+        $requestBody['shopperInteraction'] = 'ContAuth';
         $requestBody['paymentMethod']['recurringDetailReference'] = $payment->getAdditionalInformation(
             AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE
         );

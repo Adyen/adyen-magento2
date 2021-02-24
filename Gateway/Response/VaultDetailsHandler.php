@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Vault;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -36,12 +37,20 @@ class VaultDetailsHandler implements HandlerInterface
     private $vaultHelper;
 
     /**
-     * VaultDetailsHandler constructor.
-     * @param Vault $vaultHelper
+     * @var Data
      */
-    public function __construct(Vault $vaultHelper)
+    private $adyenHelper;
+
+    /**
+     * VaultDetailsHandler constructor.
+     *
+     * @param Vault $vaultHelper
+     * @param Data $adyenHelper
+     */
+    public function __construct(Vault $vaultHelper, Data $adyenHelper)
     {
         $this->vaultHelper = $vaultHelper;
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -55,9 +64,16 @@ class VaultDetailsHandler implements HandlerInterface
         /** @var PaymentDataObject $orderPayment */
         $orderPayment = SubjectReader::readPayment($handlingSubject);
         $additionalData = $orderPayment->getPayment()->getAdditionalInformation();
+
+        if ($this->adyenHelper->isCreditCardVaultEnabled()) {
+            $this->vaultHelper->saveRecurringDetails($orderPayment->getPayment(), $response['additionalData']);
+        }
+
+        /*
+         * Token enabler is only sent from the admin payment while we should not rely on such a checkbox
         $tokenEnabler = array_key_exists("is_active_payment_token_enabler", $additionalData) ? $additionalData['is_active_payment_token_enabler']:false;
         if ($tokenEnabler) {
             $this->vaultHelper->saveRecurringDetails($orderPayment->getPayment(), $response['additionalData']);
-        }
+        }*/
     }
 }

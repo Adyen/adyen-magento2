@@ -376,8 +376,19 @@ class Requests extends AbstractHelper
      */
     public function buildRecurringData( int $storeId, $payment, $request = [])
     {
-        //shopperInteraction is sent in any case as ecommerce
+
         $request['shopperInteraction'] = 'Ecommerce';
+        /*
+        // TODO refactor to set the shopperInteraction only this place (only one place) because now it's going to be
+        // overriden in the OneclickAuthorizationDataBuilder
+        $initalPayment = false;
+        //shopperInteraction is sent as ecommerce if initial payment
+        // and sent as ContAuth if later payment with the token
+        if (!$initalPayment) {
+            $request['shopperInteraction'] = 'Ecommerce';
+        } else {
+            $request['shopperInteraction'] = 'ContAuth';
+        }*/
 
         $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
         $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
