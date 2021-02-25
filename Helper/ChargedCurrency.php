@@ -104,14 +104,14 @@ class ChargedCurrency
                 $item->getBasePrice(),
                 $item->getQuote()->getBaseCurrencyCode(),
                 $item->getBaseDiscountAmount(),
-                ($item->getTaxPercent() / 100) * $item->getBasePrice()
+                $item->getBaseTaxAmount()
             );
         }
         return new AdyenAmountCurrency(
             $item->getRowTotal() / $item->getQty(),
             $item->getQuote()->getQuoteCurrencyCode(),
             $item->getDiscountAmount(),
-            ($item->getTaxPercent() / 100) * ($item->getRowTotal() / $item->getQty())
+            $item->getTaxAmount()
         );
     }
 
