@@ -245,7 +245,7 @@ class CheckoutDataBuilder implements BuilderInterface
 
             $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($item->getPrice(), $currency);
 
-            $taxAmount = $item->getPrice() * ($item->getTaxPercent() / 100);
+            $taxAmount = $item->getTaxAmount();
             $formattedTaxAmount = $this->adyenHelper->formatAmount($taxAmount, $currency);
             $formattedTaxPercentage = $item->getTaxPercent() * 100;
 
