@@ -313,6 +313,7 @@ define(
                         'expiryYear': this.expiryYear(),
                         'holderName': this.creditCardOwner(),
                         'store_cc': this.storeCc,
+                        'is_active_payment_token_enabler' : this.storeCc,
                         'number_of_installments': this.installment(),
                         'java_enabled': browserInfo.javaEnabled,
                         'screen_color_depth': browserInfo.colorDepth,
@@ -323,7 +324,6 @@ define(
                         'combo_card_type': this.comboCardOption()
                     }
                 };
-                this.vaultEnabler.visitAdditionalData(data);
                 return data;
             },
             /**
