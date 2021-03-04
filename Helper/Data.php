@@ -401,6 +401,7 @@ class Data extends AbstractHelper
      *
      * @param type $address
      * @return array
+     * @deprecated Will be removed in 7.0.0
      */
     public function getStreet($address)
     {
@@ -420,6 +421,8 @@ class Data extends AbstractHelper
      *
      * @param string $streetLine
      * @return array
+     * @deprecated Will be removed in 7.0.0
+     * @see Address::getStreetFromString()
      */
     public function getStreetFromString($streetLine)
     {
@@ -436,6 +439,8 @@ class Data extends AbstractHelper
      * @param array $street
      * @return array $street
      * @example street + number
+     * @deprecated Will be removed in 7.0.0
+     * @see Address::formatStreet()
      */
     public function formatStreet($street)
     {
@@ -1832,6 +1837,7 @@ class Data extends AbstractHelper
      *
      * @param $country
      * @return bool
+     * @deprecated Will be removed in 7.0.0
      */
     public function isSeparateHouseNumberRequired($country)
     {

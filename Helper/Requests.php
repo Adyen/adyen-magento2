@@ -523,34 +523,4 @@ class Requests extends AbstractHelper
 
         return $request;
     }
-
-    /**
-     * The billing address retrieved from the Quote and the one retrieved from the Order has some differences
-     * Therefore we need to check if the getStreetFull function exists and use that if yes, otherwise use the more
-     * commont getStreetLine1
-     *
-     * @param $billingAddress
-     * @return array
-     */
-    private function getStreetStringFromAddress($address)
-    {
-        if (method_exists($address, 'getStreetFull')) {
-            // Parse address into street and house number where possible
-            $address = $this->adyenHelper->getStreetFromString($address->getStreetFull());
-        } else {
-            $address = $this->adyenHelper->getStreetFromString(
-                implode(
-                    ' ',
-                    [
-                        $address->getStreetLine1(),
-                        $address->getStreetLine2(),
-                        $address->getStreetLine3(),
-                        $address->getStreetLine4()
-                    ]
-                )
-            );
-        }
-
-        return $address;
-    }
 }
