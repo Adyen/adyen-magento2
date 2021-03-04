@@ -50,20 +50,28 @@ class Requests extends AbstractHelper
     private $urlBuilder;
 
     /**
+     * @var Address
+     */
+    private $addressHelper;
+
+    /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
      * @param Config $adyenConfig
      * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param Address $addressHelper
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Helper\Config $adyenConfig,
-        \Magento\Framework\UrlInterface $urlBuilder
+        \Magento\Framework\UrlInterface $urlBuilder,
+        Address $addressHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->urlBuilder = $urlBuilder;
+        $this->addressHelper = $addressHelper;
     }
 
     /**
@@ -206,7 +214,7 @@ class Requests extends AbstractHelper
             // Save the defaults for later to compare if anything has changed
             $requestBilling = $requestBillingDefaults;
 
-            $address = $this->getStreetStringFromAddress($billingAddress);
+            $address = $this->addressHelper->getStreetStringFromAddress($billingAddress);
 
             if (!empty($address["name"])) {
                 $requestBilling["street"] = $address["name"];
@@ -252,7 +260,7 @@ class Requests extends AbstractHelper
             $requestDelivery = $requestDeliveryDefaults;
 
             // Parse address into street and house number where possible
-            $address = $this->getStreetStringFromAddress($shippingAddress);
+            $address = $this->addressHelper->getStreetStringFromAddress($shippingAddress);
 
             if (!empty($address['name'])) {
                 $requestDelivery["street"] = $address["name"];
