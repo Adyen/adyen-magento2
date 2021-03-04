@@ -445,7 +445,7 @@ class Data extends AbstractHelper
 
         $street['0'] = trim($street['0']);
 
-        preg_match('/((\s\d{0,10})|(\s\d{0,10}\w{1,3}))$/i', $street['0'], $houseNumber, PREG_OFFSET_CAPTURE);
+        preg_match('/((\s\d{0,10})|(\s\d{0,10}\s?\w{1,3}))$/i', $street['0'], $houseNumber, PREG_OFFSET_CAPTURE);
         if (!empty($houseNumber['0'])) {
             $_houseNumber = trim($houseNumber['0']['0']);
             $position = $houseNumber['0']['1'];
