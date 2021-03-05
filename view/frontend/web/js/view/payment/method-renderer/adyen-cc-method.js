@@ -119,7 +119,7 @@ define(
              * @returns {*|boolean}
              */
             getEnableStoreDetails: function () {
-                return this.isOneClickEnabled();
+                return this.isOneClickEnabled() || this.isVaultEnabled();
             },
             /**
              * Renders the secure fields,
@@ -140,14 +140,13 @@ define(
                 var allInstallments = self.getAllInstallments();
                 var cardNode = document.getElementById('cardContainer');
 
-
                 self.cardComponent = self.checkout.create('card', {
                     originKey: self.getOriginKey(),
                     environment: self.getCheckoutEnvironment(),
                     type: 'card',
                     hasHolderName: true,
                     holderNameRequired: true,
-                    enableStoreDetails: self.getEnableStoreDetails(),
+                    enableStoreDetails: Boolean(Number(self.getEnableStoreDetails())),
                     groupTypes: self.getAvailableCardTypeAltCodes(),
 
                     onChange: function (state, component) {
@@ -313,6 +312,7 @@ define(
                         'expiryYear': this.expiryYear(),
                         'holderName': this.creditCardOwner(),
                         'store_cc': this.storeCc,
+                        //This is required by magento to store the token
                         'is_active_payment_token_enabler' : this.storeCc,
                         'number_of_installments': this.installment(),
                         'java_enabled': browserInfo.javaEnabled,
