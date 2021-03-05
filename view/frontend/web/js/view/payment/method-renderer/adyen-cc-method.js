@@ -146,7 +146,7 @@ define(
                     type: 'card',
                     hasHolderName: true,
                     holderNameRequired: true,
-                    enableStoreDetails: Boolean(Number(self.getEnableStoreDetails())),
+                    enableStoreDetails: (self.getEnableStoreDetails()==="1"),
                     groupTypes: self.getAvailableCardTypeAltCodes(),
 
                     onChange: function (state, component) {
