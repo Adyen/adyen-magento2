@@ -119,7 +119,7 @@ define(
              * @returns {*|boolean}
              */
             getEnableStoreDetails: function () {
-                return this.isOneClickEnabled() || this.isVaultEnabled();
+                return this.isOneClickEnabled() === "1" || this.isVaultEnabled();
             },
             /**
              * Renders the secure fields,
@@ -146,7 +146,7 @@ define(
                     type: 'card',
                     hasHolderName: true,
                     holderNameRequired: true,
-                    enableStoreDetails: (self.getEnableStoreDetails()==="1"),
+                    enableStoreDetails: self.getEnableStoreDetails(),
                     groupTypes: self.getAvailableCardTypeAltCodes(),
 
                     onChange: function (state, component) {
