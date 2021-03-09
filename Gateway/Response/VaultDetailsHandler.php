@@ -63,7 +63,6 @@ class VaultDetailsHandler implements HandlerInterface
         }
         /** @var PaymentDataObject $orderPayment */
         $orderPayment = SubjectReader::readPayment($handlingSubject);
-        $additionalData = $orderPayment->getPayment()->getAdditionalInformation();
 
         if ($this->adyenHelper->isCreditCardVaultEnabled()) {
             $this->vaultHelper->saveRecurringDetails($orderPayment->getPayment(), $response['additionalData']);
