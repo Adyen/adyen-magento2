@@ -67,12 +67,5 @@ class VaultDetailsHandler implements HandlerInterface
         if ($this->adyenHelper->isCreditCardVaultEnabled()) {
             $this->vaultHelper->saveRecurringDetails($orderPayment->getPayment(), $response['additionalData']);
         }
-
-        /*
-         * Token enabler is only sent from the admin payment while we should not rely on such a checkbox
-        $tokenEnabler = array_key_exists("is_active_payment_token_enabler", $additionalData) ? $additionalData['is_active_payment_token_enabler']:false;
-        if ($tokenEnabler) {
-            $this->vaultHelper->saveRecurringDetails($orderPayment->getPayment(), $response['additionalData']);
-        }*/
     }
 }
