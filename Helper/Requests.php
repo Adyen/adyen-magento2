@@ -390,8 +390,7 @@ class Requests extends AbstractHelper
             $request['storePaymentMethod'] = true;
         }
         //recurring
-        if ($enableVault ) {
-
+        if ($enableVault) {
             $request['recurringProcessingModel'] = 'Subscription';
         }else {
             if($enableOneclick){
@@ -402,8 +401,6 @@ class Requests extends AbstractHelper
         }
         return $request;
     }
-
-
 
     /**
      * @param $request
