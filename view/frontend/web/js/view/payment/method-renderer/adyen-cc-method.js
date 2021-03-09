@@ -301,7 +301,7 @@ define(
             getData: function () {
                 var browserInfo = threeDS2Utils.getBrowserInfo();
 
-                var data = {
+                return  {
                     'method': this.item.method,
                     additional_data: {
                         'guestEmail': quote.guestEmail,
@@ -324,7 +324,6 @@ define(
                         'combo_card_type': this.comboCardOption()
                     }
                 };
-                return data;
             },
             /**
              * Returns state of place order button
