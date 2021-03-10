@@ -422,7 +422,7 @@ class Data extends AbstractHelper
      * @param string $streetLine
      * @return array
      * @deprecated Will be removed in 7.0.0
-     * @see Address::getStreetFromString()
+     * @see Address::getStreetAndHouseNumberFromAddress()
      */
     public function getStreetFromString($streetLine)
     {
