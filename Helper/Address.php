@@ -24,71 +24,60 @@
 
 namespace Adyen\Payment\Helper;
 
+use Magento\Payment\Gateway\Data\AddressAdapterInterface;
+
 class Address
 {
+
+    //Regex to extract the house number from the street line if needed (e.g. 'Street address 1 A' => '1 A')
+    const HOUSE_NUMBER_REGEX = '/((\s\d{0,10})|(\s\d{0,10}\s?\w{1,3}))$/i';
+
     /**
-     * The billing address retrieved from the Quote and the one retrieved from the Order has some differences
-     * Therefore we need to check if the getStreetFull function exists and use that if yes, otherwise use the more
-     * commont getStreetLine1
-     *
-     * @param $address
+     * @param AddressAdapterInterface $address
+     * @param $houseNumberStreetLine
+     * @param $customerStreetLinesEnabled
      * @return array
      */
-    public function getStreetStringFromAddress($address): array
-    {
-        if (method_exists($address, 'getStreetFull')) {
-            // Parse address into street and house number where possible
-            $address = $this->getStreetFromString($address->getStreetFull());
+    public function getStreetAndHouseNumberFromAddress(
+        AddressAdapterInterface $address,
+        $houseNumberStreetLine,
+        $customerStreetLinesEnabled
+    ): array {
+        $address = [
+            $address->getStreetLine1(),
+            $address->getStreetLine2(),
+            $address->getStreetLine3(),
+            $address->getStreetLine4()
+        ];
+
+        $drawHouseNumberWithRegex = $houseNumberStreetLine == 0 || $houseNumberStreetLine >= $customerStreetLinesEnabled;
+
+        if ($drawHouseNumberWithRegex) {
+            //House number street line is disabled or there aren't enough street lines, use the regex
+            return $this->getStreetAndHouseNumberFromArray(array_slice($address, 0, $customerStreetLinesEnabled));
         } else {
-            $address = $this->getStreetFromString(
-                implode(
-                    ' ',
-                    [
-                        $address->getStreetLine1(),
-                        $address->getStreetLine2(),
-                        $address->getStreetLine3(),
-                        $address->getStreetLine4()
-                    ]
-                )
-            );
-        }
+            //Cap the full street to the enabled street lines
+            $street = array_slice($address, 0, $customerStreetLinesEnabled);
 
-        return $address;
+            //Extract and remove the house number from the street name array
+            $houseNumber = $street[$houseNumberStreetLine - 1];
+            unset($street[$houseNumberStreetLine - 1]);
+
+            return $this->formatAddressArray(implode($street, ' '), $houseNumber);
+        }
     }
 
     /**
-     * Street format
-     *
-     * @param string $streetLine
+     * @param string[] $addressArray
      * @return array
      */
-    private function getStreetFromString($streetLine): array
+    private function getStreetAndHouseNumberFromArray(array $addressArray): array
     {
-        $street = $this->formatStreet([$streetLine]);
-        $streetName = $street['0'];
-        unset($street['0']);
-        $streetNr = implode(' ', $street);
-        return (['name' => trim($streetName), 'house_number' => $streetNr]);
-    }
-
-    /**
-     * Fix this one string street + number
-     *
-     * @param array $street
-     * @return array $street
-     * @example street + number
-     */
-    private function formatStreet($street): array
-    {
-        if (count($street) != 1) {
-            return $street;
-        }
-
-        $street['0'] = trim($street['0']);
+        $addressString = implode(' ', $addressArray);
 
         preg_match(
-            '/((\s\d{0,10})|(\s\d{0,10}\s?\w{1,3}))$/i',
-            $street['0'],
+            self::HOUSE_NUMBER_REGEX,
+            trim($addressString),
             $houseNumber,
             PREG_OFFSET_CAPTURE
         );
@@ -96,10 +85,19 @@ class Address
         if (!empty($houseNumber['0'])) {
             $_houseNumber = trim($houseNumber['0']['0']);
             $position = $houseNumber['0']['1'];
-            $streetName = trim(substr($street['0'], 0, $position));
-            $street = [$streetName, $_houseNumber];
+            $streetName = trim(substr($addressString, 0, $position));
+            return $this->formatAddressArray($streetName, $_houseNumber);
         }
+        return $this->formatAddressArray($addressString, 'N/A');
+    }
 
-        return $street;
+    /**
+     * @param $street
+     * @param $houseNumber
+     * @return array
+     */
+    private function formatAddressArray($street, $houseNumber): array
+    {
+        return (['name' => $street, 'house_number' => $houseNumber]);
     }
 }
