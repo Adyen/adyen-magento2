@@ -86,12 +86,17 @@ class AddressTest extends TestCase
                     // If the house number street line is disabled or
                     // if there aren't enough street lines then default to the preg_match method
                     case [0, 1]:
-                    case [1, 1]:
                     case [2, 1]:
                     case [3, 1]:
                     case [4, 1]:
                         $expectedStreetName = '123';
                         $expectedHouseNumber = 'A';
+                        break;
+
+                    // If 1 street line is enabled and house number street line is set then only return the house number
+                    case [1, 1]:
+                        $expectedStreetName = '';
+                        $expectedHouseNumber = '123 A';
                         break;
 
                     // With 2 street lines use the second line as house number (preg_match = last line)

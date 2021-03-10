@@ -50,7 +50,7 @@ class Address
             $address->getStreetLine4()
         ];
 
-        $drawHouseNumberWithRegex = $houseNumberStreetLine == 0 || $houseNumberStreetLine >= $customerStreetLinesEnabled;
+        $drawHouseNumberWithRegex = $houseNumberStreetLine == 0 || $houseNumberStreetLine > $customerStreetLinesEnabled;
 
         if ($drawHouseNumberWithRegex) {
             //House number street line is disabled or there aren't enough street lines, use the regex
@@ -63,7 +63,7 @@ class Address
             $houseNumber = $street[$houseNumberStreetLine - 1];
             unset($street[$houseNumberStreetLine - 1]);
 
-            return $this->formatAddressArray(implode($street, ' '), $houseNumber);
+            return $this->formatAddressArray(implode(' ', $street), $houseNumber);
         }
     }
 
