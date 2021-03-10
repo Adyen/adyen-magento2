@@ -272,7 +272,11 @@ class Requests extends AbstractHelper
             $requestDelivery = $requestDeliveryDefaults;
 
             // Parse address into street and house number where possible
-            $address = $this->addressHelper->getStreetStringFromAddress($shippingAddress);
+            $address = $this->addressHelper->getStreetAndHouseNumberFromAddress(
+                $shippingAddress,
+                $houseNumberStreetLine,
+                $customerStreetLinesEnabled
+            );
 
             if (!empty($address['name'])) {
                 $requestDelivery["street"] = $address["name"];
