@@ -1362,7 +1362,8 @@ class Cron
                                 $paymentTokenAlternativePaymentMethod->setCustomerId($customerId)
                                     ->setGatewayToken($this->_pspReference)
                                     ->setPaymentMethodCode(AdyenCcConfigProvider::CODE)
-                                    ->setPublicHash($this->encryptor->getHash($customerId . $this->_pspReference));
+                                    ->setPublicHash($this->encryptor->getHash($customerId . $this->_pspReference))
+                                    ->setTokenDetails(json_encode($details));
                             } else {
                                 $this->_adyenLogger->addAdyenNotificationCronjob('Gateway token already exists');
                             }
@@ -1372,7 +1373,6 @@ class Cron
                             $expDate->add(new DateInterval('P10Y'));
                             $paymentTokenAlternativePaymentMethod->setExpiresAt($expDate->format('Y-m-d H:i:s'));
 
-                            $paymentTokenAlternativePaymentMethod->setTokenDetails(json_encode($details));
                             $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
                             $this->_adyenLogger->addAdyenNotificationCronjob('New gateway token saved');
                         }
