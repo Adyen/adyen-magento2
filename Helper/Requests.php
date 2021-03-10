@@ -199,7 +199,7 @@ class Requests extends AbstractHelper
      * @param $shippingAddress
      * @return mixed
      */
-    public function buildAddressData($billingAddress, $shippingAddress, $request = [])
+    public function buildAddressData($billingAddress, $shippingAddress, $storeId, $request = [])
     {
         if ($billingAddress) {
             // Billing address defaults
@@ -214,7 +214,19 @@ class Requests extends AbstractHelper
             // Save the defaults for later to compare if anything has changed
             $requestBilling = $requestBillingDefaults;
 
-            $address = $this->addressHelper->getStreetStringFromAddress($billingAddress);
+            $houseNumberStreetLine = $this->adyenHelper->getConfigData(
+                'house_number_street_line',
+                'adyen_abstract',
+                $storeId
+            );
+
+            $customerStreetLinesEnabled = $this->adyenHelper->getCustomerStreetLinesEnabled($storeId);
+
+            $address = $this->addressHelper->getStreetAndHouseNumberFromAddress(
+                $billingAddress,
+                $houseNumberStreetLine,
+                $customerStreetLinesEnabled
+            );
 
             if (!empty($address["name"])) {
                 $requestBilling["street"] = $address["name"];

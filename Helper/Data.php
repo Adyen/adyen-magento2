@@ -1217,6 +1217,12 @@ class Data extends AbstractHelper
         return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
     }
 
+    public function getCustomerStreetLinesEnabled($storeId)
+    {
+        $path = 'customer/address/street_lines';
+        return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+    }
+
     /**
      * Format Magento locale codes with undersocre to ISO locale codes with dash
      *
