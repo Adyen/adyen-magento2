@@ -66,7 +66,7 @@ class AddressTest extends TestCase
      * @param $config
      * @param $expectedResult
      */
-    public function testWithHouseNumber($config, $expectedResult)
+    public function testGetStreetAndHouseNumberFromAddress($config, $expectedResult)
     {
 
         $this->addressAdapter->method('getCountryId')->willReturn("se");
