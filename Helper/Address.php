@@ -29,7 +29,7 @@ use Magento\Payment\Gateway\Data\AddressAdapterInterface;
 class Address
 {
 
-    //Regex to extract the house number from the street line if needed (e.g. 'Street address 1 A' => '1 A')
+    // Regex to extract the house number from the street line if needed (e.g. 'Street address 1 A' => '1 A')
     const HOUSE_NUMBER_REGEX = '/((\s\d{0,10})|(\s\d{0,10}\s?\w{1,3}))$/i';
 
     /**
@@ -43,28 +43,33 @@ class Address
         $houseNumberStreetLine,
         $customerStreetLinesEnabled
     ): array {
-        $address = [
+        $addressArray = [
             $address->getStreetLine1(),
             $address->getStreetLine2(),
             $address->getStreetLine3(),
             $address->getStreetLine4()
         ];
 
-        $drawHouseNumberWithRegex = $houseNumberStreetLine == 0 || $houseNumberStreetLine > $customerStreetLinesEnabled;
+        // Cap the full street to the enabled street lines
+        $street = array_slice($addressArray, 0, $customerStreetLinesEnabled);
 
-        if ($drawHouseNumberWithRegex) {
-            //House number street line is disabled or there aren't enough street lines, use the regex
-            return $this->getStreetAndHouseNumberFromArray(array_slice($address, 0, $customerStreetLinesEnabled));
-        } else {
-            //Cap the full street to the enabled street lines
-            $street = array_slice($address, 0, $customerStreetLinesEnabled);
+        if ($this->isSeparateHouseNumberRequired($address->getCountryId())) {
 
-            //Extract and remove the house number from the street name array
-            $houseNumber = $street[$houseNumberStreetLine - 1];
-            unset($street[$houseNumberStreetLine - 1]);
+            $drawHouseNumberWithRegex = $houseNumberStreetLine == 0 ||
+                $houseNumberStreetLine > $customerStreetLinesEnabled;
 
-            return $this->formatAddressArray(implode(' ', $street), $houseNumber);
+            if ($drawHouseNumberWithRegex) {
+                // House number street line is disabled or there aren't enough street lines, use the regex
+                return $this->getStreetAndHouseNumberFromArray($street);
+            } else {
+                // Extract and remove the house number from the street name array
+                $houseNumber = $street[$houseNumberStreetLine - 1];
+                unset($street[$houseNumberStreetLine - 1]);
+                return $this->formatAddressArray(implode(' ', $street), $houseNumber);
+            }
         }
+        // Return the full street and house number = N/A
+        return $this->formatAddressArray(implode(' ', $street), 'N/A');
     }
 
     /**
@@ -98,6 +103,18 @@ class Address
      */
     private function formatAddressArray($street, $houseNumber): array
     {
-        return (['name' => $street, 'house_number' => $houseNumber]);
+        return (['name' => trim($street), 'house_number' => trim($houseNumber)]);
+    }
+
+    /**
+     * Checks if the house number needs to be sent to the Adyen API separately or as it is in the street field
+     *
+     * @param $country
+     * @return bool
+     */
+    private function isSeparateHouseNumberRequired($country)
+    {
+        $countryList = ["dk", "fi", "uk", "us", "se", "at", "no"];
+        return in_array(strtolower($country), $countryList);
     }
 }

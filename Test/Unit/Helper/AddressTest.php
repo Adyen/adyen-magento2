@@ -31,6 +31,13 @@ use PHPUnit\Framework\TestCase;
 class AddressTest extends TestCase
 {
 
+    const STREET_LINE_1 = '123 A';
+    const STREET_LINE_2 = '456 B';
+    const STREET_LINE_3 = '789 C';
+    const STREET_LINE_4 = '012 D';
+    const FULL_STREET_ARRAY = [self::STREET_LINE_1, self::STREET_LINE_2, self::STREET_LINE_3, self::STREET_LINE_4];
+
+
     /**
      * @var Address
      */
@@ -47,10 +54,11 @@ class AddressTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->addressAdapter->method('getStreetLine1')->willReturn('123 A');
-        $this->addressAdapter->method('getStreetLine2')->willReturn('456 B');
-        $this->addressAdapter->method('getStreetLine3')->willReturn('789 C');
-        $this->addressAdapter->method('getStreetLine4')->willReturn('012 D');
+        $this->addressAdapter->method('getStreetLine1')->willReturn(self::STREET_LINE_1);
+        $this->addressAdapter->method('getStreetLine2')->willReturn(self::STREET_LINE_2);
+        $this->addressAdapter->method('getStreetLine3')->willReturn(self::STREET_LINE_3);
+        $this->addressAdapter->method('getStreetLine4')->willReturn(self::STREET_LINE_4);
+
     }
 
     /**
@@ -58,9 +66,30 @@ class AddressTest extends TestCase
      * @param $config
      * @param $expectedResult
      */
-    public function testGetStreetAndHouseNumberFromAddress($config, $expectedResult)
+    public function testWithHouseNumber($config, $expectedResult)
     {
-        $this->assertEquals($expectedResult,
+
+        $this->addressAdapter->method('getCountryId')->willReturn("se");
+
+        $this->assertEquals($expectedResult['withHouseNumber'],
+            $this->addressHelper->getStreetAndHouseNumberFromAddress(
+                $this->addressAdapter,
+                $config['houseNumberStreetLine'],
+                $config['streetLinesEnabled']
+            )
+        );
+    }
+
+    /**
+     * @dataProvider configProvider
+     * @param $config
+     * @param $expectedResult
+     */
+    public function testWithoutHouseNumber($config, $expectedResult)
+    {
+        $this->addressAdapter->method('getCountryId')->willReturn("cn");
+
+        $this->assertEquals($expectedResult['withoutHouseNumber'],
             $this->addressHelper->getStreetAndHouseNumberFromAddress(
                 $this->addressAdapter,
                 $config['houseNumberStreetLine'],
@@ -96,7 +125,7 @@ class AddressTest extends TestCase
                     // If 1 street line is enabled and house number street line is set then only return the house number
                     case [1, 1]:
                         $expectedStreetName = '';
-                        $expectedHouseNumber = '123 A';
+                        $expectedHouseNumber = self::STREET_LINE_1;
                         break;
 
                     // With 2 street lines use the second line as house number (preg_match = last line)
@@ -104,8 +133,8 @@ class AddressTest extends TestCase
                     case [2, 2]:
                     case [3, 2]:
                     case [4, 2]:
-                        $expectedStreetName = '123 A';
-                        $expectedHouseNumber = '456 B';
+                        $expectedStreetName = self::STREET_LINE_1;
+                        $expectedHouseNumber = self::STREET_LINE_2;
                         break;
 
                     // With 3 street lines use the last line if house number street line is disabled or
@@ -113,52 +142,81 @@ class AddressTest extends TestCase
                     case [0, 3]:
                     case [3, 3]:
                     case [4, 3]:
-                        $expectedStreetName = '123 A 456 B';
-                        $expectedHouseNumber = '789 C';
+                        $expectedStreetName = implode(
+                            ' ',
+                            array_slice(self::FULL_STREET_ARRAY, 0, 2)
+                        );
+                        $expectedHouseNumber = self::STREET_LINE_3;
                         break;
 
                     // With 4 street lines enabled or
                     // if house number street line is disabled then use the last  (preg_match = last line)
                     case [0, 4]:
                     case [4, 4]:
-                        $expectedStreetName = '123 A 456 B 789 C';
-                        $expectedHouseNumber = '012 D';
+                        $expectedStreetName = implode(
+                            ' ',
+                            array_slice(self::FULL_STREET_ARRAY, 0, 3)
+                        );
+                        $expectedHouseNumber = self::STREET_LINE_4;
                         break;
 
                     //Match individual lines to house number if there are enough street lines enabled
                     case [1, 2]:
-                        $expectedStreetName = '456 B';
-                        $expectedHouseNumber = '123 A';
+                        $expectedStreetName = self::STREET_LINE_2;
+                        $expectedHouseNumber = self::STREET_LINE_1;
                         break;
                     case [1, 3]:
-                        $expectedStreetName = '456 B 789 C';
-                        $expectedHouseNumber = '123 A';
+                        $expectedStreetName = implode(
+                            ' ',
+                            array_slice(self::FULL_STREET_ARRAY, 1, 2)
+                        );
+                        $expectedHouseNumber = self::STREET_LINE_1;
                         break;
                     case [1, 4]:
-                        $expectedStreetName = '456 B 789 C 012 D';
-                        $expectedHouseNumber = '123 A';
+                        $expectedStreetName = self::STREET_LINE_2 . ' ' . implode(
+                                ' ',
+                                array_slice(self::FULL_STREET_ARRAY, 2, 2)
+                            );
+                        $expectedHouseNumber = self::STREET_LINE_1;
                         break;
                     case [2, 3]:
-                        $expectedStreetName = '123 A 789 C';
-                        $expectedHouseNumber = '456 B';
+                        $expectedStreetName = self::STREET_LINE_1 . ' ' . self::STREET_LINE_3;
+                        $expectedHouseNumber = self::STREET_LINE_2;
                         break;
                     case [2, 4]:
-                        $expectedStreetName = '123 A 789 C 012 D';
-                        $expectedHouseNumber = '456 B';
+                        $expectedStreetName = self::STREET_LINE_1 . ' ' . implode(
+                                ' ',
+                                array_slice(self::FULL_STREET_ARRAY, 2, 2)
+                            );
+                        $expectedHouseNumber = self::STREET_LINE_2;
                         break;
                     case [3, 4]:
-                        $expectedStreetName = '123 A 456 B 012 D';
-                        $expectedHouseNumber = '789 C';
+                        $expectedStreetName = implode(
+                                ' ',
+                                array_slice(self::FULL_STREET_ARRAY, 0, 2)
+                            ) . ' ' . self::STREET_LINE_4;
+                        $expectedHouseNumber = self::STREET_LINE_3;
                         break;
                     default:
-                        $expectedStreetName = '123 A 456 B 789 C 012 D';
+                        $expectedStreetName = implode(' ', self::FULL_STREET_ARRAY);
                         $expectedHouseNumber = 'NA';
                         break;
                 }
 
+                $expectedFullStreet = implode(
+                    ' ',
+                    array_slice(self::FULL_STREET_ARRAY, 0, $streetLinesEnabled)
+                );
+
                 $config[$i]['$expectedResult'] = [
-                    'name' => $expectedStreetName,
-                    'house_number' => $expectedHouseNumber
+                    'withHouseNumber' => [
+                        'name' => $expectedStreetName,
+                        'house_number' => $expectedHouseNumber
+                    ],
+                    'withoutHouseNumber' => [
+                        'name' => $expectedFullStreet,
+                        'house_number' => 'N/A'
+                    ]
                 ];
 
                 $i++;
