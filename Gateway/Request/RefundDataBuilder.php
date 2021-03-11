@@ -84,7 +84,7 @@ class RefundDataBuilder implements BuilderInterface
         $pspReference = $payment->getCcTransId();
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder(), false);
         $currency = $orderAmountCurrency->getCurrencyCode();
-        $amount = $orderAmountCurrency->getAmount();
+        $amount = $buildSubjectAmount;
         $storeId = $order->getStoreId();
         $method = $payment->getMethod();
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
@@ -110,7 +110,7 @@ class RefundDataBuilder implements BuilderInterface
                 $orderPaymentCollection->addPaymentFilterDescending($payment->getId());
             } elseif ($refundStrategy == "3") {
                 // refund based on ratio
-                $ratio = $buildSubjectAmount / $amount;
+                $ratio = $buildSubjectAmount / $orderAmountCurrency->getAmount();
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
             }
 
