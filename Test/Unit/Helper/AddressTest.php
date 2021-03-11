@@ -71,25 +71,7 @@ class AddressTest extends TestCase
 
         $this->addressAdapter->method('getCountryId')->willReturn("se");
 
-        $this->assertEquals($expectedResult['withHouseNumber'],
-            $this->addressHelper->getStreetAndHouseNumberFromAddress(
-                $this->addressAdapter,
-                $config['houseNumberStreetLine'],
-                $config['streetLinesEnabled']
-            )
-        );
-    }
-
-    /**
-     * @dataProvider configProvider
-     * @param $config
-     * @param $expectedResult
-     */
-    public function testWithoutHouseNumber($config, $expectedResult)
-    {
-        $this->addressAdapter->method('getCountryId')->willReturn("cn");
-
-        $this->assertEquals($expectedResult['withoutHouseNumber'],
+        $this->assertEquals($expectedResult,
             $this->addressHelper->getStreetAndHouseNumberFromAddress(
                 $this->addressAdapter,
                 $config['houseNumberStreetLine'],
@@ -203,20 +185,9 @@ class AddressTest extends TestCase
                         break;
                 }
 
-                $expectedFullStreet = implode(
-                    ' ',
-                    array_slice(self::FULL_STREET_ARRAY, 0, $streetLinesEnabled)
-                );
-
                 $config[$i]['$expectedResult'] = [
-                    'withHouseNumber' => [
-                        'name' => $expectedStreetName,
-                        'house_number' => $expectedHouseNumber
-                    ],
-                    'withoutHouseNumber' => [
-                        'name' => $expectedFullStreet,
-                        'house_number' => 'N/A'
-                    ]
+                    'name' => $expectedStreetName,
+                    'house_number' => $expectedHouseNumber
                 ];
 
                 $i++;

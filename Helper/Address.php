@@ -53,23 +53,18 @@ class Address
         // Cap the full street to the enabled street lines
         $street = array_slice($addressArray, 0, $customerStreetLinesEnabled);
 
-        if ($this->isSeparateHouseNumberRequired($address->getCountryId())) {
+        $drawHouseNumberWithRegex = $houseNumberStreetLine == 0 ||
+            $houseNumberStreetLine > $customerStreetLinesEnabled;
 
-            $drawHouseNumberWithRegex = $houseNumberStreetLine == 0 ||
-                $houseNumberStreetLine > $customerStreetLinesEnabled;
-
-            if ($drawHouseNumberWithRegex) {
-                // House number street line is disabled or there aren't enough street lines, use the regex
-                return $this->getStreetAndHouseNumberFromArray($street);
-            } else {
-                // Extract and remove the house number from the street name array
-                $houseNumber = $street[$houseNumberStreetLine - 1];
-                unset($street[$houseNumberStreetLine - 1]);
-                return $this->formatAddressArray(implode(' ', $street), $houseNumber);
-            }
+        if ($drawHouseNumberWithRegex) {
+            // House number street line is disabled or there aren't enough street lines, use the regex
+            return $this->getStreetAndHouseNumberFromArray($street);
+        } else {
+            // Extract and remove the house number from the street name array
+            $houseNumber = $street[$houseNumberStreetLine - 1];
+            unset($street[$houseNumberStreetLine - 1]);
+            return $this->formatAddressArray(implode(' ', $street), $houseNumber);
         }
-        // Return the full street and house number = N/A
-        return $this->formatAddressArray(implode(' ', $street), 'N/A');
     }
 
     /**
@@ -104,17 +99,5 @@ class Address
     private function formatAddressArray($street, $houseNumber): array
     {
         return (['name' => trim($street), 'house_number' => trim($houseNumber)]);
-    }
-
-    /**
-     * Checks if the house number needs to be sent to the Adyen API separately or as it is in the street field
-     *
-     * @param $country
-     * @return bool
-     */
-    private function isSeparateHouseNumberRequired($country)
-    {
-        $countryList = ["dk", "fi", "uk", "us", "se", "at", "no"];
-        return in_array(strtolower($country), $countryList);
     }
 }
