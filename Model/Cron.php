@@ -1986,7 +1986,12 @@ class Cron
         } else {
             $this->_adyenLogger->addAdyenNotificationCronjob
             (
-                'It is not possible to create invoice for this order'
+                'It is not possible to create invoice for this order',
+                [
+                    'orderId' => $this->_order->getId(),
+                    'orderState' => $this->_order->getState(),
+                    'orderStatus' => $this->_order->getStatus()
+                ]
             );
         }
     }
