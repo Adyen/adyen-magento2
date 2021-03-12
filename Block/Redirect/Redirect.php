@@ -215,7 +215,7 @@ class Redirect extends \Magento\Payment\Block\Form
      * Set Billing Address data
      *
      * @param $formFields
-     * @deprecated Will be removed in 7.0.0
+     * @deprecated Unused method. Will be removed in 7.0.0
      */
     protected function setBillingAddressData($formFields)
     {
@@ -278,7 +278,7 @@ class Redirect extends \Magento\Payment\Block\Form
      * Set Shipping Address data
      *
      * @param $formFields
-     * @deprecated Will be removed in 7.0.0
+     * @deprecated Unused method. Will be removed in 7.0.0
      */
     protected function setShippingAddressData($formFields)
     {

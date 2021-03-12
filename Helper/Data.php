@@ -401,7 +401,8 @@ class Data extends AbstractHelper
      *
      * @param type $address
      * @return array
-     * @deprecated Will be removed in 7.0.0
+     * @deprecated Will be removed in 7.0.0. This formatter is being replaced by the Address helper class
+     * @see Address::getStreetAndHouseNumberFromAddress()
      */
     public function getStreet($address)
     {
@@ -421,7 +422,7 @@ class Data extends AbstractHelper
      *
      * @param string $streetLine
      * @return array
-     * @deprecated Will be removed in 7.0.0
+     * @deprecated Will be removed in 7.0.0. This formatter is being replaced by the Address helper class
      * @see Address::getStreetAndHouseNumberFromAddress()
      */
     public function getStreetFromString($streetLine)
@@ -439,8 +440,8 @@ class Data extends AbstractHelper
      * @param array $street
      * @return array $street
      * @example street + number
-     * @deprecated Will be removed in 7.0.0
-     * @see Address::formatStreet()
+     * @deprecated Will be removed in 7.0.0. This formatter is being replaced by the Address helper class
+     * @see Address::getStreetAndHouseNumberFromAddress()
      */
     public function formatStreet($street)
     {
@@ -1843,7 +1844,8 @@ class Data extends AbstractHelper
      *
      * @param $country
      * @return bool
-     * @deprecated Will be removed in 7.0.0
+     * @deprecated Will be removed in 7.0.0. The House Number Street Line config is replacing this check
+     * @see Address::getStreetAndHouseNumberFromAddress()
      */
     public function isSeparateHouseNumberRequired($country)
     {
