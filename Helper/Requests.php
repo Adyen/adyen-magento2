@@ -374,37 +374,31 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringData($areaCode, int $storeId, $additionalData, $customerId, $request = [])
+    public function buildRecurringData( int $storeId, $payment, $request = [])
     {
-        $isGuestUser = true;
-        if ($customerId > 0) {
-            $isGuestUser = false;
-        }
-        //Setting storePaymentMethod flag if PM is SEPA and store PM config is enabled
-        if (!empty($additionalData['brand_code']) &&
-            $additionalData['brand_code'] == 'sepadirectdebit' &&
-            $this->adyenConfig->isStoreAlternativePaymentMethodEnabled($storeId)) {
+
+        $request['shopperInteraction'] = 'Ecommerce';
+
+        // TODO refactor to set the shopperInteraction only this place (only one place) because now it's going to be
+        // overriden in the OneclickAuthorizationDataBuilder
+
+        $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
+        $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
+
+        // TODO Remove it in version 7
+        if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::STORE_CC)) {
             $request['storePaymentMethod'] = true;
         }
-        // If the vault feature is on this logic is handled in the VaultDataBuilder
-        if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
-            if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
-                $storeId = null;
-            }
-
-            $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
-            $enableRecurring = $this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', $storeId);
-
-            $shouldStoreCreditCardInfo = !empty($additionalData[AdyenCcDataAssignObserver::STORE_CC]);
-            $request['enableOneClick'] = $enableOneclick && !$isGuestUser && $shouldStoreCreditCardInfo;
-            $request['enableRecurring'] = (bool)$enableRecurring;
-
-            // value can be 0,1 or true
-            if ($shouldStoreCreditCardInfo || ($isGuestUser && $this->adyenHelper->isGuestTokenizationEnabled($storeId))) {
-                $request['paymentMethod']['storeDetails'] = true;
+        //recurring
+        if ($enableVault) {
+            $request['recurringProcessingModel'] = 'Subscription';
+        }else {
+            if($enableOneclick){
+                $request['recurringProcessingModel'] = 'CardOnFile';
+            }else{
+                $request['recurringProcessingModel'] = 'Subscription';
             }
         }
-
         return $request;
     }
 
@@ -468,15 +462,6 @@ class Requests extends AbstractHelper
             $request['paymentMethod']['recurringDetailReference'] = $recurringDetailReference;
         }
 
-        // set customerInteraction
-        $recurringContractType = $this->adyenHelper->getAdyenOneclickConfigData('recurring_payment_type');
-        if (!empty($payload['method']) && $payload['method'] == 'adyen_oneclick'
-            && $recurringContractType == \Adyen\Payment\Model\RecurringType::RECURRING) {
-            $request['shopperInteraction'] = "ContAuth";
-        } else {
-            $request['shopperInteraction'] = "Ecommerce";
-        }
-
         /**
          * if MOTO for backend is enabled use MOTO as shopper interaction type
          */
@@ -493,31 +478,6 @@ class Requests extends AbstractHelper
             if (($numberOfInstallment = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
                 [AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS]) > 0) {
                 $request['installments']['value'] = $numberOfInstallment;
-            }
-        }
-
-        return $request;
-    }
-
-
-    /**
-     * @param $request
-     * @param $additionalInformation
-     * @return mixed
-     */
-    public function buildVaultData($payload, $request = [])
-    {
-        if ($this->adyenHelper->isCreditCardVaultEnabled()) {
-            if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE]) &&
-                $payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE] === true ||
-                !empty($payload[VaultConfigProvider::IS_ACTIVE_CODE]) &&
-                $payload[VaultConfigProvider::IS_ACTIVE_CODE] === true
-            ) {
-                // store it only as oneclick otherwise we store oneclick tokens (maestro+bcmc) that will fail
-                $request['enableRecurring'] = true;
-            } else {
-                // explicity turn this off as merchants have recurring on by default
-                $request['enableRecurring'] = false;
             }
         }
 
