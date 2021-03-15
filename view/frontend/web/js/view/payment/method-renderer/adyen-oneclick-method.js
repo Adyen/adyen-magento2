@@ -395,6 +395,7 @@ define(
                             var self = this;
                             var browserInfo = threeDS2Utils.getBrowserInfo();
 
+                            // TODO store_cc should not even be populated since it's always true
                             return {
                                 "method": self.method,
                                 additional_data: {
