@@ -50,20 +50,28 @@ class Requests extends AbstractHelper
     private $urlBuilder;
 
     /**
+     * @var Address
+     */
+    private $addressHelper;
+
+    /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
      * @param Config $adyenConfig
      * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param Address $addressHelper
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Helper\Config $adyenConfig,
-        \Magento\Framework\UrlInterface $urlBuilder
+        \Magento\Framework\UrlInterface $urlBuilder,
+        Address $addressHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->urlBuilder = $urlBuilder;
+        $this->addressHelper = $addressHelper;
     }
 
     /**
@@ -191,7 +199,7 @@ class Requests extends AbstractHelper
      * @param $shippingAddress
      * @return mixed
      */
-    public function buildAddressData($billingAddress, $shippingAddress, $request = [])
+    public function buildAddressData($billingAddress, $shippingAddress, $storeId, $request = [])
     {
         if ($billingAddress) {
             // Billing address defaults
@@ -206,7 +214,19 @@ class Requests extends AbstractHelper
             // Save the defaults for later to compare if anything has changed
             $requestBilling = $requestBillingDefaults;
 
-            $address = $this->getStreetStringFromAddress($billingAddress);
+            $houseNumberStreetLine = $this->adyenHelper->getConfigData(
+                'house_number_street_line',
+                'adyen_abstract',
+                $storeId
+            );
+
+            $customerStreetLinesEnabled = $this->adyenHelper->getCustomerStreetLinesEnabled($storeId);
+
+            $address = $this->addressHelper->getStreetAndHouseNumberFromAddress(
+                $billingAddress,
+                $houseNumberStreetLine,
+                $customerStreetLinesEnabled
+            );
 
             if (!empty($address["name"])) {
                 $requestBilling["street"] = $address["name"];
@@ -252,7 +272,11 @@ class Requests extends AbstractHelper
             $requestDelivery = $requestDeliveryDefaults;
 
             // Parse address into street and house number where possible
-            $address = $this->getStreetStringFromAddress($shippingAddress);
+            $address = $this->addressHelper->getStreetAndHouseNumberFromAddress(
+                $shippingAddress,
+                $houseNumberStreetLine,
+                $customerStreetLinesEnabled
+            );
 
             if (!empty($address['name'])) {
                 $requestDelivery["street"] = $address["name"];
