@@ -1780,15 +1780,15 @@ class Data extends AbstractHelper
      */
     public function getRecurringTypeFromOneclickRecurringSetting($storeId = null)
     {
-        $enableOneclick = $this->getAdyenAbstractConfigData('enable_oneclick', $storeId);
-        $enableRecurring = $this->getAdyenAbstractConfigData('enable_recurring', $storeId);
+        $enableOneclick = $this->getAdyenAbstractConfigDataFlag('enable_oneclick', $storeId);
+        $adyenCCVaultActive = $this->getAdyenCcVaultConfigDataFlag('active', $storeId);
 
-        if ($enableOneclick && $enableRecurring) {
+        if ($enableOneclick && $adyenCCVaultActive) {
             return \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING;
-        } elseif ($enableOneclick && !$enableRecurring) {
+        } elseif ($enableOneclick && !$adyenCCVaultActive) {
             return \Adyen\Payment\Model\RecurringType::ONECLICK;
-        } elseif (!$enableOneclick && $enableRecurring) {
-            return \Adyen\Payment\Model\RecurringType::RECURRING;
+        } elseif (!$enableOneclick && $adyenCCVaultActive) {
+            return \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING;
         } else {
             return \Adyen\Payment\Model\RecurringType::NONE;
         }
