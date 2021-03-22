@@ -977,7 +977,7 @@ class Data extends AbstractHelper
      * @param $recurringType
      * @return array
      */
-    public function getOneClickPaymentMethods($customerId, $storeId, $grandTotal, $recurringType)
+    public function getOneClickPaymentMethods($customerId, $storeId, $grandTotal)
     {
         $billingAgreements = [];
 
@@ -999,7 +999,7 @@ class Data extends AbstractHelper
 
             // check if contractType is supporting the selected contractType for OneClick payments
             $allowedContractTypes = $agreementData['contractTypes'];
-            if (in_array($recurringType, $allowedContractTypes)) {
+            if (in_array(\Adyen\Payment\Model\RecurringType::ONECLICK , $allowedContractTypes)) {
                 // check if AgreementLabel is set and if contract has an recurringType
                 if ($billingAgreement->getAgreementLabel()) {
                     // for Ideal use sepadirectdebit because it is
