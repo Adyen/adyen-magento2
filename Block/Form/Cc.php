@@ -138,19 +138,6 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     }
 
     /**
-     * Allow checkbox for MOTO payments to be saved as RECURRING
-     *
-     * @return bool
-     */
-    public function allowRecurring()
-    {
-        if ($this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', null)) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * @return mixed
      */
     public function isVaultEnabled()

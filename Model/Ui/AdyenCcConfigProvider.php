@@ -143,18 +143,13 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
 
         $enableOneclick = $this->_adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
 
-        $canCreateBillingAgreement = false;
-        if ($enableOneclick) {
-            $canCreateBillingAgreement = true;
-        }
-
         $config['payment']['adyenCc']['methodCode'] = self::CODE;
 
         $config['payment']['adyenCc']['locale'] = $this->_adyenHelper->getStoreLocale(
             $this->storeManager->getStore()->getId()
         );
 
-        $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
+        $config['payment']['adyenCc']['isOneClickEnabled'] = $enableOneclick;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();
 
 

@@ -101,10 +101,9 @@ define(
              * Returns true if card details can be stored
              * @returns {*|boolean}
              */
-            getEnableStoreDetails: function() {
+            getEnableStoreDetails: function () {
                 // TODO refactor the configuration for this
-                return this.canCreateBillingAgreement() &&
-                    !this.isVaultEnabled();
+                return this.isOneClickEnabled() === "1" || this.isVaultEnabled();
             },
             /**
              * Renders the secure fields,
@@ -202,17 +201,19 @@ define(
              * @returns {{method: *}}
              */
             getData: function() {
-                var data = {
+                return {
                     'method': this.item.method,
                     additional_data: {
                         'stateData': JSON.stringify(this.cardComponent.data),
                         'guestEmail': quote.guestEmail,
                         'cc_type': this.creditCardType(),
                         'combo_card_type': this.comboCardOption(),
+                        //This is required by magento to store the token
+                        'is_active_payment_token_enabler' : this.storeCc,
+                        //TODO check installments
+                        'number_of_installments': this.installment(),
                     },
                 };
-                this.vaultEnabler.visitAdditionalData(data);
-                return data;
             },
             /**
              * Returns state of place order button
@@ -368,9 +369,9 @@ define(
             getCode: function() {
                 return window.checkoutConfig.payment.adyenCc.methodCode;
             },
-            canCreateBillingAgreement: function() {
+            isOneClickEnabled: function () {
                 if (customer.isLoggedIn()) {
-                    return window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
+                    return window.checkoutConfig.payment.adyenCc.isOneClickEnabled;
                 }
 
                 return false;

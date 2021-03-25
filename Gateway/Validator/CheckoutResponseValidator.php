@@ -115,7 +115,6 @@ class CheckoutResponseValidator extends AbstractValidator
                         }
                     }
 
-                    // TODO doudle check this
                 if (isset($response['additionalData']) && is_array($response['additionalData'])) {
                     $additionalData = $response['additionalData'];
                     if (isset($additionalData['boletobancario.dueDate'])) {

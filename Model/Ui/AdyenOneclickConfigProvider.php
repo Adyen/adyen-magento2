@@ -164,16 +164,8 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         }
 
         $config['payment']['adyenOneclick']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
-
-        $recurringContractType = $this->_getRecurringContractType();
-
-        $config['payment'] ['adyenOneclick']['billingAgreements'] = $this->getAdyenOneclickPaymentMethods();
-        if ($recurringContractType == \Adyen\Payment\Model\RecurringType::ONECLICK) {
-            $config['payment']['adyenOneclick']['hasCustomerInteraction'] = true;
-        } else {
-            $config['payment']['adyenOneclick']['hasCustomerInteraction'] = false;
-        }
-
+        $config['payment']['adyenOneclick']['billingAgreements'] = $this->getAdyenOneclickPaymentMethods();
+        $config['payment']['adyenOneclick']['hasCustomerInteraction'] = true;
         return $config;
     }
 
@@ -188,25 +180,14 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             $customerId = $this->_customerSession->getCustomerId();
             $storeId = $this->_storeManager->getStore()->getId();
             $grandTotal = $this->chargedCurrency->getQuoteAmountCurrency($this->_getQuote())->getAmount();
-            $recurringType = $this->_getRecurringContractType();
 
             $billingAgreements = $this->_adyenHelper->getOneClickPaymentMethods(
                 $customerId,
                 $storeId,
-                $grandTotal,
-                $recurringType
+                $grandTotal
             );
         }
-
         return $billingAgreements;
-    }
-
-    /**
-     * @return mixed
-     */
-    protected function _getRecurringContractType()
-    {
-        return $this->_adyenHelper->getAdyenOneclickConfigData('recurring_payment_type');
     }
 
     /**

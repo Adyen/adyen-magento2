@@ -334,7 +334,12 @@ class PaymentMethods extends AbstractHelper
         ];
 
         if (!empty($this->getCurrentShopperReference())) {
-            $paymentMethodRequest["shopperReference"] = $this->getCurrentShopperReference();
+            $paymentMethodRequest["shopperReference"] = str_pad(
+                $this->getCurrentShopperReference(),
+                3,
+                '0',
+                STR_PAD_LEFT
+            );
         }
 
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
