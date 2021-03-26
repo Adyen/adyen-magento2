@@ -442,6 +442,14 @@ class Result extends \Magento\Framework\App\Action\Action
             $details = DataArrayValidator::getArrayOnlyWithApprovedKeys($details, $allowedParamsArray);
         }
 
+        // Remove helper params in case left in the request
+        $helperParams = ['isAjax', 'merchantReference'];
+        foreach ($helperParams as $helperParam) {
+            if (array_key_exists($helperParam, $details)) {
+                unset($details[$helperParam]);
+            }
+        }
+
         $request["details"] = $details;
 
         if (!empty($payment)) {
