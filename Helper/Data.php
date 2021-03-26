@@ -23,10 +23,8 @@
 
 namespace Adyen\Payment\Helper;
 
-use Adyen\Payment\Model\Config\ThreeDsBehavior;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Cache\Type\Config as ConfigCache;
-use Adyen\Payment\Model\ApplicationInfo;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -255,19 +253,6 @@ class Data extends AbstractHelper
         return [
             'auto' => 'immediate',
             'manual' => 'manual'
-        ];
-    }
-
-    /**
-     * return recurring types for configuration setting
-     *
-     * @return array
-     */
-    public function getThreeDsBehaviors()
-    {
-        return [
-            ThreeDsBehavior::AUTO => ThreeDsBehavior::AUTO,
-            ThreeDsBehavior::MANUAL => ThreeDsBehavior::MANUAL
         ];
     }
 
