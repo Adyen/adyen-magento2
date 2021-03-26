@@ -471,16 +471,22 @@ class Result extends \Magento\Framework\App\Action\Action
 
         try {
             $response = $service->paymentsDetails($request);
-            if (!empty($response['merchantReference'])) {
-                if ($order->getIncrementId() === $response['merchantReference']) {
+            $responseMerchantReference = !empty($response['merchantReference']) ? $response['merchantReference'] : null;
+            $resultMerchantReference = !empty($result['merchantReference']) ? $result['merchantReference'] : null;
+            $merchantReference = $responseMerchantReference ?: $resultMerchantReference;
+            if ($merchantReference) {
+                if ($order->getIncrementId() === $merchantReference) {
                     $this->_order = $order;
+                } else {
+                    // TODO error handling
+                    $this->_adyenLogger->addError("Wrong merchantReference was set in the query or in the session");
+                    // TODO error page
                 }
             } else {
                 // TODO error handling
-                $this->_adyenLogger->addError("Wrong merchantReference was set in the query or in the session");
+                $this->_adyenLogger->addError("No merchantReference in the response");
                 // TODO error page
             }
-
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
