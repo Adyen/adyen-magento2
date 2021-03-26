@@ -58,10 +58,6 @@ class OneclickAuthorizationDataBuilder implements BuilderInterface
         // We override the previously set shopperInteraction in the buildRecurringData() to ContAuth here because if
         // it's a payment with a stored method we should always send ContAuth
         $requestBody['shopperInteraction'] = 'ContAuth';
-        $requestBody['paymentMethod']['recurringDetailReference'] = $payment->getAdditionalInformation(
-            AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE
-        );
-
 
         // if it is a sepadirectdebit set selectedBrand to sepadirectdebit in the case of oneclick
         if ($payment->getCcType() == "sepadirectdebit") {
