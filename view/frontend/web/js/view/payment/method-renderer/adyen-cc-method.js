@@ -172,13 +172,36 @@ define(
 
             handleAction: function(action, orderId) {
                 var self = this;
+                let popupModal;
+
+                fullScreenLoader.stopLoader();
+
+                if (action.type === 'threeDS2' || action.type === 'await') {
+                    popupModal = self.showModal();
+                }
 
                 try {
                     self.checkoutComponent.createFromAction(
                         action).mount('#cc_actionContainer');
                 } catch (e) {
                     console.log(e);
+                    self.closeModal(popupModal);
                 }
+            },
+            showModal: function() {
+                let popupModal = $('#cc_actionModal').modal({
+                    // disable user to hide popup
+                    clickableOverlay: false,
+                    responsive: true,
+                    innerScroll: false,
+                    // empty buttons, we don't need that
+                    buttons: [],
+                    modalClass: 'cc_actionModal',
+                });
+
+                popupModal.modal('openModal');
+
+                return popupModal;
             },
             /**
              * This method is a workaround to close the modal in the right way and reconstruct the threeDS2Modal.
@@ -291,19 +314,7 @@ define(
 
                 fullScreenLoader.stopLoader();
 
-                // TODO outsource creating the modal
-                var popupModal = $('#cc_actionModal').modal({
-                    // disable user to hide popup
-                    clickableOverlay: false,
-                    responsive: true,
-                    innerScroll: false,
-                    // empty buttons, we don't need that
-                    buttons: [],
-                    modalClass: 'cc_actionModal',
-                });
-
-                // TODO only show modal when it's redirect shopper
-                popupModal.modal('openModal');
+                let popupModal = self.showModal();
 
                 adyenPaymentService.paymentDetails(request).
                     done(function(responseJSON) {
