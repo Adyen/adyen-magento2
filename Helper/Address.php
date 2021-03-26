@@ -53,11 +53,13 @@ class Address
         // Cap the full street to the enabled street lines
         $street = array_slice($addressArray, 0, $customerStreetLinesEnabled);
 
-        $drawHouseNumberWithRegex = $houseNumberStreetLine == 0 ||
-            $houseNumberStreetLine > $customerStreetLinesEnabled;
+        $drawHouseNumberWithRegex =
+            $houseNumberStreetLine == 0 || // Config is disabled
+            $houseNumberStreetLine > $customerStreetLinesEnabled ||  // Not enough street lines enabled
+            empty($street[$houseNumberStreetLine - 1]);  // House number field is empty
 
         if ($drawHouseNumberWithRegex) {
-            // House number street line is disabled or there aren't enough street lines, use the regex
+            // Use the regex to get the house number
             return $this->getStreetAndHouseNumberFromArray($street);
         } else {
             // Extract and remove the house number from the street name array
