@@ -109,17 +109,6 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
 
         $payment = $order->getPayment();
 
-        if ($paymentData = $payment->getAdditionalInformation("adyenPaymentData")) {
-            // Add payment data into the request object
-            $payload["paymentData"] = $paymentData;
-            // unset payment data from additional information
-            $payment->unsAdditionalInformation("adyenPaymentData");
-        } else {
-            $message = "Payment details call failed, payment data not found";
-            $this->adyenLogger->error($message);
-            throw new LocalizedException(__($message));
-        }
-
         // Send the request
         try {
             $client = $this->adyenHelper->initializeAdyenClient($order->getStoreId());
