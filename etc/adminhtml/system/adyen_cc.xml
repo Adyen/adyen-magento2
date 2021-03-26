@@ -64,14 +64,6 @@
                sortOrder="60">
             <label>Advanced Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-            <field id="adyen_cc_threeds_behavior" translate="label" type="select" sortOrder="210" showInDefault="1"
-                   showInWebsite="1" showInStore="1">
-                <label>3DS1 Authorization Behavior</label>
-                <source_model>Adyen\Payment\Model\Config\Source\ThreeDsBehavior</source_model>
-                <tooltip><![CDATA[The default 3DS1 behavior is Manual, in order to change this setting for the
-                merchant account please contact Adyen Support]]></tooltip>
-                <config_path>payment/adyen_cc/threeds_behavior</config_path>
-            </field>
             <field id="enable_installments" translate="label" type="select" sortOrder="219" showInDefault="1"
                    showInWebsite="1" showInStore="1">
                 <label>Enable Installments</label>

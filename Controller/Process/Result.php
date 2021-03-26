@@ -392,6 +392,7 @@ class Result extends \Magento\Framework\App\Action\Action
     {
         if (!$this->_order) {
             if ($incrementId !== null) {
+                //TODO Replace with order repository search for best practice
                 $this->_order = $this->_orderFactory->create()->loadByIncrementId($incrementId);
             } else {
                 $this->_order = $this->_session->getLastRealOrder();
@@ -413,12 +414,9 @@ class Result extends \Magento\Framework\App\Action\Action
         $client = $this->_adyenHelper->initializeAdyenClient($this->storeManager->getStore()->getId());
         $service = $this->_adyenHelper->createAdyenCheckoutService($client);
 
-        if (!empty($result['merchantReference'])) {
-            //TODO Replace with order repository search for best practice
-            $order = $this->_orderFactory->create()->loadByIncrementId($result['merchantReference']);
-        } else {
-            $order = $this->_session->getLastRealOrder();
-        }
+        $order = $this->_getOrder(
+            !empty($result['merchantReference']) ? $result['merchantReference'] : null
+        );
 
         if (!$order->getId()) {
             throw new \Magento\Framework\Exception\LocalizedException(
@@ -473,16 +471,22 @@ class Result extends \Magento\Framework\App\Action\Action
 
         try {
             $response = $service->paymentsDetails($request);
-            if (!empty($response['merchantReference'])) {
-                if ($order->getIncrementId() === $response['merchantReference']) {
+            $responseMerchantReference = !empty($response['merchantReference']) ? $response['merchantReference'] : null;
+            $resultMerchantReference = !empty($result['merchantReference']) ? $result['merchantReference'] : null;
+            $merchantReference = $responseMerchantReference ?: $resultMerchantReference;
+            if ($merchantReference) {
+                if ($order->getIncrementId() === $merchantReference) {
                     $this->_order = $order;
+                } else {
+                    // TODO error handling
+                    $this->_adyenLogger->addError("Wrong merchantReference was set in the query or in the session");
+                    // TODO error page
                 }
             } else {
                 // TODO error handling
-                $this->_adyenLogger->addError("Wrong merchantReference was set in the query or in the session");
+                $this->_adyenLogger->addError("No merchantReference in the response");
                 // TODO error page
             }
-
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
         }

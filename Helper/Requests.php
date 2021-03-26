@@ -26,9 +26,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Vault\Model\Ui\VaultConfigProvider;
-
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Magento\Payment\Model\InfoInterface;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 
@@ -99,6 +97,7 @@ class Requests extends AbstractHelper
      * @param null $additionalData
      * @return array
      * @param array $request
+     * @return array
      */
     public function buildCustomerData(
         $billingAddress,
@@ -110,10 +109,9 @@ class Requests extends AbstractHelper
     ) {
         if ($customerId > 0) {
             $request['shopperReference'] = str_pad($customerId, 3, '0', STR_PAD_LEFT);
-        }
-        else {
+        } else {
             $uuid = Uuid::generateV4();
-            $guestCustomerId =  $payment->getOrder()->getIncrementId() . $uuid;
+            $guestCustomerId = $payment->getOrder()->getIncrementId() . $uuid;
             $request['shopperReference'] = $guestCustomerId;
         }
 
@@ -348,13 +346,16 @@ class Requests extends AbstractHelper
     }
 
     /**
+     * @param InfoInterface $payment
      * @param array $request
      * @return array
      */
-    public function buildRedirectData($storeId, $request = [])
+    public function buildRedirectData($payment, $request = [])
     {
-        $request['returnUrl'] = rtrim($this->adyenHelper->getOrigin($storeId), '/') .
-            '/adyen/process/redirect';
+        $request['returnUrl'] = rtrim(
+                $this->adyenHelper->getOrigin($payment->getMethodInstance()->getStore()), '/'
+            ) .
+            '/adyen/transparent/redirect?merchantReference=' . $payment->getOrder()->getIncrementId();
         return $request;
     }
 
@@ -364,7 +365,7 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringData( int $storeId, $payment, $request = [])
+    public function buildRecurringData(int $storeId, $payment, $request = [])
     {
 
         $request['shopperInteraction'] = 'Ecommerce';
@@ -382,10 +383,10 @@ class Requests extends AbstractHelper
         //recurring
         if ($enableVault) {
             $request['recurringProcessingModel'] = 'Subscription';
-        }else {
-            if($enableOneclick){
+        } else {
+            if ($enableOneclick) {
                 $request['recurringProcessingModel'] = 'CardOnFile';
-            }else{
+            } else {
                 $request['recurringProcessingModel'] = 'Subscription';
             }
         }

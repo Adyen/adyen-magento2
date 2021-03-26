@@ -64,7 +64,6 @@
                 <can_authorize_vault>1</can_authorize_vault>
                 <can_capture_vault>1</can_capture_vault>
                 <threeds2_enabled>1</threeds2_enabled>
-                <threeds_behavior>Manual</threeds_behavior>
                 <group>adyen</group>
             </adyen_cc>
             <adyen_cc_vault>
