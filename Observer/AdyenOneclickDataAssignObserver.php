@@ -35,6 +35,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
     const BRAND = 'brand';
     const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
     const STATE_DATA = 'stateData';
+    const RECURRING_DETAIL_REFERENCE = 'recurring_detail_reference';
 
     /**
      * Approved root level keys from additional data array
