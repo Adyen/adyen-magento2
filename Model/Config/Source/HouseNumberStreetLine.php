@@ -33,7 +33,7 @@ class HouseNumberStreetLine implements OptionSourceInterface
     public function toOptionArray(): array
     {
         return [
-            ['value' => 0, 'label' => __('Draw from last street line')],
+            ['value' => 0, 'label' => __('Check last street line')],
             ['value' => 1, 'label' => __('Street line 1')],
             ['value' => 2, 'label' => __('Street line 2')],
             ['value' => 3, 'label' => __('Street line 3')],
