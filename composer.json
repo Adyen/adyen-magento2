@@ -14,7 +14,7 @@
     }
   ],
   "require": {
-    "adyen/php-api-library": "^8",
+    "adyen/php-api-library": "^10",
     "magento/framework": ">=101.0.8 <102 || >=102.0.1",
     "magento/module-vault": "101.*",
     "magento/module-paypal": ">=100.2.6",
