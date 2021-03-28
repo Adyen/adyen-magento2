@@ -330,6 +330,14 @@ define(
                                     configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
                                 }
 
+                                // Extra apple pay configuration
+                                if (paymentMethod.type.includes('applepay')) {
+                                    if ('configuration' in configuration &&
+                                        'merchantName' in configuration.configuration) {
+                                        configuration.totalPriceLabel = configuration.configuration.merchantName;
+                                    }
+                                }
+
                                 try {
                                     const component = self.checkoutComponent.create(
                                         paymentMethod.type, configuration);
