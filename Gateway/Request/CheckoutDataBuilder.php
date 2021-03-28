@@ -57,23 +57,34 @@ class CheckoutDataBuilder implements BuilderInterface
     private $chargedCurrency;
 
     /**
+     * @var \Magento\Framework\UrlInterface
+     */
+    private $url;
+
+    /**
+     * CheckoutDataBuilder constructor.
+     *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Quote\Api\CartRepositoryInterface $cartRepository
      * @param \Adyen\Payment\Model\Gender $gender
+     * @param ChargedCurrency $chargedCurrency
+     * @param \Magento\Framework\UrlInterface $url
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Quote\Api\CartRepositoryInterface $cartRepository,
         \Adyen\Payment\Model\Gender $gender,
-        ChargedCurrency $chargedCurrency
+        ChargedCurrency $chargedCurrency,
+        \Magento\Framework\UrlInterface $url
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
         $this->cartRepository = $cartRepository;
         $this->gender = $gender;
         $this->chargedCurrency = $chargedCurrency;
+        $this->url = $url;
     }
 
     /**
@@ -95,9 +106,19 @@ class CheckoutDataBuilder implements BuilderInterface
         // do not send email
         $order->setCanSendNewEmailFlag(false);
 
-        $requestBody['returnUrl'] = $this->storeManager->getStore()->getBaseUrl(
-                \Magento\Framework\UrlInterface::URL_TYPE_LINK
-            ) . 'adyen/transparent/redirect?merchantReference=' . $order->getIncrementId();
+        $pwaOrigin = $this->adyenHelper->getAdyenAbstractConfigData(
+            "payment_origin_url",
+            $this->storeManager->getStore()->getId()
+        );
+
+        if ($pwaOrigin) {
+            $returnUrl = $pwaOrigin . 'adyen/process/result?merchantReference=' . $order->getIncrementId();
+        } else {
+            $this->url->setQueryParam('merchantReference', $order->getIncrementId());
+            $returnUrl = $this->url->getUrl("adyen/process/result");
+        }
+
+        $requestBody['returnUrl'] = $returnUrl;
 
         // Additional data for ACH
         if ($payment->getAdditionalInformation("bankAccountNumber")) {
