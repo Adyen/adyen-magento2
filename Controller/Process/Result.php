@@ -63,6 +63,11 @@ class Result extends \Magento\Framework\App\Action\Action
     protected $storeManager;
 
     /**
+     * @var \Adyen\Payment\Helper\Quote
+     */
+    private $quoteHelper;
+
+    /**
      * Result constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -72,6 +77,7 @@ class Result extends \Magento\Framework\App\Action\Action
      * @param \Magento\Checkout\Model\Session $session
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Adyen\Payment\Helper\Quote $quoteHelper
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -80,7 +86,8 @@ class Result extends \Magento\Framework\App\Action\Action
         \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory,
         \Magento\Checkout\Model\Session $session,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Adyen\Payment\Helper\Quote $quoteHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
@@ -88,6 +95,7 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->_session = $session;
         $this->_adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
+        $this->quoteHelper = $quoteHelper;
         parent::__construct($context);
     }
 
@@ -114,7 +122,7 @@ class Result extends \Magento\Framework\App\Action\Action
                         $this->_order->getIncrementId()
                     )
                 );
-                $this->restoreCart($response);
+                $this->replaceCart($response);
                 $failReturnPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
                 $this->_redirect($failReturnPath);
             }
@@ -128,12 +136,27 @@ class Result extends \Magento\Framework\App\Action\Action
     /**
      * @param $response
      */
-    protected function restoreCart($response)
+    protected function replaceCart($response)
     {
-        $session = $this->_session;
-
-        // restore the quote
-        $session->restoreQuote();
+        if ($this->_adyenHelper->getConfigData(
+            "clone_quote",
+            "adyen_abstract",
+            $this->_order->getStoreId(),
+            true
+        )) {
+            try {
+                $newQuote = $this->quoteHelper->cloneQuote($this->_session->getQuote(), $this->_order);
+                $this->_session->replaceQuote($newQuote);
+            } catch (\Magento\Framework\Exception\LocalizedException $e) {
+                $this->_session->restoreQuote();
+                $this->_adyenLogger->addAdyenResult(
+                    'Error when trying to create a new quote, ' .
+                    'the previous quote has been restored instead: ' . $e->getMessage()
+                );
+            }
+        } else {
+            $this->_session->restoreQuote();
+        }
 
         if (isset($response['authResult']) && $response['authResult'] == \Adyen\Payment\Model\Notification::CANCELLED) {
             $this->messageManager->addError(__('You have cancelled the order. Please try again'));
@@ -272,9 +295,9 @@ class Result extends \Magento\Framework\App\Action\Action
                     $comment .= "<br /><br />This request will be send to the bank at the end of the day.";
                 } else {
                     $comment .= "<br /><br />The payment result is not confirmed (yet).
-                                 <br />Once the payment is authorised, the order status will be updated accordingly. 
-                                 <br />If the order is stuck on this status, the payment can be seen as unsuccessful. 
-                                 <br />The order can be automatically cancelled based on the OFFER_CLOSED notification. 
+                                 <br />Once the payment is authorised, the order status will be updated accordingly.
+                                 <br />If the order is stuck on this status, the payment can be seen as unsuccessful.
+                                 <br />The order can be automatically cancelled based on the OFFER_CLOSED notification.
                                  Please contact Adyen Support to enable this.";
                 }
                 $this->_adyenLogger->addAdyenResult('Do nothing wait for the notification');
@@ -287,7 +310,7 @@ class Result extends \Magento\Framework\App\Action\Action
             case Notification::REFUSED:
                 // if refused there will be a AUTHORIZATION : FALSE notification send only exception is idea
                 $this->_adyenLogger->addAdyenResult(
-                    'Cancel or Hold the order on AUTHORISATION 
+                    'Cancel or Hold the order on AUTHORISATION
                 success = false notification'
                 );
                 $result = false;

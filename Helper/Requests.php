@@ -50,20 +50,28 @@ class Requests extends AbstractHelper
     private $urlBuilder;
 
     /**
+     * @var Address
+     */
+    private $addressHelper;
+
+    /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
      * @param Config $adyenConfig
      * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param Address $addressHelper
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Helper\Config $adyenConfig,
-        \Magento\Framework\UrlInterface $urlBuilder
+        \Magento\Framework\UrlInterface $urlBuilder,
+        Address $addressHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->urlBuilder = $urlBuilder;
+        $this->addressHelper = $addressHelper;
     }
 
     /**
@@ -101,7 +109,7 @@ class Requests extends AbstractHelper
         $request = []
     ) {
         if ($customerId > 0) {
-            $request['shopperReference'] = $customerId;
+            $request['shopperReference'] = str_pad($customerId, 3, '0', STR_PAD_LEFT);
         }
         else {
             $uuid = Uuid::generateV4();
@@ -191,7 +199,7 @@ class Requests extends AbstractHelper
      * @param $shippingAddress
      * @return mixed
      */
-    public function buildAddressData($billingAddress, $shippingAddress, $request = [])
+    public function buildAddressData($billingAddress, $shippingAddress, $storeId, $request = [])
     {
         if ($billingAddress) {
             // Billing address defaults
@@ -206,7 +214,19 @@ class Requests extends AbstractHelper
             // Save the defaults for later to compare if anything has changed
             $requestBilling = $requestBillingDefaults;
 
-            $address = $this->getStreetStringFromAddress($billingAddress);
+            $houseNumberStreetLine = $this->adyenHelper->getConfigData(
+                'house_number_street_line',
+                'adyen_abstract',
+                $storeId
+            );
+
+            $customerStreetLinesEnabled = $this->adyenHelper->getCustomerStreetLinesEnabled($storeId);
+
+            $address = $this->addressHelper->getStreetAndHouseNumberFromAddress(
+                $billingAddress,
+                $houseNumberStreetLine,
+                $customerStreetLinesEnabled
+            );
 
             if (!empty($address["name"])) {
                 $requestBilling["street"] = $address["name"];
@@ -252,7 +272,11 @@ class Requests extends AbstractHelper
             $requestDelivery = $requestDeliveryDefaults;
 
             // Parse address into street and house number where possible
-            $address = $this->getStreetStringFromAddress($shippingAddress);
+            $address = $this->addressHelper->getStreetAndHouseNumberFromAddress(
+                $shippingAddress,
+                $houseNumberStreetLine,
+                $customerStreetLinesEnabled
+            );
 
             if (!empty($address['name'])) {
                 $requestDelivery["street"] = $address["name"];
@@ -358,41 +382,47 @@ class Requests extends AbstractHelper
     }
 
     /**
+     * @param array $request
+     * @return array
+     */
+    public function buildRedirectData($storeId, $request = [])
+    {
+        $request['returnUrl'] = rtrim($this->adyenHelper->getOrigin($storeId), '/') .
+            '/adyen/process/redirect';
+        return $request;
+    }
+
+    /**
      * @param $request
      * @param $areaCode
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringData($areaCode, int $storeId, $additionalData, $customerId, $request = [])
+    public function buildRecurringData( int $storeId, $payment, $request = [])
     {
-        $isGuestUser = true;
-        if ($customerId > 0) {
-            $isGuestUser = false;
-        }
-        //Setting storePaymentMethod flag if PM is SEPA and store PM config is enabled
-        if (!empty($additionalData['brand_code']) &&
-            $additionalData['brand_code'] == 'sepadirectdebit' &&
-            $this->adyenConfig->isStoreAlternativePaymentMethodEnabled($storeId)) {
+
+        $request['shopperInteraction'] = 'Ecommerce';
+
+        // TODO refactor to set the shopperInteraction only this place (only one place) because now it's going to be
+        // overriden in the OneclickAuthorizationDataBuilder
+
+        $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
+        $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
+
+        // TODO Remove it in version 7
+        if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::STORE_CC)) {
             $request['storePaymentMethod'] = true;
         }
-        // If the vault feature is on this logic is handled in the VaultDataBuilder
-        if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
-            if ($areaCode !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
-                $storeId = null;
-            }
-
-            $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
-            $enableRecurring = $this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', $storeId);
-
-            $request['enableOneClick'] = $enableOneclick && !$isGuestUser;
-            $request['enableRecurring'] = (bool)$enableRecurring;
-
-            // value can be 0,1 or true
-            if (!empty($additionalData[AdyenCcDataAssignObserver::STORE_CC]) || ($isGuestUser && $this->adyenHelper->isGuestTokenizationEnabled($storeId))) {
-                $request['paymentMethod']['storeDetails'] = true;
+        //recurring
+        if ($enableVault) {
+            $request['recurringProcessingModel'] = 'Subscription';
+        }else {
+            if($enableOneclick){
+                $request['recurringProcessingModel'] = 'CardOnFile';
+            }else{
+                $request['recurringProcessingModel'] = 'Subscription';
             }
         }
-
         return $request;
     }
 
@@ -456,15 +486,6 @@ class Requests extends AbstractHelper
             $request['paymentMethod']['recurringDetailReference'] = $recurringDetailReference;
         }
 
-        // set customerInteraction
-        $recurringContractType = $this->adyenHelper->getAdyenOneclickConfigData('recurring_payment_type');
-        if (!empty($payload['method']) && $payload['method'] == 'adyen_oneclick'
-            && $recurringContractType == \Adyen\Payment\Model\RecurringType::RECURRING) {
-            $request['shopperInteraction'] = "ContAuth";
-        } else {
-            $request['shopperInteraction'] = "Ecommerce";
-        }
-
         /**
          * if MOTO for backend is enabled use MOTO as shopper interaction type
          */
@@ -481,31 +502,6 @@ class Requests extends AbstractHelper
             if (($numberOfInstallment = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
                 [AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS]) > 0) {
                 $request['installments']['value'] = $numberOfInstallment;
-            }
-        }
-
-        return $request;
-    }
-
-
-    /**
-     * @param $request
-     * @param $additionalInformation
-     * @return mixed
-     */
-    public function buildVaultData($payload, $request = [])
-    {
-        if ($this->adyenHelper->isCreditCardVaultEnabled()) {
-            if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE]) &&
-                $payload[PaymentInterface::KEY_ADDITIONAL_DATA][VaultConfigProvider::IS_ACTIVE_CODE] === true ||
-                !empty($payload[VaultConfigProvider::IS_ACTIVE_CODE]) &&
-                $payload[VaultConfigProvider::IS_ACTIVE_CODE] === true
-            ) {
-                // store it only as oneclick otherwise we store oneclick tokens (maestro+bcmc) that will fail
-                $request['enableRecurring'] = true;
-            } else {
-                // explicity turn this off as merchants have recurring on by default
-                $request['enableRecurring'] = false;
             }
         }
 

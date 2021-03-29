@@ -558,8 +558,8 @@
                 <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CcAuthorizationDataBuilder</item>
-                <item name="vault" xsi:type="string">Adyen\Payment\Gateway\Request\VaultDataBuilder</item>
                 <item name="threeds2" xsi:type="string">Adyen\Payment\Gateway\Request\ThreeDS2DataBuilder</item>
+                <item name="redirect" xsi:type="string">Adyen\Payment\Gateway\Request\RedirectDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -607,6 +607,7 @@
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="oneclick" xsi:type="string">Adyen\Payment\Gateway\Request\OneclickAuthorizationDataBuilder</item>
                 <item name="threeds2" xsi:type="string">Adyen\Payment\Gateway\Request\ThreeDS2DataBuilder</item>
+                <item name="redirect" xsi:type="string">Adyen\Payment\Gateway\Request\RedirectDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -1062,6 +1063,7 @@
                 <item name="payment/adyen_apple_pay/full_path_location_pem_file_live" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/notifications_ip_check" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/notifications_hmac_check" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/clone_quote" xsi:type="string">1</item>
             </argument>
             <argument name="sensitive" xsi:type="array">
                 <item name="payment/adyen_abstract/merchant_account" xsi:type="string">1</item>

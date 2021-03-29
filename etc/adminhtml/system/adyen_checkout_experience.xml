@@ -42,5 +42,17 @@
             <config_path>payment/adyen_abstract/return_path</config_path>
             <tooltip><![CDATA[The path the customer will be redirected to when payment was <b>not</b> successful. Default is <i>checkout/cart</i>.]]></tooltip>
         </field>
+        <field id="clone_quote" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+            <label>Clone quote on failed payment</label>
+            <config_path>payment/adyen_abstract/clone_quote</config_path>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <tooltip><![CDATA[3DS1, 3DS2 and redirect failed payments can restore the previous quote or clone it for a retry.]]></tooltip>
+        </field>
+        <field id="house_number_street_line" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+            <label>Address street line used for the house number input</label>
+            <config_path>payment/adyen_abstract/house_number_street_line</config_path>
+            <source_model>Adyen\Payment\Model\Config\Source\HouseNumberStreetLine</source_model>
+            <tooltip><![CDATA[Select which of the address lines will be the house number. Make sure to enable enough "Number of Lines in a Street Address" in Magento's Customer Configuration]]></tooltip>
+        </field>
     </group>
 </include>

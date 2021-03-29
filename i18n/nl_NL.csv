@@ -47,7 +47,7 @@
 "The card is restricted.","De kaart is beperkt."
 "The payment is REFUSED because the saved card is removed. Please try an other payment method.","De betaling wordt GEWEIGERD omdat de opgeslagen kaart is verwijderd. Probeer een andere betaalmethode."
 "The expiry month is not set. Please check your expiry month!","De vervalmaand is niet ingesteld. Controleer alstublieft uw verloopmaand!"
-"The payment is REFUSED","De betaling is GEWEIGERD"
+"The payment is REFUSED.","De betaling is GEWEIGERD."
 "Failed to disable this contract","Kan dit contract niet uitschakelen"
 "You will be redirected to the Adyen App", "U wordt doorgestuurd naar de Adyen-app"
 "Continue to Adyen App", "Doorgaan naar Adyen-app"

@@ -119,7 +119,7 @@ define(
              * @returns {*|boolean}
              */
             getEnableStoreDetails: function () {
-                return this.canCreateBillingAgreement() && !this.isVaultEnabled();
+                return this.isOneClickEnabled() === "1" || this.isVaultEnabled();
             },
             /**
              * Renders the secure fields,
@@ -139,7 +139,6 @@ define(
                 // installments
                 var allInstallments = self.getAllInstallments();
                 var cardNode = document.getElementById('cardContainer');
-
 
                 self.cardComponent = self.checkout.create('card', {
                     originKey: self.getOriginKey(),
@@ -302,7 +301,7 @@ define(
             getData: function () {
                 var browserInfo = threeDS2Utils.getBrowserInfo();
 
-                var data = {
+                return  {
                     'method': this.item.method,
                     additional_data: {
                         'guestEmail': quote.guestEmail,
@@ -313,6 +312,8 @@ define(
                         'expiryYear': this.expiryYear(),
                         'holderName': this.creditCardOwner(),
                         'store_cc': this.storeCc,
+                        //This is required by magento to store the token
+                        'is_active_payment_token_enabler' : this.storeCc,
                         'number_of_installments': this.installment(),
                         'java_enabled': browserInfo.javaEnabled,
                         'screen_color_depth': browserInfo.colorDepth,
@@ -323,8 +324,6 @@ define(
                         'combo_card_type': this.comboCardOption()
                     }
                 };
-                this.vaultEnabler.visitAdditionalData(data);
-                return data;
             },
             /**
              * Returns state of place order button
@@ -482,9 +481,9 @@ define(
             getPlaceOrderUrl: function () {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
             },
-            canCreateBillingAgreement: function () {
+            isOneClickEnabled: function () {
                 if (customer.isLoggedIn()) {
-                    return window.checkoutConfig.payment.adyenCc.canCreateBillingAgreement;
+                    return window.checkoutConfig.payment.adyenCc.isOneClickEnabled;
                 }
 
                 return false;

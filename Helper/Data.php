@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Model\Config\ThreeDsBehavior;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Adyen\Payment\Model\ApplicationInfo;
@@ -262,6 +263,19 @@ class Data extends AbstractHelper
      *
      * @return array
      */
+    public function getThreeDsBehaviors()
+    {
+        return [
+            ThreeDsBehavior::AUTO => ThreeDsBehavior::AUTO,
+            ThreeDsBehavior::MANUAL => ThreeDsBehavior::MANUAL
+        ];
+    }
+
+    /**
+     * return recurring types for configuration setting
+     *
+     * @return array
+     */
     public function getPaymentRoutines()
     {
         return [
@@ -387,6 +401,8 @@ class Data extends AbstractHelper
      *
      * @param type $address
      * @return array
+     * @deprecated Will be removed in 7.0.0. This formatter is being replaced by the Address helper class
+     * @see Address::getStreetAndHouseNumberFromAddress()
      */
     public function getStreet($address)
     {
@@ -406,6 +422,8 @@ class Data extends AbstractHelper
      *
      * @param string $streetLine
      * @return array
+     * @deprecated Will be removed in 7.0.0. This formatter is being replaced by the Address helper class
+     * @see Address::getStreetAndHouseNumberFromAddress()
      */
     public function getStreetFromString($streetLine)
     {
@@ -422,6 +440,8 @@ class Data extends AbstractHelper
      * @param array $street
      * @return array $street
      * @example street + number
+     * @deprecated Will be removed in 7.0.0. This formatter is being replaced by the Address helper class
+     * @see Address::getStreetAndHouseNumberFromAddress()
      */
     public function formatStreet($street)
     {
@@ -431,7 +451,7 @@ class Data extends AbstractHelper
 
         $street['0'] = trim($street['0']);
 
-        preg_match('/((\s\d{0,10})|(\s\d{0,10}\w{1,3}))$/i', $street['0'], $houseNumber, PREG_OFFSET_CAPTURE);
+        preg_match('/((\s\d{0,10})|(\s\d{0,10}\s?\w{1,3}))$/i', $street['0'], $houseNumber, PREG_OFFSET_CAPTURE);
         if (!empty($houseNumber['0'])) {
             $_houseNumber = trim($houseNumber['0']['0']);
             $position = $houseNumber['0']['1'];
@@ -957,7 +977,7 @@ class Data extends AbstractHelper
      * @param $recurringType
      * @return array
      */
-    public function getOneClickPaymentMethods($customerId, $storeId, $grandTotal, $recurringType)
+    public function getOneClickPaymentMethods($customerId, $storeId, $grandTotal)
     {
         $billingAgreements = [];
 
@@ -979,7 +999,7 @@ class Data extends AbstractHelper
 
             // check if contractType is supporting the selected contractType for OneClick payments
             $allowedContractTypes = $agreementData['contractTypes'];
-            if (in_array($recurringType, $allowedContractTypes)) {
+            if (in_array(\Adyen\Payment\Model\RecurringType::ONECLICK , $allowedContractTypes)) {
                 // check if AgreementLabel is set and if contract has an recurringType
                 if ($billingAgreement->getAgreementLabel()) {
                     // for Ideal use sepadirectdebit because it is
@@ -1051,11 +1071,6 @@ class Data extends AbstractHelper
     public function isPerStoreBillingAgreement($storeId)
     {
         return !$this->getAdyenOneclickConfigDataFlag('share_billing_agreement', $storeId);
-    }
-
-    public function isGuestTokenizationEnabled($storeId)
-    {
-        return $this->getAdyenOneclickConfigDataFlag('guest_checkout_tokenization', $storeId);
     }
 
     /**
@@ -1195,6 +1210,12 @@ class Data extends AbstractHelper
     public function getStoreLocale($storeId)
     {
         $path = \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE;
+        return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+    }
+
+    public function getCustomerStreetLinesEnabled($storeId)
+    {
+        $path = 'customer/address/street_lines';
         return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
     }
 
@@ -1759,15 +1780,15 @@ class Data extends AbstractHelper
      */
     public function getRecurringTypeFromOneclickRecurringSetting($storeId = null)
     {
-        $enableOneclick = $this->getAdyenAbstractConfigData('enable_oneclick', $storeId);
-        $enableRecurring = $this->getAdyenAbstractConfigData('enable_recurring', $storeId);
+        $enableOneclick = $this->getAdyenAbstractConfigDataFlag('enable_oneclick', $storeId);
+        $adyenCCVaultActive = $this->getAdyenCcVaultConfigDataFlag('active', $storeId);
 
-        if ($enableOneclick && $enableRecurring) {
+        if ($enableOneclick && $adyenCCVaultActive) {
             return \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING;
-        } elseif ($enableOneclick && !$enableRecurring) {
+        } elseif ($enableOneclick && !$adyenCCVaultActive) {
             return \Adyen\Payment\Model\RecurringType::ONECLICK;
-        } elseif (!$enableOneclick && $enableRecurring) {
-            return \Adyen\Payment\Model\RecurringType::RECURRING;
+        } elseif (!$enableOneclick && $adyenCCVaultActive) {
+            return \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING;
         } else {
             return \Adyen\Payment\Model\RecurringType::NONE;
         }
@@ -1818,6 +1839,8 @@ class Data extends AbstractHelper
      *
      * @param $country
      * @return bool
+     * @deprecated Will be removed in 7.0.0. The House Number Street Line config is replacing this check
+     * @see Address::getStreetAndHouseNumberFromAddress()
      */
     public function isSeparateHouseNumberRequired($country)
     {
