@@ -382,71 +382,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Street format
-     *
-     * @param type $address
-     * @return array
-     * @deprecated Will be removed in 7.0.0. This formatter is being replaced by the Address helper class
-     * @see Address::getStreetAndHouseNumberFromAddress()
-     */
-    public function getStreet($address)
-    {
-        if (empty($address)) {
-            return false;
-        }
-
-        $street = $this->formatStreet($address->getStreet());
-        $streetName = $street['0'];
-        unset($street['0']);
-        $streetNr = implode(' ', $street);
-        return (['name' => trim($streetName), 'house_number' => $streetNr]);
-    }
-
-    /**
-     * Street format
-     *
-     * @param string $streetLine
-     * @return array
-     * @deprecated Will be removed in 7.0.0. This formatter is being replaced by the Address helper class
-     * @see Address::getStreetAndHouseNumberFromAddress()
-     */
-    public function getStreetFromString($streetLine)
-    {
-        $street = $this->formatStreet([$streetLine]);
-        $streetName = $street['0'];
-        unset($street['0']);
-        $streetNr = implode(' ', $street);
-        return (['name' => trim($streetName), 'house_number' => $streetNr]);
-    }
-
-    /**
-     * Fix this one string street + number
-     *
-     * @param array $street
-     * @return array $street
-     * @example street + number
-     * @deprecated Will be removed in 7.0.0. This formatter is being replaced by the Address helper class
-     * @see Address::getStreetAndHouseNumberFromAddress()
-     */
-    public function formatStreet($street)
-    {
-        if (count($street) != 1) {
-            return $street;
-        }
-
-        $street['0'] = trim($street['0']);
-
-        preg_match('/((\s\d{0,10})|(\s\d{0,10}\s?\w{1,3}))$/i', $street['0'], $houseNumber, PREG_OFFSET_CAPTURE);
-        if (!empty($houseNumber['0'])) {
-            $_houseNumber = trim($houseNumber['0']['0']);
-            $position = $houseNumber['0']['1'];
-            $streetName = trim(substr($street['0'], 0, $position));
-            $street = [$streetName, $_houseNumber];
-        }
-        return $street;
-    }
-
-    /**
      * gives back global configuration values
      *
      * @param $field
@@ -1736,21 +1671,6 @@ class Data extends AbstractHelper
     public function isHppVaultEnabled($storeId = null)
     {
         return $this->getAdyenHppVaultConfigDataFlag('active', $storeId);
-    }
-
-    /**
-     * Checks if the house number needs to be sent to the Adyen API separately or as it is in the street field
-     *
-     * @param $country
-     * @return bool
-     * @deprecated Will be removed in 7.0.0. The House Number Street Line config is replacing this check
-     * @see Address::getStreetAndHouseNumberFromAddress()
-     */
-    public function isSeparateHouseNumberRequired($country)
-    {
-        $countryList = ["nl", "de", "se", "no", "at", "fi", "dk"];
-
-        return in_array(strtolower($country), $countryList);
     }
 
     /**
