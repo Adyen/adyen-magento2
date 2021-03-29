@@ -112,7 +112,7 @@ class CheckoutDataBuilder implements BuilderInterface
         );
 
         if ($pwaOrigin) {
-            $returnUrl = $pwaOrigin . 'adyen/process/result?merchantReference=' . $order->getIncrementId();
+            $returnUrl = rtrim($pwaOrigin, '/') . '/adyen/process/result?merchantReference=' . $order->getIncrementId();
         } else {
             $this->url->setQueryParam('merchantReference', $order->getIncrementId());
             $returnUrl = $this->url->getUrl("adyen/process/result");
