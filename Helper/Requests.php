@@ -355,7 +355,7 @@ class Requests extends AbstractHelper
         $request['returnUrl'] = rtrim(
                 $this->adyenHelper->getOrigin($payment->getMethodInstance()->getStore()), '/'
             ) .
-            '/adyen/transparent/redirect?merchantReference=' . $payment->getOrder()->getIncrementId();
+            '/adyen/process/result?merchantReference=' . $payment->getOrder()->getIncrementId();
         return $request;
     }
 
