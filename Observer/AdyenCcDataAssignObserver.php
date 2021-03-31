@@ -48,7 +48,8 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         self::STATE_DATA,
         self::GUEST_EMAIL,
         self::COMBO_CARD_TYPE,
-        self::NUMBER_OF_INSTALLMENTS
+        self::NUMBER_OF_INSTALLMENTS,
+        self::CC_TYPE
     ];
 
     /**
