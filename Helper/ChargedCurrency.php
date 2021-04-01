@@ -27,7 +27,6 @@ use Adyen\Payment\Model\AdyenAmountCurrency;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
-use Magento\Store\Model\Store;
 use Magento\Sales\Api\Data\CreditmemoItemInterface;
 
 class ChargedCurrency
@@ -132,7 +131,7 @@ class ChargedCurrency
         }
         return new AdyenAmountCurrency(
             $item->getPrice(),
-            $item->getInvoice()->getBaseCurrencyCode(),
+            $item->getInvoice()->getOrderCurrencyCode(),
             null,
             $item->getTaxAmount()
         );
@@ -148,21 +147,21 @@ class ChargedCurrency
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
                 $item->getBasePrice(),
-                $item->getInvoice()->getBaseCurrencyCode(),
+                $item->getCreditMemo()->getInvoice()->getBaseCurrencyCode(),
                 null,
                 $item->getBaseTaxAmount()
             );
         }
         return new AdyenAmountCurrency(
             $item->getPrice(),
-            $item->getCreditMemo()->getInvoice()->getBaseCurrencyCode(),
+            $item->getCreditMemo()->getInvoice()->getOrderCurrencyCode(),
             null,
             $item->getTaxAmount()
         );
     }
 
     /**
-     * @param CreditmemoItemInterface $item
+     * @param Quote $quote
      * @return AdyenAmountCurrency
      */
     public function getQuoteShippingAmountCurrency(Quote $quote)
@@ -178,7 +177,7 @@ class ChargedCurrency
         }
         return new AdyenAmountCurrency(
             $quote->getShippingAddress()->getShippingAmount(),
-            $quote->getCurrencyCode(),
+            $quote->getQuoteCurrencyCode(),
             $quote->getShippingAddress()->getShippingDiscountAmount(),
             $quote->getShippingAddress()->getShippingTaxAmount()
         );
