@@ -49,10 +49,10 @@
             <tooltip><![CDATA[3DS1, 3DS2 and redirect failed payments can restore the previous quote or clone it for a retry.]]></tooltip>
         </field>
         <field id="house_number_street_line" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-            <label>Address street line to use as house number</label>
+            <label>Address street line used for the house number input</label>
             <config_path>payment/adyen_abstract/house_number_street_line</config_path>
             <source_model>Adyen\Payment\Model\Config\Source\HouseNumberStreetLine</source_model>
-            <tooltip><![CDATA[Choose the street line to use as house number. If the selected street line is not enabled in Magento the house number will be drawn from the last street line.]]></tooltip>
+            <tooltip><![CDATA[Select which of the address lines will be the house number. Make sure to enable enough "Number of Lines in a Street Address" in Magento's Customer Configuration]]></tooltip>
         </field>
     </group>
 </include>
