@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Block\Checkout;
 
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 
 /**
@@ -178,8 +179,15 @@ class Success extends \Magento\Framework\View\Element\Template
     {
         if (
             !empty($this->getOrder()->getPayment()->getAdditionalInformation('resultCode')) &&
-            $this->getOrder()->getPayment()->getAdditionalInformation('resultCode') == 'PresentToShopper' &&
-            !empty($this->getOrder()->getPayment()->getAdditionalInformation('action'))
+            !empty($this->getOrder()->getPayment()->getAdditionalInformation('action')) &&
+            (
+            in_array($this->getOrder()->getPayment()->getAdditionalInformation('resultCode'),
+                [
+                    PaymentResponseHandler::PRESENT_TO_SHOPPER,
+                    PaymentResponseHandler::RECEIVED
+                ]
+            )
+            )
         ) {
             return true;
         }
