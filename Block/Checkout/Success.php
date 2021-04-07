@@ -140,13 +140,12 @@ class Success extends \Magento\Framework\View\Element\Template
      */
     public function getBankTransferData()
     {
-        $result = [];
-        if (!empty($this->getOrder()->getPayment()) &&
-            !empty($this->getOrder()->getPayment()->getAdditionalInformation('bankTransfer.owner'))
-        ) {
-            $result = $this->getOrder()->getPayment()->getAdditionalInformation();
-        }
-
+        $action = $this->getOrder()->getPayment()->getAdditionalInformation('action');
+        $result['beneficiary'] = !empty($action['beneficiary']) ? $action['beneficiary'] : '';
+        $result['iban'] = !empty($action['iban']) ? $action['iban'] : '';
+        $result['bankName'] = !empty($action['bankName']) ? $action['bankName'] : '';
+        $result['bic'] = !empty($action['bic']) ? $action['bic'] : '';
+        $result['reference'] = !empty($action['reference']) ? $action['reference'] : '';
         return $result;
     }
 

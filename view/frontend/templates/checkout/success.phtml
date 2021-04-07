@@ -78,38 +78,38 @@
             </tr>
         <?php endif; ?>
 
-        <?php if (!empty($banktranferData['bankTransfer.reference'])): ?>
+        <?php if (!empty($banktranferData['reference'])): ?>
             <tr>
                 <th scope="row"><?= $block->escapeHtml(__('With reference')); ?></th>
-                <td><?= $block->escapeHtml($banktranferData['bankTransfer.reference']); ?></td>
+                <td><?= $block->escapeHtml($banktranferData['reference']); ?></td>
             </tr>
         <?php endif; ?>
 
-        <?php if (!empty($banktranferData['bankTransfer.owner'])): ?>
+        <?php if (!empty($banktranferData['beneficiary'])): ?>
             <tr>
                 <th scope="row"><?= $block->escapeHtml(__('Beneficiary Name')); ?></th>
-                <td><?= $block->escapeHtml($banktranferData['bankTransfer.owner']); ?></td>
+                <td><?= $block->escapeHtml($banktranferData['beneficiary']); ?></td>
             </tr>
         <?php endif; ?>
 
-        <?php if (!empty($banktranferData['bankTransfer.bankName'])): ?>
+        <?php if (!empty($banktranferData['bankName'])): ?>
             <tr>
                 <th scope="row"><?= $block->escapeHtml(__('Bank')); ?></th>
-                <td><?= $block->escapeHtml($banktranferData['bankTransfer.bankName']); ?></td>
+                <td><?= $block->escapeHtml($banktranferData['bankName']); ?></td>
             </tr>
         <?php endif; ?>
 
-        <?php if (!empty($banktranferData['bankTransfer.iban'])): ?>
+        <?php if (!empty($banktranferData['iban'])): ?>
             <tr>
                 <th scope="row"><?= $block->escapeHtml(__('IBAN')); ?></th>
-                <td><?= $block->escapeHtml($banktranferData['bankTransfer.iban']); ?></td>
+                <td><?= $block->escapeHtml($banktranferData['iban']); ?></td>
             </tr>
         <?php endif; ?>
 
-        <?php if (!empty($banktranferData['bankTransfer.accountCode'])): ?>
+        <?php if (!empty($banktranferData['bic'])): ?>
             <tr>
-                <th scope="row"><?= $block->escapeHtml(__('Bankaccount')); ?></th>
-                <td><?= $block->escapeHtml($banktranferData['bankTransfer.accountCode']); ?></td>
+                <th scope="row"><?= $block->escapeHtml(__('SWIFT/BIC')); ?></th>
+                <td><?= $block->escapeHtml($banktranferData['bic']); ?></td>
             </tr>
         <?php endif; ?>
         </tbody>
