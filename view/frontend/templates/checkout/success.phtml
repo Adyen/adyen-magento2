@@ -29,8 +29,8 @@
     <script type="text/javascript">
         require([
             'jquery',
-            'adyenCheckout3101'
-        ], function ($, AdyenCheckout) {
+            'Adyen_Payment/js/bundle'
+        ], function ($, adyenComponent) {
             var action = JSON.parse('<?= /* @noEscape */ $block->getAction(); ?>');
             var checkoutComponent = new AdyenCheckout({
                 locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
