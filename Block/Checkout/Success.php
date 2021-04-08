@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,156 +23,74 @@
 
 namespace Adyen\Payment\Block\Checkout;
 
-use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
-use Adyen\Payment\Model\AdyenAmountCurrency;
+use Magento\Checkout\Model\Session;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\OrderFactory;
+use Magento\Store\Model\StoreManagerInterface;
 
-/**
- * Billing agreement information on Order success page
- */
-class Success extends \Magento\Framework\View\Element\Template
+class Success extends Template
 {
 
     /**
-     * @var \Magento\Sales\Model\Order $order
+     * @var Order $order
      */
     protected $order;
 
     /**
-     * @var \Magento\Checkout\Model\Session
+     * @var Session
      */
     protected $checkoutSession;
 
     /**
-     * @var \Magento\Checkout\Model\OrderFactory
+     * @var OrderFactory
      */
     protected $orderFactory;
 
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     protected $adyenHelper;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var StoreManagerInterface
      */
     protected $storeManager;
 
     /**
-     * @var ChargedCurrency
-     */
-    protected $chargedCurrency;
-
-    /**
      * Success constructor.
      *
-     * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param \Magento\Checkout\Model\Session $checkoutSession
-     * @param \Magento\Sales\Model\OrderFactory $orderFactory
-     * @param \Magento\Framework\Pricing\Helper\Data $priceHelper
+     * @param Context $context
+     * @param Session $checkoutSession
+     * @param OrderFactory $orderFactory
+     * @param Data $adyenHelper
+     * @param StoreManagerInterface $storeManager
      * @param array $data
      */
     public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
-        \Magento\Checkout\Model\Session $checkoutSession,
-        \Magento\Sales\Model\OrderFactory $orderFactory,
-        \Magento\Framework\Pricing\Helper\Data $priceHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        ChargedCurrency $chargedCurrency,
+        Context $context,
+        Session $checkoutSession,
+        OrderFactory $orderFactory,
+        Data $adyenHelper,
+        StoreManagerInterface $storeManager,
         array $data = []
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->orderFactory = $orderFactory;
-        $this->priceHelper = $priceHelper;
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
-        $this->chargedCurrency = $chargedCurrency;
         parent::__construct($context, $data);
     }
 
     /**
-     * Return Boleto PDF url
-     *
-     * @return string
-     */
-    protected function _toHtml()
-    {
-        if ($this->isBoletoPayment()) {
-            $this->addData(
-                [
-                    'boleto_pdf_url' => $this->getBoletoPdfUrl()
-                ]
-            );
-        }
-        return parent::_toHtml();
-    }
-
-    /**
-     * Detect if Boleto is used as payment method
-     *
-     * @return bool
-     */
-    public function isBoletoPayment()
-    {
-        if ($this->getOrder()->getPayment() &&
-            $this->getOrder()->getPayment()->getMethod() == \Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider::CODE) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @return null|\string[]
-     */
-    public function getBoletoData()
-    {
-        if ($this->isBoletoPayment()) {
-            return $this->getOrder()->getPayment()->getAdditionalInformation('action');
-        }
-        return null;
-    }
-
-    /**
-     * Get Banktransfer additional data
-     *
-     * @return array|string[]
-     */
-    public function getBankTransferData()
-    {
-        $action = $this->getOrder()->getPayment()->getAdditionalInformation('action');
-        $result['beneficiary'] = !empty($action['beneficiary']) ? $action['beneficiary'] : '';
-        $result['iban'] = !empty($action['iban']) ? $action['iban'] : '';
-        $result['bankName'] = !empty($action['bankName']) ? $action['bankName'] : '';
-        $result['bic'] = !empty($action['bic']) ? $action['bic'] : '';
-        $result['reference'] = !empty($action['reference']) ? $action['reference'] : '';
-        return $result;
-    }
-
-    /**
-     * Get multibanco additional data
-     *
-     * @return array|string[]
-     */
-    public function getMultibancoData()
-    {
-        $result = [];
-        if (empty($this->getOrder()->getPayment())) {
-            return $result;
-        }
-        $action = $this->getOrder()->getPayment()->getAdditionalInformation('action');
-        if (!empty($action["paymentMethodType"]) &&
-            (strcmp($action["paymentMethodType"], 'multibanco') === 0)
-        ) {
-            $result = $action;
-        }
-
-        return $result;
-    }
-
-    /**
-     * If PresentToShopper resultCode and action has provided render this with the checkout component on the success page
+     * Render with the checkout component on the success page for the following cases:
+     * PresentToShopper e.g. Multibanco
+     * Pending e.g. Swish
+     * Received e.g. Bank Transfer IBAN
      * @return bool
      */
     public function renderAction()
@@ -184,7 +102,8 @@ class Success extends \Magento\Framework\View\Element\Template
             in_array($this->getOrder()->getPayment()->getAdditionalInformation('resultCode'),
                 [
                     PaymentResponseHandler::PRESENT_TO_SHOPPER,
-                    PaymentResponseHandler::RECEIVED
+                    PaymentResponseHandler::RECEIVED,
+                    PaymentResponseHandler::PENDING
                 ]
             )
             )
@@ -218,9 +137,8 @@ class Success extends \Magento\Framework\View\Element\Template
         );
     }
 
-
     /**
-     * @return \Magento\Sales\Model\Order
+     * @return Order
      */
     public function getOrder()
     {
@@ -230,11 +148,4 @@ class Success extends \Magento\Framework\View\Element\Template
         return $this->order;
     }
 
-    /**
-     * @return AdyenAmountCurrency
-     */
-    public function geAdyenAmountCurrency()
-    {
-        return $this->chargedCurrency->getOrderAmountCurrency($this->order, false);
-    }
 }
