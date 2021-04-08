@@ -35,6 +35,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
     const BRAND = 'brand';
     const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
     const STATE_DATA = 'stateData';
+    const PAYMENT_METHOD = 'paymentMethod';
 
     /**
      * Approved root level keys from additional data array
@@ -120,9 +121,9 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
         }
 
         // set ccType
-        if (!empty($stateData[self::BRAND])) {
-            $ccType = $this->adyenHelper->getMagentoCreditCartType($stateData[self::BRAND]);
-            $paymentInfo->setCcType($ccType);
+        if (!empty($stateData[self::PAYMENT_METHOD][self::BRAND])) {
+            $ccType = $this->adyenHelper->getMagentoCreditCartType($stateData[self::PAYMENT_METHOD][self::BRAND]);
+            $paymentInfo->setCcType($ccType)->setAdditionalInformation(self::CC_TYPE,$ccType);
         }
 
         // set customerInteraction
