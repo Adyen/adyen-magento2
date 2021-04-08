@@ -23,25 +23,24 @@
 
 namespace Adyen\Payment\Model;
 
-use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Model\Cron\IsAutoCapture;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
+use DateInterval;
+use DateTime;
+use DateTimeZone;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Encryption\EncryptorInterface;
-use Magento\Framework\Webapi\Exception;
-use Magento\Sales\Model\Order\Email\Sender\OrderSender;
-use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
-use Magento\Framework\Phrase\Renderer\Placeholder;
+use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Phrase;
+use Magento\Framework\Phrase\Renderer\Placeholder;
+use Magento\Framework\Webapi\Exception;
+use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
+use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
-use DateInterval;
-use DateTime;
-use DateTimeZone;
 
 class Cron
 {
@@ -270,6 +269,11 @@ class Cron
     protected $encryptor;
 
     /**
+     * @var IsAutoCapture
+     */
+    protected $isAutoCapture;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -300,6 +304,7 @@ class Cron
      * @param PaymentTokenFactoryInterface $paymentTokenFactory
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      * @param EncryptorInterface $encryptor
+     * @param IsAutoCapture $isAutoCapture
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -329,7 +334,8 @@ class Cron
         PaymentTokenManagement $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
-        EncryptorInterface $encryptor
+        EncryptorInterface $encryptor,
+        IsAutoCapture $isAutoCapture
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -359,6 +365,7 @@ class Cron
         $this->paymentTokenFactory = $paymentTokenFactory;
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->encryptor = $encryptor;
+        $this->isAutoCapture = $isAutoCapture;
     }
 
     /**
@@ -1081,7 +1088,7 @@ class Cron
                  * only process this if you are on auto capture.
                  * On manual capture you will always get Capture or CancelOrRefund notification
                  */
-                if ($this->_isAutoCapture()) {
+                if ($this->isAutoCapture->check($this->_order, $this->_paymentMethod)) {
                     $this->_setPaymentAuthorized(false);
                 }
                 break;
@@ -1090,7 +1097,7 @@ class Cron
                  * ignore capture if you are on auto capture
                  * this could be called if manual review is enabled and you have a capture delay
                  */
-                if (!$this->_isAutoCapture()) {
+                if (!$this->isAutoCapture->check($this->_order, $this->_paymentMethod)) {
                     $this->_setPaymentAuthorized(false, true);
 
                     /*
@@ -1344,8 +1351,7 @@ class Cron
                                 $payment->getOrder()->getCustomerId()
                             );
 
-
-                            // In case the payment token for this payment method does not exist, create it based on the additionalData
+                            // In case the payment token for this payment method does not exist, create it based on the additionalData.
                             if ($paymentTokenAlternativePaymentMethod === null) {
                                 $this->_adyenLogger->addAdyenNotificationCronjob('Creating new gateway token');
                                 /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
@@ -1584,7 +1590,7 @@ class Cron
         $transaction->save();
 
         //capture mode
-        if (!$this->_isAutoCapture()) {
+        if (!$this->isAutoCapture->check($this->_order, $this->_paymentMethod)) {
             $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'));
             $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode is set to Manual');
 
@@ -1647,185 +1653,6 @@ class Cron
                 'This is a partial AUTHORISATION and the full amount is not reached'
             );
         }
-    }
-
-    /**
-     * @return bool
-     */
-    protected function _isAutoCapture()
-    {
-        // validate if payment methods allows manual capture
-        if ($this->_manualCaptureAllowed()) {
-            $captureMode = trim(
-                $this->_getConfigData(
-                    'capture_mode',
-                    'adyen_abstract',
-                    $this->_order->getStoreId()
-                )
-            );
-            $sepaFlow = trim(
-                $this->_getConfigData(
-                    'sepa_flow',
-                    'adyen_abstract',
-                    $this->_order->getStoreId()
-                )
-            );
-            $_paymentCode = $this->_paymentMethodCode();
-            $captureModeOpenInvoice = $this->_getConfigData(
-                'auto_capture_openinvoice',
-                'adyen_abstract',
-                $this->_order->getStoreId()
-            );
-            $manualCapturePayPal = trim(
-                $this->_getConfigData(
-                    'paypal_capture_mode',
-                    'adyen_abstract',
-                    $this->_order->getStoreId()
-                )
-            );
-
-            /*
-             * if you are using authcap the payment method is manual.
-             * There will be a capture send to indicate if payment is successful
-             */
-            if ($this->_paymentMethod == "sepadirectdebit" && $sepaFlow == "authcap") {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'Manual Capture is applied for sepa because it is in authcap flow'
-                );
-                return false;
-            }
-
-            // payment method ideal, cash adyen_boleto has direct capture
-            if ($this->_paymentMethod == "sepadirectdebit" && $sepaFlow != "authcap") {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'This payment method does not allow manual capture.(2) paymentCode:' .
-                    $_paymentCode . ' paymentMethod:' . $this->_paymentMethod . ' sepaFLow:' . $sepaFlow
-                );
-                return true;
-            }
-
-            if ($_paymentCode == "adyen_pos_cloud") {
-                $captureModePos = $this->_adyenHelper->getAdyenPosCloudConfigData(
-                    'capture_mode_pos',
-                    $this->_order->getStoreId()
-                );
-                if (strcmp($captureModePos, 'auto') === 0) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        'This payment method is POS Cloud and configured to be working as auto capture '
-                    );
-                    return true;
-                } elseif (strcmp($captureModePos, 'manual') === 0) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        'This payment method is POS Cloud and configured to be working as manual capture '
-                    );
-                    return false;
-                }
-            }
-
-            // if auto capture mode for openinvoice is turned on then use auto capture
-            if ($captureModeOpenInvoice == true &&
-                $this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod)
-            ) {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'This payment method is configured to be working as auto capture '
-                );
-                return true;
-            }
-
-            // if PayPal capture modues is different from the default use this one
-            if (strcmp($this->_paymentMethod, 'paypal') === 0) {
-                if ($manualCapturePayPal) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        'This payment method is paypal and configured to work as manual capture'
-                    );
-                    return false;
-                } else {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        'This payment method is paypal and configured to work as auto capture'
-                    );
-                    return true;
-                }
-            }
-            if (strcmp($captureMode, 'manual') === 0) {
-                $this->_adyenLogger->addAdyenNotificationCronjob
-                (
-                    'Capture mode for this payment is set to manual'
-                );
-                return false;
-            }
-
-            /*
-             * online capture after delivery, use Magento backend to online invoice
-             * (if the option auto capture mode for openinvoice is not set)
-             */
-            if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod)) {
-                $this->_adyenLogger->addAdyenNotificationCronjob
-                (
-                    'Capture mode for klarna is by default set to manual'
-                );
-                return false;
-            }
-
-            $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode is set to auto capture');
-            return true;
-        } else {
-            // does not allow manual capture so is always immediate capture
-            $this->_adyenLogger->addAdyenNotificationCronjob
-            (
-                'This payment method does not allow manual capture'
-            );
-            return true;
-        }
-    }
-
-    /**
-     * Validate if this payment methods allows manual capture
-     * This is a default can be forced differently to overrule on acquirer level
-     *
-     * @return bool|null
-     */
-    protected function _manualCaptureAllowed()
-    {
-        $manualCaptureAllowed = null;
-        $paymentMethod = $this->_paymentMethod;
-
-        // For all openinvoice methods manual capture is the default
-        if ($this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod)) {
-            return true;
-        }
-
-        switch ($paymentMethod) {
-            case 'cup':
-            case 'cartebancaire':
-            case 'visa':
-            case 'visadankort':
-            case 'mc':
-            case 'uatp':
-            case 'amex':
-            case 'maestro':
-            case 'maestrouk':
-            case 'diners':
-            case 'discover':
-            case 'jcb':
-            case 'laser':
-            case 'paypal':
-            case 'sepadirectdebit':
-            case 'dankort':
-            case 'elo':
-            case 'hipercard':
-            case 'mc_applepay':
-            case 'visa_applepay':
-            case 'amex_applepay':
-            case 'discover_applepay':
-            case 'maestro_applepay':
-            case 'paywithgoogle':
-                $manualCaptureAllowed = true;
-                break;
-            default:
-                $manualCaptureAllowed = false;
-        }
-
-        return $manualCaptureAllowed;
     }
 
     /**
@@ -1929,8 +1756,7 @@ class Cron
                 // set transaction id so you can do a online refund from credit memo
                 $invoice->setTransactionId($this->_pspReference);
 
-
-                $autoCapture = $this->_isAutoCapture();
+                $autoCapture = $this->isAutoCapture->check($this->_order, $this->_paymentMethod);
                 $createPendingInvoice = (bool)$this->_getConfigData(
                     'create_pending_invoice',
                     'adyen_abstract',
