@@ -102,8 +102,7 @@ class Success extends Template
             in_array($this->getOrder()->getPayment()->getAdditionalInformation('resultCode'),
                 [
                     PaymentResponseHandler::PRESENT_TO_SHOPPER,
-                    PaymentResponseHandler::RECEIVED,
-                    PaymentResponseHandler::PENDING
+                    PaymentResponseHandler::RECEIVED
                 ]
             )
             )
