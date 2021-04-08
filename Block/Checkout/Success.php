@@ -89,7 +89,6 @@ class Success extends Template
     /**
      * Render with the checkout component on the success page for the following cases:
      * PresentToShopper e.g. Multibanco
-     * Pending e.g. Swish
      * Received e.g. Bank Transfer IBAN
      * @return bool
      */
