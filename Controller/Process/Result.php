@@ -478,9 +478,8 @@ class Result extends \Magento\Framework\App\Action\Action
                     // TODO error page
                 }
             } else {
-                // TODO error handling
                 $this->_adyenLogger->addError("No merchantReference in the response");
-                // TODO error page
+                $response['error'] = 'merchantReference is missing from the response';
             }
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
