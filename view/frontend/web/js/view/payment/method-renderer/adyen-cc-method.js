@@ -233,7 +233,6 @@ define(
                         'combo_card_type': this.comboCardOption(),
                         //This is required by magento to store the token
                         'is_active_payment_token_enabler' : this.storeCc,
-                        //TODO check installments
                         'number_of_installments': this.installment(),
                     },
                 };
