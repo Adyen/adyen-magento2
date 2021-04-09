@@ -81,7 +81,7 @@ define(
                         adyenPaymentService.setPaymentMethods(paymentMethods);
                         fullScreenLoader.stopLoader();
                     }).fail(function() {
-
+                        console.log('Fetching the payment methods failed!');
                     })
                 });
             }
