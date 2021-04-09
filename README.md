@@ -69,7 +69,7 @@ If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com
    * Afterpay
    * Apple Pay
    * Bancontact
-   * Bantransfer IBAN
+   * Banktransfer IBAN
    * Doku
    * Google Pay
    * iDeal
