@@ -39,9 +39,6 @@
         <method name="adyen_hpp">
             <allow_multiple_address>0</allow_multiple_address>
         </method>
-        <method name="adyen_apple_pay">
-            <allow_multiple_address>0</allow_multiple_address>
-        </method>
     </methods>
 </payment>
 

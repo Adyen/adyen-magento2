@@ -57,6 +57,39 @@ The notification processing service queries the records that have been received 
 
 If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html" target="_blank">this is described here</a>
 
+## Verified payment methods
+
+ * Card payment methods
+    * Card payment method (non-3DS, 3DS1 and 3DS2)
+    * One click payment methods (using Billing agreements or Vault)
+    * Recurring payment methods (using Billing agreements or Vault) 
+   
+
+* Local payment methods
+   * Afterpay
+   * Apple Pay
+   * Bancontact
+   * Banktransfer IBAN
+   * Doku
+   * Google Pay
+   * iDeal
+   * Klarna
+   * Oney
+   * Zip
+   * Multibanco
+   * Konbini
+   * Swish
+   * MBway
+   * Twint
+   * Paypal
+   * SEPA Direct Debit
+   * PIX
+   * Ratepay
+   * Oxxo
+   * Econtexts
+
+_This is not an extensive list of all the supported payment methods but only the ones that have been already verified. In case you would like to see other payment methods in the list as well please contact us to verify those too._
+
 ## Support
 If you have a feature request, or spotted a bug or a technical problem, create a GitHub issue. For other questions, contact our [support team](https://support.adyen.com/hc/en-us/requests/new?ticket_form_id=360000705420).
 

@@ -117,7 +117,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'isActive' => true,
                     'redirectUrl' => $this->urlBuilder->getUrl(
-                        'adyen/process/redirect',
+                        'checkout/onepage/success',
                         ['_secure' => $this->getRequest()->isSecure()]
                     )
                 ]
@@ -155,6 +155,8 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $adyenHppConfig['ratePayId'] = $this->adyenHelper->getRatePayId();
         $adyenHppConfig['deviceIdentToken'] = hash("sha256", $this->session->getQuoteId() . date('c'));
         $adyenHppConfig['nordicCountries'] = ['SE', 'NO', 'DK', 'FI'];
+
+        $adyenHppConfig['methodCode'] = self::CODE;
 
         $config['payment']['adyenHpp'] = $adyenHppConfig;
         return $config;

@@ -13,37 +13,25 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment Module
+ * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen B.V.
- * This file is open source and available under the MIT license.
- * See the LICENSE file for more info.
+ * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Block\Form;
+namespace Adyen\Payment\Model\Config\Source;
 
-class GooglePay extends \Magento\Payment\Block\Form
+use Magento\Framework\Data\OptionSourceInterface;
+
+class ChargedCurrency implements OptionSourceInterface
 {
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $adyenHelper;
-
-    /**
-     * GooglePay constructor.
-     *
-     * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param array $data
-     */
-    public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        array $data = []
-    ) {
-        parent::__construct($context, $data);
-        $this->adyenHelper = $adyenHelper;
+    public function toOptionArray()
+    {
+        return array(
+            ['value' => 'display', 'label' => 'Display currency'],
+            ['value' => 'base', 'label' => 'Global/Website currency']
+        );
     }
 }

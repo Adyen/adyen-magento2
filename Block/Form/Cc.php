@@ -79,9 +79,9 @@ class Cc extends \Magento\Payment\Block\Form\Cc
      * @return string
      * @throws \Adyen\AdyenException
      */
-    public function getCheckoutOriginKeys()
+    public function getClientKey()
     {
-        return $this->adyenHelper->getOriginKeyForBaseUrl();
+        return $this->adyenHelper->getClientKey();
     }
 
     /**

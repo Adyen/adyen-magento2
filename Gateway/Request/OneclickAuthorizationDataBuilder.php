@@ -55,26 +55,9 @@ class OneclickAuthorizationDataBuilder implements BuilderInterface
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
 
-        // If ccType is set use this. For bcmc you need bcmc otherwise it will fail
-        $requestBody['paymentMethod']['type'] = "scheme";
-        if ($variant = $payment->getAdditionalInformation(AdyenOneclickDataAssignObserver::VARIANT)) {
-            $requestBody['paymentMethod']['type'] = $variant;
-        }
-
-        if ($securityCode = $payment->getAdditionalInformation(
-            AdyenOneclickDataAssignObserver::ENCRYPTED_SECURITY_CODE
-        )) {
-            $requestBody['paymentMethod']['encryptedSecurityCode'] = $securityCode;
-        }
-
-        $payment->unsAdditionalInformation(AdyenOneclickDataAssignObserver::ENCRYPTED_SECURITY_CODE);
-
         // We override the previously set shopperInteraction in the buildRecurringData() to ContAuth here because if
         // it's a payment with a stored method we should always send ContAuth
         $requestBody['shopperInteraction'] = 'ContAuth';
-        $requestBody['paymentMethod']['recurringDetailReference'] = $payment->getAdditionalInformation(
-            AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE
-        );
 
         // if it is a sepadirectdebit set selectedBrand to sepadirectdebit in the case of oneclick
         if ($payment->getCcType() == "sepadirectdebit") {

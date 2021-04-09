@@ -23,6 +23,8 @@
 
 namespace Adyen\Payment\Block\Form;
 
+use Adyen\Payment\Helper\ChargedCurrency;
+
 class Oneclick extends \Adyen\Payment\Block\Form\Cc
 {
     /**
@@ -36,12 +38,19 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
     protected $_sessionQuote;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * Oneclick constructor.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param \Magento\Backend\Model\Session\Quote $sessionQuote
+     * @param ChargedCurrency $chargedCurrency
      * @param array $data
      */
     public function __construct(
@@ -50,10 +59,12 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Backend\Model\Session\Quote $sessionQuote,
+        ChargedCurrency $chargedCurrency,
         array $data = []
     ) {
         parent::__construct($context, $paymentConfig, $adyenHelper, $checkoutSession, $data);
         $this->_sessionQuote = $sessionQuote;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -63,7 +74,8 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
     {
         $customerId = $this->_sessionQuote->getCustomerId();
         $storeId = $this->_sessionQuote->getStoreId();
-        $grandTotal = $this->_sessionQuote->getQuote()->getGrandTotal();
+        $grandTotal = $this->chargedCurrency->getQuoteAmountCurrency($this->_sessionQuote->getQuote())->getAmount();
+
 
         // For backend only allow recurring payments
         $recurringType = \Adyen\Payment\Model\RecurringType::RECURRING;

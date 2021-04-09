@@ -23,7 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Command;
 
-use Magento\Payment\Gateway\Command;
+use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Payment\Gateway\CommandInterface;
 
 class PayByMailCommand implements CommandInterface
@@ -39,18 +39,25 @@ class PayByMailCommand implements CommandInterface
     protected $_adyenLogger;
 
     /**
+     * @var ChargedCurrency
+     */
+    protected $chargedCurrency;
+
+    /**
      * PayByMailCommand constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Framework\Locale\ResolverInterface $resolver
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param ChargedCurrency $chargedCurrency
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_adyenLogger = $adyenLogger;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -127,7 +134,6 @@ class PayByMailCommand implements CommandInterface
         $order = $payment->getOrder();
 
         $realOrderId = $order->getRealOrderId();
-        $orderCurrencyCode = $order->getOrderCurrencyCode();
         $storeId = $order->getStore()->getId();
 
         // check if paybymail has it's own skin
@@ -143,10 +149,15 @@ class PayByMailCommand implements CommandInterface
             $hmacKey = $this->_adyenHelper->getHmacPayByMail();
         }
 
+        $adyenAmount = $this->chargedCurrency->getOrderAmountCurrency($order);
+        $orderCurrencyCode = $adyenAmount->getCurrencyCode();
+
+        //Use the $paymentAmount arg as total if this is a partial payment, full amount if not
         $amount = $this->_adyenHelper->formatAmount(
-            $paymentAmount ?: $order->getGrandTotal(),
+            $paymentAmount ?: $adyenAmount->getAmount(),
             $orderCurrencyCode
         );
+
         $merchantAccount = trim($this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId));
         $shopperEmail = $order->getCustomerEmail();
         $customerId = $order->getCustomerId();

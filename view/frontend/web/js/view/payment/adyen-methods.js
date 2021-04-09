@@ -24,11 +24,19 @@
 define(
     [
         'uiComponent',
-        'Magento_Checkout/js/model/payment/renderer-list'
+        'Magento_Checkout/js/model/payment/renderer-list',
+        'Adyen_Payment/js/model/adyen-payment-service',
+        'Adyen_Payment/js/model/adyen-configuration',
+        'Magento_Checkout/js/model/quote',
+        'Magento_Checkout/js/model/full-screen-loader',
     ],
     function (
         Component,
-        rendererList
+        rendererList,
+        adyenPaymentService,
+        adyenConfiguration,
+        quote,
+        fullScreenLoader
     ) {
         'use strict';
         rendererList.push(
@@ -49,16 +57,8 @@ define(
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-boleto-method'
             },
             {
-                type: 'adyen_apple_pay',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-apple-pay-method'
-            },
-            {
                 type: 'adyen_pos_cloud',
                 component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-pos-cloud-method'
-            },
-            {
-                type: 'adyen_google_pay',
-                component: 'Adyen_Payment/js/view/payment/method-renderer/adyen-google-pay-method'
             }
         );
         /** Add view logic here if needed */
@@ -66,15 +66,24 @@ define(
             initialize: function () {
                 this._super();
 
-                if (this.isGooglePayEnabled()) {
-                    var googlepayscript = document.createElement('script');
-                    googlepayscript.src = "https://pay.google.com/gp/p/js/pay.js";
-                    googlepayscript.type = "text/javascript";
-                    document.head.appendChild(googlepayscript);
-                }
-            },
-            isGooglePayEnabled: function () {
-                return window.checkoutConfig.payment.adyenGooglePay.active;
+                var shippingAddressCountry = "";
+                quote.shippingAddress.subscribe(function(address) {
+                    // In case the country hasn't changed don't retrieve new payment methods
+                    if (shippingAddressCountry === quote.shippingAddress().countryId) {
+                        return;
+                    }
+
+                    shippingAddressCountry = quote.shippingAddress().countryId;
+                    fullScreenLoader.startLoader();
+                    // Retrieve adyen payment methods
+                    adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
+                        paymentMethods = JSON.parse(paymentMethods);
+                        adyenPaymentService.setPaymentMethods(paymentMethods);
+                        fullScreenLoader.stopLoader();
+                    }).fail(function() {
+                        console.log('Fetching the payment methods failed!');
+                    })
+                });
             }
         });
     }

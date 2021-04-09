@@ -6,74 +6,86 @@ define(
     [
         'underscore',
         'Magento_Checkout/js/model/quote',
-        'Adyen_Payment/js/model/adyen-method-list',
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/url-builder',
-        'mage/storage'
+        'mage/storage',
+        'Adyen_Payment/js/bundle',
+        'ko'
     ],
-    function (_, quote, methodList, customer, urlBuilder, storage) {
+    function(
+        _,
+        quote,
+        customer,
+        urlBuilder,
+        storage,
+        adyenComponent,
+        ko
+    ) {
         'use strict';
-
         return {
-            /**
-             * Populate the list of payment methods
-             * @param {Array} methods
-             */
-            setPaymentMethods: function (methods) {
-                methodList(methods);
-            },
-            /**
-             * Get the list of available payment methods.
-             * @returns {Array}
-             */
-            getAvailablePaymentMethods: function () {
-                return methodList();
-            },
-            /**
-             * Retrieve the list of available payment methods from the server
-             */
-            retrieveAvailablePaymentMethods: function (callback) {
-                var self = this;
+            paymentMethods: ko.observable({}),
 
-                // retrieve payment methods
-                var serviceUrl,
-                    payload;
-                if (customer.isLoggedIn()) {
-                    serviceUrl = urlBuilder.createUrl('/carts/mine/retrieve-adyen-payment-methods', {});
-                } else {
-                    serviceUrl = urlBuilder.createUrl('/guest-carts/:cartId/retrieve-adyen-payment-methods', {
-                        cartId: quote.getQuoteId()
+            /**
+             * Retrieve the list of available payment methods from Adyen
+             */
+            retrievePaymentMethods: function() {
+                // url for guest users
+                var serviceUrl = urlBuilder.createUrl(
+                    '/guest-carts/:cartId/retrieve-adyen-payment-methods', {
+                        cartId: quote.getQuoteId(),
                     });
+
+                // url for logged in users
+                if (customer.isLoggedIn()) {
+                    serviceUrl = urlBuilder.createUrl(
+                        '/carts/mine/retrieve-adyen-payment-methods', {});
                 }
 
-                payload = {
+                // Construct payload for the retrieve payment methods request
+                var payload = {
                     cartId: quote.getQuoteId(),
-                    shippingAddress: quote.shippingAddress()
+                    shippingAddress: quote.shippingAddress(),
                 };
 
-                storage.post(
+                return storage.post(
                     serviceUrl,
-                    JSON.stringify(payload)
-                ).done(
-                    function (response) {
-                        self.setPaymentMethods(response);
-                        if (callback) {
-                            callback();
-                        }
-                    }
-                ).fail(
-                    function () {
-                        self.setPaymentMethods([]);
-                    }
-                )
+                    JSON.stringify(payload),
+                );
             },
-            getOrderPaymentStatus: function (orderId) {
-                var serviceUrl = urlBuilder.createUrl('/adyen/orders/:orderId/payment-status', {
-                    orderId: orderId
-                });
+            getPaymentMethods: function() {
+                return this.paymentMethods;
+            },
+            setPaymentMethods: function(paymentMethods) {
+                this.paymentMethods(paymentMethods);
+            },
+            getOrderPaymentStatus: function(orderId) {
+                var serviceUrl = urlBuilder.createUrl(
+                    '/adyen/orders/:orderId/payment-status', {
+                        orderId: orderId,
+                    });
 
                 return storage.get(serviceUrl);
+            },
+            /**
+             * The results that the components returns in the onComplete callback needs to be sent to the
+             * backend to the /adyen/paymentDetails endpoint and based on the response render a new
+             * component or place the order (validateThreeDS2OrPlaceOrder)
+             * @param response
+             */
+            paymentDetails: function(data) {
+                var payload = {
+                    'payload': JSON.stringify(data),
+                };
+
+                var serviceUrl = urlBuilder.createUrl('/adyen/paymentDetails',
+                    {});
+
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(payload),
+                    true,
+                );
             }
         };
-    }
+    },
 );

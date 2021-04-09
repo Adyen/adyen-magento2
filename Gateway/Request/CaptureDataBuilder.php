@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 /**
@@ -36,13 +37,22 @@ class CaptureDataBuilder implements BuilderInterface
     private $adyenHelper;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * CaptureDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param ChargedCurrency $chargedCurrency
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
-    {
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        ChargedCurrency $chargedCurrency
+    ) {
         $this->adyenHelper = $adyenHelper;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -55,13 +65,12 @@ class CaptureDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
-
         $payment = $paymentDataObject->getPayment();
-
+        $order = $payment->getOrder();
         $pspReference = $payment->getCcTransId();
-        $currency = $payment->getOrder()->getOrderCurrencyCode();
-
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
+        $currency = $orderAmountCurrency->getCurrencyCode();
+        $amount = $orderAmountCurrency->getAmount();
         $amount = $this->adyenHelper->formatAmount($amount, $currency);
 
         $modificationAmount = ['currency' => $currency, 'value' => $amount];
@@ -93,27 +102,32 @@ class CaptureDataBuilder implements BuilderInterface
     {
         $formFields = [];
         $count = 0;
-        $currency = $payment->getOrder()->getOrderCurrencyCode();
+        $order = $payment->getOrder();
+        $invoices = $order->getInvoiceCollection();
 
-        $invoices = $payment->getOrder()->getInvoiceCollection();
+        $currency = $this->chargedCurrency
+            ->getOrderAmountCurrency($payment->getOrder(), false)
+            ->getCurrencyCode();
 
         // The latest invoice will contain only the selected items(and quantities) for the (partial) capture
         $latestInvoice = $invoices->getLastItem();
 
-        foreach ($latestInvoice->getItems() as $invoiceItem) {            
+        /* @var \Magento\Sales\Model\Order\Invoice\Item $invoiceItem */
+        foreach ($latestInvoice->getItems() as $invoiceItem) {
             if ($invoiceItem->getOrderItem()->getParentItem()) {
                 continue;
             }
             ++$count;
+            $itemAmountCurrency = $this->chargedCurrency->getInvoiceItemAmountCurrency($invoiceItem);
             $numberOfItems = (int)$invoiceItem->getQty();
             $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
                 $formFields,
                 $count,
                 $invoiceItem->getName(),
-                $invoiceItem->getPrice(),
+                $itemAmountCurrency->getAmount(),
                 $currency,
-                $invoiceItem->getTaxAmount(),
-                $invoiceItem->getPriceInclTax(),
+                $itemAmountCurrency->getTaxAmount(),
+                $itemAmountCurrency->getAmount() + $itemAmountCurrency->getTaxAmount(),
                 $invoiceItem->getOrderItem()->getTaxPercent(),
                 $numberOfItems,
                 $payment,
@@ -124,13 +138,14 @@ class CaptureDataBuilder implements BuilderInterface
         // Shipping cost
         if ($latestInvoice->getShippingAmount() > 0) {
             ++$count;
+            $adyenInvoiceShippingAmount = $this->chargedCurrency->getInvoiceShippingAmountCurrency($latestInvoice);
             $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
                 $formFields,
                 $count,
-                $payment->getOrder(),
-                $latestInvoice->getShippingAmount(),
-                $latestInvoice->getShippingTaxAmount(),
-                $currency,
+                $order,
+                $adyenInvoiceShippingAmount->getAmount(),
+                $adyenInvoiceShippingAmount->getTaxAmount(),
+                $adyenInvoiceShippingAmount->getCurrencyCode(),
                 $payment
             );
         }
