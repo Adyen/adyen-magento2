@@ -21,43 +21,51 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Plugin;
-use Magento\Framework\App\Request\Http;
-use Magento\Framework\Session\SessionStartChecker;
+namespace Adyen\Payment\Model;
 
-
-class TransparentSessionChecker
+class AdyenAmountCurrency
 {
-    const TRANSPARENT_REDIRECT_PATH = 'adyen/transparent/redirect';
+    protected $amount;
 
-    /**
-     * @var Http
-     */
-    private $request;
+    protected $discountAmount;
 
-    /**
-     * @param Http $request
-     */
-    public function __construct(
-        Http $request
-    ) {
-        $this->request = $request;
+    protected $taxAmount;
+
+    protected $currencyCode;
+
+    protected $amountDue;
+
+    public function __construct($amount, $currencyCode, $discountAmount = 0, $taxAmount = 0, $amountDue = 0)
+    {
+        $this->amount = $amount;
+        $this->currencyCode = $currencyCode;
+        $this->discountAmount = $discountAmount;
+        $this->taxAmount = $taxAmount;
+        $this->amountDue = $amountDue;
     }
 
-    /**
-     * Prevents session starting while instantiating Adyen transparent redirect controller.
-     *
-     * @param SessionStartChecker $subject
-     * @param bool $result
-     * @return bool
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function afterCheck(SessionStartChecker $subject, bool $result): bool
+    public function getAmount()
     {
-        if ($result === false) {
-            return false;
-        }
+        return $this->amount;
+    }
 
-        return strpos((string)$this->request->getPathInfo(), self::TRANSPARENT_REDIRECT_PATH) === false;
+    public function getCurrencyCode()
+    {
+        return $this->currencyCode;
+    }
+
+    public function getDiscountAmount()
+    {
+        return $this->discountAmount;
+    }
+
+    public function getTaxAmount()
+    {
+        return $this->taxAmount;
+    }
+
+    public function getAmountDue()
+    {
+        return $this->amountDue;
     }
 }

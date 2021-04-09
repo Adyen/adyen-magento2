@@ -15,38 +15,40 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2017 Adyen B.V.
+ * Copyright (c) 2020 Adyen B.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Config\Source;
+namespace Adyen\Payment\Observer;
 
-class ApplePayShippingType implements \Magento\Framework\Option\ArrayInterface
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
+use Adyen\Payment\Helper\Config;
+
+class AdyenSalesOrderChargedCurrencyObserver implements ObserverInterface
 {
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $_adyenHelper;
 
     /**
-     * ApplePayShippingType constructor.
-     *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @var Config $config
      */
+    private $config;
+
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        Config $config
     ) {
-        $this->_adyenHelper = $adyenHelper;
+        $this->config = $config;
     }
 
-    /**
-     * @return array
-     */
-    public function toOptionArray()
+    public function execute(Observer $observer)
     {
-        return $this->_adyenHelper->getApplePayShippingTypes();
+        /** @var \Magento\Sales\Model\Order $order */
+        $order = $observer->getEvent()->getOrder();
+        $paymentMethod = $order->getPayment()->getMethod();
+        if (strpos($paymentMethod, 'adyen_') !== false) {
+            $order->setAdyenChargedCurrency($this->config->getChargedCurrency($order->getStoreId()));
+        }
     }
 }

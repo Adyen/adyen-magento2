@@ -35,7 +35,7 @@ class Config
     const XML_NOTIFICATIONS_IP_CHECK = "notifications_ip_check";
     const XML_NOTIFICATIONS_HMAC_KEY_LIVE = "notification_hmac_key_live";
     const XML_NOTIFICATIONS_HMAC_KEY_TEST = "notification_hmac_key_test";
-    const XML_THREEDS_BEHAVIOR = "threeds_behavior";
+    const XML_CHARGED_CURRENCY = "charged_currency";
 
     /**
      * @var Magento\Framework\App\Config\ScopeConfigInterface
@@ -155,14 +155,14 @@ class Config
     }
 
     /**
-     * Get 3DS1 flow behavior config
+     * Retrive charged currency selection (base or display)
      *
      * @param null|int|string $storeId
      * @return mixed
      */
-    public function getThreeDsBehavior($storeId = null)
+    public function getChargedCurrency($storeId = null)
     {
-        return $this->adyenHelper->getAdyenCcConfigData(self::XML_THREEDS_BEHAVIOR, $storeId);
+        return $this->adyenHelper->getAdyenAbstractConfigData(self::XML_CHARGED_CURRENCY, $storeId);
     }
 
     /**

@@ -26,9 +26,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Vault\Model\Ui\VaultConfigProvider;
-
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Magento\Payment\Model\InfoInterface;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 
@@ -99,6 +97,7 @@ class Requests extends AbstractHelper
      * @param null $additionalData
      * @return array
      * @param array $request
+     * @return array
      */
     public function buildCustomerData(
         $billingAddress,
@@ -110,65 +109,32 @@ class Requests extends AbstractHelper
     ) {
         if ($customerId > 0) {
             $request['shopperReference'] = str_pad($customerId, 3, '0', STR_PAD_LEFT);
-        }
-        else {
+        } else {
             $uuid = Uuid::generateV4();
-            $guestCustomerId =  $payment->getOrder()->getIncrementId() . $uuid;
+            $guestCustomerId = $payment->getOrder()->getIncrementId() . $uuid;
             $request['shopperReference'] = $guestCustomerId;
-        }
-
-        $paymentMethod = '';
-        if ($payment) {
-            $paymentMethod = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
         }
 
         // In case of virtual product and guest checkout there is a workaround to get the guest's email address
         if (!empty($additionalData['guestEmail'])) {
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
-                !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
-            ) {
-                $request['paymentMethod']['personalDetails']['shopperEmail'] = $additionalData['guestEmail'];
-            } else {
-                $request['shopperEmail'] = $additionalData['guestEmail'];
-            }
+            $request['shopperEmail'] = $additionalData['guestEmail'];
         }
 
         if (!empty($billingAddress)) {
-            // Openinvoice (klarna and afterpay BUT not afterpay touch) methods requires different request format
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
-                !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
-            ) {
-                if ($customerEmail = $billingAddress->getEmail()) {
-                    $request['paymentMethod']['personalDetails']['shopperEmail'] = $customerEmail;
-                }
+            if ($customerEmail = $billingAddress->getEmail()) {
+                $request['shopperEmail'] = $customerEmail;
+            }
 
-                if ($customerTelephone = trim($billingAddress->getTelephone())) {
-                    $request['paymentMethod']['personalDetails']['telephoneNumber'] = $customerTelephone;
-                }
+            if ($customerTelephone = trim($billingAddress->getTelephone())) {
+                $request['telephoneNumber'] = $customerTelephone;
+            }
 
-                if ($firstName = $billingAddress->getFirstname()) {
-                    $request['paymentMethod']['personalDetails']['firstName'] = $firstName;
-                }
+            if ($firstName = $billingAddress->getFirstname()) {
+                $request['shopperName']['firstName'] = $firstName;
+            }
 
-                if ($lastName = $billingAddress->getLastname()) {
-                    $request['paymentMethod']['personalDetails']['lastName'] = $lastName;
-                }
-            } else {
-                if ($customerEmail = $billingAddress->getEmail()) {
-                    $request['shopperEmail'] = $customerEmail;
-                }
-
-                if ($customerTelephone = trim($billingAddress->getTelephone())) {
-                    $request['telephoneNumber'] = $customerTelephone;
-                }
-
-                if ($firstName = $billingAddress->getFirstname()) {
-                    $request['shopperName']['firstName'] = $firstName;
-                }
-
-                if ($lastName = $billingAddress->getLastname()) {
-                    $request['shopperName']['lastName'] = $lastName;
-                }
+            if ($lastName = $billingAddress->getLastname()) {
+                $request['shopperName']['lastName'] = $lastName;
             }
 
             if ($countryId = $billingAddress->getCountryId()) {
@@ -377,18 +343,19 @@ class Requests extends AbstractHelper
             $request['origin'] = $this->adyenHelper->getOrigin($storeId);
             $request['channel'] = 'web';
         }
-
-        return $request;
     }
 
     /**
+     * @param InfoInterface $payment
      * @param array $request
      * @return array
      */
-    public function buildRedirectData($storeId, $request = [])
+    public function buildRedirectData($payment, $request = [])
     {
-        $request['returnUrl'] = rtrim($this->adyenHelper->getOrigin($storeId), '/') .
-            '/adyen/process/redirect';
+        $request['returnUrl'] = rtrim(
+                $this->adyenHelper->getOrigin($payment->getMethodInstance()->getStore()), '/'
+            ) .
+            '/adyen/process/result?merchantReference=' . $payment->getOrder()->getIncrementId();
         return $request;
     }
 
@@ -398,7 +365,7 @@ class Requests extends AbstractHelper
      * @param $storeId
      * @param $payment
      */
-    public function buildRecurringData( int $storeId, $payment, $request = [])
+    public function buildRecurringData(int $storeId, $payment, $request = [])
     {
 
         $request['shopperInteraction'] = 'Ecommerce';
@@ -416,10 +383,10 @@ class Requests extends AbstractHelper
         //recurring
         if ($enableVault) {
             $request['recurringProcessingModel'] = 'Subscription';
-        }else {
-            if($enableOneclick){
+        } else {
+            if ($enableOneclick) {
                 $request['recurringProcessingModel'] = 'CardOnFile';
-            }else{
+            } else {
                 $request['recurringProcessingModel'] = 'Subscription';
             }
         }
@@ -506,35 +473,5 @@ class Requests extends AbstractHelper
         }
 
         return $request;
-    }
-
-    /**
-     * The billing address retrieved from the Quote and the one retrieved from the Order has some differences
-     * Therefore we need to check if the getStreetFull function exists and use that if yes, otherwise use the more
-     * commont getStreetLine1
-     *
-     * @param $billingAddress
-     * @return array
-     */
-    private function getStreetStringFromAddress($address)
-    {
-        if (method_exists($address, 'getStreetFull')) {
-            // Parse address into street and house number where possible
-            $address = $this->adyenHelper->getStreetFromString($address->getStreetFull());
-        } else {
-            $address = $this->adyenHelper->getStreetFromString(
-                implode(
-                    ' ',
-                    [
-                        $address->getStreetLine1(),
-                        $address->getStreetLine2(),
-                        $address->getStreetLine3(),
-                        $address->getStreetLine4()
-                    ]
-                )
-            );
-        }
-
-        return $address;
     }
 }

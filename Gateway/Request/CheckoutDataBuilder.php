@@ -23,6 +23,9 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+
+use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
@@ -49,21 +52,39 @@ class CheckoutDataBuilder implements BuilderInterface
     private $gender;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
+    private $url;
+
+    /**
+     * CheckoutDataBuilder constructor.
+     *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Quote\Api\CartRepositoryInterface $cartRepository
      * @param \Adyen\Payment\Model\Gender $gender
+     * @param ChargedCurrency $chargedCurrency
+     * @param \Magento\Framework\UrlInterface $url
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Quote\Api\CartRepositoryInterface $cartRepository,
-        \Adyen\Payment\Model\Gender $gender
+        \Adyen\Payment\Model\Gender $gender,
+        ChargedCurrency $chargedCurrency,
+        \Magento\Framework\UrlInterface $url
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
         $this->cartRepository = $cartRepository;
         $this->gender = $gender;
+        $this->chargedCurrency = $chargedCurrency;
+        $this->url = $url;
     }
 
     /**
@@ -75,27 +96,29 @@ class CheckoutDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
+        /** @var \Magento\Sales\Model\Order $order */
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
-        $requestBody = [];
+
+        // Initialize the request body with the validated state data
+        $requestBody = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::STATE_DATA);
 
         // do not send email
         $order->setCanSendNewEmailFlag(false);
 
-        $requestBodyPaymentMethod['type'] = $payment->getAdditionalInformation(
-            AdyenHppDataAssignObserver::BRAND_CODE
+        $pwaOrigin = $this->adyenHelper->getAdyenAbstractConfigData(
+            "payment_origin_url",
+            $this->storeManager->getStore()->getId()
         );
 
-        // Additional data for payment methods with issuer list
-        if ($payment->getAdditionalInformation(AdyenHppDataAssignObserver::ISSUER_ID)) {
-            $requestBodyPaymentMethod['issuer'] = $payment->getAdditionalInformation(
-                AdyenHppDataAssignObserver::ISSUER_ID
-            );
+        if ($pwaOrigin) {
+            $returnUrl = rtrim($pwaOrigin, '/') . '/adyen/process/result?merchantReference=' . $order->getIncrementId();
+        } else {
+            $this->url->setQueryParam('merchantReference', $order->getIncrementId());
+            $returnUrl = $this->url->getUrl("adyen/process/result");
         }
 
-        $requestBody['returnUrl'] = $this->storeManager->getStore()->getBaseUrl(
-                \Magento\Framework\UrlInterface::URL_TYPE_LINK
-            ) . 'adyen/process/result';
+        $requestBody['returnUrl'] = $returnUrl;
 
         // Additional data for ACH
         if ($payment->getAdditionalInformation("bankAccountNumber")) {
@@ -108,46 +131,6 @@ class CheckoutDataBuilder implements BuilderInterface
 
         if ($payment->getAdditionalInformation("bankAccountOwnerName")) {
             $requestBody['bankAccount']['ownerName'] = $payment->getAdditionalInformation("bankAccountOwnerName");
-        }
-
-        // Additional data for open invoice payment
-        if ($payment->getAdditionalInformation("gender")) {
-            $order->setCustomerGender(
-                $this->gender->getMagentoGenderFromAdyenGender(
-                    $payment->getAdditionalInformation("gender")
-                )
-            );
-            $requestBodyPaymentMethod['personalDetails']['gender'] = $payment->getAdditionalInformation("gender");
-        }
-
-        if ($payment->getAdditionalInformation("dob")) {
-            $order->setCustomerDob($payment->getAdditionalInformation("dob"));
-
-            $requestBodyPaymentMethod['personalDetails']['dateOfBirth'] = $this->adyenHelper->formatDate(
-                $payment->getAdditionalInformation("dob"),
-                'Y-m-d'
-            );
-        }
-
-        if ($payment->getAdditionalInformation("telephone")) {
-            $order->getBillingAddress()->setTelephone($payment->getAdditionalInformation("telephone"));
-            $requestBodyPaymentMethod['personalDetails']['telephoneNumber'] = $payment->getAdditionalInformation(
-                "telephone"
-            );
-        }
-
-        if ($payment->getAdditionalInformation("ssn")) {
-            $requestBodyPaymentMethod['personalDetails']['socialSecurityNumber'] =
-                $payment->getAdditionalInformation("ssn");
-        }
-
-        // Additional data for sepa direct debit
-        if ($payment->getAdditionalInformation("ownerName")) {
-            $requestBodyPaymentMethod['sepa.ownerName'] = $payment->getAdditionalInformation("ownerName");
-        }
-
-        if ($payment->getAdditionalInformation("ibanNumber")) {
-            $requestBodyPaymentMethod['sepa.ibanNumber'] = $payment->getAdditionalInformation("ibanNumber");
         }
 
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
@@ -213,10 +196,53 @@ class CheckoutDataBuilder implements BuilderInterface
             $order->setCanSendNewEmailFlag(true);
         }
 
-        $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
+        // if installments is set and card type is credit card add it into the request
+        $numberOfInstallments = $payment->getAdditionalInformation(
+            AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
+        ) ?: 0;
+        $comboCardType = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::COMBO_CARD_TYPE) ?: 'credit';
+        if ($numberOfInstallments > 0) {
+            $requestBody['installments']['value'] = $numberOfInstallments;
+        }
+        // if card type is debit then change the issuer type and unset the installments field
+        if ($comboCardType == 'debit') {
+            if ($selectedDebitBrand = $this->getSelectedDebitBrand($payment->getAdditionalInformation('cc_type'))) {
+                $requestBody['additionalData']['overwriteBrand'] = true;
+                $requestBody['selectedBrand'] = $selectedDebitBrand;
+                $requestBody['paymentMethod']['type'] = $selectedDebitBrand;
+            }
+            unset($requestBody['installments']);
+        }
+
+        if ($this->adyenHelper->isCreditCardThreeDS2Enabled($storeId)) {
+            $requestBody['additionalData']['allow3DS2'] = true;
+        }
+
+        $requestBody['origin'] = $this->adyenHelper->getOrigin($storeId);
+        $requestBody['channel'] = 'web';
+
+        if (isset($requestBodyPaymentMethod)) {
+            $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
+        }
+
         $request['body'] = $requestBody;
 
         return $request;
+    }
+
+    /**
+     * @param string $brand
+     * @return string
+     */
+    private function getSelectedDebitBrand($brand)
+    {
+        if ($brand == 'VI') {
+            return 'electron';
+        }
+        if ($brand == 'MC') {
+            return 'maestro';
+        }
+        return null;
     }
 
     /**
@@ -234,24 +260,31 @@ class CheckoutDataBuilder implements BuilderInterface
 
         /** @var \Magento\Quote\Model\Quote $cart */
         $cart = $this->cartRepository->get($order->getQuoteId());
-        $currency = $cart->getCurrency();
+        $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
+        $currency = $amountCurrency->getCurrencyCode();
         $discountAmount = 0;
 
         foreach ($cart->getAllVisibleItems() as $item) {
             $numberOfItems = (int)$item->getQty();
 
+            $itemAmountCurrency = $this->chargedCurrency->getQuoteItemAmountCurrency($item);
+
             // Summarize the discount amount item by item
-            $discountAmount += $item->getDiscountAmount();
+            $discountAmount += $itemAmountCurrency->getDiscountAmount();
 
-            $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($item->getPrice(), $currency);
+            $formattedPriceExcludingTax = $this->adyenHelper->formatAmount(
+                $itemAmountCurrency->getAmount(),
+                $itemAmountCurrency->getCurrencyCode()
+            );
 
-            $taxAmount = $item->getTaxAmount();
-            $formattedTaxAmount = $this->adyenHelper->formatAmount($taxAmount, $currency);
+            $formattedTaxAmount = $this->adyenHelper->formatAmount(
+                $itemAmountCurrency->getTaxAmount(),
+                $itemAmountCurrency->getCurrencyCode()
+            );
             $formattedTaxPercentage = $item->getTaxPercent() * 100;
 
             $formFields['lineItems'][] = [
                 'id' => $item->getId(),
-                'itemId' => $item->getId(),
                 'amountExcludingTax' => $formattedPriceExcludingTax,
                 'taxAmount' => $formattedTaxAmount,
                 'description' => $item->getName(),
@@ -264,7 +297,7 @@ class CheckoutDataBuilder implements BuilderInterface
         // Discount cost
         if ($discountAmount != 0) {
             $description = __('Discount');
-            $itemAmount = -$this->adyenHelper->formatAmount($discountAmount, $currency);
+            $itemAmount = -$this->adyenHelper->formatAmount($discountAmount, $itemAmountCurrency->getCurrencyCode());
             $itemVatAmount = "0";
             $itemVatPercentage = "0";
             $numberOfItems = 1;
@@ -281,13 +314,15 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         // Shipping cost
-        if ($cart->getShippingAddress()->getShippingAmount() > 0 || $cart->getShippingAddress()->getShippingTaxAmount(
-            ) > 0) {
-            $priceExcludingTax = $cart->getShippingAddress()->getShippingAmount() - $cart->getShippingAddress(
-                )->getShippingTaxAmount();
+        if ($cart->getShippingAddress()->getShippingAmount() > 0 ||
+            $cart->getShippingAddress()->getShippingTaxAmount() > 0
+        ) {
+            $shippingAmountCurrency = $this->chargedCurrency->getQuoteShippingAmountCurrency($cart);
+
+            $priceExcludingTax = $shippingAmountCurrency->getAmount();
 
             $formattedTaxAmount = $this->adyenHelper->formatAmount(
-                $cart->getShippingAddress()->getShippingTaxAmount(),
+                $shippingAmountCurrency->getTaxAmount(),
                 $currency
             );
 
@@ -296,12 +331,11 @@ class CheckoutDataBuilder implements BuilderInterface
             $formattedTaxPercentage = 0;
 
             if ($priceExcludingTax !== 0) {
-                $formattedTaxPercentage = $cart->getShippingAddress()->getShippingTaxAmount(
-                    ) / $priceExcludingTax * 100 * 100;
+                $formattedTaxPercentage = $shippingAmountCurrency->getTaxAmount() / $priceExcludingTax * 100 * 100;
             }
 
             $formFields['lineItems'][] = [
-                'itemId' => 'shippingCost',
+                'id' => 'shippingCost',
                 'amountExcludingTax' => $formattedPriceExcludingTax,
                 'taxAmount' => $formattedTaxAmount,
                 'description' => $order->getShippingDescription(),
