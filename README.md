@@ -60,7 +60,7 @@ If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com
 ##Verified payment methods
 
  * Card payment methods
-    * Card payment method (non 3D, 3DS1 and 3DS2)
+    * Card payment method (non-3DS, 3DS1 and 3DS2)
     * One click payment methods (using billing agreement or Vault)
     * Recurring payment methods (using billing agreement or Vault) 
    
