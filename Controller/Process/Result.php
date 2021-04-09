@@ -464,19 +464,6 @@ class Result extends \Magento\Framework\App\Action\Action
             $this->_adyenLogger->addError("Payment object cannot be loaded from order");
         }
 
-        // TODO check if this is ever reached
-        /*if (!empty($this->_session->getLastRealOrder()) &&
-            !empty($this->_session->getLastRealOrder()->getPayment()) &&
-            !empty($this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("details"))
-        ) {
-            $details = $this->_session->getLastRealOrder()->getPayment()->getAdditionalInformation("details");
-            $key = array_search('returnUrlQueryString', $details[0]);
-
-            if ($key !== false) {
-                $request["details"] = ["returnUrlQueryString" => http_build_query($response)];
-            }
-        }*/
-
         try {
             $response = $service->paymentsDetails($request);
             $responseMerchantReference = !empty($response['merchantReference']) ? $response['merchantReference'] : null;
