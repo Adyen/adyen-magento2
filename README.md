@@ -57,7 +57,7 @@ The notification processing service queries the records that have been received 
 
 If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html" target="_blank">this is described here</a>
 
-##Verified payment methods
+## Verified payment methods
 
  * Card payment methods
     * Card payment method (non-3DS, 3DS1 and 3DS2)
