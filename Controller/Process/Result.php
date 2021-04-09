@@ -473,9 +473,8 @@ class Result extends \Magento\Framework\App\Action\Action
                 if ($order->getIncrementId() === $merchantReference) {
                     $this->_order = $order;
                 } else {
-                    // TODO error handling
                     $this->_adyenLogger->addError("Wrong merchantReference was set in the query or in the session");
-                    // TODO error page
+                    $response['error'] = 'merchantReference mismatch';
                 }
             } else {
                 $this->_adyenLogger->addError("No merchantReference in the response");
