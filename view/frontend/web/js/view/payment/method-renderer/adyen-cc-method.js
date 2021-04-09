@@ -89,7 +89,7 @@ define(
             },
             initObservable: function() {
                 this._super().observe([
-                    'creditCardType', // TODO check if still needed
+                    'creditCardType',
                     'installment',
                     'installments',
                     'placeOrderAllowed',
