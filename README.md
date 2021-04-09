@@ -61,8 +61,8 @@ If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com
 
  * Card payment methods
     * Card payment method (non-3DS, 3DS1 and 3DS2)
-    * One click payment methods (using billing agreement or Vault)
-    * Recurring payment methods (using billing agreement or Vault) 
+    * One click payment methods (using Billing agreements or Vault)
+    * Recurring payment methods (using Billing agreements or Vault) 
    
 
 * Local payment methods
