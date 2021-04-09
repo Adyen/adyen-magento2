@@ -87,7 +87,7 @@ If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com
    * Ratepay
    * Oxxo
    * Econtexts
-
+_This is not an extensive list of all the supported payment methods but only the ones that have been already verified. In case you would like to see other payment methods in the list as well please contact us to verify those too._
 ## Support
 If you have a feature request, or spotted a bug or a technical problem, create a GitHub issue. For other questions, contact our [support team](https://support.adyen.com/hc/en-us/requests/new?ticket_form_id=360000705420).
 
