@@ -131,7 +131,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                         type: 'card',
                         groupTypes: ccTypes,
                         hideCVC: hideCVC,
-                        enableStoreDetails: "<?= /* @noEscape */ $block->allowRecurring() && !$block->isVaultEnabled();?>",
+                        enableStoreDetails: "<?= /* @noEscape */ !$block->isVaultEnabled();?>",
 
                         onChange: function (state) {
                             // When the state is valid update the input fields
