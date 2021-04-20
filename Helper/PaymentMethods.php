@@ -374,63 +374,64 @@ class PaymentMethods extends AbstractHelper
      */
     protected function showLogosPaymentMethods($paymentMethods, array $paymentMethodsExtraDetails)
     {
-        if ($this->adyenHelper->showLogos()) {
-            // Explicitly setting theme
-            $themeCode = "Magento/blank";
+        if (!$this->adyenHelper->showLogos()) {
+            return $paymentMethodsExtraDetails;
+        }
+        // Explicitly setting theme
+        $themeCode = "Magento/blank";
 
-            $themeId = $this->design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
-            if (!empty($themeId)) {
-                $theme = $this->themeProvider->getThemeById($themeId);
-                if ($theme && !empty($theme->getCode())) {
-                    $themeCode = $theme->getCode();
-                }
+        $themeId = $this->design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
+        if (!empty($themeId)) {
+            $theme = $this->themeProvider->getThemeById($themeId);
+            if ($theme && !empty($theme->getCode())) {
+                $themeCode = $theme->getCode();
             }
+        }
 
-            $params = [];
-            $params = array_merge(
-                [
-                    'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
-                    '_secure' => $this->request->isSecure(),
-                    'theme' => $themeCode
-                ],
+        $params = [];
+        $params = array_merge(
+            [
+                'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                '_secure' => $this->request->isSecure(),
+                'theme' => $themeCode
+            ],
+            $params
+        );
+
+        foreach ($paymentMethods as $paymentMethod) {
+            $paymentMethodCode = in_array($paymentMethod['type'], self::METHODS_WITH_BRAND_LOGO)
+                ? $paymentMethod['brand']
+                : $paymentMethod['type'];
+
+            $asset = $this->assetRepo->createAsset(
+                'Adyen_Payment::images/logos/' .
+                $paymentMethodCode . '.png',
                 $params
             );
 
-            foreach ($paymentMethods as $paymentMethod) {
-                $paymentMethodCode = in_array($paymentMethod['type'], self::METHODS_WITH_BRAND_LOGO)
-                    ? $paymentMethod['brand']
-                    : $paymentMethod['type'];
+            $placeholder = $this->assetSource->findSource($asset);
 
-                $asset = $this->assetRepo->createAsset(
-                    'Adyen_Payment::images/logos/' .
-                    $paymentMethodCode . '.png',
-                    $params
-                );
-
-                $placeholder = $this->assetSource->findSource($asset);
-
-                if ($placeholder) {
-                    list($width, $height) = getimagesize($asset->getSourceFile());
-                    $icon = [
-                        'url' => $asset->getUrl(),
-                        'width' => $width,
-                        'height' => $height
-                    ];
-                } else {
-                    $icon = [
-                        'url' => 'https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/medium/' . $paymentMethodCode . '.png',
-                        'width' => 77,
-                        'height' => 50
-                    ];
-                }
-
-                $paymentMethodsExtraDetails[$paymentMethodCode]['icon'] = $icon;
-
-                //todo check if it is needed
-                // check if payment method is an open invoice method
-                $paymentMethodsExtraDetails[$paymentMethodCode]['isOpenInvoice'] =
-                    $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
+            if ($placeholder) {
+                list($width, $height) = getimagesize($asset->getSourceFile());
+                $icon = [
+                    'url' => $asset->getUrl(),
+                    'width' => $width,
+                    'height' => $height
+                ];
+            } else {
+                $icon = [
+                    'url' => 'https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/medium/' . $paymentMethodCode . '.png',
+                    'width' => 77,
+                    'height' => 50
+                ];
             }
+
+            $paymentMethodsExtraDetails[$paymentMethodCode]['icon'] = $icon;
+
+            //todo check if it is needed
+            // check if payment method is an open invoice method
+            $paymentMethodsExtraDetails[$paymentMethodCode]['isOpenInvoice'] =
+                $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
         }
         return $paymentMethodsExtraDetails;
     }
