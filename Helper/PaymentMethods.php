@@ -397,7 +397,7 @@ class PaymentMethods extends AbstractHelper
             );
 
             foreach ($paymentMethods as $paymentMethod) {
-                $paymentMethodCode = array_search($paymentMethod['type'], self::METHODS_WITH_BRAND_LOGO) !== false
+                $paymentMethodCode = in_array($paymentMethod['type'], self::METHODS_WITH_BRAND_LOGO)
                     ? $paymentMethod['brand']
                     : $paymentMethod['type'];
 
