@@ -30,6 +30,11 @@ use Magento\Framework\App\Helper\AbstractHelper;
  */
 class PaymentMethods extends AbstractHelper
 {
+
+    const METHODS_WITH_BRAND_LOGO = [
+        "giftcard"
+    ];
+
     /**
      * @var \Magento\Quote\Api\CartRepositoryInterface
      */
@@ -183,7 +188,10 @@ class PaymentMethods extends AbstractHelper
         // Add extra details per payment method
         $paymentMethodsExtraDetails = [];
         $paymentMethodsExtraDetails = $this->showLogosPaymentMethods($paymentMethods, $paymentMethodsExtraDetails);
-        $paymentMethodsExtraDetails = $this->addExtraConfigurationToPaymentMethods($paymentMethods, $paymentMethodsExtraDetails);
+        $paymentMethodsExtraDetails = $this->addExtraConfigurationToPaymentMethods(
+            $paymentMethods,
+            $paymentMethodsExtraDetails
+        );
         $response['paymentMethodsExtraDetails'] = $paymentMethodsExtraDetails;
 
         //TODO this should be the implemented with an interface
@@ -389,7 +397,9 @@ class PaymentMethods extends AbstractHelper
             );
 
             foreach ($paymentMethods as $paymentMethod) {
-                $paymentMethodCode = $paymentMethod['type'];
+                $paymentMethodCode = array_search($paymentMethod['type'], self::METHODS_WITH_BRAND_LOGO) !== false
+                    ? $paymentMethod['brand']
+                    : $paymentMethod['type'];
 
                 $asset = $this->assetRepo->createAsset(
                     'Adyen_Payment::images/logos/' .
@@ -425,7 +435,8 @@ class PaymentMethods extends AbstractHelper
         return $paymentMethodsExtraDetails;
     }
 
-    protected function addExtraConfigurationToPaymentMethods($paymentMethods, array $paymentMethodsExtraDetails) {
+    protected function addExtraConfigurationToPaymentMethods($paymentMethods, array $paymentMethodsExtraDetails)
+    {
         $quote = $this->getQuote();
         $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
