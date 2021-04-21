@@ -44,12 +44,14 @@
         </field>
         <field id="session_validity" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Session Validity</label>
+            <frontend_class>validate-number</frontend_class>
             <tooltip>How many days do you want this payment page to be active</tooltip>
             <config_path>payment/adyen_pay_by_mail/session_validity</config_path>
         </field>
         <field id="ship_before" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Ship Before Date</label>
-            <tooltip>The date within which the ordered goods or services need to be shipped or provided to the shopper</tooltip>
+            <label>Ship Before Date (Days)</label>
+            <frontend_class>validate-number</frontend_class>
+            <tooltip>Days after the Pay by Mail is generated within which the ordered goods or services need to be shipped or provided to the shopper</tooltip>
             <config_path>payment/adyen_pay_by_mail/ship_before</config_path>
         </field>
         <field id="skin_code" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
