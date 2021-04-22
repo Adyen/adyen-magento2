@@ -29,6 +29,26 @@ use Magento\Framework\App\Request\Http as Http;
 
 class Result extends \Magento\Framework\App\Action\Action
 {
+
+    const DETAILS_ALLOWED_PARAM_KEYS = [
+        'MD',
+        'PaReq',
+        'PaRes',
+        'billingToken',
+        'cupsecureplus.smscode',
+        'facilitatorAccessToken',
+        'oneTimePasscode',
+        'orderID',
+        'payerID',
+        'payload',
+        'paymentID',
+        'paymentStatus',
+        'redirectResult',
+        'threeDSResult',
+        'threeds2.challengeResult',
+        'threeds2.fingerprint'
+    ];
+
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -429,16 +449,9 @@ class Result extends \Magento\Framework\App\Action\Action
         $request = [];
 
         // filter details to match the keys
-        $allowedParams = $payment->getAdditionalInformation('details');
         $details = $result;
-        if (!empty($allowedParams)) {
-            $allowedParamsArray = [];
-            // TODO build a validator class which also validates the type of the param
-            foreach ($allowedParams as $allowedParam) {
-                $allowedParamsArray[] = $allowedParam['key'];
-            }
-            $details = DataArrayValidator::getArrayOnlyWithApprovedKeys($details, $allowedParamsArray);
-        }
+        // TODO build a validator class which also validates the type of the param
+        $details = DataArrayValidator::getArrayOnlyWithApprovedKeys($details, self::DETAILS_ALLOWED_PARAM_KEYS);
 
         // Remove helper params in case left in the request
         $helperParams = ['isAjax', 'merchantReference'];

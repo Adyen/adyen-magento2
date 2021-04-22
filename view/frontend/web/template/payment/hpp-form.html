@@ -32,15 +32,15 @@
 <!-- ko foreach: adyenPaymentMethods -->
     <div class="payment-method"
          data-bind="
-         css: {'_active': (paymentMethod.type == $parent.getSelectedAlternativePaymentMethodType())},
+         css: {'_active': (paymentMethod.methodIdentifier == $parent.getSelectedAlternativePaymentMethodType())},
          visible: isAvailable()">
         <div class="payment-method-title field choice">
             <span data-bind="text: payment[method]"></span>
             <input type="radio"
                    name="payment[method]"
                    class="radio"
-                   data-bind="attr: {'id': 'adyen_' + paymentMethod.type}, value: 'adyen_' + paymentMethod.type, checked: paymentMethod.type == $parent.getSelectedAlternativePaymentMethodType, click: $parent.selectPaymentMethodType"/>
-            <label data-bind="attr: {'for': 'adyen_' + paymentMethod.type}" class="label">
+                   data-bind="attr: {'id': 'adyen_' + paymentMethod.methodIdentifier}, value: 'adyen_' + paymentMethod.methodIdentifier, checked: paymentMethod.methodIdentifier == $parent.getSelectedAlternativePaymentMethodType, click: $parent.selectPaymentMethodType"/>
+            <label data-bind="attr: {'for': 'adyen_' + paymentMethod.methodIdentifier}" class="label">
 
                 <!-- ko if: icon -->
                 <img data-bind="attr: {
@@ -58,7 +58,7 @@
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
             <div>
-                <span class="message message-error error hpp-message" data-bind="attr: {id: 'messages-' + paymentMethod.type}"></span>
+                <span class="message message-error error hpp-message" data-bind="attr: {id: 'messages-' + paymentMethod.methodIdentifier}"></span>
             </div>
 
             <div class="payment-method-billing-address">
@@ -68,7 +68,7 @@
             </div>
 
             <form class="form" data-role="adyen-hpp-form" action="#" method="post"
-                  data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + $parent.getCode() + '_' + paymentMethod.type}">
+                  data-bind="mageInit: { 'validation':[]}, attr: {id: 'payment_form_' + $parent.getCode() + '_' + paymentMethod.methodIdentifier}">
 
                 <!-- ko ifnot: showPlaceOrderButton() -->
                 <div class="checkout-agreements-block">
@@ -79,8 +79,8 @@
                 <!--/ko-->
 
                 <fieldset class="fieldset"
-                          data-bind='attr: {id: "payment_fieldset_" + $parent.getCode() + "_" + paymentMethod.type}'>
-                    <div data-bind='attr: {id: "adyen-alternative-payment-container-" + paymentMethod.type}'
+                          data-bind='attr: {id: "payment_fieldset_" + $parent.getCode() + "_" + paymentMethod.methodIdentifier}'>
+                    <div data-bind='attr: {id: "adyen-alternative-payment-container-" + paymentMethod.methodIdentifier}'
                          afterRender="renderCheckoutComponent()"></div>
                 </fieldset>
 
