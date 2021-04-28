@@ -415,8 +415,7 @@ class Cron
                 // OFFER_CLOSED notifications needs to be at least 10 minutes old to be processed
                 $offerClosedMinDate = new \DateTime('-10 minutes');
                 $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
-
-                $minutesUntilProcessing = $createdAt->diff($offerClosedMinDate)->i;
+                $minutesUntilProcessing = ($createdAt->format('U') - $offerClosedMinDate->format('U')) / 60;
 
                 if ($minutesUntilProcessing > 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
