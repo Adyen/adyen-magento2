@@ -82,9 +82,8 @@ define(
                         environment: adyenConfiguration.getCheckoutEnvironment(),
                         paymentMethodsResponse: adyenPaymentService.getPaymentMethods().paymentMethodsResponse,
                         onAdditionalDetails: this.handleOnAdditionalDetails.bind(this)
-                    },
+                    }
                 );
-
                 return this;
             },
             initObservable: function() {
@@ -271,7 +270,7 @@ define(
                         function() {
                             fullScreenLoader.stopLoader();
                             self.isPlaceOrderActionAllowed(true);
-                        },
+                        }
                     ).done(
                         function(orderId) {
                             self.afterPlaceOrder();
@@ -281,7 +280,7 @@ define(
                                     self.handleAdyenResult(responseJSON,
                                         orderId);
                                 });
-                        },
+                        }
                     );
                 }
                 return false;
@@ -297,7 +296,7 @@ define(
                 if (!!response.isFinal) {
                     // Status is final redirect to the redirectUrl
                     window.location.replace(url.build(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl,
+                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl
                     ));
                 } else {
                     // Handle action
@@ -454,5 +453,5 @@ define(
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
             },
         });
-    },
+    }
 );
