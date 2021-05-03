@@ -244,13 +244,6 @@ define(
                                     showPayButton = true;
                                 }
 
-                                // If the details are empty and the pay button does not needs to be rendered by the component
-                                // simply skip rendering the adyen checkout component
-                                if (!paymentMethod.details && !showPayButton) {
-                                    result.isPlaceOrderAllowed(true);
-                                    return;
-                                }
-
                                 var city = '';
                                 var country = '';
                                 var postalCode = '';
@@ -359,8 +352,6 @@ define(
                                             component.mount(containerId);
                                         }).catch(e => {
                                             result.isAvailable(false);
-                                            console.log(paymentMethod.methodIdentifier +
-                                                ' is not available, the method will be hidden from the payment list');
                                         });
                                     } else {
                                         component.mount(containerId);
