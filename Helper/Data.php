@@ -574,27 +574,27 @@ class Data extends AbstractHelper
      *
      * @return string
      */
-    public function getHmac()
+    public function getHmac($storeId = null)
     {
-        switch ($this->isDemoMode()) {
+        switch ($this->isDemoMode($storeId)) {
             case true:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_test')));
+                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_test', $storeId)));
                 break;
             default:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_live')));
+                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_live', $storeId)));
                 break;
         }
         return $secretWord;
     }
 
-    public function getHmacPayByMail()
+    public function getHmacPayByMail($storeId = null)
     {
-        switch ($this->isDemoMode()) {
+        switch ($this->isDemoMode($storeId)) {
             case true:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_test')));
+                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_test', $storeId)));
                 break;
             default:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_live')));
+                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_live', $storeId)));
                 break;
         }
         return $secretWord;
