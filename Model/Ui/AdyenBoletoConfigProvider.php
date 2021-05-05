@@ -81,7 +81,7 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
             'payment' => [
                 self::CODE => [
                     'isActive' => true,
-                    'redirectUrl' => $this->_urlBuilder->getUrl(
+                    'successpage' => $this->_urlBuilder->getUrl(
                         'checkout/onepage/success/',
                         ['_secure' => $this->_getRequest()->isSecure()]
                     )
@@ -111,7 +111,7 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
         }
         return $types;
     }
-    
+
     /**
      * Retrieve request object
      *
