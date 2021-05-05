@@ -87,6 +87,7 @@ If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com
    * Ratepay
    * Oxxo
    * Econtexts
+   * Blik
 
 _This is not an extensive list of all the supported payment methods but only the ones that have been already verified. In case you would like to see other payment methods in the list as well please contact us to verify those too._
 
