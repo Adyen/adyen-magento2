@@ -445,7 +445,7 @@ class Cron
                 $authorisationSuccessFalseMinDate = new \DateTime('-10 minutes');
                 $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
 
-                $minutesUntilProcessing = $createdAt->diff($authorisationSuccessFalseMinDate)->i;
+                $minutesUntilProcessing = ($createdAt->format('U') - $authorisationSuccessFalseMinDate->format('U')) / 60;
 
                 if ($minutesUntilProcessing > 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
