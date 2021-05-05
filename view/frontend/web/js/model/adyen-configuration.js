@@ -20,23 +20,25 @@
  * Author: Adyen <magento@adyen.com>
  */
 define(
-    [
-    ],
+    [],
     function () {
-      'use strict';
-      return {
-        getClientKey: function () {
-          return window.checkoutConfig.payment.adyen.clientKey;
-        },
-        showLogo: function () {
-          return window.checkoutConfig.payment.adyen.showLogo;
-        },
-        getLocale: function () {
-          return window.checkoutConfig.payment.adyen.locale;
-        },
-        getCheckoutEnvironment: function () {
-          return window.checkoutConfig.payment.adyen.checkoutEnvironment;
-        },
-      };
+        'use strict';
+        return {
+            getClientKey: function () {
+                return window.checkoutConfig.payment.adyen.clientKey;
+            },
+            showLogo: function () {
+                return window.checkoutConfig.payment.adyen.showLogo;
+            },
+            getLocale: function () {
+                return window.checkoutConfig.payment.adyen.locale;
+            },
+            getCheckoutEnvironment: function () {
+                return window.checkoutConfig.payment.adyen.checkoutEnvironment;
+            },
+            getChargedCurrency: function () {
+                return window.checkoutConfig.payment.adyen.chargedCurrency;
+            },
+        };
     }
 );
