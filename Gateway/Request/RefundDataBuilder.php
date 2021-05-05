@@ -204,6 +204,15 @@ class RefundDataBuilder implements BuilderInterface
         $creditMemo = $payment->getCreditMemo();
 
         foreach ($creditMemo->getItems() as $refundItem) {
+            $orderItem = $creditMemo->getOrder()->getItemById($refundItem->getOrderItemId());
+            if ($orderItem && $orderItem->getParentItemId()) {
+                /**
+                 * Avoid sending not visible items, since they have not been sent during capture
+                 * @see \Adyen\Payment\Gateway\Request\CaptureDataBuilder:118
+                 *
+                 */
+                continue;
+            }
             ++$count;
             $itemAmountCurrency = $this->chargedCurrency->getCreditMemoItemAmountCurrency($refundItem);
 
