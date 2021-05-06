@@ -248,10 +248,10 @@ define(
                                     telephone = '',
                                     email = '',
                                     shopperGender = '',
-                                    shopperDateOfBirth = '';
+                                    shopperDateOfBirth = '',
+                                    address = !!quote ? (quote.isVirtual() ? quote.billingAddress() : quote.shippingAddress()) : null;
 
-                                if (!!quote && !!quote.shippingAddress()) {
-                                    var address = quote.isVirtual() ? quote.billingAddress() : quote.shippingAddress();
+                                if (address) {
                                     city = address.city;
                                     country = address.countryId;
                                     postalCode = address.postcode;
