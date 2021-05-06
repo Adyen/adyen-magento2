@@ -204,6 +204,13 @@ class Requests extends AbstractHelper
 
             if (!empty($billingAddress->getPostcode())) {
                 $requestBilling["postalCode"] = $billingAddress->getPostcode();
+                if ($billingAddress->getCountryId() == "BR") {
+                    $requestBilling["postalCode"] = preg_replace(
+                        '/[^\d]/',
+                        '',
+                        $billingAddress->getPostcode()
+                    );
+                }
             }
 
             if (!empty($billingAddress->getCity())) {
@@ -254,6 +261,13 @@ class Requests extends AbstractHelper
 
             if (!empty($shippingAddress->getPostcode())) {
                 $requestDelivery["postalCode"] = $shippingAddress->getPostcode();
+                if ($billingAddress->getCountryId() == "BR") {
+                    $requestBilling["postalCode"] = preg_replace(
+                        '/[^\d]/',
+                        '',
+                        $billingAddress->getPostcode()
+                    );
+                }
             }
 
             if (!empty($shippingAddress->getCity())) {
