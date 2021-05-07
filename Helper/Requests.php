@@ -220,7 +220,7 @@ class Requests extends AbstractHelper
                     $requestBilling["postalCode"] = preg_replace(
                         '/[^\d]/',
                         '',
-                        $billingAddress->getPostcode()
+                        $requestBilling["postalCode"]
                     );
                 }
             }
