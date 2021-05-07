@@ -286,6 +286,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $formFields['lineItems'][] = [
                 'id' => $item->getId(),
                 'amountExcludingTax' => $formattedPriceExcludingTax,
+                'taxAmount' => $formattedTaxAmount,
                 'description' => $item->getName(),
                 'quantity' => $numberOfItems,
                 'taxCategory' => $item->getProduct()->getAttributeText('tax_class_id'),
@@ -304,6 +305,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $formFields['lineItems'][] = [
                 'id' => 'Discount',
                 'amountExcludingTax' => $itemAmount,
+                'taxAmount' => $itemVatAmount,
                 'description' => $description,
                 'quantity' => $numberOfItems,
                 'taxCategory' => 'None',
@@ -335,6 +337,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $formFields['lineItems'][] = [
                 'id' => 'shippingCost',
                 'amountExcludingTax' => $formattedPriceExcludingTax,
+                'taxAmount' => $formattedTaxAmount,
                 'description' => $order->getShippingDescription(),
                 'quantity' => 1,
                 'taxPercentage' => $formattedTaxPercentage
