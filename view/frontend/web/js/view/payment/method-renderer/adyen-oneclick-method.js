@@ -171,9 +171,9 @@ define(
                 var response = JSON.parse(responseJSON);
 
                 if (!!response.isFinal) {
-                    // Status is final redirect to the successpage
+                    // Status is final redirect to the success page
                     window.location.replace(url.build(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].successpage,
+                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
                     ));
                 } else {
                     // Handle action

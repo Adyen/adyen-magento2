@@ -116,7 +116,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
             'payment' => [
                 self::CODE => [
                     'isActive' => true,
-                    'successpage' => $this->urlBuilder->getUrl(
+                    'successPage' => $this->urlBuilder->getUrl(
                         'checkout/onepage/success',
                         ['_secure' => $this->getRequest()->isSecure()]
                     )

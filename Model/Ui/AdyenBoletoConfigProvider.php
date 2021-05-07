@@ -81,7 +81,7 @@ class AdyenBoletoConfigProvider implements ConfigProviderInterface
             'payment' => [
                 self::CODE => [
                     'isActive' => true,
-                    'successpage' => $this->_urlBuilder->getUrl(
+                    'successPage' => $this->_urlBuilder->getUrl(
                         'checkout/onepage/success/',
                         ['_secure' => $this->_getRequest()->isSecure()]
                     )
