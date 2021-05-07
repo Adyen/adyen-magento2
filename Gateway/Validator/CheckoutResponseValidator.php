@@ -96,47 +96,6 @@ class CheckoutResponseValidator extends AbstractValidator
             switch ($resultCode) {
                 case "Authorised":
                 case "Received":
-                    // TODO refactor since the full additionalData is stored in additionalInformation already
-                    // For banktransfers store all bankTransfer details
-                    if (!empty($response['additionalData']['bankTransfer.owner'])) {
-                        foreach ($response['additionalData'] as $key => $value) {
-                            if (strpos($key, 'bankTransfer') === 0) {
-                                $payment->setAdditionalInformation($key, $value);
-                            }
-                        }
-                    } elseif (!empty($response['additionalData']['comprafacil.entity'])) {
-                        //Multibanco resultCode has changed after checkout v49 and
-                        // comprafacil.entity is not received anymore
-                        foreach ($response['additionalData'] as $key => $value) {
-                            if (strpos($key, 'comprafacil') === 0) {
-                                $payment->setAdditionalInformation($key, $value);
-                            }
-                        }
-                    }
-
-                if (isset($response['additionalData']) && is_array($response['additionalData'])) {
-                    $additionalData = $response['additionalData'];
-                    if (isset($additionalData['boletobancario.dueDate'])) {
-                        $payment->setAdditionalInformation(
-                            'dueDate',
-                            $additionalData['boletobancario.dueDate']
-                        );
-                    }
-
-                    if (isset($additionalData['boletobancario.expirationDate'])) {
-                        $payment->setAdditionalInformation(
-                            'expirationDate',
-                            $additionalData['boletobancario.expirationDate']
-                        );
-                    }
-
-                    if (isset($additionalData['boletobancario.url'])) {
-                        $payment->setAdditionalInformation(
-                            'url',
-                            $additionalData['boletobancario.url']
-                        );
-                    }
-                }
 
                 // Save cc_type if available in the response
                 if (!empty($response['additionalData']['paymentMethod'])) {
@@ -146,9 +105,7 @@ class CheckoutResponseValidator extends AbstractValidator
                     $payment->setAdditionalInformation('cc_type', $ccType);
                     $payment->setCcType($ccType);
                 }
-
-
-                    break;
+                break;
                 case "IdentifyShopper":
                 case "ChallengeShopper":
                 case "PresentToShopper":
