@@ -119,14 +119,6 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->storeManager = $storeManager;
         $this->quoteHelper = $quoteHelper;
         parent::__construct($context);
-        //TODO check if needed with version v67
-        if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
-            $request = $this->getRequest();
-            if ($request instanceof Http && $request->isPost()) {
-                $request->setParam('isAjax', true);
-                $request->getHeaders()->addHeaderLine('X_REQUESTED_WITH', 'XMLHttpRequest');
-            }
-        }
     }
 
     /**
