@@ -277,7 +277,7 @@ class Requests extends AbstractHelper
                     $requestDelivery["postalCode"] = preg_replace(
                         '/[^\d]/',
                         '',
-                        $shippingAddress->getPostcode()
+                        $requestDelivery["postalCode"]
                     );
                 }
             }
