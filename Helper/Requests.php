@@ -202,10 +202,6 @@ class Requests extends AbstractHelper
                 $requestBilling["houseNumberOrName"] = $address["house_number"];
             }
 
-            if (!empty($billingAddress->getPostcode())) {
-                $requestBilling["postalCode"] = $billingAddress->getPostcode();
-            }
-
             if (!empty($billingAddress->getCity())) {
                 $requestBilling["city"] = $billingAddress->getCity();
             }
@@ -216,6 +212,17 @@ class Requests extends AbstractHelper
 
             if (!empty($billingAddress->getCountryId())) {
                 $requestBilling["country"] = $billingAddress->getCountryId();
+            }
+
+            if (!empty($billingAddress->getPostcode())) {
+                $requestBilling["postalCode"] = $billingAddress->getPostcode();
+                if ($billingAddress->getCountryId() == "BR") {
+                    $requestBilling["postalCode"] = preg_replace(
+                        '/[^\d]/',
+                        '',
+                        $requestBilling["postalCode"]
+                    );
+                }
             }
 
             // If nothing is changed which means delivery address is not filled
@@ -252,10 +259,6 @@ class Requests extends AbstractHelper
                 $requestDelivery["houseNumberOrName"] = $address["house_number"];
             }
 
-            if (!empty($shippingAddress->getPostcode())) {
-                $requestDelivery["postalCode"] = $shippingAddress->getPostcode();
-            }
-
             if (!empty($shippingAddress->getCity())) {
                 $requestDelivery["city"] = $shippingAddress->getCity();
             }
@@ -266,6 +269,17 @@ class Requests extends AbstractHelper
 
             if (!empty($shippingAddress->getCountryId())) {
                 $requestDelivery["country"] = $shippingAddress->getCountryId();
+            }
+
+            if (!empty($shippingAddress->getPostcode())) {
+                $requestDelivery["postalCode"] = $shippingAddress->getPostcode();
+                if ($shippingAddress->getCountryId() == "BR") {
+                    $requestDelivery["postalCode"] = preg_replace(
+                        '/[^\d]/',
+                        '',
+                        $requestDelivery["postalCode"]
+                    );
+                }
             }
 
             // If nothing is changed which means delivery address is not filled
