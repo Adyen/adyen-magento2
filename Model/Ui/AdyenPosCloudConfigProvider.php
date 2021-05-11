@@ -92,7 +92,7 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
             'payment' => [
                 self::CODE => [
                     'isActive' => true,
-                    'redirectUrl' => $this->urlBuilder->getUrl(
+                    'successPage' => $this->urlBuilder->getUrl(
                         '/checkout/onepage/success/',
                         ['_secure' => $this->getRequest()->isSecure()]
                     )
