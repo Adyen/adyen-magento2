@@ -7,8 +7,8 @@
 var config = {
     config: {
         mixins: {
-            'Adyen_Payment/js/action/place-order': {
-                'Magento_CheckoutAgreements/js/model/place-order-mixin': true
+            'Magento_Tax/js/view/checkout/summary/grand-total': {
+                'Adyen_Payment/js/view/checkout/summary/grand-total-mixin': true
             }
         }
     }

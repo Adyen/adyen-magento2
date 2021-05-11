@@ -23,32 +23,42 @@
 
 namespace Adyen\Payment\Model\Ui;
 
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Model\Config\Source\RenderMode;
 use Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 class AdyenGenericConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'adyen_abstract';
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     protected $adyenHelper;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var StoreManagerInterface
      */
     protected $storeManager;
+    /**
+     * @var Config
+     */
+    private $adyenConfigHelper;
 
     /**
      * AdyenGenericConfigProvider constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Data $adyenHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        Data $adyenHelper,
+        Config $adyenConfigHelper,
+        StoreManagerInterface $storeManager
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->adyenConfigHelper = $adyenConfigHelper;
         $this->storeManager = $storeManager;
     }
 
@@ -59,6 +69,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
      */
     public function getConfig()
     {
+        $storeId = $this->storeManager->getStore()->getId();
         $config = [
             'payment' => []
         ];
@@ -70,12 +81,9 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         }
 
         $config['payment']['adyen']['clientKey'] = $this->adyenHelper->getClientKey();
-        $config['payment']['adyen']['checkoutEnvironment'] = $this->adyenHelper->getCheckoutEnvironment(
-            $this->storeManager->getStore()->getId()
-        );
-        $config['payment']['adyen']['locale'] = $this->adyenHelper->getStoreLocale(
-            $this->storeManager->getStore()->getId()
-        );
+        $config['payment']['adyen']['checkoutEnvironment'] = $this->adyenHelper->getCheckoutEnvironment($storeId);
+        $config['payment']['adyen']['locale'] = $this->adyenHelper->getStoreLocale($storeId);
+        $config['payment']['adyen']['chargedCurrency'] = $this->adyenConfigHelper->getChargedCurrency($storeId);
 
         return $config;
     }
@@ -86,7 +94,7 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
     protected function showLogos()
     {
         $showLogos = $this->adyenHelper->getAdyenAbstractConfigData('title_renderer');
-        if ($showLogos == \Adyen\Payment\Model\Config\Source\RenderMode::MODE_TITLE_IMAGE) {
+        if ($showLogos == RenderMode::MODE_TITLE_IMAGE) {
             return true;
         }
         return false;
