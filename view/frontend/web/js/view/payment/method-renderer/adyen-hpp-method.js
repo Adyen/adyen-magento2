@@ -527,9 +527,9 @@ define(
                 var response = JSON.parse(responseJSON);
 
                 if (!!response.isFinal) {
-                    // Status is final redirect to the redirectUrl
+                    // Status is final redirect to the success page
                     $.mage.redirect(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl,
+                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
                     );
                 } else {
                     // render component
@@ -604,7 +604,7 @@ define(
 
                 adyenPaymentService.paymentDetails(request).done(function() {
                     $.mage.redirect(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl,
+                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
                     );
                 }).fail(function(response) {
                     if (self.popupModal) {
@@ -630,7 +630,7 @@ define(
 
                 adyenPaymentService.paymentDetails(request).done(function() {
                     $.mage.redirect(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl,
+                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
                     );
                 }).fail(function(response) {
                     fullScreenLoader.stopLoader();
