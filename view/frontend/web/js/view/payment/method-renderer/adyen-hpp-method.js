@@ -159,13 +159,23 @@ define(
                 var paymentList = _.reduce(paymentMethods,
                     function(accumulator, paymentMethod) {
 
+                        // Some methods belong to a group with brands
+                        // Use the brand as identifier
+                        const brandMethods = ['giftcard'];
+                        if (brandMethods.includes(paymentMethod.type) && !!paymentMethod.brand){
+                            paymentMethod.methodGroup = paymentMethod.type;
+                            paymentMethod.methodIdentifier = paymentMethod.brand;
+                        } else {
+                            paymentMethod.methodGroup = paymentMethod.methodIdentifier = paymentMethod.type;
+                        }
+
                         if (!self.isPaymentMethodSupported(
-                            paymentMethod.type)) {
+                            paymentMethod.methodGroup)) {
                             return accumulator;
                         }
 
                         var messageContainer = new Messages();
-                        var name = 'messages-' + paymentMethod.type;
+                        var name = 'messages-' + paymentMethod.methodIdentifier;
                         var messagesComponent = {
                             parent: self.name,
                             name: name,
@@ -183,7 +193,7 @@ define(
                             method: self.item.method,
                             item: {
                                 "title": paymentMethod.name,
-                                "method": paymentMethod.type
+                                "method": paymentMethod.methodIdentifier
                             },
                             /**
                              * Observable to enable and disable place order buttons for payment methods
@@ -191,17 +201,17 @@ define(
                              * @type {observable}
                              */
                             placeOrderAllowed: ko.observable(true),
-                            icon: !!paymentMethodsExtraInfo[paymentMethod.type]
-                                ? paymentMethodsExtraInfo[paymentMethod.type].icon
+                            icon: !!paymentMethodsExtraInfo[paymentMethod.methodIdentifier]
+                                ? paymentMethodsExtraInfo[paymentMethod.methodIdentifier].icon
                                 : {},
                             getMessageName: function() {
-                                return 'messages-' + paymentMethod.type;
+                                return 'messages-' + paymentMethod.methodIdentifier;
                             },
                             getMessageContainer: function() {
                                 return messageContainer;
                             },
                             validate: function() {
-                                return self.validate(paymentMethod.type);
+                                return self.validate(paymentMethod.methodIdentifier);
                             },
                             /**
                              * Set and get if the place order action is allowed
@@ -218,7 +228,7 @@ define(
                             },
                             showPlaceOrderButton: function() {
                                 if (showPayButtonPaymentMethods.includes(
-                                    paymentMethod.type)) {
+                                    paymentMethod.methodGroup)) {
                                     return false;
                                 }
 
@@ -230,15 +240,8 @@ define(
                                 var showPayButton = false;
 
                                 if (showPayButtonPaymentMethods.includes(
-                                    paymentMethod.type)) {
+                                    paymentMethod.methodGroup)) {
                                     showPayButton = true;
-                                }
-
-                                // If the details are empty and the pay button does not needs to be rendered by the component
-                                // simply skip rendering the adyen checkout component
-                                if (!paymentMethod.details && !showPayButton) {
-                                    result.isPlaceOrderAllowed(true);
-                                    return;
                                 }
 
                                 var city = '';
@@ -326,12 +329,12 @@ define(
                                     });
 
                                 // Use extra configuration from the paymentMethodsExtraInfo object if available
-                                if (paymentMethod.type in paymentMethodsExtraInfo && 'configuration' in paymentMethodsExtraInfo[paymentMethod.type]) {
-                                    configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.type].configuration);
+                                if (paymentMethod.methodIdentifier in paymentMethodsExtraInfo && 'configuration' in paymentMethodsExtraInfo[paymentMethod.methodIdentifier]) {
+                                    configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
                                 }
 
                                 // Extra apple pay configuration
-                                if (paymentMethod.type.includes('applepay')) {
+                                if (paymentMethod.methodIdentifier.includes('applepay')) {
                                     if ('configuration' in configuration &&
                                         'merchantName' in configuration.configuration) {
                                         configuration.totalPriceLabel = configuration.configuration.merchantName;
@@ -340,17 +343,15 @@ define(
 
                                 try {
                                     const component = self.checkoutComponent.create(
-                                        paymentMethod.type, configuration);
+                                        paymentMethod.methodIdentifier, configuration);
                                     const containerId = '#adyen-alternative-payment-container-' +
-                                        paymentMethod.type;
+                                        paymentMethod.methodIdentifier;
 
                                     if ('isAvailable' in component) {
                                         component.isAvailable().then(() => {
                                             component.mount(containerId);
                                         }).catch(e => {
                                             result.isAvailable(false);
-                                            console.log(paymentMethod.type +
-                                                ' is not available, the method will be hidden from the payment list');
                                         });
                                     } else {
                                         component.mount(containerId);
@@ -377,11 +378,21 @@ define(
                                     if ('component' in innerSelf) {
                                         stateData = innerSelf.component.data;
                                     } else {
-                                        stateData = {
-                                            paymentMethod: {
-                                                type: selectedAlternativePaymentMethodType(),
-                                            },
-                                        };
+                                        if (paymentMethod.methodGroup === paymentMethod.methodIdentifier){
+                                            stateData = {
+                                                paymentMethod: {
+                                                    type: selectedAlternativePaymentMethodType(),
+                                                },
+                                            };
+                                        } else {
+                                            stateData = {
+                                                paymentMethod: {
+                                                    type: paymentMethod.methodGroup,
+                                                    brand: paymentMethod.methodIdentifier
+                                                },
+                                            };
+                                        }
+
                                     }
 
                                     additionalData.stateData = JSON.stringify(
@@ -477,7 +488,7 @@ define(
                 };
 
                 // set the payment method type
-                selectedAlternativePaymentMethodType(self.paymentMethod.type);
+                selectedAlternativePaymentMethodType(self.paymentMethod.methodIdentifier);
 
                 // set payment method
                 paymentMethod(self.method);
@@ -523,9 +534,9 @@ define(
                 var response = JSON.parse(responseJSON);
 
                 if (!!response.isFinal) {
-                    // Status is final redirect to the redirectUrl
+                    // Status is final redirect to the success page
                     $.mage.redirect(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl,
+                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
                     );
                 } else {
                     // render component
@@ -600,7 +611,7 @@ define(
 
                 adyenPaymentService.paymentDetails(request).done(function() {
                     $.mage.redirect(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl,
+                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
                     );
                 }).fail(function(response) {
                     fullScreenLoader.stopLoader();
@@ -626,7 +637,7 @@ define(
 
                 adyenPaymentService.paymentDetails(request).done(function() {
                     $.mage.redirect(
-                        window.checkoutConfig.payment[quote.paymentMethod().method].redirectUrl,
+                        window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
                     );
                 }).fail(function(response) {
                     fullScreenLoader.stopLoader();

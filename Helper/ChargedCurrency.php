@@ -103,14 +103,14 @@ class ChargedCurrency
                 $item->getBasePrice(),
                 $item->getQuote()->getBaseCurrencyCode(),
                 $item->getBaseDiscountAmount(),
-                $item->getBaseTaxAmount()
+                $item->getBaseTaxAmount() / $item->getQty()
             );
         }
         return new AdyenAmountCurrency(
             $item->getRowTotal() / $item->getQty(),
             $item->getQuote()->getQuoteCurrencyCode(),
             $item->getDiscountAmount(),
-            $item->getTaxAmount()
+            $item->getTaxAmount() / $item->getQty()
         );
     }
 
@@ -126,14 +126,14 @@ class ChargedCurrency
                 $item->getBasePrice(),
                 $item->getInvoice()->getBaseCurrencyCode(),
                 null,
-                $item->getBaseTaxAmount()
+                $item->getBaseTaxAmount() / $item->getQty()
             );
         }
         return new AdyenAmountCurrency(
             $item->getPrice(),
             $item->getInvoice()->getOrderCurrencyCode(),
             null,
-            $item->getTaxAmount()
+            $item->getTaxAmount() / $item->getQty()
         );
     }
 
@@ -149,14 +149,14 @@ class ChargedCurrency
                 $item->getBasePrice(),
                 $item->getCreditMemo()->getInvoice()->getBaseCurrencyCode(),
                 null,
-                $item->getBaseTaxAmount()
+                $item->getBaseTaxAmount() / $item->getQty()
             );
         }
         return new AdyenAmountCurrency(
             $item->getPrice(),
             $item->getCreditMemo()->getInvoice()->getOrderCurrencyCode(),
             null,
-            $item->getTaxAmount()
+            $item->getTaxAmount() / $item->getQty()
         );
     }
 

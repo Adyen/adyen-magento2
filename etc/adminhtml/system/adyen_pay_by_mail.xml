@@ -44,21 +44,28 @@
         </field>
         <field id="session_validity" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Session Validity</label>
+            <frontend_class>validate-number</frontend_class>
             <tooltip>How many days do you want this payment page to be active</tooltip>
             <config_path>payment/adyen_pay_by_mail/session_validity</config_path>
         </field>
-        <field id="skin_code" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="ship_before" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Ship Before Date (Days)</label>
+            <frontend_class>validate-number</frontend_class>
+            <tooltip>Days after the Pay by Mail is generated within which the ordered goods or services need to be shipped or provided to the shopper</tooltip>
+            <config_path>payment/adyen_pay_by_mail/ship_before</config_path>
+        </field>
+        <field id="skin_code" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Skin Code</label>
             <tooltip>The skin code you want to use</tooltip>
             <config_path>payment/adyen_pay_by_mail/skin_code</config_path>
         </field>
-        <field id="hmac_test" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="hmac_test" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>HMAC Key for Test</label>
             <tooltip>Should match with the HMAC test key in the Adyen Customer Area.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_pay_by_mail/hmac_test</config_path>
         </field>
-        <field id="hmac_live" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="hmac_live" translate="label" type="obscure" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>HMAC Key for Live</label>
             <tooltip>Should match with the HMAC live key in the Adyen Customer Area.</tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>

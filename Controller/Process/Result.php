@@ -29,6 +29,26 @@ use Magento\Framework\App\Request\Http as Http;
 
 class Result extends \Magento\Framework\App\Action\Action
 {
+
+    const DETAILS_ALLOWED_PARAM_KEYS = [
+        'MD',
+        'PaReq',
+        'PaRes',
+        'billingToken',
+        'cupsecureplus.smscode',
+        'facilitatorAccessToken',
+        'oneTimePasscode',
+        'orderID',
+        'payerID',
+        'payload',
+        'paymentID',
+        'paymentStatus',
+        'redirectResult',
+        'threeDSResult',
+        'threeds2.challengeResult',
+        'threeds2.fingerprint'
+    ];
+
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -99,14 +119,6 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->storeManager = $storeManager;
         $this->quoteHelper = $quoteHelper;
         parent::__construct($context);
-        //TODO check if needed with version v67
-        if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
-            $request = $this->getRequest();
-            if ($request instanceof Http && $request->isPost()) {
-                $request->setParam('isAjax', true);
-                $request->getHeaders()->addHeaderLine('X_REQUESTED_WITH', 'XMLHttpRequest');
-            }
-        }
     }
 
     /**
@@ -187,27 +199,6 @@ class Result extends \Magento\Framework\App\Action\Action
 
         $this->_adyenLogger->addAdyenResult('Processing ResultUrl');
 
-        // TODO check if needed since response is validated when calling this function
-        if (empty($response)) {
-            $this->_adyenLogger->addAdyenResult(
-                'Response is empty, please check your webserver that the result url accepts parameters'
-            );
-
-            throw new \Magento\Framework\Exception\LocalizedException(
-                __('Response is empty, please check your webserver that the result url accepts parameters')
-            );
-        }
-
-        // If the merchant signature is present, authenticate the result url
-        // TODO validate if merchant signature is still used or can be removed
-        if (!empty($response['merchantSig'])) {
-            // authenticate result url
-            $authStatus = $this->_authenticate($response);
-            if (!$authStatus) {
-                throw new \Magento\Framework\Exception\LocalizedException(__('ResultUrl authentification failure'));
-            }
-        }
-
         // send the payload verification payment\details request to validate the response
         $response = $this->validatePayloadAndReturnResponse($response);
 
@@ -220,11 +211,6 @@ class Result extends \Magento\Framework\App\Action\Action
                 'adyen_response' => $response
             ]
         );
-
-        // TODO is handled in the response?
-        if (isset($response['handled'])) {
-            return $response['handled_response'];
-        }
 
         // update the order
         $result = $this->_validateUpdateOrder($order, $response);
@@ -429,16 +415,9 @@ class Result extends \Magento\Framework\App\Action\Action
         $request = [];
 
         // filter details to match the keys
-        $allowedParams = $payment->getAdditionalInformation('details');
         $details = $result;
-        if (!empty($allowedParams)) {
-            $allowedParamsArray = [];
-            // TODO build a validator class which also validates the type of the param
-            foreach ($allowedParams as $allowedParam) {
-                $allowedParamsArray[] = $allowedParam['key'];
-            }
-            $details = DataArrayValidator::getArrayOnlyWithApprovedKeys($details, $allowedParamsArray);
-        }
+        // TODO build a validator class which also validates the type of the param
+        $details = DataArrayValidator::getArrayOnlyWithApprovedKeys($details, self::DETAILS_ALLOWED_PARAM_KEYS);
 
         // Remove helper params in case left in the request
         $helperParams = ['isAjax', 'merchantReference'];

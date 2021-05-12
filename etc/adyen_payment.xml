@@ -81,5 +81,9 @@
             <label>Dankort</label>
             <code_alt>dankort</code_alt>
         </type>
+        <type id="CB" order="140">
+            <label>Cartes Bancaire</label>
+            <code_alt>cartebancaire</code_alt>
+        </type>
     </adyen_credit_cards>
 </payment>

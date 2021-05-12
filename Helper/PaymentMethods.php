@@ -30,6 +30,11 @@ use Magento\Framework\App\Helper\AbstractHelper;
  */
 class PaymentMethods extends AbstractHelper
 {
+
+    const METHODS_WITH_BRAND_LOGO = [
+        "giftcard"
+    ];
+
     /**
      * @var \Magento\Quote\Api\CartRepositoryInterface
      */
@@ -183,7 +188,10 @@ class PaymentMethods extends AbstractHelper
         // Add extra details per payment method
         $paymentMethodsExtraDetails = [];
         $paymentMethodsExtraDetails = $this->showLogosPaymentMethods($paymentMethods, $paymentMethodsExtraDetails);
-        $paymentMethodsExtraDetails = $this->addExtraConfigurationToPaymentMethods($paymentMethods, $paymentMethodsExtraDetails);
+        $paymentMethodsExtraDetails = $this->addExtraConfigurationToPaymentMethods(
+            $paymentMethods,
+            $paymentMethodsExtraDetails
+        );
         $response['paymentMethodsExtraDetails'] = $paymentMethodsExtraDetails;
 
         //TODO this should be the implemented with an interface
@@ -209,13 +217,13 @@ class PaymentMethods extends AbstractHelper
 
         $total = (float)$total;
 
-        if ($total > 0) {
+        if ($total >= 0) {
             return $total;
         }
 
         throw new \Exception(
             sprintf(
-                'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float > `0`, got `%f`.',
+                'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float >= `0`, got `%f`.',
                 $this->getQuote()->getEntityId(),
                 $total
             )
@@ -366,66 +374,70 @@ class PaymentMethods extends AbstractHelper
      */
     protected function showLogosPaymentMethods($paymentMethods, array $paymentMethodsExtraDetails)
     {
-        if ($this->adyenHelper->showLogos()) {
-            // Explicitly setting theme
-            $themeCode = "Magento/blank";
+        if (!$this->adyenHelper->showLogos()) {
+            return $paymentMethodsExtraDetails;
+        }
+        // Explicitly setting theme
+        $themeCode = "Magento/blank";
 
-            $themeId = $this->design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
-            if (!empty($themeId)) {
-                $theme = $this->themeProvider->getThemeById($themeId);
-                if ($theme && !empty($theme->getCode())) {
-                    $themeCode = $theme->getCode();
-                }
+        $themeId = $this->design->getConfigurationDesignTheme(\Magento\Framework\App\Area::AREA_FRONTEND);
+        if (!empty($themeId)) {
+            $theme = $this->themeProvider->getThemeById($themeId);
+            if ($theme && !empty($theme->getCode())) {
+                $themeCode = $theme->getCode();
             }
+        }
 
-            $params = [];
-            $params = array_merge(
-                [
-                    'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
-                    '_secure' => $this->request->isSecure(),
-                    'theme' => $themeCode
-                ],
+        $params = [];
+        $params = array_merge(
+            [
+                'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                '_secure' => $this->request->isSecure(),
+                'theme' => $themeCode
+            ],
+            $params
+        );
+
+        foreach ($paymentMethods as $paymentMethod) {
+            $paymentMethodCode = in_array($paymentMethod['type'], self::METHODS_WITH_BRAND_LOGO)
+                ? $paymentMethod['brand']
+                : $paymentMethod['type'];
+
+            $asset = $this->assetRepo->createAsset(
+                'Adyen_Payment::images/logos/' .
+                $paymentMethodCode . '.png',
                 $params
             );
 
-            foreach ($paymentMethods as $paymentMethod) {
-                $paymentMethodCode = $paymentMethod['type'];
+            $placeholder = $this->assetSource->findSource($asset);
 
-                $asset = $this->assetRepo->createAsset(
-                    'Adyen_Payment::images/logos/' .
-                    $paymentMethodCode . '.png',
-                    $params
-                );
-
-                $placeholder = $this->assetSource->findSource($asset);
-
-                if ($placeholder) {
-                    list($width, $height) = getimagesize($asset->getSourceFile());
-                    $icon = [
-                        'url' => $asset->getUrl(),
-                        'width' => $width,
-                        'height' => $height
-                    ];
-                } else {
-                    $icon = [
-                        'url' => 'https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/medium/' . $paymentMethodCode . '.png',
-                        'width' => 77,
-                        'height' => 50
-                    ];
-                }
-
-                $paymentMethodsExtraDetails[$paymentMethodCode]['icon'] = $icon;
-
-                //todo check if it is needed
-                // check if payment method is an open invoice method
-                $paymentMethodsExtraDetails[$paymentMethodCode]['isOpenInvoice'] =
-                    $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
+            if ($placeholder) {
+                list($width, $height) = getimagesize($asset->getSourceFile());
+                $icon = [
+                    'url' => $asset->getUrl(),
+                    'width' => $width,
+                    'height' => $height
+                ];
+            } else {
+                $icon = [
+                    'url' => 'https://checkoutshopper-live.adyen.com/checkoutshopper/images/logos/medium/' . $paymentMethodCode . '.png',
+                    'width' => 77,
+                    'height' => 50
+                ];
             }
+
+            $paymentMethodsExtraDetails[$paymentMethodCode]['icon'] = $icon;
+
+            //todo check if it is needed
+            // check if payment method is an open invoice method
+            $paymentMethodsExtraDetails[$paymentMethodCode]['isOpenInvoice'] =
+                $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethodCode);
         }
         return $paymentMethodsExtraDetails;
     }
 
-    protected function addExtraConfigurationToPaymentMethods($paymentMethods, array $paymentMethodsExtraDetails) {
+    protected function addExtraConfigurationToPaymentMethods($paymentMethods, array $paymentMethodsExtraDetails)
+    {
         $quote = $this->getQuote();
         $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);

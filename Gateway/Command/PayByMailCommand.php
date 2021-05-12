@@ -136,18 +136,8 @@ class PayByMailCommand implements CommandInterface
         $realOrderId = $order->getRealOrderId();
         $storeId = $order->getStore()->getId();
 
-        // check if paybymail has it's own skin
-        $skinCode = trim($this->_adyenHelper->getAdyenPayByMailConfigData('skin_code'));
-        if ($skinCode == "") {
-            // use HPP skin and HMAC
-            $skinCode = $this->_adyenHelper->getAdyenHppConfigData('skin_code');
-            $hmacKey = $this->_adyenHelper->getHmac();
-            $shopperLocale = trim($this->_adyenHelper->getAdyenHppConfigData('shopper_locale', $storeId));
-            $countryCode = trim($this->_adyenHelper->getAdyenHppConfigData('country_code', $storeId));
-        } else {
-            // use pay_by_mail skin and hmac
-            $hmacKey = $this->_adyenHelper->getHmacPayByMail();
-        }
+        $skinCode = trim($this->_adyenHelper->getAdyenPayByMailConfigData('skin_code', $storeId));
+        $hmacKey = $this->_adyenHelper->getHmacPayByMail($storeId);
 
         $adyenAmount = $this->chargedCurrency->getOrderAmountCurrency($order);
         $orderCurrencyCode = $adyenAmount->getCurrencyCode();
@@ -163,20 +153,20 @@ class PayByMailCommand implements CommandInterface
         $customerId = $order->getCustomerId();
 
         // get locale from store
-        $shopperLocale = (!empty($shopperLocale)) ? $shopperLocale : $this->_adyenHelper->getStoreLocale($storeId);
-        $countryCode = (!empty($countryCode)) ? $countryCode : false;
+        $shopperLocale = $this->_adyenHelper->getStoreLocale($storeId);
 
         // if directory lookup is enabled use the billingadress as countrycode
-        if ($countryCode == false) {
-            if (is_object($order->getBillingAddress()) && $order->getBillingAddress()->getCountryId() != "") {
-                $countryCode = $order->getBillingAddress()->getCountryId();
-            } else {
-                $countryCode = "";
-            }
+        if (is_object($order->getBillingAddress()) && $order->getBillingAddress()->getCountryId() != "") {
+            $countryCode = $order->getBillingAddress()->getCountryId();
+        } else {
+            $countryCode = "";
         }
 
-        $deliveryDays = $this->_adyenHelper->getAdyenHppConfigData('delivery_days', $storeId);
-        $deliveryDays = (!empty($deliveryDays)) ? $deliveryDays : 5;
+        $deliveryDays = $this->_adyenHelper->getAdyenPayByMailConfigData('ship_before', $storeId);
+
+        if ($deliveryDays == "") {
+            $deliveryDays = 3;
+        }
 
         $formFields = [];
         $formFields['merchantAccount'] = $merchantAccount;
