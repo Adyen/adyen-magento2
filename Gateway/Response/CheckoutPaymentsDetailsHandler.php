@@ -53,8 +53,11 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
         // set transaction not to processing by default wait for notification
         $payment->setIsTransactionPending(true);
 
-        // no not send order confirmation mail
-        $payment->getOrder()->setCanSendNewEmailFlag(false);
+        // Email sending is set at CheckoutDataBuilder for Boleto
+        // Otherwise, we don't want to send a confirmation email
+        if ($payment->getMethod() != \Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider::CODE) {
+            $payment->getOrder()->setCanSendNewEmailFlag(false);
+        }
 
         if (!empty($response['pspReference'])) {
             // set pspReference as transactionId
