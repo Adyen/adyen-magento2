@@ -36,34 +36,14 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
           style="display:none">
     <span id="noClientKey"
           class="message message-error error"
-          style="visibility: hidden"><?= $block->escapeHtml(
-              __(
-                  'Please configure a Client key and a live endpoint prefix (if in Production Mode) in your Adyen ' .
-                  'Required Settings'
-              )
-          ); ?>
+          style="display: none"><?= $block->escapeHtml(
+            __(
+                'Please configure a Client key and a live endpoint prefix (if in Production Mode) in your Adyen ' .
+                'Required Settings'
+            )
+        ); ?>
     </span>
-    <div class="field admin__field">
-        <label for="<?= /* @noEscape */ $code; ?>_cc_owner">
-            <span><?= $block->escapeHtml(__('Name on Card')); ?></span>
-        </label>
-        <div>
-            <input type="text" id="<?= /* @noEscape */ $code; ?>_cc_owner" name="payment[holderName]"
-                   title="<?= $block->escapeHtml(__('Name on Card')); ?>"
-                   class="admin__control-text"
-                   value="<?= /* @noEscape */ $block->getInfoData('cc_owner'); ?>"
-                   placeholder="<?= $block->escapeHtml(__('Name on Card')); ?>"/>
-        </div>
-    </div>
-
     <div id="cardContainer-<?= /* @noEscape */ $code; ?>"></div>
-    <input id="<?= /* @noEscape */ $code; ?>-number" type="hidden" name="payment[number]">
-    <input id="<?= /* @noEscape */ $code; ?>-cvc" type="hidden" name="payment[cvc]">
-    <input id="<?= /* @noEscape */ $code; ?>-expiryMonth" type="hidden" name="payment[expiryMonth]">
-    <input id="<?= /* @noEscape */ $code; ?>-expiryYear" type="hidden" name="payment[expiryYear]">
-    <input id="<?= /* @noEscape */ $code; ?>-cc_type" type="hidden" name="payment[cc_type]">
-    <input id="<?= /* @noEscape */ $code; ?>-store_cc" type="hidden" name="payment[store_cc]">
-
     <?php if ($block->isVaultEnabled()): ?>
         <div class="field choice">
             <input type="checkbox"
@@ -99,63 +79,39 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                     return "";
                 }
 
-                /*
-                 * Initialize secure fields and set up the onChange callback to
-                 *  - fill the input fields with the encrypted data
-                 *  - show the helper text when necessary
-                 */
-                var secureFieldsInitialize = function () {
+                if (!"<?= $block->getClientKey(); ?>") {
+                    document.getElementById('noClientKey').style = "visibility: visible; display:inline-block";
+                    return;
+                }
+                var cardNode = document.getElementById("cardContainer-<?= /* @noEscape */ $code; ?>");
 
-                    if (!"<?= $block->getClientKey(); ?>") {
-                        document.getElementById('noClientKey').style = "visibility: visible; display:inline-block";
-                        return;
-                    }
-                    var cardNode = document.getElementById("cardContainer-<?= /* @noEscape */ $code; ?>");
+                var checkout = new AdyenCheckout({
+                    clientKey: "<?= /* @noEscape */ $block->getClientKey(); ?>",
+                    environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
+                    hasHolderName: true,
+                    locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
+                    risk: {
+                        enabled: false
+                    },
 
-                    var checkout = new AdyenCheckout({
-                        locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
-                        risk: {
-                            enabled: false
-                        }
-                    });
-                    var hideCVC = "<?= !$block->hasVerification(); ?>";
+                });
+                var hideCVC = "<?= !$block->hasVerification(); ?>";
 
+                try {
                     var card = checkout.create('card', {
-                        clientKey: "<?= /* @noEscape */ $block->getClientKey(); ?>",
-                        environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
-                        type: 'card',
-                        groupTypes: ccTypes,
+                        brands: Object.keys(ccTypes),
                         hideCVC: hideCVC,
                         enableStoreDetails: "<?= /* @noEscape */ !$block->isVaultEnabled();?>",
-
                         onChange: function (state) {
-                            // When the state is valid update the input fields
-                            if (state.isValid) {
-                                // Here we enable the button if the component is now valid
-                                jQuery("#<?= /* @noEscape */ $code; ?>-number").val(
-                                    state.data.paymentMethod.encryptedCardNumber
-                                );
-                                jQuery("#<?= /* @noEscape */ $code; ?>-expiryMonth").val(
-                                    state.data.paymentMethod.encryptedExpiryMonth
-                                );
-                                jQuery("#<?= /* @noEscape */ $code; ?>-expiryYear").val(
-                                    state.data.paymentMethod.encryptedExpiryYear
-                                );
-                                jQuery("#<?= /* @noEscape */ $code; ?>-cvc").val(
-                                    state.data.paymentMethod.encryptedSecurityCode
-                                );
-                                jQuery("#<?= /* @noEscape */ $code; ?>-store_cc").val(state.data.storePaymentMethod);
-                            }
                         },
                         onBrand: function (state) {
-                            if (state.isValid) {
-                                jQuery("#<?= /* @noEscape */ $code; ?>-cc_type").val(getCcCodeByAltCode(state.brand));
-                            }
                         },
                         onError: function () {
                         }
                     });
                     card.mount(cardNode);
+                } catch (e) {
+                    console.log(e);
                 }
                 //]]>
             });
