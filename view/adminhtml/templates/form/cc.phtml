@@ -23,7 +23,7 @@
 
 // @codingStandardsIgnoreFile
 /**
- * @var \Magento\Payment\Block\Adminhtml\Transparent\Form $block
+ * @var \Adyen\Payment\Block\Form\Cc $block
  */
 $code = $block->escapeHtml($block->getMethodCode());
 $ccType = $block->getInfoData('cc_type');
@@ -34,11 +34,11 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
 <fieldset class="admin__fieldset payment-method"
           id="payment_form_<?= /* @noEscape */ $code; ?>"
           style="display:none">
-    <span id="noApiKey"
+    <span id="noClientKey"
           class="message message-error error"
           style="visibility: hidden"><?= $block->escapeHtml(
               __(
-                  'Please configure an API Key and a live endpoint prefix(if in Production Mode) in your Adyen ' .
+                  'Please configure a Client key and a live endpoint prefix (if in Production Mode) in your Adyen ' .
                   'Required Settings'
               )
           ); ?>
@@ -81,18 +81,13 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
             [
                 'jquery',
                 'Magento_Sales/order/create/scripts',
-                "Magento_Sales/order/create/form"
+                'Magento_Sales/order/create/form',
+                'Adyen_Payment/js/bundle'
             ],
             function () {
                 var ccTypes = <?= /* @noEscape */ json_encode($block->getCcAvailableTypesByAlt()); ?>;
 
                 //<![CDATA[
-
-                // Append checkout card components script
-                var scriptTag = document.createElement('script');
-                scriptTag.src = "<?= $block->escapeHtml($block->getCheckoutCardComponentJs()); ?>";
-                scriptTag.type = "text/javascript";
-                document.body.appendChild(scriptTag);
 
                 // Get cc type by adyen cc type
                 var getCcCodeByAltCode = function (altCode) {
@@ -111,8 +106,8 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                  */
                 var secureFieldsInitialize = function () {
 
-                    if (!"<?= $block->getCheckoutOriginKeys(); ?>") {
-                        document.getElementById('noApiKey').style = "visibility: visible; display:inline-block";
+                    if (!"<?= $block->getClientKey(); ?>") {
+                        document.getElementById('noClientKey').style = "visibility: visible; display:inline-block";
                         return;
                     }
                     var cardNode = document.getElementById("cardContainer-<?= /* @noEscape */ $code; ?>");
@@ -126,7 +121,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                     var hideCVC = "<?= !$block->hasVerification(); ?>";
 
                     var card = checkout.create('card', {
-                        originKey: "<?= /* @noEscape */ $block->getCheckoutOriginKeys(); ?>",
+                        clientKey: "<?= /* @noEscape */ $block->getClientKey(); ?>",
                         environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
                         type: 'card',
                         groupTypes: ccTypes,
@@ -161,21 +156,6 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                         }
                     });
                     card.mount(cardNode);
-                }
-
-                // Load card components and force wait until the external script is loaded
-                if (scriptTag.readyState) {
-                    scriptTag.onreadystatechange = function () {
-                        if (script.readyState == "loaded" ||
-                            script.readyState == "complete") {
-                            script.onreadystatechange = null;
-                            secureFieldsInitialize();
-                        }
-                    };
-                } else {
-                    scriptTag.onload = function () {
-                        secureFieldsInitialize();
-                    };
                 }
                 //]]>
             });
