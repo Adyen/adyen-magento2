@@ -43,18 +43,8 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
             )
         ); ?>
     </span>
+    <input name="payment[stateData]" id="adyen-cc-statedata" type="hidden">
     <div id="cardContainer-<?= /* @noEscape */ $code; ?>"></div>
-    <?php if ($block->isVaultEnabled()): ?>
-        <div class="field choice">
-            <input type="checkbox"
-                   id="<?= /* @noEscape */ $code; ?>_vault"
-                   name="payment[is_active_payment_token_enabler]"
-                   class="checkbox"/>
-            <label class="label" for="<?= /* @noEscape */ $code; ?>_vault">
-                <span><?= $block->escapeHtml('Save for later use.'); ?></span>
-            </label>
-        </div>
-    <?php endif; ?>
 
     <script>
         require(
@@ -64,10 +54,8 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                 'Magento_Sales/order/create/form',
                 'Adyen_Payment/js/bundle'
             ],
-            function () {
+            function ($) {
                 var ccTypes = <?= /* @noEscape */ json_encode($block->getCcAvailableTypesByAlt()); ?>;
-
-                //<![CDATA[
 
                 // Get cc type by adyen cc type
                 var getCcCodeByAltCode = function (altCode) {
@@ -103,17 +91,18 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                         hideCVC: hideCVC,
                         enableStoreDetails: "<?= /* @noEscape */ !$block->isVaultEnabled();?>",
                         onChange: function (state) {
+                            if (state.isValid) {
+                                $('#adyen-cc-statedata').val(JSON.stringify(state.data));
+                            }
                         },
                         onBrand: function (state) {
-                        },
-                        onError: function () {
+                            // TODO installments logic?
                         }
                     });
                     card.mount(cardNode);
                 } catch (e) {
                     console.log(e);
                 }
-                //]]>
             });
     </script>
 </fieldset>
