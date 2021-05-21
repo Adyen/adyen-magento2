@@ -65,6 +65,7 @@ define(
                 template: 'Adyen_Payment/payment/cc-form',
                 installment: '', // keep it until the component implements installments
                 orderId: 0, // TODO is this the best place to store it?
+                storeCc: false,
             },
             /**
              * @returns {exports.initialize}
@@ -127,6 +128,7 @@ define(
                     brands: self.getAvailableCardTypeAltCodes(),
                     onChange: function(state, component) {
                         self.placeOrderAllowed(!!state.isValid);
+                        self.storeCc = !!state.data.storePaymentMethod;
                     },
                     // Keep onBrand as is until checkout component supports installments
                     onBrand: function(state) {
