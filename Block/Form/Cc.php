@@ -23,6 +23,10 @@
 
 namespace Adyen\Payment\Block\Form;
 
+use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Installments;
+use Adyen\Payment\Logger\AdyenLogger;
+
 class Cc extends \Magento\Payment\Block\Form\Cc
 {
     /**
@@ -46,6 +50,26 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     protected $checkoutSession;
 
     /**
+     * @var Installments
+     */
+    private $installmentsHelper;
+
+    /**
+     * @var Installments
+     */
+    private $chargedCurrency;
+
+    /**
+     * @var \Magento\Backend\Model\Session\Quote
+     */
+    private $backendCheckoutSession;
+
+    /**
+     * @var AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
      * Cc constructor.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
@@ -59,12 +83,20 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         \Magento\Payment\Model\Config $paymentConfig,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Backend\Model\Session\Quote $backendCheckoutSession,
+        Installments $installmentsHelper,
+        ChargedCurrency $chargedCurrency,
+        AdyenLogger $adyenLogger,
         array $data = []
     ) {
         parent::__construct($context, $paymentConfig);
         $this->adyenHelper = $adyenHelper;
         $this->appState = $context->getAppState();
         $this->checkoutSession = $checkoutSession;
+        $this->backendCheckoutSession = $backendCheckoutSession;
+        $this->installmentsHelper = $installmentsHelper;
+        $this->chargedCurrency = $chargedCurrency;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -145,5 +177,32 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     public function isVaultEnabled()
     {
         return $this->adyenHelper->isCreditCardVaultEnabled();
+    }
+
+    /**
+     * @return string
+     */
+    public function getFormattedInstallments()
+    {
+        try {
+            $quote = $this->_appState->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML ?
+                $this->backendCheckoutSession->getQuote() :
+                $this->checkoutSession->getQuote();
+
+            $quoteAmountCurrency = $this->chargedCurrency->getQuoteAmountCurrency($quote);
+
+            return $this->installmentsHelper->formatInstallmentsConfig(
+                $this->adyenHelper->getAdyenCcConfigData('installments',
+                    $this->_storeManager->getStore()->getId()
+                ),
+                $this->adyenHelper->getAdyenCcTypes(),
+                $quoteAmountCurrency->getAmount()
+            );
+        } catch (\Throwable $e) {
+            $this->adyenLogger->error(
+                'There was an error fetching the installments config: ' . $e->getMessage()
+            );
+            return '{}';
+        }
     }
 }

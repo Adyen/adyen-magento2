@@ -89,14 +89,13 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                     var card = checkout.create('card', {
                         brands: Object.keys(ccTypes),
                         hideCVC: hideCVC,
-                        enableStoreDetails: "<?= /* @noEscape */ !$block->isVaultEnabled();?>",
+                        enableStoreDetails: false, // MOTO can't use CVC which is required for OneClick tokens
+                        installmentOptions: <?= /* @noEscape */ $block->getFormattedInstallments();?>,
+                        showInstallmentAmounts: true,
                         onChange: function (state) {
                             if (state.isValid) {
                                 $('#adyen-cc-statedata').val(JSON.stringify(state.data));
                             }
-                        },
-                        onBrand: function (state) {
-                            // TODO installments logic?
                         }
                     });
                     card.mount(cardNode);
