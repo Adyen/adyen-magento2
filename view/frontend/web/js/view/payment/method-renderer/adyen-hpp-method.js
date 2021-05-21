@@ -67,6 +67,8 @@ define(
         var selectedAlternativePaymentMethodType = ko.observable(null);
         var paymentMethod = ko.observable(null);
 
+        const amazonSessionKey = 'amazonCheckoutSessionId';
+
         return Component.extend({
             self: this,
             isPlaceOrderActionAllowed: ko.observable(quote.billingAddress() != null),
@@ -151,6 +153,7 @@ define(
                     'paypal',
                     'applepay',
                     'paywithgoogle',
+                    'amazonpay'
                 ];
 
                 var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
@@ -341,7 +344,33 @@ define(
                                     }
                                 }
 
+                                // Extra apple pay configuration
+                                if (paymentMethod.methodIdentifier.includes('amazonpay')) {
+                                    configuration = self.createAmazonPayConfiguration(configuration);
+                                }
+
                                 try {
+                                    var url = new URL(location.href);
+                                    if (
+                                        paymentMethod.methodIdentifier === 'amazonpay'
+                                        && url.searchParams.has(amazonSessionKey)
+                                    ) {
+                                        configuration = {
+                                            [amazonSessionKey]: url.searchParams.get(amazonSessionKey),
+                                            showOrderButton: false
+                                        };
+                                        const component = self.checkoutComponent.create(
+                                            paymentMethod.methodIdentifier, configuration
+                                        );
+                                        const containerId = '#adyen-alternative-payment-container-' +
+                                            paymentMethod.methodIdentifier;
+                                        component.mount(containerId);
+                                        result.component = component;
+                                        selectedAlternativePaymentMethodType(paymentMethod.methodIdentifier);
+                                        this.placeOrder();
+                                        return;
+                                    }
+
                                     const component = self.checkoutComponent.create(
                                         paymentMethod.methodIdentifier, configuration);
                                     const containerId = '#adyen-alternative-payment-container-' +
@@ -690,6 +719,16 @@ define(
             getCode: function() {
                 return window.checkoutConfig.payment.adyenHpp.methodCode;
             },
+            createAmazonPayConfiguration: function (configuration) {
+                return Object.assign(configuration, {
+                    productType: 'PayOnly',
+                    checkoutMode: 'ProcessOrder',
+                    returnUrl: location.href,
+                    checkoutReviewReturnUrl: location.href,
+                    prePayRedirect: true,
+                    sessionKey: amazonSessionKey
+                });
+            }
         });
     },
 );
