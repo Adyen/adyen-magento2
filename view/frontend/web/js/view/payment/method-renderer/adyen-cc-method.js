@@ -126,6 +126,10 @@ define(
                 self.cardComponent = self.checkoutComponent.create('card', {
                     enableStoreDetails: self.getEnableStoreDetails(),
                     brands: self.getAvailableCardTypeAltCodes(),
+                    hasHolderName: adyenConfiguration.getHasHolderName(),
+                    holderNameRequired: adyenConfiguration.getHasHolderName() ?
+                        adyenConfiguration.getHolderNameRequired() :
+                        false,
                     onChange: function(state, component) {
                         self.placeOrderAllowed(!!state.isValid);
                         self.storeCc = !!state.data.storePaymentMethod;
