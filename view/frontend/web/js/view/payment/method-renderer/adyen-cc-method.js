@@ -127,9 +127,8 @@ define(
                     enableStoreDetails: self.getEnableStoreDetails(),
                     brands: self.getAvailableCardTypeAltCodes(),
                     hasHolderName: adyenConfiguration.getHasHolderName(),
-                    holderNameRequired: adyenConfiguration.getHasHolderName() ?
-                        adyenConfiguration.getHolderNameRequired() :
-                        false,
+                    holderNameRequired: adyenConfiguration.getHasHolderName() &&
+                        adyenConfiguration.getHolderNameRequired(),
                     onChange: function(state, component) {
                         self.placeOrderAllowed(!!state.isValid);
                         self.storeCc = !!state.data.storePaymentMethod;
