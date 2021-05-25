@@ -84,6 +84,8 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         $config['payment']['adyen']['checkoutEnvironment'] = $this->adyenHelper->getCheckoutEnvironment($storeId);
         $config['payment']['adyen']['locale'] = $this->adyenHelper->getStoreLocale($storeId);
         $config['payment']['adyen']['chargedCurrency'] = $this->adyenConfigHelper->getChargedCurrency($storeId);
+        $config['payment']['adyen']['hasHolderName'] = $this->adyenConfigHelper->getHasHolderName($storeId);
+        $config['payment']['adyen']['holderNameRequired'] = $this->adyenConfigHelper->getHolderNameRequired($storeId);
 
         return $config;
     }

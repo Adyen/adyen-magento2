@@ -36,6 +36,8 @@ class Config
     const XML_NOTIFICATIONS_HMAC_KEY_LIVE = "notification_hmac_key_live";
     const XML_NOTIFICATIONS_HMAC_KEY_TEST = "notification_hmac_key_test";
     const XML_CHARGED_CURRENCY = "charged_currency";
+    const XML_HAS_HOLDER_NAME = "has_holder_name";
+    const XML_HOLDER_NAME_REQUIRED = "holder_name_required";
 
     /**
      * @var Magento\Framework\App\Config\ScopeConfigInterface
@@ -163,6 +165,28 @@ class Config
     public function getChargedCurrency($storeId = null)
     {
         return $this->adyenHelper->getAdyenAbstractConfigData(self::XML_CHARGED_CURRENCY, $storeId);
+    }
+
+    /**
+     * Retrieve has_holder_name config
+     *
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function getHasHolderName($storeId = null)
+    {
+        return $this->adyenHelper->getAdyenCcConfigDataFlag(self::XML_HAS_HOLDER_NAME, $storeId);
+    }
+
+    /**
+     * Retrieve holder_name_required config
+     *
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function getHolderNameRequired($storeId = null)
+    {
+        return $this->adyenHelper->getAdyenCcConfigDataFlag(self::XML_HOLDER_NAME_REQUIRED, $storeId);
     }
 
     /**
