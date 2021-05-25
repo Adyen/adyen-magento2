@@ -39,7 +39,6 @@ class CcBackendAuthorizationDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        $order = $paymentDataObject->getOrder();
         $requestBody = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::STATE_DATA);
 
         /**
