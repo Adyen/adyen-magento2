@@ -77,7 +77,6 @@ define(
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
 
                 this.checkoutComponent = new AdyenCheckout({
-                        hasHolderName: true,
                         locale: adyenConfiguration.getLocale(),
                         clientKey: adyenConfiguration.getClientKey(),
                         environment: adyenConfiguration.getCheckoutEnvironment(),
