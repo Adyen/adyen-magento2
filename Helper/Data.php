@@ -1794,7 +1794,10 @@ class Data extends AbstractHelper
      */
     public function mapLocaleCode($localeCode)
     {
-        if ($localeCode && str_contains($localeCode, 'zh_Hans_')) {
+        if ($localeCode && $localeCode == 'zh_Hant_TW') {
+            $localeCode = 'zh-TW';
+        }
+        elseif ($localeCode && ($localeCode == 'zh_Hans_CN'||$localeCode== 'zh_Hant_HK')) {
             $localeCode = 'zh-CN';
         }
         return $localeCode;
