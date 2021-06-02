@@ -106,7 +106,6 @@ define(
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
                     var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
                     this.checkoutComponent = new AdyenCheckout({
-                            hasHolderName: true,
                             locale: adyenConfiguration.getLocale(),
                             clientKey: adyenConfiguration.getClientKey(),
                             environment: adyenConfiguration.getCheckoutEnvironment(),
@@ -291,6 +290,9 @@ define(
                                     {
                                         showPayButton: showPayButton,
                                         countryCode: country,
+                                        hasHolderName: adyenConfiguration.getHasHolderName(),
+                                        holderNameRequired: adyenConfiguration.getHasHolderName() &&
+                                            adyenConfiguration.getHolderNameRequired(),
                                         data: {
                                             personalDetails: {
                                                 firstName: firstName,

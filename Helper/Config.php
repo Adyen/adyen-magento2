@@ -175,7 +175,7 @@ class Config
      */
     public function getHasHolderName($storeId = null)
     {
-        return $this->adyenHelper->getAdyenCcConfigDataFlag(self::XML_HAS_HOLDER_NAME, $storeId);
+        return $this->adyenHelper->getAdyenAbstractConfigDataFlag(self::XML_HAS_HOLDER_NAME, $storeId);
     }
 
     /**
@@ -186,7 +186,7 @@ class Config
      */
     public function getHolderNameRequired($storeId = null)
     {
-        return $this->adyenHelper->getAdyenCcConfigDataFlag(self::XML_HOLDER_NAME_REQUIRED, $storeId);
+        return $this->adyenHelper->getAdyenAbstractConfigDataFlag(self::XML_HOLDER_NAME_REQUIRED, $storeId);
     }
 
     /**
