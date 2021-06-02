@@ -29,32 +29,19 @@ namespace Adyen\Payment\Helper;
  */
 class Locale
 {
-    const ZH_HANS_CN = 'zh_Hans_CN';
-    const ZH_HANT_HK = 'zh_Hant_HK';
-    const ZH_HANT_TW = 'zh_Hant_TW';
-    const ZH_CN = 'zh-CN';
-    const ZH_TW = 'zh-TW';
 
-    private static $chineseLocaleCodes = array(
-        self::ZH_HANS_CN,
-        self::ZH_HANT_HK
-    );
-    private static $taiwanLocaleCodes = array(
-        self::ZH_HANT_TW
+    private static $localeMappings = array(
+        'zh_Hans_CN' => 'zh-CN',
+        'zh_Hant_HK' => 'zh-CN',
+        'zh_Hant_TW' => 'zh-TW'
     );
 
     /**
-     * Maps zh_Hans_* locale code to zh_CN
      * @param $localeCode
      * @return mixed|string
      */
     public function mapLocaleCode($localeCode)
     {
-        if (in_array($localeCode, self::$chineseLocaleCodes)) {
-            $localeCode = self::ZH_CN;
-        } elseif (in_array($localeCode, self::$taiwanLocaleCodes)) {
-            $localeCode = self::ZH_TW;
-        }
-        return $localeCode;
+        return !empty(self::$localeMappings[$localeCode]) ? self::$localeMappings[$localeCode] : $localeCode;
     }
 }
