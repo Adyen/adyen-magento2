@@ -144,6 +144,11 @@ class Data extends AbstractHelper
     private $componentRegistrar;
 
     /**
+     * @var \Adyen\Payment\Helper\Locale;
+     */
+    private $locale;
+
+    /**
      * Data constructor.
      *
      * @param \Magento\Framework\App\Helper\Context $context
@@ -167,6 +172,7 @@ class Data extends AbstractHelper
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param \Magento\Backend\Helper\Data $helperBackend
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     * @param \Adyen\Payment\Helper\Locale $locale
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -190,7 +196,8 @@ class Data extends AbstractHelper
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Magento\Backend\Helper\Data $helperBackend,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Magento\Framework\Component\ComponentRegistrarInterface $componentRegistrar
+        \Magento\Framework\Component\ComponentRegistrarInterface $componentRegistrar,
+        \Adyen\Payment\Helper\Locale $locale
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -214,6 +221,7 @@ class Data extends AbstractHelper
         $this->helperBackend = $helperBackend;
         $this->serializer = $serializer;
         $this->componentRegistrar = $componentRegistrar;
+        $this->locale = $locale;
     }
 
     /**
@@ -1071,7 +1079,7 @@ class Data extends AbstractHelper
     {
         $path = \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE;
         $storeLocale = $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
-        return $this->mapLocaleCode($storeLocale);
+        return $this->locale->mapLocaleCode($storeLocale);
     }
 
     public function getCustomerStreetLinesEnabled($storeId)
@@ -1748,12 +1756,12 @@ class Data extends AbstractHelper
     {
         $localeCode = $this->getAdyenHppConfigData('shopper_locale', $storeId);
         if ($localeCode != "") {
-            return $this->mapLocaleCode($localeCode);
+            return $this->locale->mapLocaleCode($localeCode);
         }
 
         $locale = $this->localeResolver->getLocale();
         if ($locale) {
-            return $this->mapLocaleCode($locale);
+            return $this->locale->mapLocaleCode($locale);
         }
 
         // should have the value if not fall back to default
@@ -1763,7 +1771,7 @@ class Data extends AbstractHelper
             $this->storeManager->getStore($storeId)->getCode()
         );
 
-        return $this->mapLocaleCode($localeCode);
+        return $this->locale->mapLocaleCode($localeCode);
     }
 
     /**
@@ -1785,21 +1793,5 @@ class Data extends AbstractHelper
             $checkoutEnvironment,
             $pspReference
         );
-    }
-
-    /**
-     * Maps zh_Hans_* locale code to zh_CN
-     * @param $localeCode
-     * @return mixed|string
-     */
-    public function mapLocaleCode($localeCode)
-    {
-        if ($localeCode && $localeCode == 'zh_Hant_TW') {
-            $localeCode = 'zh-TW';
-        }
-        elseif ($localeCode && ($localeCode == 'zh_Hans_CN'||$localeCode== 'zh_Hant_HK')) {
-            $localeCode = 'zh-CN';
-        }
-        return $localeCode;
     }
 }
