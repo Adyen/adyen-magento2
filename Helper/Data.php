@@ -1070,7 +1070,8 @@ class Data extends AbstractHelper
     public function getStoreLocale($storeId)
     {
         $path = \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE;
-        return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+        $storeLocale = $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+        return $this->mapLocaleCode($storeLocale);
     }
 
     public function getCustomerStreetLinesEnabled($storeId)
@@ -1747,12 +1748,12 @@ class Data extends AbstractHelper
     {
         $localeCode = $this->getAdyenHppConfigData('shopper_locale', $storeId);
         if ($localeCode != "") {
-            return $localeCode;
+            return $this->mapLocaleCode($localeCode);
         }
 
         $locale = $this->localeResolver->getLocale();
         if ($locale) {
-            return $locale;
+            return $this->mapLocaleCode($locale);
         }
 
         // should have the value if not fall back to default
@@ -1762,7 +1763,7 @@ class Data extends AbstractHelper
             $this->storeManager->getStore($storeId)->getCode()
         );
 
-        return $localeCode;
+        return $this->mapLocaleCode($localeCode);
     }
 
     /**
@@ -1784,5 +1785,18 @@ class Data extends AbstractHelper
             $checkoutEnvironment,
             $pspReference
         );
+    }
+
+    /**
+     * Maps zh_Hans_* locale code to zh_CN
+     * @param $localeCode
+     * @return mixed|string
+     */
+    public function mapLocaleCode($localeCode)
+    {
+        if ($localeCode && str_contains($localeCode, 'zh_Hans_')) {
+            $localeCode = 'zh-CN';
+        }
+        return $localeCode;
     }
 }
