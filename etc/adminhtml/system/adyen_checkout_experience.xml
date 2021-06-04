@@ -54,5 +54,22 @@
             <source_model>Adyen\Payment\Model\Config\Source\HouseNumberStreetLine</source_model>
             <tooltip><![CDATA[Select which of the address lines will be the house number. Make sure to enable enough "Number of Lines in a Street Address" in Magento's Customer Configuration]]></tooltip>
         </field>
+        <field id="has_holder_name" translate="label" type="select" sortOrder="50" showInDefault="1"
+               showInWebsite="1" showInStore="1">
+            <label>Show holder name field for card payment methods</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <tooltip>Set to Yes to show the input field for the card holder name</tooltip>
+            <config_path>payment/adyen_abstract/has_holder_name</config_path>
+        </field>
+        <field id="holder_name_required" translate="label" type="select" sortOrder="60" showInDefault="1"
+               showInWebsite="1" showInStore="1">
+            <label>Holder name required</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <tooltip>Set to Yes to make the card holder name a required field</tooltip>
+            <config_path>payment/adyen_abstract/holder_name_required</config_path>
+            <depends>
+                <field id="has_holder_name">1</field>
+            </depends>
+        </field>
     </group>
 </include>

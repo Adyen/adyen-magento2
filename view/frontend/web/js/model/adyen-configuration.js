@@ -39,6 +39,12 @@ define(
             getChargedCurrency: function () {
                 return window.checkoutConfig.payment.adyen.chargedCurrency;
             },
+            getHasHolderName: function () {
+                return window.checkoutConfig.payment.adyen.hasHolderName;
+            },
+            getHolderNameRequired: function () {
+                return window.checkoutConfig.payment.adyen.holderNameRequired;
+            },
         };
     }
 );
