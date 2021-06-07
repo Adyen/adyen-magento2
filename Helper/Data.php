@@ -144,6 +144,11 @@ class Data extends AbstractHelper
     private $componentRegistrar;
 
     /**
+     * @var \Adyen\Payment\Helper\Locale;
+     */
+    private $localeHelper;
+
+    /**
      * Data constructor.
      *
      * @param \Magento\Framework\App\Helper\Context $context
@@ -167,6 +172,7 @@ class Data extends AbstractHelper
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param \Magento\Backend\Helper\Data $helperBackend
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     * @param \Adyen\Payment\Helper\Locale $localeHelper
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -190,7 +196,8 @@ class Data extends AbstractHelper
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Magento\Backend\Helper\Data $helperBackend,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Magento\Framework\Component\ComponentRegistrarInterface $componentRegistrar
+        \Magento\Framework\Component\ComponentRegistrarInterface $componentRegistrar,
+        \Adyen\Payment\Helper\Locale $localeHelper
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -214,6 +221,7 @@ class Data extends AbstractHelper
         $this->helperBackend = $helperBackend;
         $this->serializer = $serializer;
         $this->componentRegistrar = $componentRegistrar;
+        $this->localeHelper = $localeHelper;
     }
 
     /**
@@ -1070,7 +1078,8 @@ class Data extends AbstractHelper
     public function getStoreLocale($storeId)
     {
         $path = \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE;
-        return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+        $storeLocale = $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+        return $this->localeHelper->mapLocaleCode($storeLocale);
     }
 
     public function getCustomerStreetLinesEnabled($storeId)
@@ -1749,12 +1758,12 @@ class Data extends AbstractHelper
     {
         $localeCode = $this->getAdyenHppConfigData('shopper_locale', $storeId);
         if ($localeCode != "") {
-            return $localeCode;
+            return $this->localeHelper->mapLocaleCode($localeCode);
         }
 
         $locale = $this->localeResolver->getLocale();
         if ($locale) {
-            return $locale;
+            return $this->localeHelper->mapLocaleCode($locale);
         }
 
         // should have the value if not fall back to default
@@ -1764,7 +1773,7 @@ class Data extends AbstractHelper
             $this->storeManager->getStore($storeId)->getCode()
         );
 
-        return $localeCode;
+        return $this->localeHelper->mapLocaleCode($localeCode);
     }
 
     /**

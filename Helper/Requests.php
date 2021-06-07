@@ -389,21 +389,25 @@ class Requests extends AbstractHelper
 
         $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
         $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
+        $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
 
         // TODO Remove it in version 7
         if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::STORE_CC)) {
             $request['storePaymentMethod'] = true;
         }
         //recurring
-        if ($enableVault) {
-            $request['recurringProcessingModel'] = 'Subscription';
-        } else {
-            if ($enableOneclick) {
-                $request['recurringProcessingModel'] = 'CardOnFile';
-            } else {
+        if ($storedPaymentMethodsEnabled) {
+            if ($enableVault) {
                 $request['recurringProcessingModel'] = 'Subscription';
+            } else {
+                if ($enableOneclick) {
+                    $request['recurringProcessingModel'] = 'CardOnFile';
+                } else {
+                    $request['recurringProcessingModel'] = 'Subscription';
+                }
             }
         }
+
         return $request;
     }
 
