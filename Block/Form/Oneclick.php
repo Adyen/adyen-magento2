@@ -24,6 +24,8 @@
 namespace Adyen\Payment\Block\Form;
 
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Installments;
+use Adyen\Payment\Logger\AdyenLogger;
 
 class Oneclick extends \Adyen\Payment\Block\Form\Cc
 {
@@ -40,7 +42,7 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
     /**
      * @var ChargedCurrency
      */
-    private $chargedCurrency;
+    protected $chargedCurrency;
 
     /**
      * Oneclick constructor.
@@ -50,6 +52,7 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Magento\Backend\Model\Session\Quote $sessionQuote
+     * @param Installments $installmentsHelper
      * @param ChargedCurrency $chargedCurrency
      * @param array $data
      */
@@ -59,10 +62,23 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Backend\Model\Session\Quote $sessionQuote,
+        \Magento\Backend\Model\Session\Quote $backendCheckoutSession,
+        Installments $installmentsHelper,
         ChargedCurrency $chargedCurrency,
+        AdyenLogger $adyenLogger,
         array $data = []
     ) {
-        parent::__construct($context, $paymentConfig, $adyenHelper, $checkoutSession, $data);
+        parent::__construct(
+            $context,
+            $paymentConfig,
+            $adyenHelper,
+            $checkoutSession,
+            $backendCheckoutSession,
+            $installmentsHelper,
+            $chargedCurrency,
+            $adyenLogger,
+            $data
+        );
         $this->_sessionQuote = $sessionQuote;
         $this->chargedCurrency = $chargedCurrency;
     }
