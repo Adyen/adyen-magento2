@@ -1472,7 +1472,7 @@ class Cron
          * because in this case the credit memo already exists
          */
         $lastTransactionId = $this->_order->getPayment()->getLastTransId();
-        if ($lastTransactionId != $this->_pspReference) {
+        if ($lastTransactionId != $this->_originalReference . '-refund') {
             // refund is done through adyen backoffice so create a credit memo
             $order = $this->_order;
             if ($order->canCreditmemo()) {
