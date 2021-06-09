@@ -89,6 +89,16 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     private $quoteHelper;
 
+    private $payment;
+    /**
+     * @var \Adyen\Payment\Helper\Vault
+     */
+    private $vaultHelper;
+    /**
+     * @var \Magento\Sales\Model\ResourceModel\Order
+     */
+    private $orderResourceModel;
+
     /**
      * Result constructor.
      *
@@ -109,7 +119,9 @@ class Result extends \Magento\Framework\App\Action\Action
         \Magento\Checkout\Model\Session $session,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Adyen\Payment\Helper\Quote $quoteHelper
+        \Adyen\Payment\Helper\Quote $quoteHelper,
+        \Adyen\Payment\Helper\Vault $vaultHelper,
+        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
@@ -118,6 +130,8 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->_adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
         $this->quoteHelper = $quoteHelper;
+        $this->vaultHelper = $vaultHelper;
+        $this->orderResourceModel = $orderResourceModel;
         parent::__construct($context);
     }
 
@@ -214,6 +228,18 @@ class Result extends \Magento\Framework\App\Action\Action
 
         // update the order
         $result = $this->_validateUpdateOrder($order, $response);
+
+        // Save payment token if available in the response
+        if (!empty($response['additionalData']['recurring.recurringDetailReference']) &&
+            $this->payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE) {
+            if ($this->_adyenHelper->isCreditCardVaultEnabled()) {
+                $this->vaultHelper->saveRecurringDetails($this->payment, $response['additionalData']);
+            } else {
+                $order = $this->payment->getOrder();
+                $this->_adyenHelper->createAdyenBillingAgreement($order, $response['additionalData']);
+            }
+            $this->orderResourceModel->save($order);
+        }
 
         $this->_eventManager->dispatch(
             'adyen_payment_process_resulturl_after',
@@ -410,7 +436,7 @@ class Result extends \Magento\Framework\App\Action\Action
             );
         }
 
-        $payment = $order->getPayment();
+        $this->payment = $order->getPayment();
 
         $request = [];
 
@@ -429,15 +455,15 @@ class Result extends \Magento\Framework\App\Action\Action
 
         $request["details"] = $details;
 
-        if (!empty($payment)) {
+        if (!empty($this->payment)) {
             // for pending payment that redirect we store this under adyenPaymentData
             // TODO: refactor the code in the plugin that all paymentData is stored in paymentData and not in adyenPaymentData
-            if (!empty($payment->getAdditionalInformation('adyenPaymentData'))) {
-                $request['paymentData'] = $payment->getAdditionalInformation("adyenPaymentData");
+            if (!empty($this->payment->getAdditionalInformation('adyenPaymentData'))) {
+                $request['paymentData'] = $this->payment->getAdditionalInformation("adyenPaymentData");
 
                 // remove paymentData from db
-                $payment->unsAdditionalInformation('adyenPaymentData');
-                $payment->save();
+                $this->payment->unsAdditionalInformation('adyenPaymentData');
+                $this->payment->save();
             }
         } else {
             $this->_adyenLogger->addError("Payment object cannot be loaded from order");
