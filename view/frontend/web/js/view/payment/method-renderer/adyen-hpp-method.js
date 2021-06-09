@@ -347,6 +347,7 @@ define(
                                 // Extra apple pay configuration
                                 if (paymentMethod.methodIdentifier.includes('amazonpay')) {
                                     configuration = self.createAmazonPayConfiguration(configuration);
+                                    debugger;
                                 }
 
                                 try {
@@ -721,12 +722,15 @@ define(
             },
             createAmazonPayConfiguration: function (configuration) {
                 return Object.assign(configuration, {
+                    showOrderButton:true,
                     productType: 'PayOnly',
                     checkoutMode: 'ProcessOrder',
-                    returnUrl: location.href,
-                    checkoutReviewReturnUrl: location.href,
-                    prePayRedirect: true,
-                    sessionKey: amazonSessionKey
+                    returnUrl: "http://localhost:8080/index.php/",
+                    configuration: {
+                        merchantId: 'AAUL9GPRGTX1U',
+                        storeId: 'amzn1.application-oa2-client.3e5db0a580f7468da2d9903dda981fce',
+                        publicKeyId: 'AGDRUNN37LQHSOCHN24AEYYB'
+                    }
                 });
             }
         });
