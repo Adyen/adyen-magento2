@@ -90,10 +90,12 @@ class Result extends \Magento\Framework\App\Action\Action
     private $quoteHelper;
 
     private $payment;
+
     /**
      * @var \Adyen\Payment\Helper\Vault
      */
     private $vaultHelper;
+
     /**
      * @var \Magento\Sales\Model\ResourceModel\Order
      */
