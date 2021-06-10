@@ -1804,7 +1804,7 @@ class Data extends AbstractHelper
      */
     public function getPspReferenceWithNoAdditions($pspReference)
     {
-        if ($pspReference == '') {
+        if (empty($pspReference)) {
             return '';
         }
         preg_match(
