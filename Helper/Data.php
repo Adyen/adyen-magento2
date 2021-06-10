@@ -37,6 +37,7 @@ class Data extends AbstractHelper
     // Only used for backend orders! Checkout in front-end is using different checkout version see web folder
     const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
     const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
+    const PSP_REFERENCE_REGEX = '[0-9][A-Z][15]';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -1795,5 +1796,26 @@ class Data extends AbstractHelper
             $checkoutEnvironment,
             $pspReference
         );
+    }
+
+    /**
+     * Get pspReference only if there are additional string attached
+     * @param $pspReference
+     */
+    public function getPspReferenceWithNoAdditions($pspReference)
+    {
+        if ($pspReference == '') {
+            return '';
+        }
+        preg_match(
+            self::PSP_REFERENCE_REGEX,
+            trim($pspReference),
+            $match,
+            PREG_OFFSET_CAPTURE
+        );
+        if (!empty($match[0])) {
+            return $match[0][0];
+        }
+        return $pspReference;
     }
 }

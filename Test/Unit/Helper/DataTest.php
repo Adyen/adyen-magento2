@@ -99,7 +99,7 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('1200', $this->dataHelper->formatAmount('12.00', 'USD'));
         $this->assertEquals('12', $this->dataHelper->formatAmount('12.00', 'JPY'));
     }
-    
+
     public function testisPaymentMethodOpenInvoiceMethod()
     {
         $this->assertEquals(true, $this->dataHelper->isPaymentMethodOpenInvoiceMethod('klarna'));
@@ -122,6 +122,13 @@ class DataTest extends \PHPUnit\Framework\TestCase
     {
         $pspSearchUrl = $this->dataHelper->getPspReferenceSearchUrl($pspReference, $checkoutEnvironment);
         $this->assertEquals($expectedResult, $pspSearchUrl);
+    }
+
+    public function testGetPspReferenceWithNoAdditions(){
+
+        $this->assertEquals(`852621234567890A`, $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A'));
+        $this->assertEquals(`852621234567890A`, $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A-refund'));
+        $this->assertEquals(`852621234567890A`, $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A-capture'));
     }
 
     public static function checkoutEnvironmentsProvider()

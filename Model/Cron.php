@@ -1471,7 +1471,9 @@ class Cron
          * Don't create a credit memo if refund is initialize in Magento
          * because in this case the credit memo already exists
          */
-        $lastTransactionId = $this->_order->getPayment()->getLastTransId();
+        $lastTransactionId = $this->_adyenHelper->getPspReferenceWithNoAdditions($this->_order->getPayment()->getLastTransId());
+        $this->_adyenLogger->addAdyenNotificationCronjob('OriginalReference' . $this->_originalReference);
+        $this->_adyenLogger->addAdyenNotificationCronjob('LastTransactionId' . $lastTransactionId);
         if ($lastTransactionId != $this->_originalReference . '-refund') {
             // refund is done through adyen backoffice so create a credit memo
             $order = $this->_order;
