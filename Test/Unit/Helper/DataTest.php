@@ -129,6 +129,7 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(`852621234567890A`, $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A'));
         $this->assertEquals(`852621234567890A`, $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A-refund'));
         $this->assertEquals(`852621234567890A`, $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A-capture'));
+        $this->assertEquals(`852621234567890A`, $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A-capture-refund'));
     }
 
     public static function checkoutEnvironmentsProvider()
