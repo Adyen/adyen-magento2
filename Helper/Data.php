@@ -37,7 +37,7 @@ class Data extends AbstractHelper
     // Only used for backend orders! Checkout in front-end is using different checkout version see web folder
     const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
     const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
-    const PSP_REFERENCE_REGEX = '[0-9][A-Z][15]';
+    const PSP_REFERENCE_REGEX = '/[0-9.A-Z]{16}/';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
