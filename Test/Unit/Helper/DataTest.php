@@ -66,6 +66,7 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $serializer = $this->getSimpleMock(\Magento\Framework\Serialize\SerializerInterface::class);
         $componentRegistrar = $this->getSimpleMock(\Magento\Framework
                                                    \Component\ComponentRegistrarInterface::class);
+        $localeHelper = $this->getSimpleMock(\Adyen\Payment\Helper\Locale::class);
 
         $this->dataHelper = new \Adyen\Payment\Helper\Data(
             $context,
@@ -89,7 +90,8 @@ class DataTest extends \PHPUnit\Framework\TestCase
             $config,
             $helperBackend,
             $serializer,
-            $componentRegistrar
+            $componentRegistrar,
+            $localeHelper
         );
     }
 
@@ -125,11 +127,10 @@ class DataTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testGetPspReferenceWithNoAdditions(){
-
-        $this->assertEquals(`852621234567890A`, $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A'));
-        $this->assertEquals(`852621234567890A`, $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A-refund'));
-        $this->assertEquals(`852621234567890A`, $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A-capture'));
-        $this->assertEquals(`852621234567890A`, $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A-capture-refund'));
+        $this->assertEquals('852621234567890A', $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A'));
+        $this->assertEquals('852621234567890A', $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A-refund'));
+        $this->assertEquals('852621234567890A', $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A-capture'));
+        $this->assertEquals('852621234567890A', $this->dataHelper->getPspReferenceWithNoAdditions('852621234567890A-capture-refund'));
     }
 
     public static function checkoutEnvironmentsProvider()
