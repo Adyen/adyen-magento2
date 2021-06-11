@@ -39,7 +39,7 @@ define(
         'Adyen_Payment/js/bundle',
         'Adyen_Payment/js/model/adyen-configuration',
     ],
-    function(
+    function (
         ko,
         _,
         $,
@@ -78,7 +78,7 @@ define(
                 variant: '',
                 numberOfInstallments: '',
             },
-            initObservable: function() {
+            initObservable: function () {
                 this._super().observe([
                     'recurringDetailReference',
                     'variant',
@@ -86,7 +86,7 @@ define(
                 ]);
                 return this;
             },
-            initialize: function() {
+            initialize: function () {
                 let self = this;
                 this._super();
 
@@ -94,7 +94,7 @@ define(
                 let messageComponents = {};
                 _.map(
                     window.checkoutConfig.payment.adyenOneclick.billingAgreements,
-                    function(billingAgreement) {
+                    function (billingAgreement) {
 
                         let messageContainer = new Messages();
                         let name = 'messages-' + billingAgreement.reference_id;
@@ -130,43 +130,30 @@ define(
                     );
                 }
             },
-            handleOnAdditionalDetails: function(result) {
+            handleOnAdditionalDetails: function (result) {
                 var self = this;
                 var request = result.data;
                 request.orderId = self.orderId;
 
                 fullScreenLoader.stopLoader();
 
-                // TODO outsource creating the modal
-                var popupModal = $('#oneclick_actionModal').modal({
-                    // disable user to hide popup
-                    clickableOverlay: false,
-                    responsive: true,
-                    innerScroll: false,
-                    // empty buttons, we don't need that
-                    buttons: [],
-                    modalClass: 'oneclick_actionModal',
+                let popupModal = self.showModal();
+
+                adyenPaymentService.paymentDetails(request).done(function (responseJSON) {
+                    self.handleAdyenResult(responseJSON,
+                        self.orderId);
+                }).fail(function (response) {
+                    self.closeModal(popupModal);
+                    errorProcessor.process(response, self.messageContainer);
+                    self.isPlaceOrderActionAllowed(true);
+                    fullScreenLoader.stopLoader();
                 });
-
-                popupModal.modal('openModal');
-
-                adyenPaymentService.paymentDetails(request).
-                    done(function(responseJSON) {
-                        self.handleAdyenResult(responseJSON,
-                            self.orderId);
-                    }).
-                    fail(function(response) {
-                        errorProcessor.process(response,
-                            self.messageContainer);
-                        self.isPlaceOrderActionAllowed(true);
-                        fullScreenLoader.stopLoader();
-                    });
             },
             /**
              * Based on the response we can start a 3DS2 validation or place the order
              * @param responseJSON
              */
-            handleAdyenResult: function(responseJSON, orderId) {
+            handleAdyenResult: function (responseJSON, orderId) {
                 var self = this;
                 var response = JSON.parse(responseJSON);
 
@@ -180,13 +167,26 @@ define(
                     self.handleAction(response.action, orderId);
                 }
             },
-            handleAction: function(action, orderId) {
+            handleAction: function (action, orderId) {
+                var self = this;
+
+                let popupModal;
+                let actionContainer;
+
+                fullScreenLoader.stopLoader();
+
+                if (action.type === 'threeDS2' || action.type === 'await') {
+                    popupModal = self.showModal();
+                    actionContainer = '#cc_actionContainer';
+                } else {
+                    actionContainer = '#oneclick_actionContainer';
+                }
                 try {
                     this.checkoutComponent.createFromAction(
-                        action).
-                        mount('#oneclick_actionContainer');
+                        action).mount(actionContainer);
                 } catch (e) {
                     console.log(e);
+                    self.closeModal(popupModal);
                 }
             },
             /**
@@ -195,13 +195,13 @@ define(
              *
              * @returns {Array}
              */
-            getAdyenBillingAgreements: function() {
+            getAdyenBillingAgreements: function () {
                 var self = this;
 
                 // convert to list so you can iterate
                 var paymentList = _.map(
                     window.checkoutConfig.payment.adyenOneclick.billingAgreements,
-                    function(billingAgreement) {
+                    function (billingAgreement) {
 
                         var creditCardExpMonth, creditCardExpYear = false;
 
@@ -262,7 +262,7 @@ define(
                             'placeOrderAllowed': ko.observable(
                                 placeOrderAllowed),
 
-                            isButtonActive: function() {
+                            isButtonActive: function () {
                                 return self.isActive() && this.getCode() ==
                                     self.isChecked() &&
                                     self.isBillingAgreementChecked() &&
@@ -278,7 +278,7 @@ define(
                              * @param event
                              * @returns {boolean}
                              */
-                            placeOrder: function(data, event) {
+                            placeOrder: function (data, event) {
                                 var innerSelf = this;
 
                                 if (event) {
@@ -298,23 +298,22 @@ define(
                                     this.isPlaceOrderActionAllowed(false);
 
                                     this.getPlaceOrderDeferredObject().fail(
-                                        function() {
+                                        function () {
                                             fullScreenLoader.stopLoader();
                                             innerSelf.isPlaceOrderActionAllowed(
                                                 true);
                                         },
                                     ).done(
-                                        function(orderId) {
+                                        function (orderId) {
                                             innerSelf.afterPlaceOrder();
 
                                             self.orderId = orderId;
                                             adyenPaymentService.getOrderPaymentStatus(
-                                                orderId).
-                                                done(function(responseJSON) {
-                                                    self.handleAdyenResult(
-                                                        responseJSON,
-                                                        orderId);
-                                                });
+                                                orderId).done(function (responseJSON) {
+                                                self.handleAdyenResult(
+                                                    responseJSON,
+                                                    orderId);
+                                            });
                                         },
                                     );
                                 }
@@ -326,7 +325,7 @@ define(
                              * creates the card component,
                              * sets up the callbacks for card components
                              */
-                            renderSecureCVC: function() {
+                            renderSecureCVC: function () {
                                 if (!this.getClientKey()) {
                                     return;
                                 }
@@ -354,7 +353,7 @@ define(
                                 }
 
                             },
-                            handleOnChange: function(state, component) {
+                            handleOnChange: function (state, component) {
                                 this.placeOrderAllowed(
                                     !!state.isValid);
                                 isValid(!!state.isValid);
@@ -364,7 +363,7 @@ define(
                              *
                              * @returns {{method: *, additional_data: {variant: *, recurring_detail_reference: *, number_of_installments: *, cvc: (string|*), expiryMonth: *, expiryYear: *}}}
                              */
-                            getData: function() {
+                            getData: function () {
                                 var self = this;
 
                                 let stateData;
@@ -380,7 +379,7 @@ define(
                                     },
                                 };
                             },
-                            validate: function() {
+                            validate: function () {
 
                                 var code = self.item.method;
                                 var value = this.value;
@@ -401,29 +400,29 @@ define(
 
                                 return true;
                             },
-                            getCode: function() {
+                            getCode: function () {
                                 return self.item.method;
                             },
-                            hasVerification: function() {
+                            hasVerification: function () {
                                 return self.hasVerification();
                             },
-                            getMessageName: function() {
+                            getMessageName: function () {
                                 return 'messages-' +
                                     billingAgreement.reference_id;
                             },
-                            getMessageContainer: function() {
+                            getMessageContainer: function () {
                                 return messageContainer;
                             },
-                            getClientKey: function() {
+                            getClientKey: function () {
                                 return adyenConfiguration.getClientKey();
                             },
-                            isPlaceOrderActionAllowed: function() {
+                            isPlaceOrderActionAllowed: function () {
                                 return self.isPlaceOrderActionAllowed(); // needed for placeOrder method
                             },
-                            afterPlaceOrder: function() {
+                            afterPlaceOrder: function () {
                                 return self.afterPlaceOrder(); // needed for placeOrder method
                             },
-                            getPlaceOrderDeferredObject: function() {
+                            getPlaceOrderDeferredObject: function () {
                                 return $.when(
                                     placeOrderAction(this.getData(),
                                         this.getMessageContainer()),
@@ -439,7 +438,7 @@ define(
              *
              * @returns {boolean}
              */
-            selectBillingAgreement: function() {
+            selectBillingAgreement: function () {
                 var self = this;
 
                 // set payment method data
@@ -464,7 +463,7 @@ define(
                 return true;
             },
 
-            isBillingAgreementChecked: ko.computed(function() {
+            isBillingAgreementChecked: ko.computed(function () {
 
                 if (!quote.paymentMethod()) {
                     return null;
@@ -476,34 +475,63 @@ define(
                 return null;
             }),
 
-            getPlaceOrderUrl: function() {
+            getPlaceOrderUrl: function () {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
             },
-            hasVerification: function() {
+            hasVerification: function () {
                 return window.checkoutConfig.payment.adyenOneclick.hasCustomerInteraction;
             },
 
-            setPlaceOrderHandler: function(handler) {
+            setPlaceOrderHandler: function (handler) {
                 this.placeOrderHandler = handler;
             },
-            setValidateHandler: function(handler) {
+            setValidateHandler: function (handler) {
                 this.validateHandler = handler;
             },
-            getCode: function() {
+            getCode: function () {
                 return window.checkoutConfig.payment.adyenOneclick.methodCode;
             },
-            isActive: function() {
+            isActive: function () {
                 return true;
             },
-            getControllerName: function() {
+            getControllerName: function () {
                 return window.checkoutConfig.payment.iframe.controllerName[this.getCode()];
             },
-            context: function() {
+            context: function () {
                 return this;
             },
-            isShowLegend: function() {
+            isShowLegend: function () {
                 return true;
             },
+            showModal: function () {
+                let popupModal = $('#cc_actionModal').modal({
+                    // disable user to hide popup
+                    clickableOverlay: false,
+                    responsive: true,
+                    innerScroll: false,
+                    // empty buttons, we don't need that
+                    buttons: [],
+                    modalClass: 'cc_actionModal',
+                });
+
+                popupModal.modal('openModal');
+
+                return popupModal;
+            }, closeModal: function (popupModal) {
+                popupModal.modal('closeModal');
+                $('.cc_actionModal').remove();
+                $('.oneclick_actionModal').remove();
+                $('.modals-overlay').remove();
+                $('body').removeClass('_has-modal');
+
+                // reconstruct the threeDS2Modal container again otherwise component can not find the threeDS2Modal
+                $('#cc_actionModalWrapper').append('<div id="cc_actionModal">' +
+                    '<div id="cc_actionContainer"></div>' +
+                    '</div>');
+                $('#oneclick_actionModalWrapper').append('<div id="oneclick_actionModal">' +
+                    '<div id="oneclick_actionContainer"></div>' +
+                    '</div>');
+            }
         });
     },
 );
