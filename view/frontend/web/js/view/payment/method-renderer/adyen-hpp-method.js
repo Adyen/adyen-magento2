@@ -258,9 +258,10 @@ define(
                                     city = quote.shippingAddress().city;
                                     country = quote.shippingAddress().countryId;
                                     postalCode = quote.shippingAddress().postcode;
-                                    street = quote.shippingAddress().
-                                        street.
-                                        join(' ');
+                                    street = Array.isArray(quote.shippingAddress().street) ?
+                                        quote.shippingAddress().street.join(' ') :
+                                        quote.shippingAddress().street
+
                                     firstName = quote.shippingAddress().firstname;
                                     lastName = quote.shippingAddress().lastname;
                                     telephone = quote.shippingAddress().telephone;
