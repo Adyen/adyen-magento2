@@ -304,7 +304,9 @@ class CheckoutDataBuilder implements BuilderInterface
         // Discount cost
         if ($discountAmount != 0) {
             $description = __('Discount');
-            $itemAmount = -$this->adyenHelper->formatAmount($discountAmount, $itemAmountCurrency->getCurrencyCode());
+            $itemAmount = -$this->adyenHelper->formatAmount(
+                $discountAmount + $cart->getShippingAddress()->getShippingDiscountAmount(),
+                $itemAmountCurrency->getCurrencyCode());
             $itemVatAmount = "0";
             $itemVatPercentage = "0";
             $numberOfItems = 1;
