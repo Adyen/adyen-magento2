@@ -77,7 +77,6 @@ define(
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
 
                 this.checkoutComponent = new AdyenCheckout({
-                        hasHolderName: true,
                         locale: adyenConfiguration.getLocale(),
                         clientKey: adyenConfiguration.getClientKey(),
                         environment: adyenConfiguration.getCheckoutEnvironment(),
@@ -126,6 +125,9 @@ define(
                 self.cardComponent = self.checkoutComponent.create('card', {
                     enableStoreDetails: self.getEnableStoreDetails(),
                     brands: self.getAvailableCardTypeAltCodes(),
+                    hasHolderName: adyenConfiguration.getHasHolderName(),
+                    holderNameRequired: adyenConfiguration.getHasHolderName() &&
+                        adyenConfiguration.getHolderNameRequired(),
                     onChange: function(state, component) {
                         self.placeOrderAllowed(!!state.isValid);
                         self.storeCc = !!state.data.storePaymentMethod;

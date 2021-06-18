@@ -16,5 +16,10 @@
                 <value id="adyen" type="host">*.adyen.com</value>
             </values>
         </policy>
+        <policy id="connect-src">
+            <values>
+                <value id="adyen" type="host">*.adyen.com</value>
+            </values>
+        </policy>
     </policies>
 </csp_whitelist>

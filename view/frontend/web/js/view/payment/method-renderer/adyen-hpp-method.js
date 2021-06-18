@@ -137,8 +137,7 @@ define(
                             ratepayScriptTag.type = 'text/javascript';
                             document.body.appendChild(ratepayScriptTag);
                         }
-
-                        self.adyenPaymentMethods(self.getAdyenHppPaymentMethods(paymentMethodsResponse));
+                       self.adyenPaymentMethods(self.getAdyenHppPaymentMethods(paymentMethodsResponse));
                     }
                 } catch (e) {
                     console.trace(e.message);
@@ -287,6 +286,9 @@ define(
                                     {
                                         showPayButton: showPayButton,
                                         countryCode: country,
+                                        hasHolderName: adyenConfiguration.getHasHolderName(),
+                                        holderNameRequired: adyenConfiguration.getHasHolderName() &&
+                                            adyenConfiguration.getHolderNameRequired(),
                                         data: {
                                             personalDetails: {
                                                 firstName: firstName,
