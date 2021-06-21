@@ -23,31 +23,44 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
+use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
+
 class ConnectedTerminals
 {
     /**
-     * @var \Magento\Checkout\Model\Session
+     * @var Session
      */
     protected $session;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     protected $adyenHelper;
 
+    /**
+     * @var AdyenLogger
+     */
+    private $adyenLogger;
+
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Checkout\Model\Session $session
+        Data $adyenHelper,
+        Session $session,
+        AdyenLogger $adyenLogger
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->session = $session;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
      * @return array|mixed
-     * @throws \Adyen\AdyenException
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws AdyenException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function getConnectedTerminals()
     {
@@ -70,7 +83,7 @@ class ConnectedTerminals
 
         try {
             $responseData = $service->getConnectedTerminals($requestParams);
-        } catch (\Adyen\AdyenException $e) {
+        } catch (AdyenException $e) {
             $this->adyenLogger->error(
                 "The getConnectedTerminals response is empty check your Adyen configuration in Magento."
             );
