@@ -218,7 +218,7 @@ class PaymentRequest extends DataObject
     public function disableRecurringContract($recurringDetailReference, $shopperReference, $storeId)
     {
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
-
+        $shopperReference = str_pad($shopperReference, 3, '0', STR_PAD_LEFT);
         $request = [
             "merchantAccount" => $merchantAccount,
             "shopperReference" => $shopperReference,
