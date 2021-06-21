@@ -244,27 +244,31 @@ class CheckoutDataBuilder implements BuilderInterface
             $discountAmount += $item->getDiscountAmount();
 
             $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($item->getPrice(), $currency);
+            $formattedPriceIncludingTax = $this->adyenHelper->formatAmount($item->getPriceInclTax(), $currency);
 
-            $taxAmount = $item->getTaxAmount();
-            $formattedTaxAmount = $this->adyenHelper->formatAmount($taxAmount, $currency);
-            $formattedTaxPercentage = $item->getTaxPercent() * 100;
+            $formattedTaxAmount = $formattedPriceIncludingTax - $formattedPriceExcludingTax;
+            $formattedTaxPercentage = $this->adyenHelper->formatAmount($item->getTaxPercent(), $currency);
 
             $formFields['lineItems'][] = [
                 'id' => $item->getId(),
                 'itemId' => $item->getId(),
                 'amountExcludingTax' => $formattedPriceExcludingTax,
+                'amountIncludingTax' => $formattedPriceIncludingTax,
                 'taxAmount' => $formattedTaxAmount,
+                'taxPercentage' => $formattedTaxPercentage,
                 'description' => $item->getName(),
                 'quantity' => $numberOfItems,
                 'taxCategory' => $item->getProduct()->getAttributeText('tax_class_id'),
-                'taxPercentage' => $formattedTaxPercentage
             ];
         }
 
         // Discount cost
         if ($discountAmount != 0) {
             $description = __('Discount');
-            $itemAmount = -$this->adyenHelper->formatAmount($discountAmount, $currency);
+            $itemAmount = -$this->adyenHelper->formatAmount(
+                $discountAmount + $cart->getShippingAddress()->getShippingDiscountAmount(),
+                $currency
+            );
             $itemVatAmount = "0";
             $itemVatPercentage = "0";
             $numberOfItems = 1;
@@ -281,32 +285,28 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         // Shipping cost
-        if ($cart->getShippingAddress()->getShippingAmount() > 0 || $cart->getShippingAddress()->getShippingTaxAmount(
-            ) > 0) {
-            $priceExcludingTax = $cart->getShippingAddress()->getShippingAmount() - $cart->getShippingAddress(
-                )->getShippingTaxAmount();
+        if ($cart->getShippingAddress()->getShippingAmount() > 0 ||
+            $cart->getShippingAddress()->getShippingTaxAmount() > 0) {
+
+            $formattedPriceIncludingTax = $this->adyenHelper->formatAmount(
+                $cart->getShippingAddress()->getShippingInclTax(),
+                $currency);
 
             $formattedTaxAmount = $this->adyenHelper->formatAmount(
                 $cart->getShippingAddress()->getShippingTaxAmount(),
                 $currency
             );
 
-            $formattedPriceExcludingTax = $this->adyenHelper->formatAmount($priceExcludingTax, $currency);
-
-            $formattedTaxPercentage = 0;
-
-            if ($priceExcludingTax !== 0) {
-                $formattedTaxPercentage = $cart->getShippingAddress()->getShippingTaxAmount(
-                    ) / $priceExcludingTax * 100 * 100;
-            }
+            $formattedPriceExcludingTax = $formattedPriceIncludingTax - $formattedTaxAmount;
 
             $formFields['lineItems'][] = [
                 'itemId' => 'shippingCost',
                 'amountExcludingTax' => $formattedPriceExcludingTax,
+                'amountIncludingTax' => $formattedPriceIncludingTax,
                 'taxAmount' => $formattedTaxAmount,
                 'description' => $order->getShippingDescription(),
                 'quantity' => 1,
-                'taxPercentage' => $formattedTaxPercentage
+                'taxPercentage' => ($formattedTaxAmount / $formattedPriceExcludingTax) * 100 * 100
             ];
         }
 
