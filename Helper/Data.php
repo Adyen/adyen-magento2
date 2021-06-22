@@ -37,6 +37,7 @@ class Data extends AbstractHelper
     // Only used for backend orders! Checkout in front-end is using different checkout version see web folder
     const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
     const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
+    const PSP_REFERENCE_REGEX = '/[0-9.A-Z]{16}/';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -144,6 +145,11 @@ class Data extends AbstractHelper
     private $componentRegistrar;
 
     /**
+     * @var \Adyen\Payment\Helper\Locale;
+     */
+    private $localeHelper;
+
+    /**
      * Data constructor.
      *
      * @param \Magento\Framework\App\Helper\Context $context
@@ -167,6 +173,7 @@ class Data extends AbstractHelper
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param \Magento\Backend\Helper\Data $helperBackend
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     * @param \Adyen\Payment\Helper\Locale $localeHelper
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -190,7 +197,8 @@ class Data extends AbstractHelper
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Magento\Backend\Helper\Data $helperBackend,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Magento\Framework\Component\ComponentRegistrarInterface $componentRegistrar
+        \Magento\Framework\Component\ComponentRegistrarInterface $componentRegistrar,
+        \Adyen\Payment\Helper\Locale $localeHelper
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -214,6 +222,7 @@ class Data extends AbstractHelper
         $this->helperBackend = $helperBackend;
         $this->serializer = $serializer;
         $this->componentRegistrar = $componentRegistrar;
+        $this->localeHelper = $localeHelper;
     }
 
     /**
@@ -1070,7 +1079,8 @@ class Data extends AbstractHelper
     public function getStoreLocale($storeId)
     {
         $path = \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_LOCALE;
-        return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+        $storeLocale = $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+        return $this->localeHelper->mapLocaleCode($storeLocale);
     }
 
     public function getCustomerStreetLinesEnabled($storeId)
@@ -1520,6 +1530,8 @@ class Data extends AbstractHelper
     /**
      * @param null|int|string $storeId
      * @return string
+     * @deprecated this was being used to load a different version of the Web Components library in the
+     * admin panel, but now the same frontend bundle is also loaded there. Will be removed in 8.0.0
      */
     public function getCheckoutCardComponentJs($storeId = null)
     {
@@ -1747,12 +1759,12 @@ class Data extends AbstractHelper
     {
         $localeCode = $this->getAdyenHppConfigData('shopper_locale', $storeId);
         if ($localeCode != "") {
-            return $localeCode;
+            return $this->localeHelper->mapLocaleCode($localeCode);
         }
 
         $locale = $this->localeResolver->getLocale();
         if ($locale) {
-            return $locale;
+            return $this->localeHelper->mapLocaleCode($locale);
         }
 
         // should have the value if not fall back to default
@@ -1762,7 +1774,7 @@ class Data extends AbstractHelper
             $this->storeManager->getStore($storeId)->getCode()
         );
 
-        return $localeCode;
+        return $this->localeHelper->mapLocaleCode($localeCode);
     }
 
     /**
@@ -1784,5 +1796,26 @@ class Data extends AbstractHelper
             $checkoutEnvironment,
             $pspReference
         );
+    }
+
+    /**
+     * Get pspReference only if there are additional string attached
+     * @param $pspReference
+     */
+    public function getPspReferenceWithNoAdditions($pspReference)
+    {
+        if (empty($pspReference)) {
+            return '';
+        }
+        preg_match(
+            self::PSP_REFERENCE_REGEX,
+            trim($pspReference),
+            $match,
+            PREG_OFFSET_CAPTURE
+        );
+        if (!empty($match[0])) {
+            return $match[0][0];
+        }
+        return $pspReference;
     }
 }

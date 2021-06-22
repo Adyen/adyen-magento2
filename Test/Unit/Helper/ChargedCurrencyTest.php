@@ -43,7 +43,8 @@ class ChargedCurrencyTest extends TestCase
                 'currencyCode' => 'EUR',
                 'discountAmount' => 67.89,
                 'taxAmount' => 12.34,
-                'amountDue' => 56.78
+                'amountDue' => 56.78,
+                'amountIncludingTax' => 135.79
             ],
         'display' =>
             [
@@ -51,7 +52,8 @@ class ChargedCurrencyTest extends TestCase
                 'currencyCode' => 'USD',
                 'discountAmount' => 98.76,
                 'taxAmount' => 54.32,
-                'amountDue' => 10.98
+                'amountDue' => 10.98,
+                'amountIncludingTax' => 708.64
             ]
     ];
 
@@ -137,7 +139,9 @@ class ChargedCurrencyTest extends TestCase
                 'getBaseShippingTaxAmount',
                 'getShippingAmount',
                 'getShippingDiscountAmount',
-                'getShippingTaxAmount'
+                'getShippingTaxAmount',
+                'getBaseShippingInclTax',
+                'getShippingInclTax'
             ])
             ->getMock();
         $this->mockMethods($shippingAddress,
@@ -147,7 +151,9 @@ class ChargedCurrencyTest extends TestCase
                 'getBaseShippingTaxAmount' => self::AMOUNT_CURRENCY['base']['taxAmount'],
                 'getShippingAmount' => self::AMOUNT_CURRENCY['display']['amount'],
                 'getShippingDiscountAmount' => self::AMOUNT_CURRENCY['display']['discountAmount'],
-                'getShippingTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount']
+                'getShippingTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
+                'getBaseShippingInclTax' => self::AMOUNT_CURRENCY['base']['amountIncludingTax'],
+                'getShippingInclTax' => self::AMOUNT_CURRENCY['display']['amountIncludingTax']
             ]
         );
 
@@ -177,25 +183,31 @@ class ChargedCurrencyTest extends TestCase
             ->disableOriginalConstructor()
             ->setMethods([
                 'getBasePrice',
+                'getPrice',
                 'getBaseDiscountAmount',
                 'getBaseTaxAmount',
                 'getQuote',
                 'getRowTotal',
                 'getQty',
                 'getDiscountAmount',
-                'getTaxAmount'
+                'getTaxAmount',
+                'getBasePriceInclTax',
+                'getPriceInclTax'
             ])
             ->getMock();
         $this->mockMethods($this->quoteItem,
             [
                 'getBasePrice' => self::AMOUNT_CURRENCY['base']['amount'],
+                'getPrice' => self::AMOUNT_CURRENCY['display']['amount'],
                 'getBaseDiscountAmount' => self::AMOUNT_CURRENCY['base']['discountAmount'],
                 'getBaseTaxAmount' => self::AMOUNT_CURRENCY['base']['taxAmount'],
                 'getRowTotal' => self::AMOUNT_CURRENCY['display']['amount'],
                 'getQty' => 1,
                 'getDiscountAmount' => self::AMOUNT_CURRENCY['display']['discountAmount'],
                 'getTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
-                'getQuote' => $this->quote
+                'getQuote' => $this->quote,
+                'getBasePriceInclTax' => self::AMOUNT_CURRENCY['base']['amountIncludingTax'],
+                'getPriceInclTax' => self::AMOUNT_CURRENCY['display']['amountIncludingTax']
             ]
         );
 
@@ -230,7 +242,8 @@ class ChargedCurrencyTest extends TestCase
                 'getInvoice',
                 'getBaseTaxAmount',
                 'getPrice',
-                'getTaxAmount'
+                'getTaxAmount',
+                'getQty'
             ])
             ->getMock();
         $this->mockMethods($this->invoiceItem,
@@ -239,7 +252,8 @@ class ChargedCurrencyTest extends TestCase
                 'getInvoice' => $this->invoice,
                 'getBaseTaxAmount' => self::AMOUNT_CURRENCY['base']['taxAmount'],
                 'getPrice' => self::AMOUNT_CURRENCY['display']['amount'],
-                'getTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount']
+                'getTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
+                'getQty' => 1
             ]
         );
 
@@ -260,7 +274,8 @@ class ChargedCurrencyTest extends TestCase
                 'getInvoice',
                 'getCreditMemo',
                 'getBaseTaxAmount',
-                'getTaxAmount'
+                'getTaxAmount',
+                'getQty'
             ])
             ->getMock();
         $this->mockMethods($this->creditMemoItem,
@@ -270,7 +285,8 @@ class ChargedCurrencyTest extends TestCase
                 'getCreditMemo' => $creditMemo,
                 'getBaseTaxAmount' => self::AMOUNT_CURRENCY['base']['taxAmount'],
                 'getPrice' => self::AMOUNT_CURRENCY['display']['amount'],
-                'getTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount']
+                'getTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
+                'getQty' => 1
             ]
         );
 
@@ -361,13 +377,15 @@ class ChargedCurrencyTest extends TestCase
                     $expectedResult->getAmount(),
                     $expectedResult->getCurrencyCode(),
                     $expectedResult->getDiscountAmount(),
-                    $expectedResult->getTaxAmount()
+                    $expectedResult->getTaxAmount(),
+                    $expectedResult->getAmountIncludingTax()
                 ],
                 [
                     $result->getAmount(),
                     $result->getCurrencyCode(),
                     $result->getDiscountAmount(),
-                    $result->getTaxAmount()
+                    $result->getTaxAmount(),
+                    $result->getAmountIncludingTax()
                 ]
             );
         } else {
@@ -459,13 +477,15 @@ class ChargedCurrencyTest extends TestCase
                 $expectedResult->getAmount(),
                 $expectedResult->getCurrencyCode(),
                 $expectedResult->getDiscountAmount(),
-                $expectedResult->getTaxAmount()
+                $expectedResult->getTaxAmount(),
+                $expectedResult->getAmountIncludingTax(),
             ],
             [
                 $result->getAmount(),
                 $result->getCurrencyCode(),
                 $result->getDiscountAmount(),
-                $result->getTaxAmount()
+                $result->getTaxAmount(),
+                $result->getAmountIncludingTax(),
             ]
         );
 
@@ -515,7 +535,8 @@ class ChargedCurrencyTest extends TestCase
             self::AMOUNT_CURRENCY['base']['currencyCode'],
             self::AMOUNT_CURRENCY['base']['discountAmount'],
             self::AMOUNT_CURRENCY['base']['taxAmount'],
-            self::AMOUNT_CURRENCY['base']['amountDue']
+            self::AMOUNT_CURRENCY['base']['amountDue'],
+            self::AMOUNT_CURRENCY['base']['amountIncludingTax']
         );
 
         $adyenAmountCurrencyDisplay = new AdyenAmountCurrency(
@@ -523,7 +544,8 @@ class ChargedCurrencyTest extends TestCase
             self::AMOUNT_CURRENCY['display']['currencyCode'],
             self::AMOUNT_CURRENCY['display']['discountAmount'],
             self::AMOUNT_CURRENCY['display']['taxAmount'],
-            self::AMOUNT_CURRENCY['display']['amountDue']
+            self::AMOUNT_CURRENCY['display']['amountDue'],
+            self::AMOUNT_CURRENCY['display']['amountIncludingTax']
         );
 
         return array(

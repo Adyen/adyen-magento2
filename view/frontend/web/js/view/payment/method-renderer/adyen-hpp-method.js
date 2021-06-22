@@ -106,7 +106,6 @@ define(
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
                     var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
                     this.checkoutComponent = new AdyenCheckout({
-                            hasHolderName: true,
                             locale: adyenConfiguration.getLocale(),
                             clientKey: adyenConfiguration.getClientKey(),
                             environment: adyenConfiguration.getCheckoutEnvironment(),
@@ -259,9 +258,10 @@ define(
                                     city = quote.shippingAddress().city;
                                     country = quote.shippingAddress().countryId;
                                     postalCode = quote.shippingAddress().postcode;
-                                    street = quote.shippingAddress().
-                                        street.
-                                        join(' ');
+                                    street = Array.isArray(quote.shippingAddress().street) ?
+                                        quote.shippingAddress().street.join(' ') :
+                                        quote.shippingAddress().street
+
                                     firstName = quote.shippingAddress().firstname;
                                     lastName = quote.shippingAddress().lastname;
                                     telephone = quote.shippingAddress().telephone;
@@ -291,6 +291,9 @@ define(
                                     {
                                         showPayButton: showPayButton,
                                         countryCode: country,
+                                        hasHolderName: adyenConfiguration.getHasHolderName(),
+                                        holderNameRequired: adyenConfiguration.getHasHolderName() &&
+                                            adyenConfiguration.getHolderNameRequired(),
                                         data: {
                                             personalDetails: {
                                                 firstName: firstName,

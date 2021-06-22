@@ -103,14 +103,18 @@ class ChargedCurrency
                 $item->getBasePrice(),
                 $item->getQuote()->getBaseCurrencyCode(),
                 $item->getBaseDiscountAmount(),
-                $item->getBaseTaxAmount() / $item->getQty()
+                $item->getBasePriceInclTax() - $item->getBasePrice(),
+                null,
+                $item->getBasePriceInclTax()
             );
         }
         return new AdyenAmountCurrency(
-            $item->getRowTotal() / $item->getQty(),
+            $item->getPrice(),
             $item->getQuote()->getQuoteCurrencyCode(),
             $item->getDiscountAmount(),
-            $item->getTaxAmount() / $item->getQty()
+            $item->getPriceInclTax() - $item->getPrice(),
+            null,
+            $item->getPriceInclTax()
         );
     }
 
@@ -172,14 +176,18 @@ class ChargedCurrency
                 $quote->getShippingAddress()->getBaseShippingAmount(),
                 $quote->getBaseCurrencyCode(),
                 $quote->getShippingAddress()->getBaseShippingDiscountAmount(),
-                $quote->getShippingAddress()->getBaseShippingTaxAmount()
+                $quote->getShippingAddress()->getBaseShippingTaxAmount(),
+                null,
+                $quote->getShippingAddress()->getBaseShippingInclTax()
             );
         }
         return new AdyenAmountCurrency(
             $quote->getShippingAddress()->getShippingAmount(),
             $quote->getQuoteCurrencyCode(),
             $quote->getShippingAddress()->getShippingDiscountAmount(),
-            $quote->getShippingAddress()->getShippingTaxAmount()
+            $quote->getShippingAddress()->getShippingTaxAmount(),
+            null,
+            $quote->getShippingAddress()->getShippingInclTax()
         );
     }
 

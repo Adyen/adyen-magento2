@@ -58,6 +58,11 @@ class PaymentResponseHandler
     private $vaultHelper;
 
     /**
+     * @var \Magento\Sales\Model\ResourceModel\Order
+     */
+    private $orderResourceModel;
+
+    /**
      * PaymentResponseHandler constructor.
      *
      * @param AdyenLogger $adyenLogger
@@ -67,11 +72,13 @@ class PaymentResponseHandler
     public function __construct(
         AdyenLogger $adyenLogger,
         Data $adyenHelper,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         $this->vaultHelper = $vaultHelper;
+        $this->orderResourceModel = $orderResourceModel;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
@@ -191,6 +198,7 @@ class PaymentResponseHandler
                         $this->adyenHelper->createAdyenBillingAgreement($order, $paymentsResponse['additionalData']);
                     }
                 }
+                $this->orderResourceModel->save($order);
             case self::IDENTIFY_SHOPPER:
             case self::CHALLENGE_SHOPPER:
                 break;

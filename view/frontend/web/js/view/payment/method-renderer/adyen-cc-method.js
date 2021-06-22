@@ -65,6 +65,7 @@ define(
                 template: 'Adyen_Payment/payment/cc-form',
                 installment: '', // keep it until the component implements installments
                 orderId: 0, // TODO is this the best place to store it?
+                storeCc: false,
             },
             /**
              * @returns {exports.initialize}
@@ -76,7 +77,6 @@ define(
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
 
                 this.checkoutComponent = new AdyenCheckout({
-                        hasHolderName: true,
                         locale: adyenConfiguration.getLocale(),
                         clientKey: adyenConfiguration.getClientKey(),
                         environment: adyenConfiguration.getCheckoutEnvironment(),
@@ -125,8 +125,12 @@ define(
                 self.cardComponent = self.checkoutComponent.create('card', {
                     enableStoreDetails: self.getEnableStoreDetails(),
                     brands: self.getAvailableCardTypeAltCodes(),
+                    hasHolderName: adyenConfiguration.getHasHolderName(),
+                    holderNameRequired: adyenConfiguration.getHasHolderName() &&
+                        adyenConfiguration.getHolderNameRequired(),
                     onChange: function(state, component) {
                         self.placeOrderAllowed(!!state.isValid);
+                        self.storeCc = !!state.data.storePaymentMethod;
                     },
                     // Keep onBrand as is until checkout component supports installments
                     onBrand: function(state) {
