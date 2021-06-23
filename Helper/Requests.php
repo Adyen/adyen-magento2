@@ -134,41 +134,20 @@ class Requests extends AbstractHelper
         }
 
         if (!empty($billingAddress)) {
-            // Openinvoice (klarna and afterpay BUT not afterpay touch) methods requires different request format
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($paymentMethod) &&
-                !$this->adyenHelper->isPaymentMethodAfterpayTouchMethod($paymentMethod)
-            ) {
-                if ($customerEmail = $billingAddress->getEmail()) {
-                    $request['paymentMethod']['personalDetails']['shopperEmail'] = $customerEmail;
-                }
+            if ($customerEmail = $billingAddress->getEmail()) {
+                $request['shopperEmail'] = $customerEmail;
+            }
 
-                if ($customerTelephone = trim($billingAddress->getTelephone())) {
-                    $request['paymentMethod']['personalDetails']['telephoneNumber'] = $customerTelephone;
-                }
+            if ($customerTelephone = trim($billingAddress->getTelephone())) {
+                $request['telephoneNumber'] = $customerTelephone;
+            }
 
-                if ($firstName = $billingAddress->getFirstname()) {
-                    $request['paymentMethod']['personalDetails']['firstName'] = $firstName;
-                }
+            if ($firstName = $billingAddress->getFirstname()) {
+                $request['shopperName']['firstName'] = $firstName;
+            }
 
-                if ($lastName = $billingAddress->getLastname()) {
-                    $request['paymentMethod']['personalDetails']['lastName'] = $lastName;
-                }
-            } else {
-                if ($customerEmail = $billingAddress->getEmail()) {
-                    $request['shopperEmail'] = $customerEmail;
-                }
-
-                if ($customerTelephone = trim($billingAddress->getTelephone())) {
-                    $request['telephoneNumber'] = $customerTelephone;
-                }
-
-                if ($firstName = $billingAddress->getFirstname()) {
-                    $request['shopperName']['firstName'] = $firstName;
-                }
-
-                if ($lastName = $billingAddress->getLastname()) {
-                    $request['shopperName']['lastName'] = $lastName;
-                }
+            if ($lastName = $billingAddress->getLastname()) {
+                $request['shopperName']['lastName'] = $lastName;
             }
 
             if ($countryId = $billingAddress->getCountryId()) {
