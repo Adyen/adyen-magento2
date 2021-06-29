@@ -39,7 +39,7 @@ class Address
      * @return array
      */
     public function getStreetAndHouseNumberFromAddress(
-        AddressAdapterInterface $address,
+        $address,
         $houseNumberStreetLine,
         $customerStreetLinesEnabled
     ): array {
