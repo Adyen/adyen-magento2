@@ -21,6 +21,8 @@
  * Author: Adyen <magento@adyen.com>
  */
 
+// @codingStandardsIgnoreFile
+
 /**
  * @var $block \Adyen\Payment\Block\Form\PayByLink
  * @var $escaper \Magento\Framework\Escaper
@@ -31,7 +33,6 @@
 <script>
     require(["jquery", "mage/calendar"],
         function ($) {
-        debugger;
             $("#adyen_pbl_expires_at").calendar({
                 changeYear: true,
                 changeMonth: true,
@@ -39,10 +40,9 @@
                 buttonText: 'Select Expiry Date',
                 dateFormat: 'dd-mm-yy',
                 minDate: new Date(<?=$escaper->escapeHtml($block->getMinExpiryDate())?>),
-                maxDate: new Date(<?=$escaper->escapeHtml($block->getMaxExpiryDate())?>),
-                setDate: new Date(<?=$escaper->escapeHtml($block->getDefaultExpiryDate())?>),
-                defaultDate: new Date(<?=$escaper->escapeHtml($block->getDefaultExpiryDate())?>)
-            });
+                maxDate: new Date(<?=$escaper->escapeHtml($block->getMaxExpiryDate())?>)
+            }).val('<?= $block->getDefaultExpiryDate() ?>');
+
         });
 </script>
 
@@ -51,11 +51,14 @@
         id="payment_form_<?= $escaper->escapeHtml($block->getMethodCode()) ?>"
         style="display: none">
     <div class="admin__field _required">
-        <label for="adyen_pbl_expires_at"
-               class="admin__field-label"><span><?= $block->escapeHtml(__('Expires at')) ?></span></label>
+        <label for="adyen_pbl_expires_at" class="admin__field-label">
+               <span>
+               <?= $escaper->escapeHtml(__('Payment link expires at')) ?>
+               </span>
+        </label>
         <div class="admin__field-control">
             <input type="text" id="adyen_pbl_expires_at" name="payment[adyen_pbl_expires_at]"
-                   title="<?= $block->escapeHtml(__("Date when the payment link expires")) ?>"
+                   title="<?= $escaper->escapeHtml(__("Date when the payment link will expire")) ?>"
                    class="required-entry admin__control-text"
                    value="<?= /* @noEscape */
                    $block->getInfoData('adyen_pbl_expires_at') ?>"/>
