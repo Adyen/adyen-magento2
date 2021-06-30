@@ -21,19 +21,18 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Gateway\Command;
+namespace Adyen\Payment\Gateway\Validator;
 
-use Magento\Payment\Gateway\CommandInterface;
+use Magento\Payment\Gateway\Validator\AbstractValidator;
 
-class PayByLinkCommand implements CommandInterface
+class PayByLinkValidator extends AbstractValidator
 {
-
-    public function __construct()
+    /**
+     * @inheritdoc
+     */
+    public function validate(array $validationSubject)
     {
-    }
-
-    public function execute(array $commandSubject)
-    {
-        // TODO: Implement execute() method.
+        // TODO validate
+        return $this->createResult(true);
     }
 }
