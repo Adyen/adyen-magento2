@@ -306,6 +306,16 @@ class Requests extends AbstractHelper
         ];
 
         $request["reference"] = $reference;
+
+        return $request;
+    }
+
+    /**
+     * @param array $request
+     * @return array
+     */
+    public function buildRiskData(array $request = [])
+    {
         $request["fraudOffset"] = "0";
 
         return $request;
