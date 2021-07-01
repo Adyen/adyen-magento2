@@ -24,48 +24,36 @@
 namespace Adyen\Payment\Model\Ui;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Magento\Payment\Helper\Data as PaymentHelper;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\UrlInterface;
 
 class AdyenPayByLinkConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'adyen_pay_by_link';
 
-    /**
-     * @var PaymentHelper
-     */
-    protected $_paymentHelper;
-
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $_adyenHelper;
 
     /**
      * Request object
      *
-     * @var \Magento\Framework\App\RequestInterface
+     * @var RequestInterface
      */
     protected $_request;
 
     /**
-     * @var \Magento\Framework\UrlInterface
+     * @var UrlInterface
      */
     protected $_urlBuilder;
 
     /**
      * AdyenHppConfigProvider constructor.
      *
-     * @param PaymentHelper $paymentHelper
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param RequestInterface $request
+     * @param UrlInterface $urlBuilder
      */
     public function __construct(
-        PaymentHelper $paymentHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\UrlInterface $urlBuilder
+        RequestInterface $request,
+        UrlInterface $urlBuilder
     ) {
-        $this->_paymentHelper = $paymentHelper;
-        $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
         $this->_urlBuilder = $urlBuilder;
     }
@@ -96,7 +84,7 @@ class AdyenPayByLinkConfigProvider implements ConfigProviderInterface
     /**
      * Retrieve request object
      *
-     * @return \Magento\Framework\App\RequestInterface
+     * @return RequestInterface
      */
     protected function _getRequest()
     {
