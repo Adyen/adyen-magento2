@@ -62,26 +62,18 @@ class AdyenPayByLinkConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Set configuration for AdyenHPP payemnt method
-     *
      * @return array
      */
     public function getConfig()
     {
         // set to active
-        $config = [
+        return [
             'payment' => [
                 self::CODE => [
-                    'isActive' => true,
-                    'successPage' => $this->_urlBuilder->getUrl(
-                        'checkout/onepage/success',
-                        ['_secure' => $this->_getRequest()->isSecure()]
-                    )
+                    'isActive' => true
                 ]
             ]
         ];
-
-        return $config;
     }
 
     /**
