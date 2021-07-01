@@ -25,66 +25,45 @@ namespace Adyen\Payment\Gateway\Request;
 
 
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Magento\Quote\Api\CartRepositoryInterface;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
-     */
-    private $storeManager;
-
-    /**
-     * @var \Magento\Quote\Api\CartRepositoryInterface
+     * @var CartRepositoryInterface
      */
     private $cartRepository;
-
-    /**
-     * @var \Adyen\Payment\Model\Gender
-     */
-    private $gender;
 
     /**
      * @var ChargedCurrency
      */
     private $chargedCurrency;
 
-    /**
-     * @var \Magento\Framework\UrlInterface
-     */
-    private $url;
 
     /**
      * CheckoutDataBuilder constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Quote\Api\CartRepositoryInterface $cartRepository
-     * @param \Adyen\Payment\Model\Gender $gender
+     * @param Data $adyenHelper
+     * @param CartRepositoryInterface $cartRepository
      * @param ChargedCurrency $chargedCurrency
-     * @param \Magento\Framework\UrlInterface $url
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Quote\Api\CartRepositoryInterface $cartRepository,
-        \Adyen\Payment\Model\Gender $gender,
-        ChargedCurrency $chargedCurrency,
-        \Magento\Framework\UrlInterface $url
+        Data $adyenHelper,
+        CartRepositoryInterface $cartRepository,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->adyenHelper = $adyenHelper;
-        $this->storeManager = $storeManager;
         $this->cartRepository = $cartRepository;
-        $this->gender = $gender;
         $this->chargedCurrency = $chargedCurrency;
-        $this->url = $url;
     }
 
     /**
@@ -105,20 +84,6 @@ class CheckoutDataBuilder implements BuilderInterface
 
         // do not send email
         $order->setCanSendNewEmailFlag(false);
-
-        $pwaOrigin = $this->adyenHelper->getAdyenAbstractConfigData(
-            "payment_origin_url",
-            $this->storeManager->getStore()->getId()
-        );
-
-        if ($pwaOrigin) {
-            $returnUrl = rtrim($pwaOrigin, '/') . '/adyen/process/result?merchantReference=' . $order->getIncrementId();
-        } else {
-            $this->url->setQueryParam('merchantReference', $order->getIncrementId());
-            $returnUrl = $this->url->getUrl("adyen/process/result");
-        }
-
-        $requestBody['returnUrl'] = $returnUrl;
 
         // Additional data for ACH
         if ($payment->getAdditionalInformation("bankAccountNumber")) {
@@ -217,9 +182,6 @@ class CheckoutDataBuilder implements BuilderInterface
         if ($this->adyenHelper->isCreditCardThreeDS2Enabled($storeId)) {
             $requestBody['additionalData']['allow3DS2'] = true;
         }
-
-        $requestBody['origin'] = $this->adyenHelper->getOrigin($storeId);
-        $requestBody['channel'] = 'web';
 
         if (isset($requestBodyPaymentMethod)) {
             $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
