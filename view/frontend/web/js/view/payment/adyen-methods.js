@@ -76,13 +76,20 @@ define(
                     shippingAddressCountry = quote.shippingAddress().countryId;
                     fullScreenLoader.startLoader();
                     // Retrieve adyen payment methods
-                    adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
-                        paymentMethods = JSON.parse(paymentMethods);
-                        adyenPaymentService.setPaymentMethods(paymentMethods);
+                    try {
+                        adyenPaymentService.retrievePaymentMethods().done(function (paymentMethods) {
+                            paymentMethods = typeof paymentMethods === 'string' ? JSON.parse(paymentMethods) : paymentMethods;
+                            adyenPaymentService.setPaymentMethods(paymentMethods);
+                        }).fail(function () {
+                            console.debug('Fetching the payment methods failed!', arguments);
+                        }).always(function () {
+                            fullScreenLoader.stopLoader();
+                        });
+                    } catch (e) {
+                        console.trace(e.message);
+                    } finally {
                         fullScreenLoader.stopLoader();
-                    }).fail(function() {
-                        console.log('Fetching the payment methods failed!');
-                    })
+                    }
                 });
             }
         });
