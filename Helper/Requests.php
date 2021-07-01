@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -93,10 +94,10 @@ class Requests extends AbstractHelper
      * @param int $customerId
      * @param $billingAddress
      * @param $storeId
-     * @param null $payment
+     * @param \Magento\Sales\Model\Order\Payment\|null $payment
      * @param null $additionalData
-     * @return array
      * @param array $request
+     * @return array
      * @return array
      */
     public function buildCustomerData(
@@ -125,8 +126,11 @@ class Requests extends AbstractHelper
                 $request['shopperEmail'] = $customerEmail;
             }
 
-            if ($customerTelephone = trim($billingAddress->getTelephone())) {
-                $request['telephoneNumber'] = $customerTelephone;
+            // /paymentLinks is not accepting "telephoneNumber" - FOC-47179
+            if ($payment->getMethodInstance()->getCode() != AdyenPayByLinkConfigProvider::CODE) {
+                if ($customerTelephone = trim($billingAddress->getTelephone())) {
+                    $request['telephoneNumber'] = $customerTelephone;
+                }
             }
 
             if ($firstName = $billingAddress->getFirstname()) {
