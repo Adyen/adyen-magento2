@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Block\Form;
 
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
@@ -33,11 +34,6 @@ use Magento\Store\Model\ScopeInterface;
 class PayByLink extends Form
 {
 
-    const MIN_EXPIRY_DAYS = 1;
-    const MAX_EXPIRY_DAYS = 70;
-    const DAYS_TO_EXPIRE_CONFIG_PATH = 'payment/adyen_pay_by_link/days_to_expire';
-    const DATE_FORMAT = 'd-m-Y';
-
     /**
      * @var string
      */
@@ -47,24 +43,24 @@ class PayByLink extends Form
     {
         try {
             $defaultExpiryDays = $this->_scopeConfig->getValue(
-                self::DAYS_TO_EXPIRE_CONFIG_PATH, ScopeInterface::SCOPE_STORE,
+                AdyenPayByLinkConfigProvider::DAYS_TO_EXPIRE_CONFIG_PATH, ScopeInterface::SCOPE_STORE,
                 $this->_storeManager->getStore()->getId()
             );
         } catch (NoSuchEntityException $e) {
             // There was a problem fetching the store, use the minimum expiry days as default
-            $defaultExpiryDays = self::MIN_EXPIRY_DAYS;
+            $defaultExpiryDays = AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS;
         }
         return $this->getNowPlusDays($defaultExpiryDays, false);
     }
 
     public function getMinExpiryDate(): int
     {
-        return $this->getNowPlusDays(self::MIN_EXPIRY_DAYS);
+        return $this->getNowPlusDays(AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS);
     }
 
     public function getMaxExpiryDate(): int
     {
-        return $this->getNowPlusDays(self::MAX_EXPIRY_DAYS);
+        return $this->getNowPlusDays(AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS);
     }
 
     private function getNowPlusDays($days, $timestamp = true)
@@ -78,6 +74,6 @@ class PayByLink extends Form
             date is within the accepted range
             */
         }
-        return $timestamp ? $date->getTimestamp() * 1000 : $date->format(self::DATE_FORMAT);
+        return $timestamp ? $date->getTimestamp() * 1000 : $date->format(AdyenPayByLinkConfigProvider::DATE_FORMAT);
     }
 }
