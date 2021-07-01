@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Validator;
 
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
 
 class PayByLinkValidator extends AbstractValidator
@@ -32,7 +33,18 @@ class PayByLinkValidator extends AbstractValidator
      */
     public function validate(array $validationSubject)
     {
-        // TODO validate
+        $payment = $validationSubject['payment'];
+        $expiryDate = date_create_from_format(
+            AdyenPayByLinkConfigProvider::DATE_FORMAT,
+            $payment->getAdyenPblExpiresAt()
+        );
+        $daysToExpire = (new \DateTime())->diff($expiryDate)->format("%r%a");
+        if (
+            $daysToExpire <= AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS ||
+            $daysToExpire >= AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS
+        ) {
+            return $this->createResult(false, ['Invalid expiry date selected for Adyen Pay By Link']);
+        }
         return $this->createResult(true);
     }
 }
