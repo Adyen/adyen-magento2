@@ -127,10 +127,11 @@ class Requests extends AbstractHelper
             }
 
             // /paymentLinks is not accepting "telephoneNumber" - FOC-47179
-            if ($payment->getMethodInstance()->getCode() != AdyenPayByLinkConfigProvider::CODE) {
-                if ($customerTelephone = trim($billingAddress->getTelephone())) {
-                    $request['telephoneNumber'] = $customerTelephone;
-                }
+            if (
+                $payment->getMethodInstance()->getCode() != AdyenPayByLinkConfigProvider::CODE &&
+                $customerTelephone = trim($billingAddress->getTelephone())
+            ) {
+                $request['telephoneNumber'] = $customerTelephone;
             }
 
             if ($firstName = $billingAddress->getFirstname()) {
