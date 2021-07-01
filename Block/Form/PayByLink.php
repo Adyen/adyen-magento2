@@ -53,12 +53,12 @@ class PayByLink extends Form
         return $this->getNowPlusDays($defaultExpiryDays, false);
     }
 
-    public function getMinExpiryDate(): int
+    public function getMinExpiryTimestamp(): int
     {
         return $this->getNowPlusDays(AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS);
     }
 
-    public function getMaxExpiryDate(): int
+    public function getMaxExpiryTimestamp(): int
     {
         return $this->getNowPlusDays(AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS);
     }

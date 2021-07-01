@@ -39,8 +39,8 @@
                 yearRange: '2010:2050',
                 buttonText: 'Select Expiry Date',
                 dateFormat: 'dd-mm-yy',
-                minDate: new Date(<?=$escaper->escapeHtml($block->getMinExpiryDate())?>),
-                maxDate: new Date(<?=$escaper->escapeHtml($block->getMaxExpiryDate())?>)
+                minDate: new Date(<?=$escaper->escapeHtml($block->getMinExpiryTimestamp())?>),
+                maxDate: new Date(<?=$escaper->escapeHtml($block->getMaxExpiryTimestamp())?>)
             }).val('<?= $block->getDefaultExpiryDate() ?>');
 
         });
