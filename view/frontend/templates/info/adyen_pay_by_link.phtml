@@ -30,12 +30,12 @@
 
 $paymentInfo = $block->getInfo();
 ?>
-<span><?= $escaper->escapeHtml($block->getMethod()->getTitle()); ?></span>
-<?php if (!empty($paymentInfo->getAdditionalInformation('payByLink'))): ?>
-    <div>
+<span><?= $escaper->escapeHtml(__('The payment can be completed with the following link:')); ?></span>
+<div>
+    <?php if (!empty($paymentInfo->getAdditionalInformation('payByLink'))): ?>
         <a target="_blank" href="<?= $escaper->escapeHtml($paymentInfo->getAdditionalInformation('payByLink')); ?>">
             <?= $escaper->escapeHtml(__('Payment Link')) ?>
         </a>
-    </div>
-<?php endif; ?>
+    <?php endif; ?>
+</div>
 <?= $escaper->escapeHtml($block->getChildHtml()); ?>
