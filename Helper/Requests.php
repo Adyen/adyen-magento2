@@ -296,10 +296,9 @@ class Requests extends AbstractHelper
      * @param $amount
      * @param $currencyCode
      * @param $reference
-     * @param $paymentMethod
      * @return array
      */
-    public function buildPaymentData($amount, $currencyCode, $reference, $paymentMethod, $request = [])
+    public function buildPaymentData($amount, $currencyCode, $reference, array $request = [])
     {
         $request['amount'] = [
             'currency' => $currencyCode,
