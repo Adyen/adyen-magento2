@@ -329,36 +329,6 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param array $request
-     * @param $additionalData
-     * @param $storeId
-     * @return array
-     */
-    public function buildThreeDS2Data($additionalData, $storeId, $request = [])
-    {
-        if ($this->adyenHelper->isCreditCardThreeDS2Enabled($storeId)) {
-            $request['additionalData']['allow3DS2'] = true;
-            $request['origin'] = $this->adyenHelper->getOrigin($storeId);
-            $request['channel'] = 'web';
-            $request['browserInfo']['screenWidth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_WIDTH];
-            $request['browserInfo']['screenHeight'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_HEIGHT];
-            $request['browserInfo']['colorDepth'] = $additionalData[AdyenCcDataAssignObserver::SCREEN_COLOR_DEPTH];
-            $request['browserInfo']['timeZoneOffset'] = $additionalData[AdyenCcDataAssignObserver::TIMEZONE_OFFSET];
-            $request['browserInfo']['language'] = $additionalData[AdyenCcDataAssignObserver::LANGUAGE];
-
-            if ($javaEnabled = $additionalData[AdyenCcDataAssignObserver::JAVA_ENABLED]) {
-                $request['browserInfo']['javaEnabled'] = $javaEnabled;
-            } else {
-                $request['browserInfo']['javaEnabled'] = false;
-            }
-        } else {
-            $request['additionalData']['allow3DS2'] = false;
-            $request['origin'] = $this->adyenHelper->getOrigin($storeId);
-            $request['channel'] = 'web';
-        }
-    }
-
-    /**
      * @param InfoInterface $payment
      * @param array $request
      * @return array
