@@ -41,8 +41,6 @@ class PayByLinkResponseHandler implements HandlerInterface
     }
 
     /**
-     * This is being used for all checkout methods (adyen hpp payment method)
-     *
      * @param array $handlingSubject
      * @param array $response
      */
