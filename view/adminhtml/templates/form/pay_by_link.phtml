@@ -36,7 +36,6 @@
             $("#adyen_pbl_expires_at").calendar({
                 changeYear: true,
                 changeMonth: true,
-                yearRange: '2010:2050',
                 buttonText: 'Select Expiry Date',
                 dateFormat: 'dd-mm-yy',
                 minDate: new Date(<?=$escaper->escapeHtml($block->getMinExpiryTimestamp())?>),
