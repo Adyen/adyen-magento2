@@ -42,8 +42,6 @@ class AdyenPayByLinkConfigProvider implements ConfigProviderInterface
     protected $_request;
 
     /**
-     * AdyenHppConfigProvider constructor.
-     *
      * @param RequestInterface $request
      */
     public function __construct(
