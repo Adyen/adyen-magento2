@@ -66,6 +66,7 @@ define(
         var popupModal;
         var selectedAlternativePaymentMethodType = ko.observable(null);
         var paymentMethod = ko.observable(null);
+        const amazonSessionKey = 'amazonCheckoutSessionId';
 
         return Component.extend({
             self: this,
@@ -150,6 +151,7 @@ define(
                     'paypal',
                     'applepay',
                     'paywithgoogle',
+                    'amazonpay'
                 ];
 
                 var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
@@ -344,22 +346,50 @@ define(
                                     }
                                 }
 
+                                // Extra amazon pay configuration first call to amazon page
+                                if (paymentMethod.methodIdentifier.includes('amazonpay')) {
+                                    configuration.productType = 'PayOnly';
+                                    configuration.checkoutMode = 'ProcessOrder';
+                                    configuration.returnUrl = location.href;
+                                    configuration.prePayRedirect = true;
+                                }
                                 try {
-                                    const component = self.checkoutComponent.create(
-                                        paymentMethod.methodIdentifier, configuration);
-                                    const containerId = '#adyen-alternative-payment-container-' +
-                                        paymentMethod.methodIdentifier;
-
-                                    if ('isAvailable' in component) {
-                                        component.isAvailable().then(() => {
-                                            component.mount(containerId);
-                                        }).catch(e => {
-                                            result.isAvailable(false);
-                                        });
+                                    var url = new URL(location.href);
+                                    if (
+                                        paymentMethod.methodIdentifier === 'amazonpay'
+                                        && url.searchParams.has(amazonSessionKey)
+                                    ) {
+                                        configuration = {
+                                            amazonCheckoutSessionId: url.searchParams.get(amazonSessionKey),
+                                            showOrderButton: true,
+                                            amount: {
+                                                currency: configuration.amount.currency,
+                                                value: configuration.amount.value
+                                            },
+                                            returnUrl: location.href,
+                                            showChangePaymentDetailsButton: false
+                                        }
+                                        const component = self.checkoutComponent.create(
+                                            paymentMethod.methodIdentifier, configuration);
+                                        const containerId = '#adyen-alternative-payment-container-' +
+                                            paymentMethod.methodIdentifier;
+                                        component.mount(containerId).submit();
                                     } else {
-                                        component.mount(containerId);
-                                    }
+                                        const component = self.checkoutComponent.create(
+                                            paymentMethod.methodIdentifier, configuration);
+                                        const containerId = '#adyen-alternative-payment-container-' +
+                                            paymentMethod.methodIdentifier;
 
+                                        if ('isAvailable' in component) {
+                                            component.isAvailable().then(() => {
+                                                component.mount(containerId);
+                                            }).catch(e => {
+                                                result.isAvailable(false);
+                                            });
+                                        } else {
+                                            component.mount(containerId);
+                                        }
+                                    }
                                     result.component = component;
 
                                 } catch (err) {
@@ -551,7 +581,6 @@ define(
             renderActionComponent: function(resultCode, action, component) {
                 var self = this;
                 var actionNode = document.getElementById('ActionContainer');
-
                 fullScreenLoader.stopLoader();
 
                 self.popupModal = $('#ActionModal').modal({
@@ -572,9 +601,8 @@ define(
                     if (resultCode !== 'RedirectShopper') {
                         self.popupModal.modal('openModal');
                     }
-
                     self.actionComponent = self.checkoutComponent.createFromAction(action).
-                        mount(actionNode);
+                    mount(actionNode);
                 }
             },
             handleOnSubmit: function(state, component) {
