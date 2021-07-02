@@ -38,12 +38,14 @@ class PayByLinkValidator extends AbstractValidator
             AdyenPayByLinkConfigProvider::DATE_FORMAT,
             $payment->getAdyenPblExpiresAt()
         );
-        $daysToExpire = (new \DateTime())->diff($expiryDate)->format("%r%a");
-        if (
-            $daysToExpire <= AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS ||
-            $daysToExpire >= AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS
-        ) {
-            return $this->createResult(false, ['Invalid expiry date selected for Adyen Pay By Link']);
+        if ($expiryDate) {
+            $daysToExpire = (new \DateTime())->diff($expiryDate)->format("%r%a");
+            if (
+                $daysToExpire <= AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS ||
+                $daysToExpire >= AdyenPayByLinkConfigProvider::MAX_EXPIRY_DAYS
+            ) {
+                return $this->createResult(false, ['Invalid expiry date selected for Adyen Pay By Link']);
+            }
         }
         return $this->createResult(true);
     }
