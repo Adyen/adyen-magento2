@@ -54,7 +54,15 @@ class PayByLinkResponseHandler implements HandlerInterface
         $payment->setIsTransactionPending(true);
 
         if (!empty($response['url'])) {
-            $payment->setAdditionalInformation('payByLink', $response['url']);
+            $payment->setAdditionalInformation('payByLinkUrl', $response['url']);
+        }
+
+        if (!empty($response['expiresAt'])) {
+            $payment->setAdditionalInformation('payByLinkExpiresAt', $response['expiresAt']);
+        }
+
+        if (!empty($response['id'])) {
+            $payment->setAdditionalInformation('payByLinkId', $response['id']);
         }
 
         // do not close transaction so you can do a cancel() and void

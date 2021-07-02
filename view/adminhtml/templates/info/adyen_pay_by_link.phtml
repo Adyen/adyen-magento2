@@ -31,11 +31,11 @@
 $paymentInfo = $block->getInfo();
 ?>
 <span><?= $escaper->escapeHtml($block->getMethod()->getTitle()); ?></span>
-<?php if (!empty($paymentInfo->getAdditionalInformation('payByLink'))): ?>
+<?php if (!empty($paymentInfo->getAdditionalInformation('payByLinkUrl'))): ?>
     <div>
         <a rel=noopener
            target="_blank"
-           href="<?= $escaper->escapeHtml($paymentInfo->getAdditionalInformation('payByLink')); ?>">
+           href="<?= $escaper->escapeHtml($paymentInfo->getAdditionalInformation('payByLinkUrl')); ?>">
             <?= $escaper->escapeHtml(__('Payment Link')) ?>
         </a>
     </div>
