@@ -25,7 +25,6 @@ namespace Adyen\Payment\Model\Ui;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\UrlInterface;
 
 class AdyenPayByLinkConfigProvider implements ConfigProviderInterface
 {
@@ -43,22 +42,14 @@ class AdyenPayByLinkConfigProvider implements ConfigProviderInterface
     protected $_request;
 
     /**
-     * @var UrlInterface
-     */
-    protected $_urlBuilder;
-
-    /**
      * AdyenHppConfigProvider constructor.
      *
      * @param RequestInterface $request
-     * @param UrlInterface $urlBuilder
      */
     public function __construct(
-        RequestInterface $request,
-        UrlInterface $urlBuilder
+        RequestInterface $request
     ) {
         $this->_request = $request;
-        $this->_urlBuilder = $urlBuilder;
     }
 
     /**
