@@ -398,7 +398,6 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentPayByLinkInitializeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPaymentLinks</argument>
-            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\PayByLinkValidator</argument>
             <argument name="handler" xsi:type="object">Adyen\Payment\Gateway\Response\PayByLinkResponseHandler</argument>
         </arguments>
     </virtualType>
