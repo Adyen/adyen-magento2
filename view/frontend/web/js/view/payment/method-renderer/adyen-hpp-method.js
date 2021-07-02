@@ -361,7 +361,7 @@ define(
                                     ) {
                                         configuration = {
                                             amazonCheckoutSessionId: url.searchParams.get(amazonSessionKey),
-                                            showOrderButton: true,
+                                            showOrderButton: false,
                                             amount: {
                                                 currency: configuration.amount.currency,
                                                 value: configuration.amount.value
