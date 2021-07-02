@@ -351,7 +351,6 @@ define(
                                     configuration.productType = 'PayOnly';
                                     configuration.checkoutMode = 'ProcessOrder';
                                     configuration.returnUrl = location.href;
-                                    configuration.prePayRedirect = true;
                                 }
                                 try {
                                     var url = new URL(location.href);
