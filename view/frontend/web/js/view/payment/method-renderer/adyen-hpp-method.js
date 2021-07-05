@@ -348,9 +348,19 @@ define(
 
                                 // Extra amazon pay configuration first call to amazon page
                                 if (paymentMethod.methodIdentifier.includes('amazonpay')) {
-                                    configuration.productType = 'PayOnly';
+                                    let billingAddress = configuration.data.billingAddress;
+                                    let personalDetails = configuration.data.personalDetails;
+                                    configuration.productType = 'PayAndShip';
                                     configuration.checkoutMode = 'ProcessOrder';
                                     configuration.returnUrl = location.href;
+                                    configuration.addressDetails = {
+                                        name: personalDetails.firstName + ' ' + personalDetails.lastName,
+                                        addressLine1: billingAddress.street,
+                                        city: billingAddress.city,
+                                        postalCode: billingAddress.postalCode,
+                                        countryCode: billingAddress.country,
+                                        phoneNumber: personalDetails.telephoneNumber
+                                    };
                                 }
                                 try {
                                     var url = new URL(location.href);
@@ -390,7 +400,6 @@ define(
                                         }
                                     }
                                     result.component = component;
-
                                 } catch (err) {
                                     // The component does not exist yet
                                     console.log(err);
