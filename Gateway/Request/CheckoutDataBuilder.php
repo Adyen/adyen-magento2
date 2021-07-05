@@ -26,6 +26,7 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
@@ -79,8 +80,8 @@ class CheckoutDataBuilder implements BuilderInterface
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
 
-        // Initialize the request body with the validated state data
-        $requestBody = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::STATE_DATA);
+        // Initialize the request body with the validated state data or empty array
+        $requestBody = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::STATE_DATA) ?: [];
 
         // do not send email
         $order->setCanSendNewEmailFlag(false);
@@ -104,7 +105,7 @@ class CheckoutDataBuilder implements BuilderInterface
                 $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
             ) || $this->adyenHelper->isPaymentMethodOneyMethod(
                 $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE)
-            )
+            ) || $payment->getMethod() == AdyenPayByLinkConfigProvider::CODE
         ) {
             $openInvoiceFields = $this->getOpenInvoiceData($order);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
