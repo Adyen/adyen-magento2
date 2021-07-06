@@ -59,7 +59,7 @@ class OriginDataBuilder implements BuilderInterface
         /** @var Order $order */
         $storeId = $payment->getOrder()->getStoreId();
 
-        $request['origin'] = $this->adyenHelper->getOrigin($storeId);
+        $request['body']['origin'] = $this->adyenHelper->getOrigin($storeId);
 
         return $request;
     }
