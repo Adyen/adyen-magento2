@@ -66,8 +66,9 @@ class ShopperInteractionDataBuilder implements BuilderInterface
             $this->appState->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML) {
             // Backend CC orders are MOTO
             $requestBody['body']['shopperInteraction'] = "Moto";
-        } elseif ($paymentMethod == AdyenOneclickConfigProvider::CODE && true) {
-            // OneClick is ContAuth
+        } elseif ($paymentMethod == AdyenOneclickConfigProvider::CODE
+            || $paymentMethod == AdyenCcConfigProvider::CC_VAULT_CODE) {
+            // OneClick and Vault are ContAuth
             $requestBody['body']['shopperInteraction'] = 'ContAuth';
         } elseif ($paymentMethod == AdyenPayByLinkConfigProvider::CODE) {
             // Don't send shopperInteraction for PBL
