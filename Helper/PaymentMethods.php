@@ -179,7 +179,6 @@ class PaymentMethods extends AbstractHelper
         $responseData = $this->getPaymentMethodsResponse($paymentMethodRequest, $store);
 
         if (empty($responseData['paymentMethods'])) {
-            var_dump($responseData);
             return json_encode([]);
         }
 
