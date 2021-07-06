@@ -370,7 +370,8 @@ class Requests extends AbstractHelper
         $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
 
         // TODO Remove it in version 7
-        if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::STORE_CC)) {
+        if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::STORE_CC) ||
+            $payment->getMethodInstance()->getCode() == AdyenPayByLinkConfigProvider::CODE) {
             $request['storePaymentMethod'] = true;
         }
         //recurring
