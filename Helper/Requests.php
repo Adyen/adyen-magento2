@@ -365,12 +365,6 @@ class Requests extends AbstractHelper
      */
     public function buildRecurringData(int $storeId, $payment, $request = [])
     {
-
-        $request['shopperInteraction'] = 'Ecommerce';
-
-        // TODO refactor to set the shopperInteraction only this place (only one place) because now it's going to be
-        // overriden in the OneclickAuthorizationDataBuilder
-
         $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
         $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
         $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
