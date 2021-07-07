@@ -42,7 +42,11 @@ class DescriptionDataBuilder implements BuilderInterface
         /** @var Order $order */
         $order = $payment->getOrder();
 
-        $request['body']['description'] = __('Order %1', $order->getIncrementId());
+        $request['body']['description'] = __(
+            'Order %1 from %2',
+            $order->getIncrementId(),
+            $order->getStore()->getGroup()->getName()
+        );
 
         return $request;
     }

@@ -26,6 +26,7 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -34,6 +35,12 @@ use Magento\Quote\Api\CartRepositoryInterface;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
+
+    const ORDER_EMAIL_REQUIRED_METHODS = [
+        AdyenPayByLinkConfigProvider::CODE,
+        AdyenBoletoConfigProvider::CODE
+    ];
+
     /**
      * @var Data
      */
@@ -83,8 +90,7 @@ class CheckoutDataBuilder implements BuilderInterface
         // Initialize the request body with the validated state data or empty array
         $requestBody = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::STATE_DATA) ?: [];
 
-        // do not send email
-        $order->setCanSendNewEmailFlag(false);
+        $order->setCanSendNewEmailFlag(in_array($payment->getMethod(), self::ORDER_EMAIL_REQUIRED_METHODS));
 
         // Additional data for ACH
         if ($payment->getAdditionalInformation("bankAccountNumber")) {
@@ -131,7 +137,7 @@ class CheckoutDataBuilder implements BuilderInterface
             $requestBody['shopperName']['lastName'] = $payment->getAdditionalInformation("lastname");
         }
 
-        if ($payment->getMethod() == \Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider::CODE) {
+        if ($payment->getMethod() == AdyenBoletoConfigProvider::CODE) {
             $boletoTypes = $this->adyenHelper->getAdyenBoletoConfigData('boletotypes');
             $boletoTypes = explode(',', $boletoTypes);
 
@@ -158,8 +164,6 @@ class CheckoutDataBuilder implements BuilderInterface
             );
 
             $requestBody['deliveryDate'] = $deliveryDate;
-
-            $order->setCanSendNewEmailFlag(true);
         }
 
         // if installments is set and card type is credit card add it into the request
