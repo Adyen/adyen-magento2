@@ -61,22 +61,25 @@ class ShopperInteractionDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $paymentMethod = $payment->getMethodInstance()->getCode();
 
-        $requestBody = [];
+        if ($paymentMethod == AdyenPayByLinkConfigProvider::CODE) {
+            // Don't send shopperInteraction for PBL
+            return [];
+        }
+
+        // Ecommerce is the default shopperInteraction
+        $shopperInteraction = 'Ecommerce';
+
         if ($paymentMethod == AdyenCcConfigProvider::CODE &&
             $this->appState->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML) {
             // Backend CC orders are MOTO
-            $requestBody['body']['shopperInteraction'] = "Moto";
+            $shopperInteraction = "Moto";
         } elseif ($paymentMethod == AdyenOneclickConfigProvider::CODE
             || $paymentMethod == AdyenCcConfigProvider::CC_VAULT_CODE) {
             // OneClick and Vault are ContAuth
-            $requestBody['body']['shopperInteraction'] = 'ContAuth';
-        } elseif ($paymentMethod == AdyenPayByLinkConfigProvider::CODE) {
-            // Don't send shopperInteraction for PBL
-        } else {
-            // Ecommerce is the default shopperInteraction
-            $requestBody['body']['shopperInteraction'] = 'Ecommerce';
+            $shopperInteraction = 'ContAuth';
         }
 
+        $requestBody['body']['shopperInteraction'] = $shopperInteraction;
         return $requestBody;
     }
 }
