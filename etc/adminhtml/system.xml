@@ -44,6 +44,7 @@
                 <include path="Adyen_Payment::system/adyen_hpp.xml"/>
                 <include path="Adyen_Payment::system/adyen_pos_cloud.xml"/>
                 <include path="Adyen_Payment::system/adyen_pay_by_mail.xml"/>
+                <include path="Adyen_Payment::system/adyen_pay_by_link.xml"/>
                 <include path="Adyen_Payment::system/adyen_boleto.xml"/>
                 <include path="Adyen_Payment::system/adyen_pwa.xml"/>
             </group>
