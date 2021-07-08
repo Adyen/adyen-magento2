@@ -384,6 +384,16 @@ define(
                                         },
                                     });
 
+                                if (formattedShippingAddress) {
+                                    configuration.data.shippingAddress = {
+                                        city: formattedShippingAddress.city,
+                                        country: formattedShippingAddress.country,
+                                        houseNumberOrName: formattedShippingAddress.houseNumber,
+                                        postalCode: formattedShippingAddress.postalCode,
+                                        street: formattedShippingAddress.street,
+                                    }
+                                }
+
                                 // Use extra configuration from the paymentMethodsExtraInfo object if available
                                 if (paymentMethod.methodIdentifier in paymentMethodsExtraInfo && 'configuration' in paymentMethodsExtraInfo[paymentMethod.methodIdentifier]) {
                                     configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
