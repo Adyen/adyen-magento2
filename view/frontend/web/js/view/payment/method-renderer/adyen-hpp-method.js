@@ -245,8 +245,6 @@ define(
                                     showPayButton = true;
                                 }
 
-                                var country = '';
-
                                 var firstName = '';
                                 var lastName = '';
                                 var telephone = '';
@@ -272,13 +270,6 @@ define(
 
                                 if (!!quote.billingAddress()) {
                                     formattedBillingAddress = getFormattedAddress(quote.billingAddress());
-                                }
-
-                                // Use shipping address details as default and fall back to billing address if missing
-                                if (formattedShippingAddress) {
-                                    country = formattedShippingAddress.country;
-                                } else {
-                                    country = formattedBillingAddress.country;
                                 }
 
                                 /**
@@ -343,7 +334,7 @@ define(
                                 var configuration = Object.assign(paymentMethod,
                                     {
                                         showPayButton: showPayButton,
-                                        countryCode: country,
+                                        countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
                                         hasHolderName: adyenConfiguration.getHasHolderName(),
                                         holderNameRequired: adyenConfiguration.getHasHolderName() &&
                                             adyenConfiguration.getHolderNameRequired(),
