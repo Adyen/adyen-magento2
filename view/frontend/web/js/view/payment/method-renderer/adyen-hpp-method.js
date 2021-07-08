@@ -264,12 +264,17 @@ define(
                                 shopperDateOfBirth = customerData.dob;
 
                                 var formattedShippingAddress = {};
+                                var formattedBillingAddress = {};
 
                                 if (!!quote.shippingAddress()) {
                                     formattedShippingAddress = getFormattedAddress(quote.shippingAddress());
                                 }
 
-                                // Use shipping address details as default
+                                if (!!quote.billingAddress()) {
+                                    formattedBillingAddress = getFormattedAddress(quote.billingAddress());
+                                }
+
+                                // Use shipping address details as default and fall back to billing address if missing
                                 if (formattedShippingAddress) {
                                     country = formattedShippingAddress.country;
                                 }
@@ -342,20 +347,20 @@ define(
                                             adyenConfiguration.getHolderNameRequired(),
                                         data: {
                                             personalDetails: {
-                                                firstName: formattedShippingAddress.firstName,
-                                                lastName: formattedShippingAddress.lastName,
-                                                telephoneNumber: formattedShippingAddress.telephone,
+                                                firstName: formattedBillingAddress.firstName,
+                                                lastName: formattedBillingAddress.lastName,
+                                                telephoneNumber: formattedBillingAddress.telephone,
                                                 shopperEmail: email,
                                                 gender: getAdyenGender(
                                                     shopperGender),
                                                 dateOfBirth: shopperDateOfBirth,
                                             },
                                             billingAddress: {
-                                                city: formattedShippingAddress.city,
-                                                country: formattedShippingAddress.country,
-                                                houseNumberOrName: formattedShippingAddress.houseNumber,
-                                                postalCode: formattedShippingAddress.postalCode,
-                                                street: formattedShippingAddress.street,
+                                                city: formattedBillingAddress.city,
+                                                country: formattedBillingAddress.country,
+                                                houseNumberOrName: formattedBillingAddress.houseNumber,
+                                                postalCode: formattedBillingAddress.postalCode,
+                                                street: formattedBillingAddress.street,
                                             },
                                         },
                                         onChange: function(state) {
