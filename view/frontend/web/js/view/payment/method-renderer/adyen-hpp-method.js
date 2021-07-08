@@ -296,8 +296,10 @@ define(
                                             // removes the street line from array that is used to contain house number
                                             houseNumber = street.splice(adyenConfiguration.getHouseNumberStreetLine() - 1, 1);
                                         } else { // getHouseNumberStreetLine = 0 uses the last street line as house number
-                                            // removes last street line from array that is used to contain house number
-                                            houseNumber = street.pop();
+                                            // in case there is more than 1 street lines in use, removes last street line from array that should be used to contain house number
+                                            if (street.length > 1) {
+                                                houseNumber = street.pop();
+                                            }
                                         }
 
                                         // Concat street lines except house number
