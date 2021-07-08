@@ -277,6 +277,8 @@ define(
                                 // Use shipping address details as default and fall back to billing address if missing
                                 if (formattedShippingAddress) {
                                     country = formattedShippingAddress.country;
+                                } else {
+                                    country = formattedBillingAddress.country;
                                 }
 
                                 /**
