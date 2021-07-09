@@ -880,7 +880,7 @@ class Cron
             return;
         }
 
-        $this->_order->addStatusHistoryComment($comment);
+        $this->_order->addStatusHistoryComment($comment, $this->_order->getStatus());
         $this->_adyenLogger->addAdyenNotificationCronjob('Created comment history for this notification');
     }
 
@@ -1359,7 +1359,7 @@ class Cron
                     }
 
                     $this->_adyenLogger->addAdyenNotificationCronjob($message);
-                    $comment = $this->_order->addStatusHistoryComment($message);
+                    $comment = $this->_order->addStatusHistoryComment($message, $this->_order->getStatus());
                     $this->_order->addRelatedObject($comment);
                 }
                 //store recurring contract for alternative payments methods
@@ -1498,7 +1498,8 @@ class Cron
         $this->_adyenLogger->addAdyenNotificationCronjob(
             'Status update to default status or refund_authorized status if this is set'
         );
-        $this->_order->addStatusHistoryComment(__('Adyen Refund Successfully completed'));
+        $this->_order->addStatusHistoryComment(__('Adyen Refund Successfully completed'), $this->_order->getStatus());
+
     }
 
     /**
@@ -1620,7 +1621,7 @@ class Cron
 
         //capture mode
         if (!$this->_isAutoCapture()) {
-            $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'));
+            $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'), $this->_order->getStatus());
             $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode is set to Manual');
 
             // show message if order is in manual review
@@ -2255,7 +2256,7 @@ class Cron
     {
         $comment = __('The order failed to update: %1', $errorMessage);
         if ($this->_order) {
-            $this->_order->addStatusHistoryComment($comment);
+            $this->_order->addStatusHistoryComment($comment, $this->_order->getStatus());
             $this->_order->save();
         }
     }

@@ -67,7 +67,7 @@ class CheckoutPaymentCommentHistoryHandler implements HandlerInterface
             $comment .= '<br /> ' . __('pspReference:') . ' ' . $pspReference;
         }
 
-        $payment->getOrder()->addStatusHistoryComment($comment);
+        $payment->getOrder()->addStatusHistoryComment($comment, $payment->getOrder()->getStatus());
 
         return $this;
     }
