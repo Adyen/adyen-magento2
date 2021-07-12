@@ -245,10 +245,6 @@ define(
                                     showPayButton = true;
                                 }
 
-                                var city = '';
-                                var country = '';
-                                var postalCode = '';
-                                var street = '';
                                 var firstName = '';
                                 var lastName = '';
                                 var telephone = '';
@@ -256,26 +252,74 @@ define(
                                 var shopperGender = '';
                                 var shopperDateOfBirth = '';
 
-                                if (!!quote && !!quote.shippingAddress()) {
-                                    city = quote.shippingAddress().city;
-                                    country = quote.shippingAddress().countryId;
-                                    postalCode = quote.shippingAddress().postcode;
-                                    street = Array.isArray(quote.shippingAddress().street) ?
-                                        quote.shippingAddress().street.join(' ') :
-                                        quote.shippingAddress().street
+                                if (!!customerData.email) {
+                                    email = customerData.email;
+                                } else if (!!quote.guestEmail) {
+                                    email = quote.guestEmail;
+                                }
 
-                                    firstName = quote.shippingAddress().firstname;
-                                    lastName = quote.shippingAddress().lastname;
-                                    telephone = quote.shippingAddress().telephone;
+                                shopperGender = customerData.gender;
+                                shopperDateOfBirth = customerData.dob;
 
-                                    if (!!customerData.email) {
-                                        email = customerData.email;
-                                    } else if (!!quote.guestEmail) {
-                                        email = quote.guestEmail;
+                                var formattedShippingAddress = {};
+                                var formattedBillingAddress = {};
+
+                                if (!!quote.shippingAddress()) {
+                                    formattedShippingAddress = getFormattedAddress(quote.shippingAddress());
+                                }
+
+                                if (!!quote.billingAddress()) {
+                                    formattedBillingAddress = getFormattedAddress(quote.billingAddress());
+                                }
+
+                                /**
+                                 * @param address
+                                 * @returns {{country: (string|*), firstName: (string|*), lastName: (string|*), city: (*|string), street: *, postalCode: (*|string), houseNumber: string, telephone: (string|*)}}
+                                 */
+                                function getFormattedAddress(address) {
+                                    let city = '';
+                                    let country = '';
+                                    let postalCode = '';
+                                    let street = '';
+                                    let houseNumber = '';
+
+                                    city = address.city;
+                                    country = address.countryId;
+                                    postalCode = address.postcode;
+
+                                    street = address.street.slice(0)
+
+                                    // address contains line items as an array, otherwise if string just pass along as is
+                                    if (Array.isArray(street)) {
+                                        // getHouseNumberStreetLine > 0 implies the street line that is used to gather house number
+                                        if (adyenConfiguration.getHouseNumberStreetLine() > 0) {
+                                            // removes the street line from array that is used to contain house number
+                                            houseNumber = street.splice(adyenConfiguration.getHouseNumberStreetLine() - 1, 1);
+                                        } else { // getHouseNumberStreetLine = 0 uses the last street line as house number
+                                            // in case there is more than 1 street lines in use, removes last street line from array that should be used to contain house number
+                                            if (street.length > 1) {
+                                                houseNumber = street.pop();
+                                            }
+                                        }
+
+                                        // Concat street lines except house number
+                                        street = street.join(' ');
                                     }
 
-                                    shopperGender = customerData.gender;
-                                    shopperDateOfBirth = customerData.dob;
+                                    firstName = address.firstname;
+                                    lastName = address.lastname;
+                                    telephone = address.telephone;
+
+                                    return {
+                                        city: city,
+                                        country: country,
+                                        postalCode: postalCode,
+                                        street: street,
+                                        houseNumber: houseNumber,
+                                        firstName: firstName,
+                                        lastName: lastName,
+                                        telephone: telephone
+                                    }
                                 }
 
                                 function getAdyenGender(gender) {
@@ -292,26 +336,26 @@ define(
                                 var configuration = Object.assign(paymentMethod,
                                     {
                                         showPayButton: showPayButton,
-                                        countryCode: country,
+                                        countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
                                         hasHolderName: adyenConfiguration.getHasHolderName(),
                                         holderNameRequired: adyenConfiguration.getHasHolderName() &&
                                             adyenConfiguration.getHolderNameRequired(),
                                         data: {
                                             personalDetails: {
-                                                firstName: firstName,
-                                                lastName: lastName,
-                                                telephoneNumber: telephone,
+                                                firstName: formattedBillingAddress.firstName,
+                                                lastName: formattedBillingAddress.lastName,
+                                                telephoneNumber: formattedBillingAddress.telephone,
                                                 shopperEmail: email,
                                                 gender: getAdyenGender(
                                                     shopperGender),
                                                 dateOfBirth: shopperDateOfBirth,
                                             },
                                             billingAddress: {
-                                                city: city,
-                                                country: country,
-                                                houseNumberOrName: '',
-                                                postalCode: postalCode,
-                                                street: street,
+                                                city: formattedBillingAddress.city,
+                                                country: formattedBillingAddress.country,
+                                                houseNumberOrName: formattedBillingAddress.houseNumber,
+                                                postalCode: formattedBillingAddress.postalCode,
+                                                street: formattedBillingAddress.street,
                                             },
                                         },
                                         onChange: function(state) {
@@ -332,6 +376,16 @@ define(
                                             }
                                         },
                                     });
+
+                                if (formattedShippingAddress) {
+                                    configuration.data.shippingAddress = {
+                                        city: formattedShippingAddress.city,
+                                        country: formattedShippingAddress.country,
+                                        houseNumberOrName: formattedShippingAddress.houseNumber,
+                                        postalCode: formattedShippingAddress.postalCode,
+                                        street: formattedShippingAddress.street,
+                                    }
+                                }
 
                                 // Use extra configuration from the paymentMethodsExtraInfo object if available
                                 if (paymentMethod.methodIdentifier in paymentMethodsExtraInfo && 'configuration' in paymentMethodsExtraInfo[paymentMethod.methodIdentifier]) {
