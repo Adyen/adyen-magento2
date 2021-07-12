@@ -33,6 +33,9 @@ class AdyenPayByLinkConfigProvider implements ConfigProviderInterface
     const MAX_EXPIRY_DAYS = 70;
     const DAYS_TO_EXPIRE_CONFIG_PATH = 'payment/adyen_pay_by_link/days_to_expire';
     const DATE_FORMAT = 'd-m-Y';
+    const EXPIRES_AT_KEY = 'payByLinkExpiresAt';
+    const URL_KEY = 'payByLinkUrl';
+    const ID_KEY = 'payByLinkId';
 
     /**
      * Request object
