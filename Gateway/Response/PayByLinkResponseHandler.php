@@ -51,7 +51,9 @@ class PayByLinkResponseHandler implements HandlerInterface
 
         $payment = $paymentDataObject->getPayment();
 
-        // set transaction not to processing by default wait for notification
+        // Set transaction to pending by default, wait for notification.
+        // This must match the status checked for expired orders/payments in
+        // Adyen\Payment\Cron\Providers\PayByLinkExpiredPaymentOrdersProvider::provide
         $payment->setIsTransactionPending(true);
 
         if (!empty($response['url'])) {
