@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
@@ -54,15 +55,15 @@ class PayByLinkResponseHandler implements HandlerInterface
         $payment->setIsTransactionPending(true);
 
         if (!empty($response['url'])) {
-            $payment->setAdditionalInformation('payByLinkUrl', $response['url']);
+            $payment->setAdditionalInformation(AdyenPayByLinkConfigProvider::URL_KEY, $response['url']);
         }
 
         if (!empty($response['expiresAt'])) {
-            $payment->setAdditionalInformation('payByLinkExpiresAt', $response['expiresAt']);
+            $payment->setAdditionalInformation(AdyenPayByLinkConfigProvider::EXPIRES_AT_KEY, $response['expiresAt']);
         }
 
         if (!empty($response['id'])) {
-            $payment->setAdditionalInformation('payByLinkId', $response['id']);
+            $payment->setAdditionalInformation(AdyenPayByLinkConfigProvider::ID_KEY, $response['id']);
         }
 
         // do not close transaction so you can do a cancel() and void
