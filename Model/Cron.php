@@ -1082,8 +1082,6 @@ class Cron
                 );
                 if ($ignoreRefundNotification != true) {
                     $this->_refundOrder();
-                    //refund completed
-                    $this->_setRefundAuthorized();
                 } else {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         'Setting to ignore refund notification is enabled so ignore this notification'
@@ -1218,8 +1216,6 @@ class Cron
                         $this->_holdCancelOrder(true);
                     } elseif ($this->_modificationResult == "refund") {
                         $this->_refundOrder();
-                        //refund completed
-                        $this->_setRefundAuthorized();
                     }
                 } else {
                     if ($this->_order->isCanceled() ||
@@ -1236,8 +1232,6 @@ class Cron
                             $this->_adyenLogger->addAdyenNotificationCronjob('try to refund the order');
                             // refund
                             $this->_refundOrder();
-                            //refund completed
-                            $this->_setRefundAuthorized();
                         }
                     }
                 }
@@ -1480,6 +1474,7 @@ class Cron
                 $order->getPayment()->registerRefundNotification($amount);
 
                 $this->_adyenLogger->addAdyenNotificationCronjob('Created credit memo for order');
+                $order->addStatusHistoryComment(__('Adyen Refund Successfully completed'), $order->getStatus());
             } else {
                 $this->_adyenLogger->addAdyenNotificationCronjob('Could not create a credit memo for order');
             }
@@ -1488,17 +1483,6 @@ class Cron
                 'Did not create a credit memo for this order because refund is done through Magento'
             );
         }
-    }
-
-    /**
-     * @param $order
-     */
-    protected function _setRefundAuthorized()
-    {
-        $this->_adyenLogger->addAdyenNotificationCronjob(
-            'Status update to default status or refund_authorized status if this is set'
-        );
-        $this->_order->addStatusHistoryComment(__('Adyen Refund Successfully completed'));
     }
 
     /**
