@@ -2239,7 +2239,7 @@ class Cron
     {
         $comment = __('The order failed to update: %1', $errorMessage);
         if ($this->_order) {
-            $this->_order->addStatusHistoryComment($comment);
+            $this->_order->addStatusHistoryComment($comment, $this->_order->getStatus());
             $this->_order->save();
         }
     }
