@@ -1353,7 +1353,7 @@ class Cron
                     }
 
                     $this->_adyenLogger->addAdyenNotificationCronjob($message);
-                    $comment = $this->_order->addStatusHistoryComment($message);
+                    $comment = $this->_order->addStatusHistoryComment($message, $this->_order->getStatus());
                     $this->_order->addRelatedObject($comment);
                 }
                 //store recurring contract for alternative payments methods
