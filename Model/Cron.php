@@ -1604,7 +1604,7 @@ class Cron
 
         //capture mode
         if (!$this->_isAutoCapture()) {
-            $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'));
+            $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'), $this->_order->getStatus());
             $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode is set to Manual');
 
             // show message if order is in manual review
