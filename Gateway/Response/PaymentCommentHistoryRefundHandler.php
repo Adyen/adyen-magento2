@@ -68,7 +68,7 @@ class PaymentCommentHistoryRefundHandler implements HandlerInterface
                 $payment->getOrder()->setAdyenResulturlEventCode($responseCode);
             }
 
-            $payment->getOrder()->addStatusHistoryComment($comment, $payment->getOrder()->getStatus);
+            $payment->getOrder()->addStatusHistoryComment($comment, $payment->getOrder()->getStatus());
         }
 
         return $this;
