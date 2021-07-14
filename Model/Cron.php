@@ -880,7 +880,7 @@ class Cron
             return;
         }
 
-        $this->_order->addStatusHistoryComment($comment);
+        $this->_order->addStatusHistoryComment($comment, $this->_order->getStatus());
         $this->_adyenLogger->addAdyenNotificationCronjob('Created comment history for this notification');
     }
 
