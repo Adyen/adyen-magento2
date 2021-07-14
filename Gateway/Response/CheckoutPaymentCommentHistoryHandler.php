@@ -34,10 +34,9 @@ class CheckoutPaymentCommentHistoryHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $response)
     {
-        $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
+        $readPayment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
-        /** @var OrderPaymentInterface $payment */
-        $payment = $payment->getPayment();
+        $payment = $readPayment->getPayment();
 
         $comment = __("Adyen Result response:");
 
@@ -67,7 +66,7 @@ class CheckoutPaymentCommentHistoryHandler implements HandlerInterface
             $comment .= '<br /> ' . __('pspReference:') . ' ' . $pspReference;
         }
 
-        $payment->getOrder()->addStatusHistoryComment($comment);
+        $payment->getOrder()->addStatusHistoryComment($comment, $payment->getOrder()->getStatus());
 
         return $this;
     }
