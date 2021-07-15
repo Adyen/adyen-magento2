@@ -23,22 +23,35 @@
 
 namespace Adyen\Payment\Model;
 
-
 use Adyen\Payment\Api\AdyenStateDataInterface;
+use Adyen\Service\Validator\CheckoutStateDataValidator;
 use Magento\Framework\Exception\LocalizedException;
-
 
 class AdyenStateData implements AdyenStateDataInterface
 {
-    public function set($payload)
+
+    /**
+     * @var CheckoutStateDataValidator
+     */
+    private $checkoutStateDataValidator;
+
+    public function __construct(
+        CheckoutStateDataValidator $checkoutStateDataValidator
+    ) {
+        $this->checkoutStateDataValidator = $checkoutStateDataValidator;
+    }
+
+    public function set($stateData)
     {
         // Decode payload from frontend
-        $payload = json_decode($payload, true);
+        $stateData = json_decode($stateData, true);
 
         // Validate JSON that has just been parsed if it was in a valid format
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new LocalizedException(__('State data call failed because the request was not a valid JSON'));
         }
+
+        $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
 
         return json_encode([]);
     }
