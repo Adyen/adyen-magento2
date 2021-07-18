@@ -45,10 +45,27 @@
     </route>
 
     <route url="/V1/adyen/initiate" method="POST">
-        <service class="Adyen\Payment\Api\AdyenInitiateTerminalApiInterface" method="initiate"/>
+        <service class="Adyen\Payment\Api\AdyenInitiateTerminalApiInterface" method="shopFrontInitiate"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
+    </route>
+
+    <route url="/V1/guest-carts/:cartId/adyen/initiate" method="POST">
+        <service class="Adyen\Payment\Api\AdyenInitiateTerminalApiInterface" method="apiGuestCartInitiate"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
+    <route url="/V1/carts/mine/adyen/initiate" method="POST">
+        <service class="Adyen\Payment\Api\AdyenInitiateTerminalApiInterface" method="apiCartInitiate"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
+        </data>
     </route>
 
     <route url="/V1/adyen/paymentDetails" method="POST">

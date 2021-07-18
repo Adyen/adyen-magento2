@@ -27,10 +27,28 @@ namespace Adyen\Payment\Api;
 interface AdyenInitiateTerminalApiInterface
 {
     /**
-     * Trigger sync call on terminal
+     * Trigger sync call on terminal for the shop front.
      *
      * @param string $payload
      * @return mixed
      */
-    public function initiate($payload);
+    public function shopFrontInitiate($payload);
+
+    /**
+     * Trigger sync call on terminal for the cart api.
+     *
+     * @param int    $cartId
+     * @param string $payload
+     * @return mixed
+     */
+    public function apiCartInitiate($cartId, $payload);
+
+    /**
+     * Trigger sync call on terminal for the guest cart api.
+     *
+     * @param string $cartId
+     * @param string $payload
+     * @return mixed
+     */
+    public function apiGuestCartInitiate($cartId, $payload);
 }

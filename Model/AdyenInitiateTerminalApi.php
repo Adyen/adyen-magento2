@@ -62,6 +62,11 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     protected $productMetadata;
 
     /**
+     * @var \Magento\Quote\Model\QuoteIdMaskFactory
+     */
+    protected $_quoteIdMaskFactory;
+
+    /**
      * @var ChargedCurrency
      */
     private $chargedCurrency;
@@ -69,14 +74,17 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     /**
      * AdyenInitiateTerminalApi constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Magento\Checkout\Model\Session $checkoutSession
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Adyen\Payment\Helper\Data                      $adyenHelper
+     * @param \Adyen\Payment\Logger\AdyenLogger               $adyenLogger
+     * @param \Magento\Checkout\Model\Session                 $checkoutSession
+     * @param \Magento\Store\Model\StoreManagerInterface      $storeManager
      * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
-     * @param array $data
-     * @param ChargedCurrency $chargedCurrency
+     * @param \Magento\Quote\Model\QuoteIdMaskFactory         $quoteIdMaskFactory
+     * @param ChargedCurrency                                 $chargedCurrency
+     * @param array                                           $data
+     *
      * @throws \Adyen\AdyenException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
@@ -84,6 +92,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata,
+        \Magento\Quote\Model\QuoteIdMaskFactory $quoteIdMaskFactory,
         ChargedCurrency $chargedCurrency,
         array $data = []
     ) {
@@ -91,6 +100,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $this->adyenLogger = $adyenLogger;
         $this->checkoutSession = $checkoutSession;
         $this->productMetadata = $productMetadata;
+        $this->_quoteIdMaskFactory = $quoteIdMaskFactory;
         $this->chargedCurrency = $chargedCurrency;
         $this->storeId = $storeManager->getStore()->getId();
 
@@ -108,12 +118,70 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
     }
 
     /**
-     * Trigger sync call on terminal
+     * Trigger sync call on terminal for the shop front.
+     *
+     * @param string $payload
      *
      * @return mixed
-     * @throws \Exception
+     * @throws \Adyen\AdyenException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function initiate($payload)
+    public function shopFrontInitiate($payload)
+    {
+        return $this->initiate($payload);
+    }
+
+    /**
+     * Trigger sync call on terminal for the cart api.
+     *
+     * @param int    $cartId
+     * @param string $payload
+     *
+     * @return mixed
+     * @throws \Adyen\AdyenException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function apiCartInitiate($cartId, $payload)
+    {
+        $this->checkoutSession->setQuoteId($cartId);
+
+        return $this->initiate($payload);
+    }
+
+    /**
+     * Trigger sync call on terminal for the guest cart api.
+     *
+     * @param string $cartId
+     * @param string $payload
+     *
+     * @return mixed
+     * @throws \Adyen\AdyenException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function apiGuestCartInitiate($cartId, $payload)
+    {
+        $quoteIdMask = $this->_quoteIdMaskFactory->create()->load($cartId, 'masked_id');
+        $quoteId = $quoteIdMask->getQuoteId();
+
+        $this->checkoutSession->setQuoteId($quoteId);
+
+        return $this->initiate($payload);
+    }
+
+    /**
+     * Trigger sync call on terminal
+     *
+     * @param string $payload
+     *
+     * @return mixed
+     * @throws \Adyen\AdyenException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    protected function initiate($payload)
     {
         // Decode payload from frontend
         $payload = json_decode($payload, true);
