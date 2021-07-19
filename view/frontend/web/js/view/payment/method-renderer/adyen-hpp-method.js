@@ -151,7 +151,7 @@ define(
                     'paypal',
                     'applepay',
                     'paywithgoogle',
-                    'amazonpay'
+                    'amazonpay',
                 ];
 
                 var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
@@ -193,8 +193,8 @@ define(
                             paymentMethod: paymentMethod,
                             method: self.item.method,
                             item: {
-                                "title": paymentMethod.name,
-                                "method": paymentMethod.methodIdentifier
+                                'title': paymentMethod.name,
+                                'method': paymentMethod.methodIdentifier,
                             },
                             /**
                              * Observable to enable and disable place order buttons for payment methods
@@ -287,7 +287,7 @@ define(
                                     country = address.countryId;
                                     postalCode = address.postcode;
 
-                                    street = address.street.slice(0)
+                                    street = address.street.slice(0);
 
                                     // address contains line items as an array, otherwise if string just pass along as is
                                     if (Array.isArray(street)) {
@@ -318,8 +318,8 @@ define(
                                         houseNumber: houseNumber,
                                         firstName: firstName,
                                         lastName: lastName,
-                                        telephone: telephone
-                                    }
+                                        telephone: telephone,
+                                    };
                                 }
 
                                 function getAdyenGender(gender) {
@@ -384,7 +384,7 @@ define(
                                         houseNumberOrName: formattedShippingAddress.houseNumber,
                                         postalCode: formattedShippingAddress.postalCode,
                                         street: formattedShippingAddress.street,
-                                    }
+                                    };
                                 }
 
                                 // Use extra configuration from the paymentMethodsExtraInfo object if available
@@ -406,16 +406,20 @@ define(
                                     configuration.checkoutMode = 'ProcessOrder';
                                     configuration.returnUrl = location.href;
 
-                                    if (formattedShippingAddress && formattedShippingAddress.telephone)
-                                    configuration.addressDetails = {
-                                        name: formattedShippingAddress.firstName + ' ' + formattedShippingAddress.lastName,
-                                        addressLine1: formattedShippingAddress.street,
-                                        addressLine2: formattedShippingAddress.houseNumber,
-                                        city: formattedShippingAddress.city,
-                                        postalCode: formattedShippingAddress.postalCode,
-                                        countryCode: formattedShippingAddress.country,
-                                        phoneNumber: formattedShippingAddress.telephone
-                                    };
+                                    if (formattedShippingAddress &&
+                                        formattedShippingAddress.telephone) {
+                                        configuration.addressDetails = {
+                                            name: formattedShippingAddress.firstName +
+                                                ' ' +
+                                                formattedShippingAddress.lastName,
+                                            addressLine1: formattedShippingAddress.street,
+                                            addressLine2: formattedShippingAddress.houseNumber,
+                                            city: formattedShippingAddress.city,
+                                            postalCode: formattedShippingAddress.postalCode,
+                                            countryCode: formattedShippingAddress.country,
+                                            phoneNumber: formattedShippingAddress.telephone,
+                                        };
+                                    }
                                 }
                                 try {
                                     var url = new URL(location.href);
@@ -428,11 +432,11 @@ define(
                                             showOrderButton: false,
                                             amount: {
                                                 currency: configuration.amount.currency,
-                                                value: configuration.amount.value
+                                                value: configuration.amount.value,
                                             },
                                             returnUrl: location.href,
-                                            showChangePaymentDetailsButton: false
-                                        }
+                                            showChangePaymentDetailsButton: false,
+                                        };
                                         const component = self.checkoutComponent.create(
                                             paymentMethod.methodIdentifier, configuration);
                                         const containerId = '#adyen-alternative-payment-container-' +
@@ -484,7 +488,7 @@ define(
                                             stateData = {
                                                 paymentMethod: {
                                                     type: paymentMethod.methodGroup,
-                                                    brand: paymentMethod.methodIdentifier
+                                                    brand: paymentMethod.methodIdentifier,
                                                 },
                                             };
                                         }
@@ -512,7 +516,7 @@ define(
                             },
                             getCode: function() {
                                 return self.getCode();
-                            }
+                            },
                         };
 
                         accumulator.push(result);
