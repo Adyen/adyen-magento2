@@ -402,18 +402,19 @@ define(
 
                                 // Extra amazon pay configuration first call to amazon page
                                 if (paymentMethod.methodIdentifier.includes('amazonpay')) {
-                                    let billingAddress = configuration.data.billingAddress;
-                                    let personalDetails = configuration.data.personalDetails;
                                     configuration.productType = 'PayAndShip';
                                     configuration.checkoutMode = 'ProcessOrder';
                                     configuration.returnUrl = location.href;
+
+                                    if (formattedShippingAddress && formattedShippingAddress.telephone)
                                     configuration.addressDetails = {
-                                        name: personalDetails.firstName + ' ' + personalDetails.lastName,
-                                        addressLine1: billingAddress.street,
-                                        city: billingAddress.city,
-                                        postalCode: billingAddress.postalCode,
-                                        countryCode: billingAddress.country,
-                                        phoneNumber: personalDetails.telephoneNumber
+                                        name: formattedShippingAddress.firstName + ' ' + formattedShippingAddress.lastName,
+                                        addressLine1: formattedShippingAddress.street,
+                                        addressLine2: formattedShippingAddress.houseNumber,
+                                        city: formattedShippingAddress.city,
+                                        postalCode: formattedShippingAddress.postalCode,
+                                        countryCode: formattedShippingAddress.country,
+                                        phoneNumber: formattedShippingAddress.telephone
                                     };
                                 }
                                 try {
