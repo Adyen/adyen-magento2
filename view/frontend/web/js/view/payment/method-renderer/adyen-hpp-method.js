@@ -151,7 +151,7 @@ define(
                     'paypal',
                     'applepay',
                     'paywithgoogle',
-                    'amazonpay',
+                    'amazonpay'
                 ];
 
                 var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
@@ -194,7 +194,7 @@ define(
                             method: self.item.method,
                             item: {
                                 'title': paymentMethod.name,
-                                'method': paymentMethod.methodIdentifier,
+                                'method': paymentMethod.methodIdentifier
                             },
                             /**
                              * Observable to enable and disable place order buttons for payment methods
@@ -318,7 +318,7 @@ define(
                                         houseNumber: houseNumber,
                                         firstName: firstName,
                                         lastName: lastName,
-                                        telephone: telephone,
+                                        telephone: telephone
                                     };
                                 }
 
@@ -383,7 +383,7 @@ define(
                                         country: formattedShippingAddress.country,
                                         houseNumberOrName: formattedShippingAddress.houseNumber,
                                         postalCode: formattedShippingAddress.postalCode,
-                                        street: formattedShippingAddress.street,
+                                        street: formattedShippingAddress.street
                                     };
                                 }
 
@@ -417,7 +417,7 @@ define(
                                             city: formattedShippingAddress.city,
                                             postalCode: formattedShippingAddress.postalCode,
                                             countryCode: formattedShippingAddress.country,
-                                            phoneNumber: formattedShippingAddress.telephone,
+                                            phoneNumber: formattedShippingAddress.telephone
                                         };
                                     }
                                 }
@@ -435,7 +435,7 @@ define(
                                                 value: configuration.amount.value,
                                             },
                                             returnUrl: location.href,
-                                            showChangePaymentDetailsButton: false,
+                                            showChangePaymentDetailsButton: false
                                         };
                                         const component = self.checkoutComponent.create(
                                             paymentMethod.methodIdentifier, configuration);
@@ -488,8 +488,8 @@ define(
                                             stateData = {
                                                 paymentMethod: {
                                                     type: paymentMethod.methodGroup,
-                                                    brand: paymentMethod.methodIdentifier,
-                                                },
+                                                    brand: paymentMethod.methodIdentifier
+                                                }
                                             };
                                         }
 
@@ -516,7 +516,7 @@ define(
                             },
                             getCode: function() {
                                 return self.getCode();
-                            },
+                            }
                         };
 
                         accumulator.push(result);
