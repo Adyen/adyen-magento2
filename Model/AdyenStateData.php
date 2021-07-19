@@ -24,7 +24,9 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\AdyenStateDataInterface;
+use Adyen\Payment\Api\Data\StateDataInterface;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 
 class AdyenStateData implements AdyenStateDataInterface
@@ -35,13 +37,31 @@ class AdyenStateData implements AdyenStateDataInterface
      */
     private $checkoutStateDataValidator;
 
+    /**
+     * @var StateDataFactory
+     */
+    private $stateDataFactory;
+
+    /**
+     * @var ResourceModel\StateData
+     */
+    private $stateDataResourceModel;
+
     public function __construct(
-        CheckoutStateDataValidator $checkoutStateDataValidator
+        CheckoutStateDataValidator $checkoutStateDataValidator,
+        StateDataFactory $stateDataFactory,
+        \Adyen\Payment\Model\ResourceModel\StateData $stateDataResourceModel
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
+        $this->stateDataFactory = $stateDataFactory;
+        $this->stateDataResourceModel = $stateDataResourceModel;
     }
 
-    public function set($stateData)
+    /**
+     * @throws AlreadyExistsException
+     * @throws LocalizedException
+     */
+    public function save($stateData, $quoteId)
     {
         // Decode payload from frontend
         $stateData = json_decode($stateData, true);
@@ -51,8 +71,11 @@ class AdyenStateData implements AdyenStateDataInterface
             throw new LocalizedException(__('State data call failed because the request was not a valid JSON'));
         }
 
-        $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
+        $stateData = json_encode($this->checkoutStateDataValidator->getValidatedAdditionalData($stateData));
 
-        return json_encode([]);
+        /** @var StateDataInterface $stateDataObj */
+        $stateDataObj = $this->stateDataFactory->create();
+        $stateDataObj->setQuoteId((int)$quoteId)->setStateData((string)$stateData);
+        $this->stateDataResourceModel->save($stateDataObj);
     }
 }

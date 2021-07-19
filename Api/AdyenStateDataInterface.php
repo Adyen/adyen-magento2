@@ -27,8 +27,9 @@ namespace Adyen\Payment\Api;
 interface AdyenStateDataInterface
 {
     /**
-     * @param string $payload
+     * @param string $stateData
+     * @param int $quoteId
      * @return string
      */
-    public function set($payload);
+    public function save($stateData, $quoteId);
 }
