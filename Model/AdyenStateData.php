@@ -13,10 +13,11 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen N.V. (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2021 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
