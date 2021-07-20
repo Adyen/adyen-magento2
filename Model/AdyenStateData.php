@@ -73,7 +73,7 @@ class AdyenStateData implements AdyenStateDataInterface
 
         $stateData = json_encode($this->checkoutStateDataValidator->getValidatedAdditionalData($stateData));
 
-        /** @var StateDataInterface $stateDataObj */
+        /** @var StateData $stateDataObj */
         $stateDataObj = $this->stateDataFactory->create();
         $stateDataObj->setQuoteId((int)$quoteId)->setStateData((string)$stateData);
         $this->stateDataResourceModel->save($stateDataObj);

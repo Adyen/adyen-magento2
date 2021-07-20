@@ -39,16 +39,27 @@ class Collection extends AbstractCollection
     }
 
     /**
-     * Search state data with quote ID or return and empty array
+     * Fetch the most recent state data with quote ID or return and empty array
      *
      * @param $quoteId
-     * @return []
+     * @return array
      */
     public function getStateDataArrayWithQuoteId($quoteId)
     {
-        $this->addFieldToFilter('quote_id', $quoteId);
-        $this->getSelect()->order('entity_id DESC')->limit(1);
-        $stateData = $this->getFirstItem()->getData(StateDataInterface::STATE_DATA);
+        $stateData = $this->getStateDataRowsWithQuoteId($quoteId)
+            ->getFirstItem()
+            ->getData(StateDataInterface::STATE_DATA);
         return !empty($stateData) ? json_decode($stateData, true) : [];
+    }
+
+    /**
+     * @param $quoteId
+     * @return Collection
+     */
+    public function getStateDataRowsWithQuoteId($quoteId)
+    {
+        $this->addFieldToFilter('quote_id', $quoteId);
+        $this->getSelect()->order('entity_id DESC');
+        return $this;
     }
 }
