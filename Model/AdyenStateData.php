@@ -51,7 +51,7 @@ class AdyenStateData implements AdyenStateDataInterface
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         StateDataFactory $stateDataFactory,
-        \Adyen\Payment\Model\ResourceModel\StateData $stateDataResourceModel
+        ResourceModel\StateData $stateDataResourceModel
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataFactory = $stateDataFactory;
