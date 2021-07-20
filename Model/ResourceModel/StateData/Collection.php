@@ -39,7 +39,7 @@ class Collection extends AbstractCollection
     }
 
     /**
-     * Fetch the most recent state data with quote ID or return and empty array
+     * Fetch the most recent state data with quote ID or return an empty array
      *
      * @param $quoteId
      * @return array
