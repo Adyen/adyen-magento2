@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Model\ResourceModel\StateData;
 
+use Adyen\Payment\Api\Data\StateDataInterface;
 use Adyen\Payment\Model\ResourceModel\StateData as ResourceModel;
 use Adyen\Payment\Model\StateData;
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
@@ -38,15 +39,16 @@ class Collection extends AbstractCollection
     }
 
     /**
-     * Search state data with quote ID
+     * Search state data with quote ID or return and empty array
      *
      * @param $quoteId
-     * @return $this
+     * @return []
      */
-    public function getWithQuoteId($quoteId)
+    public function getStateDataArrayWithQuoteId($quoteId)
     {
         $this->addFieldToFilter('quote_id', $quoteId);
         $this->getSelect()->order('entity_id DESC')->limit(1);
-        return $this;
+        $stateData = $this->getFirstItem()->getData(StateDataInterface::STATE_DATA);
+        return !empty($stateData) ? json_decode($stateData, true) : [];
     }
 }
