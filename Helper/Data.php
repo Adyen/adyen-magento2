@@ -1606,7 +1606,7 @@ class Data extends AbstractHelper
                 $this->adyenLogger->error("exception: " . $message);
             }
 
-            $comment = $order->addStatusHistoryComment($message);
+            $comment = $order->addStatusHistoryComment($message, $order->getStatus());
 
             $order->addRelatedObject($comment);
             $order->save();
