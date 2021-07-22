@@ -1606,7 +1606,7 @@ class Data extends AbstractHelper
                 $this->adyenLogger->error("exception: " . $message);
             }
 
-            $comment = $order->addStatusHistoryComment($message);
+            $comment = $order->addStatusHistoryComment($message, $order->getStatus());
 
             $order->addRelatedObject($comment);
             $order->save();
@@ -1684,17 +1684,6 @@ class Data extends AbstractHelper
     public function isHppVaultEnabled($storeId = null)
     {
         return $this->getAdyenHppVaultConfigDataFlag('active', $storeId);
-    }
-
-    /**
-     * Check if 3DS2.0 is enabled for credit cards
-     *
-     * @param null|int|string $storeId
-     * @return mixed
-     */
-    public function isCreditCardThreeDS2Enabled($storeId = null)
-    {
-        return $this->getAdyenCcConfigDataFlag('threeds2_enabled', $storeId);
     }
 
     /**

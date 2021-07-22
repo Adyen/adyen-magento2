@@ -34,10 +34,9 @@ class PaymentCommentHistoryHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $response)
     {
-        $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
+        $readPayment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
-        /** @var OrderPaymentInterface $payment */
-        $payment = $payment->getPayment();
+        $payment = $readPayment->getPayment();
 
         if (isset($response['resultCode'])) {
             $responseCode = $response['resultCode'];
@@ -68,7 +67,7 @@ class PaymentCommentHistoryHandler implements HandlerInterface
             $payment->getOrder()->setAdyenResulturlEventCode($responseCode);
         }
 
-        $payment->getOrder()->addStatusHistoryComment($comment);
+        $payment->getOrder()->addStatusHistoryComment($comment, $payment->getOrder()->getStatus());
 
         return $this;
     }
