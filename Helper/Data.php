@@ -1687,17 +1687,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Check if 3DS2.0 is enabled for credit cards
-     *
-     * @param null|int|string $storeId
-     * @return mixed
-     */
-    public function isCreditCardThreeDS2Enabled($storeId = null)
-    {
-        return $this->getAdyenCcConfigDataFlag('threeds2_enabled', $storeId);
-    }
-
-    /**
      * @param $client
      * @return \Adyen\Service\Checkout
      */
