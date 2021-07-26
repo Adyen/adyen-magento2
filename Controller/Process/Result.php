@@ -348,7 +348,7 @@ class Result extends \Magento\Framework\App\Action\Action
         }
 
         $history = $this->_orderHistoryFactory->create()
-            //->setStatus($status)
+            ->setStatus($order->getStatus())
             ->setComment($comment)
             ->setEntityName('order')
             ->setOrder($order);
