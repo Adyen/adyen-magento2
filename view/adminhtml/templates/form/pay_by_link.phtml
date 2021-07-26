@@ -1,0 +1,66 @@
+<?php
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+// @codingStandardsIgnoreFile
+
+/**
+ * @var $block \Adyen\Payment\Block\Form\PayByLink
+ * @var $escaper \Magento\Framework\Escaper
+ */
+
+?>
+
+<script>
+    require(["jquery", "mage/calendar"],
+        function ($) {
+            $("#adyen_pbl_expires_at").calendar({
+                changeYear: true,
+                changeMonth: true,
+                buttonText: 'Select Expiry Date',
+                dateFormat: 'dd-mm-yy',
+                minDate: new Date(<?=$escaper->escapeHtml($block->getMinExpiryTimestamp())?>),
+                maxDate: new Date(<?=$escaper->escapeHtml($block->getMaxExpiryTimestamp())?>)
+            }).val('<?= $block->getDefaultExpiryDate() ?>');
+
+        });
+</script>
+
+<fieldset
+        class="admin__fieldset payment-method"
+        id="payment_form_<?= $escaper->escapeHtml($block->getMethodCode()) ?>"
+        style="display: none">
+    <div class="admin__field _required">
+        <label for="adyen_pbl_expires_at" class="admin__field-label">
+               <span>
+               <?= $escaper->escapeHtml(__('Payment link expires at')) ?>
+               </span>
+        </label>
+        <div class="admin__field-control">
+            <input type="text" id="adyen_pbl_expires_at" name="payment[adyen_pbl_expires_at]"
+                   title="<?= $escaper->escapeHtml(__("Date when the payment link will expire")) ?>"
+                   class="required-entry admin__control-text"
+                   value="<?= /* @noEscape */
+                   $block->getInfoData('adyen_pbl_expires_at') ?>"/>
+        </div>
+    </div>
+</fieldset>
