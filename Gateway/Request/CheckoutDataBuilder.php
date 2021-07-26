@@ -184,9 +184,7 @@ class CheckoutDataBuilder implements BuilderInterface
             unset($requestBody['installments']);
         }
 
-        if ($this->adyenHelper->isCreditCardThreeDS2Enabled($storeId)) {
-            $requestBody['additionalData']['allow3DS2'] = true;
-        }
+        $requestBody['additionalData']['allow3DS2'] = true;
 
         if (isset($requestBodyPaymentMethod)) {
             $requestBody['paymentMethod'] = $requestBodyPaymentMethod;

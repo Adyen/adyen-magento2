@@ -77,7 +77,12 @@ define(
                     fullScreenLoader.startLoader();
                     // Retrieve adyen payment methods
                     adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
+                        try {
                         paymentMethods = JSON.parse(paymentMethods);
+                        } catch(error) {
+                            console.log(error);
+                            paymentMethods = null;
+                        }
                         adyenPaymentService.setPaymentMethods(paymentMethods);
                         fullScreenLoader.stopLoader();
                     }).fail(function() {

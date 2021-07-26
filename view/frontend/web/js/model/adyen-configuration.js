@@ -21,30 +21,33 @@
  */
 define(
     [],
-    function () {
+    function() {
         'use strict';
         return {
-            getClientKey: function () {
+            getClientKey: function() {
                 return window.checkoutConfig.payment.adyen.clientKey;
             },
-            showLogo: function () {
+            showLogo: function() {
                 return window.checkoutConfig.payment.adyen.showLogo;
             },
-            getLocale: function () {
+            getLocale: function() {
                 return window.checkoutConfig.payment.adyen.locale;
             },
-            getCheckoutEnvironment: function () {
+            getCheckoutEnvironment: function() {
                 return window.checkoutConfig.payment.adyen.checkoutEnvironment;
             },
-            getChargedCurrency: function () {
+            getChargedCurrency: function() {
                 return window.checkoutConfig.payment.adyen.chargedCurrency;
             },
-            getHasHolderName: function () {
+            getHasHolderName: function() {
                 return window.checkoutConfig.payment.adyen.hasHolderName;
             },
-            getHolderNameRequired: function () {
+            getHolderNameRequired: function() {
                 return window.checkoutConfig.payment.adyen.holderNameRequired;
             },
+            getHouseNumberStreetLine: function() {
+                return window.checkoutConfig.payment.adyen.houseNumberStreetLine;
+            },
         };
-    }
+    },
 );

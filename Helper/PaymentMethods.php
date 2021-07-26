@@ -172,14 +172,14 @@ class PaymentMethods extends AbstractHelper
         $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData('merchant_account', $store->getId());
 
         if (!$merchantAccount) {
-            return [];
+            return json_encode([]);
         }
 
         $paymentMethodRequest = $this->getPaymentMethodsRequest($merchantAccount, $store, $country, $quote);
         $responseData = $this->getPaymentMethodsResponse($paymentMethodRequest, $store);
 
         if (empty($responseData['paymentMethods'])) {
-            return [];
+            return json_encode([]);
         }
 
         $paymentMethods = $responseData['paymentMethods'];
