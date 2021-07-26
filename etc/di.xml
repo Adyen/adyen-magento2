@@ -951,6 +951,15 @@
         <plugin name="GuestAdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\GuestPaymentInformationResetOrderId"
                 sortOrder="10"/>
     </type>
+
+    <virtualType name="AdyenCancelOrders" type="Adyen\Payment\Cron\CancelOrders">
+        <arguments>
+            <argument name="providers" xsi:type="array">
+                <item name="pblexpiredpayment" xsi:type="object">Adyen\Payment\Cron\Providers\PayByLinkExpiredPaymentOrdersProvider</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
     <!--Notifications overview-->
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
