@@ -23,9 +23,13 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
 use Adyen\Service\Validator\DataArrayValidator;
+use Magento\Framework\App\State;
 use Magento\Framework\Event\Observer;
+use Magento\Framework\Model\Context;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 
@@ -53,28 +57,38 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
     private $checkoutStateDataValidator;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
 
     /**
-     * @var \Magento\Framework\App\State
+     * @var State
      */
     private $appState;
 
     /**
+     * @var Collection
+     */
+    private $stateDataCollection;
+
+    /**
      * AdyenCcDataAssignObserver constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param CheckoutStateDataValidator $checkoutStateDataValidator
+     * @param Data $adyenHelper
+     * @param Context $context
+     * @param Collection $stateDataCollection
      */
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\Model\Context $context
+        Data $adyenHelper,
+        Context $context,
+        Collection $stateDataCollection
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->adyenHelper = $adyenHelper;
         $this->appState = $context->getAppState();
+        $this->stateDataCollection = $stateDataCollection;
     }
 
     /**
@@ -85,6 +99,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
     {
         // Get request fields
         $data = $this->readDataArgument($observer);
+        $paymentInfo = $this->readPaymentModelArgument($observer);
 
         // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
@@ -98,10 +113,11 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
             self::$approvedAdditionalDataKeys
         );
 
-        // json decode state data
-        $stateData = [];
+        // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {
             $stateData = json_decode($additionalData[self::STATE_DATA], true);
+        } else {
+            $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }
 
         // Get validated state data array
@@ -115,7 +131,6 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
         $additionalData[self::STATE_DATA] = $stateData;
 
         // Set additional data in the payment
-        $paymentInfo = $this->readPaymentModelArgument($observer);
         foreach ($additionalData as $key => $data) {
             $paymentInfo->setAdditionalInformation($key, $data);
         }
@@ -123,7 +138,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
         // set ccType
         if (!empty($stateData[self::PAYMENT_METHOD][self::BRAND])) {
             $ccType = $this->adyenHelper->getMagentoCreditCartType($stateData[self::PAYMENT_METHOD][self::BRAND]);
-            $paymentInfo->setCcType($ccType)->setAdditionalInformation(self::CC_TYPE,$ccType);
+            $paymentInfo->setCcType($ccType)->setAdditionalInformation(self::CC_TYPE, $ccType);
         }
 
         // set customerInteraction

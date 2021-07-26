@@ -27,6 +27,7 @@ use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
+use Zend_Db_Exception;
 
 /**
  * Upgrade the Catalog module DB scheme
@@ -35,6 +36,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
 {
     const ADYEN_ORDER_PAYMENT = 'adyen_order_payment';
     const ADYEN_INVOICE = 'adyen_invoice';
+    const ADYEN_STATE_DATA = 'adyen_state_data';
 
     /**
      * {@inheritdoc}
@@ -73,6 +75,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         if (version_compare($context->getVersion(), '7.0.0', '<')) {
             $this->updateSchemaVersion700($setup);
+        }
+
+        if (version_compare($context->getVersion(), '7.1.1', '<')) {
+            $this->updateSchemaVersion711($setup);
         }
 
         $setup->endSetup();
@@ -434,5 +440,44 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'adyen_charged_currency',
             $adyenChargedCurrencyColumn
         );
+    }
+
+    /**
+     * Upgrade to 7.1.1
+     *
+     * New adyen_state_data table to persist state data to be used for payment requests
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     * @throws Zend_Db_Exception
+     */
+    public function updateSchemaVersion711(SchemaSetupInterface $setup)
+    {
+        $table = $setup->getConnection()
+            ->newTable($setup->getTable(self::ADYEN_STATE_DATA))
+            ->addColumn(
+                'entity_id',
+                \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                null,
+                ['identity' => true, 'unsigned' => true, 'nullable' => false, 'primary' => true],
+                'Adyen State Data Entity ID'
+            )
+            ->addColumn(
+                'quote_id',
+                \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                null,
+                ['unsigned' => true, 'nullable' => false],
+                'Magento Quote ID'
+            )
+            ->addColumn(
+                'state_data',
+                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                null,
+                ['unsigned' => true, 'nullable' => true],
+                'Adyen Payment State Data'
+            )
+            ->setComment('Adyen Payment State Data');
+
+        $setup->getConnection()->createTable($table);
     }
 }
