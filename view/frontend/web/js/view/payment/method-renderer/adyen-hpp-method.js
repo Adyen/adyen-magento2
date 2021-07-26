@@ -432,7 +432,7 @@ define(
                                             showOrderButton: false,
                                             amount: {
                                                 currency: configuration.amount.currency,
-                                                value: configuration.amount.value,
+                                                value: configuration.amount.value
                                             },
                                             returnUrl: location.href,
                                             showChangePaymentDetailsButton: false
