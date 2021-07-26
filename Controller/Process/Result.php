@@ -23,9 +23,11 @@
 
 namespace Adyen\Payment\Controller\Process;
 
+use Adyen\Payment\Helper\StateData;
 use \Adyen\Payment\Model\Notification;
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Framework\App\Request\Http as Http;
+use Magento\Sales\Model\Order;
 
 class Result extends \Magento\Framework\App\Action\Action
 {
@@ -102,6 +104,11 @@ class Result extends \Magento\Framework\App\Action\Action
     private $orderResourceModel;
 
     /**
+     * @var StateData
+     */
+    private $stateDataHelper;
+
+    /**
      * Result constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -123,7 +130,8 @@ class Result extends \Magento\Framework\App\Action\Action
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Adyen\Payment\Helper\Quote $quoteHelper,
         \Adyen\Payment\Helper\Vault $vaultHelper,
-        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
+        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
+        StateData $stateDataHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
@@ -134,6 +142,7 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->quoteHelper = $quoteHelper;
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
+        $this->stateDataHelper = $stateDataHelper;
         parent::__construct($context);
     }
 
@@ -255,7 +264,7 @@ class Result extends \Magento\Framework\App\Action\Action
     }
 
     /**
-     * @param $order
+     * @param Order $order
      * @param $response
      * @return bool
      */
@@ -345,6 +354,14 @@ class Result extends \Magento\Framework\App\Action\Action
             ->setOrder($order);
 
         $history->save();
+
+        // Cleanup state data
+        try {
+            $this->stateDataHelper->CleanQuoteStateData($order->getQuoteId(), $authResult);
+        } catch (\Exception $exception) {
+            $this->_adyenLogger->addError(__('Error cleaning the payment state data: %s', $exception->getMessage()));
+        }
+
 
         return $result;
     }
