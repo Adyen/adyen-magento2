@@ -438,14 +438,21 @@ define(
                                     const containerId = '#adyen-alternative-payment-container-' +
                                         paymentMethod.methodIdentifier;
 
-                                    if ('isAvailable' in component) {
-                                        component.isAvailable().then(() => {
-                                            component.mount(containerId);
-                                        }).catch(e => {
-                                            result.isAvailable(false);
-                                        });
+                                    if (
+                                        paymentMethod.methodIdentifier === 'amazonpay'
+                                        && url.searchParams.has(amazonSessionKey)
+                                    ) {
+                                        component.mount(containerId).submit();
                                     } else {
-                                        component.mount(containerId);
+                                        if ('isAvailable' in component) {
+                                            component.isAvailable().then(() => {
+                                                component.mount(containerId);
+                                            }).catch(e => {
+                                                result.isAvailable(false);
+                                            });
+                                        } else {
+                                            component.mount(containerId);
+                                        }
                                     }
                                     result.component = component;
 
