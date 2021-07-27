@@ -424,36 +424,31 @@ define(
                                     ) {
                                         configuration = {
                                             amazonCheckoutSessionId: url.searchParams.get(amazonSessionKey),
-                                            showOrderButton: true,
+                                            showOrderButton: false,
                                             amount: {
                                                 currency: configuration.amount.currency,
                                                 value: configuration.amount.value
                                             },
                                             returnUrl: location.href,
                                             showChangePaymentDetailsButton: false
-                                        }
-                                        const component = self.checkoutComponent.create(
-                                            paymentMethod.methodIdentifier, configuration);
-                                        const containerId = '#adyen-alternative-payment-container-' +
-                                            paymentMethod.methodIdentifier;
-                                        component.mount(containerId).submit();
-                                    } else {
-                                        const component = self.checkoutComponent.create(
-                                            paymentMethod.methodIdentifier, configuration);
-                                        const containerId = '#adyen-alternative-payment-container-' +
-                                            paymentMethod.methodIdentifier;
+                                        };
+                                    }
+                                    const component = self.checkoutComponent.create(
+                                        paymentMethod.methodIdentifier, configuration);
+                                    const containerId = '#adyen-alternative-payment-container-' +
+                                        paymentMethod.methodIdentifier;
 
-                                        if ('isAvailable' in component) {
-                                            component.isAvailable().then(() => {
-                                                component.mount(containerId);
-                                            }).catch(e => {
-                                                result.isAvailable(false);
-                                            });
-                                        } else {
+                                    if ('isAvailable' in component) {
+                                        component.isAvailable().then(() => {
                                             component.mount(containerId);
-                                        }
+                                        }).catch(e => {
+                                            result.isAvailable(false);
+                                        });
+                                    } else {
+                                        component.mount(containerId);
                                     }
                                     result.component = component;
+
                                 } catch (err) {
                                     // The component does not exist yet
                                     console.log(err);
