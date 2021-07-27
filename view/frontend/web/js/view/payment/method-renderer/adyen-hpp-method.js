@@ -407,6 +407,7 @@ define(
                                     configuration.productType = 'PayAndShip';
                                     configuration.checkoutMode = 'ProcessOrder';
                                     configuration.returnUrl = location.href;
+                                    configuration.prePayRedirect= true;
                                     configuration.addressDetails = {
                                         name: personalDetails.firstName + ' ' + personalDetails.lastName,
                                         addressLine1: billingAddress.street,
@@ -418,6 +419,7 @@ define(
                                 }
                                 try {
                                     var url = new URL(location.href);
+                                    //Handles the redirect back to checkout page with amazonSessionKey in url
                                     if (
                                         paymentMethod.methodIdentifier === 'amazonpay'
                                         && url.searchParams.has(amazonSessionKey)
@@ -429,15 +431,15 @@ define(
                                                 currency: configuration.amount.currency,
                                                 value: configuration.amount.value
                                             },
+
                                             returnUrl: location.href,
-                                            showChangePaymentDetailsButton: false
+                                            showChangePaymentDetailsButton: false,
                                         };
                                     }
                                     const component = self.checkoutComponent.create(
                                         paymentMethod.methodIdentifier, configuration);
                                     const containerId = '#adyen-alternative-payment-container-' +
                                         paymentMethod.methodIdentifier;
-
                                     if (
                                         paymentMethod.methodIdentifier === 'amazonpay'
                                         && url.searchParams.has(amazonSessionKey)
