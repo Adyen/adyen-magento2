@@ -24,8 +24,11 @@
 namespace Adyen\Payment\Block\Form;
 
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Installments;
 use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Customer\Model\Session;
+use Magento\Framework\Exception\LocalizedException;
 
 class Cc extends \Magento\Payment\Block\Form\Cc
 {
@@ -70,6 +73,16 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     private $adyenLogger;
 
     /**
+     * @var Config
+     */
+    private $configHelper;
+
+    /**
+     * @var Session
+     */
+    private $customerSession;
+
+    /**
      * Cc constructor.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
@@ -87,6 +100,8 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         Installments $installmentsHelper,
         ChargedCurrency $chargedCurrency,
         AdyenLogger $adyenLogger,
+        Config $configHelper,
+        Session $customerSession,
         array $data = []
     ) {
         parent::__construct($context, $paymentConfig);
@@ -97,6 +112,8 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         $this->installmentsHelper = $installmentsHelper;
         $this->chargedCurrency = $chargedCurrency;
         $this->adyenLogger = $adyenLogger;
+        $this->configHelper = $configHelper;
+        $this->customerSession = $customerSession;
     }
 
     /**
@@ -203,6 +220,46 @@ class Cc extends \Magento\Payment\Block\Form\Cc
                 'There was an error fetching the installments config: ' . $e->getMessage()
             );
             return '{}';
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function getHasHolderName()
+    {
+        return (bool)$this->configHelper->getHasHolderName();
+    }
+
+    /**
+     * @return bool
+     */
+    public function getHolderNameRequired()
+    {
+        return $this->configHelper->getHolderNameRequired() && $this->configHelper->getHasHolderName();
+    }
+
+    /**
+     * @return bool
+     */
+    public function getEnableStoreDetails()
+    {
+        $enableOneclick = (bool)$this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
+        $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
+        $loggedIn = $this->customerSession->isLoggedIn();
+        return ($enableOneclick || $enableVault) && $loggedIn;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getEnableRisk()
+    {
+        try {
+            return $this->appState->getAreaCode() !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE;
+        } catch (LocalizedException $exception) {
+            // Suppress exception, assume that risk should be enabled
+            return true;
         }
     }
 }
