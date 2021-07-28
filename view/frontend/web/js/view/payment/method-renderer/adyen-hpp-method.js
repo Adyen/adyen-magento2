@@ -441,7 +441,7 @@ define(
                                         paymentMethod.methodIdentifier;
                                     if (
                                         paymentMethod.methodIdentifier === 'amazonpay'
-                                        && !url.searchParams.has(amazonSessionKey)
+                                        && url.searchParams.has(amazonSessionKey)
                                     ) {
                                         component.mount(containerId).submit();
                                     } else {
