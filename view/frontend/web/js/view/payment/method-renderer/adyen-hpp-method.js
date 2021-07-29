@@ -456,7 +456,9 @@ define(
                                     result.component = component;
                                 } catch (err) {
                                     // The component does not exist yet
-                                    console.log(err);
+                                    if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
+                                        console.log(err);
+                                    }
                                 }
                             },
                             placeOrder: function() {
