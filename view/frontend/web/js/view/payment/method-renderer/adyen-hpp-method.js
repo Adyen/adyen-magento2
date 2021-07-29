@@ -35,7 +35,8 @@ define(
         'Magento_Ui/js/model/messages',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/bundle',
-        'Adyen_Payment/js/model/adyen-configuration'
+        'Adyen_Payment/js/model/adyen-configuration',
+        'Magento_CheckoutAgreements/js/model/agreement-validator'
     ],
     function(
         ko,
@@ -52,7 +53,8 @@ define(
         Messages,
         errorProcessor,
         AdyenComponent,
-        adyenConfiguration
+        adyenConfiguration,
+        agreementValidator
     ) {
         'use strict';
 
@@ -434,6 +436,9 @@ define(
                                             returnUrl: location.href,
                                             showChangePaymentDetailsButton: false,
                                         };
+                                        agreementValidator.validate = function (){
+                                            return true
+                                        }
                                     }
                                     const component = self.checkoutComponent.create(
                                         paymentMethod.methodIdentifier, configuration);
