@@ -35,7 +35,7 @@ define(
         'Magento_Ui/js/model/messages',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/bundle',
-        'Adyen_Payment/js/model/adyen-configuration',
+        'Adyen_Payment/js/model/adyen-configuration'
     ],
     function(
         ko,
@@ -52,7 +52,7 @@ define(
         Messages,
         errorProcessor,
         AdyenComponent,
-        adyenConfiguration,
+        adyenConfiguration
     ) {
         'use strict';
 
@@ -399,7 +399,6 @@ define(
                                         configuration.totalPriceLabel = configuration.configuration.merchantName;
                                     }
                                 }
-
                                 // Extra amazon pay configuration first call to amazon page
                                 if (paymentMethod.methodIdentifier.includes('amazonpay')) {
                                     configuration.productType = 'PayAndShip';
@@ -422,12 +421,15 @@ define(
                                     }
                                 }
                                 try {
+                                    const containerId = '#adyen-alternative-payment-container-' +
+                                        paymentMethod.methodIdentifier;
                                     var url = new URL(location.href);
+                                    //Handles the redirect back to checkout page with amazonSessionKey in url
                                     if (
                                         paymentMethod.methodIdentifier === 'amazonpay'
                                         && url.searchParams.has(amazonSessionKey)
                                     ) {
-                                        configuration = {
+                                        const amazonPayComponent = self.checkoutComponent.create('amazonpay', {
                                             amazonCheckoutSessionId: url.searchParams.get(amazonSessionKey),
                                             showOrderButton: false,
                                             amount: {
@@ -436,18 +438,12 @@ define(
                                             },
                                             returnUrl: location.href,
                                             showChangePaymentDetailsButton: false
-                                        };
-                                        const component = self.checkoutComponent.create(
-                                            paymentMethod.methodIdentifier, configuration);
-                                        const containerId = '#adyen-alternative-payment-container-' +
-                                            paymentMethod.methodIdentifier;
-                                        component.mount(containerId).submit();
+                                        }).mount(containerId);
+                                        amazonPayComponent.submit();
+                                        result.component = amazonPayComponent;
                                     } else {
                                         const component = self.checkoutComponent.create(
                                             paymentMethod.methodIdentifier, configuration);
-                                        const containerId = '#adyen-alternative-payment-container-' +
-                                            paymentMethod.methodIdentifier;
-
                                         if ('isAvailable' in component) {
                                             component.isAvailable().then(() => {
                                                 component.mount(containerId);
@@ -457,8 +453,8 @@ define(
                                         } else {
                                             component.mount(containerId);
                                         }
+                                        result.component = component;
                                     }
-                                    result.component = component;
                                 } catch (err) {
                                     // The component does not exist yet
                                     if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
@@ -774,10 +770,8 @@ define(
             validate: function() {
                 var form = '#payment_form_' + this.getCode() + '_' +
                     selectedAlternativePaymentMethodType();
-
                 var validate = $(form).validation() &&
                     $(form).validation('isValid');
-
                 return validate && additionalValidators.validate();
             },
             isButtonActive: function() {
