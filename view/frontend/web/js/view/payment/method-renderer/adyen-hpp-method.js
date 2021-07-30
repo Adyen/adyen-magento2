@@ -417,34 +417,30 @@ define(
                                     };
                                 }
                                 try {
+                                    const containerId = '#adyen-alternative-payment-container-' +
+                                        paymentMethod.methodIdentifier;
                                     var url = new URL(location.href);
                                     //Handles the redirect back to checkout page with amazonSessionKey in url
                                     if (
                                         paymentMethod.methodIdentifier === 'amazonpay'
                                         && url.searchParams.has(amazonSessionKey)
                                     ) {
-                                        configuration = {
+                                        const amazonPayComponent = self.checkoutComponent.create('amazonpay', {
                                             amazonCheckoutSessionId: url.searchParams.get(amazonSessionKey),
                                             showOrderButton: false,
                                             amount: {
                                                 currency: configuration.amount.currency,
                                                 value: configuration.amount.value
                                             },
-
                                             returnUrl: location.href,
-                                            showChangePaymentDetailsButton: false,
-                                        };
-                                    }
-                                    const component = self.checkoutComponent.create(
-                                        paymentMethod.methodIdentifier, configuration);
-                                    const containerId = '#adyen-alternative-payment-container-' +
-                                        paymentMethod.methodIdentifier;
-                                    if (
-                                        paymentMethod.methodIdentifier === 'amazonpay'
-                                        && url.searchParams.has(amazonSessionKey)
-                                    ) {
-                                        component.mount(containerId).submit();
+                                            showChangePaymentDetailsButton: false
+                                        })
+                                            .mount(containerId);
+                                        amazonPayComponent.submit();
+                                        result.component = amazonPayComponent;
                                     } else {
+                                        const component = self.checkoutComponent.create(
+                                            paymentMethod.methodIdentifier, configuration);
                                         if ('isAvailable' in component) {
                                             component.isAvailable().then(() => {
                                                 component.mount(containerId);
@@ -454,9 +450,8 @@ define(
                                         } else {
                                             component.mount(containerId);
                                         }
+                                        result.component = component;
                                     }
-                                    result.component = component;
-
                                 } catch (err) {
                                     // The component does not exist yet
                                     console.log(err);
@@ -770,10 +765,8 @@ define(
             validate: function() {
                 var form = '#payment_form_' + this.getCode() + '_' +
                     selectedAlternativePaymentMethodType();
-
                 var validate = $(form).validation() &&
                     $(form).validation('isValid');
-
                 return validate && additionalValidators.validate();
             },
             isButtonActive: function() {
