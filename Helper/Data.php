@@ -1391,6 +1391,9 @@ class Data extends AbstractHelper
         $client = $this->createAdyenClient();
         $client->setApplicationName("Magento 2 plugin");
         $client->setXApiKey($apiKey);
+        $moduleVersion = $this->getModuleVersion();
+
+        $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
         if ($this->isDemoMode($storeId)) {
             $client->setEnvironment(\Adyen\Environment::TEST);
