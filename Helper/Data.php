@@ -1393,7 +1393,7 @@ class Data extends AbstractHelper
         $client->setXApiKey($apiKey);
         $moduleVersion = $this->getModuleVersion();
 
-        $client->setAdyenPaymentSource($this->getModuleName(), $moduleVersion);
+        $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
         if ($this->isDemoMode($storeId)) {
             $client->setEnvironment(\Adyen\Environment::TEST);
