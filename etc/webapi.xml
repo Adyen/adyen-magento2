@@ -68,7 +68,7 @@
     <route url="/V1/adyen/originKey" method="GET">
         <service class="Adyen\Payment\Api\AdyenOriginKeyInterface" method="getOriginKey"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="self"/>
         </resources>
     </route>
 
