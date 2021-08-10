@@ -322,10 +322,12 @@ class Requests extends AbstractHelper
             $request['browserInfo']['userAgent'] = $_SERVER['HTTP_USER_AGENT'];
         }
 
+
         if (!empty($_SERVER['HTTP_ACCEPT'])) {
             $request['browserInfo']['acceptHeader'] = $_SERVER['HTTP_ACCEPT'];
         }
-
+        // Force response code. See https://docs.adyen.com/development-resources/test-cards/result-code-testing/adyen-response-codes
+        //$request['additionalData']['RequestedTestAcquirerResponseCode'] = 2;
         return $request;
     }
 
