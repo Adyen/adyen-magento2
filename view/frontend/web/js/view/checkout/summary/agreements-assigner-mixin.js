@@ -20,7 +20,6 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-/*global alert*/
 define([
     'mage/utils/wrapper',
     'jquery'
