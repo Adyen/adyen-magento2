@@ -11,7 +11,7 @@ var config = {
                 'Adyen_Payment/js/view/checkout/summary/grand-total-mixin': true
              },
             'Magento_CheckoutAgreements/js/model/agreements-assigner': {
-                'Adyen_Payment/js/view/checkout/summary/agreements-assigner-minix': true
+                'Adyen_Payment/js/view/checkout/summary/agreements-assigner-mixin': true
             }
         }
     }
