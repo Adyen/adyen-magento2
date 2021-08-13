@@ -34,8 +34,15 @@ define([
             if (paymentData.additional_data && paymentData.additional_data.stateData) {
                 let data = paymentData['additional_data']['stateData'];
                 let stateData = JSON.parse(data);
-                if (stateData.paymentMethod.type == 'amazonpay' && !agreementIds.length) {
-                    agreementIds = ["1"];
+                var checkoutConfig = window.checkoutConfig;
+                if (checkoutConfig.checkoutAgreements.isEnabled
+                    && stateData.paymentMethod.type == 'amazonpay'
+                    && !agreementIds.length) {
+                    var agreementsConfig = checkoutConfig.checkoutAgreements?.agreements ?
+                        checkoutConfig.checkoutAgreements.agreements : [];
+                    for (let i = 1; i <= agreementsConfig.length; i++) {
+                        agreementIds[i] = i;
+                    }
                 }
             }
             paymentData['extension_attributes']['agreement_ids'] = agreementIds;
