@@ -32,14 +32,18 @@ define([
     return function (agreementsAssignerAction) {
         return wrapper.wrap(agreementsAssignerAction, function (originalAction, paymentData) {
             originalAction(paymentData);
+            var checkoutConfig = window.checkoutConfig;
+            if (!checkoutConfig.checkoutAgreements.isEnabled) {
+                return;
+            }
             var agreementIds = paymentData['extension_attributes']['agreement_ids'];
             if (paymentData.additional_data && paymentData.additional_data.stateData) {
                 let data = paymentData['additional_data']['stateData'];
                 let stateData = JSON.parse(data);
-                var checkoutConfig = window.checkoutConfig;
                 if (checkoutConfig.checkoutAgreements.isEnabled
                     && stateData.paymentMethod.type == 'amazonpay'
                     && !agreementIds.length) {
+                    debugger;
                     var agreementsConfig = checkoutConfig.checkoutAgreements?.agreements ?
                         checkoutConfig.checkoutAgreements.agreements : [];
                     for (let i = 1; i <= agreementsConfig.length; i++) {
