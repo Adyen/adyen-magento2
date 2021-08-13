@@ -43,7 +43,6 @@ define([
                 if (checkoutConfig.checkoutAgreements.isEnabled
                     && stateData.paymentMethod.type == 'amazonpay'
                     && !agreementIds.length) {
-                    debugger;
                     var agreementsConfig = checkoutConfig.checkoutAgreements?.agreements ?
                         checkoutConfig.checkoutAgreements.agreements : [];
                     for (let i = 1; i <= agreementsConfig.length; i++) {
