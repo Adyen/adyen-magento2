@@ -525,10 +525,12 @@ define(
             },
             placeRedirectOrder: function(data, component) {
                 var self = this;
+
                 // Place Order but use our own redirect url after
                 fullScreenLoader.startLoader();
                 $('.hpp-message').slideUp();
                 self.isPlaceOrderActionAllowed(false);
+
                 $.when(
                     placeOrderAction(data,
                         self.currentMessageContainer),
@@ -631,6 +633,7 @@ define(
                 responseJSON, orderId, component) {
                 var self = this;
                 var response = JSON.parse(responseJSON);
+
                 if (!!response.isFinal) {
                     // Status is final redirect to the success page
                     $.mage.redirect(
@@ -647,6 +650,7 @@ define(
                 var self = this;
                 var actionNode = document.getElementById('ActionContainer');
                 fullScreenLoader.stopLoader();
+
                 self.popupModal = $('#ActionModal').modal({
                     // disable user to hide popup
                     clickableOverlay: false,
@@ -694,6 +698,7 @@ define(
             },
             handleOnCancel: function(state, component) {
                 var self = this;
+
                 // call endpoint with state.data if available
                 let request = {};
                 if (!!state.data) {
@@ -707,7 +712,7 @@ define(
                     $.mage.redirect(
                         window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
                     );
-                }).fail(function (response) {
+                }).fail(function(response) {
                     fullScreenLoader.stopLoader();
                     if (self.popupModal) {
                         self.closeModal(self.popupModal);
@@ -726,6 +731,7 @@ define(
                 if (!!state.data) {
                     request = state.data;
                 }
+
                 request.orderId = self.orderId;
 
                 adyenPaymentService.paymentDetails(request).done(function() {

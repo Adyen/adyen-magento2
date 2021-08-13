@@ -322,10 +322,10 @@ class Requests extends AbstractHelper
             $request['browserInfo']['userAgent'] = $_SERVER['HTTP_USER_AGENT'];
         }
 
-
         if (!empty($_SERVER['HTTP_ACCEPT'])) {
             $request['browserInfo']['acceptHeader'] = $_SERVER['HTTP_ACCEPT'];
         }
+
         return $request;
     }
 
