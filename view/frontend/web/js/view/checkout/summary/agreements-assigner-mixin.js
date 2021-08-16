@@ -45,8 +45,8 @@ define([
                     && !agreementIds.length) {
                     var agreementsConfig = checkoutConfig.checkoutAgreements?.agreements ?
                         checkoutConfig.checkoutAgreements.agreements : [];
-                    for (let i = 1; i <= agreementsConfig.length; i++) {
-                        agreementIds[i] = i;
+                    for (let i = 0; i < agreementsConfig.length; i++) {
+                        agreementIds[i] = agreementsConfig[i].agreementId;
                     }
                 }
             }
