@@ -159,9 +159,17 @@ class Result extends \Magento\Framework\App\Action\Action
             $result = $this->validateResponse($response);
 
             if ($result) {
-                $session = $this->_session;
-                $session->getQuote()->setIsActive(false)->save();
-                $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
+                // Redirect multishipping responses to the multishipping success page
+                if (
+                    !empty($response['merchantReference']) &&
+                    $this->quoteHelper->getIsQuoteMultiShippingWithMerchantReference($response['merchantReference'])
+                ) {
+                    $this->_redirect('multishipping/checkout/success', ['_query' => ['utm_nooverride' => '1']]);
+                } else {
+                    $session = $this->_session;
+                    $session->getQuote()->setIsActive(false)->save();
+                    $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
+                }
             } else {
                 $this->_adyenLogger->addAdyenResult(
                     sprintf(
@@ -299,6 +307,11 @@ class Result extends \Magento\Framework\App\Action\Action
 
         // needed because then we need to save $order objects
         $order->setAdyenResulturlEventCode($authResult);
+
+        // Update the payment additional information with the new result code
+        $payment = $order->getPayment();
+        $payment->setAdditionalInformation('resultCode', $authResult);
+        $this->orderResourceModel->save($order);
 
         switch (strtoupper($authResult)) {
             case Notification::AUTHORISED:
