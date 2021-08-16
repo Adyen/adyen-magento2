@@ -23,6 +23,8 @@
 
 namespace Adyen\Payment\Gateway\Http\Client;
 
+use Adyen\Payment\Model\PaymentResponse;
+use Adyen\Payment\Model\PaymentResponseFactory;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Adyen\Payment\Model\ApplicationInfo;
 
@@ -40,16 +42,30 @@ class TransactionPayment implements ClientInterface
     private $applicationInfo;
 
     /**
+     * @var PaymentResponseFactory
+     */
+    private $paymentResponseFactory;
+
+    /**
+     * @var \Adyen\Payment\Model\ResourceModel\PaymentResponse
+     */
+    private $paymentResponseResourceModel;
+
+    /**
      * TransactionPayment constructor.
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param ApplicationInfo $applicationInfo
      */
     public function __construct(
         \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Model\ApplicationInfo $applicationInfo
+        \Adyen\Payment\Model\ApplicationInfo $applicationInfo,
+        PaymentResponseFactory $paymentResponseFactory,
+        \Adyen\Payment\Model\ResourceModel\PaymentResponse $paymentResponseResourceModel
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->applicationInfo = $applicationInfo;
+        $this->paymentResponseFactory = $paymentResponseFactory;
+        $this->paymentResponseResourceModel = $paymentResponseResourceModel;
     }
 
     /**
@@ -76,6 +92,16 @@ class TransactionPayment implements ClientInterface
 
         try {
             $response = $service->payments($request, $requestOptions);
+
+            // Store the /payments response in the database in case it is needed in order to finish the payment
+            /** @var PaymentResponse $paymentResponse */
+            $paymentResponse = $this->paymentResponseFactory->create();
+            $paymentResponse->setResponse(json_encode($response));
+            $paymentResponse->setResultCode($response['resultCode']);
+            $paymentResponse->setMerchantReference($request["reference"]);
+
+            $this->paymentResponseResourceModel->save($paymentResponse);
+
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
