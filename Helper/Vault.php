@@ -106,7 +106,7 @@ class Vault
         try {
             $paymentToken = $this->getVaultPaymentToken($payment, $additionalData);
         } catch (Exception $exception) {
-            $this->adyenLogger->error(print_r($exception, true));
+            $this->adyenLogger->error(json_encode($exception));
             return;
         }
 
