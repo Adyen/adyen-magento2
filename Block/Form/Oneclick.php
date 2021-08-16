@@ -27,7 +27,7 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Installments;
 use Adyen\Payment\Logger\AdyenLogger;
 
-class Oneclick extends \Adyen\Payment\Block\Form\Cc
+class Oneclick extends \Magento\Payment\Block\Form
 {
     /**
      * @var string
@@ -70,13 +70,6 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
     ) {
         parent::__construct(
             $context,
-            $paymentConfig,
-            $adyenHelper,
-            $checkoutSession,
-            $backendCheckoutSession,
-            $installmentsHelper,
-            $chargedCurrency,
-            $adyenLogger,
             $data
         );
         $this->_sessionQuote = $sessionQuote;
