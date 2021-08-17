@@ -9,6 +9,9 @@ var config = {
         mixins: {
             'Magento_Tax/js/view/checkout/summary/grand-total': {
                 'Adyen_Payment/js/view/checkout/summary/grand-total-mixin': true
+            },
+            'Magento_Multishipping/js/payment': {
+                'Adyen_Payment/js/view/checkout/multishipping/payment-mixin': true
             }
         }
     }
