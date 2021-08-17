@@ -151,41 +151,44 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-        // GET and POST params together
+        // Receive all params as this could be a GET or POST request
         $response = $this->getRequest()->getParams();
         $this->_adyenLogger->addAdyenResult(print_r($response, true));
 
         if ($response) {
             $result = $this->validateResponse($response);
 
-            if ($result) {
-                // Redirect multishipping responses to the multishipping success page
-                if (
-                    !empty($response['merchantReference']) &&
-                    $this->quoteHelper->getIsQuoteMultiShippingWithMerchantReference($response['merchantReference'])
-                ) {
-                    $this->_redirect('multishipping/checkout/success', ['_query' => ['utm_nooverride' => '1']]);
-                } else {
-                    $session = $this->_session;
-                    $session->getQuote()->setIsActive(false)->save();
-                    $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
-                }
+            // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
+            if (
+                !empty($response['merchantReference']) &&
+                $this->quoteHelper->getIsQuoteMultiShippingWithMerchantReference($response['merchantReference'])
+            ) {
+                $successPath = $failPath = 'multishipping/checkout/success';
+                $setQuoteAsActive = true;
             } else {
-                $this->_adyenLogger->addAdyenResult(
-                    sprintf(
-                        'Payment for order %s was unsuccessful, ' .
-                        'it will be cancelled when the OFFER_CLOSED notification has been processed.',
-                        $this->_order->getIncrementId()
-                    )
-                );
-                $this->replaceCart($response);
-                $failReturnPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
-                $this->_redirect($failReturnPath);
+                $successPath = 'checkout/onepage/success';
+                $failPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
+                $setQuoteAsActive = false;
             }
         } else {
-            // redirect to checkout page
-            $failReturnPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
-            $this->_redirect($failReturnPath);
+            $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
+        }
+
+        if ($result) {
+            $session = $this->_session;
+            $session->getQuote()->setIsActive($setQuoteAsActive)->save();
+            $this->_redirect($successPath, ['_query' => ['utm_nooverride' => '1']]);
+
+        } else {
+            $this->_adyenLogger->addAdyenResult(
+                sprintf(
+                    'Payment for order %s was unsuccessful, ' .
+                    'it will be cancelled when the OFFER_CLOSED notification has been processed.',
+                    $this->_order->getIncrementId()
+                )
+            );
+            $this->replaceCart($response);
+            $this->_redirect($failPath, ['_query' => ['utm_nooverride' => '1']]);
         }
     }
 
