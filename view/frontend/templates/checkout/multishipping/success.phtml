@@ -58,14 +58,11 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
                             </span>
                                 <?php endif; ?>
                                 <span class="adyen-continue-payment">
-
-                                    <?php if ($block->getIsPaymentCompleted($orderId)): ?>
                                         <button
+                                            <?php if ($block->getIsPaymentCompleted($orderId)): ?>
                                                 disabled="disabled"
                                                 class="adyen-finish-payment adyen-payment-finished"
-                                        ><?= $escaper->escapeHtml(__("Payment completed")); ?></button>
-                                    <?php else: ?>
-                                        <button
+                                            <?php else: ?>
                                                 class="adyen-finish-payment adyen-payment-unfinished"
                                                 data-order-id="<?= $escaper->escapeHtml($orderId); ?>"
                                                 data-adyen-response="<?= $escaper->escapeHtml(
@@ -77,12 +74,10 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
                                                         )
                                                     )]['response']
                                                 ); ?>"
-                                        ><?= $escaper->escapeHtml(__("Complete payment")); ?></button>
-                                    <?php endif; ?>
-
-
-                                    <div class="adyen-component"></div>
-                            </span>
+                                            <?php endif; ?>
+                                        ><?= $escaper->escapeHtml($block->getPaymentButtonLabel($orderId)); ?></button>
+                                <div class="adyen-component"></div>
+                                </span>
                             </div>
                         </li>
                     <?php endforeach; ?>
@@ -165,13 +160,20 @@ script;
             function handleAdyenResult(responseJSON, orderId) {
                 var self = this;
                 var response = JSON.parse(responseJSON);
+                debugger;
+                let buttonLabel;
                 if (!!response.isFinal && response.resultCode === 'Authorised') {
-                    // Result is successful, update Finish Payment button
-                    $(paymentSelected).attr('disabled', true)
-                        .addClass('adyen-payment-finished')
-                        .removeClass('adyen-payment-unfinished')
-                        .html('Payment completed'); // TODO make this translatable
-                } else {
+                    buttonLabel = 'Payment Completed'; // TODO make this translatable
+                } else if (!!response.isFinal && response.resultCode === 'Refused') {
+                    buttonLabel = 'Payment Failed'; // TODO make this translatable
+                }
+
+                $(paymentSelected).attr('disabled', true)
+                    .addClass('adyen-payment-finished')
+                    .removeClass('adyen-payment-unfinished')
+                    .html(buttonLabel);
+
+                if (!response.isFinal) {
                     self.handleAction(response.action, orderId);
                 }
             }
@@ -180,8 +182,14 @@ script;
                 e.preventDefault();
                 paymentSelected = this;
                 try {
-                    showModal();
                     let response = $(this).data('adyen-response');
+
+                    // Only show the modal for some result codes
+                    const modalResponseCodes = ['IdentifyShopper'];
+                    if (modalResponseCodes.includes(response.resultCode)) {
+                        showModal();
+                    }
+
                     checkoutComponent
                         .createFromAction(response.action)
                         .mount('#actionContainer');

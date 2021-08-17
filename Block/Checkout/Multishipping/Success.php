@@ -24,13 +24,12 @@
 
 namespace Adyen\Payment\Block\Checkout\Multishipping;
 
-use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
-use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
 use Adyen\Payment\Model\Ui\AdyenMultishippingConfigProvider;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Multishipping\Model\Checkout\Type\Multishipping;
@@ -73,13 +72,18 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
      */
     private $configProvider;
     /**
-     * @var AdyenOrderPaymentStatusInterface
-     */
-    private $adyenOrderPaymentStatus;
-    /**
      * @var OrderRepositoryInterface
      */
     private $orderRepository;
+    /**
+     * @var SearchCriteriaBuilder
+     */
+    private $searchCriteriaBuilder;
+
+    /**
+     * @var []
+     */
+    private $ordersInfo;
 
     /**
      * @param Context $context
@@ -95,6 +99,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         Context $context,
         Multishipping $multishipping,
         OrderRepositoryInterface $orderRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
         array $data = []
     ) {
         $this->paymentResposeCollection = $paymentResponseCollection;
@@ -103,12 +108,15 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         $this->serializerInterface = $serializerInterface;
         $this->configProvider = $configProvider;
         $this->orderRepository = $orderRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         parent::__construct($context, $multishipping, $data);
 
         $orderIds = $this->getOrderIds();
 
         $this->paymentResponseEntities = $this->paymentResposeCollection
             ->getPaymentResponsesWithMerchantReferences(array_values($orderIds));
+
+        $this->setOrderInfo(array_keys($orderIds));
     }
 
     /**
@@ -154,22 +162,40 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         return $this->serializerInterface->serialize($this->configProvider->getConfig());
     }
 
+    private function setOrderInfo($orderIds)
+    {
+        $orders = $this->orderRepository->getList(
+            $this->searchCriteriaBuilder->addFilter('entity_id', $orderIds, 'in')->create()
+        )->getItems();
+
+        foreach ($orders as $order) {
+            $payment = $order->getPayment();
+            $additionalInformation = $payment->getAdditionalInformation();
+            $this->ordersInfo[$order->getEntityId()]['resultCode'] = $additionalInformation['resultCode'];
+            switch ($additionalInformation['resultCode']) {
+                case PaymentResponseHandler::AUTHORISED:
+                    $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = 'Payment Completed';
+                    break;
+                case PaymentResponseHandler::REFUSED:
+                    $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = 'Payment Failed';
+                    break;
+                default:
+                    $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = 'Complete Payment';
+            }
+        }
+    }
+
     public function getIsPaymentCompleted(int $orderId)
     {
-        $order = $this->orderRepository->get($orderId);
+        // TODO check for all completed responses, not only Authorised or Refused
+        return in_array($this->ordersInfo[$orderId]['resultCode'], [
+            PaymentResponseHandler::AUTHORISED,
+            PaymentResponseHandler::REFUSED
+        ]);
+    }
 
-        if (empty($order)) {
-            return false;
-        }
-
-        $payment = $order->getPayment();
-        $additionalInformation = $payment->getAdditionalInformation();
-
-        if (empty($additionalInformation['resultCode'])) {
-            return false;
-        }
-
-        // TODO check for all completed responses, not only Authorised
-        return $additionalInformation['resultCode'] === PaymentResponseHandler::AUTHORISED;
+    public function getPaymentButtonLabel(int $orderId)
+    {
+        return $this->ordersInfo[$orderId]['buttonLabel'];
     }
 }
