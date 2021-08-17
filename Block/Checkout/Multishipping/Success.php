@@ -41,6 +41,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     const FINAL_RESULT_CODES = array(
         PaymentResponseHandler::AUTHORISED,
         PaymentResponseHandler::PENDING,
+        PaymentResponseHandler::REFUSED,
         PaymentResponseHandler::PRESENT_TO_SHOPPER
     );
 
@@ -174,28 +175,40 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
             $this->ordersInfo[$order->getEntityId()]['resultCode'] = $additionalInformation['resultCode'];
             switch ($additionalInformation['resultCode']) {
                 case PaymentResponseHandler::AUTHORISED:
-                    $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = 'Payment Completed';
+                    $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = $this->getPaymentCompletedLabel();
                     break;
                 case PaymentResponseHandler::REFUSED:
-                    $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = 'Payment Failed';
+                    $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = $this->getPaymentFailedLabel();
                     break;
                 default:
-                    $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = 'Complete Payment';
+                    $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = $this->getCompletePaymentLabel();
             }
         }
     }
 
     public function getIsPaymentCompleted(int $orderId)
     {
-        // TODO check for all completed responses, not only Authorised or Refused
-        return in_array($this->ordersInfo[$orderId]['resultCode'], [
-            PaymentResponseHandler::AUTHORISED,
-            PaymentResponseHandler::REFUSED
-        ]);
+        // TODO check for all completed responses, not only Authorised, Refused, Pending or PresentToShopper
+        return in_array($this->ordersInfo[$orderId]['resultCode'], self::FINAL_RESULT_CODES);
     }
 
     public function getPaymentButtonLabel(int $orderId)
     {
         return $this->ordersInfo[$orderId]['buttonLabel'];
+    }
+
+    public function getPaymentCompletedLabel()
+    {
+        return __('Payment Completed');
+    }
+
+    public function getCompletePaymentLabel()
+    {
+        return __('Complete Payment');
+    }
+
+    public function getPaymentFailedLabel()
+    {
+        return __('Payment Failed');
     }
 }

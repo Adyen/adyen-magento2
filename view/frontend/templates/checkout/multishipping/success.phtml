@@ -163,9 +163,9 @@ script;
                 debugger;
                 let buttonLabel;
                 if (!!response.isFinal && response.resultCode === 'Authorised') {
-                    buttonLabel = 'Payment Completed'; // TODO make this translatable
+                    buttonLabel = "<?= $escaper->escapeHtml($block->getPaymentCompletedLabel()) ?>";
                 } else if (!!response.isFinal && response.resultCode === 'Refused') {
-                    buttonLabel = 'Payment Failed'; // TODO make this translatable
+                    buttonLabel = "<?= $escaper->escapeHtml($block->getPaymentFailedLabel()) ?>";
                 }
 
                 $(paymentSelected).attr('disabled', true)
