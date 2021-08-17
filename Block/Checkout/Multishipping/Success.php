@@ -46,11 +46,6 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     );
 
     /**
-     * @var Collection
-     */
-    private $paymentResposeCollection;
-
-    /**
      * @var PaymentResponse[]
      */
     private $paymentResponseEntities;
@@ -64,18 +59,22 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
      * @var StoreManagerInterface
      */
     private $storeManager;
+
     /**
      * @var SerializerInterface
      */
     private $serializerInterface;
+
     /**
-     * @var \Magento\Checkout\Model\CompositeConfigProvider
+     * @var AdyenMultishippingConfigProvider
      */
     private $configProvider;
+
     /**
      * @var OrderRepositoryInterface
      */
     private $orderRepository;
+
     /**
      * @var SearchCriteriaBuilder
      */
@@ -86,11 +85,6 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
      */
     private $ordersInfo;
 
-    /**
-     * @param Context $context
-     * @param Multishipping $multishipping
-     * @param array $data
-     */
     public function __construct(
         Collection $paymentResponseCollection,
         Data $adyenHelper,
@@ -103,7 +97,6 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         SearchCriteriaBuilder $searchCriteriaBuilder,
         array $data = []
     ) {
-        $this->paymentResposeCollection = $paymentResponseCollection;
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
         $this->serializerInterface = $serializerInterface;
@@ -114,7 +107,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
 
         $orderIds = $this->getOrderIds();
 
-        $this->paymentResponseEntities = $this->paymentResposeCollection
+        $this->paymentResponseEntities = $paymentResponseCollection
             ->getPaymentResponsesWithMerchantReferences(array_values($orderIds));
 
         $this->setOrderInfo(array_keys($orderIds));
