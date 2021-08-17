@@ -312,8 +312,8 @@ class Result extends \Magento\Framework\App\Action\Action
         $order->setAdyenResulturlEventCode($authResult);
 
         // Update the payment additional information with the new result code
-        $payment = $order->getPayment();
-        $payment->setAdditionalInformation('resultCode', $authResult);
+        $orderPayment = $order->getPayment();
+        $orderPayment->setAdditionalInformation('resultCode', $authResult);
         $this->orderResourceModel->save($order);
 
         switch (strtoupper($authResult)) {
