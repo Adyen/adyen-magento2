@@ -88,8 +88,6 @@ class TransactionPayment implements ClientInterface
 
         $requestOptions = [];
 
-        $request = $this->applicationInfo->addMerchantApplicationIntoRequest($request);
-
         try {
             $response = $service->payments($request, $requestOptions);
 

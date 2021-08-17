@@ -66,8 +66,6 @@ class TransactionAuthorization implements ClientInterface
         // call lib
         $service = new \Adyen\Service\Payment($this->client);
 
-        $request = $this->applicationInfo->addMerchantApplicationIntoRequest($request);
-
         try {
             $response = $service->authorise($request, $requestOptions);
         } catch (\Adyen\AdyenException $e) {

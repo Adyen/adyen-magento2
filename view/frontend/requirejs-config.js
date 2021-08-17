@@ -12,6 +12,9 @@ var config = {
             },
             'Magento_Multishipping/js/payment': {
                 'Adyen_Payment/js/view/checkout/multishipping/payment-mixin': true
+             },
+            'Magento_CheckoutAgreements/js/model/agreements-assigner': {
+                'Adyen_Payment/js/view/checkout/summary/agreements-assigner-mixin': true
             }
         }
     }
