@@ -153,7 +153,7 @@ class Result extends \Magento\Framework\App\Action\Action
     {
         // GET and POST params together
         $response = $this->getRequest()->getParams();
-        $this->_adyenLogger->addAdyenResult(print_r($response, true));
+        $this->_adyenLogger->addAdyenResult(json_encode($response));
 
         if ($response) {
             $result = $this->validateResponse($response);

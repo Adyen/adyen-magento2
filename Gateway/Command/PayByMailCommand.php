@@ -204,7 +204,7 @@ class PayByMailCommand implements CommandInterface
         $merchantSig = \Adyen\Util\Util::calculateSha256Signature($hmacKey, $formFields);
         $formFields['merchantSig'] = $merchantSig;
 
-        $this->_adyenLogger->addAdyenDebug(print_r($formFields, true));
+        $this->_adyenLogger->addAdyenDebug(json_encode($formFields));
 
         return $formFields;
     }
