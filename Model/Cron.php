@@ -511,7 +511,7 @@ class Cron
                 }
 
                 // log the executed notification
-                $this->_adyenLogger->addAdyenNotificationCronjob(print_r($notification->debug(), 1));
+                $this->_adyenLogger->addAdyenNotificationCronjob(json_encode($notification->debug()));
 
                 // get order
                 $incrementId = $notification->getMerchantReference();
@@ -1277,7 +1277,7 @@ class Cron
                         }
 
                         if ($contractDetail == null) {
-                            $this->_adyenLogger->addAdyenNotificationCronjob(print_r($listRecurringContracts, 1));
+                            $this->_adyenLogger->addAdyenNotificationCronjob(json_encode($listRecurringContracts));
                             $message = __(
                                 'Failed to create billing agreement for this order ' .
                                 '(listRecurringCall did not contain contract)'
