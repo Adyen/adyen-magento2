@@ -223,7 +223,7 @@ class PaymentResponseHandler
                 $this->adyenLogger->error(
                     sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s",
                             $paymentsResponse['resultCode'],
-                            print_r($paymentsResponse, true)
+                            json_encode($paymentsResponse)
                     ));
 
                 return false;

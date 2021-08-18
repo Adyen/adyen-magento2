@@ -221,7 +221,7 @@ class Json extends \Magento\Framework\App\Action\Action
                 $response
             )) {
                 $this->_adyenLogger->addAdyenNotification(
-                    'HMAC key validation failed ' . print_r($response, 1)
+                    'HMAC key validation failed ' . json_encode($response)
                 );
                 return false;
             }
@@ -230,7 +230,7 @@ class Json extends \Magento\Framework\App\Action\Action
         if ($this->authorised($response)) {
             // log the notification
             $this->_adyenLogger->addAdyenNotification(
-                "The content of the notification item is: " . print_r($response, 1)
+                "The content of the notification item is: " . json_encode($response)
             );
 
             // check if notification already exists
