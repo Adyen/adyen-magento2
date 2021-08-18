@@ -57,6 +57,8 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
                                 <?= $escaper->escapeHtml(__('No shipping required.')); ?>
                             </span>
                                 <?php endif; ?>
+
+                                <!-- Adyen custom 'Complete Payment' button -->
                                 <span class="adyen-continue-payment">
                                         <button
                                             <?php if ($block->getIsPaymentCompleted($orderId)): ?>
@@ -78,6 +80,8 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
                                         ><?= $escaper->escapeHtml($block->getPaymentButtonLabel($orderId)); ?></button>
                                 <div class="adyen-component"></div>
                                 </span>
+                                <!-- End of Adyen custom 'Complete Payment' button -->
+
                             </div>
                         </li>
                     <?php endforeach; ?>
