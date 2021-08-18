@@ -26,7 +26,6 @@ namespace Adyen\Payment\Gateway\Http\Client;
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\Data;
 use Magento\Payment\Gateway\Http\ClientInterface;
-use Adyen\Payment\Model\ApplicationInfo;
 use Magento\Payment\Gateway\Http\TransferInterface;
 
 class TransactionPaymentLinks implements ClientInterface
@@ -38,20 +37,12 @@ class TransactionPaymentLinks implements ClientInterface
     private $adyenHelper;
 
     /**
-     * @var ApplicationInfo
-     */
-    private $applicationInfo;
-
-    /**
      * @param Data $adyenHelper
-     * @param ApplicationInfo $applicationInfo
      */
     public function __construct(
-        Data $adyenHelper,
-        ApplicationInfo $applicationInfo
+        Data $adyenHelper
     ) {
         $this->adyenHelper = $adyenHelper;
-        $this->applicationInfo = $applicationInfo;
     }
 
     /**
@@ -73,8 +64,6 @@ class TransactionPaymentLinks implements ClientInterface
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         $requestOptions = [];
-
-        $request = $this->applicationInfo->addMerchantApplicationIntoRequest($request);
 
         try {
             $response = $service->paymentLinks($request, $requestOptions);
