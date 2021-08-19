@@ -1181,7 +1181,8 @@ class Cron
                 $isOrderCc = strcmp(
                         $this->_paymentMethodCode(),
                         'adyen_cc'
-                    ) == 0 || strcmp($this->_paymentMethodCode(), 'adyen_oneclick') == 0;
+                    ) == 0 || strcmp($this->_paymentMethodCode(), 'adyen_oneclick') == 0
+                    || $this->isWalletPaymentMethod($this->_paymentMethodCode());
 
                 /*
                  * If the order was made with an Alternative payment method,
@@ -1190,13 +1191,12 @@ class Cron
                  */
                 if (!$isOrderCc && strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
-                        "Order is not a credit card,
+                        "Order is not a credit card, wallet payment method
                     or the payment method in the notification does not match the payment method of the order,
                     skipping OFFER_CLOSED"
                     );
                     break;
                 }
-
                 if (!$this->_order->canCancel() && $this->configHelper->getNotificationsCanCancel(
                         $this->_order->getStoreId()
                     )) {
@@ -2242,5 +2242,16 @@ class Cron
             $this->_order->addStatusHistoryComment($comment, $this->_order->getStatus());
             $this->_order->save();
         }
+    }
+
+    /**
+     * Checks if a payment is wallet payment method
+     * @param $notificationPaymentMethod
+     * @return bool
+     */
+    private function isWalletPaymentMethod($notificationPaymentMethod): bool
+    {
+        $walletPaymentMethods = array('googlepay', 'paywithgoogle', 'wechatpayWeb', 'amazonpay', 'applepay');
+        return in_array($notificationPaymentMethod, $walletPaymentMethods);
     }
 }
