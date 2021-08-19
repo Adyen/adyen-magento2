@@ -2251,15 +2251,4 @@ class Cron
             $this->_order->save();
         }
     }
-
-    /**
-     * Checks if a payment is wallet payment method
-     * @param $notificationPaymentMethod
-     * @return bool
-     */
-    private function isWalletPaymentMethod($notificationPaymentMethod): bool
-    {
-        $walletPaymentMethods = array('googlepay', 'paywithgoogle', 'wechatpayWeb', 'amazonpay', 'applepay');
-        return in_array($notificationPaymentMethod, $walletPaymentMethods);
-    }
 }
