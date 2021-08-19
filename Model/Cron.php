@@ -292,6 +292,11 @@ class Cron
     private $chargedCurrency;
 
     /**
+     * @var \Adyen\Payment\Helper\PaymentMethods
+     */
+    protected $paymentMethodsHelper;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -323,6 +328,7 @@ class Cron
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      * @param EncryptorInterface $encryptor
      * @param ChargedCurrency $chargedCurrency
+     * @param \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -353,7 +359,8 @@ class Cron
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
         EncryptorInterface $encryptor,
-        ChargedCurrency $chargedCurrency
+        ChargedCurrency $chargedCurrency,
+        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -384,6 +391,7 @@ class Cron
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->encryptor = $encryptor;
         $this->chargedCurrency = $chargedCurrency;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -1182,7 +1190,7 @@ class Cron
                         $this->_paymentMethodCode(),
                         'adyen_cc'
                     ) == 0 || strcmp($this->_paymentMethodCode(), 'adyen_oneclick') == 0
-                    || $this->isWalletPaymentMethod($this->_paymentMethodCode());
+                    || $this->paymentMethodsHelper->isWalletPaymentMethod($notificationPaymentMethod);
 
                 /*
                  * If the order was made with an Alternative payment method,
