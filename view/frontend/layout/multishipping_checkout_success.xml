@@ -14,32 +14,25 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2021 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
+
 -->
-<payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
-    <groups>
-        <group id="adyen">
-            <label>Adyen Payment Methods</label>
-        </group>
-    </groups>
-    <methods>
-        <method name="adyen_cc">
-            <allow_multiple_address>1</allow_multiple_address>
-        </method>
-        <method name="adyen_oneclick">
-            <allow_multiple_address>0</allow_multiple_address>
-        </method>
-        <method name="adyen_hpp">
-            <allow_multiple_address>0</allow_multiple_address>
-        </method>
-    </methods>
-</payment>
-
-
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock class="Adyen\Payment\Block\Checkout\Multishipping\Success" name="checkout_success"
+                        template="Adyen_Payment::checkout/multishipping/success.phtml" cacheable="false">
+            <arguments>
+                <argument name="checkout_data" xsi:type="object">Magento\Multishipping\Block\DataProviders\Success
+                </argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>
