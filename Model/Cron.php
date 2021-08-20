@@ -292,6 +292,11 @@ class Cron
     private $chargedCurrency;
 
     /**
+     * @var \Adyen\Payment\Helper\PaymentMethods
+     */
+    protected $paymentMethodsHelper;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -323,6 +328,7 @@ class Cron
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      * @param EncryptorInterface $encryptor
      * @param ChargedCurrency $chargedCurrency
+     * @param \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -353,7 +359,8 @@ class Cron
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
         EncryptorInterface $encryptor,
-        ChargedCurrency $chargedCurrency
+        ChargedCurrency $chargedCurrency,
+        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -384,6 +391,7 @@ class Cron
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->encryptor = $encryptor;
         $this->chargedCurrency = $chargedCurrency;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -1165,7 +1173,30 @@ class Cron
                     );
                     break;
                 }
+                /*
+                * For cards, it can be 'visa', 'maestro',...
+                * For alternatives, it can be 'ideal', 'directEbanking',...
+                */
+                $notificationPaymentMethod = $this->_paymentMethod;
 
+                /*
+                * For cards, it can be 'VI', 'MI',...
+                * For alternatives, it can be 'ideal', 'directEbanking',...
+                */
+                $orderPaymentMethod = $this->_order->getPayment()->getCcType();
+                /*
+                * If the order was made with an Alternative payment method,
+                *  continue with the cancellation only if the payment method of
+                * the notification matches the payment method of the order.
+                */
+                if (strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0
+                    && !$this->paymentMethodsHelper->isWalletPaymentMethod($orderPaymentMethod)) {
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        "The notification does not match the payment method of the order,
+                    skipping OFFER_CLOSED"
+                    );
+                    break;
+                }
                 if (!$this->_order->canCancel() && $this->configHelper->getNotificationsCanCancel(
                         $this->_order->getStoreId()
                     )) {
