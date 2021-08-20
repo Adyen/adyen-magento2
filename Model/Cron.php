@@ -1166,29 +1166,6 @@ class Cron
                     break;
                 }
 
-                /*
-                 * For cards, it can be 'visa', 'maestro',...
-                 * For alternatives, it can be 'ideal', 'directEbanking',...
-                 */
-                $notificationPaymentMethod = $this->_paymentMethod;
-
-                /*
-                * For cards, it can be 'VI', 'MI',...
-                * For alternatives, it can be 'ideal', 'directEbanking',...
-                */
-                $orderPaymentMethod = $this->_order->getPayment()->getCcType();
-                /*
-                 * If the order was made with an Alternative payment method,
-                 * continue with the cancellation only if the payment method of
-                 * the notification matches the payment method of the order.
-                 */
-                if (strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        "Notification does not match the payment method of the order,
-                    skipping OFFER_CLOSED"
-                    );
-                    break;
-                }
                 if (!$this->_order->canCancel() && $this->configHelper->getNotificationsCanCancel(
                         $this->_order->getStoreId()
                     )) {
