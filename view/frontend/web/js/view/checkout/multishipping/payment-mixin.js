@@ -1,5 +1,3 @@
-<?xml version="1.0"?>
-<!--
 /**
  *                       ######
  *                       ######
@@ -16,30 +14,24 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
-    <groups>
-        <group id="adyen">
-            <label>Adyen Payment Methods</label>
-        </group>
-    </groups>
-    <methods>
-        <method name="adyen_cc">
-            <allow_multiple_address>1</allow_multiple_address>
-        </method>
-        <method name="adyen_oneclick">
-            <allow_multiple_address>0</allow_multiple_address>
-        </method>
-        <method name="adyen_hpp">
-            <allow_multiple_address>0</allow_multiple_address>
-        </method>
-    </methods>
-</payment>
 
-
+define([
+    'jquery'
+], function ($) {
+    'use strict';
+    return function (originalWidget) {
+        const widgetFullName = originalWidget.prototype.namespace + '.' + originalWidget.prototype.widgetName;
+        jQuery.widget(
+            widgetFullName,
+            jQuery[originalWidget.prototype.namespace][originalWidget.prototype.widgetName], {
+                _validatePaymentMethod: function () {
+                    return !!$('#stateData').val() && this._super();
+                }
+            });
+    }
+});

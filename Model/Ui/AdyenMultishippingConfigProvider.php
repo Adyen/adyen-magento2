@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -16,30 +15,37 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
-    <groups>
-        <group id="adyen">
-            <label>Adyen Payment Methods</label>
-        </group>
-    </groups>
-    <methods>
-        <method name="adyen_cc">
-            <allow_multiple_address>1</allow_multiple_address>
-        </method>
-        <method name="adyen_oneclick">
-            <allow_multiple_address>0</allow_multiple_address>
-        </method>
-        <method name="adyen_hpp">
-            <allow_multiple_address>0</allow_multiple_address>
-        </method>
-    </methods>
-</payment>
 
+namespace Adyen\Payment\Model\Ui;
 
+use \Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Store\Model\StoreManagerInterface;
+
+class AdyenMultishippingConfigProvider implements ConfigProviderInterface
+{
+    /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
+    public function __construct(
+        StoreManagerInterface $storeManager
+    ) {
+        $this->storeManager = $storeManager;
+    }
+
+    /**
+     * @return array
+     */
+    public function getConfig()
+    {
+        $output['quoteData'] = [];
+        $output['storeCode'] = $this->storeManager->getStore()->getCode();
+        return $output;
+    }
+}

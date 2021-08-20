@@ -24,6 +24,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\QuoteRepository;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -33,6 +34,7 @@ use Magento\Quote\Model\Quote as QuoteModel;
 use Magento\Quote\Model\Quote\AddressFactory as QuoteAddressFactory;
 use Magento\Quote\Model\ResourceModel\Quote\Address as QuoteAddressResource;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\OrderRepository;
 
 class Quote
 {
@@ -52,17 +54,29 @@ class Quote
      * @var QuoteAddressResource
      */
     private $quoteAddressResource;
+    /**
+     * @var SearchCriteriaBuilder
+     */
+    private $searchCriteriaBuilder;
+    /**
+     * @var OrderRepository
+     */
+    private $orderRepository;
 
     public function __construct(
         CartRepositoryInterface $cartRepository,
         QuoteRepository $quoteRepository,
+        OrderRepository $orderRepository,
         QuoteAddressFactory $quoteAddressFactory,
-        QuoteAddressResource $quoteAddressResource
+        QuoteAddressResource $quoteAddressResource,
+        SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         $this->cartRepository = $cartRepository;
         $this->quoteRepository = $quoteRepository;
+        $this->orderRepository = $orderRepository;
         $this->quoteAddressFactory = $quoteAddressFactory;
         $this->quoteAddressResource = $quoteAddressResource;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
     }
 
     /**
@@ -100,5 +114,20 @@ class Quote
             $quoteAddress->setQuoteId($newQuote->getId())->unsetData('address_id');
             $this->quoteAddressResource->save($quoteAddress);
         }
+    }
+
+    public function getIsQuoteMultiShippingWithMerchantReference(string $merchantReference)
+    {
+        $orderList = $this->orderRepository->getList(
+            $this->searchCriteriaBuilder->addFilter('increment_id', $merchantReference)->create()
+        )->getItems();
+        $order = reset($orderList);
+
+        $quoteList = $this->cartRepository->getList(
+            $this->searchCriteriaBuilder->addFilter('entity_id', $order->getQuoteId())->create()
+        )->getItems();
+        $quote = reset($quoteList);
+
+        return $quote->getIsMultiShipping();
     }
 }
