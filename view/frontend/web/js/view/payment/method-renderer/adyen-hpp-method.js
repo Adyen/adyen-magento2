@@ -35,7 +35,7 @@ define(
         'Magento_Ui/js/model/messages',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/bundle',
-        'Adyen_Payment/js/model/adyen-configuration',
+        'Adyen_Payment/js/model/adyen-configuration'
     ],
     function(
         ko,
@@ -52,7 +52,7 @@ define(
         Messages,
         errorProcessor,
         AdyenComponent,
-        adyenConfiguration,
+        adyenConfiguration
     ) {
         'use strict';
 
@@ -193,8 +193,8 @@ define(
                             paymentMethod: paymentMethod,
                             method: self.item.method,
                             item: {
-                                "title": paymentMethod.name,
-                                "method": paymentMethod.methodIdentifier
+                                'title': paymentMethod.name,
+                                'method': paymentMethod.methodIdentifier
                             },
                             /**
                              * Observable to enable and disable place order buttons for payment methods
@@ -287,7 +287,7 @@ define(
                                     country = address.countryId;
                                     postalCode = address.postcode;
 
-                                    street = address.street.slice(0)
+                                    street = address.street.slice(0);
 
                                     // address contains line items as an array, otherwise if string just pass along as is
                                     if (Array.isArray(street)) {
@@ -319,7 +319,7 @@ define(
                                         firstName: firstName,
                                         lastName: lastName,
                                         telephone: telephone
-                                    }
+                                    };
                                 }
 
                                 function getAdyenGender(gender) {
@@ -383,8 +383,8 @@ define(
                                         country: formattedShippingAddress.country,
                                         houseNumberOrName: formattedShippingAddress.houseNumber,
                                         postalCode: formattedShippingAddress.postalCode,
-                                        street: formattedShippingAddress.street,
-                                    }
+                                        street: formattedShippingAddress.street
+                                    };
                                 }
 
                                 // Use extra configuration from the paymentMethodsExtraInfo object if available
@@ -399,30 +399,37 @@ define(
                                         configuration.totalPriceLabel = configuration.configuration.merchantName;
                                     }
                                 }
-
                                 // Extra amazon pay configuration first call to amazon page
                                 if (paymentMethod.methodIdentifier.includes('amazonpay')) {
-                                    let billingAddress = configuration.data.billingAddress;
-                                    let personalDetails = configuration.data.personalDetails;
                                     configuration.productType = 'PayAndShip';
                                     configuration.checkoutMode = 'ProcessOrder';
                                     configuration.returnUrl = location.href;
-                                    configuration.addressDetails = {
-                                        name: personalDetails.firstName + ' ' + personalDetails.lastName,
-                                        addressLine1: billingAddress.street,
-                                        city: billingAddress.city,
-                                        postalCode: billingAddress.postalCode,
-                                        countryCode: billingAddress.country,
-                                        phoneNumber: personalDetails.telephoneNumber
-                                    };
+
+                                    if (formattedShippingAddress &&
+                                        formattedShippingAddress.telephone) {
+                                        configuration.addressDetails = {
+                                            name: formattedShippingAddress.firstName +
+                                                ' ' +
+                                                formattedShippingAddress.lastName,
+                                            addressLine1: formattedShippingAddress.street,
+                                            addressLine2: formattedShippingAddress.houseNumber,
+                                            city: formattedShippingAddress.city,
+                                            postalCode: formattedShippingAddress.postalCode,
+                                            countryCode: formattedShippingAddress.country,
+                                            phoneNumber: formattedShippingAddress.telephone
+                                        };
+                                    }
                                 }
                                 try {
+                                    const containerId = '#adyen-alternative-payment-container-' +
+                                        paymentMethod.methodIdentifier;
                                     var url = new URL(location.href);
+                                    //Handles the redirect back to checkout page with amazonSessionKey in url
                                     if (
                                         paymentMethod.methodIdentifier === 'amazonpay'
                                         && url.searchParams.has(amazonSessionKey)
                                     ) {
-                                        configuration = {
+                                        const amazonPayComponent = self.checkoutComponent.create('amazonpay', {
                                             amazonCheckoutSessionId: url.searchParams.get(amazonSessionKey),
                                             showOrderButton: false,
                                             amount: {
@@ -431,18 +438,12 @@ define(
                                             },
                                             returnUrl: location.href,
                                             showChangePaymentDetailsButton: false
-                                        }
-                                        const component = self.checkoutComponent.create(
-                                            paymentMethod.methodIdentifier, configuration);
-                                        const containerId = '#adyen-alternative-payment-container-' +
-                                            paymentMethod.methodIdentifier;
-                                        component.mount(containerId).submit();
+                                        }).mount(containerId);
+                                        amazonPayComponent.submit();
+                                        result.component = amazonPayComponent;
                                     } else {
                                         const component = self.checkoutComponent.create(
                                             paymentMethod.methodIdentifier, configuration);
-                                        const containerId = '#adyen-alternative-payment-container-' +
-                                            paymentMethod.methodIdentifier;
-
                                         if ('isAvailable' in component) {
                                             component.isAvailable().then(() => {
                                                 component.mount(containerId);
@@ -452,11 +453,13 @@ define(
                                         } else {
                                             component.mount(containerId);
                                         }
+                                        result.component = component;
                                     }
-                                    result.component = component;
                                 } catch (err) {
                                     // The component does not exist yet
-                                    console.log(err);
+                                    if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
+                                        console.log(err);
+                                    }
                                 }
                             },
                             placeOrder: function() {
@@ -484,7 +487,7 @@ define(
                                                 paymentMethod: {
                                                     type: paymentMethod.methodGroup,
                                                     brand: paymentMethod.methodIdentifier
-                                                },
+                                                }
                                             };
                                         }
 
@@ -533,6 +536,9 @@ define(
                         self.currentMessageContainer),
                 ).fail(
                     function(response) {
+                        if (component.props.methodIdentifier == 'amazonpay') {
+                            component.handleDeclineFlow();
+                        }
                         self.isPlaceOrderActionAllowed(true);
                         fullScreenLoader.stopLoader();
                         self.showErrorMessage(response);
@@ -767,10 +773,8 @@ define(
             validate: function() {
                 var form = '#payment_form_' + this.getCode() + '_' +
                     selectedAlternativePaymentMethodType();
-
                 var validate = $(form).validation() &&
                     $(form).validation('isValid');
-
                 return validate && additionalValidators.validate();
             },
             isButtonActive: function() {

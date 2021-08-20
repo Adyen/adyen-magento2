@@ -11,7 +11,13 @@ var config = {
                 'Adyen_Payment/js/view/checkout/summary/grand-total-mixin': true
             },
             'Magento_Checkout/js/action/set-shipping-information': {
-                'Adyen_Payment/js/model/set-shipping-information-mixin': true
+              'Adyen_Payment/js/model/set-shipping-information-mixin': true
+            },
+            'Magento_Multishipping/js/payment': {
+                'Adyen_Payment/js/view/checkout/multishipping/payment-mixin': true
+             },
+            'Magento_CheckoutAgreements/js/model/agreements-assigner': {
+                'Adyen_Payment/js/view/checkout/summary/agreements-assigner-mixin': true
             }
         }
     }

@@ -23,9 +23,11 @@
 
 namespace Adyen\Payment\Controller\Process;
 
+use Adyen\Payment\Helper\StateData;
 use \Adyen\Payment\Model\Notification;
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Framework\App\Request\Http as Http;
+use Magento\Sales\Model\Order;
 
 class Result extends \Magento\Framework\App\Action\Action
 {
@@ -102,6 +104,11 @@ class Result extends \Magento\Framework\App\Action\Action
     private $orderResourceModel;
 
     /**
+     * @var StateData
+     */
+    private $stateDataHelper;
+
+    /**
      * Result constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -123,7 +130,8 @@ class Result extends \Magento\Framework\App\Action\Action
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Adyen\Payment\Helper\Quote $quoteHelper,
         \Adyen\Payment\Helper\Vault $vaultHelper,
-        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
+        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
+        StateData $stateDataHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
@@ -134,6 +142,7 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->quoteHelper = $quoteHelper;
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
+        $this->stateDataHelper = $stateDataHelper;
         parent::__construct($context);
     }
 
@@ -142,33 +151,44 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-        // GET and POST params together
+        // Receive all params as this could be a GET or POST request
         $response = $this->getRequest()->getParams();
-        $this->_adyenLogger->addAdyenResult(print_r($response, true));
+        $this->_adyenLogger->addAdyenResult(json_encode($response));
 
         if ($response) {
             $result = $this->validateResponse($response);
 
-            if ($result) {
-                $session = $this->_session;
-                $session->getQuote()->setIsActive(false)->save();
-                $this->_redirect('checkout/onepage/success', ['_query' => ['utm_nooverride' => '1']]);
+            // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
+            if (
+                !empty($response['merchantReference']) &&
+                $this->quoteHelper->getIsQuoteMultiShippingWithMerchantReference($response['merchantReference'])
+            ) {
+                $successPath = $failPath = 'multishipping/checkout/success';
+                $setQuoteAsActive = true;
             } else {
-                $this->_adyenLogger->addAdyenResult(
-                    sprintf(
-                        'Payment for order %s was unsuccessful, ' .
-                        'it will be cancelled when the OFFER_CLOSED notification has been processed.',
-                        $this->_order->getIncrementId()
-                    )
-                );
-                $this->replaceCart($response);
-                $failReturnPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
-                $this->_redirect($failReturnPath);
+                $successPath = 'checkout/onepage/success';
+                $failPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
+                $setQuoteAsActive = false;
             }
         } else {
-            // redirect to checkout page
-            $failReturnPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
-            $this->_redirect($failReturnPath);
+            $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
+        }
+
+        if ($result) {
+            $session = $this->_session;
+            $session->getQuote()->setIsActive($setQuoteAsActive)->save();
+            $this->_redirect($successPath, ['_query' => ['utm_nooverride' => '1']]);
+
+        } else {
+            $this->_adyenLogger->addAdyenResult(
+                sprintf(
+                    'Payment for order %s was unsuccessful, ' .
+                    'it will be cancelled when the OFFER_CLOSED notification has been processed.',
+                    $this->_order->getIncrementId()
+                )
+            );
+            $this->replaceCart($response);
+            $this->_redirect($failPath, ['_query' => ['utm_nooverride' => '1']]);
         }
     }
 
@@ -255,7 +275,7 @@ class Result extends \Magento\Framework\App\Action\Action
     }
 
     /**
-     * @param $order
+     * @param Order $order
      * @param $response
      * @return bool
      */
@@ -290,6 +310,11 @@ class Result extends \Magento\Framework\App\Action\Action
 
         // needed because then we need to save $order objects
         $order->setAdyenResulturlEventCode($authResult);
+
+        // Update the payment additional information with the new result code
+        $orderPayment = $order->getPayment();
+        $orderPayment->setAdditionalInformation('resultCode', $authResult);
+        $this->orderResourceModel->save($order);
 
         switch (strtoupper($authResult)) {
             case Notification::AUTHORISED:
@@ -345,6 +370,14 @@ class Result extends \Magento\Framework\App\Action\Action
             ->setOrder($order);
 
         $history->save();
+
+        // Cleanup state data
+        try {
+            $this->stateDataHelper->CleanQuoteStateData($order->getQuoteId(), $authResult);
+        } catch (\Exception $exception) {
+            $this->_adyenLogger->addError(__('Error cleaning the payment state data: %s', $exception->getMessage()));
+        }
+
 
         return $result;
     }

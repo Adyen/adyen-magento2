@@ -1393,7 +1393,7 @@ class Data extends AbstractHelper
         $client->setXApiKey($apiKey);
         $moduleVersion = $this->getModuleVersion();
 
-        $client->setAdyenPaymentSource($this->getModuleName(), $moduleVersion);
+        $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
         if ($this->isDemoMode($storeId)) {
             $client->setEnvironment(\Adyen\Environment::TEST);
@@ -1684,17 +1684,6 @@ class Data extends AbstractHelper
     public function isHppVaultEnabled($storeId = null)
     {
         return $this->getAdyenHppVaultConfigDataFlag('active', $storeId);
-    }
-
-    /**
-     * Check if 3DS2.0 is enabled for credit cards
-     *
-     * @param null|int|string $storeId
-     * @return mixed
-     */
-    public function isCreditCardThreeDS2Enabled($storeId = null)
-    {
-        return $this->getAdyenCcConfigDataFlag('threeds2_enabled', $storeId);
     }
 
     /**

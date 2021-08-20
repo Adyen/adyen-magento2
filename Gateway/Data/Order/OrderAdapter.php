@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -16,22 +15,38 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
 
-    <module name="Adyen_Payment" setup_version="7.1.1">
-        <sequence>
-            <module name="Magento_Sales"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Checkout"/>
-            <module name="Magento_Paypal"/>
-            <module name="Magento_AdminNotification"/>
-            <module name="Magento_Vault"/>
-        </sequence>
-    </module>
-</config>
+namespace Adyen\Payment\Gateway\Data\Order;
+
+use Magento\Payment\Gateway\Data\Order\AddressAdapterFactory;
+use Magento\Sales\Model\Order;
+
+class OrderAdapter extends \Magento\Payment\Gateway\Data\Order\OrderAdapter
+{
+    /**
+     * @var Order
+     */
+    private $order;
+
+    /**
+     * @param Order $order
+     * @param AddressAdapterFactory $addressAdapterFactory
+     */
+    public function __construct(
+        Order $order,
+        AddressAdapterFactory $addressAdapterFactory
+    ) {
+        $this->order = $order;
+        parent::__construct($order, $addressAdapterFactory);
+    }
+
+    public function getQuoteId()
+    {
+        return $this->order->getQuoteId();
+    }
+}
