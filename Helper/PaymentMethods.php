@@ -456,24 +456,5 @@ class PaymentMethods extends AbstractHelper
 
         return $paymentMethodsExtraDetails;
     }
-
-    /**
-     * Checks if a payment is wallet payment method
-     * @param $notificationPaymentMethod
-     * @return bool
-     */
-    public function isWalletPaymentMethod($notificationPaymentMethod): bool
-    {
-        $walletPaymentMethods = [
-            'googlepay',
-            'paywithgoogle',
-            'wechatpayWeb',
-            'amazonpay',
-            'applepay',
-            'wechatpayQR',
-            'alipay',
-            'alipay_hk'
-        ];
-        return in_array($notificationPaymentMethod, $walletPaymentMethods);
-    }
 }
+
