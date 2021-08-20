@@ -1184,8 +1184,7 @@ class Cron
                  */
                 if (strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
-                        "Order is not a credit card, wallet payment method
-                    or the payment method in the notification does not match the payment method of the order,
+                        "Notification does not match the payment method of the order,
                     skipping OFFER_CLOSED"
                     );
                     break;
