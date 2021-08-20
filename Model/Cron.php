@@ -1462,11 +1462,14 @@ class Cron
         }
 
         /*
-         * Don't create a credit memo if refund is initialize in Magento
-         * because in this case the credit memo already exists
+         * Don't create a credit memo if refund is initialized in Magento
+         * because in this case the credit memo already exists.
+         * Refunds initialized in Magento have a suffix such as '-refund', '-capture' or '-capture-refund' appended
+         * to the original reference.
          */
         $lastTransactionId = $this->_order->getPayment()->getLastTransId();
-        if ($this->_adyenHelper->getPspReferenceWithNoAdditions($lastTransactionId) != $this->_originalReference) {
+        $matches = $this->_adyenHelper->parseTransactionId($lastTransactionId);
+        if (($matches['pspReference'] ?? '') == $this->_originalReference && empty($matches['suffix'])) {
             // refund is done through adyen backoffice so create a credit memo
             $order = $this->_order;
             if ($order->canCreditmemo()) {
