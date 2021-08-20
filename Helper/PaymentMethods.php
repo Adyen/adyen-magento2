@@ -457,4 +457,3 @@ class PaymentMethods extends AbstractHelper
         return $paymentMethodsExtraDetails;
     }
 }
-
