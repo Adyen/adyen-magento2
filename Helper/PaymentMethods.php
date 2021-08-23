@@ -172,14 +172,14 @@ class PaymentMethods extends AbstractHelper
         $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData('merchant_account', $store->getId());
 
         if (!$merchantAccount) {
-            return [];
+            return json_encode([]);
         }
 
         $paymentMethodRequest = $this->getPaymentMethodsRequest($merchantAccount, $store, $country, $quote);
         $responseData = $this->getPaymentMethodsResponse($paymentMethodRequest, $store);
 
         if (empty($responseData['paymentMethods'])) {
-            return [];
+            return json_encode([]);
         }
 
         $paymentMethods = $responseData['paymentMethods'];
@@ -455,5 +455,25 @@ class PaymentMethods extends AbstractHelper
         }
 
         return $paymentMethodsExtraDetails;
+    }
+
+    /**
+     * Checks if a payment is wallet payment method
+     * @param $notificationPaymentMethod
+     * @return bool
+     */
+    public function isWalletPaymentMethod($notificationPaymentMethod): bool
+    {
+        $walletPaymentMethods = [
+            'googlepay',
+            'paywithgoogle',
+            'wechatpayWeb',
+            'amazonpay',
+            'applepay',
+            'wechatpayQR',
+            'alipay',
+            'alipay_hk'
+        ];
+        return in_array($notificationPaymentMethod, $walletPaymentMethods);
     }
 }

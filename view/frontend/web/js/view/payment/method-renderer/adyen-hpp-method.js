@@ -35,7 +35,7 @@ define(
         'Magento_Ui/js/model/messages',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/bundle',
-        'Adyen_Payment/js/model/adyen-configuration',
+        'Adyen_Payment/js/model/adyen-configuration'
     ],
     function(
         ko,
@@ -52,7 +52,7 @@ define(
         Messages,
         errorProcessor,
         AdyenComponent,
-        adyenConfiguration,
+        adyenConfiguration
     ) {
         'use strict';
 
@@ -66,6 +66,7 @@ define(
         var popupModal;
         var selectedAlternativePaymentMethodType = ko.observable(null);
         var paymentMethod = ko.observable(null);
+        const amazonSessionKey = 'amazonCheckoutSessionId';
 
         return Component.extend({
             self: this,
@@ -150,6 +151,7 @@ define(
                     'paypal',
                     'applepay',
                     'paywithgoogle',
+                    'amazonpay'
                 ];
 
                 var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
@@ -191,8 +193,8 @@ define(
                             paymentMethod: paymentMethod,
                             method: self.item.method,
                             item: {
-                                "title": paymentMethod.name,
-                                "method": paymentMethod.methodIdentifier
+                                'title': paymentMethod.name,
+                                'method': paymentMethod.methodIdentifier
                             },
                             /**
                              * Observable to enable and disable place order buttons for payment methods
@@ -243,10 +245,6 @@ define(
                                     showPayButton = true;
                                 }
 
-                                var city = '';
-                                var country = '';
-                                var postalCode = '';
-                                var street = '';
                                 var firstName = '';
                                 var lastName = '';
                                 var telephone = '';
@@ -254,26 +252,74 @@ define(
                                 var shopperGender = '';
                                 var shopperDateOfBirth = '';
 
-                                if (!!quote && !!quote.shippingAddress()) {
-                                    city = quote.shippingAddress().city;
-                                    country = quote.shippingAddress().countryId;
-                                    postalCode = quote.shippingAddress().postcode;
-                                    street = Array.isArray(quote.shippingAddress().street) ?
-                                        quote.shippingAddress().street.join(' ') :
-                                        quote.shippingAddress().street
+                                if (!!customerData.email) {
+                                    email = customerData.email;
+                                } else if (!!quote.guestEmail) {
+                                    email = quote.guestEmail;
+                                }
 
-                                    firstName = quote.shippingAddress().firstname;
-                                    lastName = quote.shippingAddress().lastname;
-                                    telephone = quote.shippingAddress().telephone;
+                                shopperGender = customerData.gender;
+                                shopperDateOfBirth = customerData.dob;
 
-                                    if (!!customerData.email) {
-                                        email = customerData.email;
-                                    } else if (!!quote.guestEmail) {
-                                        email = quote.guestEmail;
+                                var formattedShippingAddress = {};
+                                var formattedBillingAddress = {};
+
+                                if (!!quote.shippingAddress()) {
+                                    formattedShippingAddress = getFormattedAddress(quote.shippingAddress());
+                                }
+
+                                if (!!quote.billingAddress()) {
+                                    formattedBillingAddress = getFormattedAddress(quote.billingAddress());
+                                }
+
+                                /**
+                                 * @param address
+                                 * @returns {{country: (string|*), firstName: (string|*), lastName: (string|*), city: (*|string), street: *, postalCode: (*|string), houseNumber: string, telephone: (string|*)}}
+                                 */
+                                function getFormattedAddress(address) {
+                                    let city = '';
+                                    let country = '';
+                                    let postalCode = '';
+                                    let street = '';
+                                    let houseNumber = '';
+
+                                    city = address.city;
+                                    country = address.countryId;
+                                    postalCode = address.postcode;
+
+                                    street = address.street.slice(0);
+
+                                    // address contains line items as an array, otherwise if string just pass along as is
+                                    if (Array.isArray(street)) {
+                                        // getHouseNumberStreetLine > 0 implies the street line that is used to gather house number
+                                        if (adyenConfiguration.getHouseNumberStreetLine() > 0) {
+                                            // removes the street line from array that is used to contain house number
+                                            houseNumber = street.splice(adyenConfiguration.getHouseNumberStreetLine() - 1, 1);
+                                        } else { // getHouseNumberStreetLine = 0 uses the last street line as house number
+                                            // in case there is more than 1 street lines in use, removes last street line from array that should be used to contain house number
+                                            if (street.length > 1) {
+                                                houseNumber = street.pop();
+                                            }
+                                        }
+
+                                        // Concat street lines except house number
+                                        street = street.join(' ');
                                     }
 
-                                    shopperGender = customerData.gender;
-                                    shopperDateOfBirth = customerData.dob;
+                                    firstName = address.firstname;
+                                    lastName = address.lastname;
+                                    telephone = address.telephone;
+
+                                    return {
+                                        city: city,
+                                        country: country,
+                                        postalCode: postalCode,
+                                        street: street,
+                                        houseNumber: houseNumber,
+                                        firstName: firstName,
+                                        lastName: lastName,
+                                        telephone: telephone
+                                    };
                                 }
 
                                 function getAdyenGender(gender) {
@@ -290,26 +336,26 @@ define(
                                 var configuration = Object.assign(paymentMethod,
                                     {
                                         showPayButton: showPayButton,
-                                        countryCode: country,
+                                        countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
                                         hasHolderName: adyenConfiguration.getHasHolderName(),
                                         holderNameRequired: adyenConfiguration.getHasHolderName() &&
                                             adyenConfiguration.getHolderNameRequired(),
                                         data: {
                                             personalDetails: {
-                                                firstName: firstName,
-                                                lastName: lastName,
-                                                telephoneNumber: telephone,
+                                                firstName: formattedBillingAddress.firstName,
+                                                lastName: formattedBillingAddress.lastName,
+                                                telephoneNumber: formattedBillingAddress.telephone,
                                                 shopperEmail: email,
                                                 gender: getAdyenGender(
                                                     shopperGender),
                                                 dateOfBirth: shopperDateOfBirth,
                                             },
                                             billingAddress: {
-                                                city: city,
-                                                country: country,
-                                                houseNumberOrName: '',
-                                                postalCode: postalCode,
-                                                street: street,
+                                                city: formattedBillingAddress.city,
+                                                country: formattedBillingAddress.country,
+                                                houseNumberOrName: formattedBillingAddress.houseNumber,
+                                                postalCode: formattedBillingAddress.postalCode,
+                                                street: formattedBillingAddress.street,
                                             },
                                         },
                                         onChange: function(state) {
@@ -331,6 +377,16 @@ define(
                                         },
                                     });
 
+                                if (formattedShippingAddress) {
+                                    configuration.data.shippingAddress = {
+                                        city: formattedShippingAddress.city,
+                                        country: formattedShippingAddress.country,
+                                        houseNumberOrName: formattedShippingAddress.houseNumber,
+                                        postalCode: formattedShippingAddress.postalCode,
+                                        street: formattedShippingAddress.street
+                                    };
+                                }
+
                                 // Use extra configuration from the paymentMethodsExtraInfo object if available
                                 if (paymentMethod.methodIdentifier in paymentMethodsExtraInfo && 'configuration' in paymentMethodsExtraInfo[paymentMethod.methodIdentifier]) {
                                     configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
@@ -343,28 +399,67 @@ define(
                                         configuration.totalPriceLabel = configuration.configuration.merchantName;
                                     }
                                 }
+                                // Extra amazon pay configuration first call to amazon page
+                                if (paymentMethod.methodIdentifier.includes('amazonpay')) {
+                                    configuration.productType = 'PayAndShip';
+                                    configuration.checkoutMode = 'ProcessOrder';
+                                    configuration.returnUrl = location.href;
 
+                                    if (formattedShippingAddress &&
+                                        formattedShippingAddress.telephone) {
+                                        configuration.addressDetails = {
+                                            name: formattedShippingAddress.firstName +
+                                                ' ' +
+                                                formattedShippingAddress.lastName,
+                                            addressLine1: formattedShippingAddress.street,
+                                            addressLine2: formattedShippingAddress.houseNumber,
+                                            city: formattedShippingAddress.city,
+                                            postalCode: formattedShippingAddress.postalCode,
+                                            countryCode: formattedShippingAddress.country,
+                                            phoneNumber: formattedShippingAddress.telephone
+                                        };
+                                    }
+                                }
                                 try {
-                                    const component = self.checkoutComponent.create(
-                                        paymentMethod.methodIdentifier, configuration);
                                     const containerId = '#adyen-alternative-payment-container-' +
                                         paymentMethod.methodIdentifier;
-
-                                    if ('isAvailable' in component) {
-                                        component.isAvailable().then(() => {
-                                            component.mount(containerId);
-                                        }).catch(e => {
-                                            result.isAvailable(false);
-                                        });
+                                    var url = new URL(location.href);
+                                    //Handles the redirect back to checkout page with amazonSessionKey in url
+                                    if (
+                                        paymentMethod.methodIdentifier === 'amazonpay'
+                                        && url.searchParams.has(amazonSessionKey)
+                                    ) {
+                                        const amazonPayComponent = self.checkoutComponent.create('amazonpay', {
+                                            amazonCheckoutSessionId: url.searchParams.get(amazonSessionKey),
+                                            showOrderButton: false,
+                                            amount: {
+                                                currency: configuration.amount.currency,
+                                                value: configuration.amount.value
+                                            },
+                                            returnUrl: location.href,
+                                            showChangePaymentDetailsButton: false
+                                        }).mount(containerId);
+                                        amazonPayComponent.submit();
+                                        result.component = amazonPayComponent;
                                     } else {
-                                        component.mount(containerId);
+                                        const component = self.checkoutComponent.create(
+                                            paymentMethod.methodIdentifier, configuration);
+                                        if ('isAvailable' in component) {
+                                            component.isAvailable().then(() => {
+                                                component.mount(containerId);
+                                            }).catch(e => {
+                                                result.isAvailable(false);
+                                            });
+                                        } else {
+                                            component.mount(containerId);
+                                        }
+                                        result.component = component;
                                     }
-
-                                    result.component = component;
-
                                 } catch (err) {
                                     // The component does not exist yet
-                                    console.log(err);
+                                    if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
+                                        console.log(err);
+                                    }
                                 }
                             },
                             placeOrder: function() {
@@ -392,7 +487,7 @@ define(
                                                 paymentMethod: {
                                                     type: paymentMethod.methodGroup,
                                                     brand: paymentMethod.methodIdentifier
-                                                },
+                                                }
                                             };
                                         }
 
@@ -441,6 +536,9 @@ define(
                         self.currentMessageContainer),
                 ).fail(
                     function(response) {
+                        if (component.props.methodIdentifier == 'amazonpay') {
+                            component.handleDeclineFlow();
+                        }
                         self.isPlaceOrderActionAllowed(true);
                         fullScreenLoader.stopLoader();
                         self.showErrorMessage(response);
@@ -551,7 +649,6 @@ define(
             renderActionComponent: function(resultCode, action, component) {
                 var self = this;
                 var actionNode = document.getElementById('ActionContainer');
-
                 fullScreenLoader.stopLoader();
 
                 self.popupModal = $('#ActionModal').modal({
@@ -572,9 +669,8 @@ define(
                     if (resultCode !== 'RedirectShopper') {
                         self.popupModal.modal('openModal');
                     }
-
                     self.actionComponent = self.checkoutComponent.createFromAction(action).
-                        mount(actionNode);
+                    mount(actionNode);
                 }
             },
             handleOnSubmit: function(state, component) {
@@ -677,10 +773,8 @@ define(
             validate: function() {
                 var form = '#payment_form_' + this.getCode() + '_' +
                     selectedAlternativePaymentMethodType();
-
                 var validate = $(form).validation() &&
                     $(form).validation('isValid');
-
                 return validate && additionalValidators.validate();
             },
             isButtonActive: function() {

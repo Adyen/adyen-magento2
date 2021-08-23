@@ -38,6 +38,7 @@ class Config
     const XML_CHARGED_CURRENCY = "charged_currency";
     const XML_HAS_HOLDER_NAME = "has_holder_name";
     const XML_HOLDER_NAME_REQUIRED = "holder_name_required";
+    const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
 
     /**
      * @var Magento\Framework\App\Config\ScopeConfigInterface
@@ -177,6 +178,18 @@ class Config
     {
         return $this->adyenHelper->getAdyenAbstractConfigDataFlag(self::XML_HAS_HOLDER_NAME, $storeId);
     }
+
+    /**
+     * Retrieve house_number_street_line config
+     *
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function getHouseNumberStreetLine($storeId = null)
+    {
+        return $this->adyenHelper->getAdyenAbstractConfigDataFlag(self::XML_HOUSE_NUMBER_STREET_LINE, $storeId);
+    }
+
 
     /**
      * Retrieve holder_name_required config

@@ -160,7 +160,8 @@ class PaymentResponseHandler
             case self::PRESENT_TO_SHOPPER:
             case self::PENDING:
             case self::RECEIVED:
-
+            case self::IDENTIFY_SHOPPER:
+            case self::CHALLENGE_SHOPPER:
                 break;
             //We don't need to handle these resultCodes
             case self::REDIRECT_SHOPPER:
@@ -175,7 +176,8 @@ class PaymentResponseHandler
                         The payment can be seen as unsuccessful.
                         <br />The order can be automatically cancelled based on the OFFER_CLOSED notification.
                         Please contact Adyen Support to enable this.'
-                        )
+                        ),
+                        $order->getStatus()
                     )->save();
                 }
                 break;
@@ -199,8 +201,6 @@ class PaymentResponseHandler
                     }
                 }
                 $this->orderResourceModel->save($order);
-            case self::IDENTIFY_SHOPPER:
-            case self::CHALLENGE_SHOPPER:
                 break;
             case self::REFUSED:
                 // Cancel order in case result is refused
@@ -217,12 +217,13 @@ class PaymentResponseHandler
                         $this->adyenLogger->addAdyenDebug('Order can not be canceled');
                     }
                 }
+                break;
             case self::ERROR:
             default:
                 $this->adyenLogger->error(
                     sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s",
                             $paymentsResponse['resultCode'],
-                            print_r($paymentsResponse, true)
+                            json_encode($paymentsResponse)
                     ));
 
                 return false;

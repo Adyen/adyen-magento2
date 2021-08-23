@@ -292,6 +292,11 @@ class Cron
     private $chargedCurrency;
 
     /**
+     * @var \Adyen\Payment\Helper\PaymentMethods
+     */
+    protected $paymentMethodsHelper;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -323,6 +328,7 @@ class Cron
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      * @param EncryptorInterface $encryptor
      * @param ChargedCurrency $chargedCurrency
+     * @param \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -353,7 +359,8 @@ class Cron
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
         EncryptorInterface $encryptor,
-        ChargedCurrency $chargedCurrency
+        ChargedCurrency $chargedCurrency,
+        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -384,6 +391,7 @@ class Cron
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->encryptor = $encryptor;
         $this->chargedCurrency = $chargedCurrency;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -511,7 +519,7 @@ class Cron
                 }
 
                 // log the executed notification
-                $this->_adyenLogger->addAdyenNotificationCronjob(print_r($notification->debug(), 1));
+                $this->_adyenLogger->addAdyenNotificationCronjob(json_encode($notification->debug()));
 
                 // get order
                 $incrementId = $notification->getMerchantReference();
@@ -880,7 +888,7 @@ class Cron
             return;
         }
 
-        $this->_order->addStatusHistoryComment($comment);
+        $this->_order->addStatusHistoryComment($comment, $this->_order->getStatus());
         $this->_adyenLogger->addAdyenNotificationCronjob('Created comment history for this notification');
     }
 
@@ -1082,8 +1090,6 @@ class Cron
                 );
                 if ($ignoreRefundNotification != true) {
                     $this->_refundOrder();
-                    //refund completed
-                    $this->_setRefundAuthorized();
                 } else {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         'Setting to ignore refund notification is enabled so ignore this notification'
@@ -1167,11 +1173,10 @@ class Cron
                     );
                     break;
                 }
-
                 /*
-                 * For cards, it can be 'visa', 'maestro',...
-                 * For alternatives, it can be 'ideal', 'directEbanking',...
-                 */
+                * For cards, it can be 'visa', 'maestro',...
+                * For alternatives, it can be 'ideal', 'directEbanking',...
+                */
                 $notificationPaymentMethod = $this->_paymentMethod;
 
                 /*
@@ -1180,25 +1185,22 @@ class Cron
                 */
                 $orderPaymentMethod = $this->_order->getPayment()->getCcType();
 
-                $isOrderCc = strcmp(
-                        $this->_paymentMethodCode(),
-                        'adyen_cc'
-                    ) == 0 || strcmp($this->_paymentMethodCode(), 'adyen_oneclick') == 0;
-
                 /*
-                 * If the order was made with an Alternative payment method,
-                 * continue with the cancellation only if the payment method of
-                 * the notification matches the payment method of the order.
+                 * Returns if the payment method is wallet like wechatpayWeb, amazonpay, applepay, paywithgoogle
                  */
-                if (!$isOrderCc && strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
+                $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($orderPaymentMethod);
+                /*
+                * If the order was made with an Alternative payment method,
+                *  continue with the cancellation only if the payment method of
+                * the notification matches the payment method of the order.
+                */
+                if ( !$isWalletPaymentMethod && strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
-                        "Order is not a credit card,
-                    or the payment method in the notification does not match the payment method of the order,
+                        "The notification does not match the payment method of the order,
                     skipping OFFER_CLOSED"
                     );
                     break;
                 }
-
                 if (!$this->_order->canCancel() && $this->configHelper->getNotificationsCanCancel(
                         $this->_order->getStoreId()
                     )) {
@@ -1218,8 +1220,6 @@ class Cron
                         $this->_holdCancelOrder(true);
                     } elseif ($this->_modificationResult == "refund") {
                         $this->_refundOrder();
-                        //refund completed
-                        $this->_setRefundAuthorized();
                     }
                 } else {
                     if ($this->_order->isCanceled() ||
@@ -1236,8 +1236,6 @@ class Cron
                             $this->_adyenLogger->addAdyenNotificationCronjob('try to refund the order');
                             // refund
                             $this->_refundOrder();
-                            //refund completed
-                            $this->_setRefundAuthorized();
                         }
                     }
                 }
@@ -1283,7 +1281,7 @@ class Cron
                         }
 
                         if ($contractDetail == null) {
-                            $this->_adyenLogger->addAdyenNotificationCronjob(print_r($listRecurringContracts, 1));
+                            $this->_adyenLogger->addAdyenNotificationCronjob(json_encode($listRecurringContracts));
                             $message = __(
                                 'Failed to create billing agreement for this order ' .
                                 '(listRecurringCall did not contain contract)'
@@ -1359,7 +1357,7 @@ class Cron
                     }
 
                     $this->_adyenLogger->addAdyenNotificationCronjob($message);
-                    $comment = $this->_order->addStatusHistoryComment($message);
+                    $comment = $this->_order->addStatusHistoryComment($message, $this->_order->getStatus());
                     $this->_order->addRelatedObject($comment);
                 }
                 //store recurring contract for alternative payments methods
@@ -1468,11 +1466,14 @@ class Cron
         }
 
         /*
-         * Don't create a credit memo if refund is initialize in Magento
-         * because in this case the credit memo already exists
+         * Don't create a credit memo if refund is initialized in Magento
+         * because in this case the credit memo already exists.
+         * Refunds initialized in Magento have a suffix such as '-refund', '-capture' or '-capture-refund' appended
+         * to the original reference.
          */
         $lastTransactionId = $this->_order->getPayment()->getLastTransId();
-        if ($this->_adyenHelper->getPspReferenceWithNoAdditions($lastTransactionId) != $this->_originalReference) {
+        $matches = $this->_adyenHelper->parseTransactionId($lastTransactionId);
+        if (($matches['pspReference'] ?? '') == $this->_originalReference && empty($matches['suffix'])) {
             // refund is done through adyen backoffice so create a credit memo
             $order = $this->_order;
             if ($order->canCreditmemo()) {
@@ -1480,6 +1481,7 @@ class Cron
                 $order->getPayment()->registerRefundNotification($amount);
 
                 $this->_adyenLogger->addAdyenNotificationCronjob('Created credit memo for order');
+                $order->addStatusHistoryComment(__('Adyen Refund Successfully completed'), $order->getStatus());
             } else {
                 $this->_adyenLogger->addAdyenNotificationCronjob('Could not create a credit memo for order');
             }
@@ -1488,17 +1490,6 @@ class Cron
                 'Did not create a credit memo for this order because refund is done through Magento'
             );
         }
-    }
-
-    /**
-     * @param $order
-     */
-    protected function _setRefundAuthorized()
-    {
-        $this->_adyenLogger->addAdyenNotificationCronjob(
-            'Status update to default status or refund_authorized status if this is set'
-        );
-        $this->_order->addStatusHistoryComment(__('Adyen Refund Successfully completed'));
     }
 
     /**
@@ -1620,7 +1611,7 @@ class Cron
 
         //capture mode
         if (!$this->_isAutoCapture()) {
-            $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'));
+            $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'), $this->_order->getStatus());
             $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode is set to Manual');
 
             // show message if order is in manual review
@@ -2255,7 +2246,7 @@ class Cron
     {
         $comment = __('The order failed to update: %1', $errorMessage);
         if ($this->_order) {
-            $this->_order->addStatusHistoryComment($comment);
+            $this->_order->addStatusHistoryComment($comment, $this->_order->getStatus());
             $this->_order->save();
         }
     }

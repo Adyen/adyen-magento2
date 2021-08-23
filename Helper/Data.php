@@ -34,10 +34,10 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
-    // Only used for backend orders! Checkout in front-end is using different checkout version see web folder
-    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
-    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
-    const PSP_REFERENCE_REGEX = '/[0-9.A-Z]{16}/';
+    // Only used for backend orders! Checkout in front-end is using different checkout version see web folder, will be removed in v8.0.0
+    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/4.5.0/adyen.js';
+    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/4.5.0/adyen.js';
+    const PSP_REFERENCE_REGEX = '/(?P<pspReference>[0-9.A-Z]{16})(?P<suffix>[a-z\-]*)/';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -1393,7 +1393,7 @@ class Data extends AbstractHelper
         $client->setXApiKey($apiKey);
         $moduleVersion = $this->getModuleVersion();
 
-        $client->setAdyenPaymentSource($this->getModuleName(), $moduleVersion);
+        $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
         if ($this->isDemoMode($storeId)) {
             $client->setEnvironment(\Adyen\Environment::TEST);
@@ -1606,7 +1606,7 @@ class Data extends AbstractHelper
                 $this->adyenLogger->error("exception: " . $message);
             }
 
-            $comment = $order->addStatusHistoryComment($message);
+            $comment = $order->addStatusHistoryComment($message, $order->getStatus());
 
             $order->addRelatedObject($comment);
             $order->save();
@@ -1684,17 +1684,6 @@ class Data extends AbstractHelper
     public function isHppVaultEnabled($storeId = null)
     {
         return $this->getAdyenHppVaultConfigDataFlag('active', $storeId);
-    }
-
-    /**
-     * Check if 3DS2.0 is enabled for credit cards
-     *
-     * @param null|int|string $storeId
-     * @return mixed
-     */
-    public function isCreditCardThreeDS2Enabled($storeId = null)
-    {
-        return $this->getAdyenCcConfigDataFlag('threeds2_enabled', $storeId);
     }
 
     /**
@@ -1799,23 +1788,22 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Get pspReference only if there are additional string attached
-     * @param $pspReference
+     * Parse transactionId to separate PSP reference from suffix.
+     * e.g 882629192021269E-capture => [882629192021269E, -capture]
+     *
+     * @param $transactionId
+     * @return mixed
      */
-    public function getPspReferenceWithNoAdditions($pspReference)
+    public function parseTransactionId($transactionId)
     {
-        if (empty($pspReference)) {
-            return '';
-        }
         preg_match(
             self::PSP_REFERENCE_REGEX,
-            trim($pspReference),
-            $match,
-            PREG_OFFSET_CAPTURE
+            trim((string)$transactionId),
+            $matches
         );
-        if (!empty($match[0])) {
-            return $match[0][0];
-        }
-        return $pspReference;
+
+        return array_filter($matches, function($index) {
+            return is_string($index);
+        }, ARRAY_FILTER_USE_KEY);
     }
 }
