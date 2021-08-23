@@ -536,6 +536,9 @@ define(
                         self.currentMessageContainer),
                 ).fail(
                     function(response) {
+                        if (component.props.methodIdentifier == 'amazonpay') {
+                            component.handleDeclineFlow();
+                        }
                         self.isPlaceOrderActionAllowed(true);
                         fullScreenLoader.stopLoader();
                         self.showErrorMessage(response);

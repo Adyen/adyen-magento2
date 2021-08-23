@@ -68,7 +68,7 @@ class PosCloudResponseValidator extends AbstractValidator
         $paymentDataObjectInterface = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($validationSubject);
         $payment = $paymentDataObjectInterface->getPayment();
 
-        $this->adyenLogger->addAdyenDebug(print_r($response, true));
+        $this->adyenLogger->addAdyenDebug(json_encode($response));
 
         // Check for errors
         if (!empty($response['error'])) {
