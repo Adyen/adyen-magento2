@@ -1184,13 +1184,17 @@ class Cron
                 * For alternatives, it can be 'ideal', 'directEbanking',...
                 */
                 $orderPaymentMethod = $this->_order->getPayment()->getCcType();
+
+                /*
+                 * Returns if the payment method is wallet like wechatpayWeb, amazonpay, applepay, paywithgoogle
+                 */
+                $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($orderPaymentMethod);
                 /*
                 * If the order was made with an Alternative payment method,
                 *  continue with the cancellation only if the payment method of
                 * the notification matches the payment method of the order.
                 */
-                if (strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0
-                    && !$this->paymentMethodsHelper->isWalletPaymentMethod($orderPaymentMethod)) {
+                if ( !$isWalletPaymentMethod && strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         "The notification does not match the payment method of the order,
                     skipping OFFER_CLOSED"
