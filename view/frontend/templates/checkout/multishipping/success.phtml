@@ -24,37 +24,36 @@
 
 /**
  * @var \Adyen\Payment\Block\Checkout\Multishipping\Success $block
- * @var \Magento\Framework\Escaper $escaper
- * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
+ * @var Magento\Csp\Api\InlineUtilInterface $csp
  */
 $paymentResponseEntities = $block->getPaymentResponseEntities();
 ?>
-<form action="<?= $escaper->escapeUrl($block->getContinueUrl()); ?>" method="post">
+<form action="<?= $block->escapeUrl($block->getContinueUrl()); ?>" method="post">
     <div class="multicheckout success">
-        <p><?= $escaper->escapeHtml(__('For successfully order items, you\'ll receive a confirmation email including ' .
+        <p><?= $block->escapeHtml(__('For successfully order items, you\'ll receive a confirmation email including ' .
                 'order numbers, tracking information and more details.')) ?></p>
         <?php if ($orderIds = $block->getOrderIds()) : ?>
-            <h3><?= $escaper->escapeHtml(__('Successfully ordered')) ?></h3>
+            <h3><?= $block->escapeHtml(__('Successfully ordered')) ?></h3>
             <div class="orders-succeed">
                 <ul class="orders-list">
                     <?php foreach ($orderIds as $orderId => $incrementId) : ?>
                         <li class="shipping-list">
                             <div class="order-id"><a
-                                        href="<?= $escaper->escapeUrl($block->getViewOrderUrl($orderId)); ?>">
-                                    <?= $escaper->escapeHtml($incrementId); ?></a>
+                                        href="<?= $block->escapeUrl($block->getViewOrderUrl($orderId)); ?>">
+                                    <?= $block->escapeHtml($incrementId); ?></a>
                             </div>
                             <?php $shippingAddress = $block->getCheckoutData()->getOrderShippingAddress($orderId); ?>
                             <div class="shipping-item">
                                 <?php if ($shippingAddress) : ?>
-                                    <span class="shipping-label"><?= $escaper->escapeHtml(__('Ship to:')); ?></span>
+                                    <span class="shipping-label"><?= $block->escapeHtml(__('Ship to:')); ?></span>
                                     <span class="shipping-address">
-                            <?= $escaper->escapeHtml(
+                            <?= $block->escapeHtml(
                                 $block->getCheckoutData()->formatOrderShippingAddress($shippingAddress)
                             ); ?>
                         </span>
                                 <?php else : ?>
                                     <span class="shipping-address">
-                                <?= $escaper->escapeHtml(__('No shipping required.')); ?>
+                                <?= $block->escapeHtml(__('No shipping required.')); ?>
                             </span>
                                 <?php endif; ?>
 
@@ -66,8 +65,8 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
                                                 class="adyen-finish-payment adyen-payment-finished"
                                             <?php else: ?>
                                                 class="adyen-finish-payment adyen-payment-unfinished"
-                                                data-order-id="<?= $escaper->escapeHtml($orderId); ?>"
-                                                data-adyen-response="<?= $escaper->escapeHtml(
+                                                data-order-id="<?= $block->escapeHtml($orderId); ?>"
+                                                data-adyen-response="<?= $block->escapeHtml(
                                                     $paymentResponseEntities[array_search(
                                                         $incrementId,
                                                         array_column(
@@ -77,7 +76,7 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
                                                     )]['response']
                                                 ); ?>"
                                             <?php endif; ?>
-                                        ><?= $escaper->escapeHtml($block->getPaymentButtonLabel($orderId)); ?></button>
+                                        ><?= $block->escapeHtml($block->getPaymentButtonLabel($orderId)); ?></button>
                                 <div class="adyen-component"></div>
                                 </span>
                                 <!-- End of Adyen custom 'Complete Payment' button -->
@@ -92,7 +91,7 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
         <div class="actions-toolbar" id="review-buttons-container">
             <div class="primary">
                 <button type="submit"
-                        class="action primary submit"><span><?= $escaper->escapeHtml(__('Continue Shopping')); ?></span>
+                        class="action primary submit"><span><?= $block->escapeHtml(__('Continue Shopping')); ?></span>
                 </button>
             </div>
         </div>
@@ -106,7 +105,7 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
 script;
     ?>
     <?= /* @noEscape */
-    $secureRenderer->renderTag('script', [], $scriptString, false) ?>
+    $csp->renderTag('script', [], $scriptString) ?>
     <script type="text/javascript">
         require([
             'jquery',
@@ -116,9 +115,9 @@ script;
             'Magento_Checkout/js/model/error-processor'
         ], function ($, adyenComponent, fullScreenLoader, adyenPaymentService, errorProcessor) {
             var checkoutComponent = new AdyenCheckout({
-                locale: '<?= $escaper->escapeHtml($block->getLocale()); ?>',
-                environment: '<?= $escaper->escapeHtml($block->getEnvironment()); ?>',
-                clientKey: '<?= $escaper->escapeHtml($block->getClientKey()); ?>',
+                locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
+                environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
+                clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>',
                 onAdditionalDetails: handleOnAdditionalDetails.bind(this),
             });
 
@@ -167,9 +166,9 @@ script;
                 debugger;
                 let buttonLabel;
                 if (!!response.isFinal && response.resultCode === 'Authorised') {
-                    buttonLabel = "<?= $escaper->escapeHtml($block->getPaymentCompletedLabel()) ?>";
+                    buttonLabel = "<?= $block->escapeHtml($block->getPaymentCompletedLabel()) ?>";
                 } else if (!!response.isFinal && response.resultCode === 'Refused') {
-                    buttonLabel = "<?= $escaper->escapeHtml($block->getPaymentFailedLabel()) ?>";
+                    buttonLabel = "<?= $block->escapeHtml($block->getPaymentFailedLabel()) ?>";
                 }
 
                 $(paymentSelected).attr('disabled', true)
