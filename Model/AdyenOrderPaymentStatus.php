@@ -82,7 +82,7 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
     {
         try {
             $order = $this->orderRepository->get($orderId);
-            // Validate shopper email against order email to prevent abuse
+            // Validate shopper email against order email for extra security.
             if ($shopperEmail !== $order->getCustomerEmail()) {
                 throw new NoSuchEntityException();
             }
