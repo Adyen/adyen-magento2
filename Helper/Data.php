@@ -536,6 +536,7 @@ class Data extends AbstractHelper
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
+     * @deprecated
      */
     public function getAdyenPayByMailConfigData($field, $storeId = null)
     {
@@ -548,6 +549,7 @@ class Data extends AbstractHelper
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
+     * @deprecated
      */
     public function getAdyenPayByMailConfigDataFlag($field, $storeId = null)
     {
@@ -596,6 +598,11 @@ class Data extends AbstractHelper
         return $secretWord;
     }
 
+    /**
+     * @param null $storeId
+     * @return string
+     * @deprecated
+     */
     public function getHmacPayByMail($storeId = null)
     {
         switch ($this->isDemoMode($storeId)) {
