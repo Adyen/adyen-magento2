@@ -1093,11 +1093,23 @@ class Cron
                 if (!$this->_isAutoCapture()) {
                     $this->_setPaymentAuthorized(false, true);
 
+                    //get the invoice and move it to paid
+
+
                     /*
                      * Add invoice in the adyen_invoice table
                      */
                     $invoiceCollection = $this->_order->getInvoiceCollection();
                     foreach ($invoiceCollection as $invoice) {
+                        $matches = $this->_adyenHelper->parseTransactionId($invoice->getTransactionId());
+                        if (($matches['pspReference'] ?? '') == $this->_originalReference) {
+                            $payment = $this->_order->getPayment();
+                            $this->_order->getPayment()->pay($invoice);
+                        }
+
+                        /*
+                         * Add invoice in the adyen_invoice table
+                         */
                         if ($invoice->getTransactionId() == $this->_pspReference) {
                             $this->_adyenInvoiceFactory->create()
                                 ->setInvoiceId($invoice->getEntityId())
@@ -1109,6 +1121,9 @@ class Cron
                                 'Created invoice entry in the Adyen table'
                             );
                         }
+                        //can we remove it
+                        //why do we looping
+
                     }
                 }
                 break;
