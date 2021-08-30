@@ -59,12 +59,12 @@ define(
                 this.paymentMethods(paymentMethods);
             },
             getOrderPaymentStatus: function(orderId) {
-                var serviceUrl = urlBuilder.createUrl(
-                    '/adyen/orders/:orderId/payment-status', {
-                        orderId: orderId,
-                    });
+                var serviceUrl = urlBuilder.createUrl('/adyen/orders/payment-status', {});
 
-                return storage.get(serviceUrl);
+                var payload = { orderId: orderId };
+                payload.shopperEmail = customer.isLoggedIn() ? customer.customerData.email : quote.guestEmail;
+
+                return storage.post(serviceUrl, JSON.stringify(payload));
             },
             /**
              * The results that the components returns in the onComplete callback needs to be sent to the

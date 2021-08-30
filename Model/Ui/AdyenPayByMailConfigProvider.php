@@ -27,6 +27,11 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Directory\Helper\Data;
 
+/**
+ * Class AdyenPayByMailConfigProvider
+ * @package Adyen\Payment\Model\Ui
+ * @deprecated
+ */
 class AdyenPayByMailConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'adyen_pay_by_mail';
