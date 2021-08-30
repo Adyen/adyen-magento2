@@ -1504,10 +1504,23 @@ class Cron
             $this->_order->setData('adyen_notification_event_code_success', 1);
         }
         $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
+        $this->createAdyenOrderPayment();
+        $isTotalAmountAuthorised = $this->_isTotalAmount(
+            $this->_order->getPayment()->getEntityId(),
+            $this->orderCurrency
+        );
 
-        // If manual review is active and a separate status is used then ignore the pre authorized status
+
+        // If manual review is NOT active OR no custom status is set on the Adyen config page
         if ($this->_fraudManualReview != true || $fraudManualReviewStatus == "") {
-            $this->_setPrePaymentAuthorized();
+            if ($isTotalAmountAuthorised) {
+                $this->_setPrePaymentAuthorized();
+            } else {
+                $this->_order->addStatusHistoryComment(__(sprintf(
+                    'Partial authorisation w/amount %s was processed',
+                    $this->_adyenHelper->originalAmount($this->_value, $this->_currency)
+                )), false);
+            }
         } else {
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 'Ignore the pre authorized status because the order is ' .
@@ -1515,8 +1528,9 @@ class Cron
             );
         }
 
-        $this->_prepareInvoice();
-        $_paymentCode = $this->_paymentMethodCode();
+        if ($isTotalAmountAuthorised) {
+            $this->_prepareInvoice();
+        }
 
         // for boleto confirmation mail is send on order creation
         if ($this->_paymentMethod != "adyen_boleto") {
@@ -1638,31 +1652,6 @@ class Cron
                 );
                 return;
             }
-        }
-
-        // validate if amount is total amount
-        $amount = $this->_adyenHelper->originalAmount($this->_value, $this->_currency);
-
-        try {
-            // add to order payment
-            $date = new \DateTime();
-            $this->_adyenOrderPaymentFactory->create()
-                ->setPspreference($this->_pspReference)
-                ->setMerchantReference($this->_merchantReference)
-                ->setPaymentId($paymentObj->getId())
-                ->setPaymentMethod($this->_paymentMethod)
-                ->setAmount($amount)
-                ->setTotalRefunded(0)
-                ->setCreatedAt($date)
-                ->setUpdatedAt($date)
-                ->save();
-        } catch (\Exception $e) {
-            $this->_adyenLogger->addError(
-                'While processing a notification an exception occured. The payment has already been saved in the ' .
-                'adyen_order_payment table but something went wrong later. Please check your logs for potential ' .
-                'error messages regarding the merchant reference (order id): "' . $this->_merchantReference .
-                '" and PSP reference: "' . $this->_pspReference . '"'
-            );
         }
 
         if ($this->_isTotalAmount($paymentObj->getEntityId(), $this->orderCurrency)) {
@@ -1891,23 +1880,26 @@ class Cron
     }
 
     /**
+     * Get all the entries in the adyen_order_payment and compare their total to the order grand total
+     *
      * @param int $paymentId
      * @param string $orderCurrencyCode
      * @return bool
      */
     protected function _isTotalAmount($paymentId, $orderCurrencyCode)
     {
+        $orderId = $this->_order->getId();
         $this->_adyenLogger->addAdyenNotificationCronjob(
-            'Validate if AUTHORISATION notification has the total amount of the order'
+            'Validate if after processing current AUTHORISATION notification, the full amount has been authorised'
         );
 
-        // get total amount of the order
-        $grandTotal = (int)$this->_adyenHelper->formatAmount(
+        // Get total amount of the order
+        $grandTotal = $this->_adyenHelper->formatAmount(
             $this->orderAmount,
             $this->orderCurrency
         );
 
-        // check if total amount of the order is authorised
+        // Get total amount currently authorised
         $res = $this->_adyenOrderPaymentCollectionFactory
             ->create()
             ->getTotalAmount($paymentId);
@@ -1917,22 +1909,30 @@ class Cron
             $formattedOrderAmount = $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode);
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 sprintf(
-                    'The grandtotal amount is %s and the total order amount that is authorised is: %s',
+                    'The grand total amount for order %s is %s and the currently authorised order amount is: %s',
+                    $orderId,
                     $grandTotal,
                     $formattedOrderAmount
                 )
             );
 
             if ($grandTotal == $formattedOrderAmount) {
-                $this->_adyenLogger->addAdyenNotificationCronjob('AUTHORISATION has the full amount');
+                $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
+                    'Order %s has been fully authorized',
+                    $orderId,
+                ));
+
                 return true;
             } else {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'This is a partial AUTHORISATION, the amount is ' . $this->_value
-                );
+                $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
+                    'This is a partial AUTHORISATION w/amount: %s. Full order amount: %s. Remaining amount: %s',
+                    $this->_value, $grandTotal, $this->orderAmount - $amount
+                ));
+
                 return false;
             }
         }
+
         return false;
     }
 
@@ -2248,6 +2248,39 @@ class Cron
         if ($this->_order) {
             $this->_order->addStatusHistoryComment($comment, $this->_order->getStatus());
             $this->_order->save();
+        }
+    }
+
+
+    /**
+     * Create an entry in the adyen_order_payment table
+     */
+    private function createAdyenOrderPayment()
+    {
+        $payment = $this->_order->getPayment();
+        // validate if amount is total amount
+        $amount = $this->_adyenHelper->originalAmount($this->_value, $this->_currency);
+
+        try {
+            // add to order payment
+            $date = new \DateTime();
+            $this->_adyenOrderPaymentFactory->create()
+                ->setPspreference($this->_pspReference)
+                ->setMerchantReference($this->_merchantReference)
+                ->setPaymentId($payment->getId())
+                ->setPaymentMethod($this->_paymentMethod)
+                ->setAmount($amount)
+                ->setTotalRefunded(0)
+                ->setCreatedAt($date)
+                ->setUpdatedAt($date)
+                ->save();
+        } catch (\Exception $e) {
+            $this->_adyenLogger->addError(
+                'While processing a notification an exception occured. The payment has already been saved in the ' .
+                'adyen_order_payment table but something went wrong later. Please check your logs for potential ' .
+                'error messages regarding the merchant reference (order id): "' . $this->_merchantReference .
+                '" and PSP reference: "' . $this->_pspReference . '"'
+            );
         }
     }
 }
