@@ -76,6 +76,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion673($setup);
         }
 
+        if (version_compare($context->getVersion(), '8.0.0', '<')) {
+            $this->updateSchemaVersion800($setup);
+        }
+
         $setup->endSetup();
     }
 
