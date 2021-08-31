@@ -425,6 +425,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'type' => Table::TYPE_TEXT,
             'nullable' => true,
             'comment' => 'Field to determine if and how order payment was captured',
+            'after' => Payment::TOTAL_REFUNDED
         ];
 
         $connection->addColumn(
