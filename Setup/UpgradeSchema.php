@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Setup;
 
+use Adyen\Payment\Model\Order\Payment;
 use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
@@ -69,6 +70,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         if (version_compare($context->getVersion(), '5.4.0', '<')) {
             $this->updateSchemaVersion540($setup);
+        }
+
+        if (version_compare($context->getVersion(), '6.7.3', '<')) {
+            $this->updateSchemaVersion673($setup);
         }
 
         $setup->endSetup();
@@ -400,6 +405,32 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $tableName,
             \Adyen\Payment\Model\Notification::ERROR_MESSAGE,
             $adyenNotificationErrorMessageColumn
+        );
+    }
+
+    /**
+     * Upgrade to 6.7.3
+     *
+     * New capture_status column to keep track on if and how the order payment was captured
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     */
+    public function updateSchemaVersion673(SchemaSetupInterface $setup)
+    {
+        $connection = $setup->getConnection();
+        $tableName = $setup->getTable('adyen_order_payment');
+
+        $adyenChargedCurrencyColumn = [
+            'type' => Table::TYPE_TEXT,
+            'nullable' => true,
+            'comment' => 'Field to determine if and how order payment was captured',
+        ];
+
+        $connection->addColumn(
+            $tableName,
+            Payment::CAPTURE_STATUS,
+            $adyenChargedCurrencyColumn
         );
     }
 }
