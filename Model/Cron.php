@@ -25,6 +25,7 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -297,6 +298,11 @@ class Cron
     protected $paymentMethodsHelper;
 
     /**
+     * @var \Adyen\Payment\Model\ResourceModel\Order\Payment
+     */
+    private $orderPaymentResourceModel;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -329,6 +335,7 @@ class Cron
      * @param EncryptorInterface $encryptor
      * @param ChargedCurrency $chargedCurrency
      * @param \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
+     * @param ResourceModel\Order\Payment $orderPaymentResourceModel
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -360,7 +367,8 @@ class Cron
         PaymentTokenRepositoryInterface $paymentTokenRepository,
         EncryptorInterface $encryptor,
         ChargedCurrency $chargedCurrency,
-        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
+        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper,
+        ResourceModel\Order\Payment $orderPaymentResourceModel
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -392,6 +400,7 @@ class Cron
         $this->encryptor = $encryptor;
         $this->chargedCurrency = $chargedCurrency;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->orderPaymentResourceModel = $orderPaymentResourceModel;
     }
 
     /**
@@ -1784,10 +1793,10 @@ class Cron
             return true;
         } else {
             // does not allow manual capture so is always immediate capture
-            $this->_adyenLogger->addAdyenNotificationCronjob
-            (
-                'This payment method does not allow manual capture'
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                sprintf('Payment method %s, does not allow manual capture', $this->_paymentMethod)
             );
+
             return true;
         }
     }
@@ -2032,12 +2041,10 @@ class Cron
     protected function _setPaymentAuthorized($manualReviewComment = true, $createInvoice = false)
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Set order to authorised');
-
-        // if full amount is captured create invoice
         $amount = $this->_value;
         $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
 
-        // create invoice for the capture notification if you are on manual capture
+        // If the full amount is captured and you are on manual capture, create invoice now
         if ($createInvoice && $amount == $formattedOrderAmount) {
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 'amount notification:' . $amount . ' amount order:' . $formattedOrderAmount
@@ -2099,24 +2106,38 @@ class Cron
             }
         }
 
-        $comment = "Adyen Payment Successfully completed";
+        if ($amount == $formattedOrderAmount) {
 
-        // if manual review is true use the manual review status if this is set
-        if ($manualReviewComment == true && $this->_fraudManualReview) {
-            // check if different status is selected
-            $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
-            if ($fraudManualReviewStatus != "") {
-                $status = $fraudManualReviewStatus;
-                $comment = "Adyen Payment is in Manual Review check the Adyen platform";
+            $comment = "Adyen Payment Successfully completed";
+            // If order was not set to automatically get captured, update the status of the adyen_order_payment
+            if (!$this->_isAutoCapture()) {
+                $this->setCapturedAdyenOrderPayment();
             }
-        }
-        $status = (!empty($status)) ? $status : $this->_order->getStatus();
-        $this->_order->addStatusHistoryComment(__($comment), $status);
-        $this->_setState($status);
 
-        $this->_adyenLogger->addAdyenNotificationCronjob(
-            'Order status is changed to authorised status, status is ' . $status
-        );
+            // If manual review is true AND manual review status is set
+            if ($manualReviewComment == true && $this->_fraudManualReview) {
+                // check if different status is selected
+                $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
+                if ($fraudManualReviewStatus != "") {
+                    $status = $fraudManualReviewStatus;
+                    $comment = "Adyen Payment is in Manual Review check the Adyen platform";
+                }
+            }
+
+            $status = (!empty($status)) ? $status : $this->_order->getStatus();
+            $this->_order->addStatusHistoryComment(__($comment), $status);
+            $this->_setState($status);
+
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                'Order status is changed to authorised status, status is ' . $status
+            );
+        } else {
+            $this->setCapturedAdyenOrderPayment();
+            $this->_order->addStatusHistoryComment(__(sprintf(
+                'Partial capture w/amount %s was processed',
+                $this->_adyenHelper->originalAmount($this->_value, $this->_currency)
+            )), false);
+        }
     }
 
     /**
@@ -2251,15 +2272,15 @@ class Cron
         }
     }
 
-
     /**
      * Create an entry in the adyen_order_payment table
      */
     private function createAdyenOrderPayment()
     {
         $payment = $this->_order->getPayment();
-        // validate if amount is total amount
         $amount = $this->_adyenHelper->originalAmount($this->_value, $this->_currency);
+        $captureStatus = $this->_isAutoCapture() ? Payment::CAPTURE_STATUS_AUTO_CAPTURE :
+            Payment::CAPTURE_STATUS_NO_CAPTURE;
 
         try {
             // add to order payment
@@ -2269,6 +2290,7 @@ class Cron
                 ->setMerchantReference($this->_merchantReference)
                 ->setPaymentId($payment->getId())
                 ->setPaymentMethod($this->_paymentMethod)
+                ->setCaptureStatus($captureStatus)
                 ->setAmount($amount)
                 ->setTotalRefunded(0)
                 ->setCreatedAt($date)
@@ -2281,6 +2303,36 @@ class Cron
                 'error messages regarding the merchant reference (order id): "' . $this->_merchantReference .
                 '" and PSP reference: "' . $this->_pspReference . '"'
             );
+        }
+    }
+
+    /**
+     * Set the capture_status of an adyen order payment to manually captured
+     *
+     * @throws \Exception
+     */
+    private function setCapturedAdyenOrderPayment()
+    {
+        $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
+            'Setting capture_status of adyen_order_payment with pspReference %s to Manual Capture',
+            $this->_originalReference
+        ));
+
+        $paymentId = $this->_order->getPayment()->getId();
+        $orderPaymentDetails = $this->orderPaymentResourceModel->getOrderPaymentDetails($this->_originalReference,
+            $paymentId);
+
+        if (is_null($orderPaymentDetails) || !array_key_exists('entity_id', $orderPaymentDetails)) {
+            $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
+                'Unable to identify original auth with pspReference %s using capture with pspReference %s',
+                $this->_originalReference,
+                $this->_pspReference
+            ));
+        } else {
+            $orderPaymentFactory = $this->_adyenOrderPaymentFactory->create();
+            $orderPayment = $orderPaymentFactory->load($orderPaymentDetails['entity_id'], 'entity_id');
+            $orderPayment->setCaptureStatus(Payment::CAPTURE_STATUS_MANUAL_CAPTURE);
+            $this->orderPaymentResourceModel->save($orderPayment);
         }
     }
 }
