@@ -295,6 +295,11 @@ class Cron
      * @var \Adyen\Payment\Helper\PaymentMethods
      */
     protected $paymentMethodsHelper;
+    /*
+     * @var \Magento\Sales\Model\ResourceModel\Order\Invoice
+     */
+    protected $invoiceResource;
+
 
     /**
      * Cron constructor.
@@ -329,6 +334,7 @@ class Cron
      * @param EncryptorInterface $encryptor
      * @param ChargedCurrency $chargedCurrency
      * @param \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
+     * @param \Magento\Sales\Model\ResourceModel\Order\Invoice
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -360,7 +366,8 @@ class Cron
         PaymentTokenRepositoryInterface $paymentTokenRepository,
         EncryptorInterface $encryptor,
         ChargedCurrency $chargedCurrency,
-        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
+        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper,
+        \Magento\Sales\Model\ResourceModel\Order\Invoice $invoiceResource
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -392,6 +399,7 @@ class Cron
         $this->encryptor = $encryptor;
         $this->chargedCurrency = $chargedCurrency;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->invoiceResource = $invoiceResource;
     }
 
     /**
@@ -1136,9 +1144,6 @@ class Cron
                 if (!$this->_isAutoCapture()) {
                     $this->_setPaymentAuthorized(false, true);
 
-                    //get the invoice and move it to paid
-
-
                     /*
                      * Add invoice in the adyen_invoice table
                      */
@@ -1146,8 +1151,8 @@ class Cron
                     foreach ($invoiceCollection as $invoice) {
                         $matches = $this->_adyenHelper->parseTransactionId($invoice->getTransactionId());
                         if (($matches['pspReference'] ?? '') == $this->_originalReference) {
-                            $payment = $this->_order->getPayment();
-                            $this->_order->getPayment()->pay($invoice);
+                            $invoice->pay();
+                            $this->invoiceResource->save($invoice);
                         }
 
                         /*
@@ -1613,7 +1618,7 @@ class Cron
 
         // set transaction
         $paymentObj->setTransactionId($this->_pspReference);
-
+        $paymentObj->setIsTransactionPending(true);
         // Prepare transaction
         $transaction = $this->transactionBuilder->setPayment($paymentObj)
             ->setOrder($this->_order)
