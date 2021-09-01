@@ -1142,9 +1142,6 @@ class Cron
                                 'Created invoice entry in the Adyen table'
                             );
                         }
-                        //can we remove it
-                        //why do we looping
-
                     }
                 }
                 break;
