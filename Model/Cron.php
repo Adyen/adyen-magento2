@@ -1665,6 +1665,7 @@ class Cron
 
         if ($this->_isTotalAmount($paymentObj->getEntityId(), $this->orderCurrency)) {
             $this->_createInvoice();
+            $this->_setPaymentAuthorized();
         } else {
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 'This is a partial AUTHORISATION and the full amount is not reached'
@@ -1895,7 +1896,7 @@ class Cron
      * @param string $orderCurrencyCode
      * @return bool
      */
-    protected function _isTotalAmount($paymentId, $orderCurrencyCode)
+    protected function _isTotalAmount($paymentId, $orderCurrencyCode, $captured = false)
     {
         $orderId = $this->_order->getId();
         $this->_adyenLogger->addAdyenNotificationCronjob(
@@ -1911,7 +1912,7 @@ class Cron
         // Get total amount currently authorised
         $res = $this->_adyenOrderPaymentCollectionFactory
             ->create()
-            ->getTotalAmount($paymentId);
+            ->getTotalAmount($paymentId, $captured);
 
         if ($res && isset($res[0]) && is_array($res[0])) {
             $amount = $res[0]['total_amount'];
@@ -2009,8 +2010,6 @@ class Cron
                 throw new Exception(sprintf('Error saving invoice. The error message is:', $e->getMessage()));
             }
 
-            $this->_setPaymentAuthorized();
-
             $invoiceAutoMail = (bool)$this->_scopeConfig->isSetFlag(
                 \Magento\Sales\Model\Order\Email\Container\InvoiceIdentity::XML_PATH_EMAIL_ENABLED,
                 \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
@@ -2044,11 +2043,24 @@ class Cron
         $amount = $this->_value;
         $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
 
-        // If the full amount is captured and you are on manual capture, create invoice now
-        if ($createInvoice && $amount == $formattedOrderAmount) {
-            $this->_adyenLogger->addAdyenNotificationCronjob(
-                'amount notification:' . $amount . ' amount order:' . $formattedOrderAmount
-            );
+        // If order was not set to automatically get captured, update the status of the adyen_order_payment
+        if (!$this->_isAutoCapture()) {
+            $this->setCapturedAdyenOrderPayment();
+        }
+
+        // If the full amount is finalized by this singular notification OR the full amount has been finalized by
+        // multiple notifications
+        $fullAmountFinalized = $amount == $formattedOrderAmount ||
+            $this->_isTotalAmount($this->_order->getPayment()->getEntityId(), $this->orderCurrency, true);
+
+        // If you are on manual capture AND full amount has been finalized, create invoice
+        if ($createInvoice && $fullAmountFinalized) {
+            $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
+                'Notification w/amount %s has completed the capturing of order %s w/amount %s',
+                $amount,
+                $this->_order->getId(),
+                $formattedOrderAmount
+            ));
             $this->_createInvoice();
         }
 
@@ -2060,15 +2072,7 @@ class Cron
 
         // virtual order can have different status
         if ($this->_order->getIsVirtual()) {
-            $this->_adyenLogger->addAdyenNotificationCronjob('Product is a virtual product');
-            $virtualStatus = $this->_getConfigData(
-                'payment_authorized_virtual',
-                'adyen_abstract',
-                $this->_order->getStoreId()
-            );
-            if ($virtualStatus != "") {
-                $status = $virtualStatus;
-            }
+            $status = $this->getVirtualStatus($status);
         }
 
         // check for boleto if payment is totally paid
@@ -2106,13 +2110,10 @@ class Cron
             }
         }
 
-        if ($amount == $formattedOrderAmount) {
+        // This still needs to be updated
+        if ($fullAmountFinalized) {
 
             $comment = "Adyen Payment Successfully completed";
-            // If order was not set to automatically get captured, update the status of the adyen_order_payment
-            if (!$this->_isAutoCapture()) {
-                $this->setCapturedAdyenOrderPayment();
-            }
 
             // If manual review is true AND manual review status is set
             if ($manualReviewComment == true && $this->_fraudManualReview) {
@@ -2132,7 +2133,6 @@ class Cron
                 'Order status is changed to authorised status, status is ' . $status
             );
         } else {
-            $this->setCapturedAdyenOrderPayment();
             $this->_order->addStatusHistoryComment(__(sprintf(
                 'Partial capture w/amount %s was processed',
                 $this->_adyenHelper->originalAmount($this->_value, $this->_currency)
@@ -2334,5 +2334,26 @@ class Cron
             $orderPayment->setCaptureStatus(Payment::CAPTURE_STATUS_MANUAL_CAPTURE);
             $this->orderPaymentResourceModel->save($orderPayment);
         }
+    }
+
+    /**
+     * If the payment_authorized_virtual config is set, return the virtual status
+     *
+     * @param $status
+     * @return mixed
+     */
+    private function getVirtualStatus($status)
+    {
+        $this->_adyenLogger->addAdyenNotificationCronjob('Product is a virtual product');
+        $virtualStatus = $this->_getConfigData(
+            'payment_authorized_virtual',
+            'adyen_abstract',
+            $this->_order->getStoreId()
+        );
+        if ($virtualStatus != "") {
+            $status = $virtualStatus;
+        }
+
+        return $status;
     }
 }
