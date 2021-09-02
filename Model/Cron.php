@@ -1615,7 +1615,6 @@ class Cron
 
         // set transaction
         $paymentObj->setTransactionId($this->_pspReference);
-        $paymentObj->setIsTransactionPending(true);
         // Prepare transaction
         $transaction = $this->transactionBuilder->setPayment($paymentObj)
             ->setOrder($this->_order)
