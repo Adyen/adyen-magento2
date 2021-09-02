@@ -1134,7 +1134,7 @@ class Cron
                  * On manual capture you will always get Capture or CancelOrRefund notification
                  */
                 if ($this->_isAutoCapture()) {
-                    $this->_setPaymentAuthorized(false);
+                    $this->finalizeOrder(false);
                 }
                 break;
             case Notification::CAPTURE:
@@ -1143,7 +1143,7 @@ class Cron
                  * this could be called if manual review is enabled and you have a capture delay
                  */
                 if (!$this->_isAutoCapture()) {
-                    $this->_setPaymentAuthorized(false, true);
+                    $this->finalizeOrder(false, true);
 
                     /*
                      * Add invoice in the adyen_invoice table
@@ -1526,7 +1526,8 @@ class Cron
                 $this->_setPrePaymentAuthorized();
             } else {
                 $this->_order->addStatusHistoryComment(__(sprintf(
-                    'Partial authorisation w/amount %s was processed',
+                    'Partial authorisation w/amount %s %s was processed',
+                    $this->_currency,
                     $this->_adyenHelper->originalAmount($this->_value, $this->_currency)
                 )), false);
             }
@@ -1665,7 +1666,7 @@ class Cron
 
         if ($this->_isTotalAmount($paymentObj->getEntityId(), $this->orderCurrency)) {
             $this->_createInvoice();
-            $this->_setPaymentAuthorized();
+            $this->finalizeOrder();
         } else {
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 'This is a partial AUTHORISATION and the full amount is not reached'
@@ -2033,11 +2034,14 @@ class Cron
     }
 
     /**
+     * Finalize order by setting it to captured if manual capture is enabled, or authorized if auto capture is used
+     * Full order will only NOT be finalized if the full amount has not been captured/authorized.
+     *
      * @param bool $manualReviewComment
      * @param bool $createInvoice
-     * @throws Exception
+     * @throws Exception|\Magento\Framework\Exception\LocalizedException
      */
-    protected function _setPaymentAuthorized($manualReviewComment = true, $createInvoice = false)
+    protected function finalizeOrder($manualReviewComment = true, $createInvoice = false)
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Set order to authorised');
         $amount = $this->_value;
@@ -2134,7 +2138,8 @@ class Cron
             );
         } else {
             $this->_order->addStatusHistoryComment(__(sprintf(
-                'Partial capture w/amount %s was processed',
+                'Partial capture w/amount %s %s was processed',
+                $this->_currency,
                 $this->_adyenHelper->originalAmount($this->_value, $this->_currency)
             )), false);
         }
