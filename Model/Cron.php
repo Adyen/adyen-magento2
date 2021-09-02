@@ -1686,7 +1686,7 @@ class Cron
 
         if ($this->_isTotalAmount($paymentObj->getEntityId(), $this->orderCurrency)) {
             $this->_createInvoice();
-            $this->_setPaymentAuthorized();
+            $this->finalizeOrder();
         } else {
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 'This is a partial AUTHORISATION and the full amount is not reached'
@@ -2158,7 +2158,8 @@ class Cron
             );
         } else {
             $this->_order->addStatusHistoryComment(__(sprintf(
-                'Partial capture w/amount %s was processed',
+                'Partial capture w/amount %s %s was processed',
+                $this->_currency,
                 $this->_adyenHelper->originalAmount($this->_value, $this->_currency)
             )), false);
         }
