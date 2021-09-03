@@ -48,7 +48,7 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
 
             /**
              * close current transaction because you have capture the goods
-             * but do not close the authorisation becasue you can still cancel/refund order
+             * but do not close the authorisation because you can still cancel/refund order
              */
             $payment->setIsTransactionClosed(true);
             $payment->setShouldCloseParentTransaction(false);
