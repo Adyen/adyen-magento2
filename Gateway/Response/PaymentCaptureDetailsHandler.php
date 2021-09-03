@@ -45,12 +45,13 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
         // so the invoice is set to Pending
         if($response["response"]=='[capture-received]'){
             $payment->setIsTransactionPending(true);
-        }
+        
         /**
          * close current transaction because you have capture the goods
          * but do not close the authorisation becasue you can still cancel/refund order
          */
         $payment->setIsTransactionClosed(true);
         $payment->setShouldCloseParentTransaction(false);
+        }
     }
 }
