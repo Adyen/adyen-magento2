@@ -28,7 +28,8 @@ interface AdyenOrderPaymentStatusInterface
 {
     /**
      * @param string $orderId
-     * @return string
+     * @param string $shopperEmail
+     * @return bool|string
      */
-    public function getOrderPaymentStatus($orderId);
+    public function getOrderPaymentStatus($orderId, $shopperEmail);
 }
