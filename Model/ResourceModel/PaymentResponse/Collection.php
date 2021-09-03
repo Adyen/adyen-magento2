@@ -15,38 +15,37 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2019 Adyen B.V.
+ * Copyright (c) 2021 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model;
+namespace Adyen\Payment\Model\ResourceModel\PaymentResponse;
 
-use Adyen\AdyenException;
-use Adyen\Payment\Helper\Data as AdyenHelper;
-use Magento\Framework\Exception\NoSuchEntityException as MagentoNoSuchEntityException;
+use Adyen\Payment\Model\ResourceModel\PaymentResponse as ResourceModel;
+use Adyen\Payment\Model\PaymentResponse;
+use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 
-class AdyenOriginKey implements \Adyen\Payment\Api\AdyenOriginKeyInterface
+class Collection extends AbstractCollection
 {
-    /**
-     * @var AdyenHelper
-     */
-    private $helper;
-
-    public function __construct(AdyenHelper $helper)
+    public function _construct()
     {
-        $this->helper = $helper;
+        $this->_init(
+            PaymentResponse::class,
+            ResourceModel::class
+        );
     }
 
     /**
-     * {@inheritDoc}
-     * @throws MagentoNoSuchEntityException
-     * @throws AdyenException
+     * Fetch the payment responses for the merchant references supplied
+     *
+     * @param array $merchantReferences []
+     * @return array|null
      */
-    public function getOriginKey()
+    public function getPaymentResponsesWithMerchantReferences($merchantReferences = [])
     {
-        return $this->helper->getOriginKeyForBaseUrl();
+        return $this->addFieldToFilter('merchant_reference', ["in" => [$merchantReferences]])->getData();
     }
 }

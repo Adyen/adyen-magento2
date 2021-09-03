@@ -13,21 +13,39 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment Module
+ * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen B.V.
- * This file is open source and available under the MIT license.
- * See the LICENSE file for more info.
+ * Copyright (c) 2021 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Api;
+namespace Adyen\Payment\Model\Ui;
 
-interface AdyenOriginKeyInterface
+use \Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Store\Model\StoreManagerInterface;
+
+class AdyenMultishippingConfigProvider implements ConfigProviderInterface
 {
     /**
-     * @return string
+     * @var StoreManagerInterface
      */
-    public function getOriginKey();
+    private $storeManager;
+
+    public function __construct(
+        StoreManagerInterface $storeManager
+    ) {
+        $this->storeManager = $storeManager;
+    }
+
+    /**
+     * @return array
+     */
+    public function getConfig()
+    {
+        $output['quoteData'] = [];
+        $output['storeCode'] = $this->storeManager->getStore()->getCode();
+        return $output;
+    }
 }

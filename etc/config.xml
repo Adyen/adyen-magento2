@@ -146,11 +146,6 @@
                 <active>0</active>
                 <model>AdyenPaymentPayByMailFacade</model>
                 <order_status>pending</order_status>
-                <title>Adyen PayByMail</title>
-                <allowspecific>0</allowspecific>
-                <sort_order>7</sort_order>
-                <session_validity>3</session_validity>
-                <ship_before>5</ship_before>
                 <payment_action>order</payment_action>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>0</can_use_checkout>

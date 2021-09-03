@@ -37,7 +37,7 @@ class Data extends AbstractHelper
     // Only used for backend orders! Checkout in front-end is using different checkout version see web folder, will be removed in v8.0.0
     const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/4.5.0/adyen.js';
     const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/4.5.0/adyen.js';
-    const PSP_REFERENCE_REGEX = '/[0-9.A-Z]{16}/';
+    const PSP_REFERENCE_REGEX = '/(?P<pspReference>[0-9.A-Z]{16})(?P<suffix>[a-z\-]*)/';
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
@@ -536,6 +536,7 @@ class Data extends AbstractHelper
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
+     * @deprecated
      */
     public function getAdyenPayByMailConfigData($field, $storeId = null)
     {
@@ -548,6 +549,7 @@ class Data extends AbstractHelper
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
+     * @deprecated
      */
     public function getAdyenPayByMailConfigDataFlag($field, $storeId = null)
     {
@@ -596,6 +598,11 @@ class Data extends AbstractHelper
         return $secretWord;
     }
 
+    /**
+     * @param null $storeId
+     * @return string
+     * @deprecated
+     */
     public function getHmacPayByMail($storeId = null)
     {
         switch ($this->isDemoMode($storeId)) {
@@ -1449,62 +1456,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Retrieve origin keys for platform's base url
-     *
-     * @return string
-     * @throws \Adyen\AdyenException
-     * @deprecared please use getClientKey instead
-     */
-    public function getOriginKeyForBaseUrl()
-    {
-        $storeId = $this->storeManager->getStore()->getId();
-        $origin = $this->getOrigin($storeId);
-        $cacheKey = 'Adyen_origin_key_for_' . $origin . '_' . $storeId;
-
-        if (!$originKey = $this->cache->load($cacheKey)) {
-            if ($originKey = $this->getOriginKeyForOrigin($origin, $storeId)) {
-                $this->cache->save($originKey, $cacheKey, [ConfigCache::CACHE_TAG], 60 * 60 * 24);
-            }
-        }
-
-        return $originKey;
-    }
-
-    /**
-     * Get origin key for a specific origin using the adyen api library client
-     *
-     * @param $origin
-     * @param null|int|string $storeId
-     * @return string
-     * @throws \Adyen\AdyenException
-     */
-    private function getOriginKeyForOrigin($origin, $storeId = null)
-    {
-        $params = [
-            "originDomains" => [
-                $origin
-            ]
-        ];
-
-        $client = $this->initializeAdyenClient($storeId);
-
-        try {
-            $service = $this->createAdyenCheckoutUtilityService($client);
-            $response = $service->originKeys($params);
-        } catch (\Exception $e) {
-            $this->adyenLogger->error($e->getMessage());
-        }
-
-        $originKey = "";
-
-        if (!empty($response['originKeys'][$origin])) {
-            $originKey = $response['originKeys'][$origin];
-        }
-
-        return $originKey;
-    }
-
-    /**
      * @param null|int|string $storeId
      * @return string
      */
@@ -1788,23 +1739,22 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Get pspReference only if there are additional string attached
-     * @param $pspReference
+     * Parse transactionId to separate PSP reference from suffix.
+     * e.g 882629192021269E-capture => [882629192021269E, -capture]
+     *
+     * @param $transactionId
+     * @return mixed
      */
-    public function getPspReferenceWithNoAdditions($pspReference)
+    public function parseTransactionId($transactionId)
     {
-        if (empty($pspReference)) {
-            return '';
-        }
         preg_match(
             self::PSP_REFERENCE_REGEX,
-            trim($pspReference),
-            $match,
-            PREG_OFFSET_CAPTURE
+            trim((string)$transactionId),
+            $matches
         );
-        if (!empty($match[0])) {
-            return $match[0][0];
-        }
-        return $pspReference;
+
+        return array_filter($matches, function($index) {
+            return is_string($index);
+        }, ARRAY_FILTER_USE_KEY);
     }
 }
