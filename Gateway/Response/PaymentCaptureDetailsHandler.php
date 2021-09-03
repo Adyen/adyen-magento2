@@ -41,14 +41,14 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
         // set pspReference as lastTransId only!
         $payment->setLastTransId($response['pspReference']);
 
-        if($response["response"]=='[capture-received]'){
+        if($response["response"]=='[capture-received]') {
             $payment->setIsTransactionPending(true);
+            /**
+             * close current transaction because you have capture the goods
+             * but do not close the authorisation because you can still cancel/refund order
+             */
+            $payment->setIsTransactionClosed(true);
+            $payment->setShouldCloseParentTransaction(false);
         }
-        /**
-         * close current transaction because you have capture the goods
-         * but do not close the authorisation becasue you can still cancel/refund order
-         */
-        $payment->setIsTransactionClosed(true);
-        $payment->setShouldCloseParentTransaction(false);
     }
 }
