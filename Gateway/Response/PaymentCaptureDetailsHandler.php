@@ -41,7 +41,9 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
         // set pspReference as lastTransId only!
         $payment->setLastTransId($response['pspReference']);
 
-        if($response["response"]=='[capture-received]') {
+        // The capture request will return a capture-received message, but it doesn't mean the capture has been final
+        // so the invoice is set to Pending
+        if($response["response"]=='[capture-received]'){
             $payment->setIsTransactionPending(true);
             /**
              * close current transaction because you have capture the goods
