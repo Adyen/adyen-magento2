@@ -1899,7 +1899,6 @@ class Cron
      */
     protected function _isTotalAmount($paymentId, $orderCurrencyCode, $captured = false)
     {
-        $orderId = $this->_order->getId();
         $this->_adyenLogger->addAdyenNotificationCronjob(
             'Validate if after processing current AUTHORISATION notification, the full amount has been authorised'
         );
@@ -1921,7 +1920,7 @@ class Cron
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 sprintf(
                     'The grand total amount for order %s is %s and the currently authorised order amount is: %s',
-                    $orderId,
+                    $this->_merchantReference,
                     $grandTotal,
                     $formattedOrderAmount
                 )
@@ -1930,7 +1929,7 @@ class Cron
             if ($grandTotal == $formattedOrderAmount) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
                     'Order %s has been fully authorized',
-                    $orderId,
+                    $this->_merchantReference,
                 ));
 
                 return true;
