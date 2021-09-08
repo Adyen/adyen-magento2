@@ -37,7 +37,7 @@ class DataTest extends \PHPUnit\Framework\TestCase
             ->getMock();
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         $context = $this->getSimpleMock(\Magento\Framework\App\Helper\Context::class);
         $encryptor = $this->getSimpleMock(\Magento\Framework\Encryption\EncryptorInterface::class);

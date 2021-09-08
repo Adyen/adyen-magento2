@@ -14,7 +14,7 @@ class ApiKeyEndingTest extends TestCase
      */
     private $apiKeyEndingComment;
 
-    public function setUp()
+    public function setUp(): void
     {
         /** @var MockObject|Encryptor $encryptor */
         $encryptor = $this->createMock(Encryptor::class);
