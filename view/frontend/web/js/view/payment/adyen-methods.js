@@ -29,6 +29,8 @@ define(
         'Adyen_Payment/js/model/adyen-configuration',
         'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/model/full-screen-loader',
+        'Magento_SalesRule/js/action/set-coupon-code',
+        'Magento_SalesRule/js/action/cancel-coupon'
     ],
     function (
         Component,
@@ -36,7 +38,9 @@ define(
         adyenPaymentService,
         adyenConfiguration,
         quote,
-        fullScreenLoader
+        fullScreenLoader,
+        setCouponCodeAction,
+        cancelCouponAction
     ) {
         'use strict';
         rendererList.push(
@@ -67,18 +71,12 @@ define(
                 this._super();
 
                 var shippingAddressCountry = "";
-                quote.shippingAddress.subscribe(function(address) {
-                    // In case the country hasn't changed don't retrieve new payment methods
-                    if (shippingAddressCountry === quote.shippingAddress().countryId) {
-                        return;
-                    }
-
-                    shippingAddressCountry = quote.shippingAddress().countryId;
+                var retrievePaymentMethods = function (){
                     fullScreenLoader.startLoader();
                     // Retrieve adyen payment methods
                     adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
                         try {
-                        paymentMethods = JSON.parse(paymentMethods);
+                            paymentMethods = JSON.parse(paymentMethods);
                         } catch(error) {
                             console.log(error);
                             paymentMethods = null;
@@ -87,7 +85,23 @@ define(
                         fullScreenLoader.stopLoader();
                     }).fail(function() {
                         console.log('Fetching the payment methods failed!');
-                    })
+                    });
+                                                       };
+                quote.shippingAddress.subscribe(function(address) {
+                    // In case the country hasn't changed don't retrieve new payment methods
+                    if (shippingAddressCountry === quote.shippingAddress().countryId) {
+                        return;
+                    }
+                    shippingAddressCountry = quote.shippingAddress().countryId;
+                    retrievePaymentMethods();
+                });
+                //Retrieve payment methods when applying the discount code
+                setCouponCodeAction.registerSuccessCallback(function () {
+                    retrievePaymentMethods();
+                });
+                //Retrieve payment methods when canceling the discount code
+                cancelCouponAction.registerSuccessCallback(function () {
+                    retrievePaymentMethods();
                 });
             }
         });
