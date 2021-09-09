@@ -153,6 +153,7 @@ class CaptureDataBuilder implements BuilderInterface
         }
         $request['body'] = $requestBody;
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
+
         return $request;
     }
 
