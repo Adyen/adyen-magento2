@@ -25,7 +25,6 @@ namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
-use Adyen\Payment\Gateway\Request\CaptureDataBuilder;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Service\Modification;
@@ -37,6 +36,8 @@ use Magento\Payment\Gateway\Http\TransferInterface;
  */
 class TransactionCapture implements ClientInterface
 {
+    const MULTIPLE_AUTHORIZATIONS = 'multiple_authorizations';
+
     /**
      * @var Data
      */
@@ -64,7 +65,7 @@ class TransactionCapture implements ClientInterface
             $this->adyenHelper->initializeAdyenClient($transferObject->getClientConfig()['storeId'])
         );
 
-        if (array_key_exists(CaptureDataBuilder::MULTIPLE_AUTHORIZATIONS, $request)) {
+        if (array_key_exists(self::MULTIPLE_AUTHORIZATIONS, $request)) {
             return $this->placeMultipleCaptureRequests($service, $request);
         }
 
@@ -85,13 +86,13 @@ class TransactionCapture implements ClientInterface
     private function placeMultipleCaptureRequests(Modification $service, $requestContainer)
     {
         $response = [];
-        foreach ($requestContainer[CaptureDataBuilder::MULTIPLE_AUTHORIZATIONS] as $request) {
+        foreach ($requestContainer[self::MULTIPLE_AUTHORIZATIONS] as $request) {
             try {
                 // Copy merchant account from parent array to every request array
                 $request[Requests::MERCHANT_ACCOUNT] = $requestContainer[Requests::MERCHANT_ACCOUNT];
-                $response[CaptureDataBuilder::MULTIPLE_AUTHORIZATIONS][] = $service->capture($request);
+                $response[self::MULTIPLE_AUTHORIZATIONS][] = $service->capture($request);
             } catch (AdyenException $e) {
-                $response[CaptureDataBuilder::MULTIPLE_AUTHORIZATIONS]['error'] = sprintf(
+                $response[self::MULTIPLE_AUTHORIZATIONS]['error'] = sprintf(
                     'Exception occurred when attempting to capture multiple authorizations.
                     Authorization with pspReference %s: %s',
                     $request[OrderPaymentInterface::PSPREFRENCE],
@@ -100,6 +101,6 @@ class TransactionCapture implements ClientInterface
             }
         }
 
-        return reset($response[CaptureDataBuilder::MULTIPLE_AUTHORIZATIONS]);
+        return $response;
     }
 }
