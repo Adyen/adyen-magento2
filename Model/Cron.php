@@ -296,6 +296,11 @@ class Cron
      * @var \Adyen\Payment\Helper\PaymentMethods
      */
     protected $paymentMethodsHelper;
+    /*
+     * @var \Magento\Sales\Model\ResourceModel\Order\Invoice
+     */
+    protected $invoiceResource;
+
 
     /**
      * @var \Adyen\Payment\Model\ResourceModel\Order\Payment
@@ -336,6 +341,7 @@ class Cron
      * @param ChargedCurrency $chargedCurrency
      * @param \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
      * @param ResourceModel\Order\Payment $orderPaymentResourceModel
+     * @param \Magento\Sales\Model\ResourceModel\Order\Invoice
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -368,7 +374,8 @@ class Cron
         EncryptorInterface $encryptor,
         ChargedCurrency $chargedCurrency,
         \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper,
-        ResourceModel\Order\Payment $orderPaymentResourceModel
+        ResourceModel\Order\Payment $orderPaymentResourceModel,
+        \Magento\Sales\Model\ResourceModel\Order\Invoice $invoiceResource
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -401,6 +408,7 @@ class Cron
         $this->chargedCurrency = $chargedCurrency;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
+        $this->invoiceResource = $invoiceResource;
     }
 
     /**
@@ -1150,6 +1158,15 @@ class Cron
                      */
                     $invoiceCollection = $this->_order->getInvoiceCollection();
                     foreach ($invoiceCollection as $invoice) {
+                        $matches = $this->_adyenHelper->parseTransactionId($invoice->getTransactionId());
+                        if (($matches['pspReference'] ?? '') == $this->_originalReference) {
+                            $invoice->pay();
+                            $this->invoiceResource->save($invoice);
+                        }
+
+                        /*
+                         * Add invoice in the adyen_invoice table
+                         */
                         if ($invoice->getTransactionId() == $this->_pspReference) {
                             $this->_adyenInvoiceFactory->create()
                                 ->setInvoiceId($invoice->getEntityId())
@@ -1622,7 +1639,6 @@ class Cron
 
         // set transaction
         $paymentObj->setTransactionId($this->_pspReference);
-
         // Prepare transaction
         $transaction = $this->transactionBuilder->setPayment($paymentObj)
             ->setOrder($this->_order)
