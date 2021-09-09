@@ -235,22 +235,25 @@ class CaptureDataBuilder implements BuilderInterface
         $captureData = [];
 
         foreach ($adyenOrderPayments as $adyenOrderPayment) {
-            $amount = $this->adyenHelper->formatAmount($adyenOrderPayment[OrderPaymentInterface::AMOUNT], $currency);
-            $modificationAmount = [
-                'currency' => $currency,
-                'value' => $amount
-            ];
-            $authToCapture = [
-                "modificationAmount" => $modificationAmount,
-                "reference" => $payment->getOrder()->getIncrementId(),
-                "originalReference" => $adyenOrderPayment[OrderPaymentInterface::PSPREFRENCE]
-            ];
+            // Only add data related to adyen_order_payment that have not been captured yet
+            if ($adyenOrderPayment[OrderPaymentInterface::CAPTURE_STATUS] === OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE) {
+                $amount = $this->adyenHelper->formatAmount($adyenOrderPayment[OrderPaymentInterface::AMOUNT], $currency);
+                $modificationAmount = [
+                    'currency' => $currency,
+                    'value' => $amount
+                ];
+                $authToCapture = [
+                    "modificationAmount" => $modificationAmount,
+                    "reference" => $payment->getOrder()->getIncrementId(),
+                    "originalReference" => $adyenOrderPayment[OrderPaymentInterface::PSPREFRENCE]
+                ];
 
-            if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($adyenOrderPayment[OrderPaymentInterface::PAYMENT_METHOD])) {
-                $openInvoiceFields = $this->getOpenInvoiceData($payment);
-                $authToCapture["additionalData"] = $openInvoiceFields;
+                if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($adyenOrderPayment[OrderPaymentInterface::PAYMENT_METHOD])) {
+                    $openInvoiceFields = $this->getOpenInvoiceData($payment);
+                    $authToCapture["additionalData"] = $openInvoiceFields;
+                }
+                $captureData[] = $authToCapture;
             }
-            $captureData[] = $authToCapture;
         }
 
         $requestBody = [
