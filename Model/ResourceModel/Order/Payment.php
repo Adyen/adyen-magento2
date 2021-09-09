@@ -51,4 +51,21 @@ class Payment extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 
         return empty($result) ? null : $result;
     }
+
+    /**
+     * Get all the adyen_order_payment entries linked to the paymentId
+     *
+     * @param $paymentId
+     * @return array|null
+     */
+    public function getLinkedAdyenOrderPayments($paymentId)
+    {
+        $select = $this->getConnection()->select()
+            ->from(['order_payment' => $this->getTable('adyen_order_payment')])
+            ->where('order_payment.payment_id=?', $paymentId);
+
+        $result = $this->getConnection()->fetchAll($select);
+
+        return empty($result) ? null : $result;
+    }
 }
