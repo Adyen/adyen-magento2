@@ -95,11 +95,11 @@ define(
                     shippingAddressCountry = quote.shippingAddress().countryId;
                     retrievePaymentMethods();
                 });
-                //Retrieve payment methods when applying the discount code
+                //Retrieve payment methods to ensure the amount is updated, when applying the discount code
                 setCouponCodeAction.registerSuccessCallback(function () {
                     retrievePaymentMethods();
                 });
-                //Retrieve payment methods when canceling the discount code
+                //Retrieve payment methods to ensure the amount is updated, when canceling the discount code
                 cancelCouponAction.registerSuccessCallback(function () {
                     retrievePaymentMethods();
                 });
