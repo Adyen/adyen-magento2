@@ -25,6 +25,7 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data as DataHelper;
@@ -41,8 +42,6 @@ use Magento\Sales\Model\Order;
  */
 class CaptureDataBuilder implements BuilderInterface
 {
-    const MULTIPLE_AUTHORIZATIONS = 'multiple_authorizations';
-
     /**
      * @var DataHelper
      */
@@ -257,7 +256,7 @@ class CaptureDataBuilder implements BuilderInterface
         }
 
         $requestBody = [
-            self::MULTIPLE_AUTHORIZATIONS => $captureData
+            TransactionCapture::MULTIPLE_AUTHORIZATIONS => $captureData
         ];
 
         $request['body'] = $requestBody;
