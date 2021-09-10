@@ -30,7 +30,7 @@ class LocaleTest extends \PHPUnit\Framework\TestCase
      */
     private $localeHelper;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->localeHelper =  new \Adyen\Payment\Helper\Locale();
     }
