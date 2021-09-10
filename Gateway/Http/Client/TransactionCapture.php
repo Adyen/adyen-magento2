@@ -27,6 +27,7 @@ use Adyen\AdyenException;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Requests;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Service\Modification;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
@@ -37,6 +38,7 @@ use Magento\Payment\Gateway\Http\TransferInterface;
 class TransactionCapture implements ClientInterface
 {
     const MULTIPLE_AUTHORIZATIONS = 'multiple_authorizations';
+    const CAPTURE_AMOUNT = 'capture_amount';
 
     /**
      * @var Data
@@ -44,18 +46,27 @@ class TransactionCapture implements ClientInterface
     private $adyenHelper;
 
     /**
+     * @var AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
      * PaymentRequest constructor.
      * @param Data $adyenHelper
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
-        Data $adyenHelper
+        Data $adyenHelper,
+        AdyenLogger $adyenLogger
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
      * @param TransferInterface $transferObject
      * @return null
+     * @throws AdyenException
      */
     public function placeRequest(TransferInterface $transferObject)
     {
@@ -90,14 +101,19 @@ class TransactionCapture implements ClientInterface
             try {
                 // Copy merchant account from parent array to every request array
                 $request[Requests::MERCHANT_ACCOUNT] = $requestContainer[Requests::MERCHANT_ACCOUNT];
-                $response[self::MULTIPLE_AUTHORIZATIONS][] = $service->capture($request);
+                $singleResponse = $service->capture($request);
+                $singleResponse[self::CAPTURE_AMOUNT] = $request['modificationAmount'];
+                $response[self::MULTIPLE_AUTHORIZATIONS][] = $singleResponse;
             } catch (AdyenException $e) {
-                $response[self::MULTIPLE_AUTHORIZATIONS]['error'] = sprintf(
+                $message = sprintf(
                     'Exception occurred when attempting to capture multiple authorizations.
                     Authorization with pspReference %s: %s',
                     $request[OrderPaymentInterface::PSPREFRENCE],
                     $e->getMessage()
                 );
+
+                $this->adyenLogger->error($message);
+                $response[self::MULTIPLE_AUTHORIZATIONS]['error'] = $message;
             }
         }
 
