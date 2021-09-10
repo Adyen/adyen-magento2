@@ -515,7 +515,7 @@
                 <item name="expirydate" xsi:type="string">Adyen\Payment\Gateway\Request\ExpiryDateDataBuilder</item>
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="shopperinteraction" xsi:type="string">Adyen\Payment\Gateway\Request\ShopperInteractionDataBuilder</item>
-                <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
+              
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="description" xsi:type="string">Adyen\Payment\Gateway\Request\DescriptionDataBuilder</item>
                 <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CheckoutDataBuilder</item>
