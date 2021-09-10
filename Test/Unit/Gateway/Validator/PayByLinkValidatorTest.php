@@ -75,6 +75,9 @@ class PayByLinkValidatorTest extends TestCase
             ->getMock();
     }
 
+    /**
+     * @dataProvider adyenPblExpiresAtDataProvider
+     */
     public function testValidate($adyenPblExpiresAt, $valid)
     {
         $this->payment->method('getAdyenPblExpiresAt')->willReturn($adyenPblExpiresAt);
