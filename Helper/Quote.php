@@ -124,7 +124,7 @@ class Quote
         $order = reset($orderList);
 
         $quoteList = $this->cartRepository->getList(
-            $this->searchCriteriaBuilder->addFilter('entity_id', $order->getQuoteId())->create()
+            $this->searchCriteriaBuilder->addFilter('main_table.entity_id', $order->getQuoteId())->create()
         )->getItems();
         $quote = reset($quoteList);
 

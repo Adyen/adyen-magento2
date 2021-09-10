@@ -353,7 +353,7 @@ class ChargedCurrencyTest extends TestCase
             );
         } else {
             // Quotes are not evaluated after being saved, only during order placement
-            $this->expectNotToPerformAssertions();
+            $this->assertTrue(true);
         }
     }
 
@@ -390,7 +390,7 @@ class ChargedCurrencyTest extends TestCase
             );
         } else {
             // Quote items are not evaluated after being saved, only during order placement
-            $this->expectNotToPerformAssertions();
+            $this->assertTrue(true);
         }
     }
 

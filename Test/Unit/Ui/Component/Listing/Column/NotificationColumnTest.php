@@ -66,7 +66,7 @@ class NotificationColumnTest extends TestCase
      */
     private $notificationColumn;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->orderMock = $this->getMockBuilder(Order::class)
             ->disableOriginalConstructor()
