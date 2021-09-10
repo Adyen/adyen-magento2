@@ -100,10 +100,11 @@ class PaymentCommentHistoryHandler implements HandlerInterface
 
             $type = 'Adyen Result response:';
             $comment = __(
-                '%1 <br /> authResult: %2 <br /> pspReference: %3 ',
+                '%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> amount: %4 ',
                 $type,
                 $responseCode,
-                $pspReference
+                $pspReference,
+                $amount
             );
 
             $resultEventCodes[] = $responseCode;

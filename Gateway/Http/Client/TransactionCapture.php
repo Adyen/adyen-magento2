@@ -102,7 +102,11 @@ class TransactionCapture implements ClientInterface
                 // Copy merchant account from parent array to every request array
                 $request[Requests::MERCHANT_ACCOUNT] = $requestContainer[Requests::MERCHANT_ACCOUNT];
                 $singleResponse = $service->capture($request);
-                $singleResponse[self::CAPTURE_AMOUNT] = $request['modificationAmount'];
+                $singleResponse[self::CAPTURE_AMOUNT] = $request['modificationAmount']['currency'] . ' ' .
+                $this->adyenHelper->originalAmount(
+                    $request['modificationAmount']['value'],
+                    $request['modificationAmount']['currency']
+                );
                 $response[self::MULTIPLE_AUTHORIZATIONS][] = $singleResponse;
             } catch (AdyenException $e) {
                 $message = sprintf(
