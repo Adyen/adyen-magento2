@@ -44,6 +44,7 @@ class PayByLinkValidatorTest extends TestCase
     protected function setUp(): void
     {
         $resultInterfaceFactory = $this->getMockBuilder(ResultInterfaceFactory::class)
+            ->setMethods(['create'])
             ->disableOriginalConstructor()
             ->getMock();
 
