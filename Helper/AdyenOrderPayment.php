@@ -25,6 +25,9 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\Order\Payment;
+use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as AdyenOrderPaymentCollection;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -62,7 +65,12 @@ class AdyenOrderPayment extends AbstractHelper
     /**
      * @var OrderPaymentResourceModel
      */
-    private $orderPaymentResourceModel;
+    protected $orderPaymentResourceModel;
+
+    /**
+     * @var Order\PaymentFactory
+     */
+    protected $adyenOrderPaymentFactory;
 
     /**
      * AdyenOrderPayment constructor.
@@ -72,6 +80,8 @@ class AdyenOrderPayment extends AbstractHelper
      * @param AdyenOrderPaymentCollection $adyenOrderPaymentCollection
      * @param Data $adyenDataHelper
      * @param ChargedCurrency $adyenChargedCurrencyHelper
+     * @param OrderPaymentResourceModel $orderPaymentResourceModel
+     * @param PaymentFactory $adyenOrderPaymentFactory
      */
     public function __construct(
         Context $context,
@@ -79,7 +89,8 @@ class AdyenOrderPayment extends AbstractHelper
         AdyenOrderPaymentCollection $adyenOrderPaymentCollection,
         Data $adyenDataHelper,
         ChargedCurrency $adyenChargedCurrencyHelper,
-        OrderPaymentResourceModel $orderPaymentResourceModel
+        OrderPaymentResourceModel $orderPaymentResourceModel,
+        PaymentFactory $adyenOrderPaymentFactory
     ) {
         parent::__construct($context);
         $this->adyenLogger = $adyenLogger;
@@ -87,6 +98,7 @@ class AdyenOrderPayment extends AbstractHelper
         $this->adyenDataHelper = $adyenDataHelper;
         $this->adyenChargedCurrencyHelper = $adyenChargedCurrencyHelper;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
+        $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
     }
 
     /**
@@ -127,16 +139,17 @@ class AdyenOrderPayment extends AbstractHelper
      * Check if ANY adyen_order_payment linked to this order requires a manual capture
      *
      * @param Order $order
+     * @param string $status
      * @return bool
      */
-    public function requiresManualCapture(Order $order): bool
+    public function hasOrderPaymentWithCaptureStatus(Order $order, string $status): bool
     {
         $requireManualCapture = false;
         $payment = $order->getPayment();
         $adyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments($payment->getEntityId());
 
         foreach ($adyenOrderPayments as $adyenOrderPayment) {
-            if ($adyenOrderPayment[OrderPaymentInterface::CAPTURE_STATUS] === OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE) {
+            if ($adyenOrderPayment[OrderPaymentInterface::CAPTURE_STATUS] === $status) {
                 $requireManualCapture = true;
             }
         }
@@ -165,5 +178,50 @@ class AdyenOrderPayment extends AbstractHelper
         }
 
         return $orderAmountCents;
+    }
+
+    /**
+     * Create an entry in the adyen_order_payment table based on the passed notification
+     *
+     * @param Order $order
+     * @param Notification $notification
+     * @param $autoCapture
+     * @return Payment|null
+     */
+    public function createAdyenOrderPayment(Order $order, Notification $notification, $autoCapture): ?Payment
+    {
+        $adyenOrderPayment = null;
+        $payment = $order->getPayment();
+        $amount = $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $order->getBaseCurrencyCode());
+        $captureStatus = $autoCapture ? Payment::CAPTURE_STATUS_AUTO_CAPTURE : Payment::CAPTURE_STATUS_NO_CAPTURE;
+        $merchantReference = $notification->getMerchantReference();
+        $pspReference = $notification->getPspreference();
+
+        try {
+            $date = new \DateTime();
+            $adyenOrderPayment = $this->adyenOrderPaymentFactory->create();
+            $adyenOrderPayment->setPspreference($pspReference);
+            $adyenOrderPayment->setMerchantReference($merchantReference);
+            $adyenOrderPayment->setPaymentId($payment->getId());
+            $adyenOrderPayment->setPaymentMethod($notification->getPaymentMethod());
+            $adyenOrderPayment->setCaptureStatus($captureStatus);
+            $adyenOrderPayment->setAmount($amount);
+            $adyenOrderPayment->setTotalRefunded(0);
+            $adyenOrderPayment->setCreatedAt($date);
+            $adyenOrderPayment->setUpdatedAt($date);
+            $adyenOrderPayment->save();
+        } catch (\Exception $e) {
+            $this->adyenLogger->error(sprintf(
+                'While processing a notification an exception occured. The payment has already been saved in the ' .
+                'adyen_order_payment table but something went wrong later. Please check your logs for potential ' .
+                'error messages regarding the merchant reference (order id): %s and PSP reference: %s. ' .
+                'Exception message: %s',
+                $merchantReference,
+                $pspReference,
+                $e->getMessage()
+            ));
+        }
+
+        return $adyenOrderPayment;
     }
 }

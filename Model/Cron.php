@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Model;
 
+use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Vault;
@@ -111,6 +112,11 @@ class Cron
      * @var Api\PaymentRequest
      */
     protected $_adyenPaymentRequest;
+
+    /**
+     * @var Notification
+     */
+    protected $notification;
 
     /**
      * notification attributes
@@ -719,7 +725,8 @@ class Cron
      */
     protected function _declareVariables($notification)
     {
-        //  declare the common parameters
+        //TODO: Use notification and its getters where possible, instead of declaring values one by one
+        $this->notification = $notification;
         $this->_pspReference = $notification->getPspreference();
         $this->_originalReference = $notification->getOriginalReference();
         $this->_merchantReference = $notification->getMerchantReference();
@@ -1544,7 +1551,7 @@ class Cron
             $this->_order->setData('adyen_notification_event_code_success', 1);
         }
         $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
-        $this->createAdyenOrderPayment();
+        $this->adyenOrderPaymentHelper->createAdyenOrderPayment($this->_order, $this->notification, $this->_isAutoCapture());
         $isTotalAmountAuthorised = $this->_isTotalAmount(
             $this->_order->getPayment()->getEntityId(),
             $this->orderCurrency
@@ -1664,7 +1671,10 @@ class Cron
         // Check if an adyen_order_payment linked to this order still requires manual capture. This is to ensure that
         // the whole order is NOT set to automatically captured in case of:
         // 1 partial auth using visa (supports capture), 1 partial auth in a pm that does not support capture
-        if ($this->adyenOrderPaymentHelper->requiresManualCapture($this->_order)) {
+        if ($this->adyenOrderPaymentHelper->hasOrderPaymentWithCaptureStatus(
+            $this->_order,
+            OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE)
+        ) {
             $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'), $this->_order->getStatus());
             $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode is set to Manual');
 
