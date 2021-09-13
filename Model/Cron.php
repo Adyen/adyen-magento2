@@ -23,6 +23,8 @@
 
 namespace Adyen\Payment\Model;
 
+use Adyen\Payment\Helper\AdyenOrderPayment;
+use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
@@ -294,16 +296,21 @@ class Cron
      * @var \Adyen\Payment\Helper\PaymentMethods
      */
     protected $paymentMethodsHelper;
-    /*
+
+    /**
      * @var \Magento\Sales\Model\ResourceModel\Order\Invoice
      */
     protected $invoiceResource;
 
-
     /**
      * @var \Adyen\Payment\Model\ResourceModel\Order\Payment
      */
-    private $orderPaymentResourceModel;
+    protected $orderPaymentResourceModel;
+
+    /**
+     * @var AdyenOrderPayment
+     */
+    protected $adyenOrderPaymentHelper;
 
     /**
      * Cron constructor.
@@ -372,8 +379,9 @@ class Cron
         EncryptorInterface $encryptor,
         ChargedCurrency $chargedCurrency,
         \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper,
+        ResourceModel\Order\Payment $orderPaymentResourceModel,
         \Magento\Sales\Model\ResourceModel\Order\Invoice $invoiceResource,
-        ResourceModel\Order\Payment $orderPaymentResourceModel
+        AdyenOrderPayment $adyenOrderPaymentHelper
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -407,6 +415,7 @@ class Cron
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->invoiceResource = $invoiceResource;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
+        $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
     }
 
     /**
@@ -1650,12 +1659,13 @@ class Cron
             ->build(\Magento\Sales\Api\Data\TransactionInterface::TYPE_AUTH);
 
         $transaction->setIsClosed(false);
-
         $transaction->save();
 
-        //capture mode
-        if (!$this->_isAutoCapture()) {
-            $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'));
+        // Check if an adyen_order_payment linked to this order still requires manual capture. This is to ensure that
+        // the whole order is NOT set to automatically captured in case of:
+        // 1 partial auth using visa (supports capture), 1 partial auth in a pm that does not support capture
+        if ($this->adyenOrderPaymentHelper->requiresManualCapture($this->_order)) {
+            $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'), $this->_order->getStatus());
             $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode is set to Manual');
 
             // show message if order is in manual review
@@ -1917,7 +1927,7 @@ class Cron
      * @param string $orderCurrencyCode
      * @return bool
      */
-    protected function _isTotalAmount($paymentId, $orderCurrencyCode, $captured = false)
+    protected function _isTotalAmount($paymentId, $orderCurrencyCode)
     {
         $this->_adyenLogger->addAdyenNotificationCronjob(
             'Validate if after processing current AUTHORISATION notification, the full amount has been authorised'
@@ -1932,7 +1942,7 @@ class Cron
         // Get total amount currently authorised
         $res = $this->_adyenOrderPaymentCollectionFactory
             ->create()
-            ->getTotalAmount($paymentId, $captured);
+            ->getTotalAmount($paymentId);
 
         if ($res && isset($res[0]) && is_array($res[0])) {
             $amount = $res[0]['total_amount'];
@@ -2065,16 +2075,18 @@ class Cron
         $this->_adyenLogger->addAdyenNotificationCronjob('Set order to authorised');
         $amount = $this->_value;
         $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
+        $automaticCapture = true;
 
         // If order was not set to automatically get captured, update the status of the adyen_order_payment
         if (!$this->_isAutoCapture()) {
+            $automaticCapture = false;
             $this->setCapturedAdyenOrderPayment();
         }
 
         // If the full amount is finalized by this singular notification OR the full amount has been finalized by
         // multiple notifications
         $fullAmountFinalized = $amount == $formattedOrderAmount ||
-            $this->_isTotalAmount($this->_order->getPayment()->getEntityId(), $this->orderCurrency, true);
+            $this->adyenOrderPaymentHelper->getCapturedAmount($this->_order) === $formattedOrderAmount;
 
         // If you are on manual capture AND full amount has been finalized, create invoice
         if ($createInvoice && $fullAmountFinalized) {
