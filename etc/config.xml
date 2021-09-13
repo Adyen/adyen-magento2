@@ -179,6 +179,15 @@
                 <can_cancel>1</can_cancel>
                 <group>adyen</group>
             </adyen_boleto>
+            <adyen_giving>
+                <active>0</active>
+                <charity_name></charity_name>
+                <charity_merchant_account></charity_merchant_account>
+                <donation_amounts></donation_amounts>
+                <charity_description></charity_description>
+                <charity_website></charity_website>
+
+            </adyen_giving>
         </payment>
     </default>
 </config>

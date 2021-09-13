@@ -42,6 +42,7 @@
                 <include path="Adyen_Payment::system/adyen_cc.xml"/>
                 <include path="Adyen_Payment::system/adyen_oneclick.xml"/>
                 <include path="Adyen_Payment::system/adyen_hpp.xml"/>
+                <include path="Adyen_Payment::system/adyen_giving.xml"/>
                 <include path="Adyen_Payment::system/adyen_pos_cloud.xml"/>
                 <include path="Adyen_Payment::system/adyen_pay_by_mail.xml"/>
                 <include path="Adyen_Payment::system/adyen_boleto.xml"/>
