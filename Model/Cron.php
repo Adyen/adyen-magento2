@@ -1862,6 +1862,7 @@ class Cron
             case 'discover_applepay':
             case 'maestro_applepay':
             case 'paywithgoogle':
+            case 'svs':
                 $manualCaptureAllowed = true;
                 break;
             default:
