@@ -23,6 +23,8 @@
 
 namespace Adyen\Payment\Model\ResourceModel\Order\Payment;
 
+use Adyen\Payment\Model\ResourceModel\Order\Payment;
+
 /**
  * Billing agreements resource collection
  */
@@ -38,11 +40,14 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         $this->_init(\Adyen\Payment\Model\Order\Payment::class, \Adyen\Payment\Model\ResourceModel\Order\Payment::class);
     }
 
+
     /**
+     * Get the total amount of the linked adyen_order_payments. Only get captured ones based on the flag
+     *
      * @param integer $paymentId
      * @return array
      */
-    public function getTotalAmount($paymentId)
+    public function getTotalAmount($paymentId, $captured = false)
     {
         $connection = $this->getConnection();
 
@@ -50,14 +55,26 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
             "SUM(adyen_order_payment.{$connection->quoteIdentifier(\Adyen\Payment\Model\Order\Payment::AMOUNT)})"
         );
 
+        if ($captured) {
+            $whereClause = 'payment_id = :payment_id AND (capture_status = :auto_capture OR capture_status = :manual_capture)';
+            $whereParams = [
+                ':payment_id' => $paymentId,
+                ':auto_capture' => \Adyen\Payment\Model\Order\Payment::CAPTURE_STATUS_AUTO_CAPTURE,
+                ':manual_capture' => \Adyen\Payment\Model\Order\Payment::CAPTURE_STATUS_MANUAL_CAPTURE,
+            ];
+        } else {
+            $whereClause = 'payment_id = :payment_id';
+            $whereParams = [
+                ':payment_id' => $paymentId
+            ];
+        }
+
         $select = $connection->select()->from(
             ['adyen_order_payment' => $this->getTable('adyen_order_payment')],
             ['total_amount' => $sumCond]
-        )->where(
-            'payment_id = :payment_id'
-        );
+        )->where($whereClause);
 
-        return $connection->fetchAll($select, [':payment_id' => $paymentId]);
+        return $connection->fetchAll($select, $whereParams);
     }
 
     /**
