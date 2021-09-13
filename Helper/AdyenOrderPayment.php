@@ -32,6 +32,7 @@ use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as AdyenOrderPaymentCollection;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Model\Order;
 
 /**
@@ -209,7 +210,7 @@ class AdyenOrderPayment extends AbstractHelper
             $adyenOrderPayment->setTotalRefunded(0);
             $adyenOrderPayment->setCreatedAt($date);
             $adyenOrderPayment->setUpdatedAt($date);
-            $adyenOrderPayment->save();
+            $this->orderPaymentResourceModel->save($adyenOrderPayment);
         } catch (\Exception $e) {
             $this->adyenLogger->error(sprintf(
                 'While processing a notification an exception occured. The payment has already been saved in the ' .
@@ -223,5 +224,42 @@ class AdyenOrderPayment extends AbstractHelper
         }
 
         return $adyenOrderPayment;
+    }
+
+    /**
+     * Set the capture_status of an adyen order payment to manually captured
+     *
+     * @param Order $order
+     * @param Notification $notification
+     * @return Payment|null
+     *
+     * @throws AlreadyExistsException
+     */
+    public function setCapturedAdyenOrderPayment(Order $order, Notification $notification)
+    {
+        $orderPayment = null;
+        $originalReference = $notification->getOriginalReference();
+        $paymentId = $order->getPayment()->getId();
+        $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            'Setting capture_status of adyen_order_payment with pspReference %s to Manual Capture',
+            $originalReference
+        ));
+
+        $orderPaymentDetails = $this->orderPaymentResourceModel->getOrderPaymentDetails($originalReference, $paymentId);
+
+        if (is_null($orderPaymentDetails) || !array_key_exists(OrderPaymentInterface::ENTITY_ID, $orderPaymentDetails)) {
+            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+                'Unable to identify original auth with pspReference %s using capture with pspReference %s',
+                $originalReference,
+                $notification->getPspreference()
+            ));
+        } else {
+            $orderPaymentFactory = $this->adyenOrderPaymentFactory->create();
+            $orderPayment = $orderPaymentFactory->load($orderPaymentDetails['entity_id'], 'entity_id');
+            $orderPayment->setCaptureStatus(Payment::CAPTURE_STATUS_MANUAL_CAPTURE);
+            $this->orderPaymentResourceModel->save($orderPayment);
+        }
+
+        return $orderPayment;
     }
 }
