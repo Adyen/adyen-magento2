@@ -1679,19 +1679,7 @@ class Cron
                 }
             }
 
-            $createPendingInvoice = (bool)$this->_getConfigData(
-                'create_pending_invoice',
-                'adyen_abstract',
-                $this->_order->getStoreId()
-            );
-
-            if (!$createPendingInvoice) {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'Setting pending invoice is off so don\'t create
-                    an invoice wait for the capture notification'
-                );
-                return;
-            }
+            return;
         }
 
         if ($this->_isTotalAmount($paymentObj->getEntityId(), $this->orderCurrency)) {
