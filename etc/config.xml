@@ -186,7 +186,6 @@
                 <donation_amounts></donation_amounts>
                 <charity_description></charity_description>
                 <charity_website></charity_website>
-
             </adyen_giving>
         </payment>
     </default>

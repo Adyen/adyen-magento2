@@ -66,7 +66,7 @@
             <config_path>payment/adyen_giving/background_image</config_path>
             <upload_dir config="system" scope_info="1">adyen</upload_dir>
             <base_url type="media" scope_info="1">sales/store/logo</base_url>
-<!--            <tooltip><![CDATA[Background image of the Adyen Giving Component.]]></tooltip>-->
+            <comment><![CDATA[Background image of the Adyen Giving Component.]]></comment>
         </field>
         <field id="charity_logo" translate="label" type="image" sortOrder="90" showInDefault="1" showInWebsite="1" >
             <label>Charity logo</label>
@@ -74,7 +74,7 @@
             <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
             <upload_dir config="system" scope_info="1">adyen</upload_dir>
             <base_url type="media" scope_info="1">sales/store/logo</base_url>
-<!--            <tooltip><![CDATA[Logo displayed on the Adyen Giving Component.]]></tooltip>-->
+            <comment><![CDATA[Logo displayed on the Adyen Giving Component.]]></comment>
         </field>
     </group>
 </include>
