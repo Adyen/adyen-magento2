@@ -54,7 +54,7 @@ interface OrderPaymentInterface
      */
     const AMOUNT = 'amount';
     /*
-     * Amount
+     * Total Refunded
      */
     const TOTAL_REFUNDED = 'total_refunded';
     /*
@@ -65,6 +65,14 @@ interface OrderPaymentInterface
      * Updated-at timestamp.
      */
     const UPDATED_AT = 'updated_at';
+    /*
+     * Captured
+     */
+    const CAPTURE_STATUS = 'capture_status';
+
+    const CAPTURE_STATUS_AUTO_CAPTURE = 'Auto Captured';
+    const CAPTURE_STATUS_MANUAL_CAPTURE = 'Manually Captured';
+    const CAPTURE_STATUS_NO_CAPTURE = 'Not captured';
 
     /**
      * Gets the ID for the payment.
@@ -200,4 +208,18 @@ interface OrderPaymentInterface
      * @return $this
      */
     public function setUpdatedAt($timestamp);
+
+    /**
+     * Sets the captured field for the payment
+     *
+     * @param $captured
+     */
+    public function setCaptureStatus($captured);
+
+    /**
+     * Gets the captured field for the payment
+     *
+     * @return mixed
+     */
+    public function getCaptureStatus();
 }
