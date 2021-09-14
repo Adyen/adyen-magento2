@@ -99,66 +99,84 @@ class Invoice extends AbstractHelper
     }
 
     /**
-     * Check if invoice can be set to paid and add entry in adyen_invoice table
+     * If the full amount has been captured, finalize all linked invoices, else finalize only the invoice linked to
+     * this captureNotification. If no invoice linked to this notification is found, log message.
+     *
+     * @param Order $order
+     * @param Notification $captureNotification
+     * @param bool $fullAmountCaptured
+     * @return array
+     * @throws AlreadyExistsException
+     */
+    public function finalizeInvoices(Order $order, Notification $captureNotification, bool $fullAmountCaptured = false): array
+    {
+        $finalizedInvoices = [];
+        $invoiceCollection = $order->getInvoiceCollection();
+        $pspReference = $captureNotification->getPspreference();
+        $originalReference = $captureNotification->getOriginalReference();
+
+        foreach ($invoiceCollection as $invoice) {
+            $parsedTransId = $this->adyenDataHelper->parseTransactionId($invoice->getTransactionId());
+            // Loose comparison based on how Magento does the comparison in entity
+            if ($invoice->getState() == InvoiceModel::STATE_OPEN) {
+                // If all invoices should be updated, or this is the single invoice that should be updated
+                if ($fullAmountCaptured || $parsedTransId['pspReference'] === $originalReference) {
+                    $invoice->pay();
+                    $this->invoiceResourceModel->save($invoice);
+                    $finalizedInvoices[] = $invoice->getEntityId();
+                }
+            }
+        }
+
+        if (empty($finalizedInvoices)) {
+            $this->adyenLogger->info(sprintf(
+                'No invoice was finalized based on capture with pspReference %s, linked to order %s. ' .
+                'This implies that the full amount has not been captured yet and that no invoice is linked to ' .
+                'originalReference %s. Once the full amount has been captured, all invoices linked to order %s ' .
+                'should be set to PAID',
+                $pspReference,
+                $order->getIncrementId(),
+                $originalReference,
+                $order->getIncrementId(),
+            ));
+        }
+
+        return $finalizedInvoices;
+    }
+
+    /**
+     * Create an adyen_invoice entry and link it to the passed invoice. If no invoice is passed, log message and
+     * link to the first invoice in the invoiceCollection
      *
      * @param Order $order
      * @param Notification $notification
-     * @throws AlreadyExistsException
-     */
-    public function finalizeInvoice(Order $order, Notification $notification)
-    {
-        $invoiceCollection = $order->getInvoiceCollection();
-        $pspReference = $notification->getPspreference();
-        $originalReference = $notification->getOriginalReference();
-
-        foreach ($invoiceCollection as $invoice) {
-            // HERE find which order the pspReference relates to (using invoice)
-
-
-            // Then check if the full amount has been captured. If so, set it to PAID
-            $parsedTransId = $this->adyenDataHelper->parseTransactionId($invoice->getTransactionId());
-            // UPDATE THIS CHECK
-            if (($parsedTransId['pspReference'] ?? '') === $originalReference) {
-                $invoice->pay();
-                $this->invoiceResourceModel->save($invoice);
-            }
-        }
-    }
-
-    /*
-    private function finalizeWithMultiplePayments($adyenOrderPayments, $invoice)
-    {
-
-        foreach ($adyenOrderPayments as $adyenOrderPayment) {
-            // If adyen order payment is captured
-            if (in_array($adyenOrderPayment[OrderPaymentInterface::CAPTURE_STATUS], [
-                OrderPaymentInterface::CAPTURE_STATUS_MANUAL_CAPTURE,
-                OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE
-            ])) {
-                $adyenInvoice = $this->adyenInvoiceFactory->create();
-                $adyenInvoice->setInvoiceId($invoice->getEntityId());
-                $adyenInvoice->setPspreference($pspReference);
-                $adyenInvoice->setOriginalReference($originalReference);
-                $adyenInvoice->setAcquirerReference($acquirerReference);
-                $this->adyenInvoiceResourceModel->save($adyenInvoice);
-            }
-        }
-    }*/
-
-    /**
-     * @param InvoiceModel $invoice
-     * @param Notification $notification
+     * @param InvoiceModel|null $invoice
      * @return mixed
      * @throws AlreadyExistsException
      */
-    public function createAdyenInvoice(InvoiceModel $invoice, Notification $notification)
+    public function createAdyenInvoice(Order $order, Notification $notification, InvoiceModel $invoice = null)
     {
         $acquirerReference = $additionalData['acquirerReference'] ?? null;
         $pspReference = $notification->getPspreference();
         $originalReference = $notification->getOriginalReference();
 
+        if (is_null($invoice)) {
+            $invoiceId = $order->getInvoiceCollection()->getFirstItem()->getEntityId();
+            $this->adyenLogger->info(sprintf(
+                'Capture with pspReference %s (auth pspReference %s) linked to order %s could not be directly ' .
+                'linked to any invoice. This implies that this payment was included in a capture call with other ' .
+                'partial authorizations. Hence, capture will be linked by default to invoice %s',
+                $pspReference,
+                $originalReference,
+                $order->getIncrementId(),
+                $invoiceId
+            ));
+        } else {
+            $invoiceId = $invoice->getEntityId();
+        }
+
         $adyenInvoice = $this->adyenInvoiceFactory->create();
-        $adyenInvoice->setInvoiceId($invoice->getEntityId());
+        $adyenInvoice->setInvoiceId($invoiceId);
         $adyenInvoice->setPspreference($pspReference);
         $adyenInvoice->setOriginalReference($originalReference);
         $adyenInvoice->setAcquirerReference($acquirerReference);
@@ -174,11 +192,14 @@ class Invoice extends AbstractHelper
     }
 
     /**
+     * Attempt to get the invoice linked to the capture notification by comparing the notification original reference
+     * and the invoice pspReference
+     *
      * @param Order $order
      * @param Notification $captureNot
-     * @return mixed|null
+     * @return InvoiceModel|null
      */
-    public function getLinkedInvoiceToCaptureNotification(Order $order, Notification $captureNot)
+    public function getLinkedInvoiceToCaptureNotification(Order $order, Notification $captureNot): ?InvoiceModel
     {
         $returnInvoice = null;
         $invoiceCollection = $order->getInvoiceCollection();
