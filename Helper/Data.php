@@ -581,6 +581,18 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Gives back adyen_giving configuration
+     *
+     * @param $field
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function getAdyenGivingConfigData($field, $storeId = null)
+    {
+        return $this->getConfigData($field, 'adyen_giving', $storeId);
+    }
+
+    /**
      * Retrieve decrypted hmac key
      *
      * @return string

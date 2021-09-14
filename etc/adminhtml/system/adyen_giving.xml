@@ -24,7 +24,7 @@
 -->
 
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
-    <group id="adyen_giving" translate="label" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
+    <group id="adyen_giving" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
         <label><![CDATA[Adyen Giving]]></label>
         <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
@@ -47,8 +47,10 @@
         </field>
         <field id="donation_amounts" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Donation amounts</label>
+            <source_model>Adyen\Payment\Model\Config\Source\DonationAmounts</source_model>
             <config_path>payment/adyen_giving/donation_amounts</config_path>
-            <tooltip><![CDATA[Suggested amounts that the shopper can choose to donate.]]></tooltip>
+            <tooltip><![CDATA[Suggested amounts that the shopper can choose to donate.
+            The minimum amount is 1 EUR and it is compared with the base currency]]></tooltip>
         </field>
         <field id="charity_description" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Charity description</label>
