@@ -35,6 +35,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Invoice as InvoiceModel;
 
 /**
  * Helper class for anything related to the invoice entity
@@ -69,6 +70,11 @@ class Invoice extends AbstractHelper
     protected $adyenInvoiceResourceModel;
 
     /**
+     * @var OrderPaymentResourceModel
+     */
+    protected $orderPaymentResourceModel;
+
+    /**
      * Invoice constructor.
      *
      * @param Context $context
@@ -80,7 +86,8 @@ class Invoice extends AbstractHelper
         Data $adyenDataHelper,
         \Magento\Sales\Model\ResourceModel\Order\Invoice $invoiceResourceModel,
         InvoiceFactory $adyenInvoiceFactory,
-        \Adyen\Payment\Model\ResourceModel\Invoice\Invoice $adyenInvoiceResourceModel
+        \Adyen\Payment\Model\ResourceModel\Invoice\Invoice $adyenInvoiceResourceModel,
+        OrderPaymentResourceModel $orderPaymentResourceModel
     ) {
         parent::__construct($context);
         $this->adyenLogger = $adyenLogger;
@@ -88,6 +95,7 @@ class Invoice extends AbstractHelper
         $this->invoiceResourceModel = $invoiceResourceModel;
         $this->adyenInvoiceFactory = $adyenInvoiceFactory;
         $this->adyenInvoiceResourceModel = $adyenInvoiceResourceModel;
+        $this->orderPaymentResourceModel = $orderPaymentResourceModel;
     }
 
     /**
@@ -102,8 +110,7 @@ class Invoice extends AbstractHelper
         $invoiceCollection = $order->getInvoiceCollection();
         $pspReference = $notification->getPspreference();
         $originalReference = $notification->getOriginalReference();
-        $additionalData = $notification->getAdditionalData();
-        $acquirerReference = $additionalData['acquirerReference'] ?? null;
+
         foreach ($invoiceCollection as $invoice) {
             // HERE find which order the pspReference relates to (using invoice)
 
@@ -114,20 +121,76 @@ class Invoice extends AbstractHelper
             if (($parsedTransId['pspReference'] ?? '') === $originalReference) {
                 $invoice->pay();
                 $this->invoiceResourceModel->save($invoice);
+            }
+        }
+    }
 
+    /*
+    private function finalizeWithMultiplePayments($adyenOrderPayments, $invoice)
+    {
+
+        foreach ($adyenOrderPayments as $adyenOrderPayment) {
+            // If adyen order payment is captured
+            if (in_array($adyenOrderPayment[OrderPaymentInterface::CAPTURE_STATUS], [
+                OrderPaymentInterface::CAPTURE_STATUS_MANUAL_CAPTURE,
+                OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE
+            ])) {
                 $adyenInvoice = $this->adyenInvoiceFactory->create();
                 $adyenInvoice->setInvoiceId($invoice->getEntityId());
                 $adyenInvoice->setPspreference($pspReference);
                 $adyenInvoice->setOriginalReference($originalReference);
                 $adyenInvoice->setAcquirerReference($acquirerReference);
                 $this->adyenInvoiceResourceModel->save($adyenInvoice);
-
-                $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
-                    'Adyen invoice entry created for payment with PSP Reference %s and original reference %s',
-                    $pspReference,
-                    $originalReference
-                ));
             }
         }
+    }*/
+
+    /**
+     * @param InvoiceModel $invoice
+     * @param Notification $notification
+     * @return mixed
+     * @throws AlreadyExistsException
+     */
+    public function createAdyenInvoice(InvoiceModel $invoice, Notification $notification)
+    {
+        $acquirerReference = $additionalData['acquirerReference'] ?? null;
+        $pspReference = $notification->getPspreference();
+        $originalReference = $notification->getOriginalReference();
+
+        $adyenInvoice = $this->adyenInvoiceFactory->create();
+        $adyenInvoice->setInvoiceId($invoice->getEntityId());
+        $adyenInvoice->setPspreference($pspReference);
+        $adyenInvoice->setOriginalReference($originalReference);
+        $adyenInvoice->setAcquirerReference($acquirerReference);
+        $this->adyenInvoiceResourceModel->save($adyenInvoice);
+
+        $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            'Adyen invoice entry created for payment with PSP Reference %s and original reference %s',
+            $pspReference,
+            $originalReference
+        ));
+
+        return $adyenInvoice;
+    }
+
+    /**
+     * @param Order $order
+     * @param Notification $captureNot
+     * @return mixed|null
+     */
+    public function getLinkedInvoiceToCaptureNotification(Order $order, Notification $captureNot)
+    {
+        $returnInvoice = null;
+        $invoiceCollection = $order->getInvoiceCollection();
+        $originalReference = $captureNot->getOriginalReference();
+
+        foreach ($invoiceCollection as $invoice) {
+            $parsedTransId = $this->adyenDataHelper->parseTransactionId($invoice->getTransactionId());
+            if ($parsedTransId['pspReference'] === $originalReference) {
+                $returnInvoice = $invoice;
+            }
+        }
+
+        return $returnInvoice;
     }
 }
