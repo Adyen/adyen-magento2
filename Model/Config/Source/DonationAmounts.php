@@ -57,9 +57,14 @@ class DonationAmounts
     public function toOptionArray()
     {
         $validatedDonationAmounts = [];
+        $isAdyenGivingEnabled = $this->_adyenHelper->getAdyenGivingConfigData('active');
         $donationAmounts = $this->_adyenHelper->getAdyenGivingConfigData('donation_amounts');
-        if($donationAmounts){
-            $donationAmounts =  explode(',', $donationAmounts);
+        if (!$isAdyenGivingEnabled) {
+            return $donationAmounts;
+        }
+        if ($donationAmounts) {
+            $donationAmounts = explode(',', $donationAmounts);
+            $donationAmounts = array_map('trim', $donationAmounts);
             $baseCurrencyRate = $this->_storeManager->getStore()->getBaseCurrency()->getRate('EUR');
             foreach ($donationAmounts as $amount) {
                 if ($amount * $baseCurrencyRate >= 1) {

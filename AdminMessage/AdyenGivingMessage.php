@@ -69,6 +69,7 @@ class AdyenGivingMessage implements \Magento\Framework\Notification\MessageInter
             $donationAmounts = $this->_adyenHelper->getAdyenGivingConfigData('donation_amounts');
             if($donationAmounts){
                 $donationAmounts =  explode(',', $donationAmounts);
+                $donationAmounts = array_map('trim', $donationAmounts);
                 $baseCurrencyRate = $this->_storeManager->getStore()->getBaseCurrency()->getRate('EUR');
                 foreach ($donationAmounts as $amount) {
                     if ($amount * $baseCurrencyRate < 1) {
