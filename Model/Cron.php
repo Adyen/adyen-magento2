@@ -314,6 +314,11 @@ class Cron
     protected $adyenOrderPaymentHelper;
 
     /**
+     * @var \Adyen\Payment\Helper\Invoice
+     */
+    protected $invoiceHelper;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -380,7 +385,8 @@ class Cron
         \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper,
         ResourceModel\Order\Payment $orderPaymentResourceModel,
         \Magento\Sales\Model\ResourceModel\Order\Invoice $invoiceResource,
-        AdyenOrderPayment $adyenOrderPaymentHelper
+        AdyenOrderPayment $adyenOrderPaymentHelper,
+        \Adyen\Payment\Helper\Invoice $invoiceHelper
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -414,6 +420,7 @@ class Cron
         $this->invoiceResource = $invoiceResource;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
+        $this->invoiceHelper = $invoiceHelper;
     }
 
     /**
@@ -1148,33 +1155,7 @@ class Cron
                  */
                 if (!$this->_isAutoCapture()) {
                     $this->finalizeOrder(false, true);
-
-                    /*
-                     * Add invoice in the adyen_invoice table
-                     */
-                    $invoiceCollection = $this->_order->getInvoiceCollection();
-                    foreach ($invoiceCollection as $invoice) {
-                        $matches = $this->_adyenHelper->parseTransactionId($invoice->getTransactionId());
-                        if (($matches['pspReference'] ?? '') == $this->_originalReference) {
-                            $invoice->pay();
-                            $this->invoiceResource->save($invoice);
-                        }
-
-                        /*
-                         * Add invoice in the adyen_invoice table
-                         */
-                        if ($invoice->getTransactionId() == $this->_pspReference) {
-                            $this->_adyenInvoiceFactory->create()
-                                ->setInvoiceId($invoice->getEntityId())
-                                ->setPspreference($this->_pspReference)
-                                ->setOriginalReference($this->_originalReference)
-                                ->setAcquirerReference($this->_acquirerReference)
-                                ->save();
-                            $this->_adyenLogger->addAdyenNotificationCronjob(
-                                'Created invoice entry in the Adyen table'
-                            );
-                        }
-                    }
+                    $this->invoiceHelper->finalizeInvoice($this->_order, $this->notification);
                 }
                 break;
             case Notification::OFFER_CLOSED:
