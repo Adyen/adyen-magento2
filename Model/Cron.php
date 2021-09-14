@@ -1994,20 +1994,8 @@ class Cron
                     $invoice->register()->pay();
                 }
 
-                $invoice->save();
-                $this->_adyenLogger->addAdyenNotificationCronjob('Created invoice');
-
-                /*
-                 * Add invoice in the adyen_invoice table
-                 */
-                $this->_adyenInvoiceFactory->create()
-                    ->setInvoiceId($invoice->getEntityId())
-                    ->setPspreference($this->_pspReference)
-                    ->setOriginalReference($this->_pspReference)
-                    ->setAcquirerReference($this->_acquirerReference)
-                    ->save();
-
-                $this->_adyenLogger->addAdyenNotificationCronjob('Created invoice entry in the Adyen table');
+                $this->invoiceResource->save($invoice);
+                $this->invoiceHelper->createAdyenInvoice($this->_order, $this->notification, $invoice);
             } catch (Exception $e) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'Error saving invoice. The error message is: ' . $e->getMessage()
