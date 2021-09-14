@@ -110,16 +110,11 @@ class Invoice extends AbstractHelper
 
             // Then check if the full amount has been captured. If so, set it to PAID
             $parsedTransId = $this->adyenDataHelper->parseTransactionId($invoice->getTransactionId());
+            // UPDATE THIS CHECK
             if (($parsedTransId['pspReference'] ?? '') === $originalReference) {
                 $invoice->pay();
                 $this->invoiceResourceModel->save($invoice);
-            }
 
-            /*
-             * Add invoice in the adyen_invoice table
-             */
-            // UPDATE THIS CHECK
-            if ($invoice->getTransactionId() === $pspReference) {
                 $adyenInvoice = $this->adyenInvoiceFactory->create();
                 $adyenInvoice->setInvoiceId($invoice->getEntityId());
                 $adyenInvoice->setPspreference($pspReference);
@@ -128,7 +123,7 @@ class Invoice extends AbstractHelper
                 $this->adyenInvoiceResourceModel->save($adyenInvoice);
 
                 $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
-                    'Adyen invoice entry created for payment with PSP Reference %s and original reference %s'.
+                    'Adyen invoice entry created for payment with PSP Reference %s and original reference %s',
                     $pspReference,
                     $originalReference
                 ));
