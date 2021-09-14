@@ -1158,12 +1158,13 @@ class Cron
                     $capturedAmount = $this->adyenOrderPaymentHelper->getCapturedAmount($this->_order);
                     $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
                     $this->invoiceHelper->createAdyenInvoice(
-                        $this->invoiceHelper->getLinkedInvoiceToCaptureNotification($this->_order, $this->notification),
-                        $this->notification
+                        $this->_order,
+                        $this->notification,
+                        $this->invoiceHelper->getLinkedInvoiceToCaptureNotification($this->_order, $this->notification)
                     );
-                    if ($capturedAmount === $formattedOrderAmount) {
-                        $this->invoiceHelper->finalizeInvoice($this->_order, $this->notification);
-                    }
+
+                    $fullAmountCaptured = $capturedAmount === $formattedOrderAmount;
+                    $this->invoiceHelper->finalizeInvoices($this->_order, $this->notification, $fullAmountCaptured);
                 }
                 break;
             case Notification::OFFER_CLOSED:
