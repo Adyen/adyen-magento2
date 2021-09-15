@@ -55,7 +55,7 @@ class Cron
      *
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
-    protected $_logger;
+    protected $_adyenLogger;
 
     /**
      * @var ResourceModel\Notification\CollectionFactory
@@ -1902,7 +1902,7 @@ class Cron
      * @param string $orderCurrencyCode
      * @return bool
      */
-    protected function _isTotalAmount($paymentId, $orderCurrencyCode)
+    protected function _isTotalAmount($paymentId, $orderCurrencyCode, $captured = false)
     {
         $this->_adyenLogger->addAdyenNotificationCronjob(
             'Validate if after processing current AUTHORISATION notification, the full amount has been authorised'
@@ -1917,7 +1917,7 @@ class Cron
         // Get total amount currently authorised
         $res = $this->_adyenOrderPaymentCollectionFactory
             ->create()
-            ->getTotalAmount($paymentId);
+            ->getTotalAmount($paymentId, $captured);
 
         if ($res && isset($res[0]) && is_array($res[0])) {
             $amount = $res[0]['total_amount'];
