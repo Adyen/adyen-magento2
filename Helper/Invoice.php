@@ -156,7 +156,8 @@ class Invoice extends AbstractHelper
      */
     public function createAdyenInvoice(Order $order, Notification $notification, InvoiceModel $invoice = null)
     {
-        $acquirerReference = $additionalData['acquirerReference'] ?? null;
+        $additionalData = $notification->getAdditionalData();
+        $acquirerReference = $additionalData[Notification::ADDITIONAL_DATA] ?? null;
         $pspReference = $notification->getPspreference();
         $originalReference = $notification->getOriginalReference();
 
