@@ -1849,6 +1849,8 @@ class Cron
             case 'maestro_applepay':
             case 'paywithgoogle':
             case 'svs':
+            case 'givex':
+            case 'valuelink':
                 $manualCaptureAllowed = true;
                 break;
             default:
