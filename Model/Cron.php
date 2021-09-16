@@ -25,7 +25,6 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
-use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
@@ -289,11 +288,6 @@ class Cron
     protected $encryptor;
 
     /**
-     * @var ChargedCurrency
-     */
-    private $chargedCurrency;
-
-    /**
      * @var \Adyen\Payment\Helper\PaymentMethods
      */
     protected $paymentMethodsHelper;
@@ -348,7 +342,6 @@ class Cron
      * @param PaymentTokenFactoryInterface $paymentTokenFactory
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      * @param EncryptorInterface $encryptor
-     * @param ChargedCurrency $chargedCurrency
      * @param \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
      * @param \Magento\Sales\Model\ResourceModel\Order\Invoice
      * @param ResourceModel\Order\Payment $orderPaymentResourceModel
@@ -381,7 +374,6 @@ class Cron
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
         EncryptorInterface $encryptor,
-        ChargedCurrency $chargedCurrency,
         \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper,
         ResourceModel\Order\Payment $orderPaymentResourceModel,
         \Magento\Sales\Model\ResourceModel\Order\Invoice $invoiceResource,
@@ -415,7 +407,6 @@ class Cron
         $this->paymentTokenFactory = $paymentTokenFactory;
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->encryptor = $encryptor;
-        $this->chargedCurrency = $chargedCurrency;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->invoiceResource = $invoiceResource;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
