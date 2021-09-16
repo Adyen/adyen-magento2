@@ -1147,7 +1147,7 @@ class Cron
                 if (!$this->_isAutoCapture()) {
                     $this->finalizeOrder(false, true);
                     $capturedAmount = $this->adyenOrderPaymentHelper->getCapturedAmount($this->_order);
-                    $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
+                    $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $this->_order->getOrderCurrencyCode());
                     $this->invoiceHelper->createAdyenInvoice(
                         $this->_order,
                         $this->notification,
@@ -1527,7 +1527,7 @@ class Cron
         $this->adyenOrderPaymentHelper->createAdyenOrderPayment($this->_order, $this->notification, $this->_isAutoCapture());
         $isTotalAmountAuthorised = $this->_isTotalAmount(
             $this->_order->getPayment()->getEntityId(),
-            $this->orderCurrency
+            $this->_order->getOrderCurrencyCode()
         );
 
         // If manual review is NOT active OR no custom status is set on the Adyen config page
@@ -1665,7 +1665,7 @@ class Cron
             return;
         }
 
-        if ($this->_isTotalAmount($paymentObj->getEntityId(), $this->orderCurrency)) {
+        if ($this->_isTotalAmount($paymentObj->getEntityId(), $this->_order->getOrderCurrencyCode())) {
             $this->_createInvoice();
             $this->finalizeOrder();
         } else {
@@ -1909,8 +1909,8 @@ class Cron
 
         // Get total amount of the order
         $grandTotal = $this->_adyenHelper->formatAmount(
-            $this->orderAmount,
-            $this->orderCurrency
+            $this->_order->getGrandTotal(),
+            $this->_order->getOrderCurrencyCode()
         );
 
         // Get total amount currently authorised
@@ -1940,7 +1940,7 @@ class Cron
             } else {
                 $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
                     'This is a partial AUTHORISATION w/amount: %s. Full order amount: %s. Remaining amount: %s',
-                    $this->_value, $grandTotal, $this->orderAmount - $amount
+                    $this->_value, $grandTotal, $this->_order->getGrandTotal() - $amount
                 ));
 
                 return false;
@@ -2036,7 +2036,7 @@ class Cron
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Set order to authorised');
         $amount = $this->_value;
-        $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
+        $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $this->_order->getOrderCurrencyCode());
 
         // If order was not set to automatically get captured, update the status of the adyen_order_payment
         if (!$this->_isAutoCapture()) {
