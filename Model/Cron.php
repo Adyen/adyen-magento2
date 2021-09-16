@@ -162,6 +162,21 @@ class Cron
     /**
      * @var
      */
+    protected $_currency;
+
+    /**
+     * @var
+     */
+    protected $orderAmount;
+
+    /**
+     * @var
+     */
+    protected $orderCurrency;
+
+    /**
+     * @var
+     */
     protected $_boletoOriginalAmount;
 
     /**
@@ -1938,13 +1953,13 @@ class Cron
 
         if ($res && isset($res[0]) && is_array($res[0])) {
             $amount = $res[0]['total_amount'];
-            $orderAmount = $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode);
+            $formattedOrderAmount = $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode);
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 sprintf(
                     'The grand total amount for order %s is %s and the currently authorised order amount is: %s',
                     $orderId,
                     $grandTotal,
-                    $orderAmount
+                    $formattedOrderAmount
                 )
             );
 
