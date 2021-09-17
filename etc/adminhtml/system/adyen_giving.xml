@@ -25,10 +25,9 @@
 
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_giving" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label><![CDATA[Adyen Giving]]></label>
-        <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
-        <fieldset_css>adyen-method-adyen-cc</fieldset_css>
-        <comment>With Adyen Giving feature, shoppers have the option to donate to a charity after they have completed a payment</comment>
+        <label><![CDATA[Advanced: Adyen Giving]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <comment><![CDATA[With Adyen Giving feature, shoppers have the option to donate to a charity after they have completed a payment]]></comment>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Enabled</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
