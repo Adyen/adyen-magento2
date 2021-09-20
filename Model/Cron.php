@@ -725,6 +725,7 @@ class Cron
         $this->_paymentMethod = $notification->getPaymentMethod();
         $this->_reason = $notification->getReason();
         $this->_value = $notification->getAmountValue();
+        $this->_currency = $notification->getAmountCurrency();
         $this->_live = $notification->getLive();
 
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
