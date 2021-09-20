@@ -26,6 +26,7 @@ define([
                 }).fail(function() {
                     console.log('Fetching the payment methods failed!');
                 })
+                return result;
             });
         });
 
