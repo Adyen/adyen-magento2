@@ -2106,7 +2106,6 @@ class Cron
             }
         }
 
-        // This still needs to be updated
         if ($fullAmountFinalized) {
 
             $comment = "Adyen Payment Successfully completed";
