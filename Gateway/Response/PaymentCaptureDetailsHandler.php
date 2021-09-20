@@ -108,7 +108,7 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
     private function setInvoiceToPending($payment)
     {
         $payment->setIsTransactionPending(true);
-        $payment->setIsTransactionClosed(true);
+        // Do not close parent authorisation since order can still be cancelled/refunded
         $payment->setShouldCloseParentTransaction(false);
 
         return $payment;
