@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -16,16 +15,27 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2018 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="admin-2columns-left" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <body>
-        <referenceContainer name="payment_additional_info">
-            <block class="Adyen\Payment\Block\Info\PaymentLink" name="adyen_paymentlink" template="Adyen_Payment::info/adyen_paymentlink.phtml" />
-        </referenceContainer>
-    </body>
-</page>
+
+namespace Adyen\Payment\Cron\Providers;
+
+use Magento\Sales\Api\Data\OrderInterface;
+
+interface OrdersProviderInterface
+{
+
+    /**
+     * @return OrderInterface[]
+     */
+    public function provide();
+
+    /**
+     * @return string
+     */
+    public function getProviderName();
+
+}

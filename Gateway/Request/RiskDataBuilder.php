@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,29 +23,34 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\Requests;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-class RecurringVaultDataBuilder implements BuilderInterface
+class RiskDataBuilder implements BuilderInterface
 {
+    /**
+     * @var Requests
+     */
+    private $adyenRequestsHelper;
+
+    /**
+     * PaymentDataBuilder constructor.
+     *
+     * @param Requests $adyenRequestsHelper
+     */
+    public function __construct(
+        Requests $adyenRequestsHelper
+    ) {
+        $this->adyenRequestsHelper = $adyenRequestsHelper;
+    }
+
     /**
      * @param array $buildSubject
      * @return array
      */
     public function build(array $buildSubject)
     {
-        $requestBody = [];
-        $recurring = ['contract' => \Adyen\Payment\Model\RecurringType::RECURRING];
-        $requestBody['recurring'] = $recurring;
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $payment = $paymentDataObject->getPayment();
-        $extensionAttributes = $payment->getExtensionAttributes();
-        $paymentToken = $extensionAttributes->getVaultPaymentToken();
-
-        $requestBody['selectedRecurringDetailReference'] = $paymentToken->getGatewayToken();
-
-        $request['body'] = $requestBody;
-
+        $request['body'] = $this->adyenRequestsHelper->buildRiskData([]);
         return $request;
     }
 }
