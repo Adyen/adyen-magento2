@@ -32,7 +32,7 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
     const MODULE_NAME = 'ModuleVersion';
     const PLATFORM_VERSION = '2.0.0';
     const PLATFORM_NAME = 'PlatformName';
-    const CUSTOMER_ID = '1';
+    const CUSTOMER_ID = '001';
     const CUSTOMER_EMAIL = 'customer@example.com';
     const RECURRING_TYPE = 'ONECLICK,RECURRING';
 
@@ -43,7 +43,7 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
             ->getMock();
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         $adyenHelper = $this->getSimpleMock(\Adyen\Payment\Helper\Data::class);
         $adyenLogger = $this->getSimpleMock(\Adyen\Payment\Logger\AdyenLogger::class);

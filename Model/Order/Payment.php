@@ -192,4 +192,21 @@ class Payment extends \Magento\Framework\Model\AbstractModel implements OrderPay
     {
         return $this->setData(self::UPDATED_AT, $updatedAt);
     }
+
+    /**
+     * @param $captureStatus
+     * @return Payment
+     */
+    public function setCaptureStatus($captureStatus)
+    {
+        return $this->setData(self::CAPTURE_STATUS, $captureStatus);
+    }
+
+    /**
+     * @return array|mixed|null
+     */
+    public function getCaptureStatus()
+    {
+        return $this->getData(self::CAPTURE_STATUS);
+    }
 }

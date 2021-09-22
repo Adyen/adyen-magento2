@@ -15,40 +15,18 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\ResourceModel\Order;
+namespace Adyen\Payment\Block\Info;
 
-class Payment extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
+class PayByLink extends AbstractInfo
 {
     /**
-     * Construct
+     * @var string
      */
-    public function _construct()
-    {
-        $this->_init('adyen_order_payment', 'entity_id');
-    }
-
-    /**
-     * Get order payment
-     *
-     * @param $pspReference
-     * @param $paymentId
-     * @return array
-     */
-    public function getOrderPaymentDetails($pspReference, $paymentId)
-    {
-        $select = $this->getConnection()->select()
-            ->from(['order_payment' => $this->getTable('adyen_order_payment')])
-            ->where('order_payment.pspreference=?', $pspReference)
-            ->where('order_payment.payment_id=?', $paymentId);
-
-        $result = $this->getConnection()->fetchRow($select);
-
-        return empty($result) ? null : $result;
-    }
+    protected $_template = 'Adyen_Payment::info/adyen_pay_by_link.phtml';
 }

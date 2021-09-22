@@ -76,7 +76,6 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                 var checkout = new AdyenCheckout({
                     clientKey: "<?= /* @noEscape */ $block->getClientKey(); ?>",
                     environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
-                    hasHolderName: true,
                     locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
                     risk: {
                         enabled: false
@@ -90,6 +89,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                         brands: Object.keys(ccTypes),
                         hideCVC: hideCVC,
                         enableStoreDetails: false, // MOTO can't use CVC which is required for OneClick tokens
+                        hasHolderName: true,
                         installmentOptions: <?= /* @noEscape */ $block->getFormattedInstallments();?>,
                         showInstallmentAmounts: true,
                         onChange: function (state) {
