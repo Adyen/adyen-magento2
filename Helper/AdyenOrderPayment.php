@@ -159,7 +159,7 @@ class AdyenOrderPayment extends AbstractHelper
     }
 
     /**
-     * Go trough the adyen_order_payment entries linked and get the amount that has been captured
+     * Go through the adyen_order_payment entries linked and get the amount that has been captured
      *
      * @param Order $order
      * @return int|null
