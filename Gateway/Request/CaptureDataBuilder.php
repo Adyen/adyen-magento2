@@ -27,7 +27,6 @@ use Adyen\AdyenException;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
 use Adyen\Payment\Helper\AdyenOrderPayment;
-use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data as DataHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Order\Payment as PaymentModel;
@@ -46,11 +45,6 @@ class CaptureDataBuilder implements BuilderInterface
      * @var DataHelper
      */
     private $adyenHelper;
-
-    /**
-     * @var ChargedCurrency
-     */
-    private $chargedCurrency;
 
     /**
      * @var Payment
@@ -76,7 +70,6 @@ class CaptureDataBuilder implements BuilderInterface
      * CaptureDataBuilder constructor.
      *
      * @param DataHelper $adyenHelper
-     * @param ChargedCurrency $chargedCurrency
      * @param AdyenOrderPayment $adyenOrderPaymentHelper
      * @param AdyenLogger $adyenLogger
      * @param Context $context
@@ -84,14 +77,12 @@ class CaptureDataBuilder implements BuilderInterface
      */
     public function __construct(
         DataHelper $adyenHelper,
-        ChargedCurrency $chargedCurrency,
         AdyenOrderPayment $adyenOrderPaymentHelper,
         AdyenLogger $adyenLogger,
         Context $context,
         Payment $orderPaymentResourceModel
     ) {
         $this->adyenHelper = $adyenHelper;
-        $this->chargedCurrency = $chargedCurrency;
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->adyenLogger = $adyenLogger;
         $this->context = $context;
