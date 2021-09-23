@@ -23,7 +23,7 @@
  */
 
 /**
- * @var \Adyen\Payment\Block\Checkout\Multishipping\Billing $block
+ * @var \Magento\Multishipping\Block\Checkout\Billing $block
  * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
  */
 ?>
@@ -63,6 +63,7 @@ script;
       method="post"
       id="multishipping-billing-form"
       class="form multicheckout billing">
+    <input name="payment[stateData]" id="stateData" type="hidden">
     <div class="block block-billing">
         <div class="block-content">
             <div class="box box-billing-address">
@@ -97,13 +98,13 @@ script;
                                 $code = $_method->getCode();
                                 $checked = $block->getSelectedMethodCode() === $code;
 
+                                if (isset($methodsForms[$code])) {
+                                    $block->setMethodFormTemplate($code, $methodsForms[$code]);
+                                }
+
                                 if (\Adyen\Payment\Model\Ui\AdyenHppConfigProvider::CODE == $code) {
                                     $hppPaymentMethod = $_method;
                                     continue;
-                                }
-
-                                if (isset($methodsForms[$code])) {
-                                    $block->setMethodFormTemplate($code, $methodsForms[$code]);
                                 }
                                 ?>
                                 <div data-bind="scope: 'payment_method_<?= $block->escapeHtml($code);?>'">
@@ -145,53 +146,14 @@ script;
                                     <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
-                            <?php
-                            if ($hppPaymentMethod):
-                                $selected = null;
-                                $checked = $block->getSelectedMethodCode() === 'adyen_hpp';
-                            ?>
-                                <?php
-                                foreach ($block->adyenPaymentMethods as $adyenPaymentMethod):
-                                    $identifier = $adyenPaymentMethod['type'] === 'giftcard'
-                                        ? $adyenPaymentMethod['brand']
-                                        : $adyenPaymentMethod['type'];
-                                    if ($checked) {
-                                        //$selected = $block->getSelectedAdyenPaymentMethodType(); todo create func in block
-                                    }
-                                ?>
-                                    <div data-bind="scope: 'payment_method_<?= $identifier; ?>'">
-                                        <dt class="item-title">
-                                                <input type="radio"
-                                                       id="p_method_<?= $identifier; ?>"
-                                                       value="adyen_hpp"
-                                                       name="payment[method]"
-                                                       title="<?= $adyenPaymentMethod['name']; ?>"
-                                                       data-bind="
-                                                           value: getCode(),
-                                                           checked: isChecked,
-                                                           click: selectPaymentMethod,
-                                                           visible: isRadioButtonVisible()"
-                                                    <?php if ($selected === $identifier): ?>
-                                                        checked="checked"
-                                                    <?php endif; ?>
-                                                       class="radio"/>
-
-                                            <label for="p_method_<?= $identifier; ?>">
-                                                <?= $adyenPaymentMethod['name']; ?>
-                                            </label>
-                                        </dt>
-                                        <dd class="item-content <?= $selected ? '' : 'no-display'; ?>">
-                                            <?/*=  var_dump($block->adyenPaymentMethods); */?>
-                                            <div class="payment-method-content" id="adyen-alternative-payment-container-<?= $identifier; ?>"></div>
-                                        </dd>
-                                    </div>
-                                <?php endforeach; ?>
-                                <div id="ActionWrapper">
-                                    <div id="ActionModal">
-                                        <div id="ActionContainer"></div>
-                                    </div>
-                                </div>
+                            <?php if ($hppPaymentMethod):?>
+                            <div data-bind="scope: 'payment_method_adyen_hpp'">
+                                <?php if ($html = $block->getChildHtml('payment.method.adyen_hpp', false)): ?>
+                                    <?= /* @noEscape */ $html; ?>
+                                <?php endif; ?>
+                            </div>
                             <?php endif; ?>
+
                         </dl>
                         <?= $block->getChildHtml('payment_methods_after') ?>
                         <?= $block->getChildHtml('checkout_billing_items') ?>
@@ -273,22 +235,9 @@ $scriptString .= <<<script
 
 script;
 ?>
-<script>
-    require(
-        [
-            'jquery',
-            'Adyen_Payment/js/view/payment/method-renderer/multishipping/adyen-hpp-method'
-        ],
-        function ($, adyenHpp) {
-            debugger;
-            $('input[name="payment[method]"]').change(function() {
-                debugger;
-                var id = $(this).attr('id');
-                console.log(id);
-                var container = $(this).parent().siblings('.item-content').find('.payment-method-content#adyen-alternative-payment-container-' + id);
-                console.log(container);
-            });
-            console.log('jquery loaded');
-        });
-</script>
 <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
+<div id="ActionWrapper">
+    <div id="ActionModal">
+        <div id="ActionContainer"></div>
+    </div>
+</div>

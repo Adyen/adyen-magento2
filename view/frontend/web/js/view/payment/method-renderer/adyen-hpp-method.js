@@ -247,10 +247,9 @@ define(
                     renderCheckoutComponent: function() {
                         result.isPlaceOrderAllowed(false);
 
-                        /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
-                        var configuration = self.buildConfiguration(paymentMethod, paymentMethodsExtraInfo);
+                        var configuration = self.buildComponentConfiguration(paymentMethod, paymentMethodsExtraInfo, result);
 
-                        self.mountPaymentMethodComponent(paymentMethod, configuration);
+                        self.mountPaymentMethodComponent(paymentMethod, configuration, result);
                     },
                     placeOrder: function() {
                         var innerSelf = this;
@@ -573,7 +572,8 @@ define(
             getCode: function() {
                 return window.checkoutConfig.payment.adyenHpp.methodCode;
             },
-            buildConfiguration(paymentMethod, paymentMethodsExtraInfo) {
+            buildComponentConfiguration(paymentMethod, paymentMethodsExtraInfo, result) {
+                var self = this;
                 var showPayButton = false;
 
                 if (self.showPayButtonPaymentMethods.includes(
@@ -668,6 +668,7 @@ define(
 
                 }
 
+                /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
                 var configuration = Object.assign(paymentMethod,
                     {
                         showPayButton: showPayButton,
@@ -758,7 +759,8 @@ define(
 
                 return configuration;
             },
-            mountPaymentMethodComponent(paymentMethod, configuration) {
+            mountPaymentMethodComponent(paymentMethod, configuration, result) {
+                var self = this;
                 try {
                     const containerId = '#adyen-alternative-payment-container-' +
                         paymentMethod.methodIdentifier;

@@ -1,5 +1,26 @@
-<div id="ActionWrapper">
-    <div id="ActionModal">
-        <div id="ActionContainer"></div>
-    </div>
-</div>
+<!-- ko foreach: adyenPaymentMethods -->
+    <dt class="item-title">
+        <input type="radio"
+               name="payment[method]"
+               title="Adyen HPP stuff"
+               data-bind="
+                   attr: {'id': 'adyen_' + paymentMethod.methodIdentifier},
+                   value: 'adyen_' + paymentMethod.methodIdentifier,
+                   checked: paymentMethod.methodIdentifier == $parent.getSelectedAlternativePaymentMethodType,
+                   click: $parent.selectPaymentMethodType"
+               class="radio"/>
+        <label data-bind="attr: {'for': 'adyen_' + paymentMethod.methodIdentifier}">
+            <!-- ko if: icon -->
+            <img data-bind="attr: {
+                            'src': icon.url
+                            }">
+            <!--/ko-->
+
+            <span data-bind="text: paymentMethod.name"></span>
+        </label>
+    </dt>
+
+    <dd class="item-content no-display" data-bind='attr: {id: "adyen-alternative-payment-container-" + paymentMethod.methodIdentifier}'
+        afterRender="renderCheckoutComponent()">
+    </dd>
+<!--/ko-->
