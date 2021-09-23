@@ -59,11 +59,6 @@ class AdyenOrderPayment extends AbstractHelper
     protected $adyenDataHelper;
 
     /**
-     * @var ChargedCurrency
-     */
-    protected $adyenChargedCurrencyHelper;
-
-    /**
      * @var OrderPaymentResourceModel
      */
     protected $orderPaymentResourceModel;
@@ -80,7 +75,6 @@ class AdyenOrderPayment extends AbstractHelper
      * @param AdyenLogger $adyenLogger
      * @param AdyenOrderPaymentCollection $adyenOrderPaymentCollection
      * @param Data $adyenDataHelper
-     * @param ChargedCurrency $adyenChargedCurrencyHelper
      * @param OrderPaymentResourceModel $orderPaymentResourceModel
      * @param PaymentFactory $adyenOrderPaymentFactory
      */
@@ -89,7 +83,6 @@ class AdyenOrderPayment extends AbstractHelper
         AdyenLogger $adyenLogger,
         AdyenOrderPaymentCollection $adyenOrderPaymentCollection,
         Data $adyenDataHelper,
-        ChargedCurrency $adyenChargedCurrencyHelper,
         OrderPaymentResourceModel $orderPaymentResourceModel,
         PaymentFactory $adyenOrderPaymentFactory
     ) {
@@ -97,7 +90,6 @@ class AdyenOrderPayment extends AbstractHelper
         $this->adyenLogger = $adyenLogger;
         $this->adyenOrderPaymentCollection = $adyenOrderPaymentCollection;
         $this->adyenDataHelper = $adyenDataHelper;
-        $this->adyenChargedCurrencyHelper = $adyenChargedCurrencyHelper;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
     }
@@ -125,9 +117,8 @@ class AdyenOrderPayment extends AbstractHelper
             return false;
         }
 
-        $orderTotal = $this->adyenChargedCurrencyHelper->getOrderAmountCurrency($order, false);
-        $orderTotalAmount = $this->adyenDataHelper->formatAmount($orderTotal->getAmount(), $orderTotal->getCurrencyCode());
-        $totalAmountAuthorized = $this->adyenDataHelper->formatAmount($totalAmountAuthorized, $orderTotal->getCurrencyCode());
+        $orderTotalAmount = $this->adyenDataHelper->formatAmount($order->getGrandTotal(), $order->getOrderCurrencyCode());
+        $totalAmountAuthorized = $this->adyenDataHelper->formatAmount($totalAmountAuthorized, $order->getOrderCurrencyCode());
 
         if ($totalAmountAuthorized === $orderTotalAmount) {
             return true;
