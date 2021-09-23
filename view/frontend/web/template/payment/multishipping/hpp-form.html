@@ -2,10 +2,10 @@
     <dt class="item-title">
         <input type="radio"
                name="payment[method]"
-               title="Adyen HPP stuff"
+               title="Adyen Alternative payment methods"
                data-bind="
                    attr: {'id': 'adyen_' + paymentMethod.methodIdentifier},
-                   value: 'adyen_' + paymentMethod.methodIdentifier,
+                   value: 'adyen_hpp',
                    checked: paymentMethod.methodIdentifier == $parent.getSelectedAlternativePaymentMethodType,
                    click: $parent.selectPaymentMethodType"
                class="radio"/>

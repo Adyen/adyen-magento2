@@ -572,7 +572,7 @@ define(
             getCode: function() {
                 return window.checkoutConfig.payment.adyenHpp.methodCode;
             },
-            buildComponentConfiguration(paymentMethod, paymentMethodsExtraInfo, result) {
+            buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo, result) {
                 var self = this;
                 var showPayButton = false;
 
@@ -682,8 +682,7 @@ define(
                                 lastName: formattedBillingAddress.lastName,
                                 telephoneNumber: formattedBillingAddress.telephone,
                                 shopperEmail: email,
-                                gender: getAdyenGender(
-                                    shopperGender),
+                                gender: getAdyenGender(shopperGender),
                                 dateOfBirth: shopperDateOfBirth,
                             },
                             billingAddress: {
@@ -695,13 +694,11 @@ define(
                             },
                         },
                         onChange: function(state) {
-                            result.isPlaceOrderAllowed(
-                                state.isValid);
+                            result.isPlaceOrderAllowed(state.isValid);
                         },
                         onClick: function(resolve, reject) {
                             // for paypal add a workaround, remove when component fixes it
-                            if (selectedAlternativePaymentMethodType() ===
-                                'paypal') {
+                            if (selectedAlternativePaymentMethodType() === 'paypal') {
                                 return self.validate();
                             } else {
                                 if (self.validate()) {
