@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -16,22 +15,18 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
-    <group id="adyen_payment">
-        <job name="adyen_payment_process_notification" instance="Adyen\Payment\Model\Cron" method="processNotification">
-            <schedule>*/1 * * * *</schedule>
-        </job>
-        <job name="adyen_payment_server_address_caching" instance="Adyen\Payment\Cron\ServerIpAddress" method="execute">
-            <schedule>*/1 * * * *</schedule>
-        </job>
-        <job name="adyen_payment_cancel_expired_orders" instance="AdyenCancelOrders" method="execute">
-            <schedule>0 0 * * *</schedule>
-        </job>
-    </group>
-</config>
+
+namespace Adyen\Payment\Block\Info;
+
+class PayByLink extends AbstractInfo
+{
+    /**
+     * @var string
+     */
+    protected $_template = 'Adyen_Payment::info/adyen_pay_by_link.phtml';
+}
