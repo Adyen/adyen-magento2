@@ -41,10 +41,6 @@ class CcBackendAuthorizationDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $requestBody = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::STATE_DATA);
 
-        /**
-         * On Backend always use MOTO
-         */
-        $requestBody['shopperInteraction'] = "Moto";
         // if installments is set add it into the request
         if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) &&
             $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) > 0
