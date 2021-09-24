@@ -815,14 +815,14 @@ class Cron
             $currency = $this->_order->getOrderCurrencyCode();
 
             // check if it is a full or partial refund
-            $amount = $this->_value;
-            $orderAmount = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $currency);
+            $notificationAmount = $this->_value;
+            $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $currency);
 
             $this->_adyenLogger->addAdyenNotificationCronjob(
-                'amount notification:' . $amount . ' amount order:' . $orderAmount
+                'amount notification:' . $notificationAmount . ' amount order:' . $formattedOrderAmount
             );
 
-            if ($amount == $orderAmount) {
+            if ($notificationAmount == $formattedOrderAmount) {
                 $this->_order->setData(
                     'adyen_notification_event_code',
                     $this->_eventCode . " : " . strtoupper($successResult)
