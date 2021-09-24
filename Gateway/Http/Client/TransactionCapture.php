@@ -39,6 +39,7 @@ class TransactionCapture implements ClientInterface
 {
     const MULTIPLE_AUTHORIZATIONS = 'multiple_authorizations';
     const CAPTURE_AMOUNT = 'capture_amount';
+    const CAPTURE_RECEIVED = '[capture-received]';
 
     /**
      * @var Data

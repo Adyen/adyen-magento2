@@ -62,7 +62,7 @@ class CaptureResponseValidator extends AbstractValidator
             return $this->validateMultipleCaptureRequests($response);
         }
 
-        if (empty($response['response']) || $response['response'] != '[capture-received]') {
+        if (empty($response['response']) || $response['response'] != TransactionCapture::CAPTURE_RECEIVED) {
             $errorMessages[] = $this->buildErrorMessages($response);
         }
 
@@ -81,7 +81,7 @@ class CaptureResponseValidator extends AbstractValidator
         $errorMessages = [];
 
         foreach ($responseContainer[TransactionCapture::MULTIPLE_AUTHORIZATIONS] as $response) {
-            if (empty($response['response']) || $response['response'] != '[capture-received]') {
+            if (empty($response['response']) || $response['response'] != TransactionCapture::CAPTURE_RECEIVED) {
                 $errorMessages[] = $this->buildErrorMessages($response, true);
             }
         }
