@@ -182,11 +182,6 @@
             <adyen_giving>
                 <active>0</active>
                 <model>AdyenPaymentCcFacade</model>
-                <charity_name></charity_name>
-                <charity_merchant_account></charity_merchant_account>
-                <donation_amounts></donation_amounts>
-                <charity_description></charity_description>
-                <charity_website></charity_website>
             </adyen_giving>
         </payment>
     </default>
