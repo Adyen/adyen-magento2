@@ -23,10 +23,24 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class PaymentCommentHistoryHandler implements HandlerInterface
 {
+    /** @var AdyenLogger $adyenLogger */
+    private $adyenLogger;
+
+    /**
+     * PaymentCaptureDetailsHandler constructor.
+     * @param AdyenLogger $adyenLogger
+     */
+    public function __construct(AdyenLogger $adyenLogger)
+    {
+        $this->adyenLogger = $adyenLogger;
+    }
+
     /**
      * @param array $handlingSubject
      * @param array $response
@@ -39,22 +53,12 @@ class PaymentCommentHistoryHandler implements HandlerInterface
         /** @var OrderPaymentInterface $payment */
         $payment = $payment->getPayment();
 
-        if (isset($response['resultCode'])) {
-            $responseCode = $response['resultCode'];
-        } else {
-            // try to get response from response key (used for modifications
-            if (isset($response['response'])) {
-                $responseCode = $response['response'];
-            } else {
-                $responseCode = "";
-            }
+        if (array_key_exists(TransactionCapture::MULTIPLE_AUTHORIZATIONS, $response)) {
+            return $this->handleMultipleCaptureRequests($payment, $response);
         }
 
-        if (isset($response['pspReference'])) {
-            $pspReference = $response['pspReference'];
-        } else {
-            $pspReference = "";
-        }
+        $responseCode = $this->getResponseCode($response);
+        $pspReference = $this->getPspReference($response);
 
         $type = 'Adyen Result response:';
         $comment = __(
@@ -71,5 +75,86 @@ class PaymentCommentHistoryHandler implements HandlerInterface
         $payment->getOrder()->addStatusHistoryComment($comment);
 
         return $this;
+    }
+
+    /**
+     * Handle multiple capture requests by creating a comment for each request, and adding all the event codes
+     * in the order model
+     *
+     * @param $payment
+     * @param array $responseContainer
+     * @return $this
+     */
+    private function handleMultipleCaptureRequests($payment, array $responseContainer)
+    {
+        $this->adyenLogger->info(sprintf(
+            'Handling multiple capture response in comment history handler for payment %s',
+            $payment->getId()
+        ));
+
+        $resultEventCodes = [];
+        foreach ($responseContainer[TransactionCapture::MULTIPLE_AUTHORIZATIONS] as $response) {
+            $responseCode = $this->getResponseCode($response);
+            $pspReference = $this->getPspReference($response);
+            $amount = $response[TransactionCapture::CAPTURE_AMOUNT];
+
+            $type = 'Adyen Result response:';
+            $comment = __(
+                '%1 <br /> authResult: %2 <br /> pspReference: %3 <br /> amount: %4 ',
+                $type,
+                $responseCode,
+                $pspReference,
+                $amount
+            );
+
+            $resultEventCodes[] = $responseCode;
+
+            $payment->getOrder()->addStatusHistoryComment($comment, $payment->getOrder()->getStatus());
+        }
+
+        if (!empty($resultEventCodes)) {
+            $payment->getOrder()->setAdyenResulturlEventCode(implode(', ', $resultEventCodes));
+        }
+
+        return $this;
+    }
+
+    /**
+     * Search for the response code in the passed response array
+     *
+     * @param $response
+     * @return string
+     */
+    private function getResponseCode($response)
+    {
+        if (isset($response['resultCode'])) {
+            $responseCode = $response['resultCode'];
+        } else {
+            // try to get response from response key (used for modifications
+            if (isset($response['response'])) {
+                $responseCode = $response['response'];
+            } else {
+                $responseCode = '';
+            }
+        }
+
+        return $responseCode;
+    }
+
+    /**
+     * Get the pspReference or return empty string if not found
+     *
+     * @param $response
+     * @return string
+     */
+    private function getPspReference($response)
+    {
+        if (isset($response['pspReference'])) {
+            $pspReference = $response['pspReference'];
+        } else {
+            $pspReference = '';
+        }
+
+        return $pspReference;
     }
 }

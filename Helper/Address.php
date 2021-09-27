@@ -33,13 +33,13 @@ class Address
     const HOUSE_NUMBER_REGEX = '/((\s\d{0,10})|(\s\d{0,10}\s?\w{1,3}))$/i';
 
     /**
-     * @param AddressAdapterInterface $address
+     * @param $address
      * @param $houseNumberStreetLine
      * @param $customerStreetLinesEnabled
      * @return array
      */
     public function getStreetAndHouseNumberFromAddress(
-        AddressAdapterInterface $address,
+        $address,
         $houseNumberStreetLine,
         $customerStreetLinesEnabled
     ): array {

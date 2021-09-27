@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,7 +23,18 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\AdyenException;
+use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
+use Adyen\Payment\Helper\AdyenOrderPayment;
+use Adyen\Payment\Helper\Data as DataHelper;
+use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Order\Payment as PaymentModel;
+use Adyen\Payment\Model\ResourceModel\Order\Payment;
+use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
+use Magento\Framework\App\Action\Context;
 use Magento\Payment\Gateway\Request\BuilderInterface;
+use Magento\Sales\Model\Order;
 
 /**
  * Class CustomerDataBuilder
@@ -31,18 +42,51 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 class CaptureDataBuilder implements BuilderInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var DataHelper
      */
     private $adyenHelper;
 
     /**
+     * @var Payment
+     */
+    private $orderPaymentResourceModel;
+
+    /**
+     * @var AdyenOrderPayment
+     */
+    private $adyenOrderPaymentHelper;
+
+    /**
+     * @var AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
+     * @var Context
+     */
+    private $context;
+
+    /**
      * CaptureDataBuilder constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param DataHelper $adyenHelper
+     * @param AdyenOrderPayment $adyenOrderPaymentHelper
+     * @param AdyenLogger $adyenLogger
+     * @param Context $context
+     * @param Payment $orderPaymentResourceModel
      */
-    public function __construct(\Adyen\Payment\Helper\Data $adyenHelper)
-    {
+    public function __construct(
+        DataHelper $adyenHelper,
+        AdyenOrderPayment $adyenOrderPaymentHelper,
+        AdyenLogger $adyenLogger,
+        Context $context,
+        Payment $orderPaymentResourceModel
+    ) {
         $this->adyenHelper = $adyenHelper;
+        $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
+        $this->adyenLogger = $adyenLogger;
+        $this->context = $context;
+        $this->orderPaymentResourceModel = $orderPaymentResourceModel;
     }
 
     /**
@@ -50,6 +94,7 @@ class CaptureDataBuilder implements BuilderInterface
      *
      * @param array $buildSubject
      * @return array
+     * @throws AdyenException
      */
     public function build(array $buildSubject)
     {
@@ -58,11 +103,32 @@ class CaptureDataBuilder implements BuilderInterface
         $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
 
         $payment = $paymentDataObject->getPayment();
-
+        /** @var Order $order */
+        $order = $payment->getOrder();
         $pspReference = $payment->getCcTransId();
         $currency = $payment->getOrder()->getOrderCurrencyCode();
 
         $amount = $this->adyenHelper->formatAmount($amount, $currency);
+        $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+
+        // If total amount has not been authorized
+        if (!$this->adyenOrderPaymentHelper->isTotalAmountAuthorized($order)) {
+            $errorMessage = sprintf(
+                'Unable to send capture request for order %s. Full amount has not been authorized',
+                $order->getIncrementId()
+            );
+            $this->adyenLogger->error($errorMessage);
+            $this->context->getMessageManager()->addErrorMessage(__(
+                'Full order amount has not been authorized')
+            );
+
+            throw new AdyenException($errorMessage);
+        }
+
+        $adyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments($payment->getId());
+        if (!is_null($adyenOrderPayments) && count($adyenOrderPayments) > 1) {
+            return $this->buildMultipleCaptureData($payment, $currency, $adyenOrderPayments);
+        }
 
         $modificationAmount = ['currency' => $currency, 'value' => $amount];
         $requestBody = [
@@ -71,16 +137,13 @@ class CaptureDataBuilder implements BuilderInterface
             "originalReference" => $pspReference
         ];
 
-        $brandCode = $payment->getAdditionalInformation(
-            \Adyen\Payment\Observer\AdyenHppDataAssignObserver::BRAND_CODE
-        );
-
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)) {
             $openInvoiceFields = $this->getOpenInvoiceData($payment);
             $requestBody["additionalData"] = $openInvoiceFields;
         }
         $request['body'] = $requestBody;
         $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
+
         return $request;
     }
 
@@ -138,5 +201,53 @@ class CaptureDataBuilder implements BuilderInterface
         $formFields['openinvoicedata.numberOfLines'] = $count;
 
         return $formFields;
+    }
+
+    /**
+     * Return the data of the multiple capture requests required to capture the full order
+     *
+     * @param $payment
+     * @param $currency
+     * @param $adyenOrderPayments
+     * @return array[]
+     */
+    private function buildMultipleCaptureData($payment, $currency, $adyenOrderPayments)
+    {
+        $this->adyenLogger->debug(sprintf(
+            'Building capture request for multiple authorisations, on payment %s', $payment->getId()
+        ));
+
+        $captureData = [];
+
+        foreach ($adyenOrderPayments as $adyenOrderPayment) {
+            // Only add data related to adyen_order_payment that have not been captured yet
+            if ($adyenOrderPayment[OrderPaymentInterface::CAPTURE_STATUS] === OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE) {
+                $amount = $this->adyenHelper->formatAmount($adyenOrderPayment[OrderPaymentInterface::AMOUNT], $currency);
+                $modificationAmount = [
+                    'currency' => $currency,
+                    'value' => $amount
+                ];
+                $authToCapture = [
+                    "modificationAmount" => $modificationAmount,
+                    "reference" => $payment->getOrder()->getIncrementId(),
+                    "originalReference" => $adyenOrderPayment[OrderPaymentInterface::PSPREFRENCE]
+                ];
+
+                if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($adyenOrderPayment[OrderPaymentInterface::PAYMENT_METHOD])) {
+                    $openInvoiceFields = $this->getOpenInvoiceData($payment);
+                    $authToCapture["additionalData"] = $openInvoiceFields;
+                }
+                $captureData[] = $authToCapture;
+            }
+        }
+
+        $requestBody = [
+            TransactionCapture::MULTIPLE_AUTHORIZATIONS => $captureData
+        ];
+
+        $request['body'] = $requestBody;
+        $request['clientConfig'] = ["storeId" => $payment->getOrder()->getStoreId()];
+
+        return $request;
     }
 }
