@@ -43,6 +43,7 @@ define([
             template: 'Adyen_Payment/payment/multishipping/hpp-form'
         },
         initialize: function () {
+            var self = this;
             // Retrieve adyen payment methods
             adyenPaymentService.retrievePaymentMethods().done(function(paymentMethods) {
                 try {
@@ -53,9 +54,15 @@ define([
                     }
                     paymentMethods = null;
                 }
+
+                /** Disable wallet payment methods for multi-shipping */
+                paymentMethods.paymentMethodsResponse.paymentMethods = paymentMethods.paymentMethodsResponse.paymentMethods.filter(function (paymentMethod) {
+                    return !self.showPayButtonPaymentMethods.includes(paymentMethod.type);
+                })
+
                 adyenPaymentService.setPaymentMethods(paymentMethods);
                 fullScreenLoader.stopLoader();
-            }).fail(function() {
+            }.bind(self)).fail(function() {
                 console.log('Fetching the payment methods failed!');
             });
             this._super();
