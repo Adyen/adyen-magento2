@@ -68,33 +68,33 @@ class DonationAmounts extends Value
 
     public function validateBeforeSave()
     {
-        if (!$this->validateDonationAmounts(explode(',', $this->getValue()))) {
-            throw new \Magento\Framework\Validator\Exception(
-                new Phrase(
-                    'The Adyen Giving donation amounts are not valid, ' .
-                    'please enter amounts higher than ' . self::MIN_DONATION_IN_EUR . 'EUR separated by commas. ' .
-                    'Also, make sure that there is a currency rate for EUR in your Magento system.'
-                )
-            );
+        if ((bool)$this->getFieldsetDataValue('active')) {
+            if (!$this->validateDonationAmounts(explode(',', $this->getValue()))) {
+                throw new \Magento\Framework\Validator\Exception(
+                    new Phrase(
+                        'The Adyen Giving donation amounts are not valid, ' .
+                        'please enter amounts higher than ' . self::MIN_DONATION_IN_EUR . 'EUR separated by commas. ' .
+                        'Also, make sure that there is a currency rate for EUR in your Magento system.'
+                    )
+                );
+            }
         }
     }
 
     public function validateDonationAmounts($amounts = array())
     {
-        if ((bool)$this->getFieldsetDataValue('active')) {
 
-            $baseCurrencyRate = $this->storeManager->getStore()->getBaseCurrency()->getRate('EUR');
+        $baseCurrencyRate = $this->storeManager->getStore()->getBaseCurrency()->getRate('EUR');
 
-            // Fail if the field is empty, the array is associative, or if there isn't a currency rate for EUR
-            if (empty($amounts) || array_values($amounts) !== $amounts || !$baseCurrencyRate) {
+        // Fail if the field is empty, the array is associative, or if there isn't a currency rate for EUR
+        if (empty($amounts) || array_values($amounts) !== $amounts || !$baseCurrencyRate) {
+            return false;
+        }
+
+        foreach ($amounts as $amount) {
+            // Fail if one of the amounts is empty, not numeric, or less than the minimum donation amount
+            if ($amount === '' || !is_numeric($amount) || $amount * $baseCurrencyRate < self::MIN_DONATION_IN_EUR) {
                 return false;
-            }
-
-            foreach ($amounts as $amount) {
-                // Fail if one of the amounts is empty, not numeric, or less than the minimum donation amount
-                if ($amount === '' || !is_numeric($amount) || $amount * $baseCurrencyRate < self::MIN_DONATION_IN_EUR) {
-                    return false;
-                }
             }
         }
         return true;
