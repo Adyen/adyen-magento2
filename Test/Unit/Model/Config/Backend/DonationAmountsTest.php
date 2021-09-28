@@ -55,7 +55,7 @@ class DonationAmountsTest extends \PHPUnit\Framework\TestCase
 
 
         $this->donationAmounts = new DonationAmounts($context, $registry, $scopeConfigInterface, $typeListInterface,
-            $abstractResource, $abstractDb, $storeManagerInterface);
+            $storeManagerInterface, $abstractResource, $abstractDb);
     }
 
     /**
