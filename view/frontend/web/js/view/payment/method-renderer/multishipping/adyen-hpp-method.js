@@ -62,12 +62,6 @@ define([
         },
         buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo, result) {
             var self = this;
-            var showPayButton = false;
-
-            if (self.showPayButtonPaymentMethods.includes(
-                paymentMethod.methodGroup)) {
-                showPayButton = true;
-            }
 
             var firstName = '';
             var lastName = '';
@@ -159,7 +153,7 @@ define([
             /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
             var configuration = Object.assign(paymentMethod,
                 {
-                    showPayButton: showPayButton,
+                    showPayButton: false,
                     countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
                     hasHolderName: adyenConfiguration.getHasHolderName(),
                     holderNameRequired: adyenConfiguration.getHasHolderName() &&
@@ -244,6 +238,24 @@ define([
             }
 
             return configuration;
+        },
+        selectPaymentMethodType: function() {
+            var self = this;
+            $('#stateData').val('');
+            let stateData;
+            if (!('component' in self)) {
+                let paymentMethod = self.paymentMethod;
+                stateData = {
+                    paymentMethod: {
+                        type: paymentMethod.type
+                    }
+                };
+                if ('brand' in paymentMethod) {
+                    stateData.paymentMethod.brand = paymentMethod.brand;
+                }
+                $('#stateData').val(JSON.stringify(stateData));
+            }
+            return this._super();
         },
     });
 });
