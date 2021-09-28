@@ -64,7 +64,7 @@
         </field>
         <field id="donation_amounts" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Suggested donation amounts</label>
-            <source_model>Adyen\Payment\Model\Config\Source\DonationAmounts</source_model>
+            <backend_model>Adyen\Payment\Model\Config\Backend\DonationAmounts</backend_model>
             <config_path>payment/adyen_giving/donation_amounts</config_path>
             <tooltip><![CDATA[Suggested amounts that the shopper can choose to donate. The minimum amount is 1 EUR.]]></tooltip>
         </field>
