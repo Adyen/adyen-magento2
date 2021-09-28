@@ -102,6 +102,7 @@ script;
                                     $block->setMethodFormTemplate($code, $methodsForms[$code]);
                                 }
 
+                                /* Skip adyen HPP methods and use custom display from template */
                                 if (\Adyen\Payment\Model\Ui\AdyenHppConfigProvider::CODE == $code) {
                                     $hppPaymentMethod = $_method;
                                     continue;
@@ -146,6 +147,8 @@ script;
                                     <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
+
+                            <!-- Adyen customization -->
                             <?php if ($hppPaymentMethod):?>
                             <div data-bind="scope: 'payment_method_adyen_hpp'">
                                 <?php if ($html = $block->getChildHtml('payment.method.adyen_hpp', false)): ?>
@@ -153,6 +156,7 @@ script;
                                 <?php endif; ?>
                             </div>
                             <?php endif; ?>
+                            <!-- End of Adyen customization -->
 
                         </dl>
                         <?= $block->getChildHtml('payment_methods_after') ?>

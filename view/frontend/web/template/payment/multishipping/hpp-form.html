@@ -12,7 +12,8 @@
         <label data-bind="attr: {'for': 'adyen_' + paymentMethod.methodIdentifier}">
             <!-- ko if: icon -->
             <img data-bind="attr: {
-                            'src': icon.url
+                            'src': icon.url,
+                            'alt': paymentMethod.methodIdentifier + ' logo'
                             }">
             <!--/ko-->
 
