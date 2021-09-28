@@ -76,7 +76,7 @@ class DonationAmountsTest extends \PHPUnit\Framework\TestCase
             ),
             array(
                 "12,45,h,34",
-                true
+                false
             ),
             array(
                 "12.4,45.3,,34",
