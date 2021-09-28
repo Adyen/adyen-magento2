@@ -30,6 +30,13 @@
     <route url="/V1/guest-carts/:cartId/retrieve-adyen-payment-methods" method="POST">
         <service class="Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface" method="getPaymentMethods"/>
         <resources>
+            <resource ref="Adyen_Payment::guestPaymentMethods"/>
+        </resources>
+    </route>
+
+    <route url="/V1/internal/guest-carts/:cartId/retrieve-adyen-payment-methods" method="POST">
+        <service class="Adyen\Payment\Api\InternalGuestAdyenPaymentMethodManagementInterface" method="handleInternalRequest"/>
+        <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>
