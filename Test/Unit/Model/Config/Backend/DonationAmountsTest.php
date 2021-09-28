@@ -47,7 +47,7 @@ class DonationAmountsTest extends \PHPUnit\Framework\TestCase
         $abstractResource = $this->getSimpleMock(\Magento\Framework\Model\ResourceModel\AbstractResource::class);
         $abstractDb = $this->getSimpleMock(\Magento\Framework\Data\Collection\AbstractDb::class);
         $storeManagerInterface = $this->getSimpleMock(\Magento\Store\Model\StoreManager::class, ['getStore']);
-        $storeInterface = $this->getSimpleMock(\Magento\Store\Api\Data\StoreInterface::class, ['getBaseCurrency']);
+        $storeInterface = $this->getSimpleMock(\Magento\Store\Model\Store::class, ['getBaseCurrency']);
         $currency = $this->getSimpleMock(\Magento\Directory\Model\Currency::class, ['getRate']);
         $currency->method('getRate')->willReturn(1);
         $storeInterface->method('getBaseCurrency')->willReturn($currency);
