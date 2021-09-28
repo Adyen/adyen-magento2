@@ -57,9 +57,9 @@ class DonationAmounts extends Value
         Registry $registry,
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
+        StoreManagerInterface $storeManager,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
-        StoreManagerInterface $storeManager,
         array $data = []
     ) {
         $this->storeManager = $storeManager;
@@ -68,18 +68,20 @@ class DonationAmounts extends Value
 
     public function validateBeforeSave()
     {
-        if ((bool)$this->getFieldsetDataValue('active')) {
-            if (!$this->validateDonationAmounts(explode(',', $this->getValue()))) {
-                throw new \Magento\Framework\Validator\Exception(
-                    new Phrase(
-                        'The Adyen Giving donation amounts are not valid, ' .
-                        'please enter amounts higher than ' . self::MIN_DONATION_IN_EUR . 'EUR separated by commas. ' .
-                        'Also, make sure that there is a currency rate for EUR in your Magento system.'
-                    )
-                );
-            }
+        if (
+            (bool)$this->getFieldsetDataValue('active') &&
+            !$this->validateDonationAmounts(explode(',', $this->getValue()))
+        ) {
+            throw new \Magento\Framework\Validator\Exception(
+                new Phrase(
+                    'The Adyen Giving donation amounts are not valid, ' .
+                    'please enter amounts higher than ' . self::MIN_DONATION_IN_EUR . 'EUR separated by commas. ' .
+                    'Also, make sure that there is a currency rate for EUR in your Magento system.'
+                )
+            );
         }
     }
+
 
     public function validateDonationAmounts($amounts = array())
     {
