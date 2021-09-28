@@ -4,15 +4,18 @@
  */
 define(
     [
+        'jquery',
         'underscore',
         'Magento_Checkout/js/model/quote',
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
         'Adyen_Payment/js/bundle',
-        'ko'
+        'ko',
+        'mage/cookies'
     ],
     function(
+        $,
         _,
         quote,
         customer,
@@ -31,7 +34,7 @@ define(
             retrievePaymentMethods: function() {
                 // url for guest users
                 var serviceUrl = urlBuilder.createUrl(
-                    '/guest-carts/:cartId/retrieve-adyen-payment-methods', {
+                    '/internal/guest-carts/:cartId/retrieve-adyen-payment-methods', {
                         cartId: quote.getQuoteId(),
                     });
 
@@ -45,6 +48,7 @@ define(
                 var payload = {
                     cartId: quote.getQuoteId(),
                     shippingAddress: quote.shippingAddress(),
+                    form_key: $.mage.cookies.get('form_key')
                 };
 
                 return storage.post(

@@ -28,10 +28,11 @@ use Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface;
 use Adyen\Payment\Api\InternalGuestAdyenPaymentMethodManagementInterface;
 use Adyen\Payment\Helper\PaymentMethods;
 use Magento\Framework\App\Request\Http;
+use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\Data\Form\FormKey\Validator;
+use Magento\Framework\Encryption\Helper\Security;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Model\QuoteIdMaskFactory;
-use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
 
 /**
  * Class InternalGuestAdyenPaymentMethodManagement
@@ -52,7 +53,7 @@ class InternalGuestAdyenPaymentMethodManagement implements InternalGuestAdyenPay
     /**
      * @var Http
      */
-    protected $httpRequest;
+    protected $request;
 
     /**
      * @var Validator
@@ -67,19 +68,20 @@ class InternalGuestAdyenPaymentMethodManagement implements InternalGuestAdyenPay
     /**
      * @param QuoteIdMaskFactory $quoteIdMaskFactory
      * @param PaymentMethods $paymentMethodsHelper
-     * @param Http $httpRequest
+     * @param Http $request
      * @param Validator $formKeyValidator
+     * @param GuestAdyenPaymentMethodManagementInterface $guestAdyenPaymentMethodManagement
      */
     public function __construct(
         QuoteIdMaskFactory $quoteIdMaskFactory,
         PaymentMethods $paymentMethodsHelper,
-        Http $httpRequest,
+        Http $request,
         Validator $formKeyValidator,
         GuestAdyenPaymentMethodManagementInterface $guestAdyenPaymentMethodManagement
     ) {
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->httpRequest = $httpRequest;
+        $this->request = $request;
         $this->formKeyValidator = $formKeyValidator;
         $this->guestAdyenPaymentMethodManagement = $guestAdyenPaymentMethodManagement;
     }
@@ -88,14 +90,16 @@ class InternalGuestAdyenPaymentMethodManagement implements InternalGuestAdyenPay
      * {@inheritDoc}
      * @throws AdyenException
      */
-    public function handleInternalRequest($cartId, AddressInterface $shippingAddress = null)
+    public function handleInternalRequest($cartId, $formKey, AddressInterface $shippingAddress = null)
     {
-        $isAjax = $this->httpRequest->isAjax();
-        $formKeyValid = $this->formKeyValidator->validate($this->httpRequest);
+        $isAjax = $this->request->isAjax();
+        // Post value has to be manually set since it will have no post data when this function is accessed
+        $formKeyValid = $this->formKeyValidator->validate($this->request->setPostValue('form_key', $formKey));
 
         if (!$isAjax || !$formKeyValid) {
             throw new AdyenException(
-                'Unable to access InternalGuestAdyenPaymentMethodManagement. Request is not AJAX or invalid CSRF token'
+                'Unable to access InternalGuestAdyenPaymentMethodManagement. Request is not AJAX or invalid CSRF token',
+                401
             );
         }
 
