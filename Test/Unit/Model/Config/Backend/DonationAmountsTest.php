@@ -21,7 +21,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Helper;
+namespace Adyen\Payment\Test\Unit\Model\Config\Backend;
 
 use Adyen\Payment\Model\Config\Backend\DonationAmounts;
 
@@ -46,7 +46,7 @@ class DonationAmountsTest extends \PHPUnit\Framework\TestCase
         $typeListInterface = $this->getSimpleMock(\Magento\Framework\App\Cache\TypeListInterface::class);
         $abstractResource = $this->getSimpleMock(\Magento\Framework\Model\ResourceModel\AbstractResource::class);
         $abstractDb = $this->getSimpleMock(\Magento\Framework\Data\Collection\AbstractDb::class);
-        $storeManagerInterface = $this->getSimpleMock(\Magento\Store\Model\StoreManagerInterface::class, ['getStore']);
+        $storeManagerInterface = $this->getSimpleMock(\Magento\Store\Model\StoreManager::class, ['getStore']);
         $storeInterface = $this->getSimpleMock(\Magento\Store\Api\Data\StoreInterface::class, ['getBaseCurrency']);
         $currency = $this->getSimpleMock(\Magento\Directory\Model\Currency::class, ['getRate']);
         $currency->method('getRate')->willReturn(1);
