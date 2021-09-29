@@ -122,32 +122,20 @@ script;
                                 ?>
                                 <div data-bind="scope: 'payment_method_<?= $block->escapeHtml($code);?>'">
                                     <dt class="item-title">
-                                        <?php if ($methodsCount > 1): ?>
-                                            <input type="radio"
-                                                   id="p_method_<?= $block->escapeHtml($code); ?>"
-                                                   value="<?= $block->escapeHtml($code); ?>"
-                                                   name="payment[method]"
-                                                   title="<?= $block->escapeHtml($_method->getTitle()) ?>"
-                                                   data-bind="
-                                                       value: getCode(),
-                                                       checked: isChecked,
-                                                       click: selectPaymentMethod,
-                                                       visible: isRadioButtonVisible()"
+                                        <input type="radio"
+                                               id="p_method_<?= $block->escapeHtml($code); ?>"
+                                               value="<?= $block->escapeHtml($code); ?>"
+                                               name="payment[method]"
+                                               title="<?= $block->escapeHtml($_method->getTitle()) ?>"
+                                               data-bind="
+                                                   value: getCode(),
+                                                   checked: isChecked,
+                                                   click: selectPaymentMethod,
+                                                   visible: isRadioButtonVisible()"
                                                 <?php if ($checked): ?>
-                                                    checked="checked"
+                                                checked="checked"
                                                 <?php endif; ?>
-                                                   class="radio"/>
-                                        <?php else: ?>
-                                            <input type="radio"
-                                                   id="p_method_<?= $block->escapeHtml($code); ?>"
-                                                   value="<?= $block->escapeHtml($code); ?>"
-                                                   name="payment[method]"
-                                                   data-bind="
-                                                       value: getCode(),
-                                                       afterRender: selectPaymentMethod"
-                                                   checked="checked"
-                                                   class="radio solo method" />
-                                        <?php endif; ?>
+                                               class="radio <?php if ($methodsCount == 1): ?> solo method <?php endif; ?>"/>
                                         <label for="p_method_<?= $block->escapeHtml($code); ?>">
                                             <?= $block->escapeHtml($_method->getTitle()) ?>
                                         </label>
