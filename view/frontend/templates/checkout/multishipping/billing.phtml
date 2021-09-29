@@ -23,6 +23,7 @@
  */
 
 /**
+ * @extends Magento_Multishipping::checkout/billing.phtml
  * @var \Magento\Multishipping\Block\Checkout\Billing $block
  * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
  */
@@ -63,7 +64,16 @@ script;
       method="post"
       id="multishipping-billing-form"
       class="form multicheckout billing">
+
+    <!-- Adyen plugin customization -->
     <input name="payment[stateData]" id="stateData" type="hidden">
+    <div id="ActionWrapper">
+        <div id="ActionModal">
+            <div id="ActionContainer"></div>
+        </div>
+    </div>
+    <!-- End: Adyen plugin customization -->
+
     <div class="block block-billing">
         <div class="block-content">
             <div class="box box-billing-address">
@@ -102,11 +112,13 @@ script;
                                     $block->setMethodFormTemplate($code, $methodsForms[$code]);
                                 }
 
+                                /** Adyen plugin customization */
                                 /* Skip adyen HPP methods and use custom display from template */
                                 if (\Adyen\Payment\Model\Ui\AdyenHppConfigProvider::CODE == $code) {
                                     $hppPaymentMethod = $_method;
                                     continue;
                                 }
+                                /** End: Adyen plugin customization */
                                 ?>
                                 <div data-bind="scope: 'payment_method_<?= $block->escapeHtml($code);?>'">
                                     <dt class="item-title">
@@ -148,7 +160,8 @@ script;
                                 </div>
                             <?php endforeach; ?>
 
-                            <!-- Adyen customization -->
+                            <!-- Adyen plugin customization -->
+                            <!-- Replace HPP block with list of payment methods -->
                             <?php if ($hppPaymentMethod):?>
                             <div data-bind="scope: 'payment_method_adyen_hpp'">
                                 <?php if ($html = $block->getChildHtml('payment.method.adyen_hpp', false)): ?>
@@ -156,7 +169,7 @@ script;
                                 <?php endif; ?>
                             </div>
                             <?php endif; ?>
-                            <!-- End of Adyen customization -->
+                            <!-- End: Adyen plugin customization -->
 
                         </dl>
                         <?= $block->getChildHtml('payment_methods_after') ?>
@@ -240,8 +253,3 @@ $scriptString .= <<<script
 script;
 ?>
 <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
-<div id="ActionWrapper">
-    <div id="ActionModal">
-        <div id="ActionContainer"></div>
-    </div>
-</div>
