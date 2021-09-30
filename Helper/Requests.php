@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -33,6 +33,8 @@ use Magento\Quote\Api\Data\PaymentInterface;
 
 class Requests extends AbstractHelper
 {
+    CONST MERCHANT_ACCOUNT = 'merchantAccount';
+
     /**
      * @var Data
      */
@@ -85,7 +87,7 @@ class Requests extends AbstractHelper
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($paymentMethod, $storeId);
 
         // Assign merchant account to request object
-        $request['merchantAccount'] = $merchantAccount;
+        $request[self::MERCHANT_ACCOUNT] = $merchantAccount;
 
         return $request;
     }
