@@ -48,7 +48,13 @@
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <tooltip><![CDATA[3DS1, 3DS2 and redirect failed payments can restore the previous quote or clone it for a retry.]]></tooltip>
         </field>
-        <field id="house_number_street_line" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+        <field id="override_magento_number_of_lines" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+            <label>Override Magento 'Number of lines in a street address' config</label>
+            <config_path>payment/adyen_abstract/override_magento_number_of_lines</config_path>
+            <comment>Valid range: 1-4</comment>
+            <tooltip><![CDATA[This field will override the magento 'Number of lines in a street address' config. It should only be used on Adobe commerce, where the aforementioned field does not exist]]></tooltip>
+        </field>
+        <field id="house_number_street_line" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
             <label>Address street line used for the house number input</label>
             <config_path>payment/adyen_abstract/house_number_street_line</config_path>
             <source_model>Adyen\Payment\Model\Config\Source\HouseNumberStreetLine</source_model>
