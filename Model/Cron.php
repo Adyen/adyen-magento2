@@ -587,7 +587,7 @@ class Cron
                      * Only cancel the order when it is in state new, pending_payment, or payment review
                      * After order creation alternative payment methods (HPP) has state new and status pending
                      * while card payments has payment_review state and status
-                     * if the ORDER_CLOSED is failed (means split payment has not be successful)
+                     * if the ORDER_CLOSED is failed (means partial payment has not be successful)
                      */
                     if ($this->_order->getState() === \Magento\Sales\Model\Order::STATE_NEW ||
                         $this->_order->getState() === \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT ||
@@ -606,8 +606,8 @@ class Cron
                         } else {
                             /*
                              * don't cancel the order if previous state is authorisation with success=true
-                             * Split payments can fail if the second payment has failed the first payment is
-                             * refund/cancelled as well so if it is a split payment that failed cancel the order as well
+                             * Partial payments can fail if the second payment has failed the first payment is
+                             * refund/cancelled as well so if it is a partial payment that failed cancel the order as well
                              */
                             if ($previousAdyenEventCode != "AUTHORISATION : TRUE" ||
                                 $this->_eventCode == Notification::ORDER_CLOSED
@@ -1463,10 +1463,10 @@ class Cron
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Refunding the order');
 
-        // check if it is a split payment if so save the refunded data
+        // check if it is a partial payment if so save the refunded data
         if ($this->_originalReference != "") {
             $this->_adyenLogger->addAdyenNotificationCronjob(
-                'Going to update the refund to split payments table'
+                'Going to update the refund to partial payments table'
             );
 
             $orderPayment = $this->_adyenOrderPaymentCollectionFactory
@@ -1481,10 +1481,10 @@ class Cron
                 $orderPayment->setTotalRefunded($amountRefunded);
                 $orderPayment->save();
                 $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'Update the refund in the split payments table'
+                    'Update the refund in the partial payments table'
                 );
             } else {
-                $this->_adyenLogger->addAdyenNotificationCronjob('Payment not found in split payment table');
+                $this->_adyenLogger->addAdyenNotificationCronjob('Payment not found in partial payment table');
             }
         }
 
