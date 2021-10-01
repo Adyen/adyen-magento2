@@ -107,7 +107,7 @@ class Hpp extends AbstractInfo
      * @return null
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getSplitPayments()
+    public function getPartialPayments()
     {
         // retrieve split payments of the order
         $orderPaymentCollection = $this->_adyenOrderPaymentCollectionFactory
