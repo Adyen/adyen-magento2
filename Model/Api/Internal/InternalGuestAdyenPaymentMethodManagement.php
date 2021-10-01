@@ -21,18 +21,14 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Api;
+namespace Adyen\Payment\Model\Api\Internal;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface;
-use Adyen\Payment\Api\InternalGuestAdyenPaymentMethodManagementInterface;
-use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Api\Internal\InternalGuestAdyenPaymentMethodManagementInterface;
 use Magento\Framework\App\Request\Http;
-use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\Data\Form\FormKey\Validator;
-use Magento\Framework\Encryption\Helper\Security;
 use Magento\Quote\Api\Data\AddressInterface;
-use Magento\Quote\Model\QuoteIdMaskFactory;
 
 /**
  * Class InternalGuestAdyenPaymentMethodManagement
@@ -40,16 +36,6 @@ use Magento\Quote\Model\QuoteIdMaskFactory;
  */
 class InternalGuestAdyenPaymentMethodManagement implements InternalGuestAdyenPaymentMethodManagementInterface
 {
-    /**
-     * @var QuoteIdMaskFactory
-     */
-    protected $quoteIdMaskFactory;
-
-    /**
-     * @var PaymentMethods
-     */
-    protected $paymentMethodsHelper;
-
     /**
      * @var Http
      */
@@ -66,21 +52,15 @@ class InternalGuestAdyenPaymentMethodManagement implements InternalGuestAdyenPay
     protected $guestAdyenPaymentMethodManagement;
 
     /**
-     * @param QuoteIdMaskFactory $quoteIdMaskFactory
-     * @param PaymentMethods $paymentMethodsHelper
      * @param Http $request
      * @param Validator $formKeyValidator
      * @param GuestAdyenPaymentMethodManagementInterface $guestAdyenPaymentMethodManagement
      */
     public function __construct(
-        QuoteIdMaskFactory $quoteIdMaskFactory,
-        PaymentMethods $paymentMethodsHelper,
         Http $request,
         Validator $formKeyValidator,
         GuestAdyenPaymentMethodManagementInterface $guestAdyenPaymentMethodManagement
     ) {
-        $this->quoteIdMaskFactory = $quoteIdMaskFactory;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->request = $request;
         $this->formKeyValidator = $formKeyValidator;
         $this->guestAdyenPaymentMethodManagement = $guestAdyenPaymentMethodManagement;

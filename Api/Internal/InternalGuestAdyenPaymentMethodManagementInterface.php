@@ -21,7 +21,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Api;
+namespace Adyen\Payment\Api\Internal;
 
 use Magento\Quote\Api\Data\AddressInterface;
 
