@@ -97,7 +97,7 @@ class RefundDataBuilder implements BuilderInterface
         // partial refund if multiple payments check refund strategy
         if ($orderPaymentCollection->getSize() > 1) {
             $refundStrategy = $this->adyenHelper->getAdyenAbstractConfigData(
-                'split_payments_refund_strategy',
+                'partial_payments_refund_strategy',
                 $order->getStoreId()
             );
             $ratio = null;
