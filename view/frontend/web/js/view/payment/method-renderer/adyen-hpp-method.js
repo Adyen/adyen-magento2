@@ -272,6 +272,46 @@ define(
                                     formattedBillingAddress = getFormattedAddress(quote.billingAddress());
                                 }
 
+                                function getStreetAndHouseNumberFromAddress(address, houseNumberStreetLine, customerStreetLinesEnabled) {
+                                    let street = address.street.slice(0, customerStreetLinesEnabled);
+                                    let drawHouseNumberWithRegex = parseInt(houseNumberStreetLine) === 0 || // Config is disabled
+                                        houseNumberStreetLine > customerStreetLinesEnabled || // Not enough street lines enabled
+                                        houseNumberStreetLine > street.length; // House number field is empty
+
+                                    let addressArray;
+                                    if (drawHouseNumberWithRegex) {
+                                        addressArray = getStreetAndHouseNumberWithRegex(street.join(' ').trim());
+                                    } else {
+                                        let houseNumber = street.splice(houseNumberStreetLine - 1, 1);
+                                        addressArray = {
+                                            streetName: street.join(' ').trim(),
+                                            houseNumber: houseNumber.join(' ').trim()
+                                        }
+                                    }
+                                    return addressArray;
+                                }
+
+                                function getStreetAndHouseNumberWithRegex(addressString) {
+                                    // Match addresses where the street name comes first, e.g. John-Paul's Ave. 1 B
+                                    let streetFirstRegex = /(?<streetName>[a-zA-Z.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/;
+                                    // Match addresses where the house number comes first, e.g. 10 D John-Paul's Ave.
+                                    let numberFirstRegex = /^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z.'\- ]+)/;
+
+                                    let streetFirstAddress = addressString.match(streetFirstRegex);
+                                    let numberFirstAddress = addressString.match(numberFirstRegex);
+
+                                    if (streetFirstAddress) {
+                                        return streetFirstAddress.groups;
+                                    } else if (numberFirstAddress) {
+                                        return numberFirstAddress.groups;
+                                    }
+
+                                    return {
+                                        streetName: addressString,
+                                        houseNumber: 'N/A'
+                                    };
+                                }
+
                                 /**
                                  * @param address
                                  * @returns {{country: (string|*), firstName: (string|*), lastName: (string|*), city: (*|string), street: *, postalCode: (*|string), houseNumber: string, telephone: (string|*)}}
@@ -280,31 +320,17 @@ define(
                                     let city = '';
                                     let country = '';
                                     let postalCode = '';
-                                    let street = '';
-                                    let houseNumber = '';
-
+                                    let street = {};
                                     city = address.city;
+
                                     country = address.countryId;
                                     postalCode = address.postcode;
 
-                                    street = address.street.slice(0);
-
-                                    // address contains line items as an array, otherwise if string just pass along as is
-                                    if (Array.isArray(street)) {
-                                        // getHouseNumberStreetLine > 0 implies the street line that is used to gather house number
-                                        if (adyenConfiguration.getHouseNumberStreetLine() > 0) {
-                                            // removes the street line from array that is used to contain house number
-                                            houseNumber = street.splice(adyenConfiguration.getHouseNumberStreetLine() - 1, 1);
-                                        } else { // getHouseNumberStreetLine = 0 uses the last street line as house number
-                                            // in case there is more than 1 street lines in use, removes last street line from array that should be used to contain house number
-                                            if (street.length > 1) {
-                                                houseNumber = street.pop();
-                                            }
-                                        }
-
-                                        // Concat street lines except house number
-                                        street = street.join(' ');
-                                    }
+                                    street = getStreetAndHouseNumberFromAddress(
+                                        address,
+                                        adyenConfiguration.getHouseNumberStreetLine(),
+                                        adyenConfiguration.getCustomerStreetLinesEnabled()
+                                    );
 
                                     firstName = address.firstname;
                                     lastName = address.lastname;
@@ -314,8 +340,8 @@ define(
                                         city: city,
                                         country: country,
                                         postalCode: postalCode,
-                                        street: street,
-                                        houseNumber: houseNumber,
+                                        street: street.streetName,
+                                        houseNumber: street.houseNumber,
                                         firstName: firstName,
                                         lastName: lastName,
                                         telephone: telephone

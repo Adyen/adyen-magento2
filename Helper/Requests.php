@@ -187,9 +187,8 @@ class Requests extends AbstractHelper
             // Save the defaults for later to compare if anything has changed
             $requestBilling = $requestBillingDefaults;
 
-            $houseNumberStreetLine = $this->adyenHelper->getConfigData(
-                'house_number_street_line',
-                'adyen_abstract',
+            $houseNumberStreetLine = $this->adyenHelper->getAdyenAbstractConfigDataFlag(
+                Config::XML_HOUSE_NUMBER_STREET_LINE,
                 $storeId
             );
 
