@@ -931,23 +931,23 @@
     </type>
 
     <preference for="Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface"
-                type="Adyen\Payment\Model\GuestAdyenPaymentMethodManagement"/>
+                type="Adyen\Payment\Model\Api\GuestAdyenPaymentMethodManagement"/>
     <preference for="Adyen\Payment\Api\Internal\InternalGuestAdyenPaymentMethodManagementInterface"
                 type="Adyen\Payment\Model\Api\Internal\InternalGuestAdyenPaymentMethodManagement"/>
     <preference for="Adyen\Payment\Api\AdyenPaymentMethodManagementInterface"
-                type="Adyen\Payment\Model\AdyenPaymentMethodManagement"/>
+                type="Adyen\Payment\Model\Api\AdyenPaymentMethodManagement"/>
     <preference for="Adyen\Payment\Api\Internal\InternalAdyenPaymentMethodManagementInterface"
                 type="Adyen\Payment\Model\Api\Internal\InternalAdyenPaymentMethodManagement"/>
     <preference for="Adyen\Payment\Api\AdyenInitiateTerminalApiInterface"
                 type="Adyen\Payment\Model\AdyenInitiateTerminalApi"/>
     <preference for="Adyen\Payment\Api\AdyenPaymentDetailsInterface"
-                type="Adyen\Payment\Model\AdyenPaymentDetails"/>
+                type="Adyen\Payment\Model\Api\AdyenPaymentDetails"/>
     <preference for="Adyen\Payment\Api\Internal\InternalAdyenPaymentDetailsInterface"
                 type="Adyen\Payment\Model\Api\Internal\InternalAdyenPaymentDetails"/>
     <preference for="Adyen\Payment\Api\AdyenOriginKeyInterface"
                 type="Adyen\Payment\Model\AdyenOriginKey"/>
     <preference for="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface"
-                type="Adyen\Payment\Model\AdyenOrderPaymentStatus"/>
+                type="Adyen\Payment\Model\Api\AdyenOrderPaymentStatus"/>
     <preference for="Adyen\Payment\Api\Internal\InternalAdyenOrderPaymentStatusInterface"
                 type="Adyen\Payment\Model\Api\Internal\InternalAdyenOrderPaymentStatus"/>
     <preference for="Adyen\Payment\Api\AdyenStateDataInterface"

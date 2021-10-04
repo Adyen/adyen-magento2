@@ -25,7 +25,8 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\AdyenStateDataInterface;
-use Adyen\Payment\Api\Data\StateDataInterface;
+use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
+use Adyen\Payment\Model\StateData as StateDataModel;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
@@ -44,14 +45,14 @@ class AdyenStateData implements AdyenStateDataInterface
     private $stateDataFactory;
 
     /**
-     * @var ResourceModel\StateData
+     * @var StateDataResourceModel
      */
     private $stateDataResourceModel;
 
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         StateDataFactory $stateDataFactory,
-        ResourceModel\StateData $stateDataResourceModel
+        StateDataResourceModel $stateDataResourceModel
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataFactory = $stateDataFactory;
@@ -74,7 +75,7 @@ class AdyenStateData implements AdyenStateDataInterface
 
         $stateData = json_encode($this->checkoutStateDataValidator->getValidatedAdditionalData($stateData));
 
-        /** @var StateData $stateDataObj */
+        /** @var StateDataModel $stateDataObj */
         $stateDataObj = $this->stateDataFactory->create();
         $stateDataObj->setQuoteId((int)$quoteId)->setStateData((string)$stateData);
         $this->stateDataResourceModel->save($stateDataObj);

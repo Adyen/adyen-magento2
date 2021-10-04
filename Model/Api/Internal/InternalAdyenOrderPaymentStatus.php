@@ -24,14 +24,10 @@
 namespace Adyen\Payment\Model\Api\Internal;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Api\AdyenPaymentDetailsInterface;
+use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Api\Internal\InternalAdyenOrderPaymentStatusInterface;
-use Adyen\Payment\Api\Internal\InternalAdyenPaymentDetailsInterface;
-use Adyen\Payment\Model\AdyenOrderPaymentStatus;
-use Magento\Checkout\Api\Data\PaymentDetailsInterface;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Data\Form\FormKey\Validator;
-use Magento\Quote\Api\Data\AddressInterface;
 
 /**
  * Class InternalAdyenPaymentDetailsInterface
@@ -49,19 +45,19 @@ class InternalAdyenOrderPaymentStatus implements InternalAdyenOrderPaymentStatus
     protected $formKeyValidator;
 
     /**
-     * @var AdyenOrderPaymentStatus
+     * @var AdyenOrderPaymentStatusInterface
      */
     protected $adyenOrderPaymentStatus;
 
     /**
      * @param Http $request
      * @param Validator $formKeyValidator
-     * @param AdyenOrderPaymentStatus $adyenOrderPaymentStatus
+     * @param AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus
      */
     public function __construct(
         Http $request,
         Validator $formKeyValidator,
-        AdyenOrderPaymentStatus $adyenOrderPaymentStatus
+        AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus
     ) {
         $this->request = $request;
         $this->formKeyValidator = $formKeyValidator;
