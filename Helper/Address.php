@@ -29,8 +29,8 @@ use Magento\Payment\Gateway\Data\AddressAdapterInterface;
 class Address
 {
     // Regex to extract the house number from the street line if needed (e.g. 'Street address 1 A' => '1 A')
-    const STREET_FIRST_REGEX = "/(?<streetName>[a-zA-Z.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/";
-    CONST NUMBER_FIRST_REGEX = "/^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z.'\- ]+)/";
+    const STREET_FIRST_REGEX = "/(?<streetName>[a-zA-Z0-9.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/";
+    CONST NUMBER_FIRST_REGEX = "/^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z0-9.'\- ]+)/";
 
     /**
      * @param AddressAdapterInterface $address
