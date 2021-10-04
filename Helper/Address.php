@@ -24,10 +24,24 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Data\AddressAdapterInterface;
+use Magento\Sales\Api\Data\OrderAddressInterface;
 
 class Address
 {
+    /**
+     * @var AdyenLogger $logger
+     */
+    protected $logger;
+
+    /**
+     * Address constructor.
+     */
+    public function __construct(AdyenLogger $logger)
+    {
+        $this->logger = $logger;
+    }
 
     // Regex to extract the house number from the street line if needed (e.g. 'Street address 1 A' => '1 A')
     const HOUSE_NUMBER_REGEX = '/((\s\d{0,10})|(\s\d{0,10}\s?\w{1,3}))$/i';
@@ -43,12 +57,23 @@ class Address
         $houseNumberStreetLine,
         $customerStreetLinesEnabled
     ): array {
-        $addressArray = [
-            $address->getStreetLine1(),
-            $address->getStreetLine2(),
-            $address->getStreetLine3(),
-            $address->getStreetLine4()
-        ];
+        if ($address instanceof AddressAdapterInterface) {
+            $addressArray = [
+                $address->getStreetLine1(),
+                $address->getStreetLine2(),
+                $address->getStreetLine3(),
+                $address->getStreetLine4()
+            ];
+        } elseif ($address instanceof OrderAddressInterface) {
+            $addressArray = $address->getStreet();
+        } else {
+            $this->logger->warning(sprintf(
+                'Unknown address type %s passed to the getStreetAndHouseNumberFromAddress function',
+                get_class($address)
+            ));
+
+            $addressArray = [];
+        }
 
         // Cap the full street to the enabled street lines
         $street = array_slice($addressArray, 0, $customerStreetLinesEnabled);
