@@ -85,7 +85,7 @@
     <route url="/V1/adyen/stateData" method="POST">
         <service class="Adyen\Payment\Api\AdyenStateDataInterface" method="save"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="Adyen_Payment::stateData"/>
         </resources>
     </route>
 
