@@ -71,7 +71,7 @@
     <route url="/V1/adyen/paymentDetails" method="POST">
         <service class="Adyen\Payment\Api\AdyenPaymentDetailsInterface" method="initiate"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="Adyen_Payment::paymentDetails"/>
         </resources>
     </route>
 
