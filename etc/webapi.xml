@@ -92,6 +92,13 @@
     <route url="/V1/adyen/orders/payment-status" method="POST">
         <service class="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface" method="getOrderPaymentStatus"/>
         <resources>
+            <resource ref="Adyen_Payment::paymentStatus"/>
+        </resources>
+    </route>
+
+    <route url="/V1/internal/adyen/orders/payment-status" method="POST">
+        <service class="Adyen\Payment\Api\Internal\InternalAdyenOrderPaymentStatusInterface" method="handleInternalRequest"/>
+        <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>

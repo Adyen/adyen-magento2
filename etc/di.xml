@@ -948,6 +948,8 @@
                 type="Adyen\Payment\Model\AdyenOriginKey"/>
     <preference for="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface"
                 type="Adyen\Payment\Model\AdyenOrderPaymentStatus"/>
+    <preference for="Adyen\Payment\Api\Internal\InternalAdyenOrderPaymentStatusInterface"
+                type="Adyen\Payment\Model\Api\Internal\InternalAdyenOrderPaymentStatus"/>
     <preference for="Adyen\Payment\Api\AdyenStateDataInterface"
                 type="Adyen\Payment\Model\AdyenStateData"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
