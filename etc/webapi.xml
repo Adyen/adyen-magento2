@@ -75,6 +75,13 @@
         </resources>
     </route>
 
+    <route url="/V1/internal/adyen/paymentDetails" method="POST">
+        <service class="Adyen\Payment\Api\Internal\InternalAdyenPaymentDetailsInterface" method="handleInternalRequest"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+
     <route url="/V1/adyen/stateData" method="POST">
         <service class="Adyen\Payment\Api\AdyenStateDataInterface" method="save"/>
         <resources>

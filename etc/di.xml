@@ -942,6 +942,8 @@
                 type="Adyen\Payment\Model\AdyenInitiateTerminalApi"/>
     <preference for="Adyen\Payment\Api\AdyenPaymentDetailsInterface"
                 type="Adyen\Payment\Model\AdyenPaymentDetails"/>
+    <preference for="Adyen\Payment\Api\Internal\InternalAdyenPaymentDetailsInterface"
+                type="Adyen\Payment\Model\Api\Internal\InternalAdyenPaymentDetails"/>
     <preference for="Adyen\Payment\Api\AdyenOriginKeyInterface"
                 type="Adyen\Payment\Model\AdyenOriginKey"/>
     <preference for="Adyen\Payment\Api\AdyenOrderPaymentStatusInterface"

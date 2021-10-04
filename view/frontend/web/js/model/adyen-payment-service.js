@@ -79,9 +79,10 @@ define(
             paymentDetails: function(data) {
                 var payload = {
                     'payload': JSON.stringify(data),
+                    form_key: $.mage.cookies.get('form_key')
                 };
 
-                var serviceUrl = urlBuilder.createUrl('/adyen/paymentDetails',
+                var serviceUrl = urlBuilder.createUrl('/internal/adyen/paymentDetails',
                     {});
 
                 return storage.post(
