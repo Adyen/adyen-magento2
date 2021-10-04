@@ -44,7 +44,17 @@
     <route url="/V1/carts/mine/retrieve-adyen-payment-methods" method="POST">
         <service class="Adyen\Payment\Api\AdyenPaymentMethodManagementInterface" method="getPaymentMethods"/>
         <resources>
-            <resource ref="self"/>
+            <resource ref="Adyen_Payment::paymentMethods"/>
+        </resources>
+        <data>
+            <parameter name="cartId" force="true">%cart_id%</parameter>
+        </data>
+    </route>
+
+    <route url="/V1/internal/carts/mine/retrieve-adyen-payment-methods" method="POST">
+        <service class="Adyen\Payment\Api\Internal\InternalAdyenPaymentMethodManagementInterface" method="handleInternalRequest"/>
+        <resources>
+            <resource ref="anonymous"/>
         </resources>
         <data>
             <parameter name="cartId" force="true">%cart_id%</parameter>

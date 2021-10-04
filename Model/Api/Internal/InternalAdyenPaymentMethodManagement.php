@@ -24,16 +24,16 @@
 namespace Adyen\Payment\Model\Api\Internal;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface;
-use Adyen\Payment\Api\Internal\InternalGuestAdyenPaymentMethodManagementInterface;
+use Adyen\Payment\Api\AdyenPaymentMethodManagementInterface;
+use Adyen\Payment\Api\Internal\InternalAdyenPaymentMethodManagementInterface;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Data\Form\FormKey\Validator;
 use Magento\Quote\Api\Data\AddressInterface;
 
 /**
- * Class InternalGuestAdyenPaymentMethodManagement
+ * Class InternalAdyenPaymentMethodManagement
  */
-class InternalGuestAdyenPaymentMethodManagement implements InternalGuestAdyenPaymentMethodManagementInterface
+class InternalAdyenPaymentMethodManagement implements InternalAdyenPaymentMethodManagementInterface
 {
     /**
      * @var Http
@@ -46,23 +46,23 @@ class InternalGuestAdyenPaymentMethodManagement implements InternalGuestAdyenPay
     protected $formKeyValidator;
 
     /**
-     * @var GuestAdyenPaymentMethodManagementInterface
+     * @var AdyenPaymentMethodManagementInterface
      */
-    protected $guestAdyenPaymentMethodManagement;
+    protected $adyenPaymentMethodManagement;
 
     /**
      * @param Http $request
      * @param Validator $formKeyValidator
-     * @param GuestAdyenPaymentMethodManagementInterface $guestAdyenPaymentMethodManagement
+     * @param AdyenPaymentMethodManagementInterface $adyenPaymentMethodManagement
      */
     public function __construct(
         Http $request,
         Validator $formKeyValidator,
-        GuestAdyenPaymentMethodManagementInterface $guestAdyenPaymentMethodManagement
+        AdyenPaymentMethodManagementInterface $adyenPaymentMethodManagement
     ) {
         $this->request = $request;
         $this->formKeyValidator = $formKeyValidator;
-        $this->guestAdyenPaymentMethodManagement = $guestAdyenPaymentMethodManagement;
+        $this->adyenPaymentMethodManagement = $adyenPaymentMethodManagement;
     }
 
     /**
@@ -82,6 +82,6 @@ class InternalGuestAdyenPaymentMethodManagement implements InternalGuestAdyenPay
             );
         }
 
-        return $this->guestAdyenPaymentMethodManagement->getPaymentMethods($cartId, $shippingAddress);
+        return $this->adyenPaymentMethodManagement->getPaymentMethods($cartId, $shippingAddress);
     }
 }

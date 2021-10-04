@@ -936,6 +936,8 @@
                 type="Adyen\Payment\Model\Api\Internal\InternalGuestAdyenPaymentMethodManagement"/>
     <preference for="Adyen\Payment\Api\AdyenPaymentMethodManagementInterface"
                 type="Adyen\Payment\Model\AdyenPaymentMethodManagement"/>
+    <preference for="Adyen\Payment\Api\Internal\InternalAdyenPaymentMethodManagementInterface"
+                type="Adyen\Payment\Model\Api\Internal\InternalAdyenPaymentMethodManagement"/>
     <preference for="Adyen\Payment\Api\AdyenInitiateTerminalApiInterface"
                 type="Adyen\Payment\Model\AdyenInitiateTerminalApi"/>
     <preference for="Adyen\Payment\Api\AdyenPaymentDetailsInterface"

@@ -41,7 +41,7 @@ define(
                 // url for logged in users
                 if (customer.isLoggedIn()) {
                     serviceUrl = urlBuilder.createUrl(
-                        '/carts/mine/retrieve-adyen-payment-methods', {});
+                        '/internal/carts/mine/retrieve-adyen-payment-methods', {});
                 }
 
                 // Construct payload for the retrieve payment methods request
