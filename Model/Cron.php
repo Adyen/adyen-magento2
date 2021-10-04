@@ -2109,7 +2109,6 @@ class Cron
         }
 
         if ($fullAmountFinalized) {
-
             $comment = "Adyen Payment Successfully completed";
 
             // If manual review is true AND manual review status is set
