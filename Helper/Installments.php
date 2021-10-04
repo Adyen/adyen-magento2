@@ -56,7 +56,6 @@ class Installments
 
         $formattedConfig = $values = array();
         foreach ($installmentsArray as $card => $cardInstallments) {
-
             $values[] = 1; // Always allow payment in full amount if installments are available
 
             foreach ($cardInstallments as $minimumAmount => $installment) {
