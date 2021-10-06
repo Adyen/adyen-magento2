@@ -32,7 +32,7 @@ use Magento\Framework\Data\Form\FormKey\Validator;
 /**
  * Class InternalAdyenPaymentDetailsInterface
  */
-class InternalAdyenOrderPaymentStatus implements InternalAdyenOrderPaymentStatusInterface
+class InternalAdyenOrderPaymentStatus extends AbstractInternalApiController implements InternalAdyenOrderPaymentStatusInterface
 {
     /**
      * @var Http
@@ -59,8 +59,7 @@ class InternalAdyenOrderPaymentStatus implements InternalAdyenOrderPaymentStatus
         Validator $formKeyValidator,
         AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus
     ) {
-        $this->request = $request;
-        $this->formKeyValidator = $formKeyValidator;
+        parent::__construct($request, $formKeyValidator);
         $this->adyenOrderPaymentStatus = $adyenOrderPaymentStatus;
     }
 
@@ -70,16 +69,7 @@ class InternalAdyenOrderPaymentStatus implements InternalAdyenOrderPaymentStatus
      */
     public function handleInternalRequest($orderId, $shopperEmail, $formKey)
     {
-        $isAjax = $this->request->isAjax();
-        // Post value has to be manually set since it will have no post data when this function is accessed
-        $formKeyValid = $this->formKeyValidator->validate($this->request->setPostValue('form_key', $formKey));
-
-        if (!$isAjax || !$formKeyValid) {
-            throw new AdyenException(
-                'Unable to access InternalGuestAdyenPaymentMethodManagement. Request is not AJAX or invalid CSRF token',
-                401
-            );
-        }
+        $this->validateInternalRequest($formKey);
 
         return $this->adyenOrderPaymentStatus->getOrderPaymentStatus($orderId, $shopperEmail);
     }

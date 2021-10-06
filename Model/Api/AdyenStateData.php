@@ -34,7 +34,6 @@ use Magento\Framework\Exception\LocalizedException;
 
 class AdyenStateData implements AdyenStateDataInterface
 {
-
     /**
      * @var CheckoutStateDataValidator
      */

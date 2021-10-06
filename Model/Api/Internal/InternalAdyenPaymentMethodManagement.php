@@ -33,7 +33,7 @@ use Magento\Quote\Api\Data\AddressInterface;
 /**
  * Class InternalAdyenPaymentMethodManagement
  */
-class InternalAdyenPaymentMethodManagement implements InternalAdyenPaymentMethodManagementInterface
+class InternalAdyenPaymentMethodManagement extends AbstractInternalApiController implements InternalAdyenPaymentMethodManagementInterface
 {
     /**
      * @var Http
@@ -60,8 +60,7 @@ class InternalAdyenPaymentMethodManagement implements InternalAdyenPaymentMethod
         Validator $formKeyValidator,
         AdyenPaymentMethodManagementInterface $adyenPaymentMethodManagement
     ) {
-        $this->request = $request;
-        $this->formKeyValidator = $formKeyValidator;
+        parent::__construct($request, $formKeyValidator);
         $this->adyenPaymentMethodManagement = $adyenPaymentMethodManagement;
     }
 
@@ -71,16 +70,7 @@ class InternalAdyenPaymentMethodManagement implements InternalAdyenPaymentMethod
      */
     public function handleInternalRequest($cartId, $formKey, AddressInterface $shippingAddress = null)
     {
-        $isAjax = $this->request->isAjax();
-        // Post value has to be manually set since it will have no post data when this function is accessed
-        $formKeyValid = $this->formKeyValidator->validate($this->request->setPostValue('form_key', $formKey));
-
-        if (!$isAjax || !$formKeyValid) {
-            throw new AdyenException(
-                'Unable to access InternalGuestAdyenPaymentMethodManagement. Request is not AJAX or invalid CSRF token',
-                401
-            );
-        }
+        $this->validateInternalRequest($formKey);
 
         return $this->adyenPaymentMethodManagement->getPaymentMethods($cartId, $shippingAddress);
     }
