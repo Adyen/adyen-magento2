@@ -87,8 +87,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion720($setup);
         }
 
-        if (version_compare($context->getVersion(), '8.0.0', '<')) {
-            $this->updateSchemaVersion800($setup);
+        if (version_compare($context->getVersion(), '7.3.0', '<')) {
+            $this->updateSchemaVersion730($setup);
         }
 
         $setup->endSetup();
@@ -538,14 +538,14 @@ class UpgradeSchema implements UpgradeSchemaInterface
     }
 
     /**
-     * Upgrade to 8.0.0
+     * Upgrade to 7.3.0
      *
      * New capture_status column to keep track on if and how the order payment was captured
      *
      * @param SchemaSetupInterface $setup
      * @return void
      */
-    public function updateSchemaVersion800(SchemaSetupInterface $setup)
+    public function updateSchemaVersion730(SchemaSetupInterface $setup)
     {
         $connection = $setup->getConnection();
         $tableName = $setup->getTable('adyen_order_payment');

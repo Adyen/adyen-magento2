@@ -178,7 +178,6 @@ class Result extends \Magento\Framework\App\Action\Action
             $session = $this->_session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
             $this->_redirect($successPath, ['_query' => ['utm_nooverride' => '1']]);
-
         } else {
             $this->_adyenLogger->addAdyenResult(
                 sprintf(
