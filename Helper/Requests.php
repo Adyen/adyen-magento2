@@ -203,15 +203,6 @@ class Requests extends AbstractHelper
 
             $customerStreetLinesEnabled = $this->adyenHelper->getCustomerStreetLinesEnabled($storeId);
 
-            // If config is not found (will occur on Adobe Commerce), attempt to get the value from the adyen config instead.
-            if (!$customerStreetLinesEnabled) {
-                $customerStreetLinesEnabled = $this->adyenHelper->getConfigData(
-                    'override_magento_number_of_lines',
-                    'adyen_abstract',
-                    $storeId
-                );
-            }
-
             $address = $this->addressHelper->getStreetAndHouseNumberFromAddress(
                 $billingAddress,
                 $houseNumberStreetLine,
