@@ -15,16 +15,18 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2018 Adyen B.V.
+ * Copyright (c) 2021 Adyen B.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\ResourceModel;
+namespace Adyen\Payment\Model\ResourceModel\Invoice;
 
-class Invoice extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+
+class Invoice extends AbstractDb
 {
     /**
      * Resource initialization
