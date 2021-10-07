@@ -68,11 +68,12 @@ class AddressTest extends TestCase
          * Each test case provided by the dataProvider contains an address array,
          * houseNumberStreetLine and streetLinesEnabled config options,
          * and the expected result which should be returned from getStreetAndHouseNumberFromAddress()
-         * Given that streetLinesEnabled could be 1, 2, 3 or 4 depending on the test case,
-         * we set the addressAdapter->getStreetLine1()...getStreetLine4() mock methods
-         * to return the corresponding item in the address array for each test case.
          */
-        for ($i = 1; $i <= $streetLinesEnabled; $i++) {
+        for ($i = 1; $i <= count($address); $i++) {
+            /*
+             * Set the mock addressAdapter->getStreetLine1()...getStreetLine4() methods
+             * to return the corresponding item in the address array for each test case.
+             */
             $this->addressAdapter->method('getStreetLine'.$i)->willReturn($address[$i-1]);
         }
         $this->addressAdapter->method('getCountryId')->willReturn("se");
