@@ -31,7 +31,7 @@ define([
     'use strict';
     return Component.extend({
         defaults: {
-            template: 'Adyen_Payment/payment/multishipping/form'
+            template: 'Adyen_Payment/payment/multishipping/cc-form'
         },
         selectPaymentMethod: function () {
             this.renderSecureFields();
