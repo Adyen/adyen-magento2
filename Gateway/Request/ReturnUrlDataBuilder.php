@@ -87,8 +87,7 @@ class ReturnUrlDataBuilder implements BuilderInterface
         if ($pwaOrigin) {
             $returnUrl = rtrim($pwaOrigin, '/') . '/adyen/process/result?merchantReference=' . $order->getIncrementId();
         } else {
-            $this->url->setQueryParam('merchantReference', $order->getIncrementId());
-            $returnUrl = $this->url->getUrl("adyen/process/result");
+            $returnUrl = $this->url->getUrl("adyen/process/result", ['merchantReference' => $order->getIncrementId()]);
         }
 
         $requestBody['body']['returnUrl'] = $returnUrl;
