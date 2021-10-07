@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -48,6 +48,23 @@ class Payment extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             ->where('order_payment.payment_id=?', $paymentId);
 
         $result = $this->getConnection()->fetchRow($select);
+
+        return empty($result) ? null : $result;
+    }
+
+    /**
+     * Get all the adyen_order_payment entries linked to the paymentId
+     *
+     * @param $paymentId
+     * @return array|null
+     */
+    public function getLinkedAdyenOrderPayments($paymentId)
+    {
+        $select = $this->getConnection()->select()
+            ->from(['order_payment' => $this->getTable('adyen_order_payment')])
+            ->where('order_payment.payment_id=?', $paymentId);
+
+        $result = $this->getConnection()->fetchAll($select);
 
         return empty($result) ? null : $result;
     }

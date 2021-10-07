@@ -23,6 +23,8 @@
 
 namespace Adyen\Payment\Model;
 
+use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Order\Payment;
@@ -53,7 +55,7 @@ class Cron
      *
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
-    protected $_logger;
+    protected $_adyenLogger;
 
     /**
      * @var ResourceModel\Notification\CollectionFactory
@@ -111,6 +113,11 @@ class Cron
      * @var Api\PaymentRequest
      */
     protected $_adyenPaymentRequest;
+
+    /**
+     * @var Notification
+     */
+    protected $notification;
 
     /**
      * notification attributes
@@ -203,11 +210,6 @@ class Cron
     protected $_fraudManualReview;
 
     /**
-     * @var Order\PaymentFactory
-     */
-    protected $_adyenOrderPaymentFactory;
-
-    /**
      * @var ResourceModel\Order\Payment\CollectionFactory
      */
     protected $_adyenOrderPaymentCollectionFactory;
@@ -296,16 +298,26 @@ class Cron
      * @var \Adyen\Payment\Helper\PaymentMethods
      */
     protected $paymentMethodsHelper;
-    /*
+
+    /**
      * @var \Magento\Sales\Model\ResourceModel\Order\Invoice
      */
     protected $invoiceResource;
 
-
     /**
      * @var \Adyen\Payment\Model\ResourceModel\Order\Payment
      */
-    private $orderPaymentResourceModel;
+    protected $orderPaymentResourceModel;
+
+    /**
+     * @var AdyenOrderPayment
+     */
+    protected $adyenOrderPaymentHelper;
+
+    /**
+     * @var \Adyen\Payment\Helper\Invoice
+     */
+    protected $invoiceHelper;
 
     /**
      * Cron constructor.
@@ -321,7 +333,6 @@ class Cron
      * @param Billing\AgreementFactory $billingAgreementFactory
      * @param ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
      * @param Api\PaymentRequest $paymentRequest
-     * @param Order\PaymentFactory $adyenOrderPaymentFactory
      * @param ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory
      * @param InvoiceFactory $adyenInvoiceFactory
      * @param AreaList $areaList
@@ -355,7 +366,6 @@ class Cron
         \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory,
         \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
         \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
-        \Adyen\Payment\Model\Order\PaymentFactory $adyenOrderPaymentFactory,
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
         \Adyen\Payment\Model\InvoiceFactory $adyenInvoiceFactory,
         AreaList $areaList,
@@ -375,7 +385,9 @@ class Cron
         ChargedCurrency $chargedCurrency,
         \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper,
         ResourceModel\Order\Payment $orderPaymentResourceModel,
-        \Magento\Sales\Model\ResourceModel\Order\Invoice $invoiceResource
+        \Magento\Sales\Model\ResourceModel\Order\Invoice $invoiceResource,
+        AdyenOrderPayment $adyenOrderPaymentHelper,
+        \Adyen\Payment\Helper\Invoice $invoiceHelper
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -388,7 +400,6 @@ class Cron
         $this->_billingAgreementFactory = $billingAgreementFactory;
         $this->_billingAgreementCollectionFactory = $billingAgreementCollectionFactory;
         $this->_adyenPaymentRequest = $paymentRequest;
-        $this->_adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->_adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
         $this->_adyenInvoiceFactory = $adyenInvoiceFactory;
         $this->_areaList = $areaList;
@@ -409,6 +420,8 @@ class Cron
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
         $this->invoiceResource = $invoiceResource;
+        $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
+        $this->invoiceHelper = $invoiceHelper;
     }
 
     /**
@@ -711,7 +724,8 @@ class Cron
      */
     protected function _declareVariables($notification)
     {
-        //  declare the common parameters
+        //TODO: Use notification and its getters where possible, instead of declaring values one by one
+        $this->notification = $notification;
         $this->_pspReference = $notification->getPspreference();
         $this->_originalReference = $notification->getOriginalReference();
         $this->_merchantReference = $notification->getMerchantReference();
@@ -1152,33 +1166,16 @@ class Cron
                  */
                 if (!$this->_isAutoCapture()) {
                     $this->finalizeOrder(false, true);
+                    $capturedAmount = $this->adyenOrderPaymentHelper->getCapturedAmount($this->_order);
+                    $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
+                    $this->invoiceHelper->createAdyenInvoice(
+                        $this->_order,
+                        $this->notification,
+                        $this->invoiceHelper->getLinkedInvoiceToCaptureNotification($this->_order, $this->notification)
+                    );
 
-                    /*
-                     * Add invoice in the adyen_invoice table
-                     */
-                    $invoiceCollection = $this->_order->getInvoiceCollection();
-                    foreach ($invoiceCollection as $invoice) {
-                        $matches = $this->_adyenHelper->parseTransactionId($invoice->getTransactionId());
-                        if (($matches['pspReference'] ?? '') == $this->_originalReference) {
-                            $invoice->pay();
-                            $this->invoiceResource->save($invoice);
-                        }
-
-                        /*
-                         * Add invoice in the adyen_invoice table
-                         */
-                        if ($invoice->getTransactionId() == $this->_pspReference) {
-                            $this->_adyenInvoiceFactory->create()
-                                ->setInvoiceId($invoice->getEntityId())
-                                ->setPspreference($this->_pspReference)
-                                ->setOriginalReference($this->_originalReference)
-                                ->setAcquirerReference($this->_acquirerReference)
-                                ->save();
-                            $this->_adyenLogger->addAdyenNotificationCronjob(
-                                'Created invoice entry in the Adyen table'
-                            );
-                        }
-                    }
+                    $fullAmountCaptured = $capturedAmount === $formattedOrderAmount;
+                    $this->invoiceHelper->finalizeInvoices($this->_order, $this->notification, $fullAmountCaptured);
                 }
                 break;
             case Notification::OFFER_CLOSED:
@@ -1530,12 +1527,11 @@ class Cron
             $this->_order->setData('adyen_notification_event_code_success', 1);
         }
         $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
-        $this->createAdyenOrderPayment();
+        $this->adyenOrderPaymentHelper->createAdyenOrderPayment($this->_order, $this->notification, $this->_isAutoCapture());
         $isTotalAmountAuthorised = $this->_isTotalAmount(
             $this->_order->getPayment()->getEntityId(),
             $this->orderCurrency
         );
-
 
         // If manual review is NOT active OR no custom status is set on the Adyen config page
         if ($this->_fraudManualReview != true || $fraudManualReviewStatus == "") {
@@ -1646,11 +1642,15 @@ class Cron
             ->build(\Magento\Sales\Api\Data\TransactionInterface::TYPE_AUTH);
 
         $transaction->setIsClosed(false);
-
         $transaction->save();
 
-        //capture mode
-        if (!$this->_isAutoCapture()) {
+        // Check if an adyen_order_payment linked to this order still requires manual capture. This is to ensure that
+        // the whole order is NOT set to automatically captured in case of:
+        // 1 partial auth using visa (supports capture), 1 partial auth in a pm that does not support capture
+        if ($this->adyenOrderPaymentHelper->hasOrderPaymentWithCaptureStatus(
+            $this->_order,
+            OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE)
+        ) {
             $this->_order->addStatusHistoryComment(__('Capture Mode set to Manual'), $this->_order->getStatus());
             $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode is set to Manual');
 
@@ -1665,19 +1665,7 @@ class Cron
                 }
             }
 
-            $createPendingInvoice = (bool)$this->_getConfigData(
-                'create_pending_invoice',
-                'adyen_abstract',
-                $this->_order->getStoreId()
-            );
-
-            if (!$createPendingInvoice) {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'Setting pending invoice is off so don\'t create
-                    an invoice wait for the capture notification'
-                );
-                return;
-            }
+            return;
         }
 
         if ($this->_isTotalAmount($paymentObj->getEntityId(), $this->orderCurrency)) {
@@ -1860,6 +1848,9 @@ class Cron
             case 'discover_applepay':
             case 'maestro_applepay':
             case 'paywithgoogle':
+            case 'svs':
+            case 'givex':
+            case 'valuelink':
                 $manualCaptureAllowed = true;
                 break;
             default:
@@ -2005,20 +1996,8 @@ class Cron
                     $invoice->register()->pay();
                 }
 
-                $invoice->save();
-                $this->_adyenLogger->addAdyenNotificationCronjob('Created invoice');
-
-                /*
-                 * Add invoice in the adyen_invoice table
-                 */
-                $this->_adyenInvoiceFactory->create()
-                    ->setInvoiceId($invoice->getEntityId())
-                    ->setPspreference($this->_pspReference)
-                    ->setOriginalReference($this->_pspReference)
-                    ->setAcquirerReference($this->_acquirerReference)
-                    ->save();
-
-                $this->_adyenLogger->addAdyenNotificationCronjob('Created invoice entry in the Adyen table');
+                $this->invoiceResource->save($invoice);
+                $this->invoiceHelper->createAdyenInvoice($this->_order, $this->notification, $invoice);
             } catch (Exception $e) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'Error saving invoice. The error message is: ' . $e->getMessage()
@@ -2064,13 +2043,13 @@ class Cron
 
         // If order was not set to automatically get captured, update the status of the adyen_order_payment
         if (!$this->_isAutoCapture()) {
-            $this->setCapturedAdyenOrderPayment();
+            $this->adyenOrderPaymentHelper->setCapturedAdyenOrderPayment($this->_order, $this->notification);
         }
 
         // If the full amount is finalized by this singular notification OR the full amount has been finalized by
         // multiple notifications
         $fullAmountFinalized = $amount == $formattedOrderAmount ||
-            $this->_isTotalAmount($this->_order->getPayment()->getEntityId(), $this->orderCurrency, true);
+            $this->adyenOrderPaymentHelper->getCapturedAmount($this->_order) === $formattedOrderAmount;
 
         // If you are on manual capture AND full amount has been finalized, create invoice
         if ($createInvoice && $fullAmountFinalized) {
@@ -2129,9 +2108,7 @@ class Cron
             }
         }
 
-        // This still needs to be updated
         if ($fullAmountFinalized) {
-
             $comment = "Adyen Payment Successfully completed";
 
             // If manual review is true AND manual review status is set
@@ -2289,70 +2266,6 @@ class Cron
         if ($this->_order) {
             $this->_order->addStatusHistoryComment($comment, $this->_order->getStatus());
             $this->_order->save();
-        }
-    }
-
-    /**
-     * Create an entry in the adyen_order_payment table
-     */
-    private function createAdyenOrderPayment()
-    {
-        $payment = $this->_order->getPayment();
-        $amount = $this->_adyenHelper->originalAmount($this->_value, $this->_currency);
-        $captureStatus = $this->_isAutoCapture() ? Payment::CAPTURE_STATUS_AUTO_CAPTURE :
-            Payment::CAPTURE_STATUS_NO_CAPTURE;
-
-        try {
-            // add to order payment
-            $date = new \DateTime();
-            $this->_adyenOrderPaymentFactory->create()
-                ->setPspreference($this->_pspReference)
-                ->setMerchantReference($this->_merchantReference)
-                ->setPaymentId($payment->getId())
-                ->setPaymentMethod($this->_paymentMethod)
-                ->setCaptureStatus($captureStatus)
-                ->setAmount($amount)
-                ->setTotalRefunded(0)
-                ->setCreatedAt($date)
-                ->setUpdatedAt($date)
-                ->save();
-        } catch (\Exception $e) {
-            $this->_adyenLogger->addError(
-                'While processing a notification an exception occured. The payment has already been saved in the ' .
-                'adyen_order_payment table but something went wrong later. Please check your logs for potential ' .
-                'error messages regarding the merchant reference (order id): "' . $this->_merchantReference .
-                '" and PSP reference: "' . $this->_pspReference . '"'
-            );
-        }
-    }
-
-    /**
-     * Set the capture_status of an adyen order payment to manually captured
-     *
-     * @throws \Exception
-     */
-    private function setCapturedAdyenOrderPayment()
-    {
-        $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
-            'Setting capture_status of adyen_order_payment with pspReference %s to Manual Capture',
-            $this->_originalReference
-        ));
-
-        $paymentId = $this->_order->getPayment()->getId();
-        $orderPaymentDetails = $this->orderPaymentResourceModel->getOrderPaymentDetails($this->_originalReference,
-            $paymentId);
-
-        if (is_null($orderPaymentDetails) || !array_key_exists('entity_id', $orderPaymentDetails)) {
-            $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
-                'Unable to identify original auth with pspReference %s using capture with pspReference %s',
-                $this->_originalReference,
-                $this->_pspReference
-            ));
-        } else {
-            $orderPaymentFactory = $this->_adyenOrderPaymentFactory->create();
-            $orderPayment = $orderPaymentFactory->load($orderPaymentDetails['entity_id'], 'entity_id');
-            $orderPayment->setCaptureStatus(Payment::CAPTURE_STATUS_MANUAL_CAPTURE);
-            $this->orderPaymentResourceModel->save($orderPayment);
         }
     }
 

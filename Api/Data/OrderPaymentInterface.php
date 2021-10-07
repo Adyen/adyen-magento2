@@ -70,8 +70,13 @@ interface OrderPaymentInterface
      */
     const CAPTURE_STATUS = 'capture_status';
 
+    // Either manual capture is not being used OR payment method does not support manual capture
     const CAPTURE_STATUS_AUTO_CAPTURE = 'Auto Captured';
+
+    // Payment has been manually captured
     const CAPTURE_STATUS_MANUAL_CAPTURE = 'Manually Captured';
+
+    // Payment has not been captured yet
     const CAPTURE_STATUS_NO_CAPTURE = 'Not captured';
 
     /**
