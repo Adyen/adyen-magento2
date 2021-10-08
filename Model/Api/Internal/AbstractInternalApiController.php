@@ -66,7 +66,7 @@ abstract class AbstractInternalApiController
 
         if (!$isAjax || !$formKeyValid) {
             throw new AdyenException(
-                'Unable to access internal api controller. Request is not AJAX or invalid CSRF token',
+                'Invalid request',
                 401
             );
         }
