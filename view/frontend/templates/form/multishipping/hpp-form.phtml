@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -22,19 +21,23 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <body>
-        <referenceBlock name="checkout_billing" template="Adyen_Payment::checkout/multishipping/billing.phtml">
-            <arguments>
-                <argument name="checkout_data" xsi:type="object">Magento\Multishipping\Block\DataProviders\Billing</argument>
-                <argument name="form_templates" xsi:type="array">
-                    <item name="adyen_cc" xsi:type="string">Adyen_Payment::form/multishipping/cc-form.phtml</item>
-                    <item name="adyen_hpp" xsi:type="string">Adyen_Payment::form/multishipping/hpp-form.phtml</item>
-                </argument>
-                <argument name="cacheable" xsi:type="boolean">false</argument>
-            </arguments>
-        </referenceBlock>
-    </body>
-</page>
+?>
+<script>
+    require([
+        'uiLayout',
+        'jquery'
+    ], function (layout, $) {
+        $(function () {
+            layout([
+                {
+                    component: 'Adyen_Payment/js/view/payment/method-renderer/multishipping/adyen-hpp-method',
+                    name: 'payment_method_adyen_hpp',
+                    method: 'adyen_hpp',
+                    item: { method: 'adyen_hpp' }
+                }
+            ]);
+            $('body').trigger('contentUpdated');
+        })
+    })
+</script>
+<!-- ko template: getTemplate() --><!-- /ko -->

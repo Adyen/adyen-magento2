@@ -187,7 +187,7 @@ class Config
      */
     public function getHouseNumberStreetLine($storeId = null)
     {
-        return $this->adyenHelper->getAdyenAbstractConfigDataFlag(self::XML_HOUSE_NUMBER_STREET_LINE, $storeId);
+        return $this->adyenHelper->getAdyenAbstractConfigData(self::XML_HOUSE_NUMBER_STREET_LINE, $storeId);
     }
 
 
