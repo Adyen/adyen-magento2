@@ -572,6 +572,70 @@ define(
             getCode: function() {
                 return window.checkoutConfig.payment.adyenHpp.methodCode;
             },
+
+            /**
+             * @param address
+             * @returns {{country: (string|*), firstName: (string|*), lastName: (string|*), city: (*|string), street: *, postalCode: (*|string), houseNumber: string, telephone: (string|*)}}
+             */
+            getFormattedAddress: function(address) {
+            function getStreetAndHouseNumberFromAddress(address, houseNumberStreetLine, customerStreetLinesEnabled) {
+                let street = address.street.slice(0, customerStreetLinesEnabled);
+                let drawHouseNumberWithRegex = parseInt(houseNumberStreetLine) === 0 || // Config is disabled
+                    houseNumberStreetLine > customerStreetLinesEnabled || // Not enough street lines enabled
+                    houseNumberStreetLine > street.length; // House number field is empty
+
+                let addressArray;
+                if (drawHouseNumberWithRegex) {
+                    addressArray = getStreetAndHouseNumberWithRegex(street.join(' ').trim());
+                } else {
+                    let houseNumber = street.splice(houseNumberStreetLine - 1, 1);
+                    addressArray = {
+                        streetName: street.join(' ').trim(),
+                        houseNumber: houseNumber.join(' ').trim()
+                    }
+                }
+                return addressArray;
+            }
+
+            function getStreetAndHouseNumberWithRegex(addressString) {
+                // Match addresses where the street name comes first, e.g. John-Paul's Ave. 1 B
+                let streetFirstRegex = /(?<streetName>[a-zA-Z0-9.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/;
+                // Match addresses where the house number comes first, e.g. 10 D John-Paul's Ave.
+                let numberFirstRegex = /^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z0-9.'\- ]+)/;
+
+                let streetFirstAddress = addressString.match(streetFirstRegex);
+                let numberFirstAddress = addressString.match(numberFirstRegex);
+
+                if (streetFirstAddress) {
+                    return streetFirstAddress.groups;
+                } else if (numberFirstAddress) {
+                    return numberFirstAddress.groups;
+                }
+
+                return {
+                    streetName: addressString,
+                    houseNumber: 'N/A'
+                };
+            }
+
+            let street = getStreetAndHouseNumberFromAddress(
+                address,
+                adyenConfiguration.getHouseNumberStreetLine(),
+                adyenConfiguration.getCustomerStreetLinesEnabled()
+            );
+
+            return {
+                city: address.city,
+                country: address.countryId,
+                postalCode: address.postcode,
+                street: street.streetName,
+                houseNumber: street.houseNumber,
+                firstName: address.firstname,
+                lastName: address.lastname,
+                telephone: address.telephone
+            };
+        },
+
             buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo, result) {
                 var self = this;
                 var showPayButton = false;
@@ -581,9 +645,6 @@ define(
                     showPayButton = true;
                 }
 
-                var firstName = '';
-                var lastName = '';
-                var telephone = '';
                 var email = '';
                 var shopperGender = '';
                 var shopperDateOfBirth = '';
@@ -601,61 +662,11 @@ define(
                 var formattedBillingAddress = {};
 
                 if (!!quote.shippingAddress()) {
-                    formattedShippingAddress = getFormattedAddress(quote.shippingAddress());
+                    formattedShippingAddress = self.getFormattedAddress(quote.shippingAddress());
                 }
 
                 if (!!quote.billingAddress()) {
-                    formattedBillingAddress = getFormattedAddress(quote.billingAddress());
-                }
-
-                /**
-                 * @param address
-                 * @returns {{country: (string|*), firstName: (string|*), lastName: (string|*), city: (*|string), street: *, postalCode: (*|string), houseNumber: string, telephone: (string|*)}}
-                 */
-                function getFormattedAddress(address) {
-                    let city = '';
-                    let country = '';
-                    let postalCode = '';
-                    let street = '';
-                    let houseNumber = '';
-
-                    city = address.city;
-                    country = address.countryId;
-                    postalCode = address.postcode;
-
-                    street = address.street.slice(0);
-
-                    // address contains line items as an array, otherwise if string just pass along as is
-                    if (Array.isArray(street)) {
-                        // getHouseNumberStreetLine > 0 implies the street line that is used to gather house number
-                        if (adyenConfiguration.getHouseNumberStreetLine() > 0) {
-                            // removes the street line from array that is used to contain house number
-                            houseNumber = street.splice(adyenConfiguration.getHouseNumberStreetLine() - 1, 1);
-                        } else { // getHouseNumberStreetLine = 0 uses the last street line as house number
-                            // in case there is more than 1 street lines in use, removes last street line from array that should be used to contain house number
-                            if (street.length > 1) {
-                                houseNumber = street.pop();
-                            }
-                        }
-
-                        // Concat street lines except house number
-                        street = street.join(' ');
-                    }
-
-                    firstName = address.firstname;
-                    lastName = address.lastname;
-                    telephone = address.telephone;
-
-                    return {
-                        city: city,
-                        country: country,
-                        postalCode: postalCode,
-                        street: street,
-                        houseNumber: houseNumber,
-                        firstName: firstName,
-                        lastName: lastName,
-                        telephone: telephone
-                    };
+                    formattedBillingAddress = self.getFormattedAddress(quote.billingAddress());
                 }
 
                 function getAdyenGender(gender) {
@@ -756,7 +767,8 @@ define(
 
                 return configuration;
             },
-            mountPaymentMethodComponent(paymentMethod, configuration, result) {
+            mountPaymentMethodComponent(paymentMethod, configuration, result)
+            {
                 var self = this;
                 try {
                     const containerId = '#adyen-alternative-payment-container-' +
