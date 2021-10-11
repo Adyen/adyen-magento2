@@ -59,7 +59,8 @@ class Hpp extends AbstractInfo
     public function getBankTransferData()
     {
         $result = [];
-        if (!empty($this->getInfo()->getOrder()->getPayment()) &&
+        if (!empty($this->getInfo()->getOrder()) &&
+            !empty($this->getInfo()->getOrder()->getPayment()) &&
             !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('bankTransfer.owner'))
         ) {
             $result = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation();
@@ -77,7 +78,8 @@ class Hpp extends AbstractInfo
     public function getMultibancoData()
     {
         $result = [];
-        if (!empty($this->getInfo()->getOrder()->getPayment()) &&
+        if (!empty($this->getInfo()->getOrder()) &&
+            !empty($this->getInfo()->getOrder()->getPayment()) &&
             !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('comprafacil.entity'))
         ) {
             $result = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation();

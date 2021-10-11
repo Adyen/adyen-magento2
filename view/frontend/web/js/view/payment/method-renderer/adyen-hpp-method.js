@@ -77,6 +77,12 @@ define(
                 paymentMethods: {},
                 handleActionPaymentMethods: ['paypal'],
             },
+            showPayButtonPaymentMethods: [
+                'paypal',
+                'applepay',
+                'paywithgoogle',
+                'amazonpay'
+            ],
             initObservable: function() {
                 this._super().observe([
                     'selectedAlternativePaymentMethodType',
@@ -147,13 +153,6 @@ define(
             getAdyenHppPaymentMethods: function(paymentMethodsResponse) {
                 var self = this;
 
-                const showPayButtonPaymentMethods = [
-                    'paypal',
-                    'applepay',
-                    'paywithgoogle',
-                    'amazonpay'
-                ];
-
                 var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
                 var paymentMethodsExtraInfo = paymentMethodsResponse.paymentMethodsExtraDetails;
 
@@ -188,340 +187,126 @@ define(
                         };
                         layout([messagesComponent]);
 
-                        var result = {
-                            isAvailable: ko.observable(true),
-                            paymentMethod: paymentMethod,
-                            method: self.item.method,
-                            item: {
-                                'title': paymentMethod.name,
-                                'method': paymentMethod.methodIdentifier
-                            },
-                            /**
-                             * Observable to enable and disable place order buttons for payment methods
-                             * Default value is true to be able to send the real hpp requiests that doesn't require any input
-                             * @type {observable}
-                             */
-                            placeOrderAllowed: ko.observable(true),
-                            icon: !!paymentMethodsExtraInfo[paymentMethod.methodIdentifier]
-                                ? paymentMethodsExtraInfo[paymentMethod.methodIdentifier].icon
-                                : {},
-                            getMessageName: function() {
-                                return 'messages-' + paymentMethod.methodIdentifier;
-                            },
-                            getMessageContainer: function() {
-                                return messageContainer;
-                            },
-                            validate: function() {
-                                return self.validate(paymentMethod.methodIdentifier);
-                            },
-                            /**
-                             * Set and get if the place order action is allowed
-                             * Sets the placeOrderAllowed observable and the original isPlaceOrderActionAllowed as well
-                             * @param bool
-                             * @returns {*}
-                             */
-                            isPlaceOrderAllowed: function(bool) {
-                                self.isPlaceOrderActionAllowed(bool);
-                                return result.placeOrderAllowed(bool);
-                            },
-                            afterPlaceOrder: function() {
-                                return self.afterPlaceOrder();
-                            },
-                            showPlaceOrderButton: function() {
-                                if (showPayButtonPaymentMethods.includes(
-                                    paymentMethod.methodGroup)) {
-                                    return false;
-                                }
-
-                                return true;
-                            },
-                            renderCheckoutComponent: function() {
-                                result.isPlaceOrderAllowed(false);
-
-                                var showPayButton = false;
-
-                                if (showPayButtonPaymentMethods.includes(
-                                    paymentMethod.methodGroup)) {
-                                    showPayButton = true;
-                                }
-
-                                var firstName = '';
-                                var lastName = '';
-                                var telephone = '';
-                                var email = '';
-                                var shopperGender = '';
-                                var shopperDateOfBirth = '';
-
-                                if (!!customerData.email) {
-                                    email = customerData.email;
-                                } else if (!!quote.guestEmail) {
-                                    email = quote.guestEmail;
-                                }
-
-                                shopperGender = customerData.gender;
-                                shopperDateOfBirth = customerData.dob;
-
-                                var formattedShippingAddress = {};
-                                var formattedBillingAddress = {};
-
-                                if (!!quote.shippingAddress()) {
-                                    formattedShippingAddress = getFormattedAddress(quote.shippingAddress());
-                                }
-
-                                if (!!quote.billingAddress()) {
-                                    formattedBillingAddress = getFormattedAddress(quote.billingAddress());
-                                }
-
-                                /**
-                                 * @param address
-                                 * @returns {{country: (string|*), firstName: (string|*), lastName: (string|*), city: (*|string), street: *, postalCode: (*|string), houseNumber: string, telephone: (string|*)}}
-                                 */
-                                function getFormattedAddress(address) {
-                                    let city = '';
-                                    let country = '';
-                                    let postalCode = '';
-                                    let street = '';
-                                    let houseNumber = '';
-
-                                    city = address.city;
-                                    country = address.countryId;
-                                    postalCode = address.postcode;
-
-                                    street = address.street.slice(0);
-
-                                    // address contains line items as an array, otherwise if string just pass along as is
-                                    if (Array.isArray(street)) {
-                                        // getHouseNumberStreetLine > 0 implies the street line that is used to gather house number
-                                        if (adyenConfiguration.getHouseNumberStreetLine() > 0) {
-                                            // removes the street line from array that is used to contain house number
-                                            houseNumber = street.splice(adyenConfiguration.getHouseNumberStreetLine() - 1, 1);
-                                        } else { // getHouseNumberStreetLine = 0 uses the last street line as house number
-                                            // in case there is more than 1 street lines in use, removes last street line from array that should be used to contain house number
-                                            if (street.length > 1) {
-                                                houseNumber = street.pop();
-                                            }
-                                        }
-
-                                        // Concat street lines except house number
-                                        street = street.join(' ');
-                                    }
-
-                                    firstName = address.firstname;
-                                    lastName = address.lastname;
-                                    telephone = address.telephone;
-
-                                    return {
-                                        city: city,
-                                        country: country,
-                                        postalCode: postalCode,
-                                        street: street,
-                                        houseNumber: houseNumber,
-                                        firstName: firstName,
-                                        lastName: lastName,
-                                        telephone: telephone
-                                    };
-                                }
-
-                                function getAdyenGender(gender) {
-                                    if (gender == 1) {
-                                        return 'MALE';
-                                    } else if (gender == 2) {
-                                        return 'FEMALE';
-                                    }
-                                    return 'UNKNOWN';
-
-                                }
-
-                                /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
-                                var configuration = Object.assign(paymentMethod,
-                                    {
-                                        showPayButton: showPayButton,
-                                        countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
-                                        hasHolderName: adyenConfiguration.getHasHolderName(),
-                                        holderNameRequired: adyenConfiguration.getHasHolderName() &&
-                                            adyenConfiguration.getHolderNameRequired(),
-                                        data: {
-                                            personalDetails: {
-                                                firstName: formattedBillingAddress.firstName,
-                                                lastName: formattedBillingAddress.lastName,
-                                                telephoneNumber: formattedBillingAddress.telephone,
-                                                shopperEmail: email,
-                                                gender: getAdyenGender(
-                                                    shopperGender),
-                                                dateOfBirth: shopperDateOfBirth,
-                                            },
-                                            billingAddress: {
-                                                city: formattedBillingAddress.city,
-                                                country: formattedBillingAddress.country,
-                                                houseNumberOrName: formattedBillingAddress.houseNumber,
-                                                postalCode: formattedBillingAddress.postalCode,
-                                                street: formattedBillingAddress.street,
-                                            },
-                                        },
-                                        onChange: function(state) {
-                                            result.isPlaceOrderAllowed(
-                                                state.isValid);
-                                        },
-                                        onClick: function(resolve, reject) {
-                                            // for paypal add a workaround, remove when component fixes it
-                                            if (selectedAlternativePaymentMethodType() ===
-                                                'paypal') {
-                                                return self.validate();
-                                            } else {
-                                                if (self.validate()) {
-                                                    resolve();
-                                                } else {
-                                                    reject();
-                                                }
-                                            }
-                                        },
-                                    });
-
-                                if (formattedShippingAddress) {
-                                    configuration.data.shippingAddress = {
-                                        city: formattedShippingAddress.city,
-                                        country: formattedShippingAddress.country,
-                                        houseNumberOrName: formattedShippingAddress.houseNumber,
-                                        postalCode: formattedShippingAddress.postalCode,
-                                        street: formattedShippingAddress.street
-                                    };
-                                }
-
-                                // Use extra configuration from the paymentMethodsExtraInfo object if available
-                                if (paymentMethod.methodIdentifier in paymentMethodsExtraInfo && 'configuration' in paymentMethodsExtraInfo[paymentMethod.methodIdentifier]) {
-                                    configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
-                                }
-
-                                // Extra apple pay configuration
-                                if (paymentMethod.methodIdentifier.includes('applepay')) {
-                                    if ('configuration' in configuration &&
-                                        'merchantName' in configuration.configuration) {
-                                        configuration.totalPriceLabel = configuration.configuration.merchantName;
-                                    }
-                                }
-                                // Extra amazon pay configuration first call to amazon page
-                                if (paymentMethod.methodIdentifier.includes('amazonpay')) {
-                                    configuration.productType = 'PayAndShip';
-                                    configuration.checkoutMode = 'ProcessOrder';
-                                    configuration.returnUrl = location.href;
-
-                                    if (formattedShippingAddress &&
-                                        formattedShippingAddress.telephone) {
-                                        configuration.addressDetails = {
-                                            name: formattedShippingAddress.firstName +
-                                                ' ' +
-                                                formattedShippingAddress.lastName,
-                                            addressLine1: formattedShippingAddress.street,
-                                            addressLine2: formattedShippingAddress.houseNumber,
-                                            city: formattedShippingAddress.city,
-                                            postalCode: formattedShippingAddress.postalCode,
-                                            countryCode: formattedShippingAddress.country,
-                                            phoneNumber: formattedShippingAddress.telephone
-                                        };
-                                    }
-                                }
-                                try {
-                                    const containerId = '#adyen-alternative-payment-container-' +
-                                        paymentMethod.methodIdentifier;
-                                    var url = new URL(location.href);
-                                    //Handles the redirect back to checkout page with amazonSessionKey in url
-                                    if (
-                                        paymentMethod.methodIdentifier === 'amazonpay'
-                                        && url.searchParams.has(amazonSessionKey)
-                                    ) {
-                                        const amazonPayComponent = self.checkoutComponent.create('amazonpay', {
-                                            amazonCheckoutSessionId: url.searchParams.get(amazonSessionKey),
-                                            showOrderButton: false,
-                                            amount: {
-                                                currency: configuration.amount.currency,
-                                                value: configuration.amount.value
-                                            },
-                                            returnUrl: location.href,
-                                            showChangePaymentDetailsButton: false
-                                        }).mount(containerId);
-                                        amazonPayComponent.submit();
-                                        result.component = amazonPayComponent;
-                                    } else {
-                                        const component = self.checkoutComponent.create(
-                                            paymentMethod.methodIdentifier, configuration);
-                                        if ('isAvailable' in component) {
-                                            component.isAvailable().then(() => {
-                                                component.mount(containerId);
-                                            }).catch(e => {
-                                                result.isAvailable(false);
-                                            });
-                                        } else {
-                                            component.mount(containerId);
-                                        }
-                                        result.component = component;
-                                    }
-                                } catch (err) {
-                                    // The component does not exist yet
-                                    if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
-                                        console.log(err);
-                                    }
-                                }
-                            },
-                            placeOrder: function() {
-                                var innerSelf = this;
-
-                                if (innerSelf.validate()) {
-                                    var data = {};
-                                    data.method = innerSelf.method;
-
-                                    var additionalData = {};
-                                    additionalData.brand_code = selectedAlternativePaymentMethodType();
-
-                                    let stateData;
-                                    if ('component' in innerSelf) {
-                                        stateData = innerSelf.component.data;
-                                    } else {
-                                        if (paymentMethod.methodGroup === paymentMethod.methodIdentifier){
-                                            stateData = {
-                                                paymentMethod: {
-                                                    type: selectedAlternativePaymentMethodType(),
-                                                },
-                                            };
-                                        } else {
-                                            stateData = {
-                                                paymentMethod: {
-                                                    type: paymentMethod.methodGroup,
-                                                    brand: paymentMethod.methodIdentifier
-                                                }
-                                            };
-                                        }
-
-                                    }
-
-                                    additionalData.stateData = JSON.stringify(
-                                        stateData);
-
-                                    if (selectedAlternativePaymentMethodType() ==
-                                        'ratepay') {
-                                        additionalData.df_value = innerSelf.getRatePayDeviceIdentToken();
-                                    }
-
-                                    data.additional_data = additionalData;
-
-                                    self.placeRedirectOrder(data,
-                                        innerSelf.component);
-                                }
-
-                                return false;
-                            },
-                            getRatePayDeviceIdentToken: function() {
-                                return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
-                            },
-                            getCode: function() {
-                                return self.getCode();
-                            }
-                        };
+                        var result = self.buildPaymentMethodComponentResult(paymentMethod, paymentMethodsExtraInfo);
 
                         accumulator.push(result);
                         return accumulator;
                     }, []);
 
                 return paymentList;
+            },
+            buildPaymentMethodComponentResult: function (paymentMethod, paymentMethodsExtraInfo) {
+                var self = this;
+                var result = {
+                    isAvailable: ko.observable(true),
+                    paymentMethod: paymentMethod,
+                    method: self.item.method,
+                    item: {
+                        'title': paymentMethod.name,
+                        'method': paymentMethod.methodIdentifier
+                    },
+                    /**
+                     * Observable to enable and disable place order buttons for payment methods
+                     * Default value is true to be able to send the real hpp requests that doesn't require any input
+                     * @type {observable}
+                     */
+                    placeOrderAllowed: ko.observable(true),
+                    icon: !!paymentMethodsExtraInfo[paymentMethod.methodIdentifier]
+                        ? paymentMethodsExtraInfo[paymentMethod.methodIdentifier].icon
+                        : {},
+                    getMessageName: function() {
+                        return 'messages-' + paymentMethod.methodIdentifier;
+                    },
+                    getMessageContainer: function() {
+                        return messageContainer;
+                    },
+                    validate: function() {
+                        return self.validate(paymentMethod.methodIdentifier);
+                    },
+                    /**
+                     * Set and get if the place order action is allowed
+                     * Sets the placeOrderAllowed observable and the original isPlaceOrderActionAllowed as well
+                     * @param bool
+                     * @returns {*}
+                     */
+                    isPlaceOrderAllowed: function(bool) {
+                        self.isPlaceOrderActionAllowed(bool);
+                        return result.placeOrderAllowed(bool);
+                    },
+                    afterPlaceOrder: function() {
+                        return self.afterPlaceOrder();
+                    },
+                    showPlaceOrderButton: function() {
+                        if (self.showPayButtonPaymentMethods.includes(
+                            paymentMethod.methodGroup)) {
+                            return false;
+                        }
+
+                        return true;
+                    },
+                    renderCheckoutComponent: function() {
+                        result.isPlaceOrderAllowed(false);
+
+                        var configuration = self.buildComponentConfiguration(paymentMethod, paymentMethodsExtraInfo, result);
+
+                        self.mountPaymentMethodComponent(paymentMethod, configuration, result);
+                    },
+                    placeOrder: function() {
+                        var innerSelf = this;
+
+                        if (innerSelf.validate()) {
+                            var data = {};
+                            data.method = innerSelf.method;
+
+                            var additionalData = {};
+                            additionalData.brand_code = selectedAlternativePaymentMethodType();
+
+                            let stateData;
+                            if ('component' in innerSelf) {
+                                stateData = innerSelf.component.data;
+                            } else {
+                                if (paymentMethod.methodGroup === paymentMethod.methodIdentifier){
+                                    stateData = {
+                                        paymentMethod: {
+                                            type: selectedAlternativePaymentMethodType(),
+                                        },
+                                    };
+                                } else {
+                                    stateData = {
+                                        paymentMethod: {
+                                            type: paymentMethod.methodGroup,
+                                            brand: paymentMethod.methodIdentifier
+                                        }
+                                    };
+                                }
+
+                            }
+
+                            additionalData.stateData = JSON.stringify(
+                                stateData);
+
+                            if (selectedAlternativePaymentMethodType() ==
+                                'ratepay') {
+                                additionalData.df_value = innerSelf.getRatePayDeviceIdentToken();
+                            }
+
+                            data.additional_data = additionalData;
+
+                            self.placeRedirectOrder(data,
+                                innerSelf.component);
+                        }
+
+                        return false;
+                    },
+                    getRatePayDeviceIdentToken: function() {
+                        return window.checkoutConfig.payment.adyenHpp.deviceIdentToken;
+                    },
+                    getCode: function() {
+                        return self.getCode();
+                    }
+                };
+
+                return result;
             },
             placeRedirectOrder: function(data, component) {
                 var self = this;
@@ -787,6 +572,246 @@ define(
             getCode: function() {
                 return window.checkoutConfig.payment.adyenHpp.methodCode;
             },
+
+            /**
+             * @param address
+             * @returns {{country: (string|*), firstName: (string|*), lastName: (string|*), city: (*|string), street: *, postalCode: (*|string), houseNumber: string, telephone: (string|*)}}
+             */
+            getFormattedAddress: function(address) {
+            function getStreetAndHouseNumberFromAddress(address, houseNumberStreetLine, customerStreetLinesEnabled) {
+                let street = address.street.slice(0, customerStreetLinesEnabled);
+                let drawHouseNumberWithRegex = parseInt(houseNumberStreetLine) === 0 || // Config is disabled
+                    houseNumberStreetLine > customerStreetLinesEnabled || // Not enough street lines enabled
+                    houseNumberStreetLine > street.length; // House number field is empty
+
+                let addressArray;
+                if (drawHouseNumberWithRegex) {
+                    addressArray = getStreetAndHouseNumberWithRegex(street.join(' ').trim());
+                } else {
+                    let houseNumber = street.splice(houseNumberStreetLine - 1, 1);
+                    addressArray = {
+                        streetName: street.join(' ').trim(),
+                        houseNumber: houseNumber.join(' ').trim()
+                    }
+                }
+                return addressArray;
+            }
+
+            function getStreetAndHouseNumberWithRegex(addressString) {
+                // Match addresses where the street name comes first, e.g. John-Paul's Ave. 1 B
+                let streetFirstRegex = /(?<streetName>[a-zA-Z0-9.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/;
+                // Match addresses where the house number comes first, e.g. 10 D John-Paul's Ave.
+                let numberFirstRegex = /^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z0-9.'\- ]+)/;
+
+                let streetFirstAddress = addressString.match(streetFirstRegex);
+                let numberFirstAddress = addressString.match(numberFirstRegex);
+
+                if (streetFirstAddress) {
+                    return streetFirstAddress.groups;
+                } else if (numberFirstAddress) {
+                    return numberFirstAddress.groups;
+                }
+
+                return {
+                    streetName: addressString,
+                    houseNumber: 'N/A'
+                };
+            }
+
+            let street = getStreetAndHouseNumberFromAddress(
+                address,
+                adyenConfiguration.getHouseNumberStreetLine(),
+                adyenConfiguration.getCustomerStreetLinesEnabled()
+            );
+
+            return {
+                city: address.city,
+                country: address.countryId,
+                postalCode: address.postcode,
+                street: street.streetName,
+                houseNumber: street.houseNumber,
+                firstName: address.firstname,
+                lastName: address.lastname,
+                telephone: address.telephone
+            };
+        },
+
+            buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo, result) {
+                var self = this;
+                var showPayButton = false;
+
+                if (self.showPayButtonPaymentMethods.includes(
+                    paymentMethod.methodGroup)) {
+                    showPayButton = true;
+                }
+
+                var email = '';
+                var shopperGender = '';
+                var shopperDateOfBirth = '';
+
+                if (!!customerData.email) {
+                    email = customerData.email;
+                } else if (!!quote.guestEmail) {
+                    email = quote.guestEmail;
+                }
+
+                shopperGender = customerData.gender;
+                shopperDateOfBirth = customerData.dob;
+
+                var formattedShippingAddress = {};
+                var formattedBillingAddress = {};
+
+                if (!!quote.shippingAddress()) {
+                    formattedShippingAddress = self.getFormattedAddress(quote.shippingAddress());
+                }
+
+                if (!!quote.billingAddress()) {
+                    formattedBillingAddress = self.getFormattedAddress(quote.billingAddress());
+                }
+
+                function getAdyenGender(gender) {
+                    if (gender == 1) {
+                        return 'MALE';
+                    } else if (gender == 2) {
+                        return 'FEMALE';
+                    }
+                    return 'UNKNOWN';
+
+                }
+
+                /*Use the storedPaymentMethod object and the custom onChange function as the configuration object together*/
+                var configuration = Object.assign(paymentMethod,
+                    {
+                        showPayButton: showPayButton,
+                        countryCode: formattedShippingAddress.country ? formattedShippingAddress.country : formattedBillingAddress.country, // Use shipping address details as default and fall back to billing address if missing
+                        hasHolderName: adyenConfiguration.getHasHolderName(),
+                        holderNameRequired: adyenConfiguration.getHasHolderName() &&
+                            adyenConfiguration.getHolderNameRequired(),
+                        data: {
+                            personalDetails: {
+                                firstName: formattedBillingAddress.firstName,
+                                lastName: formattedBillingAddress.lastName,
+                                telephoneNumber: formattedBillingAddress.telephone,
+                                shopperEmail: email,
+                                gender: getAdyenGender(shopperGender),
+                                dateOfBirth: shopperDateOfBirth,
+                            },
+                            billingAddress: {
+                                city: formattedBillingAddress.city,
+                                country: formattedBillingAddress.country,
+                                houseNumberOrName: formattedBillingAddress.houseNumber,
+                                postalCode: formattedBillingAddress.postalCode,
+                                street: formattedBillingAddress.street,
+                            },
+                        },
+                        onChange: function(state) {
+                            result.isPlaceOrderAllowed(state.isValid);
+                        },
+                        onClick: function(resolve, reject) {
+                            // for paypal add a workaround, remove when component fixes it
+                            if (selectedAlternativePaymentMethodType() === 'paypal') {
+                                return self.validate();
+                            } else {
+                                if (self.validate()) {
+                                    resolve();
+                                } else {
+                                    reject();
+                                }
+                            }
+                        },
+                    });
+
+                if (formattedShippingAddress) {
+                    configuration.data.shippingAddress = {
+                        city: formattedShippingAddress.city,
+                        country: formattedShippingAddress.country,
+                        houseNumberOrName: formattedShippingAddress.houseNumber,
+                        postalCode: formattedShippingAddress.postalCode,
+                        street: formattedShippingAddress.street
+                    };
+                }
+
+                // Use extra configuration from the paymentMethodsExtraInfo object if available
+                if (paymentMethod.methodIdentifier in paymentMethodsExtraInfo && 'configuration' in paymentMethodsExtraInfo[paymentMethod.methodIdentifier]) {
+                    configuration = Object.assign(configuration, paymentMethodsExtraInfo[paymentMethod.methodIdentifier].configuration);
+                }
+
+                // Extra apple pay configuration
+                if (paymentMethod.methodIdentifier.includes('applepay')) {
+                    if ('configuration' in configuration &&
+                        'merchantName' in configuration.configuration) {
+                        configuration.totalPriceLabel = configuration.configuration.merchantName;
+                    }
+                }
+                // Extra amazon pay configuration first call to amazon page
+                if (paymentMethod.methodIdentifier.includes('amazonpay')) {
+                    configuration.productType = 'PayAndShip';
+                    configuration.checkoutMode = 'ProcessOrder';
+                    configuration.returnUrl = location.href;
+
+                    if (formattedShippingAddress &&
+                        formattedShippingAddress.telephone) {
+                        configuration.addressDetails = {
+                            name: formattedShippingAddress.firstName +
+                                ' ' +
+                                formattedShippingAddress.lastName,
+                            addressLine1: formattedShippingAddress.street,
+                            addressLine2: formattedShippingAddress.houseNumber,
+                            city: formattedShippingAddress.city,
+                            postalCode: formattedShippingAddress.postalCode,
+                            countryCode: formattedShippingAddress.country,
+                            phoneNumber: formattedShippingAddress.telephone
+                        };
+                    }
+                }
+
+                return configuration;
+            },
+            mountPaymentMethodComponent(paymentMethod, configuration, result)
+            {
+                var self = this;
+                try {
+                    const containerId = '#adyen-alternative-payment-container-' +
+                        paymentMethod.methodIdentifier;
+                    var url = new URL(location.href);
+                    //Handles the redirect back to checkout page with amazonSessionKey in url
+                    if (
+                        paymentMethod.methodIdentifier === 'amazonpay'
+                        && url.searchParams.has(amazonSessionKey)
+                    ) {
+                        const amazonPayComponent = self.checkoutComponent.create('amazonpay', {
+                            amazonCheckoutSessionId: url.searchParams.get(amazonSessionKey),
+                            showOrderButton: false,
+                            amount: {
+                                currency: configuration.amount.currency,
+                                value: configuration.amount.value
+                            },
+                            returnUrl: location.href,
+                            showChangePaymentDetailsButton: false
+                        }).mount(containerId);
+                        amazonPayComponent.submit();
+                        result.component = amazonPayComponent;
+                    } else {
+                        const component = self.checkoutComponent.create(
+                            paymentMethod.methodIdentifier, configuration);
+                        if ('isAvailable' in component) {
+                            component.isAvailable().then(() => {
+                                component.mount(containerId);
+                            }).catch(e => {
+                                result.isAvailable(false);
+                            });
+                        } else {
+                            component.mount(containerId);
+                        }
+                        result.component = component;
+                    }
+                } catch (err) {
+                    // The component does not exist yet
+                    if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
+                        console.log(err);
+                    }
+                }
+            }
         });
     },
 );

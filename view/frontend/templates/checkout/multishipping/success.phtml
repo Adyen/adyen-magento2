@@ -24,7 +24,7 @@
 
 /**
  * @var \Adyen\Payment\Block\Checkout\Multishipping\Success $block
- * @var Magento\Csp\Api\InlineUtilInterface $csp
+ * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
  */
 $paymentResponseEntities = $block->getPaymentResponseEntities();
 ?>
@@ -105,7 +105,7 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
 script;
     ?>
     <?= /* @noEscape */
-    $csp->renderTag('script', [], $scriptString) ?>
+    $secureRenderer->renderTag('script', [], $scriptString, false) ?>
     <script type="text/javascript">
         require([
             'jquery',
