@@ -166,7 +166,7 @@ class UpgradeData implements UpgradeDataInterface
         $connection->update(
             $configDataTable,
             ['path' => 'payment/adyen_abstract/partial_payments_refund_strategy'],
-            ['path' => 'payment/adyen_abstract/split_payments_refund_strategy']
+            ['path = ?' => 'payment/adyen_abstract/split_payments_refund_strategy']
         );
     }
 }
