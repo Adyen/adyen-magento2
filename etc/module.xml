@@ -32,6 +32,8 @@
             <module name="Magento_Paypal"/>
             <module name="Magento_AdminNotification"/>
             <module name="Magento_Vault"/>
+            <module name="Amazon_Core"/>
+            <module name="PayPal_Braintree"/>
         </sequence>
     </module>
 </config>
