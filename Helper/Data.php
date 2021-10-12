@@ -29,23 +29,18 @@ use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
-use Magento\Backend\Helper\Data as BackendDataHelper;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Magento\Framework\App\Helper\Context;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ProductMetadataInterface;
-use Magento\Framework\App\State;
 use Magento\Framework\Component\ComponentRegistrarInterface;
 use Magento\Framework\Config\DataInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
 use Magento\Store\Model\StoreManagerInterface;
@@ -156,11 +151,6 @@ class Data extends AbstractHelper
     private $config;
 
     /**
-     * @var BackendDataHelper $helperBackend
-     */
-    private $helperBackend;
-
-    /**
      * @var SerializerInterface
      */
     private $serializer;
@@ -174,11 +164,6 @@ class Data extends AbstractHelper
      * @var Locale;
      */
     private $localeHelper;
-
-    /**
-     * @var UrlInterface
-     */
-    private $url;
 
     /**
      * Data constructor.
@@ -202,11 +187,9 @@ class Data extends AbstractHelper
      * @param Agreement $agreementResourceModel
      * @param ResolverInterface $localeResolver
      * @param ScopeConfigInterface $config
-     * @param BackendDataHelper $helperBackend
      * @param SerializerInterface $serializer
      * @param ComponentRegistrarInterface $componentRegistrar
      * @param Locale $localeHelper
-     * @param UrlInterface $url
      */
     public function __construct(
         Context $context,
@@ -228,11 +211,9 @@ class Data extends AbstractHelper
         Agreement $agreementResourceModel,
         ResolverInterface $localeResolver,
         ScopeConfigInterface $config,
-        BackendDataHelper $helperBackend,
         SerializerInterface $serializer,
         ComponentRegistrarInterface $componentRegistrar,
-        Locale $localeHelper,
-        UrlInterface $url
+        Locale $localeHelper
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -253,11 +234,9 @@ class Data extends AbstractHelper
         $this->agreementResourceModel = $agreementResourceModel;
         $this->localeResolver = $localeResolver;
         $this->config = $config;
-        $this->helperBackend = $helperBackend;
         $this->serializer = $serializer;
         $this->componentRegistrar = $componentRegistrar;
         $this->localeHelper = $localeHelper;
-        $this->url = $url;
     }
 
     /**
@@ -428,6 +407,7 @@ class Data extends AbstractHelper
     /**
      * gives back global configuration values
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -440,6 +420,7 @@ class Data extends AbstractHelper
     /**
      * gives back global configuration values as boolean
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -452,6 +433,7 @@ class Data extends AbstractHelper
     /**
      * Gives back adyen_cc configuration values
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -464,6 +446,7 @@ class Data extends AbstractHelper
     /**
      * Gives back adyen_cc configuration values as flag
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -476,6 +459,7 @@ class Data extends AbstractHelper
     /**
      * Gives back adyen_cc_vault configuration values as flag
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -488,6 +472,7 @@ class Data extends AbstractHelper
     /**
      * Gives back adyen_hpp configuration values
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -500,6 +485,7 @@ class Data extends AbstractHelper
     /**
      * Gives back adyen_hpp configuration values as flag
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -512,6 +498,7 @@ class Data extends AbstractHelper
     /**
      * Gives back adyen_hpp_vault configuration values as flag
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -524,6 +511,7 @@ class Data extends AbstractHelper
     /**
      * Gives back adyen_oneclick configuration values
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -536,6 +524,7 @@ class Data extends AbstractHelper
     /**
      * Gives back adyen_oneclick configuration values as flag
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -546,6 +535,7 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return bool|mixed
@@ -556,6 +546,7 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return bool|mixed
@@ -568,6 +559,7 @@ class Data extends AbstractHelper
     /**
      * Gives back adyen_pay_by_mail configuration values
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -581,6 +573,7 @@ class Data extends AbstractHelper
     /**
      * Gives back adyen_pay_by_mail configuration values as flag
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -594,6 +587,7 @@ class Data extends AbstractHelper
     /**
      * Gives back adyen_boleto configuration values
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -606,6 +600,7 @@ class Data extends AbstractHelper
     /**
      * Gives back adyen_boleto configuration values as flag
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param null|int|string $storeId
      * @return mixed
@@ -654,6 +649,7 @@ class Data extends AbstractHelper
     /**
      * Check if configuration is set to demo mode
      *
+     * @deprecated Use \Adyen\Payment\Helper\Config::isDemoMode instead
      * @param null|int|string $storeId
      * @return mixed
      */
@@ -1465,25 +1461,6 @@ class Data extends AbstractHelper
     private function createAdyenClient()
     {
         return new \Adyen\Client();
-    }
-
-    /**
-     * @param null|int|string $storeId
-     * @return string
-     */
-    public function getOrigin($storeId)
-    {
-        if ( $paymentOriginUrl = $this->getAdyenAbstractConfigData("payment_origin_url", $storeId) ) {
-            return $paymentOriginUrl;
-        }
-        $objectManager = ObjectManager::getInstance();
-        $state = $objectManager->get(State::class);
-        $baseUrl = $this->url->getBaseUrl();
-        if ('adminhtml' === $state->getAreaCode()) {
-            $baseUrl = $this->helperBackend->getHomePageUrl();
-        }
-
-        return $baseUrl;
     }
 
     /**
