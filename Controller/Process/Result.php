@@ -372,7 +372,7 @@ class Result extends \Magento\Framework\App\Action\Action
 
         // Cleanup state data
         try {
-            $this->stateDataHelper->CleanQuoteStateData($order->getQuoteId(), $authResult);
+            $this->stateDataHelper->cleanQuoteStateData($order->getQuoteId(), $authResult);
         } catch (\Exception $exception) {
             $this->_adyenLogger->addError(__('Error cleaning the payment state data: %s', $exception->getMessage()));
         }

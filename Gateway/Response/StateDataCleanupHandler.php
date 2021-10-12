@@ -44,10 +44,7 @@ class StateDataCleanupHandler implements HandlerInterface
     {
         if (!empty($response['resultCode'])) {
             $paymentDataObject = SubjectReader::readPayment($handlingSubject);
-            $this->stateDataHelper->CleanQuoteStateData
-            ($paymentDataObject->getOrder()->getQuoteId(),
-                $response['resultCode']
-            );
+            $this->stateDataHelper->cleanQuoteStateData($paymentDataObject->getOrder()->getQuoteId(), $response['resultCode']);
         }
     }
 }

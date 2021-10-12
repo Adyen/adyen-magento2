@@ -65,7 +65,7 @@ class StateData
      * @param $resultCode
      * @throws \Exception
      */
-    public function CleanQuoteStateData($quoteId, $resultCode)
+    public function cleanQuoteStateData($quoteId, $resultCode)
     {
         if (in_array($resultCode, self::CLEANUP_RESULT_CODES)) {
             $rows = $this->stateDataCollection->getStateDataRowsWithQuoteId($quoteId)->getItems();
