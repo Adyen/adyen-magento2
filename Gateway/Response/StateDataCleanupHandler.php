@@ -23,7 +23,9 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Adyen\Payment\Gateway\Data\Order\OrderAdapter;
 use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
@@ -34,17 +36,31 @@ class StateDataCleanupHandler implements HandlerInterface
      */
     private $stateDataHelper;
 
+    /**
+     * @var AdyenLogger
+     */
+    private $adyenLogger;
+
     public function __construct(
-        StateData $stateDataHelper
+        StateData $stateDataHelper,
+        AdyenLogger $adyenLogger
     ) {
         $this->stateDataHelper = $stateDataHelper;
+        $this->adyenLogger = $adyenLogger;
     }
 
     public function handle(array $handlingSubject, array $response)
     {
         if (!empty($response['resultCode'])) {
             $paymentDataObject = SubjectReader::readPayment($handlingSubject);
-            $this->stateDataHelper->cleanQuoteStateData($paymentDataObject->getOrder()->getQuoteId(), $response['resultCode']);
+            $orderAdapter = $paymentDataObject->getOrder();
+            if ($orderAdapter instanceof OrderAdapter) {
+                $this->stateDataHelper->cleanQuoteStateData($paymentDataObject->getOrder()->getQuoteId(), $response['resultCode']);
+            } else {
+                $this->adyenLogger->warning(sprintf(
+                    'Unexpected OrderAdapter class received: %s. State data will not be deleted', get_class($orderAdapter)
+                ));
+            }
         }
     }
 }
