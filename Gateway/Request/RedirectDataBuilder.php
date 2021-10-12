@@ -61,6 +61,8 @@ class RedirectDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
+
+        // this overwrites the returnUrl (albeit with the same thing) bcos it comes later in the di.xml flow
         $request['body'] = $this->adyenRequestsHelper->buildRedirectData($payment, []);
         return $request;
     }
