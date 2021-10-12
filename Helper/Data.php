@@ -23,8 +23,34 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Billing\AgreementFactory;
+use Adyen\Payment\Model\RecurringType;
+use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
+use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingCollectionFactory;
+use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
+use Magento\Backend\Helper\Data as BackendDataHelper;
+use Magento\Directory\Model\Config\Source\Country;
+use Magento\Framework\App\CacheInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Cache\Type\Config as ConfigCache;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\App\State;
+use Magento\Framework\Component\ComponentRegistrarInterface;
+use Magento\Framework\Config\DataInterface;
+use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Locale\ResolverInterface;
+use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\UrlInterface;
+use Magento\Framework\View\Asset\Repository;
+use Magento\Framework\View\Asset\Source;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Tax\Model\Calculation;
+use Magento\Tax\Model\Config;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -40,165 +66,173 @@ class Data extends AbstractHelper
     const PSP_REFERENCE_REGEX = '/(?P<pspReference>[0-9.A-Z]{16})(?P<suffix>[a-z\-]*)/';
 
     /**
-     * @var \Magento\Framework\Encryption\EncryptorInterface
+     * @var EncryptorInterface
      */
     protected $_encryptor;
 
     /**
-     * @var \Magento\Framework\Config\DataInterface
+     * @var DataInterface
      */
     protected $_dataStorage;
 
     /**
-     * @var \Magento\Directory\Model\Config\Source\Country
+     * @var Country
      */
     protected $_country;
 
     /**
-     * @var \Magento\Framework\Module\ModuleListInterface
+     * @var ModuleListInterface
      */
     protected $_moduleList;
 
     /**
-     * @var \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory
+     * @var BillingCollectionFactory
      */
     protected $_billingAgreementCollectionFactory;
 
     /**
-     * @var \Magento\Framework\View\Asset\Repository
+     * @var Repository
      */
     protected $_assetRepo;
 
     /**
-     * @var \Magento\Framework\View\Asset\Source
+     * @var Source
      */
     protected $_assetSource;
 
     /**
-     * @var \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory
+     * @var NotificationCollectionFactory
      */
     protected $_notificationFactory;
 
     /**
-     * @var \Magento\Tax\Model\Config
+     * @var Config
      */
     protected $_taxConfig;
 
     /**
-     * @var \Magento\Tax\Model\Calculation
+     * @var Calculation
      */
     protected $_taxCalculation;
 
     /**
-     * @var \Magento\Framework\App\ProductMetadataInterface
+     * @var ProductMetadataInterface
      */
     protected $productMetadata;
 
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
+     * @var AdyenLogger
      */
     protected $adyenLogger;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var StoreManagerInterface
      */
     protected $storeManager;
 
     /**
-     * @var \Magento\Framework\App\CacheInterface
+     * @var CacheInterface
      */
     protected $cache;
 
     /**
-     * @var \Adyen\Payment\Model\Billing\AgreementFactory
+     * @var AgreementFactory
      */
     protected $billingAgreementFactory;
 
     /**
-     * @var ResourceModel\Billing\Agreement
+     * @var Agreement
      */
     private $agreementResourceModel;
 
     /**
-     * @var \Magento\Framework\Locale\ResolverInterface
+     * @var ResolverInterface
      */
     private $localeResolver;
 
     /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     * @var ScopeConfigInterface
      */
     private $config;
 
     /**
-     * @var \Magento\Backend\Helper\Data $helperBackend
+     * @var BackendDataHelper $helperBackend
      */
     private $helperBackend;
 
     /**
-     * @var \Magento\Framework\Serialize\SerializerInterface
+     * @var SerializerInterface
      */
     private $serializer;
 
     /**
-     * @var \Magento\Framework\Component\ComponentRegistrarInterface
+     * @var ComponentRegistrarInterface
      */
     private $componentRegistrar;
 
     /**
-     * @var \Adyen\Payment\Helper\Locale;
+     * @var Locale;
      */
     private $localeHelper;
 
     /**
+     * @var UrlInterface
+     */
+    private $url;
+
+    /**
      * Data constructor.
      *
-     * @param \Magento\Framework\App\Helper\Context $context
-     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
-     * @param \Magento\Framework\Config\DataInterface $dataStorage
-     * @param \Magento\Directory\Model\Config\Source\Country $country
-     * @param \Magento\Framework\Module\ModuleListInterface $moduleList
-     * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
-     * @param \Magento\Framework\View\Asset\Repository $assetRepo
-     * @param \Magento\Framework\View\Asset\Source $assetSource
-     * @param \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory
-     * @param \Magento\Tax\Model\Config $taxConfig
-     * @param \Magento\Tax\Model\Calculation $taxCalculation
-     * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Framework\App\CacheInterface $cache
-     * @param \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory
-     * @param \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel
-     * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
-     * @param \Magento\Backend\Helper\Data $helperBackend
-     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
-     * @param \Adyen\Payment\Helper\Locale $localeHelper
+     * @param Context $context
+     * @param EncryptorInterface $encryptor
+     * @param DataInterface $dataStorage
+     * @param Country $country
+     * @param ModuleListInterface $moduleList
+     * @param BillingCollectionFactory $billingAgreementCollectionFactory
+     * @param Repository $assetRepo
+     * @param Source $assetSource
+     * @param NotificationCollectionFactory $notificationFactory
+     * @param Config $taxConfig
+     * @param Calculation $taxCalculation
+     * @param ProductMetadataInterface $productMetadata
+     * @param AdyenLogger $adyenLogger
+     * @param StoreManagerInterface $storeManager
+     * @param CacheInterface $cache
+     * @param AgreementFactory $billingAgreementFactory
+     * @param Agreement $agreementResourceModel
+     * @param ResolverInterface $localeResolver
+     * @param ScopeConfigInterface $config
+     * @param BackendDataHelper $helperBackend
+     * @param SerializerInterface $serializer
+     * @param ComponentRegistrarInterface $componentRegistrar
+     * @param Locale $localeHelper
+     * @param UrlInterface $url
      */
     public function __construct(
-        \Magento\Framework\App\Helper\Context $context,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
-        \Magento\Framework\Config\DataInterface $dataStorage,
-        \Magento\Directory\Model\Config\Source\Country $country,
-        \Magento\Framework\Module\ModuleListInterface $moduleList,
-        \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
-        \Magento\Framework\View\Asset\Repository $assetRepo,
-        \Magento\Framework\View\Asset\Source $assetSource,
-        \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory,
-        \Magento\Tax\Model\Config $taxConfig,
-        \Magento\Tax\Model\Calculation $taxCalculation,
-        \Magento\Framework\App\ProductMetadataInterface $productMetadata,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Framework\App\CacheInterface $cache,
-        \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory,
-        \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel,
-        \Magento\Framework\Locale\ResolverInterface $localeResolver,
-        \Magento\Framework\App\Config\ScopeConfigInterface $config,
-        \Magento\Backend\Helper\Data $helperBackend,
-        \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Magento\Framework\Component\ComponentRegistrarInterface $componentRegistrar,
-        \Adyen\Payment\Helper\Locale $localeHelper
+        Context $context,
+        EncryptorInterface $encryptor,
+        DataInterface $dataStorage,
+        Country $country,
+        ModuleListInterface $moduleList,
+        BillingCollectionFactory $billingAgreementCollectionFactory,
+        Repository $assetRepo,
+        Source $assetSource,
+        NotificationCollectionFactory $notificationFactory,
+        Config $taxConfig,
+        Calculation $taxCalculation,
+        ProductMetadataInterface $productMetadata,
+        AdyenLogger $adyenLogger,
+        StoreManagerInterface $storeManager,
+        CacheInterface $cache,
+        AgreementFactory $billingAgreementFactory,
+        Agreement $agreementResourceModel,
+        ResolverInterface $localeResolver,
+        ScopeConfigInterface $config,
+        BackendDataHelper $helperBackend,
+        SerializerInterface $serializer,
+        ComponentRegistrarInterface $componentRegistrar,
+        Locale $localeHelper,
+        UrlInterface $url
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -223,6 +257,7 @@ class Data extends AbstractHelper
         $this->serializer = $serializer;
         $this->componentRegistrar = $componentRegistrar;
         $this->localeHelper = $localeHelper;
+        $this->url = $url;
     }
 
     /**
@@ -233,9 +268,9 @@ class Data extends AbstractHelper
     public function getRecurringTypes()
     {
         return [
-            \Adyen\Payment\Model\RecurringType::ONECLICK => 'ONECLICK',
-            \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING => 'ONECLICK,RECURRING',
-            \Adyen\Payment\Model\RecurringType::RECURRING => 'RECURRING'
+            RecurringType::ONECLICK => 'ONECLICK',
+            RecurringType::ONECLICK_RECURRING => 'ONECLICK,RECURRING',
+            RecurringType::RECURRING => 'RECURRING'
         ];
     }
 
@@ -874,7 +909,7 @@ class Data extends AbstractHelper
 
             // check if contractType is supporting the selected contractType for OneClick payments
             $allowedContractTypes = $agreementData['contractTypes'];
-            if (in_array(\Adyen\Payment\Model\RecurringType::ONECLICK , $allowedContractTypes)) {
+            if (in_array(RecurringType::ONECLICK , $allowedContractTypes)) {
                 // check if AgreementLabel is set and if contract has an recurringType
                 if ($billingAgreement->getAgreementLabel()) {
                     // for Ideal use sepadirectdebit because it is
@@ -1438,13 +1473,12 @@ class Data extends AbstractHelper
      */
     public function getOrigin($storeId)
     {
-        // todo get origin from storefront even if no pwa origin is set
         if ( $paymentOriginUrl = $this->getAdyenAbstractConfigData("payment_origin_url", $storeId) ) {
             return $paymentOriginUrl;
         }
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $state = $objectManager->get(\Magento\Framework\App\State::class);
-        $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
+        $objectManager = ObjectManager::getInstance();
+        $state = $objectManager->get(State::class);
+        $baseUrl = $this->url->getBaseUrl();
         if ('adminhtml' === $state->getAreaCode()) {
             $baseUrl = $this->helperBackend->getHomePageUrl();
         }
@@ -1588,13 +1622,13 @@ class Data extends AbstractHelper
         $adyenCCVaultActive = $this->getAdyenCcVaultConfigDataFlag('active', $storeId);
 
         if ($enableOneclick && $adyenCCVaultActive) {
-            return \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING;
+            return RecurringType::ONECLICK_RECURRING;
         } elseif ($enableOneclick && !$adyenCCVaultActive) {
-            return \Adyen\Payment\Model\RecurringType::ONECLICK;
+            return RecurringType::ONECLICK;
         } elseif (!$enableOneclick && $adyenCCVaultActive) {
-            return \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING;
+            return RecurringType::ONECLICK_RECURRING;
         } else {
-            return \Adyen\Payment\Model\RecurringType::NONE;
+            return RecurringType::NONE;
         }
     }
 
