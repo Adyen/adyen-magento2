@@ -345,20 +345,6 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param InfoInterface $payment
-     * @param array $request
-     * @return array
-     */
-    public function buildRedirectData($payment, $request = [])
-    {
-        $request['returnUrl'] = rtrim(
-                $this->adyenHelper->getOrigin($payment->getMethodInstance()->getStore()), '/'
-            ) .
-            '/adyen/process/result?merchantReference=' . $payment->getOrder()->getIncrementId();
-        return $request;
-    }
-
-    /**
      * @param $request
      * @param $areaCode
      * @param $storeId
