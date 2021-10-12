@@ -812,7 +812,7 @@ class Data extends AbstractHelper
 
     /**
      * Retrieve information from payment configuration
-     *
+     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
      * @param $field
      * @param $paymentMethodCode
      * @param null|int|string $storeId
@@ -1482,12 +1482,8 @@ class Data extends AbstractHelper
         if ('adminhtml' === $state->getAreaCode()) {
             $baseUrl = $this->helperBackend->getHomePageUrl();
         }
-        $parsed = parse_url($baseUrl);
-        $origin = $parsed['scheme'] . "://" . $parsed['host'];
-        if (!empty($parsed['port'])) {
-            $origin .= ":" . $parsed['port'];
-        }
-        return $origin;
+
+        return $baseUrl;
     }
 
     /**
