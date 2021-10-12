@@ -79,16 +79,9 @@ class ReturnUrlDataBuilder implements BuilderInterface
         /** @var Order $order */
         $order = $payment->getOrder();
 
-        $pwaOrigin = $this->adyenHelper->getAdyenAbstractConfigData(
-            "payment_origin_url",
-            $this->storeManager->getStore()->getId()
-        );
-
-        if ($pwaOrigin) {
-            $returnUrl = rtrim($pwaOrigin, '/') . '/adyen/process/result?merchantReference=' . $order->getIncrementId();
-        } else {
-            $returnUrl = $this->url->getUrl("adyen/process/result", ['merchantReference' => $order->getIncrementId()]);
-        }
+        $returnUrl = rtrim(
+                $this->adyenHelper->getOrigin($this->storeManager->getStore()->getId()), '/'
+            ) . '/adyen/process/result?merchantReference=' . $order->getIncrementId();
 
         $requestBody['body']['returnUrl'] = $returnUrl;
 

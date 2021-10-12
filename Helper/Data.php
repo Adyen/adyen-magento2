@@ -1438,6 +1438,7 @@ class Data extends AbstractHelper
      */
     public function getOrigin($storeId)
     {
+        // todo get origin from storefront even if no pwa origin is set
         if ( $paymentOriginUrl = $this->getAdyenAbstractConfigData("payment_origin_url", $storeId) ) {
             return $paymentOriginUrl;
         }
