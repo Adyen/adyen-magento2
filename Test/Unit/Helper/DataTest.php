@@ -23,6 +23,8 @@
 
 namespace Adyen\Payment\Tests\Helper;
 
+use Magento\Framework\UrlInterface;
+
 class DataTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -67,6 +69,7 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $componentRegistrar = $this->getSimpleMock(\Magento\Framework
                                                    \Component\ComponentRegistrarInterface::class);
         $localeHelper = $this->getSimpleMock(\Adyen\Payment\Helper\Locale::class);
+        $url = $this->getSimpleMock(UrlInterface::class);
 
         $this->dataHelper = new \Adyen\Payment\Helper\Data(
             $context,
@@ -91,7 +94,8 @@ class DataTest extends \PHPUnit\Framework\TestCase
             $helperBackend,
             $serializer,
             $componentRegistrar,
-            $localeHelper
+            $localeHelper,
+            $url
         );
     }
 
