@@ -25,7 +25,6 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Helper\Data;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\UrlInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -45,25 +44,17 @@ class ReturnUrlDataBuilder implements BuilderInterface
     private $storeManager;
 
     /**
-     * @var UrlInterface
-     */
-    private $url;
-
-    /**
      * CheckoutDataBuilder constructor.
      *
      * @param Data $adyenHelper
      * @param StoreManagerInterface $storeManager
-     * @param UrlInterface $url
      */
     public function __construct(
         Data $adyenHelper,
-        StoreManagerInterface $storeManager,
-        UrlInterface $url
+        StoreManagerInterface $storeManager
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
-        $this->url = $url;
     }
 
     /**
