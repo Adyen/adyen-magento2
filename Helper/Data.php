@@ -1456,6 +1456,62 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Retrieve origin keys for platform's base url
+     *
+     * @return string
+     * @throws \Adyen\AdyenException
+     * @deprecared please use getClientKey instead
+     */
+    public function getOriginKeyForBaseUrl()
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        $origin = $this->getOrigin($storeId);
+        $cacheKey = 'Adyen_origin_key_for_' . $origin . '_' . $storeId;
+
+        if (!$originKey = $this->cache->load($cacheKey)) {
+            if ($originKey = $this->getOriginKeyForOrigin($origin, $storeId)) {
+                $this->cache->save($originKey, $cacheKey, [ConfigCache::CACHE_TAG], 60 * 60 * 24);
+            }
+        }
+
+        return $originKey;
+    }
+
+    /**
+     * Get origin key for a specific origin using the adyen api library client
+     *
+     * @param $origin
+     * @param null|int|string $storeId
+     * @return string
+     * @throws \Adyen\AdyenException
+     */
+    private function getOriginKeyForOrigin($origin, $storeId = null)
+    {
+        $params = [
+            "originDomains" => [
+                $origin
+            ]
+        ];
+
+        $client = $this->initializeAdyenClient($storeId);
+
+        try {
+            $service = $this->createAdyenCheckoutUtilityService($client);
+            $response = $service->originKeys($params);
+        } catch (\Exception $e) {
+            $this->adyenLogger->error($e->getMessage());
+        }
+
+        $originKey = "";
+
+        if (!empty($response['originKeys'][$origin])) {
+            $originKey = $response['originKeys'][$origin];
+        }
+
+        return $originKey;
+    }
+
+    /**
      * @param null|int|string $storeId
      * @return string
      */
