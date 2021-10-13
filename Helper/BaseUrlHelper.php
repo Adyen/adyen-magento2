@@ -67,12 +67,11 @@ class BaseUrlHelper
         if ($paymentOriginUrl = $this->config->getPWAOriginUrl($storeId)) {
             return $paymentOriginUrl;
         }
-
-        $baseUrl = $this->url->getBaseUrl();
+        
         if ('adminhtml' === $this->state->getAreaCode()) {
-            $baseUrl = $this->backendHelper->getHomePageUrl();
+            return $this->backendHelper->getHomePageUrl();
         }
-
-        return $baseUrl;
+        
+        return $this->url->getBaseUrl();
     }
 }
