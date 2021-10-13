@@ -27,6 +27,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollection;
 use Adyen\Payment\Model\StateData as StateDataModel;
+use Adyen\Payment\Model\StateDataFactory;
 
 class StateData
 {
