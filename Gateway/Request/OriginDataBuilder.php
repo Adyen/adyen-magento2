@@ -23,7 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
-use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\BaseUrlHelper;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -32,19 +32,19 @@ use Magento\Sales\Model\Order;
 class OriginDataBuilder implements BuilderInterface
 {
     /**
-     * @var Data
+     * @var BaseUrlHelper
      */
-    private $adyenHelper;
+    private $baseUrlHelper;
 
     /**
      * CheckoutDataBuilder constructor.
      *
-     * @param Data $adyenHelper
+     * @param BaseUrlHelper $baseUrlHelper
      */
     public function __construct(
-        Data $adyenHelper
+        BaseUrlHelper $baseUrlHelper
     ) {
-        $this->adyenHelper = $adyenHelper;
+        $this->baseUrlHelper = $baseUrlHelper;
     }
 
     /**
@@ -59,7 +59,7 @@ class OriginDataBuilder implements BuilderInterface
         /** @var Order $order */
         $storeId = $payment->getOrder()->getStoreId();
 
-        $request['body']['origin'] = $this->adyenHelper->getOrigin($storeId);
+        $request['body']['origin'] = $this->baseUrlHelper->getStoreBaseUrl($storeId);
 
         return $request;
     }
