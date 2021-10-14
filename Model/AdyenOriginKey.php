@@ -15,20 +15,38 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2020 Adyen B.V.
+ * Copyright (c) 2019 Adyen B.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Api;
+namespace Adyen\Payment\Model;
 
-interface AdyenOrderPaymentStatusInterface
+use Adyen\AdyenException;
+use Adyen\Payment\Helper\Data as AdyenHelper;
+use Magento\Framework\Exception\NoSuchEntityException as MagentoNoSuchEntityException;
+
+class AdyenOriginKey implements \Adyen\Payment\Api\AdyenOriginKeyInterface
 {
     /**
-     * @param string $orderId
-     * @return string
+     * @var AdyenHelper
      */
-    public function getOrderPaymentStatus($orderId);
+    private $helper;
+
+    public function __construct(AdyenHelper $helper)
+    {
+        $this->helper = $helper;
+    }
+
+    /**
+     * {@inheritDoc}
+     * @throws MagentoNoSuchEntityException
+     * @throws AdyenException
+     */
+    public function getOriginKey()
+    {
+        return $this->helper->getOriginKeyForBaseUrl();
+    }
 }

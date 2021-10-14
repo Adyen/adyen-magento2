@@ -1467,6 +1467,85 @@ class Data extends AbstractHelper
      * @param null|int|string $storeId
      * @return string
      */
+    public function getOrigin($storeId)
+    {
+        if ( $paymentOriginUrl = $this->getAdyenAbstractConfigData("payment_origin_url", $storeId) ) {
+            return $paymentOriginUrl;
+        }
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $state = $objectManager->get(\Magento\Framework\App\State::class);
+        $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
+        if ('adminhtml' === $state->getAreaCode()) {
+            $baseUrl = $this->helperBackend->getHomePageUrl();
+        }
+        $parsed = parse_url($baseUrl);
+        $origin = $parsed['scheme'] . "://" . $parsed['host'];
+        if (!empty($parsed['port'])) {
+            $origin .= ":" . $parsed['port'];
+        }
+        return $origin;
+    }
+
+    /**
+     * Retrieve origin keys for platform's base url
+     *
+     * @return string
+     * @throws \Adyen\AdyenException
+     * @deprecared please use getClientKey instead
+     */
+    public function getOriginKeyForBaseUrl()
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        $origin = $this->getOrigin($storeId);
+        $cacheKey = 'Adyen_origin_key_for_' . $origin . '_' . $storeId;
+
+        if (!$originKey = $this->cache->load($cacheKey)) {
+            if ($originKey = $this->getOriginKeyForOrigin($origin, $storeId)) {
+                $this->cache->save($originKey, $cacheKey, [ConfigCache::CACHE_TAG], 60 * 60 * 24);
+            }
+        }
+
+        return $originKey;
+    }
+
+    /**
+     * Get origin key for a specific origin using the adyen api library client
+     *
+     * @param $origin
+     * @param null|int|string $storeId
+     * @return string
+     * @throws \Adyen\AdyenException
+     */
+    private function getOriginKeyForOrigin($origin, $storeId = null)
+    {
+        $params = [
+            "originDomains" => [
+                $origin
+            ]
+        ];
+
+        $client = $this->initializeAdyenClient($storeId);
+
+        try {
+            $service = $this->createAdyenCheckoutUtilityService($client);
+            $response = $service->originKeys($params);
+        } catch (\Exception $e) {
+            $this->adyenLogger->error($e->getMessage());
+        }
+
+        $originKey = "";
+
+        if (!empty($response['originKeys'][$origin])) {
+            $originKey = $response['originKeys'][$origin];
+        }
+
+        return $originKey;
+    }
+
+    /**
+     * @param null|int|string $storeId
+     * @return string
+     */
     public function getCheckoutEnvironment($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {

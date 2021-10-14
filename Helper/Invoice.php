@@ -118,7 +118,7 @@ class Invoice extends AbstractHelper
         foreach ($invoiceCollection as $invoice) {
             $parsedTransId = $this->adyenDataHelper->parseTransactionId($invoice->getTransactionId());
             // Loose comparison based on how Magento does the comparison in entity
-            if ($invoice->getState() == InvoiceModel::STATE_OPEN) {
+            if ($invoice->getState() == InvoiceModel::STATE_OPEN || !$invoice->wasPayCalled()) {
                 // If all invoices should be updated, or this is the single invoice that should be updated
                 if ($fullAmountCaptured || $parsedTransId['pspReference'] === $originalReference) {
                     $invoice->pay();
