@@ -62,4 +62,16 @@ class Collection extends AbstractCollection
         $this->getSelect()->order('entity_id DESC');
         return $this;
     }
+
+    /**
+     * Fetch old state data
+     *
+     * @return Collection
+     */
+    public function getExpiredStateDataRows()
+    {
+        $this->addFieldToFilter('updated_at', ['lt' => date('Y-m-d', strtotime('-1 day'))]);
+        $this->getSelect()->order('entity_id DESC');
+        return $this;
+    }
 }
