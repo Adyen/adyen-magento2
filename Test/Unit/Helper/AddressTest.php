@@ -25,6 +25,7 @@ namespace Adyen\Payment\Tests\Helper;
 
 use Adyen\Payment\Gateway\Data\Order\AddressAdapter;
 use Adyen\Payment\Helper\Address;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Data\AddressAdapterInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -49,7 +50,13 @@ class AddressTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->addressHelper = new Address();
+
+        // TODO: Create superclass for this function
+        $mockLogger = $this->getMockBuilder(AdyenLogger::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->addressHelper = new Address($mockLogger);
         $this->addressAdapter = $this->getMockBuilder(AddressAdapter::class)
             ->disableOriginalConstructor()
             ->getMock();
