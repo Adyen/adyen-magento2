@@ -86,9 +86,9 @@ class AdyenGenericConfigProvider implements ConfigProviderInterface
         $config['payment']['adyen']['chargedCurrency'] = $this->adyenConfigHelper->getChargedCurrency($storeId);
         $config['payment']['adyen']['hasHolderName'] = $this->adyenConfigHelper->getHasHolderName($storeId);
         $config['payment']['adyen']['holderNameRequired'] = $this->adyenConfigHelper->getHolderNameRequired($storeId);
-        $config['payment']['adyen']['houseNumberStreetLine'] = $this->adyenConfigHelper->getHouseNumberStreetLine(
-            $storeId
-        );
+        $config['payment']['adyen']['houseNumberStreetLine'] = $this->adyenConfigHelper
+            ->getHouseNumberStreetLine($storeId);
+        $config['payment']['customerStreetLinesEnabled'] = $this->adyenHelper->getCustomerStreetLinesEnabled($storeId);
 
         return $config;
     }

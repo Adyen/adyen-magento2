@@ -15,39 +15,26 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen N.V. (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Gateway\Response;
+namespace Adyen\Payment\Gateway\Request;
 
-use Adyen\Payment\Helper\StateData;
-use Magento\Payment\Gateway\Helper\SubjectReader;
-use Magento\Payment\Gateway\Response\HandlerInterface;
 
-class StateDataCleanupHandler implements HandlerInterface
+use Magento\Payment\Gateway\Request\BuilderInterface;
+
+class ChannelDataBuilder implements BuilderInterface
 {
     /**
-     * @var StateData
+     * @param array $buildSubject
+     * @return array
      */
-    private $stateDataHelper;
-
-    public function __construct(
-        StateData $stateDataHelper
-    ) {
-        $this->stateDataHelper = $stateDataHelper;
-    }
-
-    public function handle(array $handlingSubject, array $response)
+    public function build(array $buildSubject)
     {
-        if (!empty($response['resultCode'])) {
-            $paymentDataObject = SubjectReader::readPayment($handlingSubject);
-            $this->stateDataHelper->CleanQuoteStateData
-            ($paymentDataObject->getOrder()->getQuoteId(),
-                $response['resultCode']
-            );
-        }
+        $request['body']['channel'] = 'web';
+        return $request;
     }
 }

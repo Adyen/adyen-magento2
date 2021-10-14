@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -32,6 +33,8 @@ use Magento\Quote\Api\Data\PaymentInterface;
 
 class Requests extends AbstractHelper
 {
+    CONST MERCHANT_ACCOUNT = 'merchantAccount';
+
     /**
      * @var Data
      */
@@ -84,7 +87,7 @@ class Requests extends AbstractHelper
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($paymentMethod, $storeId);
 
         // Assign merchant account to request object
-        $request['merchantAccount'] = $merchantAccount;
+        $request[self::MERCHANT_ACCOUNT] = $merchantAccount;
 
         return $request;
     }
@@ -93,10 +96,10 @@ class Requests extends AbstractHelper
      * @param int $customerId
      * @param $billingAddress
      * @param $storeId
-     * @param null $payment
+     * @param \Magento\Sales\Model\Order\Payment\|null $payment
      * @param null $additionalData
-     * @return array
      * @param array $request
+     * @return array
      * @return array
      */
     public function buildCustomerData(
@@ -125,7 +128,11 @@ class Requests extends AbstractHelper
                 $request['shopperEmail'] = $customerEmail;
             }
 
-            if ($customerTelephone = trim($billingAddress->getTelephone())) {
+            // /paymentLinks is not accepting "telephoneNumber" - FOC-47179
+            if (
+                $payment->getMethodInstance()->getCode() != AdyenPayByLinkConfigProvider::CODE &&
+                $customerTelephone = trim($billingAddress->getTelephone())
+            ) {
                 $request['telephoneNumber'] = $customerTelephone;
             }
 
@@ -180,9 +187,8 @@ class Requests extends AbstractHelper
             // Save the defaults for later to compare if anything has changed
             $requestBilling = $requestBillingDefaults;
 
-            $houseNumberStreetLine = $this->adyenHelper->getConfigData(
-                'house_number_street_line',
-                'adyen_abstract',
+            $houseNumberStreetLine = $this->adyenHelper->getAdyenAbstractConfigData(
+                Config::XML_HOUSE_NUMBER_STREET_LINE,
                 $storeId
             );
 
@@ -296,10 +302,9 @@ class Requests extends AbstractHelper
      * @param $amount
      * @param $currencyCode
      * @param $reference
-     * @param $paymentMethod
      * @return array
      */
-    public function buildPaymentData($amount, $currencyCode, $reference, $paymentMethod, $request = [])
+    public function buildPaymentData($amount, $currencyCode, $reference, array $request = [])
     {
         $request['amount'] = [
             'currency' => $currencyCode,
@@ -307,6 +312,16 @@ class Requests extends AbstractHelper
         ];
 
         $request["reference"] = $reference;
+
+        return $request;
+    }
+
+    /**
+     * @param array $request
+     * @return array
+     */
+    public function buildRiskData(array $request = [])
+    {
         $request["fraudOffset"] = "0";
 
         return $request;
@@ -330,20 +345,6 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param InfoInterface $payment
-     * @param array $request
-     * @return array
-     */
-    public function buildRedirectData($payment, $request = [])
-    {
-        $request['returnUrl'] = rtrim(
-                $this->adyenHelper->getOrigin($payment->getMethodInstance()->getStore()), '/'
-            ) .
-            '/adyen/process/result?merchantReference=' . $payment->getOrder()->getIncrementId();
-        return $request;
-    }
-
-    /**
      * @param $request
      * @param $areaCode
      * @param $storeId
@@ -351,20 +352,13 @@ class Requests extends AbstractHelper
      */
     public function buildRecurringData(int $storeId, $payment, $request = [])
     {
-
-        $request['shopperInteraction'] = 'Ecommerce';
-
-        // TODO refactor to set the shopperInteraction only this place (only one place) because now it's going to be
-        // overriden in the OneclickAuthorizationDataBuilder
-
         $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
         $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
         $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
 
-        // TODO Remove it in version 7
-        if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::STORE_CC)) {
-            $request['storePaymentMethod'] = true;
-        }
+        $stateData = $payment->getAdditionalInformation('stateData');
+        $request['storePaymentMethod'] = (bool)($stateData['storePaymentMethod'] ?? $storedPaymentMethodsEnabled);
+
         //recurring
         if ($storedPaymentMethodsEnabled) {
             if ($enableVault) {
@@ -375,88 +369,6 @@ class Requests extends AbstractHelper
                 } else {
                     $request['recurringProcessingModel'] = 'Subscription';
                 }
-            }
-        }
-
-        return $request;
-    }
-
-    /**
-     * @param $request
-     * @param $payment
-     * @param $storeIdbuildCCData
-     * @return mixed
-     */
-    public function buildCCData($payload, $storeId, $areaCode, $request = [])
-    {
-        // If ccType is set use this. For bcmc you need bcmc otherwise it will fail
-
-        if (!empty($payload['method']) && $payload['method'] == 'adyen_oneclick' &&
-            !empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]['variant'])
-        ) {
-            $request['paymentMethod']['type'] = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]['variant'];
-        } else {
-            $request['paymentMethod']['type'] = 'scheme';
-        }
-
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) &&
-            $cardNumber = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::ENCRYPTED_CREDIT_CARD_NUMBER]) {
-            $request['paymentMethod']['encryptedCardNumber'] = $cardNumber;
-        }
-
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) &&
-            $expiryMonth = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_MONTH]) {
-            $request['paymentMethod']['encryptedExpiryMonth'] = $expiryMonth;
-        }
-
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) &&
-            $expiryYear = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::ENCRYPTED_EXPIRY_YEAR]) {
-            $request['paymentMethod']['encryptedExpiryYear'] = $expiryYear;
-        }
-
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::HOLDER_NAME]) && $holderName =
-                $payload[PaymentInterface::KEY_ADDITIONAL_DATA][AdyenCcDataAssignObserver::HOLDER_NAME]) {
-            $request['paymentMethod']['holderName'] = $holderName;
-        }
-
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) &&
-            $securityCode = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenCcDataAssignObserver::ENCRYPTED_SECURITY_CODE]) {
-            $request['paymentMethod']['encryptedSecurityCode'] = $securityCode;
-        }
-
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]) &&
-            $recurringDetailReference = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-            [AdyenOneclickDataAssignObserver::RECURRING_DETAIL_REFERENCE]
-        ) {
-            $request['paymentMethod']['recurringDetailReference'] = $recurringDetailReference;
-        }
-
-        /**
-         * if MOTO for backend is enabled use MOTO as shopper interaction type
-         */
-        $enableMoto = $this->adyenHelper->getAdyenCcConfigDataFlag('enable_moto', $storeId);
-        if ($areaCode === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE &&
-            $enableMoto
-        ) {
-            $request['shopperInteraction'] = "Moto";
-        }
-
-        // if installments is set add it into the request
-        if (!empty($payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-        [AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS])) {
-            if (($numberOfInstallment = $payload[PaymentInterface::KEY_ADDITIONAL_DATA]
-                [AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS]) > 0) {
-                $request['installments']['value'] = $numberOfInstallment;
             }
         }
 

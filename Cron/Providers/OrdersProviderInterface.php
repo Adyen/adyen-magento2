@@ -13,26 +13,29 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment Module
+ * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2018 Adyen B.V.
- * This file is open source and available under the MIT license.
- * See the LICENSE file for more info.
+ * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\ResourceModel;
+namespace Adyen\Payment\Cron\Providers;
 
-class Invoice extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
+use Magento\Sales\Api\Data\OrderInterface;
+
+interface OrdersProviderInterface
 {
+
     /**
-     * Resource initialization
-     *
-     * @return void
+     * @return OrderInterface[]
      */
-    protected function _construct()
-    {
-        $this->_init('adyen_invoice', 'entity_id');
-    }
+    public function provide();
+
+    /**
+     * @return string
+     */
+    public function getProviderName();
+
 }
