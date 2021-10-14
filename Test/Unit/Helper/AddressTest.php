@@ -52,11 +52,11 @@ class AddressTest extends TestCase
     {
 
         // TODO: Create superclass for this function
-        $mockAddress = $this->getMockBuilder(AdyenLogger::class)
+        $mockLogger = $this->getMockBuilder(AdyenLogger::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->addressHelper = new Address($mockAddress);
+        $this->addressHelper = new Address($mockLogger);
         $this->addressAdapter = $this->getMockBuilder(AddressAdapter::class)
             ->disableOriginalConstructor()
             ->getMock();
