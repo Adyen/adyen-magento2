@@ -941,6 +941,8 @@
                 type="Adyen\Payment\Model\AdyenOrderPaymentStatus"/>
     <preference for="Adyen\Payment\Api\AdyenStateDataInterface"
                 type="Adyen\Payment\Model\AdyenStateData"/>
+    <preference for="Adyen\Payment\Api\AdyenDonationsInterface"
+                type="Adyen\Payment\Model\AdyenDonations"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10"/>
     </type>
