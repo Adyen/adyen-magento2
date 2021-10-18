@@ -31,7 +31,7 @@ class AdyenDonations implements AdyenDonationsInterface
     /**
      * @inheritDoc
      */
-    public function donate(array $request)
+    public function donate(string $request)
     {
         return [];
     }

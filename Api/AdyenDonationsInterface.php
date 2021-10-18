@@ -28,8 +28,8 @@ interface AdyenDonationsInterface
 {
     /**
      * Build and send donation payment request
-     * @param array $request
+     * @param string $request
      * @return mixed
      */
-    public function donate(array $request);
+    public function donate(string $request);
 }
