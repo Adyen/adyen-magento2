@@ -27,6 +27,7 @@ use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\UrlInterface;
 use Magento\Payment\Model\InfoInterface;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
@@ -41,12 +42,12 @@ class Requests extends AbstractHelper
     private $adyenHelper;
 
     /**
-     * @var \Adyen\Payment\Helper\Config
+     * @var Config
      */
     private $adyenConfig;
 
     /**
-     * @var \Magento\Framework\UrlInterface
+     * @var UrlInterface
      */
     private $urlBuilder;
 
@@ -60,13 +61,13 @@ class Requests extends AbstractHelper
      *
      * @param Data $adyenHelper
      * @param Config $adyenConfig
-     * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param UrlInterface $urlBuilder
      * @param Address $addressHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Helper\Config $adyenConfig,
-        \Magento\Framework\UrlInterface $urlBuilder,
+        Data $adyenHelper,
+        Config $adyenConfig,
+        UrlInterface $urlBuilder,
         Address $addressHelper
     ) {
         $this->adyenHelper = $adyenHelper;
@@ -371,6 +372,12 @@ class Requests extends AbstractHelper
                 }
             }
         }
+
+        return $request;
+    }
+
+    public function buildDonationData($request)
+    {
 
         return $request;
     }
