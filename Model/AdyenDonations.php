@@ -25,14 +25,33 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\AdyenDonationsInterface;
+use Magento\Framework\Exception\NotFoundException;
+use Magento\Payment\Gateway\Command\CommandException;
+use Magento\Payment\Gateway\Command\CommandPoolInterface;
 
 class AdyenDonations implements AdyenDonationsInterface
 {
     /**
-     * @inheritDoc
+     * @var CommandPoolInterface
      */
-    public function donate(string $request)
+    private $commandPool;
+
+    public function __construct(CommandPoolInterface $commandPool)
     {
-        return [];
+        $this->commandPool = $commandPool;
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * @throws CommandException
+     * @throws NotFoundException
+     */
+    public function donate($payload)
+    {
+        $donationsCaptureCommand = $this->commandPool->get('capture');
+        $donationsCaptureCommand->execute(json_decode($payload, true));
+
+        return []; // todo
     }
 }

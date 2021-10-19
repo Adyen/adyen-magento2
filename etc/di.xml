@@ -333,7 +333,13 @@
         </arguments>
     </virtualType>
 
-    <!--DonateCommandPool??-->
+    <virtualType name="AdyenPaymentDonationsCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="capture" xsi:type="string">AdyenPaymentDonateCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
 
     <virtualType name="AdyenPaymentHppCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
         <arguments>
@@ -485,7 +491,7 @@
             <argument name="handler" xsi:type="object">AdyenPaymentCancelResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
-
+    <!--Donate command-->
     <virtualType name="AdyenPaymentDonateCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentDonateRequest</argument>
@@ -956,6 +962,11 @@
     <type name="Adyen\Payment\Controller\Process\Json">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Model\AdyenDonations">
+        <arguments>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentDonationsCommandPool</argument>
         </arguments>
     </type>
 
