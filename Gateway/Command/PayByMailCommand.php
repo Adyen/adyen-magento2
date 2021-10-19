@@ -26,6 +26,11 @@ namespace Adyen\Payment\Gateway\Command;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Payment\Gateway\CommandInterface;
 
+/**
+ * Class PayByMailCommand
+ * @package Adyen\Payment\Gateway\Command
+ * @deprecated
+ */
 class PayByMailCommand implements CommandInterface
 {
     /**
@@ -63,6 +68,7 @@ class PayByMailCommand implements CommandInterface
     /**
      * @param array $commandSubject
      * @return $this
+     * @deprecated
      */
     public function execute(array $commandSubject)
     {
@@ -88,6 +94,7 @@ class PayByMailCommand implements CommandInterface
      * @param \Magento\Sales\Model\Order\Payment $payment
      * @param float|bool $paymentAmount
      * @return string
+     * @deprecated
      */
     public function generatePaymentUrl($payment, $paymentAmount = false)
     {
@@ -113,6 +120,7 @@ class PayByMailCommand implements CommandInterface
 
     /**
      * @return string
+     * @deprecated
      */
     public function getFormUrl()
     {
@@ -128,6 +136,7 @@ class PayByMailCommand implements CommandInterface
      * @param \Magento\Sales\Model\Order\Payment $payment
      * @param float|bool $paymentAmount
      * @return array
+     * @deprecated
      */
     protected function getFormFields($payment, $paymentAmount = false)
     {
@@ -214,6 +223,7 @@ class PayByMailCommand implements CommandInterface
      *
      * @param $val
      * @return mixed
+     * @deprecated
      */
     protected function escapeString($val)
     {

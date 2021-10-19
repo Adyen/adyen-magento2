@@ -1,0 +1,43 @@
+<?php
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+// @codingStandardsIgnoreFile
+
+/**
+ * @var $block \Adyen\Payment\Block\Info\PayByLink
+ * @var $escaper \Magento\Framework\Escaper
+ */
+
+$paymentInfo = $block->getInfo();
+?>
+<span><?= $escaper->escapeHtml(__('The payment can be completed with the following link:')); ?></span>
+<div>
+    <?php if (!empty($paymentInfo->getAdditionalInformation('payByLinkUrl'))): ?>
+        <a rel=noopener
+           target="_blank"
+           href="<?= $escaper->escapeHtml($paymentInfo->getAdditionalInformation('payByLinkUrl')); ?>">
+            <?= $escaper->escapeHtml(__('Payment Link')) ?>
+        </a>
+    <?php endif; ?>
+</div>
+<?= $escaper->escapeHtml($block->getChildHtml()); ?>

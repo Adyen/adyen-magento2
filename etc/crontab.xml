@@ -30,5 +30,11 @@
         <job name="adyen_payment_server_address_caching" instance="Adyen\Payment\Cron\ServerIpAddress" method="execute">
             <schedule>*/1 * * * *</schedule>
         </job>
+        <job name="adyen_payment_cancel_expired_orders" instance="AdyenCancelOrders" method="execute">
+            <schedule>0 0 * * *</schedule>
+        </job>
+        <job name="adyen_payment_state_data_clean_up" instance="Adyen\Payment\Cron\StateDataCleanUp" method="execute">
+            <schedule>0 0 * * *</schedule>
+        </job>
     </group>
 </config>

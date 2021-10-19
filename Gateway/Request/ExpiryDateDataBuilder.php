@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,45 +23,42 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
+use Magento\Framework\App\RequestInterface;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-class RedirectDataBuilder implements BuilderInterface
+class ExpiryDateDataBuilder implements BuilderInterface
 {
     /**
-     * @var \Magento\Framework\App\State
+     * @var RequestInterface
      */
-    private $appState;
+    private $request;
 
     /**
-     * @var \Adyen\Payment\Helper\Requests
-     */
-    private $adyenRequestsHelper;
-
-    /**
-     * RedirectDataBuilder constructor.
-     *
-     * @param \Magento\Framework\Model\Context $context
-     * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+     * @param RequestInterface $request
      */
     public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+        RequestInterface $request
     ) {
-        $this->appState = $context->getAppState();
-        $this->adyenRequestsHelper = $adyenRequestsHelper;
+        $this->request = $request;
     }
 
     /**
+     * Add delivery\billing details into request
+     *
      * @param array $buildSubject
      * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function build(array $buildSubject)
     {
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $payment = $paymentDataObject->getPayment();
-        $request['body'] = $this->adyenRequestsHelper->buildRedirectData($payment, []);
+        $paymentFormFields = $this->request->getParam('payment');
+        $expiryDate = date_create_from_format(
+            AdyenPayByLinkConfigProvider::DATE_FORMAT,
+            $paymentFormFields["adyen_pbl_expires_at"]
+        );
+
+        $request['body']['expiresAt'] = $expiryDate->format(DATE_ATOM);
+
         return $request;
     }
 }

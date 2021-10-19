@@ -182,7 +182,6 @@ class Result extends \Magento\Framework\App\Action\Action
                 ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->_order->getIncrementId()]]
                 : ['_query' => ['utm_nooverride' => '1']];
             $this->_redirect($successPath, $redirectParams);
-
         } else {
             $this->_adyenLogger->addAdyenResult(
                 sprintf(
@@ -252,9 +251,6 @@ class Result extends \Magento\Framework\App\Action\Action
             ]
         );
 
-        // update the order
-        $result = $this->_validateUpdateOrder($order, $response);
-
         // Save payment token if available in the response
         if (!empty($response['additionalData']['recurring.recurringDetailReference']) &&
             $this->payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE) {
@@ -266,6 +262,9 @@ class Result extends \Magento\Framework\App\Action\Action
             }
             $this->orderResourceModel->save($order);
         }
+
+        // update the order
+        $result = $this->_validateUpdateOrder($order, $response);
 
         $this->_eventManager->dispatch(
             'adyen_payment_process_resulturl_after',

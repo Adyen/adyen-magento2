@@ -213,11 +213,13 @@ class PaymentResponseHandler
 
                     if ($order->canCancel()) {
                         $order->cancel();
+                        $order->save();
                     } else {
                         $this->adyenLogger->addAdyenDebug('Order can not be canceled');
                     }
                 }
-                break;
+
+                return false;
             case self::ERROR:
             default:
                 $this->adyenLogger->error(

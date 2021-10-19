@@ -37,7 +37,7 @@ class DataTest extends \PHPUnit\Framework\TestCase
             ->getMock();
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         $context = $this->getSimpleMock(\Magento\Framework\App\Helper\Context::class);
         $encryptor = $this->getSimpleMock(\Magento\Framework\Encryption\EncryptorInterface::class);
@@ -62,7 +62,6 @@ class DataTest extends \PHPUnit\Framework\TestCase
                                                        \Model\ResourceModel\Billing\Agreement::class);
         $localeResolver = $this->getSimpleMock(\Magento\Framework\Locale\ResolverInterface::class);
         $config = $this->getSimpleMock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
-        $helperBackend = $this->getSimpleMock(\Magento\Backend\Helper\Data::class);
         $serializer = $this->getSimpleMock(\Magento\Framework\Serialize\SerializerInterface::class);
         $componentRegistrar = $this->getSimpleMock(\Magento\Framework
                                                    \Component\ComponentRegistrarInterface::class);
@@ -88,7 +87,6 @@ class DataTest extends \PHPUnit\Framework\TestCase
             $agreementResourceModel,
             $localeResolver,
             $config,
-            $helperBackend,
             $serializer,
             $componentRegistrar,
             $localeHelper
