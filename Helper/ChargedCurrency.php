@@ -213,4 +213,13 @@ class ChargedCurrency
             $invoice->getShippingTaxAmount()
         );
     }
+
+    public function getInvoiceAmountCurrency(Invoice $invoice)
+    {
+        $chargedCurrency = $invoice->getOrder()->getAdyenChargedCurrency();
+        if ($chargedCurrency == self::BASE) {
+            return $invoice->getBaseGrandTotal();
+        }
+        return $invoice->getGrandTotal();
+    }
 }
