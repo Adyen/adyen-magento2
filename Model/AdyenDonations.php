@@ -49,8 +49,22 @@ class AdyenDonations implements AdyenDonationsInterface
      */
     public function donate($payload)
     {
+        $payload = json_decode($payload, true);
+        $payload = [
+            'amount' => [
+                'currency' => 'EUR',
+                'value' => 1000
+            ],
+            'paymentMethod' => [
+                "type"=> "scheme",
+                "encryptedSecurityCode"=> "ENCRYPTED_CVC_FROM_CARD_COMPONENT"
+            ],
+            'donationToken' => 'h64j84he5ygdyf',
+            'donationOriginalPspReference' => '991559660454807J',
+            'returnUrl' => '',
+        ];
         $donationsCaptureCommand = $this->commandPool->get('capture');
-        $donationsCaptureCommand->execute(json_decode($payload, true));
+        $result = $donationsCaptureCommand->execute($payload);
 
         return []; // todo
     }

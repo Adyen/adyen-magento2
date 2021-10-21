@@ -376,9 +376,18 @@ class Requests extends AbstractHelper
         return $request;
     }
 
-    public function buildDonationData($request)
+    public function buildDonationData($buildSubject, $storeId)
     {
-
-        return $request;
+        return [
+            "amount"=> $buildSubject['amount'],
+            "reference"=> Uuid::generateV4(),
+            "paymentMethod"=> $buildSubject['paymentMethod'],
+            "donationToken"=> $buildSubject['donationToken'],
+            "donationOriginalPspReference"=> $buildSubject['donationOriginalPspReference'],
+            "donationAccount"=> $this->adyenConfig->getCharityMerchantAccount($storeId),
+            "returnUrl"=> $buildSubject['returnUrl'],
+            "merchantAccount"=> $this->adyenHelper->getAdyenMerchantAccount('adyen_giving', $storeId),
+            "shopperInteraction"=> "Ecommerce"
+        ];
     }
 }

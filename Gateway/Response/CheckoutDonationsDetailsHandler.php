@@ -22,40 +22,18 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Gateway\Request;
+namespace Adyen\Payment\Gateway\Response;
 
-use Adyen\Payment\Helper\Requests;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Payment\Gateway\Request\BuilderInterface;
-use Magento\Store\Model\StoreManagerInterface;
+use Magento\Payment\Gateway\Response\HandlerInterface;
 
-class DonationDataBuilder implements BuilderInterface
+class CheckoutDonationsDetailsHandler implements HandlerInterface
 {
     /**
-     * @var Requests
+     * @inheritDoc
      */
-    private $adyenRequestsHelper;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
-
-    public function __construct(Requests $adyenRequestsHelper, StoreManagerInterface $storeManager)
+    public function handle(array $handlingSubject, array $response)
     {
-        $this->adyenRequestsHelper = $adyenRequestsHelper;
-        $this->storeManager = $storeManager;
-    }
-
-    /**
-     * @param array $buildSubject
-     * @return array
-     * @throws NoSuchEntityException
-     */
-    public function build(array $buildSubject)
-    {
-        $request['body'] = $this->adyenRequestsHelper->buildDonationData($buildSubject, $this->storeManager->getStore()->getId());
-
-        return $request;
+        // TODO: Implement handle() method.
+        $var = $handlingSubject;
     }
 }
