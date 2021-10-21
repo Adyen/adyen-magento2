@@ -1753,7 +1753,7 @@ class Cron
 
             // if auto capture mode for openinvoice is turned on then use auto capture
             if ($captureModeOpenInvoice == true &&
-                $this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod)
+                $this->_adyenHelper->isPaymentMethodOpenInvoiceMethodValidForAutoCapture($this->_paymentMethod)
             ) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'This payment method is configured to be working as auto capture '

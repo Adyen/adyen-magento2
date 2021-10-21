@@ -1002,6 +1002,28 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Excludes AfterPay (NL/BE) from the open invoice list.
+     * AfterPay variants should be excluded (not afterpaytouch)as an option for auto capture.
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodOpenInvoiceMethodValidForAutoCapture($paymentMethod)
+    {
+        if (strpos($paymentMethod, 'afterpaytouch') !== false ||
+            strpos($paymentMethod, 'klarna') !== false ||
+            strpos($paymentMethod, 'ratepay') !== false ||
+            strpos($paymentMethod, 'facilypay_') !== false ||
+            strpos($paymentMethod, 'affirm') !== false ||
+            strpos($paymentMethod, 'clearpay') !== false ||
+            strpos($paymentMethod, 'zip') !== false ||
+            strpos($paymentMethod, 'paybright') !== false
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+    /**
      * @param $paymentMethod
      * @return bool
      */
