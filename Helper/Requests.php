@@ -376,7 +376,7 @@ class Requests extends AbstractHelper
         return $request;
     }
 
-    public function buildDonationData($buildSubject, $storeId)
+    public function buildDonationData($buildSubject, $storeId): array
     {
         return [
             "amount"=> $buildSubject['amount'],

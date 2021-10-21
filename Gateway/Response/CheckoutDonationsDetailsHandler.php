@@ -33,7 +33,6 @@ class CheckoutDonationsDetailsHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $response)
     {
-        // TODO: Implement handle() method.
-        $var = $handlingSubject;
+        // @todo: PW-5424 Implement handle() method.
     }
 }
