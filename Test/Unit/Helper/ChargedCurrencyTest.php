@@ -521,6 +521,36 @@ class ChargedCurrencyTest extends TestCase
         );
     }
 
+    /**
+     * @dataProvider amountCurrencyProvider
+     * @param $configValue
+     * @param $expectedResult
+     * @param $orderPlacement
+     * @param $getAdyenChargedCurrency
+     */
+    public function testGetInvoiceAmountCurrency(
+        $configValue,
+        AdyenAmountCurrency $expectedResult,
+        $orderPlacement,
+        $getAdyenChargedCurrency
+    ) {
+        $this->order->method('getAdyenChargedCurrency')->willReturn($getAdyenChargedCurrency);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper);
+        $result = $this->chargedCurrencyHelper->getInvoiceAmountCurrency($this->invoice);
+        $this->assertEquals(
+            [
+                $expectedResult->getAmount(),
+                $expectedResult->getCurrencyCode(),
+                $expectedResult->getTaxAmount()
+            ],
+            [
+                $result->getAmount(),
+                $result->getCurrencyCode(),
+                $result->getTaxAmount()
+            ]
+        );
+    }
+
     private function mockMethods(MockObject $object, $methods): void
     {
         foreach ($methods as $method => $return) {
