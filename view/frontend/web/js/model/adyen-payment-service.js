@@ -60,10 +60,12 @@ define(
             },
             getOrderPaymentStatus: function(orderId) {
                 var serviceUrl = urlBuilder.createUrl(
-                    '/adyen/orders/:orderId/payment-status', {
-                        orderId: orderId,
-                    });
-
+                    '/internal/adyen/orders/payment-status', {});
+                
+                var payload = {
+                    orderId: orderId,
+                    form_key: $.mage.cookies.get('form_key')
+                };
                 return storage.get(serviceUrl);
             },
             /**
