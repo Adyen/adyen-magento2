@@ -6,6 +6,7 @@
                 <resource id="Magento_Backend::system">
                     <resource id="Adyen_Payment::adyen" title="Adyen" translate="title" sortOrder="10">
                         <resource id="Adyen_Payment::notifications_overview" title="Notifications Overview" translate="title" sortOrder="10"/>
+                        <resource id="Adyen_Payment::donations" title="Adyen Giving" translate="title" sortOrder="60"/>
                     </resource>
                 </resource>
             </resource>

@@ -82,7 +82,7 @@
     <route url="/V1/adyen/donations" method="POST">
         <service class="Adyen\Payment\Api\AdyenDonationsInterface" method="donate"/>
         <resources>
-            <resource ref="anonymous"/>
+            <resource ref="Adyen_Payment::donations"/>
         </resources>
     </route>
 </routes>

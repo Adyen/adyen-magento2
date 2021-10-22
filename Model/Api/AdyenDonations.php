@@ -22,9 +22,10 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model;
+namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenDonationsInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NotFoundException;
 use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
@@ -50,6 +51,12 @@ class AdyenDonations implements AdyenDonationsInterface
     public function donate($payload)
     {
         $payload = json_decode($payload, true);
+
+        // Validate JSON that has just been parsed if it was in a valid format
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new LocalizedException(__('Donations call failed because the request was not a valid JSON'));
+        }
+
         /**
          * @todo PW-5424 The following structure should be sent from the frontend.
          * $payload = [

@@ -951,7 +951,7 @@
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Model\AdyenDonations">
+    <type name="Adyen\Payment\Model\Api\AdyenDonations">
         <arguments>
             <argument name="commandPool" xsi:type="object">AdyenPaymentDonationsCommandPool</argument>
         </arguments>
@@ -972,7 +972,7 @@
     <preference for="Adyen\Payment\Api\AdyenStateDataInterface"
                 type="Adyen\Payment\Model\AdyenStateData"/>
     <preference for="Adyen\Payment\Api\AdyenDonationsInterface"
-                type="Adyen\Payment\Model\AdyenDonations"/>
+                type="Adyen\Payment\Model\Api\AdyenDonations"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10"/>
     </type>
