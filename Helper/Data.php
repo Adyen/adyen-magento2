@@ -61,6 +61,17 @@ class Data extends AbstractHelper
     const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/4.5.0/adyen.js';
     const PSP_REFERENCE_REGEX = '/(?P<pspReference>[0-9.A-Z]{16})(?P<suffix>[a-z\-]*)/';
 
+    const AFTERPAY = 'afterpay';
+    const AFTERPAY_TOUCH = 'afterpaytouch';
+    const KLARNA = 'klarna';
+    const RATEPAY = 'ratepay';
+    const FACILYPAY = 'facilypay_';
+    const AFFIRM = 'affirm';
+    const CLEARPAY = 'clearpay';
+    const ZIP = 'zip';
+    const PAYBRIGHT = 'paybright';
+
+
     /**
      * @var EncryptorInterface
      */
@@ -986,14 +997,14 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'afterpay') !== false ||
-            strpos($paymentMethod, 'klarna') !== false ||
-            strpos($paymentMethod, 'ratepay') !== false ||
-            strpos($paymentMethod, 'facilypay_') !== false ||
-            strpos($paymentMethod, 'affirm') !== false ||
-            strpos($paymentMethod, 'clearpay') !== false ||
-            strpos($paymentMethod, 'zip') !== false ||
-            strpos($paymentMethod, 'paybright') !== false
+        if (strpos($paymentMethod, self::AFTERPAY) !== false ||
+            strpos($paymentMethod, self::KLARNA) !== false ||
+            strpos($paymentMethod, self::RATEPAY) !== false ||
+            strpos($paymentMethod, self::FACILYPAY) !== false ||
+            strpos($paymentMethod, self::AFFIRM) !== false ||
+            strpos($paymentMethod, self::CLEARPAY) !== false ||
+            strpos($paymentMethod, self::ZIP) !== false ||
+            strpos($paymentMethod, self::PAYBRIGHT) !== false
         ) {
             return true;
         }
@@ -1009,14 +1020,14 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethodValidForAutoCapture($paymentMethod)
     {
-        if (strpos($paymentMethod, 'afterpaytouch') !== false ||
-            strpos($paymentMethod, 'klarna') !== false ||
-            strpos($paymentMethod, 'ratepay') !== false ||
-            strpos($paymentMethod, 'facilypay_') !== false ||
-            strpos($paymentMethod, 'affirm') !== false ||
-            strpos($paymentMethod, 'clearpay') !== false ||
-            strpos($paymentMethod, 'zip') !== false ||
-            strpos($paymentMethod, 'paybright') !== false
+        if (strpos($paymentMethod, self::AFTERPAY_TOUCH) !== false ||
+            strpos($paymentMethod, self::KLARNA) !== false ||
+            strpos($paymentMethod, self::RATEPAY) !== false ||
+            strpos($paymentMethod, self::FACILYPAY) !== false ||
+            strpos($paymentMethod, self::AFFIRM) !== false ||
+            strpos($paymentMethod, self::CLEARPAY) !== false ||
+            strpos($paymentMethod, self::ZIP) !== false ||
+            strpos($paymentMethod, self::PAYBRIGHT) !== false
         ) {
             return true;
         }
