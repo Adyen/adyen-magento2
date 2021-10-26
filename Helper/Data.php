@@ -1040,7 +1040,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodRatepayMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'ratepay') !== false) {
+        if (strpos($paymentMethod, self::RATEPAY) !== false) {
             return true;
         }
 
@@ -1053,7 +1053,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodAfterpayTouchMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'afterpaytouch') !== false) {
+        if (strpos($paymentMethod, self::AFTERPAY_TOUCH) !== false) {
             return true;
         }
 
@@ -1079,7 +1079,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOneyMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'facilypay_') !== false) {
+        if (strpos($paymentMethod, self::FACILYPAY) !== false) {
             return true;
         }
 
@@ -1115,7 +1115,7 @@ class Data extends AbstractHelper
      */
     public function isVatCategoryHigh($paymentMethod)
     {
-        if ($paymentMethod == "klarna" ||
+        if ($paymentMethod == self::KLARNA ||
             strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_'
         ) {
             return true;
