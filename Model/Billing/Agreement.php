@@ -27,8 +27,8 @@ use Magento\Sales\Model\Order\Payment;
 
 class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 {
-    const PAY_WITH_GOOGLE ='paywithgoogle';
-    const GOOGLE_PAY ='googlepay';
+    const PAY_WITH_GOOGLE = 'paywithgoogle';
+    const GOOGLE_PAY = 'googlepay';
     /**
      * @var \Adyen\Payment\Helper\Data
      */
