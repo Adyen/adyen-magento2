@@ -27,6 +27,8 @@ use Magento\Sales\Model\Order\Payment;
 
 class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 {
+    const PAY_WITH_GOOGLE ='paywithgoogle';
+    const GOOGLE_PAY ='googlepay';
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -110,7 +112,9 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         // Billing agreement is CC
         if (isset($data['card']['number'])) {
             $ccType = $data['variant'];
-            if (strpos($ccType, "paywithgoogle") !== false && !empty($data['paymentMethodVariant'])) {
+            if ((strpos($ccType, self::PAY_WITH_GOOGLE) !== false
+                    || strpos($ccType, self::GOOGLE_PAY) !== false)
+                && !empty($data['paymentMethodVariant'])) {
                 $ccType = $data['paymentMethodVariant'];
             }
             $ccTypes = $this->adyenHelper->getCcTypesAltData();
@@ -201,7 +205,9 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         // Billing agreement is CC
 
         $ccType = $variant = $contractDetail['paymentMethod'];
-        if (strpos($ccType, "paywithgoogle") !== false && !empty($contractDetail['paymentMethodVariant'])) {
+        if ((strpos($ccType, self::PAY_WITH_GOOGLE) !== false
+                || strpos($ccType, self::GOOGLE_PAY) !== false)
+            && !empty($contractDetail['paymentMethodVariant'])) {
             $ccType = $variant = $contractDetail['paymentMethodVariant'];
         }
         $ccTypes = $this->adyenHelper->getCcTypesAltData();

@@ -467,6 +467,7 @@ class PaymentMethods extends AbstractHelper
         $walletPaymentMethods = [
             'googlepay',
             'paywithgoogle',
+            'googlepay',
             'wechatpayWeb',
             'amazonpay',
             'applepay',

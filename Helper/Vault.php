@@ -148,7 +148,8 @@ class Vault
 
             $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
 
-            if (strpos($additionalData[self::PAYMENT_METHOD], "paywithgoogle") !== false
+            if ((strpos($additionalData[self::PAYMENT_METHOD], "paywithgoogle") !== false
+                ||strpos($additionalData[self::PAYMENT_METHOD], "googlepay") !== false)
                 && !empty($additionalData['paymentMethodVariant'])) {
                 $additionalData[self::PAYMENT_METHOD] = $additionalData['paymentMethodVariant'];
                 $paymentToken->setIsVisible(false);
