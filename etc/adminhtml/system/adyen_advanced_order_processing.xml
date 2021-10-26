@@ -40,7 +40,7 @@
         </field>
         <field id="auto_capture_openinvoice" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Use auto-capture for OpenInvoice payments</label>
-            <tooltip>Applicable for Klarna and AfterPay only. By default OpenInvoice is set to manual capture. If you want auto capture you need to contact magento@adyen.com. After approval has been given, then you can set this option to 'Yes'.</tooltip>
+            <tooltip>Applicable for Klarna, Afterpay touch, Ratepay, Facilypay, Affirm, ClearPay, Zip and PayBright. By default OpenInvoice is set to manual capture. If you want auto capture you need to contact magento@adyen.com. After approval has been given, then you can set this option to 'Yes'.</tooltip>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/auto_capture_openinvoice</config_path>
         </field>
