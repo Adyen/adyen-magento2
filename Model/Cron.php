@@ -908,9 +908,9 @@ class Cron
 
         // if manual review is accepted and a status is selected. Change the status through this comment history item
         if ($this->_eventCode == Notification::MANUAL_REVIEW_ACCEPT
-            && $this->_getFraudManualReviewAcceptStatus() != ""
+            && $this->getFraudManualReviewAcceptStatus() != ""
         ) {
-            $manualReviewAcceptStatus = $this->_getFraudManualReviewAcceptStatus();
+            $manualReviewAcceptStatus = $this->getFraudManualReviewAcceptStatus();
             $this->_order->addStatusHistoryComment($comment, $manualReviewAcceptStatus);
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 'Created comment history for this notification with status change to: '
@@ -1526,7 +1526,7 @@ class Cron
         if (strcmp($this->_success, 'true') == 0) {
             $this->_order->setData('adyen_notification_event_code_success', 1);
         }
-        $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
+        $fraudManualReviewStatus = $this->getFraudManualReviewStatus();
         $this->adyenOrderPaymentHelper->createAdyenOrderPayment($this->_order, $this->notification, $this->_isAutoCapture());
         $isTotalAmountAuthorised = $this->_isTotalAmount(
             $this->_order->getPayment()->getEntityId(),
@@ -1657,7 +1657,7 @@ class Cron
             // show message if order is in manual review
             if ($this->requireFraudManualReview) {
                 // check if different status is selected
-                $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
+                $fraudManualReviewStatus = $this->getFraudManualReviewStatus();
                 if ($fraudManualReviewStatus != "") {
                     $status = $fraudManualReviewStatus;
                     $comment = "Adyen Payment is in Manual Review check the Adyen platform";
@@ -1876,7 +1876,7 @@ class Cron
     /**
      * @return mixed
      */
-    protected function _getFraudManualReviewStatus()
+    protected function getFraudManualReviewStatus()
     {
         return $this->_getConfigData(
             'fraud_manual_review_status',
@@ -1888,7 +1888,7 @@ class Cron
     /**
      * @return mixed
      */
-    protected function _getFraudManualReviewAcceptStatus()
+    protected function getFraudManualReviewAcceptStatus()
     {
         return $this->_getConfigData(
             'fraud_manual_review_accept_status',
