@@ -1252,6 +1252,43 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @param $formFields
+     * @param $count
+     * @param $order
+     * @param $description
+     * @param $adjustmentAmount
+     * @param $currency
+     * @param $payment
+     * @return mixed
+     */
+    public function createOpenInvoiceLineAdjustment(
+        $formFields,
+        $count,
+        $description,
+        $adjustmentAmount,
+        $currency,
+        $payment
+    ) {
+        $itemAmount = $this->formatAmount($adjustmentAmount, $currency);
+        $itemVatAmount = 0;
+        $itemVatPercentage = 0;
+        $numberOfItems = 1;
+
+        return $this->getOpenInvoiceLineData(
+            $formFields,
+            $count,
+            $currency,
+            $description,
+            $itemAmount,
+            $itemVatAmount,
+            $itemVatPercentage,
+            $numberOfItems,
+            $payment,
+            "adjustment"
+        );
+    }
+
+    /**
      * @param $taxAmount
      * @param $priceInclTax
      * @param $price

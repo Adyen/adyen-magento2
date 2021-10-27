@@ -241,6 +241,28 @@ class RefundDataBuilder implements BuilderInterface
             );
         }
 
+        // Adjustment positive
+        if ($creditMemo->getAdjustment() != 0) {
+            $description = "Adjustment";
+            if ($creditMemo->getAdjustmentPositive() > 0 && $creditMemo->getAdjustmentNegative() > 0) {
+                $description .= " - Positive | Negative";
+            } elseif ($creditMemo->getAdjustmentPositive() > 0) {
+                $description .= " - Positve";
+            } elseif ($creditMemo->getAdjustmentNegative() > 0) {
+                $description .=  " - Negative";
+            }
+
+            ++$count;
+            $formFields = $this->adyenHelper->createOpenInvoiceLineAdjustment(
+                $formFields,
+                $count,
+                $description,
+                $creditMemo->getAdjustment(),
+                $currency,
+                $payment
+            );
+        }
+
         $formFields['openinvoicedata.numberOfLines'] = $count;
 
         //Retrieve acquirerReference from the adyen_invoice
