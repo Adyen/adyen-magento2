@@ -39,6 +39,10 @@ class PaymentRefundDetailsHandler implements HandlerInterface
         $payment = $payment->getPayment();
 
         foreach ($response as $singleResponse) {
+            if (isset($singleResponse['error'])) {
+                throw new \Magento\Framework\Exception\LocalizedException(__($singleResponse['error']));
+            }
+
             // set pspReference as lastTransId only!
             $payment->setLastTransId($singleResponse['pspReference']);
         }
