@@ -207,7 +207,7 @@ class Cron
     /**
      * @var
      */
-    protected $_fraudManualReview;
+    protected $requireFraudManualReview;
 
     /**
      * @var ResourceModel\Order\Payment\CollectionFactory
@@ -759,9 +759,9 @@ class Cron
             $fraudManualReview = isset($additionalData['fraudManualReview']) ?
                 $additionalData['fraudManualReview'] : "";
             if ($fraudManualReview == "true") {
-                $this->_fraudManualReview = true;
+                $this->requireFraudManualReview = true;
             } else {
-                $this->_fraudManualReview = false;
+                $this->requireFraudManualReview = false;
             }
 
             // modification.action is it for JSON
@@ -1534,7 +1534,7 @@ class Cron
         );
 
         // If manual review is NOT active OR no custom status is set on the Adyen config page
-        if ($this->_fraudManualReview != true || $fraudManualReviewStatus == "") {
+        if ($this->requireFraudManualReview != true || $fraudManualReviewStatus == "") {
             if ($isTotalAmountAuthorised) {
                 $this->_setPrePaymentAuthorized();
             } else {
@@ -1655,7 +1655,7 @@ class Cron
             $this->_adyenLogger->addAdyenNotificationCronjob('Capture mode is set to Manual');
 
             // show message if order is in manual review
-            if ($this->_fraudManualReview) {
+            if ($this->requireFraudManualReview) {
                 // check if different status is selected
                 $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
                 if ($fraudManualReviewStatus != "") {
@@ -2112,7 +2112,7 @@ class Cron
             $comment = "Adyen Payment Successfully completed";
 
             // If manual review is true AND manual review status is set
-            if ($manualReviewComment == true && $this->_fraudManualReview) {
+            if ($manualReviewComment == true && $this->requireFraudManualReview) {
                 // check if different status is selected
                 $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
                 if ($fraudManualReviewStatus != "") {
