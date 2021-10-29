@@ -222,9 +222,9 @@ class CheckoutDataBuilder implements BuilderInterface
 
         $imageUrl = "";
 
-        if ($product->getSmallImage()) {
+        if ($image = $product->getSmallImage()) {
             $imageUrl = $helperImport->init($product, 'product_page_image_small')
-                ->setImageFile($product->getSmallImage())
+                ->setImageFile($image)
                 ->getUrl();
         }
 
