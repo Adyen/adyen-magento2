@@ -23,7 +23,8 @@
 
 namespace Adyen\Payment\Controller\Process;
 
-use Adyen\Util\HmacSignature;
+use Adyen\Webhook\Receiver\HmacSignature;
+use Adyen\Webhook\Receiver\NotificationReceiver;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Magento\Framework\App\Request\Http as Http;
 
@@ -71,6 +72,10 @@ class Json extends \Magento\Framework\App\Action\Action
      * @var HmacSignature
      */
     private $hmacSignature;
+    /**
+     * @var NotificationReceiver
+     */
+    private $notificationReceiver;
 
     /**
      * Json constructor.
@@ -90,7 +95,8 @@ class Json extends \Magento\Framework\App\Action\Action
         \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Adyen\Payment\Helper\Config $configHelper,
         \Adyen\Payment\Helper\IpAddress $ipAddressHelper,
-        HmacSignature $hmacSignature
+        HmacSignature $hmacSignature,
+        NotificationReceiver $notificationReceiver
     ) {
         parent::__construct($context);
         $this->_objectManager = $context->getObjectManager();
@@ -101,6 +107,7 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->configHelper = $configHelper;
         $this->ipAddressHelper = $ipAddressHelper;
         $this->hmacSignature = $hmacSignature;
+        $this->notificationReceiver = $notificationReceiver;
 
         // Fix for Magento2.3 adding isAjax to the request params
         if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
@@ -212,13 +219,13 @@ class Json extends \Magento\Framework\App\Action\Action
             );
             return false;
         }
-        if ($this->configHelper->getNotificationsHmacCheck() && $this->hmacSignature->isHmacSupportedEventCode(
-                $response
-            )) {
+        if ($this->configHelper->getNotificationsHmacCheck() &&
+            $this->hmacSignature->isHmacSupportedEventCode($response)
+        ) {
             //Validate the Hmac calculation
-            if (!$this->hmacSignature->isValidNotificationHMAC(
-                $this->configHelper->getNotificationsHmacKey(),
-                $response
+            if (!$this->notificationReceiver->validateHmac(
+                $response,
+                $this->configHelper->getNotificationsHmacKey()
             )) {
                 $this->_adyenLogger->addAdyenNotification(
                     'HMAC key validation failed ' . json_encode($response)
