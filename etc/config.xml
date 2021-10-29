@@ -200,10 +200,6 @@
                 <can_cancel>1</can_cancel>
                 <group>adyen</group>
             </adyen_boleto>
-            <adyen_giving>
-                <active>0</active>
-                <model>AdyenPaymentCcFacade</model>
-            </adyen_giving>
         </payment>
     </default>
 </config>

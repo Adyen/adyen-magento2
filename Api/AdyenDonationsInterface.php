@@ -13,33 +13,23 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2021 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Api\Internal;
+namespace Adyen\Payment\Api;
 
-use Magento\Checkout\Api\Data\PaymentDetailsInterface;
-use Magento\Quote\Api\Data\AddressInterface;
-
-/**
- * Interface InternalAdyenOrderPaymentStatusInterface
- * This should only be called internally via ajax
- *
- * @api
- */
-interface InternalAdyenOrderPaymentStatusInterface
+interface AdyenDonationsInterface
 {
     /**
-     * Handle the internal request by checking if it is internal and then calling the original interface
-     *
-     * @param string $orderId
-     * @param string $formKey
-     * @return PaymentDetailsInterface
+     * Build and send donation payment request
+     * @param string $payload
+     * @return mixed
      */
-    public function handleInternalRequest($orderId, $formKey);
+    public function donate($payload);
 }

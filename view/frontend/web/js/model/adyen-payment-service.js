@@ -63,15 +63,11 @@ define(
                 this.paymentMethods(paymentMethods);
             },
             getOrderPaymentStatus: function(orderId) {
-
                 var serviceUrl = urlBuilder.createUrl('/internal/adyen/orders/payment-status', {});
-
                 var payload = {
                     orderId: orderId,
                     form_key: $.mage.cookies.get('form_key')
                 };
-                payload.shopperEmail = customer.isLoggedIn() ? customer.customerData.email : quote.guestEmail;
-
                 return storage.post(serviceUrl, JSON.stringify(payload));
             },
             /**
