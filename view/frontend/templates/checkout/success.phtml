@@ -46,3 +46,52 @@
     </script>
     <div id="ActionContainer"></div>
 <?php endif; ?>
+<?php if ($block->showAdyenGiving()): ?>
+<script>
+    require([
+        'jquery',
+        'Adyen_Payment/js/bundle'
+    ], function ($, adyenComponent) {
+        function handleOnDonate(state, component) {
+            debugger;
+            state.isValid // True or false. Specifies whether the shopper has selected a donation amount.
+            if (state.isValid) {
+                const payload = state.data;
+            }
+            state.data // Provides the data that you need to pass in the `/donate` call.
+            component // Provides the active component instance that called this event.
+        }
+
+        function handleOnCancel(state, component) {
+            debugger
+            // Show a message, unmount the component, or redirect to another page.
+        }
+        const donationConfig = {
+            amounts: {
+                currency: "EUR",
+                values: [<?=$block->getDonationComponentConfiguration()['donationAmounts'];?>]
+            },
+            backgroundUrl: "<?=$block->getDonationComponentConfiguration()['backgroundUrl'];?>",
+            description: "<?=$block->getDonationComponentConfiguration()['description'];?>",
+            logoUrl: "<?=$block->getDonationComponentConfiguration()['logoUrl'];?>",
+            name: "<?=$block->getDonationComponentConfiguration()['name'];?>",
+            url: "<?=$block->getDonationComponentConfiguration()['website'];?>",
+            showCancelButton: true,
+            onDonate: handleOnDonate,
+            onCancel: handleOnCancel
+        };
+        var checkoutComponent = new AdyenCheckout({
+            locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
+            environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
+            clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>'
+        });
+        try {
+            const donation = checkoutComponent.create('donation', donationConfig).mount('#donation-container');
+        } catch(err) {
+            // Action component cannot be created
+            console.log(err);
+        }
+    });
+</script>
+<div id='donation-container'></div>
+<?php endif; ?>

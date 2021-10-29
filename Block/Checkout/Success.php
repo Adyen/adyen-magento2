@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Block\Checkout;
 
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Magento\Checkout\Model\Session;
@@ -62,12 +63,18 @@ class Success extends Template
     protected $storeManager;
 
     /**
+     * @var Config
+     */
+    private $configHelper;
+
+    /**
      * Success constructor.
      *
      * @param Context $context
      * @param Session $checkoutSession
      * @param OrderFactory $orderFactory
      * @param Data $adyenHelper
+     * @param Config $configHelper
      * @param StoreManagerInterface $storeManager
      * @param array $data
      */
@@ -76,6 +83,7 @@ class Success extends Template
         Session $checkoutSession,
         OrderFactory $orderFactory,
         Data $adyenHelper,
+        Config $configHelper,
         StoreManagerInterface $storeManager,
         array $data = []
     ) {
@@ -83,6 +91,7 @@ class Success extends Template
         $this->orderFactory = $orderFactory;
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
+        $this->configHelper = $configHelper;
         parent::__construct($context, $data);
     }
 
@@ -114,6 +123,41 @@ class Success extends Template
     public function getAction()
     {
         return json_encode($this->getOrder()->getPayment()->getAdditionalInformation('action'));
+    }
+
+    public function showAdyenGiving()
+    {
+        return $this->adyenGivingEnabled() && $this->hasDonationToken();
+    }
+
+    public function adyenGivingEnabled(): bool
+    {
+        return (bool) $this->configHelper->adyenGivingEnabled($this->storeManager->getStore()->getId());
+    }
+
+    public function hasDonationToken()
+    {
+        return $this->getDonationToken() && 'null' !== $this->getDonationToken();
+    }
+
+    public function getDonationToken()
+    {
+        return json_encode($this->getOrder()->getPayment()->getAdditionalInformation('donationToken'));
+    }
+
+    public function getDonationComponentConfiguration(): array
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        $imageBaseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA).'adyen/';
+
+        return [
+            'name' => $this->configHelper->getAdyenGivingCharityName($storeId),
+            'description' => $this->configHelper->getAdyenGivingCharityDescription($storeId),
+            'backgroundUrl' => $imageBaseUrl . $this->configHelper->getAdyenGivingBackgroundImage($storeId),
+            'logoUrl' => $imageBaseUrl . $this->configHelper->getAdyenGivingCharityLogo($storeId),
+            'website' => $this->configHelper->getAdyenGivingCharityWebsite($storeId),
+            'donationAmounts' => $this->configHelper->getAdyenGivingDonationAmounts($storeId)
+        ];
     }
 
     public function getLocale()
