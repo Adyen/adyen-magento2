@@ -211,6 +211,27 @@ class CheckoutDataBuilder implements BuilderInterface
     }
 
     /**
+     * @param string $item
+     * @return string
+     */
+    protected function retrieveImageUrl($item): string
+    {
+        $objectManager =\Magento\Framework\App\ObjectManager::getInstance();
+        $helperImport = $objectManager->get('\Magento\Catalog\Helper\Image');
+        $product = $item->getProduct();
+
+        $imageUrl = "";
+
+        if ($image = $product->getSmallImage()) {
+            $imageUrl = $helperImport->init($product, 'product_page_image_small')
+                ->setImageFile($image)
+                ->getUrl();
+        }
+
+        return $imageUrl;
+    }
+
+    /**
      * @param \Magento\Sales\Model\Order $order
      *
      * @return array
@@ -253,7 +274,6 @@ class CheckoutDataBuilder implements BuilderInterface
             );
 
             $formattedTaxPercentage = $this->adyenHelper->formatAmount($item->getTaxPercent(), $currency);
-
             $formFields['lineItems'][] = [
                 'id' => $item->getId(),
                 'amountExcludingTax' => $formattedPriceExcludingTax,
@@ -262,7 +282,9 @@ class CheckoutDataBuilder implements BuilderInterface
                 'description' => $item->getName(),
                 'quantity' => $numberOfItems,
                 'taxCategory' => $item->getProduct()->getAttributeText('tax_class_id'),
-                'taxPercentage' => $formattedTaxPercentage
+                'taxPercentage' => $formattedTaxPercentage,
+                'productUrl'=> $item->getProduct()->getUrlModel()->getUrl($item->getProduct()),
+                'imageUrl'=> $this->retrieveImageUrl($item)
             ];
         }
 
