@@ -1942,7 +1942,7 @@ class Cron
             if ($grandTotal == $formattedOrderAmount) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
                     'Order %s has been fully authorized',
-                    $this->_merchantReference,
+                    $this->_merchantReference
                 ));
 
                 return true;

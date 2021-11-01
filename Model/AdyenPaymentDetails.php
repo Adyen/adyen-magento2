@@ -28,12 +28,19 @@ use Adyen\Payment\Api\AdyenPaymentDetailsInterface;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 
 class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
 {
+    const PAYMENTS_DETAILS_KEYS = [
+        'details',
+        'paymentData',
+        'threeDSAuthenticationOnly'
+    ];
+
     /**
      * @var Session
      */
@@ -108,19 +115,25 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
         }
 
         $payment = $order->getPayment();
+        $apiPayload = DataArrayValidator::getArrayOnlyWithApprovedKeys($payload, self::PAYMENTS_DETAILS_KEYS);
+        // cancellation request without `state.data`
+        if (!empty($payload['cancelled']) && empty($apiPayload)) {
+            $this->checkoutSession->restoreQuote();
+            throw $this->createCancelledException();
+        }
 
         // Send the request
         try {
             $client = $this->adyenHelper->initializeAdyenClient($order->getStoreId());
             $service = $this->adyenHelper->createAdyenCheckoutService($client);
-            $paymentDetails = $service->paymentsDetails($payload);
+            $paymentDetails = $service->paymentsDetails($apiPayload);
         } catch (AdyenException $e) {
             $this->adyenLogger->error("Payment details call failed: " . $e->getMessage());
             $this->checkoutSession->restoreQuote();
 
             // accept cancellation request, restore quote
             if (!empty($payload['cancelled'])) {
-                throw new LocalizedException(__('Payment has been cancelled'));
+                throw $this->createCancelledException();
             } else {
                 throw new LocalizedException(__('Payment details call failed'));
             }
@@ -143,5 +156,13 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
         }
 
         return json_encode($this->paymentResponseHandler->formatPaymentResponse($paymentDetails['resultCode'], $action, $additionalData));
+    }
+
+    /**
+     * @return LocalizedException
+     */
+    protected function createCancelledException()
+    {
+        return new LocalizedException(__('Payment has been cancelled'));
     }
 }

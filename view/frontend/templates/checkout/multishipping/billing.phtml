@@ -25,7 +25,6 @@
 /**
  * @extends Magento_Multishipping::checkout/billing.phtml
  * @var \Magento\Multishipping\Block\Checkout\Billing $block
- * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
  */
 ?>
 <div id="checkout-loader" data-role="checkout-loader" class="loading-mask" data-mage-init='{"billingLoader": {}}'>
@@ -34,15 +33,11 @@
              alt="<?= $block->escapeHtml(__('Loading...')); ?>">
     </div>
 </div>
-<?= /* @noEscape */ $secureRenderer->renderStyleAsTag('position: absolute;', 'div#checkout-loader .loader img') ?>
-<?php $checkoutConfig = /* @noEscape */ $block->getCheckoutData()->getSerializedCheckoutConfigs();
-$scriptString = <<<script
-    window.checkoutConfig = {$checkoutConfig};
+<script>
+    window.checkoutConfig = <?= /* @noEscape */ $block->getCheckoutData()->getSerializedCheckoutConfigs(); ?>;
     window.isCustomerLoggedIn = window.checkoutConfig.isCustomerLoggedIn;
     window.customerData = window.checkoutConfig.customerData;
-script;
-?>
-<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
+</script>
 <div id="checkout" data-bind="scope:'checkoutMessages'">
     <!-- ko template: getTemplate() --><!-- /ko -->
     <script type="text/x-magento-init">
@@ -182,14 +177,12 @@ script;
         </div>
     </div>
 </form>
-<?php $quoteBaseGrandTotal = (float)$block->getQuoteBaseGrandTotal();
-$scriptString = <<<script
-
+<script>
     require(['jquery', 'mage/mage'], function(jQuery) {
         var addtocartForm = jQuery('#multishipping-billing-form');
 
         addtocartForm.mage('payment', {
-            checkoutPrice: {$quoteBaseGrandTotal}
+            checkoutPrice: <?= (float)$block->getQuoteBaseGrandTotal() ?>
         });
 
         addtocartForm.mage('validation', {
@@ -202,13 +195,8 @@ $scriptString = <<<script
             }
         });
     });
-
-script;
-?>
-<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
-
-<?php $scriptString = <<<script
-
+</script>
+<script>
     //<![CDATA[
     require(
         [
@@ -217,28 +205,22 @@ script;
             'domReady!'
         ], function(quote, $) {
             quote.billingAddress({
-
-script;
-$scriptString .= "city: '" . /* @noEscape */ $block->getAddress()->getCity() . "'," . PHP_EOL;
-$scriptString .= "company: '" . /* @noEscape */ $block->getAddress()->getCompany() . "'," . PHP_EOL;
-$scriptString .= "countryId: '" . /* @noEscape */ $block->getAddress()->getCountryId() . "'," . PHP_EOL;
-$scriptString .= "customerAddressId: '" . /* @noEscape */ $block->getAddress()->getCustomerAddressId() . "'," . PHP_EOL;
-$scriptString .= "customerId: '" . /* @noEscape */ $block->getAddress()->getCustomerId() . "'," . PHP_EOL;
-$scriptString .= "fax: '" . /* @noEscape */ $block->getAddress()->getFax() . "'," . PHP_EOL;
-$scriptString .= "firstname: '" . /* @noEscape */ $block->getAddress()->getFirstname() . "'," . PHP_EOL;
-$scriptString .= "lastname: '" . /* @noEscape */ $block->getAddress()->getLastname() . "'," . PHP_EOL;
-$scriptString .= "postcode: '" . /* @noEscape */ $block->getAddress()->getPostcode() . "'," . PHP_EOL;
-$scriptString .= "regionId: '" . /* @noEscape */ $block->getAddress()->getRegionId() . "'," . PHP_EOL;
-$scriptString .= "regionCode: '" . /* @noEscape */ $block->getAddress()->getRegionCode() . "'," . PHP_EOL;
-$scriptString .= "region: '" . /* @noEscape */ $block->getAddress()->getRegion() . "'," . PHP_EOL;
-$scriptString .= "street: " . /* @noEscape */ json_encode($block->getAddress()->getStreet()) . "," . PHP_EOL;
-$scriptString .= "telephone: '" . /* @noEscape */ $block->getAddress()->getTelephone() . "'" . PHP_EOL;
-$scriptString .= <<<script
+                city: '<?= $block->escapeJs($block->getAddress()->getCity()); ?>',
+                company: '<?= $block->escapeJs($block->getAddress()->getCompany()); ?>',
+                countryId: '<?= $block->escapeJs($block->getAddress()->getCountryId()); ?>',
+                customerAddressId: '<?= $block->escapeJs($block->getAddress()->getCustomerAddressId()); ?>',
+                customerId: '<?= $block->escapeJs($block->getAddress()->getCustomerId()); ?>',
+                fax: '<?= $block->escapeJs($block->getAddress()->getFax()); ?>',
+                firstname: '<?= $block->escapeJs($block->getAddress()->getFirstname()); ?>',
+                lastname: '<?= $block->escapeJs($block->getAddress()->getLastname()); ?>',
+                postcode: '<?= $block->escapeJs($block->getAddress()->getPostcode()); ?>',
+                regionId: '<?= $block->escapeJs($block->getAddress()->getRegionId()); ?>',
+                regionCode: '<?= $block->escapeJs($block->getAddress()->getRegionCode()); ?>',
+                region: '<?= $block->escapeJs($block->getAddress()->getRegion()); ?>',
+                street: <?= /* @noEscape */ json_encode($block->getAddress()->getStreet()); ?>,
+                telephone: '<?= $block->escapeJs($block->getAddress()->getTelephone()); ?>'
             });
         });
     //]]>
-
-script;
-?>
-<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
+</script>
 
