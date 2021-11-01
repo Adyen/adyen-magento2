@@ -34,24 +34,19 @@ use Magento\Framework\App\Request\Http as Http;
 class Json extends \Magento\Framework\App\Action\Action
 {
     /**
-     * @var \Magento\Framework\ObjectManagerInterface
+     * @var \Adyen\Payment\Model\NotificationFactory
      */
-    protected $_objectManager;
-
-    /**
-     * @var \Magento\Framework\Controller\Result\RawFactory
-     */
-    protected $_resultFactory;
+    private $notificationFactory;
 
     /**
      * @var \Adyen\Payment\Helper\Data
      */
-    protected $_adyenHelper;
+    protected $adyenHelper;
 
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
-    protected $_adyenLogger;
+    protected $adyenLogger;
 
     /**
      * @var \Magento\Framework\Serialize\SerializerInterface
@@ -72,6 +67,7 @@ class Json extends \Magento\Framework\App\Action\Action
      * @var HmacSignature
      */
     private $hmacSignature;
+
     /**
      * @var NotificationReceiver
      */
@@ -87,9 +83,11 @@ class Json extends \Magento\Framework\App\Action\Action
      * @param \Adyen\Payment\Helper\Config $configHelper
      * @param \Adyen\Payment\Helper\IpAddress $ipAddressHelper
      * @param HmacSignature $hmacSignature
+     * @param NotificationReceiver $notificationReceiver
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
+        \Adyen\Payment\Model\NotificationFactory $notificationFactory,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
@@ -99,10 +97,9 @@ class Json extends \Magento\Framework\App\Action\Action
         NotificationReceiver $notificationReceiver
     ) {
         parent::__construct($context);
-        $this->_objectManager = $context->getObjectManager();
-        $this->_resultFactory = $context->getResultFactory();
-        $this->_adyenHelper = $adyenHelper;
-        $this->_adyenLogger = $adyenLogger;
+        $this->notificationFactory = $notificationFactory;
+        $this->adyenHelper = $adyenHelper;
+        $this->adyenLogger = $adyenLogger;
         $this->serializer = $serializer;
         $this->configHelper = $configHelper;
         $this->ipAddressHelper = $ipAddressHelper;
@@ -130,7 +127,7 @@ class Json extends \Magento\Framework\App\Action\Action
             $this->getResponse()
                 ->clearHeader('Content-Type')
                 ->setHeader('Content-Type', 'text/html')
-                ->setBody($this->_adyenHelper->getModuleVersion());
+                ->setBody($this->adyenHelper->getModuleVersion());
 
             return;
         }
@@ -139,14 +136,14 @@ class Json extends \Magento\Framework\App\Action\Action
             $notificationItems = json_decode(file_get_contents('php://input'), true);
 
             $notificationMode = isset($notificationItems['live']) ? $notificationItems['live'] : "";
-
-            if ($notificationMode !== "" && $this->_validateNotificationMode($notificationMode)) {
+            $demoMode = $this->adyenHelper->getAdyenAbstractConfigData('demo_mode');
+            if ($notificationMode !== "" && $this->notificationReceiver->validateNotificationMode($notificationMode, $demoMode)) {
                 if (!isset($notificationItems['notificationItems'][0]['NotificationRequestItem'])) {
                     return false;
                 }
                 $firstNotificationItem = $notificationItems['notificationItems'][0]['NotificationRequestItem'];
                 // Add CGI support
-                $this->_fixCgiHttpAuthentication();
+                $this->fixCgiHttpAuthentication();
                 // Authorize notification
                 if (!$this->notificationReceiver->isAuthenticated(
                     $firstNotificationItem,
@@ -154,17 +151,17 @@ class Json extends \Magento\Framework\App\Action\Action
                     $this->configHelper->getNotificationsUsername(),
                     $this->configHelper->getNotificationsPassword()
                 )) {
-                    $this->_return401();
+                    $this->return401();
                     return false;
                 }
                 foreach ($notificationItems['notificationItems'] as $notificationItem) {
-                    $status = $this->_processNotification(
+                    $status = $this->processNotification(
                         $notificationItem['NotificationRequestItem'],
                         $notificationMode
                     );
 
                     if ($status !== true) {
-                        $this->_return401();
+                        $this->return401();
                         return;
                     }
 
@@ -174,14 +171,14 @@ class Json extends \Magento\Framework\App\Action\Action
 
                 // Run the query for checking unprocessed notifications, do this only for test notifications coming
                 // from the Adyen Customer Area
-                if ($this->_isTestNotification($cronCheckTest)) {
-                    $unprocessedNotifications = $this->_adyenHelper->getUnprocessedNotifications();
+                if ($this->notificationReceiver->isTestNotification($cronCheckTest)) {
+                    $unprocessedNotifications = $this->adyenHelper->getUnprocessedNotifications();
                     if ($unprocessedNotifications > 0) {
                         $acceptedMessage .= "\nYou have " . $unprocessedNotifications . " unprocessed notifications.";
                     }
                 }
 
-                $this->_adyenLogger->addAdyenNotification("The result is accepted");
+                $this->adyenLogger->addAdyenNotification("The result is accepted");
 
                 $this->getResponse()
                     ->clearHeader('Content-Type')
@@ -190,7 +187,7 @@ class Json extends \Magento\Framework\App\Action\Action
                 return;
             } else {
                 if ($notificationMode == "") {
-                    $this->_return401();
+                    $this->return401();
                     return;
                 }
                 throw new \Magento\Framework\Exception\LocalizedException(
@@ -203,22 +200,6 @@ class Json extends \Magento\Framework\App\Action\Action
     }
 
     /**
-     * @param $notificationMode
-     * @return bool
-     */
-    protected function _validateNotificationMode($notificationMode)
-    {
-        $mode = $this->_adyenHelper->getAdyenAbstractConfigData('demo_mode');
-
-        // Notification mode can be a string or a boolean
-        if (($mode == '1' && ($notificationMode == "false" || !$notificationMode))
-            || ($mode == '0' && ($notificationMode == 'true' || $notificationMode))) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * save notification into the database for cronjob to execute notification
      *
      * @param $response
@@ -226,11 +207,11 @@ class Json extends \Magento\Framework\App\Action\Action
      * @return bool
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function _processNotification($response, $notificationMode)
+    protected function processNotification($response, $notificationMode)
     {
-        //Validate if Ip check is enabled and if the notification comes from a verified IP
+        // Validate if Ip check is enabled and if the notification comes from a verified IP
         if ($this->configHelper->getNotificationsIpCheck() && !$this->isIpValid()) {
-            $this->_adyenLogger->addAdyenNotification(
+            $this->adyenLogger->addAdyenNotification(
                 "Notification has been rejected because the IP address could not be verified"
             );
             return false;
@@ -238,12 +219,12 @@ class Json extends \Magento\Framework\App\Action\Action
         if ($this->configHelper->getNotificationsHmacCheck() &&
             $this->hmacSignature->isHmacSupportedEventCode($response)
         ) {
-            //Validate the Hmac calculation
+            // Validate the Hmac calculation
             if (!$this->notificationReceiver->validateHmac(
                 $response,
                 $this->configHelper->getNotificationsHmacKey()
             )) {
-                $this->_adyenLogger->addAdyenNotification(
+                $this->adyenLogger->addAdyenNotification(
                     'HMAC key validation failed ' . json_encode($response)
                 );
                 return false;
@@ -251,18 +232,18 @@ class Json extends \Magento\Framework\App\Action\Action
         }
 
         // log the notification
-        $this->_adyenLogger->addAdyenNotification(
+        $this->adyenLogger->addAdyenNotification(
             "The content of the notification item is: " . json_encode($response)
         );
 
         // check if notification already exists
-        if ($this->_isDuplicate($response)) {
+        if ($this->isDuplicate($response)) {
             // duplicated so do nothing but return accepted to Adyen
             return true;
         }
 
         try {
-            $notification = $this->_objectManager->create(\Adyen\Payment\Model\Notification::class);
+            $notification = $this->notificationFactory->create();
 
             if (isset($response['pspReference'])) {
                 $notification->setPspreference($response['pspReference']);
@@ -313,55 +294,6 @@ class Json extends \Magento\Framework\App\Action\Action
     }
 
     /**
-     * HTTP Authentication of the notification
-     *
-     * @param $response
-     * @return bool
-     */
-    protected function authorised($response)
-    {
-        // Add CGI support
-        $this->_fixCgiHttpAuthentication();
-
-        $internalMerchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData('merchant_account');
-        $username = $this->_adyenHelper->getAdyenAbstractConfigData('notification_username');
-        $password = $this->_adyenHelper->getNotificationPassword();
-
-        $submitedMerchantAccount = $response['merchantAccountCode'];
-
-        if (empty($submitedMerchantAccount) && empty($internalMerchantAccount)) {
-            if ($this->_isTestNotification($response['pspReference'])) {
-                $this->_returnResult('merchantAccountCode is empty in magento settings');
-            }
-            return false;
-        }
-
-        // validate username and password
-        if ((!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW']))) {
-            if ($this->_isTestNotification($response['pspReference'])) {
-                $this->_returnResult(
-                    'Authentication failed: PHP_AUTH_USER or PHP_AUTH_PW are empty. See Adyen Magento manual CGI mode'
-                );
-            }
-            return false;
-        }
-
-        $usernameIsValid = hash_equals($username, $_SERVER['PHP_AUTH_USER']);
-        $passwordIsValid = hash_equals($password, $_SERVER['PHP_AUTH_PW']);
-        if ($usernameIsValid && $passwordIsValid) {
-            return true;
-        }
-
-        // If notification is test check if fields are correct if not return error
-        if ($this->_isTestNotification($response['pspReference'])) {
-            $this->_returnResult(
-                'username (PHP_AUTH_USER) and\or password (PHP_AUTH_PW) are not the same as Magento settings'
-            );
-        }
-        return false;
-    }
-
-    /**
      * Checks if any of the possible remote IP address sending the notification is verified and returns the validation result
      *
      * @return bool
@@ -382,7 +314,7 @@ class Json extends \Magento\Framework\App\Action\Action
      * @param $response
      * @return mixed
      */
-    protected function _isDuplicate($response)
+    protected function isDuplicate($response)
     {
         $pspReference = trim($response['pspReference']);
         $eventCode = trim($response['eventCode']);
@@ -391,14 +323,14 @@ class Json extends \Magento\Framework\App\Action\Action
         if (isset($response['originalReference'])) {
             $originalReference = trim($response['originalReference']);
         }
-        $notification = $this->_objectManager->create(\Adyen\Payment\Model\Notification::class);
+        $notification = $this->notificationFactory->create();
         return $notification->isDuplicate($pspReference, $eventCode, $success, $originalReference);
     }
 
     /**
      * Fix these global variables for the CGI
      */
-    protected function _fixCgiHttpAuthentication()
+    protected function fixCgiHttpAuthentication()
     {
         // do nothing if values are already there
         if (!empty($_SERVER['PHP_AUTH_USER']) && !empty($_SERVER['PHP_AUTH_PW'])) {
@@ -436,38 +368,8 @@ class Json extends \Magento\Framework\App\Action\Action
     /**
      * Return a 401 result
      */
-    protected function _return401()
+    protected function return401()
     {
         $this->getResponse()->setHttpResponseCode(401);
-    }
-
-    /**
-     * If notification is a test notification from Adyen Customer Area
-     *
-     * @param $pspReference
-     * @return bool
-     */
-    protected function _isTestNotification($pspReference)
-    {
-        if (strpos(strtolower($pspReference), "test_") !== false
-            || strpos(strtolower($pspReference), "testnotification_") !== false
-        ) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Returns the message to the browser
-     *
-     * @param $message
-     */
-    protected function _returnResult($message)
-    {
-        $this->getResponse()
-            ->clearHeader('Content-Type')
-            ->setHeader('Content-Type', 'text/html')
-            ->setBody($message);
     }
 }
