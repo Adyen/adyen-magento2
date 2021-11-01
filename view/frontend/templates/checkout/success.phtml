@@ -46,24 +46,37 @@
     </script>
     <div id="ActionContainer"></div>
 <?php endif; ?>
-<?php if ($block->showAdyenGiving()): ?>
+<?php if ($block->showAdyenGiving()):
+    $checkoutConfig = /* @noEscape */
+    $block->getSerializedCheckoutConfig();
+    $scriptString = <<<script
+    window.checkoutConfig = {$checkoutConfig};
+script;
+?>
 <script>
+    <?=$scriptString?>
     require([
         'jquery',
-        'Adyen_Payment/js/bundle'
-    ], function ($, adyenComponent) {
+        'Adyen_Payment/js/bundle',
+        'Adyen_Payment/js/model/adyen-payment-service'
+    ], function ($, adyenComponent, adyenPaymentService) {
+        debugger;
         function handleOnDonate(state, component) {
             debugger;
             state.isValid // True or false. Specifies whether the shopper has selected a donation amount.
             if (state.isValid) {
-                const payload = state.data;
+                adyenPaymentService.donate(state.data).done(function (response) {
+                    debugger;
+                });
+            } else {
+
             }
-            state.data // Provides the data that you need to pass in the `/donate` call.
-            component // Provides the active component instance that called this event.
+            // state.data // Provides the data that you need to pass in the `/donate` call.
+            // component // Provides the active component instance that called this event.
         }
 
         function handleOnCancel(state, component) {
-            debugger
+            debugger;
             // Show a message, unmount the component, or redirect to another page.
         }
         const donationConfig = {
@@ -95,3 +108,4 @@
 </script>
 <div id='donation-container'></div>
 <?php endif; ?>
+

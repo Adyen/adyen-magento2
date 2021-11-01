@@ -29,7 +29,7 @@ interface InternalAdyenDonationsInterface
     /**
      * Build and send internal donation payment request
      * @param string $payload
-     * @param $formKey
+     * @param string $formKey
      * @return mixed
      */
     public function handleInternalRequest($payload, $formKey);

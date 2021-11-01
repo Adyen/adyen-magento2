@@ -26,7 +26,9 @@ namespace Adyen\Payment\Block\Checkout;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
+use Adyen\Payment\Model\Ui\AdyenMultishippingConfigProvider;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Sales\Model\Order;
@@ -68,6 +70,16 @@ class Success extends Template
     private $configHelper;
 
     /**
+     * @var SerializerInterface
+     */
+    private $serializerInterface;
+
+    /**
+     * @var AdyenMultishippingConfigProvider
+     */
+    private $configProvider;
+
+    /**
      * Success constructor.
      *
      * @param Context $context
@@ -84,14 +96,18 @@ class Success extends Template
         OrderFactory $orderFactory,
         Data $adyenHelper,
         Config $configHelper,
+        AdyenMultishippingConfigProvider $configProvider,
         StoreManagerInterface $storeManager,
+        SerializerInterface $serializerInterface,
         array $data = []
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->orderFactory = $orderFactory;
         $this->adyenHelper = $adyenHelper;
-        $this->storeManager = $storeManager;
         $this->configHelper = $configHelper;
+        $this->configProvider = $configProvider;
+        $this->storeManager = $storeManager;
+        $this->serializerInterface = $serializerInterface;
         parent::__construct($context, $data);
     }
 
@@ -158,6 +174,11 @@ class Success extends Template
             'website' => $this->configHelper->getAdyenGivingCharityWebsite($storeId),
             'donationAmounts' => $this->configHelper->getAdyenGivingDonationAmounts($storeId)
         ];
+    }
+
+    public function getSerializedCheckoutConfig()
+    {
+        return $this->serializerInterface->serialize($this->configProvider->getConfig());
     }
 
     public function getLocale()

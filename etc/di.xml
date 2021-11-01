@@ -979,6 +979,8 @@
                 type="Adyen\Payment\Model\Api\Internal\InternalAdyenOrderPaymentStatus"/>
     <preference for="Adyen\Payment\Api\AdyenStateDataInterface"
                 type="Adyen\Payment\Model\Api\AdyenStateData"/>
+    <preference for="Adyen\Payment\Api\Internal\InternalAdyenDonationsInterface"
+                type="Adyen\Payment\Model\Api\Internal\InternalAdyenDonations"/>
     <preference for="Adyen\Payment\Api\AdyenDonationsInterface"
                 type="Adyen\Payment\Model\Api\AdyenDonations"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">

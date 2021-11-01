@@ -90,6 +90,22 @@ define(
                     JSON.stringify(payload),
                     true
                 );
+            },
+
+            donate: function (data) {
+                debugger;
+                let request = {
+                    payload: JSON.stringify(data),
+                    formKey: $.mage.cookies.get('form_key')
+                };
+
+                const serviceUrl = urlBuilder.createUrl('/internal/adyen/donations', {});
+ 
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(request),
+                    true
+                );
             }
         };
     }
