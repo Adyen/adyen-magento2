@@ -243,14 +243,9 @@ class RefundDataBuilder implements BuilderInterface
 
         // Adjustment positive
         if ($creditMemo->getAdjustment() != 0) {
-            $description = "Adjustment";
-            if ($creditMemo->getAdjustmentPositive() > 0 && $creditMemo->getAdjustmentNegative() > 0) {
-                $description .= " - Positive | Negative";
-            } elseif ($creditMemo->getAdjustmentPositive() > 0) {
-                $description .= " - Positve";
-            } elseif ($creditMemo->getAdjustmentNegative() > 0) {
-                $description .=  " - Negative";
-            }
+            $positive = $creditMemo->getAdjustmentPositive() > 0 ? 'Positive' : '';
+            $negative = $creditMemo->getAdjustmentNegative() > 0 ? 'Negative' : '';
+            $description = "Adjustment - " . implode(' | ', array_filter([$positive, $negative]));
 
             ++$count;
             $formFields = $this->adyenHelper->createOpenInvoiceLineAdjustment(
