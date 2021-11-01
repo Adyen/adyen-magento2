@@ -132,68 +132,73 @@ class Json extends \Magento\Framework\App\Action\Action
             return;
         }
 
+        // Read JSON encoded notification body
+        $notificationItems = json_decode(file_get_contents('php://input'), true);
+
+        // Check notification mode
+        if (!isset($notificationItems['live'])) {
+            $this->return401();
+            return;
+        }
+        $notificationMode = $notificationItems['live'];
+        $demoMode = $this->adyenHelper->getAdyenAbstractConfigData('demo_mode');
+        if (!$this->notificationReceiver->validateNotificationMode($notificationMode, $demoMode)) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Mismatch between Live/Test modes of Magento store and the Adyen platform')
+            );
+        }
+
         try {
-            $notificationItems = json_decode(file_get_contents('php://input'), true);
+            // Authorize notification
+            if (!isset($notificationItems['notificationItems'][0]['NotificationRequestItem'])) {
+                return false;
+            }
+            $firstNotificationItem = $notificationItems['notificationItems'][0]['NotificationRequestItem'];
+            // Add CGI support
+            $this->fixCgiHttpAuthentication();
+            if (!$this->notificationReceiver->isAuthenticated(
+                $firstNotificationItem,
+                $this->configHelper->getMerchantAccount(),
+                $this->configHelper->getNotificationsUsername(),
+                $this->configHelper->getNotificationsPassword()
+            )) {
+                $this->return401();
+                return false;
+            }
 
-            $notificationMode = isset($notificationItems['live']) ? $notificationItems['live'] : "";
-            $demoMode = $this->adyenHelper->getAdyenAbstractConfigData('demo_mode');
-            if ($notificationMode !== "" && $this->notificationReceiver->validateNotificationMode($notificationMode, $demoMode)) {
-                if (!isset($notificationItems['notificationItems'][0]['NotificationRequestItem'])) {
-                    return false;
-                }
-                $firstNotificationItem = $notificationItems['notificationItems'][0]['NotificationRequestItem'];
-                // Add CGI support
-                $this->fixCgiHttpAuthentication();
-                // Authorize notification
-                if (!$this->notificationReceiver->isAuthenticated(
-                    $firstNotificationItem,
-                    $this->configHelper->getMerchantAccount(),
-                    $this->configHelper->getNotificationsUsername(),
-                    $this->configHelper->getNotificationsPassword()
-                )) {
-                    $this->return401();
-                    return false;
-                }
-                foreach ($notificationItems['notificationItems'] as $notificationItem) {
-                    $status = $this->processNotification(
-                        $notificationItem['NotificationRequestItem'],
-                        $notificationMode
-                    );
+            // Process each notification item
+            $acceptedMessage = '';
+            foreach ($notificationItems['notificationItems'] as $notificationItem) {
+                $status = $this->processNotification(
+                    $notificationItem['NotificationRequestItem'],
+                    $notificationMode
+                );
 
-                    if ($status !== true) {
-                        $this->return401();
-                        return;
-                    }
-
-                    $acceptedMessage = "[accepted]";
-                }
-                $cronCheckTest = $notificationItems['notificationItems'][0]['NotificationRequestItem']['pspReference'];
-
-                // Run the query for checking unprocessed notifications, do this only for test notifications coming
-                // from the Adyen Customer Area
-                if ($this->notificationReceiver->isTestNotification($cronCheckTest)) {
-                    $unprocessedNotifications = $this->adyenHelper->getUnprocessedNotifications();
-                    if ($unprocessedNotifications > 0) {
-                        $acceptedMessage .= "\nYou have " . $unprocessedNotifications . " unprocessed notifications.";
-                    }
-                }
-
-                $this->adyenLogger->addAdyenNotification("The result is accepted");
-
-                $this->getResponse()
-                    ->clearHeader('Content-Type')
-                    ->setHeader('Content-Type', 'text/html')
-                    ->setBody($acceptedMessage);
-                return;
-            } else {
-                if ($notificationMode == "") {
+                if ($status !== true) {
                     $this->return401();
                     return;
                 }
-                throw new \Magento\Framework\Exception\LocalizedException(
-                    __('Mismatch between Live/Test modes of Magento store and the Adyen platform')
-                );
+
+                $acceptedMessage = "[accepted]";
             }
+
+            // Run the query for checking unprocessed notifications, do this only for test notifications coming
+            // from the Adyen Customer Area
+            $cronCheckTest = $notificationItems['notificationItems'][0]['NotificationRequestItem']['pspReference'];
+            if ($this->notificationReceiver->isTestNotification($cronCheckTest)) {
+                $unprocessedNotifications = $this->adyenHelper->getUnprocessedNotifications();
+                if ($unprocessedNotifications > 0) {
+                    $acceptedMessage .= "\nYou have " . $unprocessedNotifications . " unprocessed notifications.";
+                }
+            }
+
+            $this->adyenLogger->addAdyenNotification("The result is accepted");
+
+            $this->getResponse()
+                ->clearHeader('Content-Type')
+                ->setHeader('Content-Type', 'text/html')
+                ->setBody($acceptedMessage);
+            return;
         } catch (Exception $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__($e->getMessage()));
         }
@@ -205,7 +210,8 @@ class Json extends \Magento\Framework\App\Action\Action
      * @param $response
      * @param $notificationMode
      * @return bool
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Adyen\Webhook\Exception\HMACKeyValidationException
+     * @throws \Adyen\Webhook\Exception\InvalidDataException
      */
     protected function processNotification($response, $notificationMode)
     {
@@ -242,59 +248,55 @@ class Json extends \Magento\Framework\App\Action\Action
             return true;
         }
 
-        try {
-            $notification = $this->notificationFactory->create();
+        $notification = $this->notificationFactory->create();
 
-            if (isset($response['pspReference'])) {
-                $notification->setPspreference($response['pspReference']);
-            }
-            if (isset($response['originalReference'])) {
-                $notification->setOriginalReference($response['originalReference']);
-            }
-            if (isset($response['merchantReference'])) {
-                $notification->setMerchantReference($response['merchantReference']);
-            }
-            if (isset($response['eventCode'])) {
-                $notification->setEventCode($response['eventCode']);
-            }
-            if (isset($response['success'])) {
-                $notification->setSuccess($response['success']);
-            }
-            if (isset($response['paymentMethod'])) {
-                $notification->setPaymentMethod($response['paymentMethod']);
-            }
-            if (isset($response['amount'])) {
-                $notification->setAmountValue($response['amount']['value']);
-                $notification->setAmountCurrency($response['amount']['currency']);
-            }
-            if (isset($response['reason'])) {
-                $notification->setReason($response['reason']);
-            }
-
-            $notification->setLive($notificationMode);
-
-            if (isset($response['additionalData'])) {
-                $notification->setAdditionalData($this->serializer->serialize($response['additionalData']));
-            }
-            if (isset($response['done'])) {
-                $notification->setDone($response['done']);
-            }
-
-            // do this to set both fields in the correct timezone
-            $date = new \DateTime();
-            $notification->setCreatedAt($date);
-            $notification->setUpdatedAt($date);
-
-            $notification->save();
-
-            return true;
-        } catch (Exception $e) {
-            throw new \Magento\Framework\Exception\LocalizedException(__($e->getMessage()));
+        if (isset($response['pspReference'])) {
+            $notification->setPspreference($response['pspReference']);
         }
+        if (isset($response['originalReference'])) {
+            $notification->setOriginalReference($response['originalReference']);
+        }
+        if (isset($response['merchantReference'])) {
+            $notification->setMerchantReference($response['merchantReference']);
+        }
+        if (isset($response['eventCode'])) {
+            $notification->setEventCode($response['eventCode']);
+        }
+        if (isset($response['success'])) {
+            $notification->setSuccess($response['success']);
+        }
+        if (isset($response['paymentMethod'])) {
+            $notification->setPaymentMethod($response['paymentMethod']);
+        }
+        if (isset($response['amount'])) {
+            $notification->setAmountValue($response['amount']['value']);
+            $notification->setAmountCurrency($response['amount']['currency']);
+        }
+        if (isset($response['reason'])) {
+            $notification->setReason($response['reason']);
+        }
+
+        $notification->setLive($notificationMode);
+
+        if (isset($response['additionalData'])) {
+            $notification->setAdditionalData($this->serializer->serialize($response['additionalData']));
+        }
+        if (isset($response['done'])) {
+            $notification->setDone($response['done']);
+        }
+
+        // do this to set both fields in the correct timezone
+        $date = new \DateTime();
+        $notification->setCreatedAt($date);
+        $notification->setUpdatedAt($date);
+
+        $notification->save();
+
+        return true;
     }
 
     /**
-     * Checks if any of the possible remote IP address sending the notification is verified and returns the validation result
+     * Check if remote IP address is from Adyen
      *
      * @return bool
      */
