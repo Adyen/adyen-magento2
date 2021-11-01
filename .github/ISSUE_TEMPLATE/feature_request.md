@@ -1,3 +1,7 @@
+<!---
+Making your own contribution is easy, encouraged and greatly appreciated! We will put effort into reviewing and merging your PR quickly. For more info, please refer to the contribution guidelines: https://github.com/Adyen/adyen-magento2/blob/develop/CONTRIBUTING.md
+-->
+
 ---
 name: Feature request
 about: Suggest an idea for this project
