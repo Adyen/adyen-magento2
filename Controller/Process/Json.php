@@ -141,13 +141,29 @@ class Json extends \Magento\Framework\App\Action\Action
             $notificationMode = isset($notificationItems['live']) ? $notificationItems['live'] : "";
 
             if ($notificationMode !== "" && $this->_validateNotificationMode($notificationMode)) {
+                if (!isset($notificationItems['notificationItems'][0]['NotificationRequestItem'])) {
+                    return false;
+                }
+                $firstNotificationItem = $notificationItems['notificationItems'][0]['NotificationRequestItem'];
+                // Add CGI support
+                $this->_fixCgiHttpAuthentication();
+                // Authorize notification
+                if (!$this->notificationReceiver->isAuthenticated(
+                    $firstNotificationItem,
+                    $this->configHelper->getMerchantAccount(),
+                    $this->configHelper->getNotificationsUsername(),
+                    $this->configHelper->getNotificationsPassword()
+                )) {
+                    $this->_return401();
+                    return false;
+                }
                 foreach ($notificationItems['notificationItems'] as $notificationItem) {
                     $status = $this->_processNotification(
                         $notificationItem['NotificationRequestItem'],
                         $notificationMode
                     );
 
-                    if ($status != true) {
+                    if ($status !== true) {
                         $this->_return401();
                         return;
                     }
@@ -233,70 +249,67 @@ class Json extends \Magento\Framework\App\Action\Action
                 return false;
             }
         }
-        // validate the notification
-        if ($this->authorised($response)) {
-            // log the notification
-            $this->_adyenLogger->addAdyenNotification(
-                "The content of the notification item is: " . json_encode($response)
-            );
 
-            // check if notification already exists
-            if (!$this->_isDuplicate($response)) {
-                try {
-                    $notification = $this->_objectManager->create(\Adyen\Payment\Model\Notification::class);
+        // log the notification
+        $this->_adyenLogger->addAdyenNotification(
+            "The content of the notification item is: " . json_encode($response)
+        );
 
-                    if (isset($response['pspReference'])) {
-                        $notification->setPspreference($response['pspReference']);
-                    }
-                    if (isset($response['originalReference'])) {
-                        $notification->setOriginalReference($response['originalReference']);
-                    }
-                    if (isset($response['merchantReference'])) {
-                        $notification->setMerchantReference($response['merchantReference']);
-                    }
-                    if (isset($response['eventCode'])) {
-                        $notification->setEventCode($response['eventCode']);
-                    }
-                    if (isset($response['success'])) {
-                        $notification->setSuccess($response['success']);
-                    }
-                    if (isset($response['paymentMethod'])) {
-                        $notification->setPaymentMethod($response['paymentMethod']);
-                    }
-                    if (isset($response['amount'])) {
-                        $notification->setAmountValue($response['amount']['value']);
-                        $notification->setAmountCurrency($response['amount']['currency']);
-                    }
-                    if (isset($response['reason'])) {
-                        $notification->setReason($response['reason']);
-                    }
-
-                    $notification->setLive($notificationMode);
-
-                    if (isset($response['additionalData'])) {
-                        $notification->setAdditionalData($this->serializer->serialize($response['additionalData']));
-                    }
-                    if (isset($response['done'])) {
-                        $notification->setDone($response['done']);
-                    }
-
-                    // do this to set both fields in the correct timezone
-                    $date = new \DateTime();
-                    $notification->setCreatedAt($date);
-                    $notification->setUpdatedAt($date);
-
-                    $notification->save();
-
-                    return true;
-                } catch (Exception $e) {
-                    throw new \Magento\Framework\Exception\LocalizedException(__($e->getMessage()));
-                }
-            } else {
-                // duplicated so do nothing but return accepted to Adyen
-                return true;
-            }
+        // check if notification already exists
+        if ($this->_isDuplicate($response)) {
+            // duplicated so do nothing but return accepted to Adyen
+            return true;
         }
-        return false;
+
+        try {
+            $notification = $this->_objectManager->create(\Adyen\Payment\Model\Notification::class);
+
+            if (isset($response['pspReference'])) {
+                $notification->setPspreference($response['pspReference']);
+            }
+            if (isset($response['originalReference'])) {
+                $notification->setOriginalReference($response['originalReference']);
+            }
+            if (isset($response['merchantReference'])) {
+                $notification->setMerchantReference($response['merchantReference']);
+            }
+            if (isset($response['eventCode'])) {
+                $notification->setEventCode($response['eventCode']);
+            }
+            if (isset($response['success'])) {
+                $notification->setSuccess($response['success']);
+            }
+            if (isset($response['paymentMethod'])) {
+                $notification->setPaymentMethod($response['paymentMethod']);
+            }
+            if (isset($response['amount'])) {
+                $notification->setAmountValue($response['amount']['value']);
+                $notification->setAmountCurrency($response['amount']['currency']);
+            }
+            if (isset($response['reason'])) {
+                $notification->setReason($response['reason']);
+            }
+
+            $notification->setLive($notificationMode);
+
+            if (isset($response['additionalData'])) {
+                $notification->setAdditionalData($this->serializer->serialize($response['additionalData']));
+            }
+            if (isset($response['done'])) {
+                $notification->setDone($response['done']);
+            }
+
+            // do this to set both fields in the correct timezone
+            $date = new \DateTime();
+            $notification->setCreatedAt($date);
+            $notification->setUpdatedAt($date);
+
+            $notification->save();
+
+            return true;
+        } catch (Exception $e) {
+            throw new \Magento\Framework\Exception\LocalizedException(__($e->getMessage()));
+        }
     }
 
     /**
