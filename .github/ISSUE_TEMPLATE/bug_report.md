@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 <!---
-Making your own contribution is greatly encouraged and appreciated! We will put effort in to merge your PR quickly. For more info, please refer to the guidelines: https://github.com/Adyen/adyen-magento2/blob/develop/CONTRIBUTING.md
+Making your own contribution is easy, encouraged and greatly appreciated! We will put effort into reviewing and merging your PR quickly. For more info, please refer to the contribution guidelines: https://github.com/Adyen/adyen-magento2/blob/develop/CONTRIBUTING.md
 -->
 
 **Describe the bug**
