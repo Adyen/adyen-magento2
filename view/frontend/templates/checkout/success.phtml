@@ -76,8 +76,8 @@ script;
                 component.setStatus('ready');
             }
         }
-
         function handleOnCancel(state, component) {
+            // Redirect to default 'Continue Shopping' action
             let continueActionUrl = $('.primary.action.continue')[0].href;
             window.location = continueActionUrl;
         }

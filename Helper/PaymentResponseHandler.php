@@ -204,7 +204,7 @@ class PaymentResponseHandler
                 if (!empty($paymentsResponse['donationToken'])) {
                     $payment->setAdditionalInformation('donationToken', $paymentsResponse['donationToken']);
                 }
-                
+
                 $this->orderResourceModel->save($order);
                 break;
             case self::REFUSED:

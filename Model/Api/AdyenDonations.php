@@ -97,7 +97,7 @@ class AdyenDonations implements AdyenDonationsInterface
             $payload['paymentMethod'] = ['type' => 'scheme'];
         }
 
-        $payload['pspReference'] = $order->getPayment()->getAdditionalInformation('pspReference');
+        $payload['donationOriginalPspReference'] = $order->getPayment()->getAdditionalInformation('pspReference');
 
         $customerId = $order->getCustomerId();
         if ($customerId) {
