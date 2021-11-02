@@ -26,7 +26,7 @@ namespace Adyen\Payment\Block\Checkout;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
-use Adyen\Payment\Model\Ui\AdyenMultishippingConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenCheckoutSuccessConfigProvider;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Template;
@@ -75,7 +75,7 @@ class Success extends Template
     private $serializerInterface;
 
     /**
-     * @var AdyenMultishippingConfigProvider
+     * @var AdyenCheckoutSuccessConfigProvider
      */
     private $configProvider;
 
@@ -96,7 +96,7 @@ class Success extends Template
         OrderFactory $orderFactory,
         Data $adyenHelper,
         Config $configHelper,
-        AdyenMultishippingConfigProvider $configProvider,
+        AdyenCheckoutSuccessConfigProvider $configProvider,
         StoreManagerInterface $storeManager,
         SerializerInterface $serializerInterface,
         array $data = []
