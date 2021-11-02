@@ -52,16 +52,14 @@ class DonateResponseValidator extends AbstractValidator
     {
         $response = SubjectReader::readResponse($validationSubject);
 
-        if (empty($response['resultCode'])) {
-            $errorMsg = __('An error occurred with the donation.');
-
+        if (empty($response['payment']['resultCode'])) {
             if (!empty($response['error'])) {
                 $this->adyenLogger->error($response['error']);
             }
 
-            throw new LocalizedException(__($errorMsg));
+            throw new LocalizedException(__('An error occurred with the donation.'));
         }
 
-        return $this->createResult(true);
+        return $this->createResult($response['payment']['resultCode'] === 'Authorised');
     }
 }

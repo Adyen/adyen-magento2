@@ -60,24 +60,26 @@ script;
         'Adyen_Payment/js/bundle',
         'Adyen_Payment/js/model/adyen-payment-service'
     ], function ($, adyenComponent, adyenPaymentService) {
-        debugger;
         function handleOnDonate(state, component) {
-            debugger;
             state.isValid // True or false. Specifies whether the shopper has selected a donation amount.
             if (state.isValid) {
-                adyenPaymentService.donate(state.data).done(function (response) {
-                    debugger;
-                });
+                let payload = state.data;
+                payload.returnUrl = window.location.href;
+                adyenPaymentService.donate(payload)
+                    .done(function (response) {
+                        component.setStatus("success");
+                    })
+                    .fail(function (response) {
+                        component.setStatus('error');
+                    });
             } else {
-
+                component.setStatus('ready');
             }
-            // state.data // Provides the data that you need to pass in the `/donate` call.
-            // component // Provides the active component instance that called this event.
         }
 
         function handleOnCancel(state, component) {
-            debugger;
-            // Show a message, unmount the component, or redirect to another page.
+            let continueActionUrl = $('.primary.action.continue')[0].href;
+            window.location = continueActionUrl;
         }
         const donationConfig = {
             amounts: {

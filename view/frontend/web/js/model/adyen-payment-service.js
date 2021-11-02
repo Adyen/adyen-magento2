@@ -93,7 +93,6 @@ define(
             },
 
             donate: function (data) {
-                debugger;
                 let request = {
                     payload: JSON.stringify(data),
                     formKey: $.mage.cookies.get('form_key')

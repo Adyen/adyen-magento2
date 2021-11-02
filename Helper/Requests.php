@@ -381,6 +381,7 @@ class Requests extends AbstractHelper
         return [
             "amount"=> $buildSubject['amount'],
             "reference"=> Uuid::generateV4(),
+            'shopperReference' => $buildSubject['shopperReference'],
             "paymentMethod"=> $buildSubject['paymentMethod'],
             "donationToken"=> $buildSubject['donationToken'],
             "donationOriginalPspReference"=> $buildSubject['donationOriginalPspReference'],
