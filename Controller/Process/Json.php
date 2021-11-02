@@ -149,23 +149,6 @@ class Json extends \Magento\Framework\App\Action\Action
         }
 
         try {
-            // Authorize notification
-            if (!isset($notificationItems['notificationItems'][0]['NotificationRequestItem'])) {
-                return false;
-            }
-            $firstNotificationItem = $notificationItems['notificationItems'][0]['NotificationRequestItem'];
-            // Add CGI support
-            $this->fixCgiHttpAuthentication();
-            if (!$this->notificationReceiver->isAuthenticated(
-                $firstNotificationItem,
-                $this->configHelper->getMerchantAccount(),
-                $this->configHelper->getNotificationsUsername(),
-                $this->configHelper->getNotificationsPassword()
-            )) {
-                $this->return401();
-                return false;
-            }
-
             // Process each notification item
             $acceptedMessage = '';
             foreach ($notificationItems['notificationItems'] as $notificationItem) {
@@ -205,16 +188,42 @@ class Json extends \Magento\Framework\App\Action\Action
     }
 
     /**
+     * HTTP Authentication of the notification
+     *
+     * @param array $response
+     * @return bool
+     * @throws \Adyen\Exception\AuthenticationException
+     * @throws \Adyen\Exception\MerchantAccountCodeException
+     */
+    protected function isAuthorised($response)
+    {
+        // Add CGI support
+        $this->fixCgiHttpAuthentication();
+        return $this->notificationReceiver->isAuthenticated(
+            $response,
+            $this->configHelper->getMerchantAccount(),
+            $this->configHelper->getNotificationsUsername(),
+            $this->configHelper->getNotificationsPassword()
+        );
+    }
+
+    /**
      * save notification into the database for cronjob to execute notification
      *
      * @param $response
      * @param $notificationMode
      * @return bool
+     * @throws \Adyen\Exception\AuthenticationException
+     * @throws \Adyen\Exception\MerchantAccountCodeException
      * @throws \Adyen\Webhook\Exception\HMACKeyValidationException
      * @throws \Adyen\Webhook\Exception\InvalidDataException
      */
     protected function processNotification($response, $notificationMode)
     {
+        if (!$this->isAuthorised($response)) {
+            return false;
+        }
+
         // Validate if Ip check is enabled and if the notification comes from a verified IP
         if ($this->configHelper->getNotificationsIpCheck() && !$this->isIpValid()) {
             $this->adyenLogger->addAdyenNotification(
