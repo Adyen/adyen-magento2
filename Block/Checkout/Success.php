@@ -165,6 +165,10 @@ class Success extends Template
     {
         $storeId = $this->storeManager->getStore()->getId();
         $imageBaseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA).'adyen/';
+        $donationAmounts = explode(',', $this->configHelper->getAdyenGivingDonationAmounts($storeId));
+        $donationAmounts = array_map(function ($amount) {
+            return $this->adyenHelper->formatAmount($amount, 'EUR');
+        }, $donationAmounts);
 
         return [
             'name' => $this->configHelper->getAdyenGivingCharityName($storeId),
@@ -172,7 +176,7 @@ class Success extends Template
             'backgroundUrl' => $imageBaseUrl . $this->configHelper->getAdyenGivingBackgroundImage($storeId),
             'logoUrl' => $imageBaseUrl . $this->configHelper->getAdyenGivingCharityLogo($storeId),
             'website' => $this->configHelper->getAdyenGivingCharityWebsite($storeId),
-            'donationAmounts' => $this->configHelper->getAdyenGivingDonationAmounts($storeId)
+            'donationAmounts' => implode(',', $donationAmounts)
         ];
     }
 

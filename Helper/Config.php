@@ -214,7 +214,7 @@ class Config
 
     public function adyenGivingEnabled($storeId)
     {
-        return $this->getConfigData('active', 'adyen_giving', $storeId);
+        return $this->getConfigData('active', self::XML_ADYEN_GIVING_PREFIX, $storeId);
     }
 
     public function getAdyenGivingConfigData($storeId)

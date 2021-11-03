@@ -61,7 +61,6 @@ script;
         'Adyen_Payment/js/model/adyen-payment-service'
     ], function ($, adyenComponent, adyenPaymentService) {
         function handleOnDonate(state, component) {
-            state.isValid // True or false. Specifies whether the shopper has selected a donation amount.
             if (state.isValid) {
                 let payload = state.data;
                 payload.returnUrl = window.location.href;
