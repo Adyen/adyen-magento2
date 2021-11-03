@@ -25,6 +25,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Magento\Quote\Model\Quote;
+use Magento\Sales\Api\Data\CreditmemoInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Api\Data\CreditmemoItemInterface;
@@ -142,6 +143,76 @@ class ChargedCurrency
     }
 
     /**
+     * @param CreditmemoInterface $creditMemo
+     * @return AdyenAmountCurrency
+     */
+    public function getCreditMemoAmountCurrency(CreditmemoInterface $creditMemo)
+    {
+        $chargedCurrency = $this->config->getChargedCurrency($creditMemo->getStoreId());
+        if ($chargedCurrency == self::BASE) {
+            return new AdyenAmountCurrency(
+                $creditMemo->getBaseGrandTotal(),
+                $creditMemo->getBaseCurrencyCode(),
+                null,
+                $creditMemo->getBaseTaxAmount()
+            );
+        }
+        return new AdyenAmountCurrency(
+            $creditMemo->getGrandTotal(),
+            $creditMemo->getOrderCurrencyCode(),
+            null,
+            $creditMemo->getTaxAmount()
+        );
+    }
+
+
+    /**
+     * @param CreditmemoInterface $creditMemo
+     * @return AdyenAmountCurrency
+     */
+    public function getCreditMemoAdjustmentAmountCurrency(CreditmemoInterface $creditMemo)
+    {
+        $chargedCurrency = $this->config->getChargedCurrency($creditMemo->getStoreId());
+        if ($chargedCurrency == self::BASE) {
+            return new AdyenAmountCurrency(
+                $creditMemo->getBaseAdjustment(),
+                $creditMemo->getBaseCurrencyCode(),
+                null,
+                0
+            );
+        }
+        return new AdyenAmountCurrency(
+            $creditMemo->getAdjustment(),
+            $creditMemo->getOrderCurrencyCode(),
+            null,
+            0
+        );
+    }
+
+    /**
+     * @param CreditmemoInterface $creditMemo
+     * @return AdyenAmountCurrency
+     */
+    public function getCreditMemoShippingAmountCurrency(CreditmemoInterface $creditMemo)
+    {
+        $chargedCurrency = $this->config->getChargedCurrency($creditMemo->getStoreId());
+        if ($chargedCurrency == self::BASE) {
+            return new AdyenAmountCurrency(
+                $creditMemo->getBaseShippingAmount(),
+                $creditMemo->getOrderCurrencyCode(),
+                null,
+                $creditMemo->getBaseShippingTaxAmount()
+            );
+        }
+        return new AdyenAmountCurrency(
+            $creditMemo->getShippingAmount(),
+            $creditMemo->getOrderCurrencyCode(),
+            null,
+            $creditMemo->getShippingTaxAmount()
+        );
+    }
+
+    /**
      * @param CreditmemoItemInterface $item
      * @return AdyenAmountCurrency
      */
@@ -163,6 +234,7 @@ class ChargedCurrency
             $item->getTaxAmount() / $item->getQty()
         );
     }
+
 
     /**
      * @param Quote $quote
