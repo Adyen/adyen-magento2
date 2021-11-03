@@ -29,6 +29,7 @@ use Adyen\Util\Uuid;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NotFoundException;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Sales\Model\Order;
@@ -51,27 +52,31 @@ class AdyenDonations implements AdyenDonationsInterface
      */
     private $orderFactory;
 
-    public function __construct(CommandPoolInterface $commandPool, OrderFactory $orderFactory, Session $checkoutSession)
-    {
+    /**
+     * @var Json
+     */
+    private $jsonSerializer;
+
+    public function __construct(
+        CommandPoolInterface $commandPool,
+        OrderFactory $orderFactory,
+        Session $checkoutSession,
+        Json $jsonSerializer
+    ) {
         $this->commandPool = $commandPool;
-        $this->checkoutSession = $checkoutSession;
         $this->orderFactory = $orderFactory;
+        $this->checkoutSession = $checkoutSession;
+        $this->jsonSerializer = $jsonSerializer;
     }
 
     /**
      * @inheritDoc
      *
-     * @throws CommandException
-     * @throws NotFoundException|LocalizedException
+     * @throws CommandException|NotFoundException|LocalizedException|\InvalidArgumentException
      */
     public function donate($payload)
     {
-        $payload = json_decode($payload, true);
-
-        // Validate JSON that has just been parsed if it was in a valid format
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new LocalizedException(__('Donation failed: Invalid JSON request'));
-        }
+        $payload = $this->jsonSerializer->unserialize($payload);
 
         $donationsCaptureCommand = $this->commandPool->get('capture');
 
