@@ -54,9 +54,11 @@ class DonationDataBuilder implements BuilderInterface
      */
     public function build(array $buildSubject)
     {
-        $request['body'] = $this->adyenRequestsHelper
-            ->buildDonationData($buildSubject['payment'], $this->storeManager->getStore()->getId());
-
-        return $request;
+        return [
+            'body' => $this->adyenRequestsHelper->buildDonationData(
+                    $buildSubject['payment'],
+                    $this->storeManager->getStore()->getId()
+                )
+        ];
     }
 }

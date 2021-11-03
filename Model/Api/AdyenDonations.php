@@ -47,11 +47,6 @@ class AdyenDonations implements AdyenDonationsInterface
     private $checkoutSession;
 
     /**
-     * @var Order
-     */
-    private $order;
-
-    /**
      * @var OrderFactory
      */
     private $orderFactory;
@@ -67,7 +62,7 @@ class AdyenDonations implements AdyenDonationsInterface
      * @inheritDoc
      *
      * @throws CommandException
-     * @throws NotFoundException
+     * @throws NotFoundException|LocalizedException
      */
     public function donate($payload)
     {
