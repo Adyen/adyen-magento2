@@ -82,7 +82,7 @@ script;
         }
         const donationConfig = {
             amounts: {
-                currency: "EUR",
+                currency: "<?=$block->getOrder()->getOrderCurrencyCode()?>",
                 values: [<?=$block->getDonationComponentConfiguration()['donationAmounts'];?>]
             },
             backgroundUrl: "<?=$block->getDonationComponentConfiguration()['backgroundUrl'];?>",
