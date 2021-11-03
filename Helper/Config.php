@@ -41,6 +41,7 @@ class Config
     const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
     const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
+    const XML_PAYMENT_RETURN_URL = 'payment_return_url';
 
     /**
      * @var ScopeConfigInterface
@@ -209,6 +210,17 @@ class Config
     public function getPWAOriginUrl($storeId)
     {
         return $this->getConfigData(self::XML_PAYMENT_ORIGIN_URL, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    /**
+     * Retrieve payment_return_url config
+     *
+     * @param int|string $storeId
+     * @return mixed
+     */
+    public function getPWAReturnUrl($storeId)
+    {
+        return $this->getConfigData(self::XML_PAYMENT_RETURN_URL, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
 
     /**

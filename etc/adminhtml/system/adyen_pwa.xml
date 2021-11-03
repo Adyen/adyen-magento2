@@ -40,5 +40,11 @@
             <config_path>payment/adyen_abstract/payment_origin_url</config_path>
         </field>
 
+        <field id="payments_return_url" translate="label" type="text" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Payment Return URL</label>
+            <tooltip>Only relevant if you process payments from an external URL different to that of Magento</tooltip>
+            <config_path>payment/adyen_abstract/payment_return_url</config_path>
+        </field>
+
     </group>
 </include>

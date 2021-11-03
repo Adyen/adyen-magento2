@@ -23,7 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
-use Adyen\Payment\Helper\BaseUrlHelper;
+use Adyen\Payment\Helper\ReturnUrlHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -39,21 +39,21 @@ class ReturnUrlDataBuilder implements BuilderInterface
     private $storeManager;
 
     /**
-     * @var BaseUrlHelper
+     * @var ReturnUrlHelper
      */
-    private $baseUrlHelper;
+    private $returnUrlHelper;
 
     /**
      * CheckoutDataBuilder constructor.
      *
-     * @param BaseUrlHelper $baseUrlHelper
+     * @param ReturnUrlHelper $returnUrlHelper
      * @param StoreManagerInterface $storeManager
      */
     public function __construct(
-        BaseUrlHelper $baseUrlHelper,
+        ReturnUrlHelper $returnUrlHelper,
         StoreManagerInterface $storeManager
     ) {
-        $this->baseUrlHelper = $baseUrlHelper;
+        $this->returnUrlHelper = $returnUrlHelper;
         $this->storeManager = $storeManager;
     }
 
@@ -71,8 +71,8 @@ class ReturnUrlDataBuilder implements BuilderInterface
         $order = $payment->getOrder();
 
         $returnUrl = rtrim(
-                $this->baseUrlHelper->getStoreBaseUrl($this->storeManager->getStore()->getId()), '/'
-            ) . '/adyen/process/result?merchantReference=' . $order->getIncrementId();
+                $this->returnUrlHelper->getStoreReturnUrl($this->storeManager->getStore()->getId()), '/'
+            ) . '?merchantReference=' . $order->getIncrementId();
 
         $requestBody['body']['returnUrl'] = $returnUrl;
 
