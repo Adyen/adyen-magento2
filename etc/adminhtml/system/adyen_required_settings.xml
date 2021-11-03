@@ -85,37 +85,7 @@
             <source_model>Adyen\Payment\Model\Config\Source\ChargedCurrency</source_model>
             <config_path>payment/adyen_abstract/charged_currency</config_path>
         </field>
-        <field id="capture_mode" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Capture Delay</label>
-            <tooltip>Immediate is the default. Set to manual if you want to perform the capture of funds manually later (only affects credit cards and a few alternative payment methods). You need to change this setting as well in Adyen Customer Area => Settings => Merchant Settings => Capture Delay. If you have selected a capture delay of a couple of days in Adyen keep it here on immediate</tooltip>
-            <source_model>Adyen\Payment\Model\Config\Source\CaptureMode</source_model>
-            <config_path>payment/adyen_abstract/capture_mode</config_path>
-        </field>
-        <field id="order_status" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Order status: order creation</label>
-            <tooltip>Status given to newly created orders before payment result confirmation via server notifications from Adyen.</tooltip>
-            <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
-            <config_path>payment/adyen_abstract/order_status</config_path>
-        </field>
-        <field id="payment_pre_authorized" translate="label" type="select" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Order status: payment authorisation</label>
-            <tooltip>Status given to orders after authorisation confirmed by an AUTHORISATION notification from Adyen. Note: an authorisation status via the result URL does not yet trigger this status.</tooltip>
-            <source_model>Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
-            <config_path>payment/adyen_abstract/payment_pre_authorized</config_path>
-        </field>
-        <field id="payment_authorized" translate="label" type="select" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Order status: payment confirmed</label>
-            <tooltip>Status given to orders after capture result is confirmed by an AUTHORISATION notification (if capture mode = immediate) or a CAPTURE notification (if capture mode = manual capture) from Adyen.</tooltip>
-            <source_model>Magento\Sales\Model\Config\Source\Order\Status\Processing</source_model>
-            <config_path>payment/adyen_abstract/payment_authorized</config_path>
-        </field>
-        <field id="payment_cancelled" translate="label" type="select" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0">
-            <label>Order status: order cancellation</label>
-            <tooltip>Status given to orders after order cancellation is confirmed by a CANCEL_OR_REFUND notification from Adyen. If orders are already invoiced, they cannot be cancelled, but will be refunded instead.</tooltip>
-            <source_model>Adyen\Payment\Model\Config\Source\Cancelled</source_model>
-            <config_path>payment/adyen_abstract/payment_cancelled</config_path>
-        </field>
-        <field id="debug" translate="label" type="select" sortOrder="160" showInDefault="1" showInWebsite="1" showInStore="0">
+        <field id="debug" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Enable debug logging</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/debug</config_path>
