@@ -70,9 +70,8 @@ class ReturnUrlDataBuilder implements BuilderInterface
         /** @var Order $order */
         $order = $payment->getOrder();
 
-        $returnUrl = rtrim(
-                $this->returnUrlHelper->getStoreReturnUrl($this->storeManager->getStore()->getId()), '/'
-            ) . '?merchantReference=' . $order->getIncrementId();
+        $returnUrl = $this->returnUrlHelper->getStoreReturnUrl($this->storeManager->getStore()->getId())
+            . '?merchantReference=' . $order->getIncrementId();
 
         $requestBody['body']['returnUrl'] = $returnUrl;
 
