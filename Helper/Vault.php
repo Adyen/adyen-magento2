@@ -42,6 +42,8 @@ class Vault
     const CARD_SUMMARY = 'cardSummary';
     const EXPIRY_DATE = 'expiryDate';
     const PAYMENT_METHOD = 'paymentMethod';
+    const PAY_WITH_GOOGLE = 'paywithgoogle';
+    const GOOGLE_PAY = 'googlepay';
     const ADDITIONAL_DATA_ERRORS = [
         self::RECURRING_DETAIL_REFERENCE => 'Missing Token in Result please enable in ' .
             'Settings -> API URLs and Response menu in the Adyen Customer Area Recurring details setting',
@@ -148,8 +150,7 @@ class Vault
 
             $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
 
-            if ((strpos($additionalData[self::PAYMENT_METHOD], "paywithgoogle") !== false
-                ||strpos($additionalData[self::PAYMENT_METHOD], "googlepay") !== false)
+            if ($this->isGooglePay($additionalData[self::PAYMENT_METHOD])
                 && !empty($additionalData['paymentMethodVariant'])) {
                 $additionalData[self::PAYMENT_METHOD] = $additionalData['paymentMethodVariant'];
                 $paymentToken->setIsVisible(false);
@@ -233,5 +234,15 @@ class Vault
             $payment->setExtensionAttributes($extensionAttributes);
         }
         return $extensionAttributes;
+    }
+
+    /**
+     * @param $additionalData
+     * @return bool
+     */
+    private function isGooglePay($additionalData): bool
+    {
+        return (strpos($additionalData, self::PAY_WITH_GOOGLE) !== false
+            || strpos($additionalData, self::GOOGLE_PAY) !== false);
     }
 }

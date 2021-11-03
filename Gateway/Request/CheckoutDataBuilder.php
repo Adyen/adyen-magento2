@@ -185,7 +185,7 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         $requestBody['additionalData']['allow3DS2'] = true;
-
+        //$requestBody['additionalData']['RequestedTestAcquirerResponseCode'] = 2;
         if (isset($requestBodyPaymentMethod)) {
             $requestBody['paymentMethod'] = $requestBodyPaymentMethod;
         }
