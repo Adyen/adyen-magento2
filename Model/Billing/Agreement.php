@@ -112,8 +112,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         // Billing agreement is CC
         if (isset($data['card']['number'])) {
             $ccType = $data['variant'];
-            if ((strpos($ccType, self::PAY_WITH_GOOGLE) !== false
-                    || strpos($ccType, self::GOOGLE_PAY) !== false)
+            if ($this->isGooglePay($ccType)
                 && !empty($data['paymentMethodVariant'])) {
                 $ccType = $data['paymentMethodVariant'];
             }
@@ -203,10 +202,8 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
             return $this;
         }
         // Billing agreement is CC
-
         $ccType = $variant = $contractDetail['paymentMethod'];
-        if ((strpos($ccType, self::PAY_WITH_GOOGLE) !== false
-                || strpos($ccType, self::GOOGLE_PAY) !== false)
+        if ($this->isGooglePay($ccType)
             && !empty($contractDetail['paymentMethodVariant'])) {
             $ccType = $variant = $contractDetail['paymentMethodVariant'];
         }
@@ -305,5 +302,15 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
     public function getErrors()
     {
         return $this->_errors;
+    }
+
+    /**
+     * @param $ccType
+     * @return bool
+     */
+    private function isGooglePay($ccType): bool
+    {
+        return (strpos($ccType, self::PAY_WITH_GOOGLE) !== false
+            || strpos($ccType, self::GOOGLE_PAY) !== false);
     }
 }
