@@ -114,7 +114,7 @@ class RefundDataBuilder implements BuilderInterface
                 $orderPaymentCollection->addPaymentFilterDescending($payment->getId());
             } elseif ($refundStrategy == "3") {
                 // refund based on ratio
-                $ratio = $buildSubjectAmount / $orderAmountCurrency->getAmount();
+                $ratio = $buildSubjectAmount / $amount->getAmount();
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
             }
 
