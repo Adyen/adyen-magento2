@@ -148,7 +148,7 @@ class ChargedCurrency
      */
     public function getCreditMemoAmountCurrency(CreditmemoInterface $creditMemo)
     {
-        $chargedCurrency = $this->config->getChargedCurrency($creditMemo->getStoreId());
+        $chargedCurrency = $creditMemo->getOrder()->getAdyenChargedCurrency();
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
                 $creditMemo->getBaseGrandTotal(),
@@ -172,7 +172,7 @@ class ChargedCurrency
      */
     public function getCreditMemoAdjustmentAmountCurrency(CreditmemoInterface $creditMemo)
     {
-        $chargedCurrency = $this->config->getChargedCurrency($creditMemo->getStoreId());
+        $chargedCurrency = $creditMemo->getOrder()->getAdyenChargedCurrency();
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
                 $creditMemo->getBaseAdjustment(),
@@ -195,11 +195,11 @@ class ChargedCurrency
      */
     public function getCreditMemoShippingAmountCurrency(CreditmemoInterface $creditMemo)
     {
-        $chargedCurrency = $this->config->getChargedCurrency($creditMemo->getStoreId());
+        $chargedCurrency = $creditMemo->getOrder()->getAdyenChargedCurrency();
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
                 $creditMemo->getBaseShippingAmount(),
-                $creditMemo->getOrderCurrencyCode(),
+                $creditMemo->getBaseCurrencyCode(),
                 null,
                 $creditMemo->getBaseShippingTaxAmount()
             );
@@ -218,18 +218,18 @@ class ChargedCurrency
      */
     public function getCreditMemoItemAmountCurrency(CreditmemoItemInterface $item)
     {
-        $chargedCurrency = $item->getCreditMemo()->getInvoice()->getOrder()->getAdyenChargedCurrency();
+        $chargedCurrency = $item->getCreditMemo()->getOrder()->getAdyenChargedCurrency();
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
                 $item->getBasePrice(),
-                $item->getCreditMemo()->getInvoice()->getBaseCurrencyCode(),
+                $item->getCreditMemo()->getBaseCurrencyCode(),
                 null,
                 $item->getBaseTaxAmount() / $item->getQty()
             );
         }
         return new AdyenAmountCurrency(
             $item->getPrice(),
-            $item->getCreditMemo()->getInvoice()->getOrderCurrencyCode(),
+            $item->getCreditMemo()->getOrderCurrencyCode(),
             null,
             $item->getTaxAmount() / $item->getQty()
         );

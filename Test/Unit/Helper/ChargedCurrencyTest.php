@@ -27,6 +27,7 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Magento\Quote\Model\Quote;
+use Magento\Sales\Api\Data\CreditmemoInterface;
 use Magento\Sales\Api\Data\CreditmemoItemInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo\Item;
@@ -96,6 +97,11 @@ class ChargedCurrencyTest extends TestCase
      * @var CreditmemoItemInterface
      */
     private $creditMemoItem;
+
+    /**
+     * @var CreditmemoInterface
+     */
+    private $creditMemo;
 
     protected function setUp(): void
     {
@@ -257,32 +263,61 @@ class ChargedCurrencyTest extends TestCase
             ]
         );
 
-
-        $creditMemo = $this->getMockBuilder(Order\Creditmemo::class)
+        $this->creditMemo = $this->getMockBuilder(Order\Creditmemo::class)
             ->disableOriginalConstructor()
             ->setMethods([
-                'getInvoice'
+                'getBaseGrandTotal',
+                'getBaseCurrencyCode',
+                'getBaseTaxAmount',
+                'getBaseAdjustment',
+                'getBaseShippingAmount',
+                'getBaseShippingTaxAmount',
+                'getGrandTotal',
+                'getOrderCurrencyCode',
+                'getTaxAmount',
+                'getAdjustment',
+                'getShippingAmount',
+                'getShippingTaxAmount',
+                'getInvoice',
+                'getOrder'
             ])
             ->getMock();
-        $creditMemo->method('getInvoice')->willReturn($this->invoice);
+        $this->mockMethods($this->creditMemo,
+            [
+                'getBaseGrandTotal' => self::AMOUNT_CURRENCY['base']['amount'],
+                'getBaseCurrencyCode' => self::AMOUNT_CURRENCY['base']['currencyCode'],
+                'getBaseTaxAmount' => self::AMOUNT_CURRENCY['base']['taxAmount'],
+                'getBaseAdjustment' => self::AMOUNT_CURRENCY['base']['amount'],
+                'getBaseShippingAmount' => self::AMOUNT_CURRENCY['base']['amount'],
+                'getBaseShippingTaxAmount' => self::AMOUNT_CURRENCY['base']['taxAmount'],
+                'getGrandTotal' => self::AMOUNT_CURRENCY['display']['amount'],
+                'getOrderCurrencyCode' => self::AMOUNT_CURRENCY['display']['currencyCode'],
+                'getTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
+                'getAdjustment' => self::AMOUNT_CURRENCY['display']['amount'],
+                'getShippingAmount' => self::AMOUNT_CURRENCY['display']['amount'],
+                'getShippingTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
+                'getInvoice' => $this->invoice,
+                'getOrder' => $this->order
+            ]
+        );
 
         $this->creditMemoItem = $this->getMockBuilder(Item::class)
             ->disableOriginalConstructor()
             ->setMethods([
                 'getBasePrice',
                 'getPrice',
-                'getInvoice',
                 'getCreditMemo',
+                'getOrder',
                 'getBaseTaxAmount',
                 'getTaxAmount',
-                'getQty'
+                'getQty',
             ])
             ->getMock();
         $this->mockMethods($this->creditMemoItem,
             [
                 'getBasePrice' => self::AMOUNT_CURRENCY['base']['amount'],
-                'getInvoice' => $this->invoice,
-                'getCreditMemo' => $creditMemo,
+                'getCreditMemo' => $this->creditMemo,
+                'getOrder' => $this->order,
                 'getBaseTaxAmount' => self::AMOUNT_CURRENCY['base']['taxAmount'],
                 'getPrice' => self::AMOUNT_CURRENCY['display']['amount'],
                 'getTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
@@ -432,13 +467,104 @@ class ChargedCurrencyTest extends TestCase
      * @param $orderPlacement
      * @param $getAdyenChargedCurrency
      */
+    public function testGetCreditMemoAmountCurrency(
+        $configValue,
+        AdyenAmountCurrency $expectedResult,
+        $orderPlacement,
+        $getAdyenChargedCurrency
+    ) {
+        $this->order->method('getAdyenChargedCurrency')->willReturn($getAdyenChargedCurrency);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper);
+        $result = $this->chargedCurrencyHelper->getCreditMemoAmountCurrency($this->creditMemo);
+
+        $this->assertEquals(
+            [
+                $expectedResult->getAmount(),
+                $expectedResult->getCurrencyCode(),
+                $expectedResult->getTaxAmount()
+            ],
+            [
+                $result->getAmount(),
+                $result->getCurrencyCode(),
+                $result->getTaxAmount()
+            ]
+        );
+    }
+
+    /**
+     * @dataProvider amountCurrencyProvider
+     * @param $configValue
+     * @param $expectedResult
+     * @param $orderPlacement
+     * @param $getAdyenChargedCurrency
+     */
+    public function testGetCreditMemoAdjustmentAmountCurrency(
+        $configValue,
+        AdyenAmountCurrency $expectedResult,
+        $orderPlacement,
+        $getAdyenChargedCurrency
+    ) {
+        $this->order->method('getAdyenChargedCurrency')->willReturn($getAdyenChargedCurrency);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper);
+        $result = $this->chargedCurrencyHelper->getCreditMemoAdjustmentAmountCurrency($this->creditMemo);
+
+        $this->assertEquals(
+            [
+                $expectedResult->getAmount(),
+                $expectedResult->getCurrencyCode(),
+            ],
+            [
+                $result->getAmount(),
+                $result->getCurrencyCode(),
+            ]
+        );
+    }
+
+    /**
+     * @dataProvider amountCurrencyProvider
+     * @param $configValue
+     * @param $expectedResult
+     * @param $orderPlacement
+     * @param $getAdyenChargedCurrency
+     */
+    public function testGetCreditMemoShippingAmountCurrency(
+        $configValue,
+        AdyenAmountCurrency $expectedResult,
+        $orderPlacement,
+        $getAdyenChargedCurrency
+    ) {
+        $this->order->method('getAdyenChargedCurrency')->willReturn($getAdyenChargedCurrency);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper);
+        $result = $this->chargedCurrencyHelper->getCreditMemoShippingAmountCurrency($this->creditMemo);
+
+        $this->assertEquals(
+            [
+                $expectedResult->getAmount(),
+                $expectedResult->getCurrencyCode(),
+                $expectedResult->getTaxAmount()
+            ],
+            [
+                $result->getAmount(),
+                $result->getCurrencyCode(),
+                $result->getTaxAmount()
+            ]
+        );
+    }
+
+    /**
+     * @dataProvider amountCurrencyProvider
+     * @param $configValue
+     * @param $expectedResult
+     * @param $orderPlacement
+     * @param $getAdyenChargedCurrency
+     */
     public function testGetCreditMemoItemAmountCurrency(
         $configValue,
         AdyenAmountCurrency $expectedResult,
         $orderPlacement,
         $getAdyenChargedCurrency
     ) {
-        $this->order->method('getAdyenChargedCurrency')->willReturn($orderPlacement ? $configValue : $getAdyenChargedCurrency);
+        $this->order->method('getAdyenChargedCurrency')->willReturn($getAdyenChargedCurrency);
         $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper);
         $result = $this->chargedCurrencyHelper->getCreditMemoItemAmountCurrency($this->creditMemoItem);
 
