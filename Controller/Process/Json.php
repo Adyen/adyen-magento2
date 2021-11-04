@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Controller\Process;
 
+use Adyen\Payment\Model\Notification;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Adyen\Webhook\Receiver\NotificationReceiver;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -41,12 +42,12 @@ class Json extends \Magento\Framework\App\Action\Action
     /**
      * @var \Adyen\Payment\Helper\Data
      */
-    protected $adyenHelper;
+    private $adyenHelper;
 
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
-    protected $adyenLogger;
+    private $adyenLogger;
 
     /**
      * @var \Magento\Framework\Serialize\SerializerInterface
@@ -56,12 +57,12 @@ class Json extends \Magento\Framework\App\Action\Action
     /**
      * @var \Adyen\Payment\Helper\Config
      */
-    protected $configHelper;
+    private $configHelper;
 
     /**
      * @var \Adyen\Payment\Helper\IpAddress
      */
-    protected $ipAddressHelper;
+    private $ipAddressHelper;
 
     /**
      * @var HmacSignature
@@ -195,7 +196,7 @@ class Json extends \Magento\Framework\App\Action\Action
      * @throws \Adyen\Exception\AuthenticationException
      * @throws \Adyen\Exception\MerchantAccountCodeException
      */
-    protected function isAuthorised($response)
+    private function isAuthorised(array $response)
     {
         // Add CGI support
         $this->fixCgiHttpAuthentication();
@@ -218,7 +219,7 @@ class Json extends \Magento\Framework\App\Action\Action
      * @throws \Adyen\Webhook\Exception\HMACKeyValidationException
      * @throws \Adyen\Webhook\Exception\InvalidDataException
      */
-    protected function processNotification($response, $notificationMode)
+    private function processNotification(array $response, $notificationMode)
     {
         if (!$this->isAuthorised($response)) {
             return false;
@@ -231,77 +232,72 @@ class Json extends \Magento\Framework\App\Action\Action
             );
             return false;
         }
-        if ($this->configHelper->getNotificationsHmacCheck() &&
-            $this->hmacSignature->isHmacSupportedEventCode($response)
-        ) {
-            // Validate the Hmac calculation
-            if (!$this->notificationReceiver->validateHmac(
+
+        // Validate the Hmac calculation
+        $hasHmacCheck = $this->configHelper->getNotificationsHmacCheck() &&
+            $this->hmacSignature->isHmacSupportedEventCode($response);
+        if ($hasHmacCheck && !$this->notificationReceiver->validateHmac(
                 $response,
                 $this->configHelper->getNotificationsHmacKey()
             )) {
-                $this->adyenLogger->addAdyenNotification(
-                    'HMAC key validation failed ' . json_encode($response)
-                );
-                return false;
-            }
+            $this->adyenLogger->addAdyenNotification(
+                'HMAC key validation failed ' . json_encode($response)
+            );
+            return false;
         }
 
-        // log the notification
         $this->adyenLogger->addAdyenNotification(
             "The content of the notification item is: " . json_encode($response)
         );
 
-        // check if notification already exists
+        // Handling duplicates
         if ($this->isDuplicate($response)) {
-            // duplicated so do nothing but return accepted to Adyen
             return true;
         }
 
         $notification = $this->notificationFactory->create();
-
-        if (isset($response['pspReference'])) {
-            $notification->setPspreference($response['pspReference']);
-        }
-        if (isset($response['originalReference'])) {
-            $notification->setOriginalReference($response['originalReference']);
-        }
-        if (isset($response['merchantReference'])) {
-            $notification->setMerchantReference($response['merchantReference']);
-        }
-        if (isset($response['eventCode'])) {
-            $notification->setEventCode($response['eventCode']);
-        }
-        if (isset($response['success'])) {
-            $notification->setSuccess($response['success']);
-        }
-        if (isset($response['paymentMethod'])) {
-            $notification->setPaymentMethod($response['paymentMethod']);
-        }
-        if (isset($response['amount'])) {
-            $notification->setAmountValue($response['amount']['value']);
-            $notification->setAmountCurrency($response['amount']['currency']);
-        }
-        if (isset($response['reason'])) {
-            $notification->setReason($response['reason']);
-        }
-
+        $this->loadNotificationFromRequest($notification, $response);
         $notification->setLive($notificationMode);
+        $notification->save();
 
-        if (isset($response['additionalData'])) {
-            $notification->setAdditionalData($this->serializer->serialize($response['additionalData']));
+        return true;
+    }
+
+    /**
+     * @param Notification $notification
+     * @param array $requestItem notification received from Adyen
+     */
+    private function loadNotificationFromRequest(Notification $notification, array $requestItem)
+    {
+        $fields = [
+            'pspReference',
+            'originalReference',
+            'merchantReference',
+            'eventCode',
+            'success',
+            'paymentMethod',
+            'reason',
+            'done',
+        ];
+        foreach ($fields as $field) {
+            if (isset($requestItem[$field])) {
+                $setter = 'set' . ucfirst($field);
+                call_user_func([$notification, $setter], $requestItem[$field]);
+            }
         }
-        if (isset($response['done'])) {
-            $notification->setDone($response['done']);
+
+        if (isset($requestItem['amount'])) {
+            $notification->setAmountValue($requestItem['amount']['value']);
+            $notification->setAmountCurrency($requestItem['amount']['currency']);
+        }
+        if (isset($requestItem['additionalData'])) {
+            $notification->setAdditionalData($this->serializer->serialize($requestItem['additionalData']));
         }
 
         // do this to set both fields in the correct timezone
         $date = new \DateTime();
         $notification->setCreatedAt($date);
         $notification->setUpdatedAt($date);
-
-        $notification->save();
-
-        return true;
     }
 
     /**
@@ -309,7 +305,7 @@ class Json extends \Magento\Framework\App\Action\Action
      *
      * @return bool
      */
-    protected function isIpValid()
+    private function isIpValid()
     {
         $ipAddress = [];
         //Getting remote and possibly forwarded IP addresses
@@ -325,7 +321,7 @@ class Json extends \Magento\Framework\App\Action\Action
      * @param $response
      * @return mixed
      */
-    protected function isDuplicate($response)
+    private function isDuplicate(array $response)
     {
         $pspReference = trim($response['pspReference']);
         $eventCode = trim($response['eventCode']);
@@ -341,7 +337,7 @@ class Json extends \Magento\Framework\App\Action\Action
     /**
      * Fix these global variables for the CGI
      */
-    protected function fixCgiHttpAuthentication()
+    private function fixCgiHttpAuthentication()
     {
         // do nothing if values are already there
         if (!empty($_SERVER['PHP_AUTH_USER']) && !empty($_SERVER['PHP_AUTH_PW'])) {
@@ -379,7 +375,7 @@ class Json extends \Magento\Framework\App\Action\Action
     /**
      * Return a 401 result
      */
-    protected function return401()
+    private function return401()
     {
         $this->getResponse()->setHttpResponseCode(401);
     }
