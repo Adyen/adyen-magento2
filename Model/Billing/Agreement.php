@@ -27,12 +27,15 @@ use Magento\Sales\Model\Order\Payment;
 
 class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 {
-    const PAY_WITH_GOOGLE = 'paywithgoogle';
-    const GOOGLE_PAY = 'googlepay';
     /**
      * @var \Adyen\Payment\Helper\Data
      */
     private $adyenHelper;
+
+    /**
+     * @var \Adyen\Payment\Helper\PaymentMethods
+     */
+    private $paymentMethods;
 
     /**
      * Agreement constructor.
@@ -45,6 +48,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
      * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateFactory
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
+     * @param \Adyen\Payment\Helper\PaymentMethods
      * @param array $data
      */
     public function __construct(
@@ -56,6 +60,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateFactory,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        \Adyen\Payment\Helper\PaymentMethods $paymentMethods,
         array $data = []
     ) {
         parent::__construct(
@@ -70,6 +75,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         );
 
         $this->adyenHelper = $adyenHelper;
+        $this->paymentMethods = $paymentMethods;
     }
 
     /**
@@ -112,7 +118,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         // Billing agreement is CC
         if (isset($data['card']['number'])) {
             $ccType = $data['variant'];
-            if ($this->isGooglePay($ccType)
+            if ($this->paymentMethods->isGooglePay($ccType)
                 && !empty($data['paymentMethodVariant'])) {
                 $ccType = $data['paymentMethodVariant'];
             }
@@ -302,15 +308,5 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
     public function getErrors()
     {
         return $this->_errors;
-    }
-
-    /**
-     * @param $ccType
-     * @return bool
-     */
-    private function isGooglePay($ccType): bool
-    {
-        return (strpos($ccType, self::PAY_WITH_GOOGLE) !== false
-            || strpos($ccType, self::GOOGLE_PAY) !== false);
     }
 }
