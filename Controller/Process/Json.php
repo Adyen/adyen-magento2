@@ -23,44 +23,65 @@
 
 namespace Adyen\Payment\Controller\Process;
 
+use Adyen\Exception\AuthenticationException;
+use Adyen\Exception\MerchantAccountCodeException;
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\IpAddress;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\NotificationFactory;
+use Adyen\Webhook\Exception\HMACKeyValidationException;
+use Adyen\Webhook\Exception\InvalidDataException;
 use Adyen\Webhook\Receiver\HmacSignature;
 use Adyen\Webhook\Receiver\NotificationReceiver;
-use Symfony\Component\Config\Definition\Exception\Exception;
+use DateTime;
+use Magento\Framework\App\Action\Action;
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\Http as Http;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
  * Class Json extends Action
  */
-class Json extends \Magento\Framework\App\Action\Action
+class Json extends Action
 {
     /**
-     * @var \Adyen\Payment\Model\NotificationFactory
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
+     * @var NotificationFactory
      */
     private $notificationFactory;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
 
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
+     * @var AdyenLogger
      */
     private $adyenLogger;
 
     /**
-     * @var \Magento\Framework\Serialize\SerializerInterface
+     * @var SerializerInterface
      */
     private $serializer;
 
     /**
-     * @var \Adyen\Payment\Helper\Config
+     * @var Config
      */
     private $configHelper;
 
     /**
-     * @var \Adyen\Payment\Helper\IpAddress
+     * @var IpAddress
      */
     private $ipAddressHelper;
 
@@ -77,27 +98,29 @@ class Json extends \Magento\Framework\App\Action\Action
     /**
      * Json constructor.
      *
-     * @param \Magento\Framework\App\Action\Context $context
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
-     * @param \Adyen\Payment\Helper\Config $configHelper
-     * @param \Adyen\Payment\Helper\IpAddress $ipAddressHelper
+     * @param Context $context
+     * @param Data $adyenHelper
+     * @param AdyenLogger $adyenLogger
+     * @param SerializerInterface $serializer
+     * @param Config $configHelper
+     * @param IpAddress $ipAddressHelper
      * @param HmacSignature $hmacSignature
      * @param NotificationReceiver $notificationReceiver
      */
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Adyen\Payment\Model\NotificationFactory $notificationFactory,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Adyen\Payment\Helper\Config $configHelper,
-        \Adyen\Payment\Helper\IpAddress $ipAddressHelper,
+        Context $context,
+        StoreManagerInterface $storeManager,
+        NotificationFactory $notificationFactory,
+        Data $adyenHelper,
+        AdyenLogger $adyenLogger,
+        SerializerInterface $serializer,
+        Config $configHelper,
+        IpAddress $ipAddressHelper,
         HmacSignature $hmacSignature,
         NotificationReceiver $notificationReceiver
     ) {
         parent::__construct($context);
+        $this->storeManager = $storeManager;
         $this->notificationFactory = $notificationFactory;
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
@@ -108,7 +131,7 @@ class Json extends \Magento\Framework\App\Action\Action
         $this->notificationReceiver = $notificationReceiver;
 
         // Fix for Magento2.3 adding isAjax to the request params
-        if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
+        if (interface_exists(CsrfAwareActionInterface::class)) {
             $request = $this->getRequest();
             if ($request instanceof Http && $request->isPost()) {
                 $request->setParam('isAjax', true);
@@ -118,7 +141,7 @@ class Json extends \Magento\Framework\App\Action\Action
     }
 
     /**
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function execute()
     {
@@ -142,9 +165,10 @@ class Json extends \Magento\Framework\App\Action\Action
             return;
         }
         $notificationMode = $notificationItems['live'];
-        $demoMode = $this->adyenHelper->getAdyenAbstractConfigData('demo_mode');
+        $storeId = $this->storeManager->getStore()->getId();
+        $demoMode = $this->configHelper->isDemoMode($storeId);
         if (!$this->notificationReceiver->validateNotificationMode($notificationMode, $demoMode)) {
-            throw new \Magento\Framework\Exception\LocalizedException(
+            throw new LocalizedException(
                 __('Mismatch between Live/Test modes of Magento store and the Adyen platform')
             );
         }
@@ -184,7 +208,7 @@ class Json extends \Magento\Framework\App\Action\Action
                 ->setBody($acceptedMessage);
             return;
         } catch (Exception $e) {
-            throw new \Magento\Framework\Exception\LocalizedException(__($e->getMessage()));
+            throw new LocalizedException(__($e->getMessage()));
         }
     }
 
@@ -192,19 +216,20 @@ class Json extends \Magento\Framework\App\Action\Action
      * HTTP Authentication of the notification
      *
      * @param array $response
+     * @param int $storeId
      * @return bool
-     * @throws \Adyen\Exception\AuthenticationException
-     * @throws \Adyen\Exception\MerchantAccountCodeException
+     * @throws AuthenticationException
+     * @throws MerchantAccountCodeException
      */
-    private function isAuthorised(array $response)
+    private function isAuthorised(array $response, $storeId)
     {
         // Add CGI support
         $this->fixCgiHttpAuthentication();
         return $this->notificationReceiver->isAuthenticated(
             $response,
             $this->configHelper->getMerchantAccount(),
-            $this->configHelper->getNotificationsUsername(),
-            $this->configHelper->getNotificationsPassword()
+            $this->configHelper->getNotificationsUsername($storeId),
+            $this->configHelper->getNotificationsPassword($storeId)
         );
     }
 
@@ -214,19 +239,21 @@ class Json extends \Magento\Framework\App\Action\Action
      * @param $response
      * @param $notificationMode
      * @return bool
-     * @throws \Adyen\Exception\AuthenticationException
-     * @throws \Adyen\Exception\MerchantAccountCodeException
-     * @throws \Adyen\Webhook\Exception\HMACKeyValidationException
-     * @throws \Adyen\Webhook\Exception\InvalidDataException
+     * @throws AuthenticationException
+     * @throws MerchantAccountCodeException
+     * @throws HMACKeyValidationException
+     * @throws InvalidDataException
      */
     private function processNotification(array $response, $notificationMode)
     {
-        if (!$this->isAuthorised($response)) {
+        $storeId = $this->storeManager->getStore()->getId();
+
+        if (!$this->isAuthorised($response, $storeId)) {
             return false;
         }
 
         // Validate if Ip check is enabled and if the notification comes from a verified IP
-        if ($this->configHelper->getNotificationsIpCheck() && !$this->isIpValid()) {
+        if ($this->configHelper->getNotificationsIpCheck($storeId) && !$this->isIpValid()) {
             $this->adyenLogger->addAdyenNotification(
                 "Notification has been rejected because the IP address could not be verified"
             );
@@ -234,12 +261,12 @@ class Json extends \Magento\Framework\App\Action\Action
         }
 
         // Validate the Hmac calculation
-        $hasHmacCheck = $this->configHelper->getNotificationsHmacCheck() &&
+        $hasHmacCheck = $this->configHelper->getNotificationsHmacCheck($storeId) &&
             $this->hmacSignature->isHmacSupportedEventCode($response);
         if ($hasHmacCheck && !$this->notificationReceiver->validateHmac(
-                $response,
-                $this->configHelper->getNotificationsHmacKey()
-            )) {
+            $response,
+            $this->configHelper->getNotificationsHmacKey($storeId)
+        )) {
             $this->adyenLogger->addAdyenNotification(
                 'HMAC key validation failed ' . json_encode($response)
             );
@@ -295,7 +322,7 @@ class Json extends \Magento\Framework\App\Action\Action
         }
 
         // do this to set both fields in the correct timezone
-        $date = new \DateTime();
+        $date = new DateTime();
         $notification->setCreatedAt($date);
         $notification->setUpdatedAt($date);
     }
