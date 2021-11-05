@@ -1539,33 +1539,33 @@ class Cron
             $this->orderCurrency
         );
 
-        // IF manual review is NOT active OR no custom status is set on the Adyen config page continue with authorisation
+        // IF manual review is NOT active OR no custom status is set on the Adyen config page AND total amount is authorised continue with authorisation
+        // ELSEIF total amount is NOT authorised
         // ELSE add a comment and set the status to the defined fraudManualReviewStatus
-        if ($this->requireFraudManualReview || $fraudManualReviewStatus == "") {
-            if ($isTotalAmountAuthorised) {
-                $this->_setPrePaymentAuthorized();
-                $this->_prepareInvoice();
+        if ($this->requireFraudManualReview || $fraudManualReviewStatus == "" && $isTotalAmountAuthorised) {
+            $this->_setPrePaymentAuthorized();
+            $this->_prepareInvoice();
 
-                // for boleto confirmation mail is send on order creation
-                if ($this->_paymentMethod != "adyen_boleto") {
-                    // send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
-                    if (!$this->_order->getEmailSent()) {
-                        $this->_sendOrderMail();
-                    }
+            // for boleto confirmation mail is send on order creation
+            if ($this->_paymentMethod != "adyen_boleto") {
+                // send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
+                if (!$this->_order->getEmailSent()) {
+                    $this->_sendOrderMail();
                 }
-
-                if ($this->_paymentMethod == "c_cash" &&
-                    $this->_getConfigData('create_shipment', 'adyen_cash', $this->_order->getStoreId())
-                ) {
-                    $this->_createShipment();
-                }
-            } else {
-                $this->_order->addStatusHistoryComment(__(sprintf(
-                    'Partial authorisation w/amount %s %s was processed',
-                    $this->_currency,
-                    $this->_adyenHelper->originalAmount($this->_value, $this->_currency)
-                )), false);
             }
+
+            if ($this->_paymentMethod == "c_cash" &&
+                $this->_getConfigData('create_shipment', 'adyen_cash', $this->_order->getStoreId())
+            ) {
+                $this->_createShipment();
+            }
+
+        } elseif ($this->requireFraudManualReview || $fraudManualReviewStatus == "" && !$isTotalAmountAuthorised) {
+            $this->_order->addStatusHistoryComment(__(sprintf(
+                'Partial authorisation w/amount %s %s was processed',
+                $this->_currency,
+                $this->_adyenHelper->originalAmount($this->_value, $this->_currency)
+            )), false);
         } else {
             $this->_order->addStatusHistoryComment(__(sprintf(
                 'Manual review required for order w/ pspReference: %s',
