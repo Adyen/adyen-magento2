@@ -42,7 +42,6 @@ use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\Http as Http;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Store\Model\StoreManagerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
@@ -50,11 +49,6 @@ use Symfony\Component\Config\Definition\Exception\Exception;
  */
 class Json extends Action
 {
-    /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
-
     /**
      * @var NotificationFactory
      */
@@ -109,7 +103,6 @@ class Json extends Action
      */
     public function __construct(
         Context $context,
-        StoreManagerInterface $storeManager,
         NotificationFactory $notificationFactory,
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
@@ -120,7 +113,6 @@ class Json extends Action
         NotificationReceiver $notificationReceiver
     ) {
         parent::__construct($context);
-        $this->storeManager = $storeManager;
         $this->notificationFactory = $notificationFactory;
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
@@ -165,8 +157,7 @@ class Json extends Action
             return;
         }
         $notificationMode = $notificationItems['live'];
-        $storeId = $this->storeManager->getStore()->getId();
-        $demoMode = $this->configHelper->isDemoMode($storeId);
+        $demoMode = $this->configHelper->isDemoMode();
         if (!$this->notificationReceiver->validateNotificationMode($notificationMode, $demoMode)) {
             throw new LocalizedException(
                 __('Mismatch between Live/Test modes of Magento store and the Adyen platform')
@@ -216,20 +207,19 @@ class Json extends Action
      * HTTP Authentication of the notification
      *
      * @param array $response
-     * @param int $storeId
      * @return bool
      * @throws AuthenticationException
      * @throws MerchantAccountCodeException
      */
-    private function isAuthorised(array $response, $storeId)
+    private function isAuthorised(array $response)
     {
         // Add CGI support
         $this->fixCgiHttpAuthentication();
         return $this->notificationReceiver->isAuthenticated(
             $response,
             $this->configHelper->getMerchantAccount(),
-            $this->configHelper->getNotificationsUsername($storeId),
-            $this->configHelper->getNotificationsPassword($storeId)
+            $this->configHelper->getNotificationsUsername(),
+            $this->configHelper->getNotificationsPassword()
         );
     }
 
@@ -246,14 +236,12 @@ class Json extends Action
      */
     private function processNotification(array $response, $notificationMode)
     {
-        $storeId = $this->storeManager->getStore()->getId();
-
-        if (!$this->isAuthorised($response, $storeId)) {
+        if (!$this->isAuthorised($response)) {
             return false;
         }
 
         // Validate if Ip check is enabled and if the notification comes from a verified IP
-        if ($this->configHelper->getNotificationsIpCheck($storeId) && !$this->isIpValid()) {
+        if ($this->configHelper->getNotificationsIpCheck() && !$this->isIpValid()) {
             $this->adyenLogger->addAdyenNotification(
                 "Notification has been rejected because the IP address could not be verified"
             );
@@ -261,11 +249,11 @@ class Json extends Action
         }
 
         // Validate the Hmac calculation
-        $hasHmacCheck = $this->configHelper->getNotificationsHmacCheck($storeId) &&
+        $hasHmacCheck = $this->configHelper->getNotificationsHmacCheck() &&
             $this->hmacSignature->isHmacSupportedEventCode($response);
         if ($hasHmacCheck && !$this->notificationReceiver->validateHmac(
             $response,
-            $this->configHelper->getNotificationsHmacKey($storeId)
+            $this->configHelper->getNotificationsHmacKey()
         )) {
             $this->adyenLogger->addAdyenNotification(
                 'HMAC key validation failed ' . json_encode($response)
