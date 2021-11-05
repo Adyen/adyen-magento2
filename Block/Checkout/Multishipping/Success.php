@@ -28,7 +28,7 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
-use Adyen\Payment\Model\Ui\AdyenMultishippingConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenCheckoutSuccessConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Template\Context;
@@ -66,7 +66,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     private $serializerInterface;
 
     /**
-     * @var AdyenMultishippingConfigProvider
+     * @var AdyenCheckoutSuccessConfigProvider
      */
     private $configProvider;
 
@@ -90,7 +90,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         Data $adyenHelper,
         StoreManagerInterface $storeManager,
         SerializerInterface $serializerInterface,
-        AdyenMultishippingConfigProvider $configProvider,
+        AdyenCheckoutSuccessConfigProvider $configProvider,
         Context $context,
         Multishipping $multishipping,
         OrderRepositoryInterface $orderRepository,

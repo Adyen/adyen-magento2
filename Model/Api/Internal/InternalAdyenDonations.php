@@ -22,11 +22,11 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Api;
+namespace Adyen\Payment\Model\Api\Internal;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Api\Internal\InternalAdyenDonationsInterface;
-use Adyen\Payment\Model\Api\Internal\AbstractInternalApiController;
+use Adyen\Payment\Model\Api\AdyenDonations;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Data\Form\FormKey\Validator;
 use Magento\Framework\Exception\NotFoundException;

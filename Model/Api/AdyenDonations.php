@@ -25,10 +25,15 @@
 namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenDonationsInterface;
+use Adyen\Util\Uuid;
+use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NotFoundException;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\OrderFactory;
 
 class AdyenDonations implements AdyenDonationsInterface
 {
@@ -37,43 +42,70 @@ class AdyenDonations implements AdyenDonationsInterface
      */
     private $commandPool;
 
-    public function __construct(CommandPoolInterface $commandPool)
-    {
+    /**
+     * @var Session
+     */
+    private $checkoutSession;
+
+    /**
+     * @var OrderFactory
+     */
+    private $orderFactory;
+
+    /**
+     * @var Json
+     */
+    private $jsonSerializer;
+
+    public function __construct(
+        CommandPoolInterface $commandPool,
+        OrderFactory $orderFactory,
+        Session $checkoutSession,
+        Json $jsonSerializer
+    ) {
         $this->commandPool = $commandPool;
+        $this->orderFactory = $orderFactory;
+        $this->checkoutSession = $checkoutSession;
+        $this->jsonSerializer = $jsonSerializer;
     }
 
     /**
      * @inheritDoc
      *
-     * @throws CommandException
-     * @throws NotFoundException
+     * @throws CommandException|NotFoundException|LocalizedException|\InvalidArgumentException
      */
     public function donate($payload)
     {
-        $payload = json_decode($payload, true);
+        $payload = $this->jsonSerializer->unserialize($payload);
 
-        // Validate JSON that has just been parsed if it was in a valid format
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new LocalizedException(__('Donations call failed because the request was not a valid JSON'));
-        }
+        $donationsCaptureCommand = $this->commandPool->get('capture');
 
         /**
-         * @todo PW-5424 The following structure should be sent from the frontend.
-         * $payload = [
-         *   'amount' => [
-         *       'currency' => 'EUR',
-         *       'value' => 1000
-         *   ],
-         *   'paymentMethod' => [
-         *       "type"=> "scheme",
-         *       "encryptedSecurityCode"=> "ENCRYPTED_CVC_FROM_CARD_COMPONENT"
-         *   ],
-         *   'donationToken' => 'h64j84he5ygdyf',
-         *   'donationOriginalPspReference' => '991559660454807J',
-         *   'returnUrl' => '',
-         * ];
+         * @var Order
          */
-        $donationsCaptureCommand = $this->commandPool->get('capture');
+        $order = $this->orderFactory->create()->load($this->checkoutSession->getLastOrderId());
+
+        $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
+        if (!$donationToken) {
+            throw new LocalizedException(__('Donation failed: Invalid donationToken'));
+        }
+        $payload['donationToken'] = $donationToken;
+
+        if (!empty($order->getPayment()->getAdditionalInformation('stateData'))) {
+            $payload['paymentMethod'] = $order->getPayment()->getAdditionalInformation('stateData')['paymentMethod'];
+        } else {
+            $payload['paymentMethod'] = ['type' => 'scheme'];
+        }
+
+        $payload['donationOriginalPspReference'] = $order->getPayment()->getAdditionalInformation('pspReference');
+
+        $customerId = $order->getCustomerId();
+        if ($customerId) {
+            $payload['shopperReference'] = str_pad($customerId, 3, '0', STR_PAD_LEFT);
+        } else {
+            $guestCustomerId = $order->getIncrementId() . Uuid::generateV4();
+            $payload['shopperReference'] = $guestCustomerId;
+        }
 
         return $donationsCaptureCommand->execute(['payment' => $payload]);
     }

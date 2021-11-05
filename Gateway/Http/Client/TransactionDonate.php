@@ -58,7 +58,7 @@ class TransactionDonate implements ClientInterface
         try {
             $response = $service->donations($request);
         } catch (AdyenException $e) {
-            $response['error'] = $e->getMessage();
+            $response = ['error' => $e->getMessage()];
         }
 
         return $response;
