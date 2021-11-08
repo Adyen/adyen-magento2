@@ -1212,12 +1212,18 @@ class Cron
                  * Returns if the payment method is wallet like wechatpayWeb, amazonpay, applepay, paywithgoogle
                  */
                 $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($orderPaymentMethod);
+
+                /*
+                 * Return if payment method is cc like VI, MI
+                 */
+                $isCCPaymentMethod = $this->_order->getPayment()->getMethod() === 'adyen_cc';
+
                 /*
                 * If the order was made with an Alternative payment method,
                 *  continue with the cancellation only if the payment method of
                 * the notification matches the payment method of the order.
                 */
-                if ( !$isWalletPaymentMethod && strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
+                if ( !$isWalletPaymentMethod && !$isCCPaymentMethod && strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
                     $this->_adyenLogger->addAdyenNotificationCronjob(
                         "The notification does not match the payment method of the order,
                     skipping OFFER_CLOSED"
@@ -1753,7 +1759,7 @@ class Cron
 
             // if auto capture mode for openinvoice is turned on then use auto capture
             if ($captureModeOpenInvoice == true &&
-                $this->_adyenHelper->isPaymentMethodOpenInvoiceMethod($this->_paymentMethod)
+                $this->_adyenHelper->isPaymentMethodOpenInvoiceMethodValidForAutoCapture($this->_paymentMethod)
             ) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'This payment method is configured to be working as auto capture '
