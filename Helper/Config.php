@@ -30,6 +30,9 @@ class Config
 {
     const XML_PAYMENT_PREFIX = "payment";
     const XML_ADYEN_ABSTRACT_PREFIX = "adyen_abstract";
+    const XML_MERCHANT_ACCOUNT = "merchant_account";
+    const XML_NOTIFICATIONS_USERNAME = "notification_username";
+    const XML_NOTIFICATIONS_PASSWORD = "notification_password";
     const XML_NOTIFICATIONS_CAN_CANCEL_FIELD = "notifications_can_cancel";
     const XML_NOTIFICATIONS_HMAC_CHECK = "notifications_hmac_check";
     const XML_NOTIFICATIONS_IP_CHECK = "notifications_ip_check";
@@ -65,6 +68,46 @@ class Config
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getMerchantAccount($storeId = null)
+    {
+        return $this->getConfigData(
+            self::XML_MERCHANT_ACCOUNT,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getNotificationsUsername($storeId = null)
+    {
+        return $this->getConfigData(
+            self::XML_NOTIFICATIONS_USERNAME,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getNotificationsPassword($storeId = null)
+    {
+        $key = $this->getConfigData(
+            self::XML_NOTIFICATIONS_PASSWORD,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+        return $this->encryptor->decrypt(trim($key));
     }
 
     /**
