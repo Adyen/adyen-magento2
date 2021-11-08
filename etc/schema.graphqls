@@ -13,7 +13,7 @@ type Query {
 }
 
 type adyenPaymentStatus {
-    isFinal: String @doc(description: "If true no further action is required and customer should be redirect to success page")
+    isFinal: Boolean @doc(description: "If true no further action is required and customer should be redirect to success page")
     resultCode: String @doc(description: "Current state of the order in Adyen")
     additionalData: String @doc(description: "Additional Data required for the next step in the Payment process")
     action: String @doc(description: "Action that should be taken as the next step")
