@@ -13,10 +13,11 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2021 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
@@ -24,53 +25,40 @@
 namespace Adyen\Payment\Model\Api\Internal;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
-use Adyen\Payment\Api\Internal\InternalAdyenOrderPaymentStatusInterface;
+use Adyen\Payment\Api\Internal\InternalAdyenDonationsInterface;
+use Adyen\Payment\Model\Api\AdyenDonations;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Data\Form\FormKey\Validator;
+use Magento\Framework\Exception\NotFoundException;
+use Magento\Payment\Gateway\Command\CommandException;
 
-/**
- * Class InternalAdyenPaymentDetailsInterface
- */
-class InternalAdyenOrderPaymentStatus extends AbstractInternalApiController implements InternalAdyenOrderPaymentStatusInterface
+class InternalAdyenDonations extends AbstractInternalApiController implements InternalAdyenDonationsInterface
 {
     /**
-     * @var Http
+     * @var AdyenDonations
      */
-    protected $request;
+    private $adyenDonations;
 
-    /**
-     * @var Validator
-     */
-    protected $formKeyValidator;
-
-    /**
-     * @var AdyenOrderPaymentStatusInterface
-     */
-    protected $adyenOrderPaymentStatus;
-
-    /**
-     * @param Http $request
-     * @param Validator $formKeyValidator
-     * @param AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus
-     */
     public function __construct(
         Http $request,
         Validator $formKeyValidator,
-        AdyenOrderPaymentStatusInterface $adyenOrderPaymentStatus
-    ) {
+        AdyenDonations $adyenDonations
+    )
+    {
         parent::__construct($request, $formKeyValidator);
-        $this->adyenOrderPaymentStatus = $adyenOrderPaymentStatus;
+        $this->adyenDonations = $adyenDonations;
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
+     *
+     * @throws CommandException
+     * @throws NotFoundException
      * @throws AdyenException
      */
-    public function handleInternalRequest($orderId, $formKey)
+    public function handleInternalRequest($payload, $formKey)
     {
         $this->validateInternalRequest($formKey);
-
-        return $this->adyenOrderPaymentStatus->getOrderPaymentStatus($orderId);
+        return $this->adyenDonations->donate($payload);
     }
 }
