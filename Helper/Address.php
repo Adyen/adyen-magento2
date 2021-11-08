@@ -43,8 +43,10 @@ class Address
         $this->logger = $logger;
     }
 
+
     // Regex to extract the house number from the street line if needed (e.g. 'Street address 1 A' => '1 A')
-    const HOUSE_NUMBER_REGEX = '/((\s\d{0,10})|(\s\d{0,10}\s?\w{1,3}))$/i';
+    const STREET_FIRST_REGEX = "/(?<streetName>[a-zA-Z0-9.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/";
+    CONST NUMBER_FIRST_REGEX = "/^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z0-9.'\- ]+)/";
 
     /**
      * @param $address
@@ -102,19 +104,17 @@ class Address
     {
         $addressString = implode(' ', $addressArray);
 
-        preg_match(
-            self::HOUSE_NUMBER_REGEX,
-            trim($addressString),
-            $houseNumber,
-            PREG_OFFSET_CAPTURE
-        );
+        // Match addresses where the street name comes first, e.g. John-Paul's Ave. 1 B
+        preg_match(self::STREET_FIRST_REGEX, trim($addressString), $streetFirstAddress);
+        // Match addresses where the house number comes first, e.g. 10 D John-Paul's Ave.
+        preg_match(self::NUMBER_FIRST_REGEX, trim($addressString), $numberFirstAddress);
 
-        if (!empty($houseNumber['0'])) {
-            $_houseNumber = trim($houseNumber['0']['0']);
-            $position = $houseNumber['0']['1'];
-            $streetName = trim(substr($addressString, 0, $position));
-            return $this->formatAddressArray($streetName, $_houseNumber);
+        if (!empty($streetFirstAddress)) {
+            return $this->formatAddressArray($streetFirstAddress['streetName'], $streetFirstAddress['houseNumber']);
+        } elseif (!empty($numberFirstAddress)) {
+            return $this->formatAddressArray($numberFirstAddress['streetName'], $numberFirstAddress['houseNumber']);
         }
+
         return $this->formatAddressArray($addressString, 'N/A');
     }
 
