@@ -154,12 +154,6 @@ class Vault
             );
 
             $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
-
-            if ($this->paymentMethods->isGooglePay($additionalData[self::PAYMENT_METHOD])
-                && !empty($additionalData['paymentMethodVariant'])) {
-                $additionalData[self::PAYMENT_METHOD] = $additionalData['paymentMethodVariant'];
-                $paymentToken->setIsVisible(false);
-            }
         } else {
             $paymentTokenSaveRequired = true;
         }

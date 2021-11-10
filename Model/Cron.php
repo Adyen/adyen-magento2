@@ -1853,8 +1853,6 @@ class Cron
             case 'amex_applepay':
             case 'discover_applepay':
             case 'maestro_applepay':
-            case 'paywithgoogle':
-            case 'googlepay':
             case 'svs':
             case 'givex':
             case 'valuelink':

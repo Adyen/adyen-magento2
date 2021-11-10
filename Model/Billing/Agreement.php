@@ -118,10 +118,6 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         // Billing agreement is CC
         if (isset($data['card']['number'])) {
             $ccType = $data['variant'];
-            if ($this->paymentMethods->isGooglePay($ccType)
-                && !empty($data['paymentMethodVariant'])) {
-                $ccType = $data['paymentMethodVariant'];
-            }
             $ccTypes = $this->adyenHelper->getCcTypesAltData();
 
             if (isset($ccTypes[$ccType])) {
@@ -209,10 +205,6 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         }
         // Billing agreement is CC
         $ccType = $variant = $contractDetail['paymentMethod'];
-        if ($this->isGooglePay($ccType)
-            && !empty($contractDetail['paymentMethodVariant'])) {
-            $ccType = $variant = $contractDetail['paymentMethodVariant'];
-        }
         $ccTypes = $this->adyenHelper->getCcTypesAltData();
 
         if (isset($ccTypes[$ccType])) {

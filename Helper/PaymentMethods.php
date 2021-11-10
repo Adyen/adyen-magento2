@@ -30,9 +30,6 @@ use Magento\Framework\App\Helper\AbstractHelper;
  */
 class PaymentMethods extends AbstractHelper
 {
-    const PAY_WITH_GOOGLE = 'paywithgoogle';
-    const GOOGLE_PAY = 'googlepay';
-
     const METHODS_WITH_BRAND_LOGO = [
         "giftcard"
     ];
@@ -477,7 +474,6 @@ class PaymentMethods extends AbstractHelper
         $walletPaymentMethods = [
             'googlepay',
             'paywithgoogle',
-            'googlepay',
             'wechatpayWeb',
             'amazonpay',
             'applepay',
@@ -486,15 +482,5 @@ class PaymentMethods extends AbstractHelper
             'alipay_hk'
         ];
         return in_array($notificationPaymentMethod, $walletPaymentMethods);
-    }
-
-    /**
-     * @param $paymentMethodType
-     * @return bool
-     */
-    public function isGooglePay($paymentMethodType): bool
-    {
-        return (strpos($paymentMethodType, self::PAY_WITH_GOOGLE) !== false
-            || strpos($paymentMethodType, self::GOOGLE_PAY) !== false);
     }
 }
