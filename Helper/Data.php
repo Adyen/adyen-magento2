@@ -671,16 +671,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Retrieve the decrypted notification password
-     *
-     * @return string
-     */
-    public function getNotificationPassword()
-    {
-        return $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('notification_password')));
-    }
-
-    /**
      * Retrieve the API key
      *
      * @param null|int|string $storeId
