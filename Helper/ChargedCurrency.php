@@ -177,15 +177,11 @@ class ChargedCurrency
             return new AdyenAmountCurrency(
                 $creditMemo->getBaseAdjustment(),
                 $creditMemo->getBaseCurrencyCode(),
-                null,
-                0
             );
         }
         return new AdyenAmountCurrency(
             $creditMemo->getAdjustment(),
-            $creditMemo->getOrderCurrencyCode(),
-            null,
-            0
+            $creditMemo->getOrderCurrencyCode()
         );
     }
 

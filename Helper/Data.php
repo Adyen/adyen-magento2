@@ -1286,9 +1286,10 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Add a line to the openinvoice data containing the details regarding an adjustment in the refund
+     *
      * @param $formFields
      * @param $count
-     * @param $order
      * @param $description
      * @param $adjustmentAmount
      * @param $currency

@@ -310,7 +310,7 @@ class ChargedCurrencyTest extends TestCase
                 'getOrder',
                 'getBaseTaxAmount',
                 'getTaxAmount',
-                'getQty',
+                'getQty'
             ])
             ->getMock();
         $this->mockMethods($this->creditMemoItem,
@@ -511,11 +511,11 @@ class ChargedCurrencyTest extends TestCase
         $this->assertEquals(
             [
                 $expectedResult->getAmount(),
-                $expectedResult->getCurrencyCode(),
+                $expectedResult->getCurrencyCode()
             ],
             [
                 $result->getAmount(),
-                $result->getCurrencyCode(),
+                $result->getCurrencyCode()
             ]
         );
     }

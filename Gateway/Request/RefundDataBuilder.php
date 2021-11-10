@@ -114,7 +114,7 @@ class RefundDataBuilder implements BuilderInterface
                 $orderPaymentCollection->addPaymentFilterDescending($payment->getId());
             } elseif ($refundStrategy == "3") {
                 // refund based on ratio
-                $ratio = $buildSubjectAmount / $amount->getAmount();
+                $ratio = $buildSubjectAmount / $amount;
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
             }
 
@@ -248,7 +248,7 @@ class RefundDataBuilder implements BuilderInterface
         $adjustmentAmountCurrency = $this->chargedCurrency->getCreditMemoAdjustmentAmountCurrency($creditMemo);
         if ($adjustmentAmountCurrency->getAmount() != 0) {
             $positive = $adjustmentAmountCurrency->getAmount() > 0 ? 'Positive' : '';
-            $negative = $adjustmentAmountCurrency->getAmount() > 0 ? 'Negative' : '';
+            $negative = $adjustmentAmountCurrency->getAmount() < 0 ? 'Negative' : '';
             $description = "Adjustment - " . implode(' | ', array_filter([$positive, $negative]));
 
             ++$count;
