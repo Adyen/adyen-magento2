@@ -176,7 +176,7 @@ class ChargedCurrency
         if ($chargedCurrency == self::BASE) {
             return new AdyenAmountCurrency(
                 $creditMemo->getBaseAdjustment(),
-                $creditMemo->getBaseCurrencyCode(),
+                $creditMemo->getBaseCurrencyCode()
             );
         }
         return new AdyenAmountCurrency(
