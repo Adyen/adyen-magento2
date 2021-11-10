@@ -1521,21 +1521,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param null|int|string $storeId
-     * @return string
-     * @deprecated this was being used to load a different version of the Web Components library in the
-     * admin panel, but now the same frontend bundle is also loaded there. Will be removed in 8.0.0
-     */
-    public function getCheckoutCardComponentJs($storeId = null)
-    {
-        if ($this->isDemoMode($storeId)) {
-            return self::CHECKOUT_COMPONENT_JS_TEST;
-        }
-
-        return self::CHECKOUT_COMPONENT_JS_LIVE;
-    }
-
-    /**
      * @param $order
      * @param $additionalData
      */

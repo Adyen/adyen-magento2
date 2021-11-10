@@ -118,16 +118,6 @@ class Cc extends \Magento\Payment\Block\Form\Cc
 
     /**
      * @return string
-     * @deprecated this was being used to load a different version of the Web Components library in the
-     * admin panel, but now the same frontend bundle is also loaded there. Will be removed in 8.0.0
-     */
-    public function getCheckoutCardComponentJs()
-    {
-        return $this->adyenHelper->getCheckoutCardComponentJs($this->checkoutSession->getQuote()->getStore()->getId());
-    }
-
-    /**
-     * @return string
      * @throws \Adyen\AdyenException
      */
     public function getClientKey()
