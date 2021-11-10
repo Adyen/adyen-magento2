@@ -558,34 +558,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Gives back adyen_pay_by_mail configuration values
-     *
-     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-     * @param $field
-     * @param null|int|string $storeId
-     * @return mixed
-     * @deprecated
-     */
-    public function getAdyenPayByMailConfigData($field, $storeId = null)
-    {
-        return $this->getConfigData($field, 'adyen_pay_by_mail', $storeId);
-    }
-
-    /**
-     * Gives back adyen_pay_by_mail configuration values as flag
-     *
-     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-     * @param $field
-     * @param null|int|string $storeId
-     * @return mixed
-     * @deprecated
-     */
-    public function getAdyenPayByMailConfigDataFlag($field, $storeId = null)
-    {
-        return $this->getConfigData($field, 'adyen_pay_by_mail', $storeId, true);
-    }
-
-    /**
      * Gives back adyen_boleto configuration values
      *
      * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
@@ -624,24 +596,6 @@ class Data extends AbstractHelper
                 break;
             default:
                 $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_live', $storeId)));
-                break;
-        }
-        return $secretWord;
-    }
-
-    /**
-     * @param null $storeId
-     * @return string
-     * @deprecated
-     */
-    public function getHmacPayByMail($storeId = null)
-    {
-        switch ($this->isDemoMode($storeId)) {
-            case true:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_test', $storeId)));
-                break;
-            default:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_live', $storeId)));
                 break;
         }
         return $secretWord;
