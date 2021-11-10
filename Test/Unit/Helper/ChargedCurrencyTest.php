@@ -220,7 +220,9 @@ class ChargedCurrencyTest extends TestCase
                 'getBaseShippingTaxAmount',
                 'getBaseCurrencyCode',
                 'getOrderCurrencyCode',
-                'getOrder'
+                'getOrder',
+                'getGrandTotal',
+                'getBaseGrandTotal'
             ])
             ->getMock();
         $this->mockMethods($this->invoice,
@@ -231,7 +233,9 @@ class ChargedCurrencyTest extends TestCase
                 'getBaseShippingAmount' => self::AMOUNT_CURRENCY['base']['amount'],
                 'getBaseShippingTaxAmount' => self::AMOUNT_CURRENCY['base']['taxAmount'],
                 'getShippingAmount' => self::AMOUNT_CURRENCY['display']['amount'],
-                'getShippingTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount']
+                'getShippingTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
+                'getGrandTotal' => self::AMOUNT_CURRENCY['display']['amount'],
+                'getBaseGrandTotal' => self::AMOUNT_CURRENCY['base']['amount']
             ]
         );
 
@@ -517,6 +521,34 @@ class ChargedCurrencyTest extends TestCase
                 $result->getAmount(),
                 $result->getCurrencyCode(),
                 $result->getTaxAmount()
+            ]
+        );
+    }
+
+    /**
+     * @dataProvider amountCurrencyProvider
+     * @param $configValue
+     * @param $expectedResult
+     * @param $orderPlacement
+     * @param $getAdyenChargedCurrency
+     */
+    public function testGetInvoiceAmountCurrency(
+        $configValue,
+        AdyenAmountCurrency $expectedResult,
+        $orderPlacement,
+        $getAdyenChargedCurrency
+    ) {
+        $this->order->method('getAdyenChargedCurrency')->willReturn($getAdyenChargedCurrency);
+        $this->chargedCurrencyHelper = new ChargedCurrency($this->configHelper);
+        $result = $this->chargedCurrencyHelper->getInvoiceAmountCurrency($this->invoice);
+        $this->assertEquals(
+            [
+                $expectedResult->getAmount(),
+                $expectedResult->getCurrencyCode()
+            ],
+            [
+                $result->getAmount(),
+                $result->getCurrencyCode()
             ]
         );
     }
