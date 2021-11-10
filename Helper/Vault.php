@@ -78,25 +78,18 @@ class Vault
      */
     private $paymentTokenRepository;
 
-    /**
-     * @var \Adyen\Payment\Helper\PaymentMethods
-     */
-    private $paymentMethods;
-
     public function __construct(
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
         PaymentTokenManagement $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
-        PaymentTokenRepositoryInterface $paymentTokenRepository,
-        PaymentMethods $paymentMethods
+        PaymentTokenRepositoryInterface $paymentTokenRepository
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
         $this->paymentTokenManagement = $paymentTokenManagement;
         $this->paymentTokenFactory = $paymentTokenFactory;
         $this->paymentTokenRepository = $paymentTokenRepository;
-        $this->paymentMethods = $paymentMethods;
     }
 
     public function saveRecurringDetails($payment, array $additionalData)
