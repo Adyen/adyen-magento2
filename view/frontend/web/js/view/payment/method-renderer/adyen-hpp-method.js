@@ -81,7 +81,7 @@ define(
                 'paypal',
                 'applepay',
                 'paywithgoogle',
-     
+                'googlepay',
                 'amazonpay'
             ],
             initObservable: function() {
