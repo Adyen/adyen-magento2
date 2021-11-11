@@ -135,7 +135,7 @@ class Invoice extends AbstractHelper
                 $pspReference,
                 $order->getIncrementId(),
                 $originalReference,
-                $order->getIncrementId(),
+                $order->getIncrementId()
             ));
         }
 
