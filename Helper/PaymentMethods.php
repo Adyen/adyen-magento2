@@ -151,7 +151,6 @@ class PaymentMethods extends AbstractHelper
     {
         // get quote from quoteId
         $quote = $this->quoteRepository->getActive($quoteId);
-
         // If quote cannot be found early return the empty paymentMethods array
         if (empty($quote)) {
             return [];
@@ -174,14 +173,12 @@ class PaymentMethods extends AbstractHelper
         $store = $quote->getStore();
 
         $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData('merchant_account', $store->getId());
-
         if (!$merchantAccount) {
             return json_encode([]);
         }
 
         $paymentMethodRequest = $this->getPaymentMethodsRequest($merchantAccount, $store, $country, $quote);
         $responseData = $this->getPaymentMethodsResponse($paymentMethodRequest, $store);
-
         if (empty($responseData['paymentMethods'])) {
             return json_encode([]);
         }
