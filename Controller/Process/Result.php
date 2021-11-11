@@ -166,7 +166,7 @@ class Result extends \Magento\Framework\App\Action\Action
                 $successPath = $failPath = 'multishipping/checkout/success';
                 $setQuoteAsActive = true;
             } else {
-                $successPath = 'checkout/onepage/success';
+                $successPath = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
                 $failPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
                 $setQuoteAsActive = false;
             }
@@ -177,7 +177,11 @@ class Result extends \Magento\Framework\App\Action\Action
         if ($result) {
             $session = $this->_session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
-            $this->_redirect($successPath, ['_query' => ['utm_nooverride' => '1']]);
+            // Add OrderIncrementId to redirect parameters for headless support.
+            $redirectParams = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
+                ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->_order->getIncrementId()]]
+                : ['_query' => ['utm_nooverride' => '1']];
+            $this->_redirect($successPath, $redirectParams);
         } else {
             $this->_adyenLogger->addAdyenResult(
                 sprintf(
