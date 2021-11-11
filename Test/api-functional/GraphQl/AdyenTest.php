@@ -154,7 +154,7 @@ QUERY;
         $response = $this->graphQlQuery(
             $query,
             [],
-            '',
+            ''
         );
 
 
