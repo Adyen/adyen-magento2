@@ -1851,7 +1851,7 @@ class Data extends AbstractHelper
 
     /**
      * Parse transactionId to separate PSP reference from suffix.
-     * e.g 882629192021269E-capture => [882629192021269E, -capture]
+     * e.g 882629192021269E-capture --> [pspReference => 882629192021269E, suffix => -capture]
      *
      * @param $transactionId
      * @return mixed
@@ -1864,6 +1864,7 @@ class Data extends AbstractHelper
             $matches
         );
 
+        // Return only the named matches, i.e pspReference & suffix
         return array_filter($matches, function($index) {
             return is_string($index);
         }, ARRAY_FILTER_USE_KEY);
