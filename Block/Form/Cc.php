@@ -192,12 +192,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     public function getFormattedInstallments()
     {
         try {
-            $quote = $this->_appState->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML ?
-                $this->backendCheckoutSession->getQuote() :
-                $this->checkoutSession->getQuote();
-
-            $quoteAmountCurrency = $this->chargedCurrency->getQuoteAmountCurrency($quote);
-
+            $quoteAmountCurrency = $this->getQuoteAmountCurrency();
             return $this->installmentsHelper->formatInstallmentsConfig(
                 $this->adyenHelper->getAdyenCcConfigData('installments',
                     $this->_storeManager->getStore()->getId()
@@ -251,5 +246,40 @@ class Cc extends \Magento\Payment\Block\Form\Cc
             // Suppress exception, assume that risk should be enabled
             return true;
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getAmount()
+    {
+        try {
+            $quoteAmountCurrency = $this->getQuoteAmountCurrency();
+            $value = $quoteAmountCurrency->getAmount();
+            $currency = $quoteAmountCurrency->getCurrencyCode();
+            $amount = array("value" => $value, "currency" => $currency);
+
+            return json_encode($amount);
+
+        } catch (\Throwable $e) {
+            $this->adyenLogger->error(
+                'There was an error fetching the amount for installments config: ' . $e->getMessage()
+            );
+            return '{}';
+        }
+    }
+
+    /**
+     * @return \Adyen\Payment\Model\AdyenAmountCurrency
+     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    protected function getQuoteAmountCurrency(): \Adyen\Payment\Model\AdyenAmountCurrency
+    {
+        $quote = $this->_appState->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML ?
+            $this->backendCheckoutSession->getQuote() :
+            $this->checkoutSession->getQuote();
+
+        return $this->chargedCurrency->getQuoteAmountCurrency($quote);
     }
 }

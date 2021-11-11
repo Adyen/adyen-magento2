@@ -92,6 +92,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                         hasHolderName: true,
                         installmentOptions: <?= /* @noEscape */ $block->getFormattedInstallments();?>,
                         showInstallmentAmounts: true,
+                        amount :<?= /* @noEscape */ $block->getAmount();?>,
                         onChange: function (state) {
                             if (state.isValid) {
                                 $('#adyen-cc-statedata').val(JSON.stringify(state.data));
