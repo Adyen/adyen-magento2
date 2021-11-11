@@ -33,6 +33,7 @@ use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\Component\ComponentRegistrarInterface;
@@ -59,6 +60,17 @@ class Data extends AbstractHelper
     const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/4.5.0/adyen.js';
     const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/4.5.0/adyen.js';
     const PSP_REFERENCE_REGEX = '/(?P<pspReference>[0-9.A-Z]{16})(?P<suffix>[a-z\-]*)/';
+
+    const AFTERPAY = 'afterpay';
+    const AFTERPAY_TOUCH = 'afterpaytouch';
+    const KLARNA = 'klarna';
+    const RATEPAY = 'ratepay';
+    const FACILYPAY = 'facilypay_';
+    const AFFIRM = 'affirm';
+    const CLEARPAY = 'clearpay';
+    const ZIP = 'zip';
+    const PAYBRIGHT = 'paybright';
+
 
     /**
      * @var EncryptorInterface
@@ -659,16 +671,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Retrieve the decrypted notification password
-     *
-     * @return string
-     */
-    public function getNotificationPassword()
-    {
-        return $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('notification_password')));
-    }
-
-    /**
      * Retrieve the API key
      *
      * @param null|int|string $storeId
@@ -985,14 +987,14 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'afterpay') !== false ||
-            strpos($paymentMethod, 'klarna') !== false ||
-            strpos($paymentMethod, 'ratepay') !== false ||
-            strpos($paymentMethod, 'facilypay_') !== false ||
-            strpos($paymentMethod, 'affirm') !== false ||
-            strpos($paymentMethod, 'clearpay') !== false ||
-            strpos($paymentMethod, 'zip') !== false ||
-            strpos($paymentMethod, 'paybright') !== false
+        if (strpos($paymentMethod, self::AFTERPAY) !== false ||
+            strpos($paymentMethod, self::KLARNA) !== false ||
+            strpos($paymentMethod, self::RATEPAY) !== false ||
+            strpos($paymentMethod, self::FACILYPAY) !== false ||
+            strpos($paymentMethod, self::AFFIRM) !== false ||
+            strpos($paymentMethod, self::CLEARPAY) !== false ||
+            strpos($paymentMethod, self::ZIP) !== false ||
+            strpos($paymentMethod, self::PAYBRIGHT) !== false
         ) {
             return true;
         }
@@ -1001,12 +1003,34 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Excludes AfterPay (NL/BE) from the open invoice list.
+     * AfterPay variants should be excluded (not afterpaytouch)as an option for auto capture.
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodOpenInvoiceMethodValidForAutoCapture($paymentMethod)
+    {
+        if (strpos($paymentMethod, self::AFTERPAY_TOUCH) !== false ||
+            strpos($paymentMethod, self::KLARNA) !== false ||
+            strpos($paymentMethod, self::RATEPAY) !== false ||
+            strpos($paymentMethod, self::FACILYPAY) !== false ||
+            strpos($paymentMethod, self::AFFIRM) !== false ||
+            strpos($paymentMethod, self::CLEARPAY) !== false ||
+            strpos($paymentMethod, self::ZIP) !== false ||
+            strpos($paymentMethod, self::PAYBRIGHT) !== false
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+    /**
      * @param $paymentMethod
      * @return bool
      */
     public function isPaymentMethodRatepayMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'ratepay') !== false) {
+        if (strpos($paymentMethod, self::RATEPAY) !== false) {
             return true;
         }
 
@@ -1019,7 +1043,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodAfterpayTouchMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'afterpaytouch') !== false) {
+        if (strpos($paymentMethod, self::AFTERPAY_TOUCH) !== false) {
             return true;
         }
 
@@ -1045,7 +1069,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOneyMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'facilypay_') !== false) {
+        if (strpos($paymentMethod, self::FACILYPAY) !== false) {
             return true;
         }
 
@@ -1081,7 +1105,7 @@ class Data extends AbstractHelper
      */
     public function isVatCategoryHigh($paymentMethod)
     {
-        if ($paymentMethod == "klarna" ||
+        if ($paymentMethod == self::KLARNA ||
             strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_'
         ) {
             return true;
@@ -1461,6 +1485,85 @@ class Data extends AbstractHelper
     private function createAdyenClient()
     {
         return new \Adyen\Client();
+    }
+
+    /**
+     * @param null|int|string $storeId
+     * @return string
+     */
+    public function getOrigin($storeId)
+    {
+        if ( $paymentOriginUrl = $this->getAdyenAbstractConfigData("payment_origin_url", $storeId) ) {
+            return $paymentOriginUrl;
+        }
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $state = $objectManager->get(\Magento\Framework\App\State::class);
+        $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
+        if ('adminhtml' === $state->getAreaCode()) {
+            $baseUrl = $this->helperBackend->getHomePageUrl();
+        }
+        $parsed = parse_url($baseUrl);
+        $origin = $parsed['scheme'] . "://" . $parsed['host'];
+        if (!empty($parsed['port'])) {
+            $origin .= ":" . $parsed['port'];
+        }
+        return $origin;
+    }
+
+    /**
+     * Retrieve origin keys for platform's base url
+     *
+     * @return string
+     * @throws \Adyen\AdyenException
+     * @deprecared please use getClientKey instead
+     */
+    public function getOriginKeyForBaseUrl()
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        $origin = $this->getOrigin($storeId);
+        $cacheKey = 'Adyen_origin_key_for_' . $origin . '_' . $storeId;
+
+        if (!$originKey = $this->cache->load($cacheKey)) {
+            if ($originKey = $this->getOriginKeyForOrigin($origin, $storeId)) {
+                $this->cache->save($originKey, $cacheKey, [ConfigCache::CACHE_TAG], 60 * 60 * 24);
+            }
+        }
+
+        return $originKey;
+    }
+
+    /**
+     * Get origin key for a specific origin using the adyen api library client
+     *
+     * @param $origin
+     * @param null|int|string $storeId
+     * @return string
+     * @throws \Adyen\AdyenException
+     */
+    private function getOriginKeyForOrigin($origin, $storeId = null)
+    {
+        $params = [
+            "originDomains" => [
+                $origin
+            ]
+        ];
+
+        $client = $this->initializeAdyenClient($storeId);
+
+        try {
+            $service = $this->createAdyenCheckoutUtilityService($client);
+            $response = $service->originKeys($params);
+        } catch (\Exception $e) {
+            $this->adyenLogger->error($e->getMessage());
+        }
+
+        $originKey = "";
+
+        if (!empty($response['originKeys'][$origin])) {
+            $originKey = $response['originKeys'][$origin];
+        }
+
+        return $originKey;
     }
 
     /**

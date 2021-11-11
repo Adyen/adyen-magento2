@@ -35,6 +35,10 @@ class PaymentMethods extends AbstractHelper
         "giftcard"
     ];
 
+    const METHODS_WITH_LOGO_FILE_MAPPING = [
+        "scheme" => "card"
+    ];
+
     /**
      * @var \Magento\Quote\Api\CartRepositoryInterface
      */
@@ -147,7 +151,6 @@ class PaymentMethods extends AbstractHelper
     {
         // get quote from quoteId
         $quote = $this->quoteRepository->getActive($quoteId);
-
         // If quote cannot be found early return the empty paymentMethods array
         if (empty($quote)) {
             return [];
@@ -170,14 +173,12 @@ class PaymentMethods extends AbstractHelper
         $store = $quote->getStore();
 
         $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData('merchant_account', $store->getId());
-
         if (!$merchantAccount) {
             return json_encode([]);
         }
 
         $paymentMethodRequest = $this->getPaymentMethodsRequest($merchantAccount, $store, $country, $quote);
         $responseData = $this->getPaymentMethodsResponse($paymentMethodRequest, $store);
-
         if (empty($responseData['paymentMethods'])) {
             return json_encode([]);
         }
@@ -402,6 +403,10 @@ class PaymentMethods extends AbstractHelper
             $paymentMethodCode = in_array($paymentMethod['type'], self::METHODS_WITH_BRAND_LOGO)
                 ? $paymentMethod['brand']
                 : $paymentMethod['type'];
+
+            $paymentMethodCode = !empty(self::METHODS_WITH_LOGO_FILE_MAPPING[$paymentMethod['type']])
+                ? self::METHODS_WITH_LOGO_FILE_MAPPING[$paymentMethod['type']]
+                : $paymentMethodCode;
 
             $asset = $this->assetRepo->createAsset(
                 'Adyen_Payment::images/logos/' .

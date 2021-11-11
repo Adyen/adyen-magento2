@@ -662,7 +662,6 @@
                 <item name="payment_details" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentsDetailsHandler</item>
                 <item name="vault_details" xsi:type="string">Adyen\Payment\Gateway\Response\VaultDetailsHandler</item>
                 <item name="payment_comments" xsi:type="string">Adyen\Payment\Gateway\Response\CheckoutPaymentCommentHistoryHandler</item>
-                <item name="state_data_cleanup" xsi:type="string">Adyen\Payment\Gateway\Response\StateDataCleanupHandler</item>
             </argument>
         </arguments>
     </virtualType>
