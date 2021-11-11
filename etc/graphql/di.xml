@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\QuoteGraphQl\Model\Cart\Payment\AdditionalDataProviderPool">
+        <arguments>
+            <argument name="dataProviders" xsi:type="array">
+                <item name="adyen_boleto" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenBoleto</item>
+                <item name="adyen_cc" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenCc</item>
+                <item name="adyen_hpp" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenHpp</item>
+                <item name="adyen_oneclick" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenOneclick</item>
+                <item name="adyen_pos_cloud" xsi:type="object">Adyen\Payment\Model\Cart\Payment\AdditionalDataProvider\AdyenPosCloud</item>
+            </argument>
+        </arguments>
+    </type>
+</config>
