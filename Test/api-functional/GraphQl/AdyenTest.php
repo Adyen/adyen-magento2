@@ -63,7 +63,7 @@ QUERY;
         $response = $this->graphQlQuery(
             $query,
             [],
-            '',
+            ''
         );
 
         $this->assertArrayHasKey('adyenPaymentMethods', $response);
