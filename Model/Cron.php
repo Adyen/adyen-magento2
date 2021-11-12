@@ -2122,6 +2122,10 @@ class Cron
                 if ($fraudManualReviewStatus != "") {
                     $status = $fraudManualReviewStatus;
                     $comment = "Adyen Payment is in Manual Review check the Adyen platform";
+                    //if the order requires the manual review, it is not possible to set the order in process because the
+                    //$fraudManualReviewStatus is a status assigned to NEW state.
+                    //see https://github.com/Adyen/adyen-magento2/issues/1236
+                    $this->_order->setIsInProcess(false);
                 }
             }
 
