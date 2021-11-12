@@ -182,7 +182,24 @@ class InvoiceTest extends TestCase
         $this->assertInstanceOf(AdyenInvoiceModel::class, $result);
     }
 
-    private function getMockInvoiceCollection($originalReference, $updateAll = false): array
+    public function testGetLinkedInvoiceToCaptureNotification()
+    {
+        $reference = 'ACDC4321WXYZ0123';
+        $linkedInvoiceIndex = 1;
+        $invoiceCollection = $this->getMockInvoiceCollection($reference, false, $linkedInvoiceIndex);
+        $this->mockMethods($this->order, [
+            'getInvoiceCollection' => $invoiceCollection
+        ]);
+        $this->mockMethods($this->notification, [
+            'getOriginalReference' => $reference,
+        ]);
+
+        $result = $this->invoiceHelper->getLinkedInvoiceToCaptureNotification($this->order, $this->notification);
+
+        $this->assertEquals($result, $invoiceCollection[$linkedInvoiceIndex]);
+    }
+
+    private function getMockInvoiceCollection($originalReference, $linkAll = false, $linkedIndex = null): array
     {
         $invoice = $this->getMockBuilder(Order\Invoice::class)
             ->disableOriginalConstructor()
@@ -191,6 +208,7 @@ class InvoiceTest extends TestCase
         $collection = [];
         $invoiceModelStates = [Order\Invoice::STATE_OPEN, Order\Invoice::STATE_PAID];
         $firstInvoiceUpdated = false;
+        $index = 0;
         foreach ($invoiceModelStates as $state) {
             foreach ([true, false] as $wasPayCalled) {
                 $clone = clone $invoice;
@@ -198,7 +216,13 @@ class InvoiceTest extends TestCase
                     'getState' => $state,
                     'wasPayCalled' => $wasPayCalled
                 ]);
-                if ($updateAll) {
+                if (is_int($linkedIndex)) {
+                    if ($index === $linkedIndex) {
+                        $this->mockMethods($clone, [
+                            'getTransactionId' => $originalReference
+                        ]);
+                    }
+                } elseif ($linkAll) {
                     $this->mockMethods($clone, [
                         'getTransactionId' => $originalReference
                     ]);
@@ -208,6 +232,7 @@ class InvoiceTest extends TestCase
                     ]);
                     $firstInvoiceUpdated = true;
                 }
+                $index++;
                 $collection[] = $clone;
             }
         }

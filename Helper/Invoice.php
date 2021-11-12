@@ -195,14 +195,14 @@ class Invoice extends AbstractHelper
      * and the invoice pspReference
      *
      * @param Order $order
-     * @param Notification $captureNot
+     * @param Notification $capture
      * @return InvoiceModel|null
      */
-    public function getLinkedInvoiceToCaptureNotification(Order $order, Notification $captureNot): ?InvoiceModel
+    public function getLinkedInvoiceToCaptureNotification(Order $order, Notification $capture): ?InvoiceModel
     {
         $returnInvoice = null;
         $invoiceCollection = $order->getInvoiceCollection();
-        $originalReference = $captureNot->getOriginalReference();
+        $originalReference = $capture->getOriginalReference();
 
         foreach ($invoiceCollection as $invoice) {
             $parsedTransId = $this->adyenDataHelper->parseTransactionId($invoice->getTransactionId());
