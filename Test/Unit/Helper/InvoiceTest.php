@@ -26,6 +26,7 @@ namespace Adyen\Payment\Tests\Helper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Invoice as AdyenInvoiceModel;
 use Adyen\Payment\Model\InvoiceFactory;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\ResourceModel\Invoice\Invoice as AdyenInvoiceResourceModel;
@@ -39,7 +40,7 @@ use PHPUnit\Framework\TestCase;
 class InvoiceTest extends TestCase
 {
     /**
-     * @var Context|\PHPUnit\Framework\MockObject\MockObject
+     * @var Context|MockObject
      */
     protected $contextMock;
     /**
@@ -55,9 +56,17 @@ class InvoiceTest extends TestCase
      */
     private $order;
     /**
-     * @var Data|MockObject
+     * @var Order\Invoice|MockObject
      */
-    private $mockDataHelper;
+    private $invoice;
+    /**
+     * @var InvoiceFactory|MockObject
+     */
+    private $mockAdyenInvoiceFactory;
+    /**
+     * @var AdyenInvoiceModel|MockObject
+     */
+    private $adyenInvoice;
 
     protected function setUp(): void
     {
@@ -67,17 +76,19 @@ class InvoiceTest extends TestCase
         $mockLogger = $this->getMockBuilder(AdyenLogger::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->mockDataHelper = $this->getMockBuilder(Data::class)
+        $mockDataHelper = $this->getMockBuilder(Data::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->mockDataHelper->method('parseTransactionId')->willReturnCallback(function ($arg) {
+        $mockDataHelper->method('parseTransactionId')->willReturnCallback(function ($arg) {
             return ['pspReference' => $arg];
         });
         $mockInvoiceResourceModel = $this->getMockBuilder(InvoiceResourceModel::class)
             ->disableOriginalConstructor()
+            ->setMethods(['save'])
             ->getMock();
-        $mockAdyenInvoiceFactory = $this->getMockBuilder(InvoiceFactory::class)
+        $this->mockAdyenInvoiceFactory = $this->getMockBuilder(InvoiceFactory::class)
             ->disableOriginalConstructor()
+            ->setMethods(['create'])
             ->getMock();
         $mockAdyenInvoiceResourceModel = $this->getMockBuilder(AdyenInvoiceResourceModel::class)
             ->disableOriginalConstructor()
@@ -88,19 +99,27 @@ class InvoiceTest extends TestCase
         $this->invoiceHelper = new Invoice(
             $contextMock,
             $mockLogger,
-            $this->mockDataHelper,
+            $mockDataHelper,
             $mockInvoiceResourceModel,
-            $mockAdyenInvoiceFactory,
+            $this->mockAdyenInvoiceFactory,
             $mockAdyenInvoiceResourceModel,
             $mockOrderPaymentResourceModel
         );
 
         $this->notification = $this->getMockBuilder(Notification::class)
             ->disableOriginalConstructor()
-            ->setMethods(['getPspreference', 'getOriginalReference'])
+            ->setMethods(['getPspreference', 'getOriginalReference', 'getAdditionalData'])
             ->getMock();
         $this->order = $this->getMockBuilder(Order::class)
-            ->disableOriginalConstructor()->getMock();
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->invoice = $this->getMockBuilder(Order\Invoice::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getTransactionId', 'getState', 'wasPayCalled', 'pay', 'getEntityId'])
+            ->getMock();
+        $this->adyenInvoice = $this->getMockBuilder(AdyenInvoiceModel::class)
+            ->disableOriginalConstructor()
+            ->getMock();
     }
 
     /**
@@ -120,7 +139,7 @@ class InvoiceTest extends TestCase
         $this->assertEquals($numberOfFinalizedInvoices, count($result));
     }
 
-    public function finalizeInvoiceDataProvider()
+    public function finalizeInvoiceDataProvider(): array
     {
         return [
             [
@@ -136,11 +155,37 @@ class InvoiceTest extends TestCase
         ];
     }
 
+    public function testCreateAdyenInvoice()
+    {
+        $invoiceId = 1;
+        $additionalData = ['additional_data' => 'xxxxyyyyzzzz'];
+        $pspReference = 'ABCD0987EFGH6543';
+        $originalReference = '1234ZXCV5678FGHJ';
+        $notification = clone $this->notification;
+        $this->mockMethods($notification, [
+            'getAdditionalData' => $additionalData,
+            'getPspreference' => $pspReference,
+            'getOriginalReference' => $originalReference,
+        ]);
+        $invoice = clone $this->invoice;
+        $this->mockMethods($invoice, [
+            'getEntityId' => $invoiceId
+        ]);
+        $adyenInvoice = clone $this->adyenInvoice;
+        $adyenInvoice->expects($this->once())->method('setInvoiceId')->with($invoiceId);
+        $adyenInvoice->expects($this->once())->method('setPspreference')->with($pspReference);
+        $adyenInvoice->expects($this->once())->method('setOriginalReference')->with($originalReference);
+        $adyenInvoice->expects($this->once())->method('setAcquirerReference')->with($additionalData['additional_data']);
+        $this->mockMethods($this->mockAdyenInvoiceFactory, ['create' => $adyenInvoice]);
+        $result = $this->invoiceHelper->createAdyenInvoice($this->order, $notification, $invoice);
+
+        $this->assertInstanceOf(AdyenInvoiceModel::class, $result);
+    }
+
     private function getMockInvoiceCollection($originalReference, $updateAll = false): array
     {
         $invoice = $this->getMockBuilder(Order\Invoice::class)
             ->disableOriginalConstructor()
-            ->setMethods(['getTransactionId', 'getState', 'wasPayCalled', 'pay', 'getEntityId'])
             ->getMock();
 
         $collection = [];
