@@ -946,9 +946,6 @@
                 <item name="payment/adyen_pos_cloud/api_key_test" xsi:type="string">1</item>
                 <item name="payment/adyen_pos_cloud/api_key_live" xsi:type="string">1</item>
                 <item name="payment/adyen_pos_cloud/pos_store_id" xsi:type="string">1</item>
-                <item name="payment/adyen_pay_by_mail/skin_code" xsi:type="string">1</item>
-                <item name="payment/adyen_pay_by_mail/hmac_test" xsi:type="string">1</item>
-                <item name="payment/adyen_pay_by_mail/hmac_live" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/notification_hmac_key_test" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/notification_hmac_key_live" xsi:type="string">1</item>
             </argument>
