@@ -6,6 +6,11 @@
                 <resource id="Magento_Backend::system">
                     <resource id="Adyen_Payment::adyen" title="Adyen" translate="title" sortOrder="10">
                         <resource id="Adyen_Payment::notifications_overview" title="Notifications Overview" translate="title" sortOrder="10"/>
+                        <resource id="Adyen_Payment::guestPaymentMethods" title="Get payment methods for guest shoppers" sortOrder="20" />
+                        <resource id="Adyen_Payment::paymentMethods" title="Get payment methods for logged-in shoppers" sortOrder="30" />
+                        <resource id="Adyen_Payment::paymentDetails" title="Submit details for a payment" sortOrder="40" />
+                        <resource id="Adyen_Payment::stateData" title="Send state data in a seperate request" sortOrder="50" />
+                        <resource id="Adyen_Payment::paymentStatus" title="Get order payment status" sortOrder="50" />
                     </resource>
                 </resource>
             </resource>
