@@ -142,23 +142,6 @@
                 <recurring_type>NONE</recurring_type>
                 <group>adyen</group>
             </adyen_pos_cloud>
-            <adyen_pay_by_mail>
-                <active>0</active>
-                <model>AdyenPaymentPayByMailFacade</model>
-                <order_status>pending</order_status>
-                <payment_action>order</payment_action>
-                <is_gateway>1</is_gateway>
-                <can_use_checkout>0</can_use_checkout>
-                <can_initialize>1</can_initialize>
-                <can_capture>1</can_capture>
-                <can_capture_partial>1</can_capture_partial>
-                <can_use_internal>1</can_use_internal>
-                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
-                <can_refund>1</can_refund>
-                <can_void>1</can_void>
-                <can_cancel>1</can_cancel>
-                <group>adyen</group>
-            </adyen_pay_by_mail>
             <adyen_pay_by_link>
                 <active>0</active>
                 <model>AdyenPaymentPayByLinkFacade</model>
