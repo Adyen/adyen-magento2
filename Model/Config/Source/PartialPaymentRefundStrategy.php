@@ -15,32 +15,37 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2018 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-/** @var \Adyen\Payment\Block\Info\PaymentLink $block */
-?>
-<br/>
-<div class="admin__page-section-item-title">
-    <span class="title"><?= $block->escapeHtml(__('Adyen Payment Link')); ?></span>
-</div>
-<p id="paymentlink"></p>
-<a href="<?= $block->escapeHtml($block->getPaymentLinkUrl()); ?>"
-   onclick="copyToClipboard(event, '<?= $block->escapeHtml($block->getPaymentLinkUrl()); ?>')"
-   style="cursor:pointer;">
-    <?= $block->escapeHtml(__('Copy payment link to clipboard')); ?>
-</a>
+namespace Adyen\Payment\Model\Config\Source;
 
-<script type="text/javascript">
-    function copyToClipboard(e, text) {
-        e.preventDefault();
-        var $temp = jQuery("<input>");
-        jQuery("body").append($temp);
-        $temp.val(text).select();
-        document.execCommand("copy");
-        $temp.remove();
+class PartialPaymentRefundStrategy implements \Magento\Framework\Option\ArrayInterface
+{
+    const REFUND_FIRST_PAYEMENT_FIRST = 1;
+    const REFUND_LAST_PAYEMENT_FIRST = 2;
+    const REFUND_ON_RATIO = 3;
+
+    /**
+     * @return array
+     */
+    public function toOptionArray()
+    {
+        return $this->getPartialPaymentRefundStrategies();
     }
-</script>
+
+    /**
+     * @return array
+     */
+    private function getPartialPaymentRefundStrategies()
+    {
+        return [
+            self::REFUND_FIRST_PAYEMENT_FIRST => __('Refund from first payment first'),
+            self::REFUND_LAST_PAYEMENT_FIRST => 'Refund from last payment first',
+            self::REFUND_ON_RATIO => __('refund based on ratio')
+        ];
+    }
+}

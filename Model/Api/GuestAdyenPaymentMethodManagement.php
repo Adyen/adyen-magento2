@@ -21,7 +21,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model;
+namespace Adyen\Payment\Model\Api;
 
 class GuestAdyenPaymentMethodManagement implements \Adyen\Payment\Api\GuestAdyenPaymentMethodManagementInterface
 {
