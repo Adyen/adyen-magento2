@@ -26,8 +26,8 @@
     <system>
         <section id="payment" translate="label" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
             <group id="adyen_group_all_in_one" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Adyen All-in-One Payment Solutions</label>
-                <comment><![CDATA[Adyen All-in-One Payment Solutions]]></comment>
+                <label>Adyen Payments</label>
+                <comment><![CDATA[Adyen Payments]]></comment>
                 <attribute type="expanded">1</attribute>
                 <fieldset_css>complex</fieldset_css>
                 <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
