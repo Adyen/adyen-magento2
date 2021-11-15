@@ -1540,7 +1540,7 @@ class Cron
         );
 
         // If manual review is NOT active OR no custom status is set on the Adyen config page
-        if ($this->_fraudManualReview != true || $fraudManualReviewStatus == "") {
+        if (!$this->_fraudManualReview || $fraudManualReviewStatus == "") {
             if ($isTotalAmountAuthorised) {
                 $this->_setPrePaymentAuthorized();
             } else {
@@ -2117,7 +2117,7 @@ class Cron
             $comment = "Adyen Payment Successfully completed";
 
             // If manual review is true AND manual review status is set
-            if ($manualReviewComment == true && $this->_fraudManualReview) {
+            if ($manualReviewComment && $this->_fraudManualReview) {
                 // check if different status is selected
                 $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
                 if ($fraudManualReviewStatus != "") {

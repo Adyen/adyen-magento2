@@ -58,10 +58,10 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         \Magento\Payment\Helper\Data $paymentData,
         \Magento\Paypal\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementFactory,
         \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateFactory,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         \Adyen\Payment\Helper\PaymentMethods $paymentMethods,
-        array $data = []
+        array $data = [],
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null
     ) {
         parent::__construct(
             $context,
@@ -69,9 +69,9 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
             $paymentData,
             $billingAgreementFactory,
             $dateFactory,
+            $data,
             $resource,
-            $resourceCollection,
-            $data
+            $resourceCollection
         );
 
         $this->adyenHelper = $adyenHelper;
