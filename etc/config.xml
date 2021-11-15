@@ -33,7 +33,7 @@
                 <debug>1</debug>
                 <title_renderer>title_image</title_renderer>
                 <sepa_flow>sale</sepa_flow>
-                <split_payments_refund_strategy>1</split_payments_refund_strategy>
+                <partial_payments_refund_strategy>1</partial_payments_refund_strategy>
                 <return_path>checkout/cart</return_path>
                 <group>adyen</group>
                 <notifications_can_cancel>1</notifications_can_cancel>
