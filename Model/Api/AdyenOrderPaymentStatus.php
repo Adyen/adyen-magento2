@@ -15,14 +15,14 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2020 Adyen B.V.
+ * Copyright (c) 2021 Adyen B.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model;
+namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenOrderPaymentStatusInterface;
 use Adyen\Payment\Helper\Data;

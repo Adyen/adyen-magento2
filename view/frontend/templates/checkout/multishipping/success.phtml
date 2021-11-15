@@ -162,7 +162,6 @@ script;
             function handleAdyenResult(responseJSON, orderId) {
                 var self = this;
                 var response = JSON.parse(responseJSON);
-                debugger;
                 let buttonLabel;
                 if (!!response.isFinal && response.resultCode === 'Authorised') {
                     buttonLabel = "<?= $block->escapeHtml($block->getPaymentCompletedLabel()) ?>";
