@@ -118,16 +118,6 @@ class Cc extends \Magento\Payment\Block\Form\Cc
 
     /**
      * @return string
-     * @deprecated this was being used to load a different version of the Web Components library in the
-     * admin panel, but now the same frontend bundle is also loaded there. Will be removed in 8.0.0
-     */
-    public function getCheckoutCardComponentJs()
-    {
-        return $this->adyenHelper->getCheckoutCardComponentJs($this->checkoutSession->getQuote()->getStore()->getId());
-    }
-
-    /**
-     * @return string
      * @throws \Adyen\AdyenException
      */
     public function getClientKey()
@@ -202,12 +192,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     public function getFormattedInstallments()
     {
         try {
-            $quote = $this->_appState->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML ?
-                $this->backendCheckoutSession->getQuote() :
-                $this->checkoutSession->getQuote();
-
-            $quoteAmountCurrency = $this->chargedCurrency->getQuoteAmountCurrency($quote);
-
+            $quoteAmountCurrency = $this->getQuoteAmountCurrency();
             return $this->installmentsHelper->formatInstallmentsConfig(
                 $this->adyenHelper->getAdyenCcConfigData('installments',
                     $this->_storeManager->getStore()->getId()
@@ -261,5 +246,40 @@ class Cc extends \Magento\Payment\Block\Form\Cc
             // Suppress exception, assume that risk should be enabled
             return true;
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getAmount()
+    {
+        try {
+            $quoteAmountCurrency = $this->getQuoteAmountCurrency();
+            $value = $quoteAmountCurrency->getAmount();
+            $currency = $quoteAmountCurrency->getCurrencyCode();
+            $amount = array("value" => $value, "currency" => $currency);
+
+            return json_encode($amount);
+
+        } catch (\Throwable $e) {
+            $this->adyenLogger->error(
+                'There was an error fetching the amount for installments config: ' . $e->getMessage()
+            );
+            return '{}';
+        }
+    }
+
+    /**
+     * @return \Adyen\Payment\Model\AdyenAmountCurrency
+     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    protected function getQuoteAmountCurrency(): \Adyen\Payment\Model\AdyenAmountCurrency
+    {
+        $quote = $this->_appState->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML ?
+            $this->backendCheckoutSession->getQuote() :
+            $this->checkoutSession->getQuote();
+
+        return $this->chargedCurrency->getQuoteAmountCurrency($quote);
     }
 }

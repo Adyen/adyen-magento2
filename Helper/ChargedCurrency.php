@@ -192,7 +192,7 @@ class ChargedCurrency
     }
 
     /**
-     * @param \Magento\Sales\Model\Order\Invoice $invoice
+     * @param Invoice $invoice
      * @return AdyenAmountCurrency
      */
     public function getInvoiceShippingAmountCurrency(Invoice $invoice)
@@ -212,5 +212,25 @@ class ChargedCurrency
             null,
             $invoice->getShippingTaxAmount()
         );
+    }
+
+    /**
+     * @param Invoice $invoice
+     * @return AdyenAmountCurrency
+     */
+    public function getInvoiceAmountCurrency(Invoice $invoice)
+    {
+        $chargedCurrency = $invoice->getOrder()->getAdyenChargedCurrency();
+        if ($chargedCurrency == self::BASE) {
+            return new AdyenAmountCurrency(
+                $invoice->getBaseGrandTotal(),
+                $invoice->getBaseCurrencyCode()
+            );
+        }
+        return new AdyenAmountCurrency(
+            $invoice->getGrandTotal(),
+            $invoice->getOrderCurrencyCode()
+        );
+
     }
 }
