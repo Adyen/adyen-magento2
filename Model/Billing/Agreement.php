@@ -33,11 +33,6 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
     private $adyenHelper;
 
     /**
-     * @var \Adyen\Payment\Helper\PaymentMethods
-     */
-    private $paymentMethods;
-
-    /**
      * Agreement constructor.
      *
      * @param \Adyen\Payment\Helper\Data $adyenHelper
@@ -48,7 +43,6 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
      * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateFactory
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
-     * @param \Adyen\Payment\Helper\PaymentMethods
      * @param array $data
      */
     public function __construct(
@@ -58,7 +52,6 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         \Magento\Payment\Helper\Data $paymentData,
         \Magento\Paypal\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementFactory,
         \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateFactory,
-        \Adyen\Payment\Helper\PaymentMethods $paymentMethods,
         array $data = [],
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null
@@ -75,7 +68,6 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         );
 
         $this->adyenHelper = $adyenHelper;
-        $this->paymentMethods = $paymentMethods;
     }
 
     /**
