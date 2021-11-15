@@ -33,19 +33,8 @@
                 <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
                 <include path="Adyen_Payment::system/adyen_getting_started.xml"/>
                 <include path="Adyen_Payment::system/adyen_required_settings.xml"/>
-                <include path="Adyen_Payment::system/adyen_advanced_order_processing.xml"/>
-                <include path="Adyen_Payment::system/adyen_advanced_notifications.xml"/>
-                <include path="Adyen_Payment::system/adyen_checkout_experience.xml"/>
-                <include path="Adyen_Payment::system/adyen_manual_review.xml"/>
-                <include path="Adyen_Payment::system/adyen_partial_payment.xml"/>
-                <include path="Adyen_Payment::system/adyen_security.xml"/>
-                <include path="Adyen_Payment::system/adyen_cc.xml"/>
-                <include path="Adyen_Payment::system/adyen_oneclick.xml"/>
-                <include path="Adyen_Payment::system/adyen_hpp.xml"/>
-                <include path="Adyen_Payment::system/adyen_pos_cloud.xml"/>
-                <include path="Adyen_Payment::system/adyen_pay_by_link.xml"/>
-                <include path="Adyen_Payment::system/adyen_boleto.xml"/>
-                <include path="Adyen_Payment::system/adyen_pwa.xml"/>
+                <include path="Adyen_Payment::system/adyen_configure_payment_methods.xml"/>
+                <include path="Adyen_Payment::system/adyen_advanced_settings.xml"/>
             </group>
         </section>
     </system>
