@@ -40,7 +40,7 @@ class AdyenOrderPaymentTest extends TestCase
     /**
      * @var AdyenOrderPayment
      */
-    private $adyenOrderPayment;
+    private $adyenOrderPaymentHelper;
     /**
      * @var Payment|\PHPUnit\Framework\MockObject\MockObject
      */
@@ -78,7 +78,7 @@ class AdyenOrderPaymentTest extends TestCase
             ->disableOriginalConstructor()
             ->setMethods(['create'])
             ->getMock();
-        $this->adyenOrderPayment = new AdyenOrderPayment(
+        $this->adyenOrderPaymentHelper = new AdyenOrderPayment(
             $mockContext,
             $mockLogger,
             $mockAdyenOrderPaymentCollection,
@@ -101,7 +101,7 @@ class AdyenOrderPaymentTest extends TestCase
         $payment = $this->getMockBuilder(Order\Payment::class)->disableOriginalConstructor()->getMock();
         $order->method('getPayment')->willReturn($payment);
         $this->mockOrderPaymentResourceModel->method('getLinkedAdyenOrderPayments')->willReturn($orderPayments);
-        $result = $this->adyenOrderPayment->hasOrderPaymentWithCaptureStatus($order, $status);
+        $result = $this->adyenOrderPaymentHelper->hasOrderPaymentWithCaptureStatus($order, $status);
 
         $this->assertEquals($result, $expectedResult);
     }
@@ -184,7 +184,7 @@ class AdyenOrderPaymentTest extends TestCase
         $adyenOrderPayment->expects($this->once())->method('setPaymentId')->with($paymentId);
         $adyenOrderPayment->expects($this->once())->method('setCaptureStatus')->with(AdyenPaymentModel::CAPTURE_STATUS_AUTO_CAPTURE);
         $adyenOrderPayment->expects($this->once())->method('setAmount')->with($amount);
-        $result = $this->adyenOrderPayment->createAdyenOrderPayment($order, $notification, true);
+        $result = $this->adyenOrderPaymentHelper->createAdyenOrderPayment($order, $notification, true);
         $this->assertInstanceOf(AdyenPaymentModel::class, $result);
     }
 }
