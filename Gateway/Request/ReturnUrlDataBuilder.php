@@ -23,9 +23,8 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
-use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\BaseUrlHelper;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\UrlInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -35,35 +34,27 @@ use Magento\Store\Model\StoreManagerInterface;
 class ReturnUrlDataBuilder implements BuilderInterface
 {
     /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
      * @var StoreManagerInterface
      */
     private $storeManager;
 
     /**
-     * @var UrlInterface
+     * @var BaseUrlHelper
      */
-    private $url;
+    private $baseUrlHelper;
 
     /**
      * CheckoutDataBuilder constructor.
      *
-     * @param Data $adyenHelper
+     * @param BaseUrlHelper $baseUrlHelper
      * @param StoreManagerInterface $storeManager
-     * @param UrlInterface $url
      */
     public function __construct(
-        Data $adyenHelper,
-        StoreManagerInterface $storeManager,
-        UrlInterface $url
+        BaseUrlHelper $baseUrlHelper,
+        StoreManagerInterface $storeManager
     ) {
-        $this->adyenHelper = $adyenHelper;
+        $this->baseUrlHelper = $baseUrlHelper;
         $this->storeManager = $storeManager;
-        $this->url = $url;
     }
 
     /**
@@ -79,16 +70,9 @@ class ReturnUrlDataBuilder implements BuilderInterface
         /** @var Order $order */
         $order = $payment->getOrder();
 
-        $pwaOrigin = $this->adyenHelper->getAdyenAbstractConfigData(
-            "payment_origin_url",
-            $this->storeManager->getStore()->getId()
-        );
-
-        if ($pwaOrigin) {
-            $returnUrl = rtrim($pwaOrigin, '/') . '/adyen/process/result?merchantReference=' . $order->getIncrementId();
-        } else {
-            $returnUrl = $this->url->getUrl("adyen/process/result", ['merchantReference' => $order->getIncrementId()]);
-        }
+        $returnUrl = rtrim(
+                $this->baseUrlHelper->getStoreBaseUrl($this->storeManager->getStore()->getId()), '/'
+            ) . '/adyen/process/result?merchantReference=' . $order->getIncrementId();
 
         $requestBody['body']['returnUrl'] = $returnUrl;
 

@@ -75,17 +75,12 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
 
     /**
      * @param string $orderId
-     * @param string $shopperEmail
      * @return bool|string
      */
-    public function getOrderPaymentStatus($orderId, $shopperEmail)
+    public function getOrderPaymentStatus($orderId)
     {
         try {
             $order = $this->orderRepository->get($orderId);
-            // Validate shopper email against order email for extra security.
-            if ($shopperEmail !== $order->getCustomerEmail()) {
-                throw new NoSuchEntityException();
-            }
         } catch (NoSuchEntityException $exception) {
             $this->adyenLogger->addError('Order not found.');
             return json_encode(

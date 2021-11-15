@@ -38,9 +38,8 @@ interface InternalAdyenOrderPaymentStatusInterface
      * Handle the internal request by checking if it is internal and then calling the original interface
      *
      * @param string $orderId
-     * @param string $shopperEmail
      * @param string $formKey
      * @return PaymentDetailsInterface
      */
-    public function handleInternalRequest($orderId, $shopperEmail, $formKey);
+    public function handleInternalRequest($orderId, $formKey);
 }

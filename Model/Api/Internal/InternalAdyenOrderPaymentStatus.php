@@ -67,10 +67,10 @@ class InternalAdyenOrderPaymentStatus extends AbstractInternalApiController impl
      * {@inheritDoc}
      * @throws AdyenException
      */
-    public function handleInternalRequest($orderId, $shopperEmail, $formKey)
+    public function handleInternalRequest($orderId, $formKey)
     {
         $this->validateInternalRequest($formKey);
 
-        return $this->adyenOrderPaymentStatus->getOrderPaymentStatus($orderId, $shopperEmail);
+        return $this->adyenOrderPaymentStatus->getOrderPaymentStatus($orderId);
     }
 }
