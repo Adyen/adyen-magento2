@@ -22,17 +22,18 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model;
+namespace Adyen\Payment\Model\Api;
 
 use Adyen\Payment\Api\AdyenStateDataInterface;
-use Adyen\Payment\Api\Data\StateDataInterface;
+use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
+use Adyen\Payment\Model\StateData;
+use Adyen\Payment\Model\StateDataFactory;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 
 class AdyenStateData implements AdyenStateDataInterface
 {
-
     /**
      * @var CheckoutStateDataValidator
      */
@@ -44,14 +45,14 @@ class AdyenStateData implements AdyenStateDataInterface
     private $stateDataFactory;
 
     /**
-     * @var ResourceModel\StateData
+     * @var StateDataResourceModel
      */
     private $stateDataResourceModel;
 
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         StateDataFactory $stateDataFactory,
-        ResourceModel\StateData $stateDataResourceModel
+        StateDataResourceModel $stateDataResourceModel
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataFactory = $stateDataFactory;
