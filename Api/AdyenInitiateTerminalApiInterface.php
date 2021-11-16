@@ -24,6 +24,11 @@
 
 namespace Adyen\Payment\Api;
 
+/**
+ * Interface for initiating an Adyen Terminal API connection
+ *
+ * @api
+ */
 interface AdyenInitiateTerminalApiInterface
 {
     /**

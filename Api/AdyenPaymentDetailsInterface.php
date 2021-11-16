@@ -24,6 +24,11 @@
 
 namespace Adyen\Payment\Api;
 
+/**
+ * Interface for performing an Adyen payment details call
+ *
+ * @api
+ */
 interface AdyenPaymentDetailsInterface
 {
     /**
