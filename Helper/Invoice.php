@@ -23,19 +23,17 @@
 
 namespace Adyen\Payment\Helper;
 
-use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\InvoiceFactory;
 use Adyen\Payment\Model\Notification;
-use Adyen\Payment\Model\Order\Payment;
-use Adyen\Payment\Model\Order\PaymentFactory;
+use Adyen\Payment\Model\ResourceModel\Invoice\Invoice as AdyenInvoiceResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
-use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as AdyenOrderPaymentCollection;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice as InvoiceModel;
+use Magento\Sales\Model\ResourceModel\Order\Invoice as InvoiceResourceModel;
 
 /**
  * Helper class for anything related to the invoice entity
@@ -55,7 +53,7 @@ class Invoice extends AbstractHelper
     protected $adyenDataHelper;
 
     /**
-     * @var \Magento\Sales\Model\ResourceModel\Order\Invoice
+     * @var InvoiceResourceModel
      */
     protected $invoiceResourceModel;
 
@@ -65,7 +63,7 @@ class Invoice extends AbstractHelper
     protected $adyenInvoiceFactory;
 
     /**
-     * @var \Adyen\Payment\Model\ResourceModel\Invoice\Invoice
+     * @var AdyenInvoiceResourceModel
      */
     protected $adyenInvoiceResourceModel;
 
@@ -84,9 +82,9 @@ class Invoice extends AbstractHelper
         Context $context,
         AdyenLogger $adyenLogger,
         Data $adyenDataHelper,
-        \Magento\Sales\Model\ResourceModel\Order\Invoice $invoiceResourceModel,
+        InvoiceResourceModel $invoiceResourceModel,
         InvoiceFactory $adyenInvoiceFactory,
-        \Adyen\Payment\Model\ResourceModel\Invoice\Invoice $adyenInvoiceResourceModel,
+        AdyenInvoiceResourceModel $adyenInvoiceResourceModel,
         OrderPaymentResourceModel $orderPaymentResourceModel
     ) {
         parent::__construct($context);
@@ -197,14 +195,14 @@ class Invoice extends AbstractHelper
      * and the invoice pspReference
      *
      * @param Order $order
-     * @param Notification $captureNot
+     * @param Notification $capture
      * @return InvoiceModel|null
      */
-    public function getLinkedInvoiceToCaptureNotification(Order $order, Notification $captureNot): ?InvoiceModel
+    public function getLinkedInvoiceToCaptureNotification(Order $order, Notification $capture): ?InvoiceModel
     {
         $returnInvoice = null;
         $invoiceCollection = $order->getInvoiceCollection();
-        $originalReference = $captureNot->getOriginalReference();
+        $originalReference = $capture->getOriginalReference();
 
         foreach ($invoiceCollection as $invoice) {
             $parsedTransId = $this->adyenDataHelper->parseTransactionId($invoice->getTransactionId());
