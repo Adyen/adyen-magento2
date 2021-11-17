@@ -23,24 +23,22 @@
 
 namespace Adyen\Payment\Api\Internal;
 
-use Magento\Checkout\Api\Data\PaymentDetailsInterface;
 use Magento\Quote\Api\Data\AddressInterface;
 
 /**
- * Interface InternalAdyenPaymentMethodManagementInterface
- * This should only be called internally via ajax
+ * Interface for fetching payment methods from Adyen for logged in customers
  *
  * @api
  */
 interface InternalAdyenPaymentMethodManagementInterface
 {
     /**
-     * Handle the internal request by checking if it is internal and then calling the original interface
+     * Fetches Adyen payment methods for logged in customers
      *
-     * @param string $cartId
-     * @param string $formKey
+     * @param string $cartId The ID of the cart.
+     * @param string $formKey Frontend form key.
      * @param AddressInterface|null $shippingAddress
-     * @return PaymentDetailsInterface
+     * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
      */
     public function handleInternalRequest($cartId, $formKey, AddressInterface $shippingAddress = null);
 }
