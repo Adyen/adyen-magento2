@@ -24,6 +24,11 @@
 
 namespace Adyen\Payment\Api;
 
+/**
+ * Interface for querying the Adyen order payment status
+ *
+ * @api
+ */
 interface AdyenOrderPaymentStatusInterface
 {
     /**

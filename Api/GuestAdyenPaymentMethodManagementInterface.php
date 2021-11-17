@@ -26,14 +26,14 @@ namespace Adyen\Payment\Api;
 use Magento\Quote\Api\Data\AddressInterface;
 
 /**
- * Interface GuestAdyenPaymentMethodManagementInterface
+ * Interface for fetching payment methods from Adyen for guest customers
  *
  * @api
  */
 interface GuestAdyenPaymentMethodManagementInterface
 {
     /**
-     * Get payment information
+     * Fetches Adyen payment methods for guest customers
      *
      * @param string $cartId
      * @param null|AddressInterface

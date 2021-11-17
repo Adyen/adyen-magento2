@@ -15,30 +15,27 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Api\Internal;
+namespace Adyen\Payment\Api\Data;
 
-use Magento\Quote\Api\Data\AddressInterface;
+use Magento\Payment\Gateway\Data\AddressAdapterInterface as CoreAddressAdapterInterface;
 
-/**
- * Interface for fetching payment methods from Adyen for guest customers
- *
- * @api
- */
-interface InternalGuestAdyenPaymentMethodManagementInterface
+interface AddressAdapterInterface extends CoreAddressAdapterInterface
 {
     /**
-     * Fetches Adyen payment methods for guest customers
-     *
-     * @param string $cartId The ID of the cart/quote.
-     * @param string $formKey Frontend form key.
-     * @param AddressInterface|null $shippingAddress Shipping address to use for fetching the payment methods from Adyen.
-     * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
+     * Get street line 3
+     * @return string
      */
-    public function handleInternalRequest($cartId, $formKey, AddressInterface $shippingAddress = null);
+    public function getStreetLine3();
+
+    /**
+     * Get street line 4
+     * @return string
+     */
+    public function getStreetLine4();
 }
