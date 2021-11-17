@@ -186,10 +186,10 @@ class AdyenOrderPayment extends AbstractHelper
      *
      * @param Order $order
      * @param Notification $notification
-     * @param $autoCapture
+     * @param bool $autoCapture
      * @return Payment|null
      */
-    public function createAdyenOrderPayment(Order $order, Notification $notification, $autoCapture): ?Payment
+    public function createAdyenOrderPayment(Order $order, Notification $notification, bool $autoCapture): ?Payment
     {
         $adyenOrderPayment = null;
         $payment = $order->getPayment();

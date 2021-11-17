@@ -15,39 +15,31 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2020 Adyen NV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Gateway\Data\Order;
+namespace Adyen\Payment\Api\Internal;
 
-use Adyen\Payment\Api\Data\AddressAdapterInterface;
-use Magento\Sales\Api\Data\OrderAddressInterface;
+use Magento\Checkout\Api\Data\PaymentDetailsInterface;
+use Magento\Quote\Api\Data\AddressInterface;
 
-class AddressAdapter extends \Magento\Payment\Gateway\Data\Order\AddressAdapter implements AddressAdapterInterface
+/**
+ * Interface InternalAdyenOrderPaymentStatusInterface
+ * This should only be called internally via ajax
+ *
+ * @api
+ */
+interface InternalAdyenOrderPaymentStatusInterface
 {
     /**
-     * @var OrderAddressInterface
+     * Handle the internal request by checking if it is internal and then calling the original interface
+     *
+     * @param string $orderId
+     * @param string $formKey
+     * @return PaymentDetailsInterface
      */
-    private $address;
-
-    public function __construct(OrderAddressInterface $address)
-    {
-        $this->address = $address;
-        parent::__construct($address);
-    }
-
-    public function getStreetLine3()
-    {
-        $street = $this->address->getStreet();
-        return isset($street[2]) ? $street[2] : '';
-    }
-
-    public function getStreetLine4()
-    {
-        $street = $this->address->getStreet();
-        return isset($street[3]) ? $street[3] : '';
-    }
+    public function handleInternalRequest($orderId, $formKey);
 }

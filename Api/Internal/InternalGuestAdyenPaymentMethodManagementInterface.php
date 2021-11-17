@@ -15,32 +15,31 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2018 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-/** @var \Adyen\Payment\Block\Info\PaymentLink $block */
-?>
-<br/>
-<div class="admin__page-section-item-title">
-    <span class="title"><?= $block->escapeHtml(__('Adyen Payment Link')); ?></span>
-</div>
-<p id="paymentlink"></p>
-<a href="<?= $block->escapeHtml($block->getPaymentLinkUrl()); ?>"
-   onclick="copyToClipboard(event, '<?= $block->escapeHtml($block->getPaymentLinkUrl()); ?>')"
-   style="cursor:pointer;">
-    <?= $block->escapeHtml(__('Copy payment link to clipboard')); ?>
-</a>
+namespace Adyen\Payment\Api\Internal;
 
-<script type="text/javascript">
-    function copyToClipboard(e, text) {
-        e.preventDefault();
-        var $temp = jQuery("<input>");
-        jQuery("body").append($temp);
-        $temp.val(text).select();
-        document.execCommand("copy");
-        $temp.remove();
-    }
-</script>
+use Magento\Quote\Api\Data\AddressInterface;
+
+/**
+ * Interface InternalGuestAdyenPaymentMethodManagementInterface
+ * This should only be called internally via ajax
+ *
+ * @api
+ */
+interface InternalGuestAdyenPaymentMethodManagementInterface
+{
+    /**
+     * Handle the internal request by checking if it is internal and then calling the original interface
+     *
+     * @param string $cartId
+     * @param string $formKey
+     * @param null|AddressInterface
+     * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
+     */
+    public function handleInternalRequest($cartId, $formKey, AddressInterface $shippingAddress = null);
+}

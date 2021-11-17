@@ -569,34 +569,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Gives back adyen_pay_by_mail configuration values
-     *
-     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-     * @param $field
-     * @param null|int|string $storeId
-     * @return mixed
-     * @deprecated
-     */
-    public function getAdyenPayByMailConfigData($field, $storeId = null)
-    {
-        return $this->getConfigData($field, 'adyen_pay_by_mail', $storeId);
-    }
-
-    /**
-     * Gives back adyen_pay_by_mail configuration values as flag
-     *
-     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-     * @param $field
-     * @param null|int|string $storeId
-     * @return mixed
-     * @deprecated
-     */
-    public function getAdyenPayByMailConfigDataFlag($field, $storeId = null)
-    {
-        return $this->getConfigData($field, 'adyen_pay_by_mail', $storeId, true);
-    }
-
-    /**
      * Gives back adyen_boleto configuration values
      *
      * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
@@ -635,24 +607,6 @@ class Data extends AbstractHelper
                 break;
             default:
                 $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_live', $storeId)));
-                break;
-        }
-        return $secretWord;
-    }
-
-    /**
-     * @param null $storeId
-     * @return string
-     * @deprecated
-     */
-    public function getHmacPayByMail($storeId = null)
-    {
-        switch ($this->isDemoMode($storeId)) {
-            case true:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_test', $storeId)));
-                break;
-            default:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_live', $storeId)));
                 break;
         }
         return $secretWord;
@@ -1590,21 +1544,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param null|int|string $storeId
-     * @return string
-     * @deprecated this was being used to load a different version of the Web Components library in the
-     * admin panel, but now the same frontend bundle is also loaded there. Will be removed in 8.0.0
-     */
-    public function getCheckoutCardComponentJs($storeId = null)
-    {
-        if ($this->isDemoMode($storeId)) {
-            return self::CHECKOUT_COMPONENT_JS_TEST;
-        }
-
-        return self::CHECKOUT_COMPONENT_JS_LIVE;
-    }
-
-    /**
      * @param $order
      * @param $additionalData
      */
@@ -1851,7 +1790,7 @@ class Data extends AbstractHelper
 
     /**
      * Parse transactionId to separate PSP reference from suffix.
-     * e.g 882629192021269E-capture => [882629192021269E, -capture]
+     * e.g 882629192021269E-capture --> [pspReference => 882629192021269E, suffix => -capture]
      *
      * @param $transactionId
      * @return mixed
@@ -1864,6 +1803,7 @@ class Data extends AbstractHelper
             $matches
         );
 
+        // Return only the named matches, i.e pspReference & suffix
         return array_filter($matches, function($index) {
             return is_string($index);
         }, ARRAY_FILTER_USE_KEY);

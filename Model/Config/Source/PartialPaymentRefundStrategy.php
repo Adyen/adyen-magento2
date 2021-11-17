@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,7 +23,7 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
-class SplitPaymentRefundStrategy implements \Magento\Framework\Option\ArrayInterface
+class PartialPaymentRefundStrategy implements \Magento\Framework\Option\ArrayInterface
 {
     const REFUND_FIRST_PAYEMENT_FIRST = 1;
     const REFUND_LAST_PAYEMENT_FIRST = 2;
@@ -34,13 +34,13 @@ class SplitPaymentRefundStrategy implements \Magento\Framework\Option\ArrayInter
      */
     public function toOptionArray()
     {
-        return $this->getSplitPaymentRefundStrategies();
+        return $this->getPartialPaymentRefundStrategies();
     }
 
     /**
      * @return array
      */
-    public function getSplitPaymentRefundStrategies()
+    private function getPartialPaymentRefundStrategies()
     {
         return [
             self::REFUND_FIRST_PAYEMENT_FIRST => __('Refund from first payment first'),
