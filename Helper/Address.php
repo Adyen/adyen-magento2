@@ -24,8 +24,9 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Api\Data\AddressAdapterInterface;
 use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Payment\Gateway\Data\AddressAdapterInterface;
+use Magento\Payment\Gateway\Data\AddressAdapterInterface as CoreAddressAdapterInterface;
 use Magento\Sales\Api\Data\OrderAddressInterface;
 
 class Address
@@ -64,6 +65,11 @@ class Address
                 $address->getStreetLine2(),
                 $address->getStreetLine3(),
                 $address->getStreetLine4()
+            ];
+        } elseif ($address instanceof CoreAddressAdapterInterface) {
+            $addressArray = [
+                $address->getStreetLine1(),
+                $address->getStreetLine2()
             ];
         } elseif ($address instanceof OrderAddressInterface) {
             $addressArray = $address->getStreet();
