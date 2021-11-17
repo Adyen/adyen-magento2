@@ -24,6 +24,11 @@
 
 namespace Adyen\Payment\Api;
 
+/**
+ * Interface for persisting the Adyen state data
+ *
+ * @api
+ */
 interface AdyenStateDataInterface
 {
     /**

@@ -69,13 +69,16 @@ define(
                 }
                 var serviceUrl = urlBuilder.createUrl('/internal/adyen/orders/payment-status', payload);
 
-                return storage.post(serviceUrl);
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(payload),
+                    true
+                );
             },
             /**
              * The results that the components returns in the onComplete callback needs to be sent to the
              * backend to the /adyen/paymentDetails endpoint and based on the response render a new
              * component or place the order (validateThreeDS2OrPlaceOrder)
-             * @param response
              */
             paymentDetails: function(data) {
                 var payload = {
