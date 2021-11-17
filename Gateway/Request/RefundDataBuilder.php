@@ -78,9 +78,10 @@ class RefundDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $buildSubjectAmount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
+
         $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder(), false);
 
         // Construct AdyenAmountCurrency from creditmemo
         $creditMemo = $payment->getCreditMemo();
@@ -93,7 +94,7 @@ class RefundDataBuilder implements BuilderInterface
         $method = $payment->getMethod();
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
 
-        // check if it contains a partial payment
+        // check if it contains a split payment
         $orderPaymentCollection = $this->orderPaymentCollectionFactory
             ->create()
             ->addFieldToFilter('payment_id', $payment->getId());
@@ -101,7 +102,7 @@ class RefundDataBuilder implements BuilderInterface
         // partial refund if multiple payments check refund strategy
         if ($orderPaymentCollection->getSize() > 1) {
             $refundStrategy = $this->adyenHelper->getAdyenAbstractConfigData(
-                'partial_payments_refund_strategy',
+                'split_payments_refund_strategy',
                 $order->getStoreId()
             );
             $ratio = null;
@@ -114,7 +115,7 @@ class RefundDataBuilder implements BuilderInterface
                 $orderPaymentCollection->addPaymentFilterDescending($payment->getId());
             } elseif ($refundStrategy == "3") {
                 // refund based on ratio
-                $ratio = $buildSubjectAmount / $amount;
+                $ratio = $amount / $orderAmountCurrency->getAmount();
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
             }
 
