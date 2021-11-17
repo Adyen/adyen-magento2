@@ -32,6 +32,7 @@ use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Catalog\Helper\Image;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
@@ -57,7 +58,7 @@ class CheckoutDataBuilder implements BuilderInterface
     private $chargedCurrency;
 
     /**
-     * @var \Magento\Catalog\Helper\Image
+     * @var Image
      */
     private $imageHelper;
 
@@ -68,12 +69,13 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param Data $adyenHelper
      * @param CartRepositoryInterface $cartRepository
      * @param ChargedCurrency $chargedCurrency
+     * @param Image $imageHelper
      */
     public function __construct(
         Data $adyenHelper,
         CartRepositoryInterface $cartRepository,
         ChargedCurrency $chargedCurrency,
-        \Magento\Catalog\Helper\Image $imageHelper
+        Image $imageHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->cartRepository = $cartRepository;
