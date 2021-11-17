@@ -21,7 +21,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model;
+namespace Adyen\Payment\Model\Api;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Api\AdyenPaymentDetailsInterface;

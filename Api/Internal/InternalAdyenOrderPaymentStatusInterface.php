@@ -15,18 +15,31 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Block\Info;
+namespace Adyen\Payment\Api\Internal;
 
-class PayByMail extends AbstractInfo
+use Magento\Checkout\Api\Data\PaymentDetailsInterface;
+use Magento\Quote\Api\Data\AddressInterface;
+
+/**
+ * Interface InternalAdyenOrderPaymentStatusInterface
+ * This should only be called internally via ajax
+ *
+ * @api
+ */
+interface InternalAdyenOrderPaymentStatusInterface
 {
     /**
-     * @var string
+     * Handle the internal request by checking if it is internal and then calling the original interface
+     *
+     * @param string $orderId
+     * @param string $formKey
+     * @return PaymentDetailsInterface
      */
-    protected $_template = 'Adyen_Payment::info/adyen_pay_by_mail.phtml';
+    public function handleInternalRequest($orderId, $formKey);
 }

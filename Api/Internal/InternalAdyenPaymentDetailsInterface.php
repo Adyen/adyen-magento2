@@ -15,37 +15,31 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Config\Source;
+namespace Adyen\Payment\Api\Internal;
 
-class SplitPaymentRefundStrategy implements \Magento\Framework\Option\ArrayInterface
+use Magento\Checkout\Api\Data\PaymentDetailsInterface;
+use Magento\Quote\Api\Data\AddressInterface;
+
+/**
+ * Interface InternalAdyenPaymentDetailsInterface
+ * This should only be called internally via ajax
+ *
+ * @api
+ */
+interface InternalAdyenPaymentDetailsInterface
 {
-    const REFUND_FIRST_PAYEMENT_FIRST = 1;
-    const REFUND_LAST_PAYEMENT_FIRST = 2;
-    const REFUND_ON_RATIO = 3;
-
     /**
-     * @return array
+     * Handle the internal request by checking if it is internal and then calling the original interface
+     *
+     * @param string $payload
+     * @param string $formKey
+     * @return PaymentDetailsInterface
      */
-    public function toOptionArray()
-    {
-        return $this->getSplitPaymentRefundStrategies();
-    }
-
-    /**
-     * @return array
-     */
-    public function getSplitPaymentRefundStrategies()
-    {
-        return [
-            self::REFUND_FIRST_PAYEMENT_FIRST => __('Refund from first payment first'),
-            self::REFUND_LAST_PAYEMENT_FIRST => 'Refund from last payment first',
-            self::REFUND_ON_RATIO => __('refund based on ratio')
-        ];
-    }
+    public function handleInternalRequest($payload, $formKey);
 }

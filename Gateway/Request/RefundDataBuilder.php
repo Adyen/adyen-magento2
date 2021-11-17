@@ -93,7 +93,7 @@ class RefundDataBuilder implements BuilderInterface
         $method = $payment->getMethod();
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
 
-        // check if it contains a split payment
+        // check if it contains a partial payment
         $orderPaymentCollection = $this->orderPaymentCollectionFactory
             ->create()
             ->addFieldToFilter('payment_id', $payment->getId());
@@ -101,7 +101,7 @@ class RefundDataBuilder implements BuilderInterface
         // partial refund if multiple payments check refund strategy
         if ($orderPaymentCollection->getSize() > 1) {
             $refundStrategy = $this->adyenHelper->getAdyenAbstractConfigData(
-                'split_payments_refund_strategy',
+                'partial_payments_refund_strategy',
                 $order->getStoreId()
             );
             $ratio = null;
@@ -120,31 +120,31 @@ class RefundDataBuilder implements BuilderInterface
 
             // loop over payment methods and refund them all
             $requestBody = [];
-            foreach ($orderPaymentCollection as $splitPayment) {
-                // could be that not all the split payments need a refund
+            foreach ($orderPaymentCollection as $partialPayment) {
+                // could be that not all the partial payments need a refund
                 if ($amount > 0) {
                     if ($ratio) {
                         // refund based on ratio calculate refund amount
                         $modificationAmount = $ratio * (
-                                $splitPayment->getAmount() - $splitPayment->getTotalRefunded()
+                                $partialPayment->getAmount() - $partialPayment->getTotalRefunded()
                             );
                     } else {
-                        // total authorised amount of the split payment
-                        $splitPaymentAmount = $splitPayment->getAmount() - $splitPayment->getTotalRefunded();
+                        // total authorised amount of the partial payment
+                        $partialPaymentAmount = $partialPayment->getAmount() - $partialPayment->getTotalRefunded();
 
                         // if rest amount is zero go to next payment
-                        if (!$splitPaymentAmount > 0) {
+                        if (!$partialPaymentAmount > 0) {
                             continue;
                         }
 
-                        // if refunded amount is greater than split payment amount do a full refund
-                        if ($amount >= $splitPaymentAmount) {
-                            $modificationAmount = $splitPaymentAmount;
+                        // if refunded amount is greater than partial payment amount do a full refund
+                        if ($amount >= $partialPaymentAmount) {
+                            $modificationAmount = $partialPaymentAmount;
                         } else {
                             $modificationAmount = $amount;
                         }
                         // update amount with rest of the available amount
-                        $amount = $amount - $splitPaymentAmount;
+                        $amount = $amount - $partialPaymentAmount;
                     }
 
                     $modificationAmountObject = [
@@ -155,7 +155,7 @@ class RefundDataBuilder implements BuilderInterface
                     $requestBody[] = [
                         "modificationAmount" => $modificationAmountObject,
                         "reference" => $payment->getOrder()->getIncrementId(),
-                        "originalReference" => $splitPayment->getPspreference(),
+                        "originalReference" => $partialPayment->getPspreference(),
                         "merchantAccount" => $merchantAccount
                     ];
                 }

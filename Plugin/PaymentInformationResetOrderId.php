@@ -61,7 +61,10 @@ class PaymentInformationResetOrderId
         $cartId
     ) {
         try {
-            $this->quoteRepository->get($cartId)->setReservedOrderId(null);
+            $quote = $this->quoteRepository->get($cartId);
+            if ($quote->getPayment()->getMethod() !== 'adyen_pos_cloud') {
+                $quote->setReservedOrderId(null);
+            }
         } catch (\Exception $e) {
             $this->adyenLogger->error("Failed to reset reservedOrderId " . $e->getMessage());
         }
