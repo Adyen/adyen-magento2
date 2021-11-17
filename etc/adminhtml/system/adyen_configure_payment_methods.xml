@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_configure_payment_methods" translate="label" type="text" sortOrder="120" showInDefault="1"
+           showInWebsite="1"
+           showInStore="1">
+        <label><![CDATA[Configure payment methods]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <include path="Adyen_Payment::system/adyen_cc.xml"/>
+        <include path="Adyen_Payment::system/adyen_oneclick.xml"/>
+        <include path="Adyen_Payment::system/adyen_hpp.xml"/>
+        <include path="Adyen_Payment::system/adyen_pos_cloud.xml"/>
+        <include path="Adyen_Payment::system/adyen_pay_by_link.xml"/>
+        <include path="Adyen_Payment::system/adyen_boleto.xml"/>
+    </group>
+</include>
