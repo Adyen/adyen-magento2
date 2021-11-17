@@ -21,33 +21,21 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Gateway\Data\Order;
+namespace Adyen\Payment\Api\Data;
 
-use Adyen\Payment\Api\Data\AddressAdapterInterface;
-use Magento\Sales\Api\Data\OrderAddressInterface;
+use Magento\Payment\Gateway\Data\AddressAdapterInterface as CoreAddressAdapterInterface;
 
-class AddressAdapter extends \Magento\Payment\Gateway\Data\Order\AddressAdapter implements AddressAdapterInterface
+interface AddressAdapterInterface extends CoreAddressAdapterInterface
 {
     /**
-     * @var OrderAddressInterface
+     * Get street line 3
+     * @return string
      */
-    private $address;
+    public function getStreetLine3();
 
-    public function __construct(OrderAddressInterface $address)
-    {
-        $this->address = $address;
-        parent::__construct($address);
-    }
-
-    public function getStreetLine3()
-    {
-        $street = $this->address->getStreet();
-        return isset($street[2]) ? $street[2] : '';
-    }
-
-    public function getStreetLine4()
-    {
-        $street = $this->address->getStreet();
-        return isset($street[3]) ? $street[3] : '';
-    }
+    /**
+     * Get street line 4
+     * @return string
+     */
+    public function getStreetLine4();
 }
