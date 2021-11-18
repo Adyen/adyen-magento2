@@ -63,12 +63,11 @@ define(
                 this.paymentMethods(paymentMethods);
             },
             getOrderPaymentStatus: function(orderId) {
+                var serviceUrl = urlBuilder.createUrl('/internal/adyen/orders/payment-status', {});
                 var payload = {
                     orderId: orderId,
                     form_key: $.mage.cookies.get('form_key')
                 }
-                var serviceUrl = urlBuilder.createUrl('/internal/adyen/orders/payment-status', payload);
-
                 return storage.post(
                     serviceUrl,
                     JSON.stringify(payload),
@@ -92,6 +91,21 @@ define(
                 return storage.post(
                     serviceUrl,
                     JSON.stringify(payload),
+                    true
+                );
+            },
+
+            donate: function (data) {
+                let request = {
+                    payload: JSON.stringify(data),
+                    formKey: $.mage.cookies.get('form_key')
+                };
+
+                const serviceUrl = urlBuilder.createUrl('/internal/adyen/donations', {});
+ 
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(request),
                     true
                 );
             }

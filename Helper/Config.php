@@ -30,6 +30,7 @@ class Config
 {
     const XML_PAYMENT_PREFIX = "payment";
     const XML_ADYEN_ABSTRACT_PREFIX = "adyen_abstract";
+    const XML_ADYEN_GIVING_PREFIX = "adyen_giving";
     const XML_MERCHANT_ACCOUNT = "merchant_account";
     const XML_NOTIFICATIONS_USERNAME = "notification_username";
     const XML_NOTIFICATIONS_PASSWORD = "notification_password";
@@ -253,6 +254,58 @@ class Config
     public function getPWAOriginUrl($storeId)
     {
         return $this->getConfigData(self::XML_PAYMENT_ORIGIN_URL, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    public function adyenGivingEnabled($storeId)
+    {
+        return $this->getConfigData('active', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getAdyenGivingConfigData($storeId)
+    {
+        return [
+            'name' => $this->getAdyenGivingCharityName($storeId),
+            'description' => $this->getAdyenGivingCharityDescription($storeId),
+            'backgroundUrl' => $this->getAdyenGivingBackgroundImage($storeId),
+            'logoUrl' => $this->getAdyenGivingCharityLogo($storeId),
+            'website' => $this->getAdyenGivingCharityWebsite($storeId),
+            'donationAmounts' => $this->getAdyenGivingDonationAmounts($storeId)
+        ];
+    }
+
+    public function getAdyenGivingCharityName($storeId)
+    {
+        return $this->getConfigData('charity_name', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getAdyenGivingCharityDescription($storeId)
+    {
+        return $this->getConfigData('charity_description', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getAdyenGivingBackgroundImage($storeId)
+    {
+        return $this->getConfigData('background_image', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getAdyenGivingCharityLogo($storeId)
+    {
+        return $this->getConfigData('charity_logo', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getAdyenGivingCharityWebsite($storeId)
+    {
+        return $this->getConfigData('charity_website', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getAdyenGivingDonationAmounts($storeId)
+    {
+        return $this->getConfigData('donation_amounts', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getCharityMerchantAccount($storeId)
+    {
+        return $this->getConfigData('charity_merchant_account', self::XML_ADYEN_GIVING_PREFIX, $storeId);
     }
 
     /**
