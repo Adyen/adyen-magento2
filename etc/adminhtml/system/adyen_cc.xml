@@ -22,14 +22,16 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_cc" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1"
            showInStore="1">
         <label><![CDATA[CreditCard API integration]]></label>
-        <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
-        <fieldset_css>adyen-method-adyen-cc</fieldset_css>
-        <comment>Process creditcard payments inside your checkout.</comment>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <comment> <![CDATA[
+                <p>Process creditcard payments inside your checkout.
+                    </p>
+            ]]>
+        </comment>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Enabled</label>
@@ -80,7 +82,6 @@
                 <config_path>payment/adyen_cc/installments</config_path>
             </field>
         </group>
-
         <group id="adyen_cc_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="70">
             <label>Country Specific Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
