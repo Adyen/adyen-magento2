@@ -1542,7 +1542,7 @@ class Cron
         // IF manual review is NOT active OR no custom status is set on the Adyen config page AND total amount is authorised continue with authorisation
         // ELSEIF total amount is NOT authorised
         // ELSE add a comment and set the status to the defined fraudManualReviewStatus
-        if (($this->requireFraudManualReview || $fraudManualReviewStatus == "") && $isTotalAmountAuthorised) {
+        if ((!$this->requireFraudManualReview || $fraudManualReviewStatus == "") && $isTotalAmountAuthorised) {
             $this->_setPrePaymentAuthorized();
             $this->_prepareInvoice();
 
