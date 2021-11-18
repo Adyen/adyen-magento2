@@ -51,7 +51,7 @@ define(
         layout,
         Messages,
         errorProcessor,
-        AdyenComponent,
+        adyenCheckout,
         adyenConfiguration
     ) {
         'use strict';
@@ -108,12 +108,12 @@ define(
 
                 self.loadAdyenPaymentMethods(paymentMethodsObserver());
             },
-            loadAdyenPaymentMethods: function(paymentMethodsResponse) {
+            loadAdyenPaymentMethods: async function (paymentMethodsResponse) {
                 var self = this;
 
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
                     var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
-                    this.checkoutComponent = new AdyenCheckout({
+                    this.checkoutComponent = await adyenCheckout({
                             locale: adyenConfiguration.getLocale(),
                             clientKey: adyenConfiguration.getClientKey(),
                             environment: adyenConfiguration.getCheckoutEnvironment(),
