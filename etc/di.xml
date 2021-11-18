@@ -458,7 +458,6 @@
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionDonate</argument>
             <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\DonateResponseValidator</argument>
-            <argument name="handler" xsi:type="object">Adyen\Payment\Gateway\Response\CheckoutDonationsDetailsHandler</argument>
         </arguments>
     </virtualType>
 
