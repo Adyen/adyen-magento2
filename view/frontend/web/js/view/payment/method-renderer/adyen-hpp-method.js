@@ -540,6 +540,7 @@ define(
              * @param response
              */
             showErrorMessage: function(response) {
+                $(".error-message-hpp").show();
                 if (!!response['responseJSON'].parameters) {
                     $('#messages-' + selectedAlternativePaymentMethodType()).
                         text((response['responseJSON'].message).replace('%1',
