@@ -30,8 +30,7 @@
         <referenceBlock class="Adyen\Payment\Block\Checkout\Multishipping\Success" name="checkout_success"
                         template="Adyen_Payment::checkout/multishipping/success.phtml">
             <arguments>
-                <argument name="checkout_data" xsi:type="object">Magento\Multishipping\Block\DataProviders\Success
-                </argument>
+                <argument name="checkout_data" xsi:type="object">Magento\Multishipping\Block\DataProviders\Success</argument>
                 <argument name="cacheable" xsi:type="boolean">false</argument>
             </arguments>
         </referenceBlock>
