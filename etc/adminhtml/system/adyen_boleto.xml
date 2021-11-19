@@ -23,7 +23,7 @@
  */
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
-    <group id="adyen_boleto" translate="label" type="text" sortOrder="450" showInDefault="1" showInWebsite="1" showInStore="1">
+    <group id="adyen_boleto" translate="label" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
         <label><![CDATA[Boleto integration]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
