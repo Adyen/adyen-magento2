@@ -35,5 +35,6 @@
         <include path="Adyen_Payment::system/adyen_pos_cloud.xml"/>
         <include path="Adyen_Payment::system/adyen_pay_by_link.xml"/>
         <include path="Adyen_Payment::system/adyen_boleto.xml"/>
+        <include path="Adyen_Payment::system/adyen_giving.xml"/>
     </group>
 </include>

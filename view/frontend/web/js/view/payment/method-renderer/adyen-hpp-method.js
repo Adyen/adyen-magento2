@@ -663,7 +663,7 @@ define(
                 var formattedShippingAddress = {};
                 var formattedBillingAddress = {};
 
-                if (!!quote.shippingAddress()) {
+                if (!quote.isVirtual() && !!quote.shippingAddress()) {
                     formattedShippingAddress = self.getFormattedAddress(quote.shippingAddress());
                 }
 

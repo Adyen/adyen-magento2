@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -14,24 +13,24 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2021 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
 
-    <module name="Adyen_Payment" setup_version="8.0.0">
-        <sequence>
-            <module name="Magento_Sales"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Checkout"/>
-            <module name="Magento_Paypal"/>
-            <module name="Magento_AdminNotification"/>
-            <module name="Magento_Vault"/>
-        </sequence>
-    </module>
-</config>
+namespace Adyen\Payment\Api\Internal;
+
+interface InternalAdyenDonationsInterface
+{
+    /**
+     * Build and send internal donation payment request
+     * @param string $payload
+     * @param string $formKey
+     * @return mixed
+     */
+    public function handleInternalRequest($payload, $formKey);
+}
