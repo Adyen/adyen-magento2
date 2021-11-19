@@ -93,6 +93,10 @@ class CheckoutResponseValidator extends AbstractValidator
                 $payment->setAdditionalInformation('details', $response['details']);
             }
 
+            if (!empty($response['donationToken'])) {
+                $payment->setAdditionalInformation('donationToken', $response['donationToken']);
+            }
+
             switch ($resultCode) {
                 case "Authorised":
                 case "Received":

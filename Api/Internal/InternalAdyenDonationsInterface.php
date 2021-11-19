@@ -15,36 +15,22 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2018 Adyen B.V.
+ * Copyright (c) 2021 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-// @codingStandardsIgnoreFile
+namespace Adyen\Payment\Api\Internal;
 
-?>
-
-<dl class="payment-method adyen_pos_cloud">
-    <dt class="title"><?= $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
-    <style>
-        table.terminal-api-receipt {
-            margin-top: 10px
-        }
-
-        td.terminal-api-receipt-name {
-            padding: inherit;
-            font-weight: 700
-        }
-
-        td.terminal-api-receipt-value {
-            padding: inherit;
-        }
-
-        tr.terminal-api-receipt {
-            padding-bottom: 5px;
-        }
-    </style>
-    <?= $block->getMethod()->getInfoInstance()->getAdditionalInformation('receipt'); ?>
-</dl>
+interface InternalAdyenDonationsInterface
+{
+    /**
+     * Build and send internal donation payment request
+     * @param string $payload
+     * @param string $formKey
+     * @return mixed
+     */
+    public function handleInternalRequest($payload, $formKey);
+}
