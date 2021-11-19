@@ -61,8 +61,8 @@ class UpgradeData implements UpgradeDataInterface
             $this->updateSchemaVersion244($setup);
         }
 
-        if (version_compare($context->getVersion(), '7.3.0'. '<')) {
-            $this->updateSchemaVersion730($setup);
+        if (version_compare($context->getVersion(), '8.0.0'. '<')) {
+            $this->updateSchemaVersion800($setup);
         }
 
         $setup->endSetup();
@@ -158,7 +158,7 @@ class UpgradeData implements UpgradeDataInterface
         $this->reinitableConfig->reinit();
     }
 
-    public function updateSchemaVersion730(ModuleDataSetupInterface $setup)
+    public function updateSchemaVersion800(ModuleDataSetupInterface $setup)
     {
         $configDataTable = $setup->getTable('core_config_data');
         $connection = $setup->getConnection();
