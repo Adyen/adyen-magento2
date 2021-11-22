@@ -30,6 +30,10 @@ class Config
 {
     const XML_PAYMENT_PREFIX = "payment";
     const XML_ADYEN_ABSTRACT_PREFIX = "adyen_abstract";
+    const XML_ADYEN_GIVING_PREFIX = "adyen_giving";
+    const XML_MERCHANT_ACCOUNT = "merchant_account";
+    const XML_NOTIFICATIONS_USERNAME = "notification_username";
+    const XML_NOTIFICATIONS_PASSWORD = "notification_password";
     const XML_NOTIFICATIONS_CAN_CANCEL_FIELD = "notifications_can_cancel";
     const XML_NOTIFICATIONS_HMAC_CHECK = "notifications_hmac_check";
     const XML_NOTIFICATIONS_IP_CHECK = "notifications_ip_check";
@@ -41,6 +45,7 @@ class Config
     const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
     const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
+    const XML_PAYMENT_RETURN_URL = 'payment_return_url';
 
     /**
      * @var ScopeConfigInterface
@@ -64,6 +69,46 @@ class Config
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getMerchantAccount($storeId = null)
+    {
+        return $this->getConfigData(
+            self::XML_MERCHANT_ACCOUNT,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getNotificationsUsername($storeId = null)
+    {
+        return $this->getConfigData(
+            self::XML_NOTIFICATIONS_USERNAME,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getNotificationsPassword($storeId = null)
+    {
+        $key = $this->getConfigData(
+            self::XML_NOTIFICATIONS_PASSWORD,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+        return $this->encryptor->decrypt(trim($key));
     }
 
     /**
@@ -209,6 +254,69 @@ class Config
     public function getPWAOriginUrl($storeId)
     {
         return $this->getConfigData(self::XML_PAYMENT_ORIGIN_URL, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    public function adyenGivingEnabled($storeId)
+    {
+        return $this->getConfigData('active', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getAdyenGivingConfigData($storeId)
+    {
+        return [
+            'name' => $this->getAdyenGivingCharityName($storeId),
+            'description' => $this->getAdyenGivingCharityDescription($storeId),
+            'backgroundUrl' => $this->getAdyenGivingBackgroundImage($storeId),
+            'logoUrl' => $this->getAdyenGivingCharityLogo($storeId),
+            'website' => $this->getAdyenGivingCharityWebsite($storeId),
+            'donationAmounts' => $this->getAdyenGivingDonationAmounts($storeId)
+        ];
+    }
+
+    public function getAdyenGivingCharityName($storeId)
+    {
+        return $this->getConfigData('charity_name', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getAdyenGivingCharityDescription($storeId)
+    {
+        return $this->getConfigData('charity_description', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getAdyenGivingBackgroundImage($storeId)
+    {
+        return $this->getConfigData('background_image', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getAdyenGivingCharityLogo($storeId)
+    {
+        return $this->getConfigData('charity_logo', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getAdyenGivingCharityWebsite($storeId)
+    {
+        return $this->getConfigData('charity_website', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getAdyenGivingDonationAmounts($storeId)
+    {
+        return $this->getConfigData('donation_amounts', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    public function getCharityMerchantAccount($storeId)
+    {
+        return $this->getConfigData('charity_merchant_account', self::XML_ADYEN_GIVING_PREFIX, $storeId);
+    }
+
+    /**
+     * Retrieve payment_return_url config
+     *
+     * @param int|string $storeId
+     * @return mixed
+     */
+    public function getPWAReturnUrl($storeId)
+    {
+        return $this->getConfigData(self::XML_PAYMENT_RETURN_URL, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
 
     /**

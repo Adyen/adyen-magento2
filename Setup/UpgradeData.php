@@ -61,6 +61,10 @@ class UpgradeData implements UpgradeDataInterface
             $this->updateSchemaVersion244($setup);
         }
 
+        if (version_compare($context->getVersion(), '8.0.0'. '<')) {
+            $this->updateSchemaVersion800($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -152,5 +156,17 @@ class UpgradeData implements UpgradeDataInterface
 
         // re-initialize otherwise it will cause errors
         $this->reinitableConfig->reinit();
+    }
+
+    public function updateSchemaVersion800(ModuleDataSetupInterface $setup)
+    {
+        $configDataTable = $setup->getTable('core_config_data');
+        $connection = $setup->getConnection();
+
+        $connection->update(
+            $configDataTable,
+            ['path' => 'payment/adyen_abstract/partial_payments_refund_strategy'],
+            ['path = ?' => 'payment/adyen_abstract/split_payments_refund_strategy']
+        );
     }
 }

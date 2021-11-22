@@ -23,23 +23,14 @@
  */
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
-    <group id="adyen_split_payment" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label><![CDATA[Advanced: Split Payment]]></label>
+    <group id="adyen_notifications" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Adyen Payment Notifications]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-        <comment>
-            <![CDATA[
-                <p>
-                It is possible to do partial payments with GiftCards. Set here which refund strategy to use.
-                </p>
-            ]]>
-        </comment>
-
-        <field id="split_payments_refund_strategy" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Refund Strategy</label>
-            <tooltip>Only relevant if you accept giftcards on Adyen platform</tooltip>
-            <source_model>Adyen\Payment\Model\Config\Source\SplitPaymentRefundStrategy</source_model>
-            <config_path>payment/adyen_abstract/split_payments_refund_strategy</config_path>
+        <field id="ignore_refund_notification" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Ignore refund notification</label>
+            <tooltip>If the refund is done on the Adyen Platform it will send a refund notification to Magento which automatically creates a credit memo. If you set this setting to 'Yes', this will not happen because it will not process any of the REFUND notification that is received.</tooltip>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_abstract/ignore_refund_notification</config_path>
         </field>
-
     </group>
 </include>

@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_advanced_settings" translate="label" type="text" sortOrder="120" showInDefault="1"
+           showInWebsite="1"
+           showInStore="1">
+        <label><![CDATA[Advanced settings]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <include path="Adyen_Payment::system/adyen_order_processing.xml"/>
+        <include path="Adyen_Payment::system/adyen_notifications.xml"/>
+        <include path="Adyen_Payment::system/adyen_checkout_experience.xml"/>
+        <include path="Adyen_Payment::system/adyen_manual_review.xml"/>
+        <include path="Adyen_Payment::system/adyen_partial_payment.xml"/>
+        <include path="Adyen_Payment::system/adyen_security.xml"/>
+        <include path="Adyen_Payment::system/adyen_pwa.xml"/>
+    </group>
+</include>

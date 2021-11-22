@@ -4,15 +4,18 @@
  */
 define(
     [
+        'jquery',
         'underscore',
         'Magento_Checkout/js/model/quote',
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/model/url-builder',
         'mage/storage',
         'Adyen_Payment/js/bundle',
-        'ko'
+        'ko',
+        'mage/cookies'
     ],
     function(
+        $,
         _,
         quote,
         customer,
@@ -31,20 +34,21 @@ define(
             retrievePaymentMethods: function() {
                 // url for guest users
                 var serviceUrl = urlBuilder.createUrl(
-                    '/guest-carts/:cartId/retrieve-adyen-payment-methods', {
+                    '/internal/guest-carts/:cartId/retrieve-adyen-payment-methods', {
                         cartId: quote.getQuoteId(),
                     });
 
                 // url for logged in users
                 if (customer.isLoggedIn()) {
                     serviceUrl = urlBuilder.createUrl(
-                        '/carts/mine/retrieve-adyen-payment-methods', {});
+                        '/internal/carts/mine/retrieve-adyen-payment-methods', {});
                 }
 
                 // Construct payload for the retrieve payment methods request
                 var payload = {
                     cartId: quote.getQuoteId(),
                     shippingAddress: quote.shippingAddress(),
+                    form_key: $.mage.cookies.get('form_key')
                 };
 
                 return storage.post(
@@ -59,30 +63,49 @@ define(
                 this.paymentMethods(paymentMethods);
             },
             getOrderPaymentStatus: function(orderId) {
-                var serviceUrl = urlBuilder.createUrl(
-                    '/adyen/orders/:orderId/payment-status', {
-                        orderId: orderId,
-                    });
-
-                return storage.get(serviceUrl);
+                var serviceUrl = urlBuilder.createUrl('/internal/adyen/orders/payment-status', {});
+                var payload = {
+                    orderId: orderId,
+                    form_key: $.mage.cookies.get('form_key')
+                }
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(payload),
+                    true
+                );
             },
             /**
              * The results that the components returns in the onComplete callback needs to be sent to the
              * backend to the /adyen/paymentDetails endpoint and based on the response render a new
              * component or place the order (validateThreeDS2OrPlaceOrder)
-             * @param response
              */
             paymentDetails: function(data) {
                 var payload = {
                     'payload': JSON.stringify(data),
+                    form_key: $.mage.cookies.get('form_key')
                 };
 
-                var serviceUrl = urlBuilder.createUrl('/adyen/paymentDetails',
+                var serviceUrl = urlBuilder.createUrl('/internal/adyen/paymentDetails',
                     {});
 
                 return storage.post(
                     serviceUrl,
                     JSON.stringify(payload),
+                    true
+                );
+            },
+
+            donate: function (data) {
+                let request = {
+                    payload: JSON.stringify(data),
+                    formKey: $.mage.cookies.get('form_key')
+                };
+
+                const serviceUrl = urlBuilder.createUrl('/internal/adyen/donations', {});
+ 
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(request),
                     true
                 );
             }

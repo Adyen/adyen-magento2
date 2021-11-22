@@ -23,10 +23,10 @@
 
 namespace Adyen\Payment\Model\Ui;
 
-use \Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
-class AdyenMultishippingConfigProvider implements ConfigProviderInterface
+class AdyenCheckoutSuccessConfigProvider implements ConfigProviderInterface
 {
     /**
      * @var StoreManagerInterface

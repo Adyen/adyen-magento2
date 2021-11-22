@@ -56,10 +56,17 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
-    // Only used for backend orders! Checkout in front-end is using different checkout version see web folder, will be removed in v8.0.0
-    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/4.5.0/adyen.js';
-    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/4.5.0/adyen.js';
     const PSP_REFERENCE_REGEX = '/(?P<pspReference>[0-9.A-Z]{16})(?P<suffix>[a-z\-]*)/';
+    const AFTERPAY = 'afterpay';
+    const AFTERPAY_TOUCH = 'afterpaytouch';
+    const KLARNA = 'klarna';
+    const RATEPAY = 'ratepay';
+    const FACILYPAY = 'facilypay_';
+    const AFFIRM = 'affirm';
+    const CLEARPAY = 'clearpay';
+    const ZIP = 'zip';
+    const PAYBRIGHT = 'paybright';
+
 
     /**
      * @var EncryptorInterface
@@ -558,34 +565,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Gives back adyen_pay_by_mail configuration values
-     *
-     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-     * @param $field
-     * @param null|int|string $storeId
-     * @return mixed
-     * @deprecated
-     */
-    public function getAdyenPayByMailConfigData($field, $storeId = null)
-    {
-        return $this->getConfigData($field, 'adyen_pay_by_mail', $storeId);
-    }
-
-    /**
-     * Gives back adyen_pay_by_mail configuration values as flag
-     *
-     * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
-     * @param $field
-     * @param null|int|string $storeId
-     * @return mixed
-     * @deprecated
-     */
-    public function getAdyenPayByMailConfigDataFlag($field, $storeId = null)
-    {
-        return $this->getConfigData($field, 'adyen_pay_by_mail', $storeId, true);
-    }
-
-    /**
      * Gives back adyen_boleto configuration values
      *
      * @deprecated Use \Adyen\Payment\Helper\Config::getConfigData instead
@@ -630,24 +609,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param null $storeId
-     * @return string
-     * @deprecated
-     */
-    public function getHmacPayByMail($storeId = null)
-    {
-        switch ($this->isDemoMode($storeId)) {
-            case true:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_test', $storeId)));
-                break;
-            default:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenPayByMailConfigData('hmac_live', $storeId)));
-                break;
-        }
-        return $secretWord;
-    }
-
-    /**
      * Check if configuration is set to demo mode
      *
      * @deprecated Use \Adyen\Payment\Helper\Config::isDemoMode instead
@@ -657,16 +618,6 @@ class Data extends AbstractHelper
     public function isDemoMode($storeId = null)
     {
         return $this->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
-    }
-
-    /**
-     * Retrieve the decrypted notification password
-     *
-     * @return string
-     */
-    public function getNotificationPassword()
-    {
-        return $this->_encryptor->decrypt(trim($this->getAdyenAbstractConfigData('notification_password')));
     }
 
     /**
@@ -986,14 +937,14 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'afterpay') !== false ||
-            strpos($paymentMethod, 'klarna') !== false ||
-            strpos($paymentMethod, 'ratepay') !== false ||
-            strpos($paymentMethod, 'facilypay_') !== false ||
-            strpos($paymentMethod, 'affirm') !== false ||
-            strpos($paymentMethod, 'clearpay') !== false ||
-            strpos($paymentMethod, 'zip') !== false ||
-            strpos($paymentMethod, 'paybright') !== false
+        if (strpos($paymentMethod, self::AFTERPAY) !== false ||
+            strpos($paymentMethod, self::KLARNA) !== false ||
+            strpos($paymentMethod, self::RATEPAY) !== false ||
+            strpos($paymentMethod, self::FACILYPAY) !== false ||
+            strpos($paymentMethod, self::AFFIRM) !== false ||
+            strpos($paymentMethod, self::CLEARPAY) !== false ||
+            strpos($paymentMethod, self::ZIP) !== false ||
+            strpos($paymentMethod, self::PAYBRIGHT) !== false
         ) {
             return true;
         }
@@ -1002,12 +953,34 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Excludes AfterPay (NL/BE) from the open invoice list.
+     * AfterPay variants should be excluded (not afterpaytouch)as an option for auto capture.
+     * @param $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodOpenInvoiceMethodValidForAutoCapture($paymentMethod)
+    {
+        if (strpos($paymentMethod, self::AFTERPAY_TOUCH) !== false ||
+            strpos($paymentMethod, self::KLARNA) !== false ||
+            strpos($paymentMethod, self::RATEPAY) !== false ||
+            strpos($paymentMethod, self::FACILYPAY) !== false ||
+            strpos($paymentMethod, self::AFFIRM) !== false ||
+            strpos($paymentMethod, self::CLEARPAY) !== false ||
+            strpos($paymentMethod, self::ZIP) !== false ||
+            strpos($paymentMethod, self::PAYBRIGHT) !== false
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+    /**
      * @param $paymentMethod
      * @return bool
      */
     public function isPaymentMethodRatepayMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'ratepay') !== false) {
+        if (strpos($paymentMethod, self::RATEPAY) !== false) {
             return true;
         }
 
@@ -1020,7 +993,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodAfterpayTouchMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'afterpaytouch') !== false) {
+        if (strpos($paymentMethod, self::AFTERPAY_TOUCH) !== false) {
             return true;
         }
 
@@ -1046,7 +1019,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOneyMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'facilypay_') !== false) {
+        if (strpos($paymentMethod, self::FACILYPAY) !== false) {
             return true;
         }
 
@@ -1082,7 +1055,7 @@ class Data extends AbstractHelper
      */
     public function isVatCategoryHigh($paymentMethod)
     {
-        if ($paymentMethod == "klarna" ||
+        if ($paymentMethod == self::KLARNA ||
             strlen($paymentMethod) >= 9 && substr($paymentMethod, 0, 9) == 'afterpay_'
         ) {
             return true;
@@ -1249,6 +1222,44 @@ class Data extends AbstractHelper
             $numberOfItems,
             $payment,
             "shippingCost"
+        );
+    }
+
+    /**
+     * Add a line to the openinvoice data containing the details regarding an adjustment in the refund
+     *
+     * @param $formFields
+     * @param $count
+     * @param $description
+     * @param $adjustmentAmount
+     * @param $currency
+     * @param $payment
+     * @return mixed
+     */
+    public function createOpenInvoiceLineAdjustment(
+        $formFields,
+        $count,
+        $description,
+        $adjustmentAmount,
+        $currency,
+        $payment
+    ) {
+        $itemAmount = $this->formatAmount($adjustmentAmount, $currency);
+        $itemVatAmount = 0;
+        $itemVatPercentage = 0;
+        $numberOfItems = 1;
+
+        return $this->getOpenInvoiceLineData(
+            $formFields,
+            $count,
+            $currency,
+            $description,
+            $itemAmount,
+            $itemVatAmount,
+            $itemVatPercentage,
+            $numberOfItems,
+            $payment,
+            "adjustment"
         );
     }
 
@@ -1567,21 +1578,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param null|int|string $storeId
-     * @return string
-     * @deprecated this was being used to load a different version of the Web Components library in the
-     * admin panel, but now the same frontend bundle is also loaded there. Will be removed in 8.0.0
-     */
-    public function getCheckoutCardComponentJs($storeId = null)
-    {
-        if ($this->isDemoMode($storeId)) {
-            return self::CHECKOUT_COMPONENT_JS_TEST;
-        }
-
-        return self::CHECKOUT_COMPONENT_JS_LIVE;
-    }
-
-    /**
      * @param $order
      * @param $additionalData
      */
@@ -1828,7 +1824,7 @@ class Data extends AbstractHelper
 
     /**
      * Parse transactionId to separate PSP reference from suffix.
-     * e.g 882629192021269E-capture => [882629192021269E, -capture]
+     * e.g 882629192021269E-capture --> [pspReference => 882629192021269E, suffix => -capture]
      *
      * @param $transactionId
      * @return mixed
@@ -1841,6 +1837,7 @@ class Data extends AbstractHelper
             $matches
         );
 
+        // Return only the named matches, i.e pspReference & suffix
         return array_filter($matches, function($index) {
             return is_string($index);
         }, ARRAY_FILTER_USE_KEY);

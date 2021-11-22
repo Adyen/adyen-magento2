@@ -24,7 +24,7 @@
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_pwa" translate="label" type="text" sortOrder="95" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label><![CDATA[Advanced: PWA]]></label>
+        <label><![CDATA[PWA]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <comment>
             <![CDATA[
@@ -38,6 +38,12 @@
             <label>Payment Origin URL</label>
             <tooltip>Only relevant if you process payments from an external URL different to that of Magento</tooltip>
             <config_path>payment/adyen_abstract/payment_origin_url</config_path>
+        </field>
+
+        <field id="payments_return_url" translate="label" type="text" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Payment Return URL</label>
+            <tooltip>The URL that redirect payment methods will return to after the shopper completes a payment in a 3rd party gateway. Default return URL endpoint is {YOUR_MAGENTO_BASE_URL}/adyen/process/result</tooltip>
+            <config_path>payment/adyen_abstract/payment_return_url</config_path>
         </field>
 
     </group>

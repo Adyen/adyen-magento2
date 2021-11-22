@@ -15,18 +15,27 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2020 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Block\Form;
+namespace Adyen\Payment\Api\Data;
 
-class PayByMail extends \Magento\Payment\Block\Form
+use Magento\Payment\Gateway\Data\AddressAdapterInterface as CoreAddressAdapterInterface;
+
+interface AddressAdapterInterface extends CoreAddressAdapterInterface
 {
     /**
-     * @var string
+     * Get street line 3
+     * @return string
      */
-    protected $_template = 'Adyen_Payment::form/pay_by_mail.phtml';
+    public function getStreetLine3();
+
+    /**
+     * Get street line 4
+     * @return string
+     */
+    public function getStreetLine4();
 }
