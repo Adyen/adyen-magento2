@@ -13,32 +13,24 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2021 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
 namespace Adyen\Payment\Api\Internal;
 
-use Magento\Quote\Api\Data\AddressInterface;
-
-/**
- * Interface for fetching payment methods from Adyen for guest customers
- *
- * @api
- */
-interface InternalGuestAdyenPaymentMethodManagementInterface
+interface InternalAdyenDonationsInterface
 {
     /**
-     * Fetches Adyen payment methods for guest customers
-     *
-     * @param string $cartId The ID of the cart/quote.
-     * @param string $formKey Frontend form key.
-     * @param AddressInterface|null $shippingAddress Shipping address to use for fetching the payment methods from Adyen.
-     * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
+     * Build and send internal donation payment request
+     * @param string $payload
+     * @param string $formKey
+     * @return mixed
      */
-    public function handleInternalRequest($cartId, $formKey, AddressInterface $shippingAddress = null);
+    public function handleInternalRequest($payload, $formKey);
 }

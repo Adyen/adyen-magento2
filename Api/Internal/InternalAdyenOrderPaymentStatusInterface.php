@@ -23,23 +23,17 @@
 
 namespace Adyen\Payment\Api\Internal;
 
-use Magento\Checkout\Api\Data\PaymentDetailsInterface;
-use Magento\Quote\Api\Data\AddressInterface;
-
 /**
- * Interface InternalAdyenOrderPaymentStatusInterface
- * This should only be called internally via ajax
+ * Interface for querying the Adyen order payment status
  *
  * @api
  */
 interface InternalAdyenOrderPaymentStatusInterface
 {
     /**
-     * Handle the internal request by checking if it is internal and then calling the original interface
-     *
-     * @param string $orderId
-     * @param string $formKey
-     * @return PaymentDetailsInterface
+     * @param string $orderId The ID of the order.
+     * @param string $formKey Frontend form key.
+     * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
      */
     public function handleInternalRequest($orderId, $formKey);
 }

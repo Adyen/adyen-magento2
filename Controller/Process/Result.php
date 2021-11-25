@@ -251,6 +251,11 @@ class Result extends \Magento\Framework\App\Action\Action
             ]
         );
 
+        // Save PSP reference from the response
+        if (!empty($response['pspReference'])) {
+            $this->payment->setAdditionalInformation('pspReference', $response['pspReference']);
+        }
+
         // Save payment token if available in the response
         if (!empty($response['additionalData']['recurring.recurringDetailReference']) &&
             $this->payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE) {
@@ -261,6 +266,11 @@ class Result extends \Magento\Framework\App\Action\Action
                 $this->_adyenHelper->createAdyenBillingAgreement($order, $response['additionalData']);
             }
             $this->orderResourceModel->save($order);
+        }
+
+        // Save donation token if available in the response
+        if (!empty($response['donationToken'])) {
+            $this->payment->setAdditionalInformation('donationToken', $response['donationToken']);
         }
 
         // update the order

@@ -23,8 +23,8 @@
  */
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
-    <group id="adyen_advanced_order_processing" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label><![CDATA[Advanced: Magento Order Processing]]></label>
+    <group id="adyen_order_processing" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Magento Order Processing]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <field id="paypal_capture_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Use manual capture for PayPal</label>
