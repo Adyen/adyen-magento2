@@ -25,8 +25,8 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Model\Resolver\DataProvider;
 
-use Adyen\Payment\Model\AdyenOrderPaymentStatus;
-use Adyen\Payment\Model\AdyenPaymentDetails;
+use Adyen\Payment\Model\Api\AdyenOrderPaymentStatus;
+use Adyen\Payment\Model\Api\AdyenPaymentDetails;
 use Magento\Framework\Serialize\Serializer\Json;
 
 class GetAdyenPaymentStatus
