@@ -56,11 +56,7 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
-    // Only used for backend orders! Checkout in front-end is using different checkout version see web folder, will be removed in v8.0.0
-    const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/4.5.0/adyen.js';
-    const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/4.5.0/adyen.js';
     const PSP_REFERENCE_REGEX = '/(?P<pspReference>[0-9.A-Z]{16})(?P<suffix>[a-z\-]*)/';
-
     const AFTERPAY = 'afterpay';
     const AFTERPAY_TOUCH = 'afterpaytouch';
     const KLARNA = 'klarna';
@@ -1226,6 +1222,44 @@ class Data extends AbstractHelper
             $numberOfItems,
             $payment,
             "shippingCost"
+        );
+    }
+
+    /**
+     * Add a line to the openinvoice data containing the details regarding an adjustment in the refund
+     *
+     * @param $formFields
+     * @param $count
+     * @param $description
+     * @param $adjustmentAmount
+     * @param $currency
+     * @param $payment
+     * @return mixed
+     */
+    public function createOpenInvoiceLineAdjustment(
+        $formFields,
+        $count,
+        $description,
+        $adjustmentAmount,
+        $currency,
+        $payment
+    ) {
+        $itemAmount = $this->formatAmount($adjustmentAmount, $currency);
+        $itemVatAmount = 0;
+        $itemVatPercentage = 0;
+        $numberOfItems = 1;
+
+        return $this->getOpenInvoiceLineData(
+            $formFields,
+            $count,
+            $currency,
+            $description,
+            $itemAmount,
+            $itemVatAmount,
+            $itemVatPercentage,
+            $numberOfItems,
+            $payment,
+            "adjustment"
         );
     }
 

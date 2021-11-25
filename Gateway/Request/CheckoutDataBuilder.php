@@ -32,6 +32,7 @@ use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Catalog\Helper\Image;
 
 class CheckoutDataBuilder implements BuilderInterface
 {
@@ -56,6 +57,11 @@ class CheckoutDataBuilder implements BuilderInterface
      */
     private $chargedCurrency;
 
+    /**
+     * @var Image
+     */
+    private $imageHelper;
+
 
     /**
      * CheckoutDataBuilder constructor.
@@ -63,15 +69,18 @@ class CheckoutDataBuilder implements BuilderInterface
      * @param Data $adyenHelper
      * @param CartRepositoryInterface $cartRepository
      * @param ChargedCurrency $chargedCurrency
+     * @param Image $imageHelper
      */
     public function __construct(
         Data $adyenHelper,
         CartRepositoryInterface $cartRepository,
-        ChargedCurrency $chargedCurrency
+        ChargedCurrency $chargedCurrency,
+        Image $imageHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->cartRepository = $cartRepository;
         $this->chargedCurrency = $chargedCurrency;
+        $this->imageHelper = $imageHelper;
     }
 
     /**
@@ -211,6 +220,24 @@ class CheckoutDataBuilder implements BuilderInterface
     }
 
     /**
+     * @param string $item
+     * @return string
+     */
+    protected function getImageUrl($item): string
+    {
+        $product = $item->getProduct();
+        $imageUrl = "";
+
+        if ($image = $product->getSmallImage()) {
+            $imageUrl = $this->imageHelper->init($product, 'product_page_image_small')
+                ->setImageFile($image)
+                ->getUrl();
+        }
+
+        return $imageUrl;
+    }
+
+    /**
      * @param \Magento\Sales\Model\Order $order
      *
      * @return array
@@ -262,7 +289,9 @@ class CheckoutDataBuilder implements BuilderInterface
                 'description' => $item->getName(),
                 'quantity' => $numberOfItems,
                 'taxCategory' => $item->getProduct()->getAttributeText('tax_class_id'),
-                'taxPercentage' => $formattedTaxPercentage
+                'taxPercentage' => $formattedTaxPercentage,
+                'productUrl'=> $item->getProduct()->getUrlModel()->getUrl($item->getProduct()),
+                'imageUrl'=> $this->getImageUrl($item)
             ];
         }
 

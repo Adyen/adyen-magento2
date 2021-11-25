@@ -200,6 +200,11 @@ class PaymentResponseHandler
                         $this->adyenHelper->createAdyenBillingAgreement($order, $paymentsResponse['additionalData']);
                     }
                 }
+
+                if (!empty($paymentsResponse['donationToken'])) {
+                    $payment->setAdditionalInformation('donationToken', $paymentsResponse['donationToken']);
+                }
+
                 $this->orderResourceModel->save($order);
                 break;
             case self::REFUSED:
