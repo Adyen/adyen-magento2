@@ -35,6 +35,7 @@ type paymentMethodsArray {
     brands: [String] @doc(description: "List of possible brands. For example: visa, mc.")
     configuration: [paymentMethodsConfiguration] @doc(description: "The configuration of the payment method.")
     details: [paymentMethodsDetails] @doc(description: "All input details to be provided to complete the payment with this payment method.")
+    issuers: [paymentMethodsIssuers] @doc(description: "Payment method issuer list.")
 }
 
 type paymentMethodsConfiguration {
@@ -48,6 +49,11 @@ type paymentMethodsDetails {
     items: [paymentMethodsDetailsItems] @doc(description: "The items to choose from in case that the payment method includes a selection list.")
     optional: String @doc(description: "True if this input is optional.")
     value: String @doc(description: "The value can be pre-filled, if available.")
+}
+
+type paymentMethodsIssuers {
+    id: String @doc(description: "Issuer ID.")
+    name: String @doc(description: "Issuer name.")
 }
 
 type paymentMethodsDetailsItems {
