@@ -41,6 +41,8 @@ class Config
     const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
     const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
+    const XML_PAYMENT_RETURN_URL = 'payment_return_url';
+    const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
 
     /**
      * @var ScopeConfigInterface
@@ -209,6 +211,24 @@ class Config
     public function getPWAOriginUrl($storeId)
     {
         return $this->getConfigData(self::XML_PAYMENT_ORIGIN_URL, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    /**
+     * Retrieve the fraud_manual_review_accept_status config
+     *
+     * @param int|string $storeId
+     * @return mixed
+     */
+    public function getFraudManualReviewAcceptStatus($storeId)
+    {
+        //$path = 'payment/' . 'adyen_abstract' . '/' . 'fraud_manual_review_accept_status';
+        //return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+
+        return $this->getConfigData(
+            Config::XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
     }
 
     /**
