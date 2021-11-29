@@ -26,6 +26,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Sales\Model\Order;
 
 /**
  * Helper class for anything related to Case Management (Manual Review)
@@ -43,6 +44,11 @@ class CaseManagement extends AbstractHelper
     private $adyenLogger;
 
     /**
+     * @var Config
+     */
+    private $configHelper;
+
+    /**
      * CaseManagement constructor.
      *
      * @param Context $context
@@ -50,10 +56,12 @@ class CaseManagement extends AbstractHelper
      */
     public function __construct(
         Context $context,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        Config $configHelper
     ) {
         parent::__construct($context);
         $this->adyenLogger = $adyenLogger;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -74,5 +82,35 @@ class CaseManagement extends AbstractHelper
         }
 
         return false;
+    }
+
+    /**
+     * Mark a pending manual review order as accepted, by adding a comment and also update the status, if the review
+     * accept status is set.
+     *
+     * @param Order $order
+     * @param $comment
+     * @return Order
+     */
+    public function markCaseAsAccepted(Order $order, $comment): Order
+    {
+        $reviewAcceptStatus = $this->configHelper->getFraudManualReviewAcceptStatus($order->getStoreId());
+        // Empty used to cater for empty string and null cases
+        if (!empty($reviewAcceptStatus)) {
+            $order->addStatusHistoryComment($comment, $reviewAcceptStatus);
+            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+                'Created comment history for this notification linked to order %s with status update to: %s',
+                $order->getIncrementId(),
+                $reviewAcceptStatus
+            ));
+        } else {
+            $order->addStatusHistoryComment($comment);
+            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+                'Created comment history for this notification linked to order %s without any status update',
+                $order->getIncrementId()
+            ));
+        }
+
+        return $order;
     }
 }
