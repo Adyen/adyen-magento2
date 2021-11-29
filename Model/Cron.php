@@ -27,6 +27,7 @@ use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
@@ -1517,29 +1518,26 @@ class Cron
         if (strcmp($this->_success, 'true') == 0) {
             $this->_order->setData('adyen_notification_event_code_success', 1);
         }
-        $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
+
         $this->adyenOrderPaymentHelper->createAdyenOrderPayment($this->_order, $this->notification, $this->_isAutoCapture());
         $isTotalAmountAuthorised = $this->_isTotalAmount(
             $this->_order->getPayment()->getEntityId(),
             $this->_order->getOrderCurrencyCode()
         );
 
-        // If manual review is NOT active OR no custom status is set on the Adyen config page
-        if ($this->_fraudManualReview != true || $fraudManualReviewStatus == "") {
-            if ($isTotalAmountAuthorised) {
-                $this->_setPrePaymentAuthorized();
-            } else {
-                $this->_order->addStatusHistoryComment(__(sprintf(
-                    'Partial authorisation w/amount %s %s was processed',
-                    $this->_currency,
-                    $this->_adyenHelper->originalAmount($this->_value, $this->_currency)
-                )), false);
-            }
+        // If manual review is required
+        // Elseif the total amount has been authorised
+        // Else, this implies a partial payment
+        if ($this->requireFraudManualReview) {
+            $this->caseManagementHelper->markCaseAsPendingReview($this->_order, $this->_pspReference);
+        } elseif ($isTotalAmountAuthorised) {
+            $this->_setPrePaymentAuthorized();
         } else {
-            $this->_adyenLogger->addAdyenNotificationCronjob(
-                'Ignore the pre authorized status because the order is ' .
-                'under manual review and use the Manual review status'
-            );
+            $this->_order->addStatusHistoryComment(__(sprintf(
+                'Partial payment w/amount %s %s was processed',
+                $this->_currency,
+                $this->_adyenHelper->originalAmount($this->_value, $this->_currency)
+            )), false);
         }
 
         if ($isTotalAmountAuthorised) {
@@ -1648,7 +1646,10 @@ class Cron
             // show message if order is in manual review
             if ($this->_fraudManualReview) {
                 // check if different status is selected
-                $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
+                $fraudManualReviewStatus = $this->configHelper->getFraudStatus(
+                    Config::XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT,
+                    $this->_order->getStoreId()
+                );
                 if ($fraudManualReviewStatus != "") {
                     $status = $fraudManualReviewStatus;
                     $comment = "Adyen Payment is in Manual Review check the Adyen platform";
@@ -1865,33 +1866,6 @@ class Cron
     }
 
     /**
-     * @return mixed
-     */
-    protected function _getFraudManualReviewStatus()
-    {
-        return $this->_getConfigData(
-            'fraud_manual_review_status',
-            'adyen_abstract',
-            $this->_order->getStoreId()
-        );
-    }
-
-    /**
-<<<<<<< HEAD
-     * @return mixed
-     */
-    protected function _getFraudManualReviewAcceptStatus()
-    {
-        return $this->_getConfigData(
-            'fraud_manual_review_accept_status',
-            'adyen_abstract',
-            $this->_order->getStoreId()
-        );
-    }
-
-    /**
-=======
->>>>>>> f404f2fe (PW-4710 - Move function which gets the fraud manual review status to config helper)
      * Get all the entries in the adyen_order_payment and compare their total to the order grand total
      *
      * @param int $paymentId
@@ -2109,10 +2083,14 @@ class Cron
             // If manual review is true AND manual review status is set
             if ($manualReviewComment == true && $this->_fraudManualReview) {
                 // check if different status is selected
-                $fraudManualReviewStatus = $this->_getFraudManualReviewStatus();
+                $fraudManualReviewStatus = $this->configHelper->getFraudStatus(
+                    Config::XML_STATUS_FRAUD_MANUAL_REVIEW,
+                    $this->_order->getStoreId()
+                );
+
                 if ($fraudManualReviewStatus != "") {
                     $status = $fraudManualReviewStatus;
-                    $comment = "Adyen Payment is in Manual Review check the Adyen platform";
+                    $comment = "Adyen Payment is in Manual Review. Please check the Adyen platform";
                 }
             }
 
