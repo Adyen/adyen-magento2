@@ -36,6 +36,14 @@ class Config
     const XML_NOTIFICATIONS_HMAC_KEY_LIVE = "notification_hmac_key_live";
     const XML_NOTIFICATIONS_HMAC_KEY_TEST = "notification_hmac_key_test";
     const XML_THREEDS_BEHAVIOR = "threeds_behavior";
+    const XML_CHARGED_CURRENCY = "charged_currency";
+    const XML_HAS_HOLDER_NAME = "has_holder_name";
+    const XML_HOLDER_NAME_REQUIRED = "holder_name_required";
+    const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
+    const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
+    const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
+    const XML_PAYMENT_RETURN_URL = 'payment_return_url';
+    const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
 
     /**
      * @var Magento\Framework\App\Config\ScopeConfigInterface
@@ -163,6 +171,24 @@ class Config
     public function getThreeDsBehavior($storeId = null)
     {
         return $this->adyenHelper->getAdyenCcConfigData(self::XML_THREEDS_BEHAVIOR, $storeId);
+    }
+
+    /**
+     * Retrieve the fraud_manual_review_accept_status config
+     *
+     * @param int|string $storeId
+     * @return mixed
+     */
+    public function getFraudManualReviewAcceptStatus($storeId)
+    {
+        //$path = 'payment/' . 'adyen_abstract' . '/' . 'fraud_manual_review_accept_status';
+        //return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+
+        return $this->getConfigData(
+            Config::XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
     }
 
     /**
