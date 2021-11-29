@@ -220,7 +220,9 @@ class ChargedCurrencyTest extends TestCase
                 'getBaseShippingTaxAmount',
                 'getBaseCurrencyCode',
                 'getOrderCurrencyCode',
-                'getOrder'
+                'getOrder',
+                'getGrandTotal',
+                'getBaseGrandTotal'
             ])
             ->getMock();
         $this->mockMethods($this->invoice,
@@ -231,7 +233,9 @@ class ChargedCurrencyTest extends TestCase
                 'getBaseShippingAmount' => self::AMOUNT_CURRENCY['base']['amount'],
                 'getBaseShippingTaxAmount' => self::AMOUNT_CURRENCY['base']['taxAmount'],
                 'getShippingAmount' => self::AMOUNT_CURRENCY['display']['amount'],
-                'getShippingTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount']
+                'getShippingTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
+                'getGrandTotal' => self::AMOUNT_CURRENCY['display']['amount'],
+                'getBaseGrandTotal' => self::AMOUNT_CURRENCY['base']['amount']
             ]
         );
 
@@ -540,13 +544,11 @@ class ChargedCurrencyTest extends TestCase
         $this->assertEquals(
             [
                 $expectedResult->getAmount(),
-                $expectedResult->getCurrencyCode(),
-                $expectedResult->getTaxAmount()
+                $expectedResult->getCurrencyCode()
             ],
             [
                 $result->getAmount(),
-                $result->getCurrencyCode(),
-                $result->getTaxAmount()
+                $result->getCurrencyCode()
             ]
         );
     }
