@@ -109,10 +109,10 @@ class CaptureDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
         $payment = $paymentDataObject->getPayment();
         /** @var Order $order */
         $order = $payment->getOrder();
+        $amount = $order->getGrandTotal();
         $pspReference = $payment->getCcTransId();
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
         $currency = $orderAmountCurrency->getCurrencyCode();
