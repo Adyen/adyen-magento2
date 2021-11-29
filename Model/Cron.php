@@ -25,6 +25,7 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
+use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Order\Payment;
@@ -320,6 +321,11 @@ class Cron
     protected $invoiceHelper;
 
     /**
+     * @var CaseManagement
+     */
+    protected $caseManagementHelper;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -387,7 +393,8 @@ class Cron
         ResourceModel\Order\Payment $orderPaymentResourceModel,
         \Magento\Sales\Model\ResourceModel\Order\Invoice $invoiceResource,
         AdyenOrderPayment $adyenOrderPaymentHelper,
-        \Adyen\Payment\Helper\Invoice $invoiceHelper
+        \Adyen\Payment\Helper\Invoice $invoiceHelper,
+        CaseManagement $caseManagementHelper
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -422,6 +429,7 @@ class Cron
         $this->invoiceResource = $invoiceResource;
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->invoiceHelper = $invoiceHelper;
+        $this->caseManagementHelper = $caseManagementHelper;
     }
 
     /**
@@ -755,14 +763,7 @@ class Cron
         }
 
         if ($additionalData && is_array($additionalData)) {
-            // check if the payment is in status manual review
-            $fraudManualReview = isset($additionalData['fraudManualReview']) ?
-                $additionalData['fraudManualReview'] : "";
-            if ($fraudManualReview == "true") {
-                $this->_fraudManualReview = true;
-            } else {
-                $this->_fraudManualReview = false;
-            }
+            $this->requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
 
             // modification.action is it for JSON
             $modificationActionJson = isset($additionalData['modification.action']) ?
