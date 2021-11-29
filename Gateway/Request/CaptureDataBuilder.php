@@ -112,7 +112,9 @@ class CaptureDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         /** @var Order $order */
         $order = $payment->getOrder();
-        $amount = $order->getGrandTotal();
+        $latestInvoice = $order->getInvoiceCollection()->getLastItem();
+        $amount = $latestInvoice->getGrandTotal();
+
         $pspReference = $payment->getCcTransId();
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
         $currency = $orderAmountCurrency->getCurrencyCode();
