@@ -907,16 +907,25 @@ class Cron
             }
         }
 
-        // if manual review is accepted and a status is selected. Change the status through this comment history item
-        if ($this->_eventCode == Notification::MANUAL_REVIEW_ACCEPT
-            && $this->getFraudManualReviewAcceptStatus() != ""
-        ) {
-            $manualReviewAcceptStatus = $this->getFraudManualReviewAcceptStatus();
-            $this->_order->addStatusHistoryComment($comment, $manualReviewAcceptStatus);
-            $this->_adyenLogger->addAdyenNotificationCronjob(
-                'Created comment history for this notification with status change to: '
-                . $manualReviewAcceptStatus
-            );
+        // If manual review is accepted and a status is set, change the order status through this comment history item
+        if ($this->_eventCode == Notification::MANUAL_REVIEW_ACCEPT) {
+            $reviewAcceptStatus = $this->configHelper->getFraudManualReviewAcceptStatus($this->_order->getStoreId());
+            // Empty used to cater for empty string and null cases
+            if (!empty($reviewAcceptStatus)) {
+                $this->_order->addStatusHistoryComment($comment, $reviewAcceptStatus);
+                $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
+                    'Created comment history for this notification linked to order %s with status update to: %s',
+                    $this->_order->getIncrementId(),
+                    $reviewAcceptStatus
+                ));
+            } else {
+                $this->_order->addStatusHistoryComment($comment);
+                $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
+                    'Created comment history for this notification linked to order %s without any status update',
+                    $this->_order->getIncrementId()
+                ));
+            }
+
             return;
         }
 
@@ -1892,18 +1901,6 @@ class Cron
     {
         return $this->_getConfigData(
             'fraud_manual_review_status',
-            'adyen_abstract',
-            $this->_order->getStoreId()
-        );
-    }
-
-    /**
-     * @return mixed
-     */
-    protected function getFraudManualReviewAcceptStatus()
-    {
-        return $this->_getConfigData(
-            'fraud_manual_review_accept_status',
             'adyen_abstract',
             $this->_order->getStoreId()
         );

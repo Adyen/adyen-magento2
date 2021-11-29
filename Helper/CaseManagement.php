@@ -24,7 +24,6 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 
@@ -44,7 +43,7 @@ class CaseManagement extends AbstractHelper
     private $adyenLogger;
 
     /**
-     * AdyenOrderPayment constructor.
+     * CaseManagement constructor.
      *
      * @param Context $context
      * @param AdyenLogger $adyenLogger
