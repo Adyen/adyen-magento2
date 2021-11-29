@@ -28,6 +28,8 @@ use \Adyen\Payment\Model\Notification;
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Framework\App\Request\Http as Http;
 use Magento\Sales\Model\Order;
+use Adyen\Payment\Helper\PaymentResponseHandler;
+
 
 class Result extends \Magento\Framework\App\Action\Action
 {
@@ -109,6 +111,11 @@ class Result extends \Magento\Framework\App\Action\Action
     private $stateDataHelper;
 
     /**
+     * @var
+     */
+    private $paymentResponseHandler;
+
+    /**
      * Result constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -119,6 +126,10 @@ class Result extends \Magento\Framework\App\Action\Action
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Adyen\Payment\Helper\Quote $quoteHelper
+     * @param \Adyen\Payment\Helper\Vault $vaultHelper
+     * @param \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
+     * @param PaymentResponseHandler $paymentResponseHandler
+     * @param StateData $stateDataHelper
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -131,6 +142,7 @@ class Result extends \Magento\Framework\App\Action\Action
         \Adyen\Payment\Helper\Quote $quoteHelper,
         \Adyen\Payment\Helper\Vault $vaultHelper,
         \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
+        PaymentResponseHandler $paymentResponseHandler,
         StateData $stateDataHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
@@ -143,6 +155,7 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
         $this->stateDataHelper = $stateDataHelper;
+        $this->paymentResponseHandler = $paymentResponseHandler;
         parent::__construct($context);
     }
 
@@ -515,6 +528,8 @@ class Result extends \Magento\Framework\App\Action\Action
 
         try {
             $response = $service->paymentsDetails($request);
+            $this->paymentResponseHandler->handlePaymentResponse($response, $this->payment, $order);
+
             $responseMerchantReference = !empty($response['merchantReference']) ? $response['merchantReference'] : null;
             $resultMerchantReference = !empty($result['merchantReference']) ? $result['merchantReference'] : null;
             $merchantReference = $responseMerchantReference ?: $resultMerchantReference;
