@@ -85,6 +85,40 @@ class CaseManagement extends AbstractHelper
     }
 
     /**
+     * Mark an order as pending manual review by adding a comment and also, update the status if the review status is set.
+     *
+     * @param Order $order
+     * @param string $pspReference
+     * @return Order
+     */
+    public function markCaseAsPendingReview(Order $order, string $pspReference): Order
+    {
+        $manualReviewComment = sprintf(
+            'Manual review required for order w/ pspReference: %s',
+            $pspReference
+        );
+
+        $reviewRequiredStatus = $this->configHelper->getFraudStatus(
+            Config::XML_STATUS_FRAUD_MANUAL_REVIEW,
+            $order->getStoreId()
+        );
+
+        if (!empty($reviewRequiredStatus)) {
+            $order->addStatusHistoryComment(__($manualReviewComment), $reviewRequiredStatus);
+            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+                'Ignore the pre authorized status for order %s since this is currently under manual review.' .
+                'The following status will be set: %s',
+                $order->getIncrementId(),
+                $reviewRequiredStatus
+            ));
+        } else {
+            $order->addStatusHistoryComment($manualReviewComment);
+        }
+
+        return $order;
+    }
+
+    /**
      * Mark a pending manual review order as accepted, by adding a comment and also update the status, if the review
      * accept status is set.
      *
@@ -94,7 +128,11 @@ class CaseManagement extends AbstractHelper
      */
     public function markCaseAsAccepted(Order $order, $comment): Order
     {
-        $reviewAcceptStatus = $this->configHelper->getFraudManualReviewAcceptStatus($order->getStoreId());
+        $reviewAcceptStatus = $this->configHelper->getFraudStatus(
+            Config::XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT,
+            $order->getStoreId()
+        );
+
         // Empty used to cater for empty string and null cases
         if (!empty($reviewAcceptStatus)) {
             $order->addStatusHistoryComment($comment, $reviewAcceptStatus);
