@@ -212,6 +212,11 @@ class Cron
     protected $requireFraudManualReview;
 
     /**
+     * @var bool
+     */
+    private $isAutoCapture;
+
+    /**
      * @var ResourceModel\Order\Payment\CollectionFactory
      */
     protected $_adyenOrderPaymentCollectionFactory;
@@ -1521,13 +1526,14 @@ class Cron
     protected function _authorizePayment()
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Authorisation of the order');
+        $this->isAutoCapture = $this->_isAutoCapture();
 
         // Set adyen_notification_event_code_success to true so that we ignore a possible OFFER_CLOSED
         if (strcmp($this->_success, 'true') == 0) {
             $this->_order->setData('adyen_notification_event_code_success', 1);
         }
 
-        $this->adyenOrderPaymentHelper->createAdyenOrderPayment($this->_order, $this->notification, $this->_isAutoCapture());
+        $this->adyenOrderPaymentHelper->createAdyenOrderPayment($this->_order, $this->notification, $this->isAutoCapture);
         $isTotalAmountAuthorised = $this->_isTotalAmount(
             $this->_order->getPayment()->getEntityId(),
             $this->orderCurrency
@@ -1537,7 +1543,11 @@ class Cron
         // Elseif the total amount has been authorised
         // Else, this implies a partial payment
         if ($this->requireFraudManualReview) {
-            $this->caseManagementHelper->markCaseAsPendingReview($this->_order, $this->_pspReference);
+            // If this is not auto capture, set it to pending review. Auto capture orders will be set to pending manual
+            // review AFTER the invoice is generated
+            if (!$this->isAutoCapture) {
+                $this->caseManagementHelper->markCaseAsPendingReview($this->_order, $this->_pspReference);
+            }
         } elseif ($isTotalAmountAuthorised) {
             $this->_setPrePaymentAuthorized();
         } else {
@@ -1655,7 +1665,7 @@ class Cron
             if ($this->requireFraudManualReview) {
                 // check if different status is selected
                 $fraudManualReviewStatus = $this->configHelper->getFraudStatus(
-                    Config::XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT,
+                    Config::XML_STATUS_FRAUD_MANUAL_REVIEW,
                     $this->_order->getStoreId()
                 );
                 if ($fraudManualReviewStatus != "") {
@@ -1670,7 +1680,17 @@ class Cron
 
         if ($this->_isTotalAmount($paymentObj->getEntityId(), $this->orderCurrency)) {
             $this->_createInvoice();
-            $this->finalizeOrder();
+            // If manual review is required AND this order was auto captured, mark it AFTER creating the invoice
+            if ($this->requireFraudManualReview && $this->isAutoCapture) {
+                $this->_order->setIsInProcess(false);
+                $this->caseManagementHelper->markCaseAsPendingReview($this->_order, $this->_pspReference);
+                $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
+                    'Order %s was marked as pending manual review, AFTER the invoice was created',
+                    $this->_order->getIncrementId()
+                ));
+            } else {
+                $this->finalizeOrder();
+            }
         } else {
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 'This is a partial AUTHORISATION and the full amount is not reached'
