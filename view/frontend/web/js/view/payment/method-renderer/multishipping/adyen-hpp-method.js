@@ -249,9 +249,10 @@ define([
         selectPaymentMethodType: function() {
             var self = this;
             $('#stateData').val('');
+            let paymentMethod = self.paymentMethod;
             let stateData;
-            if (!('component' in self)) {
-                let paymentMethod = self.paymentMethod;
+            if ($.trim($('#adyen-alternative-payment-container-' +
+                paymentMethod.methodIdentifier).html())==='') {
                 stateData = {
                     paymentMethod: {
                         type: paymentMethod.type
