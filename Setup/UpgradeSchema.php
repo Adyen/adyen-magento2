@@ -39,6 +39,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
     const ADYEN_INVOICE = 'adyen_invoice';
     const ADYEN_STATE_DATA = 'adyen_state_data';
     const ADYEN_PAYMENT_RESPONSE = 'adyen_payment_response';
+    const ADYEN_PAYMENT_ADDITIONAL_DATA = 'adyen_payment_additional_data';
 
     /**
      * {@inheritdoc}
@@ -593,5 +594,56 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'created_at',
             $createdAtColumn
         );
+    }
+
+    /**
+     * Upgrade to 8.0.0
+     *
+     * New adyen_payment_additional_data table to save all payment details
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     * @throws Zend_Db_Exception
+     */
+    public function updateSchemaVersion800(SchemaSetupInterface $setup)
+    {
+        $table = $setup->getConnection()
+            ->newTable($setup->getTable(self::ADYEN_PAYMENT_ADDITIONAL_DATA))
+            ->addColumn(
+                'entity_id',
+                Table::TYPE_INTEGER,
+                null,
+                ['identity' => true, 'unsigned' => true, 'nullable' => false, 'primary' => true],
+                'Adyen Payment Additional Data Entity ID'
+            )
+            ->addColumn(
+                'payment_id',
+                Table::TYPE_INTEGER,
+                11,
+                ['unsigned' => true, 'nullable' => false],
+                'Order Payment Id'
+            )
+            ->addColumn(
+                'additional_data',
+                Table::TYPE_TEXT,
+                null,
+                ['unsigned' => true, 'nullable' => true],
+                'Payment Additional Data'
+            )
+            ->addForeignKey(
+                $setup->getFkName(
+                    self::ADYEN_PAYMENT_ADDITIONAL_DATA,
+                    'payment_id',
+                    'sales_order_payment',
+                    'entity_id'
+                ),
+                'payment_id',
+                $setup->getTable('sales_order_payment'),
+                'entity_id',
+                Table::ACTION_CASCADE
+            )
+            ->setComment('Adyen Payment Additional Data');
+
+        $setup->getConnection()->createTable($table);
     }
 }
