@@ -893,11 +893,12 @@ class Cron
         }
 
         // If manual review is accepted and a status is set, change the order status through this comment history item
-        if ($this->_eventCode == Notification::MANUAL_REVIEW_ACCEPT) {
+        if ($this->_eventCode === Notification::MANUAL_REVIEW_ACCEPT) {
             $this->caseManagementHelper->markCaseAsAccepted($this->_order, $comment);
+        } else {
+            $this->_order->addStatusHistoryComment($comment, $this->_order->getStatus());
         }
 
-        $this->_order->addStatusHistoryComment($comment);
         $this->_adyenLogger->addAdyenNotificationCronjob('Created comment history for this notification');
     }
 
