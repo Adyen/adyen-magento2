@@ -250,10 +250,9 @@ define([
             var self = this;
             $('#stateData').val('');
             let paymentMethod = self.paymentMethod;
-            let stateData;
-            if ($.trim($('#adyen-alternative-payment-container-' +
-                paymentMethod.methodIdentifier).html())==='') {
-                stateData = {
+            const isEmptyContainer = $('#adyen-alternative-payment-container-' + paymentMethod.methodIdentifier).children().size() === 0;
+            if (isEmptyContainer) {
+                let stateData = {
                     paymentMethod: {
                         type: paymentMethod.type
                     }
