@@ -39,7 +39,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
     const ADYEN_INVOICE = 'adyen_invoice';
     const ADYEN_STATE_DATA = 'adyen_state_data';
     const ADYEN_PAYMENT_RESPONSE = 'adyen_payment_response';
-    const ADYEN_PAYMENT_ADDITIONAL_DATA = 'adyen_payment_additional_data';
+    const ADYEN_PAYMENT_ADDITIONAL_INFORMATION = 'adyen_payment_additional_information';
 
     /**
      * {@inheritdoc}
@@ -599,7 +599,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
     /**
      * Upgrade to 8.0.0
      *
-     * New adyen_payment_additional_data table to save all payment details
+     * New adyen_payment_additional_information table to save all payment details
      *
      * @param SchemaSetupInterface $setup
      * @return void
@@ -608,13 +608,13 @@ class UpgradeSchema implements UpgradeSchemaInterface
     public function updateSchemaVersion800(SchemaSetupInterface $setup)
     {
         $table = $setup->getConnection()
-            ->newTable($setup->getTable(self::ADYEN_PAYMENT_ADDITIONAL_DATA))
+            ->newTable($setup->getTable(self::ADYEN_PAYMENT_ADDITIONAL_INFORMATION))
             ->addColumn(
                 'entity_id',
                 Table::TYPE_INTEGER,
                 null,
                 ['identity' => true, 'unsigned' => true, 'nullable' => false, 'primary' => true],
-                'Adyen Payment Additional Data Entity ID'
+                'Adyen Payment Additional Information Entity ID'
             )
             ->addColumn(
                 'payment_id',
@@ -624,15 +624,15 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'Order Payment Id'
             )
             ->addColumn(
-                'additional_data',
+                'additional_information',
                 Table::TYPE_TEXT,
                 null,
                 ['unsigned' => true, 'nullable' => true],
-                'Payment Additional Data'
+                'Payment Additional Information'
             )
             ->addForeignKey(
                 $setup->getFkName(
-                    self::ADYEN_PAYMENT_ADDITIONAL_DATA,
+                    self::ADYEN_PAYMENT_ADDITIONAL_INFORMATION,
                     'payment_id',
                     'sales_order_payment',
                     'entity_id'
@@ -642,7 +642,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'entity_id',
                 Table::ACTION_CASCADE
             )
-            ->setComment('Adyen Payment Additional Data');
+            ->setComment('Adyen Payment Additional Information');
 
         $setup->getConnection()->createTable($table);
     }
