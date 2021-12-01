@@ -89,12 +89,13 @@ class CaseManagement extends AbstractHelper
      *
      * @param Order $order
      * @param string $pspReference
+     * @param bool $autoCapture
      * @return Order
      */
-    public function markCaseAsPendingReview(Order $order, string $pspReference): Order
+    public function markCaseAsPendingReview(Order $order, string $pspReference, bool $autoCapture = false): Order
     {
         $manualReviewComment = sprintf(
-            'Manual review required for order w/ pspReference: %s',
+            'Manual review required for order w/ pspReference: %s. Please check the Adyen platform.',
             $pspReference
         );
 
@@ -103,11 +104,16 @@ class CaseManagement extends AbstractHelper
             $order->getStoreId()
         );
 
+        // Set is in process to false since on Auto Capture, the payment would have already gone trough on the Adyen
+        // platform. The invoice should also be already generated.
+        if ($autoCapture) {
+            $order->setIsInProcess(false);
+        }
+
         if (!empty($reviewRequiredStatus)) {
             $order->addStatusHistoryComment(__($manualReviewComment), $reviewRequiredStatus);
             $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
-                'Ignore the pre authorized status for order %s since this is currently under manual review.' .
-                'The following status will be set: %s',
+                'Order %s is pending manual review. The following status will be set: %s',
                 $order->getIncrementId(),
                 $reviewRequiredStatus
             ));
