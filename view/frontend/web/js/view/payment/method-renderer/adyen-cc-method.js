@@ -148,7 +148,7 @@ define(
                                 if (creditCardType in allInstallments) {
                                     // get for the creditcard the installments
                                     var installmentCreditcard = allInstallments[creditCardType];
-                                    var grandTotal = quote.totals().grand_total;
+                                    var grandTotal = self.grandTotal();
                                     var precision = quote.getPriceFormat().precision;
                                     var currencyCode = quote.totals().quote_currency_code;
 
@@ -455,6 +455,14 @@ define(
             },
             getPlaceOrderUrl: function() {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
+            },
+            grandTotal: function () {
+                for (const totalsegment of quote.getTotals()()['total_segments']) {
+                    if (totalsegment.code === 'grand_total') {
+                        return totalsegment.value;
+                    }
+                }
+                return quote.totals().grand_total;
             },
         });
     }

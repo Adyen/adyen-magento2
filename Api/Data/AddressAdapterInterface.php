@@ -13,38 +13,29 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment Module
+ * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2018 Adyen B.V.
- * This file is open source and available under the MIT license.
- * See the LICENSE file for more info.
+ * Copyright (c) 2020 Adyen NV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-// @codingStandardsIgnoreFile
+namespace Adyen\Payment\Api\Data;
 
-?>
+use Magento\Payment\Gateway\Data\AddressAdapterInterface as CoreAddressAdapterInterface;
 
-<dl class="payment-method adyen_pos_cloud">
-    <dt class="title"><?= $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
-    <style>
-        table.terminal-api-receipt {
-            margin-top: 10px
-        }
+interface AddressAdapterInterface extends CoreAddressAdapterInterface
+{
+    /**
+     * Get street line 3
+     * @return string
+     */
+    public function getStreetLine3();
 
-        td.terminal-api-receipt-name {
-            padding: inherit;
-            font-weight: 700
-        }
-
-        td.terminal-api-receipt-value {
-            padding: inherit;
-        }
-
-        tr.terminal-api-receipt {
-            padding-bottom: 5px;
-        }
-    </style>
-    <?= $block->getMethod()->getInfoInstance()->getAdditionalInformation('receipt'); ?>
-</dl>
+    /**
+     * Get street line 4
+     * @return string
+     */
+    public function getStreetLine4();
+}

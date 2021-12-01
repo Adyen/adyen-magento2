@@ -109,14 +109,16 @@ class CaptureDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
         $payment = $paymentDataObject->getPayment();
         /** @var Order $order */
         $order = $payment->getOrder();
-        $pspReference = $payment->getCcTransId();
-        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
-        $currency = $orderAmountCurrency->getCurrencyCode();
+        /** @var \Magento\Sales\Model\Order\Invoice $latestInvoice */
+        $latestInvoice = $order->getInvoiceCollection()->getLastItem();
+        $invoiceAmountCurrency = $this->chargedCurrency->getInvoiceAmountCurrency($latestInvoice);
+        $amount = $invoiceAmountCurrency->getAmount();
+        $currency = $invoiceAmountCurrency->getCurrencyCode();
         $amount = $this->adyenHelper->formatAmount($amount, $currency);
+        $pspReference = $payment->getCcTransId();
         $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
 
         // If total amount has not been authorized
@@ -127,7 +129,7 @@ class CaptureDataBuilder implements BuilderInterface
             );
             $this->adyenLogger->error($errorMessage);
             $this->context->getMessageManager()->addErrorMessage(__(
-                'Full order amount has not been authorized')
+                    'Full order amount has not been authorized')
             );
 
             throw new AdyenException($errorMessage);
@@ -236,7 +238,10 @@ class CaptureDataBuilder implements BuilderInterface
         foreach ($adyenOrderPayments as $adyenOrderPayment) {
             // Only add data related to adyen_order_payment that have not been captured yet
             if ($adyenOrderPayment[OrderPaymentInterface::CAPTURE_STATUS] === OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE) {
-                $amount = $this->adyenHelper->formatAmount($adyenOrderPayment[OrderPaymentInterface::AMOUNT], $currency);
+                $amount = $this->adyenHelper->formatAmount(
+                    $adyenOrderPayment[OrderPaymentInterface::AMOUNT],
+                    $currency
+                );
                 $modificationAmount = [
                     'currency' => $currency,
                     'value' => $amount

@@ -78,13 +78,18 @@ class RefundDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $buildSubjectAmount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
+
         $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
-        $pspReference = $payment->getCcTransId();
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder(), false);
-        $currency = $orderAmountCurrency->getCurrencyCode();
-        $amount = $buildSubjectAmount;
+
+        // Construct AdyenAmountCurrency from creditmemo
+        $creditMemo = $payment->getCreditMemo();
+        $creditMemoAmountCurrency = $this->chargedCurrency->getCreditMemoAmountCurrency($creditMemo, false);
+
+        $pspReference = $payment->getCcTransId();
+        $currency = $creditMemoAmountCurrency->getCurrencyCode();
+        $amount = $creditMemoAmountCurrency->getAmount();
         $storeId = $order->getStoreId();
         $method = $payment->getMethod();
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
@@ -110,7 +115,7 @@ class RefundDataBuilder implements BuilderInterface
                 $orderPaymentCollection->addPaymentFilterDescending($payment->getId());
             } elseif ($refundStrategy == "3") {
                 // refund based on ratio
-                $ratio = $buildSubjectAmount / $orderAmountCurrency->getAmount();
+                $ratio = $amount / $orderAmountCurrency->getAmount();
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
             }
 
@@ -194,10 +199,8 @@ class RefundDataBuilder implements BuilderInterface
     {
         $formFields = [];
         $count = 0;
-        $currency = $this->chargedCurrency
-            ->getOrderAmountCurrency($payment->getOrder(), false)
-            ->getCurrencyCode();
 
+        // Construct AdyenAmountCurrency from creditmemo
         /**
          * @var \Magento\Sales\Model\Order\Creditmemo $creditMemo
          */
@@ -217,7 +220,7 @@ class RefundDataBuilder implements BuilderInterface
                 $count,
                 $refundItem->getName(),
                 $itemAmountCurrency->getAmount(),
-                $currency,
+                $itemAmountCurrency->getCurrencyCode(),
                 $itemAmountCurrency->getTaxAmount(),
                 $itemAmountCurrency->getAmount() + $itemAmountCurrency->getTaxAmount(),
                 $refundItem->getOrderItem()->getTaxPercent(),
@@ -228,15 +231,34 @@ class RefundDataBuilder implements BuilderInterface
         }
 
         // Shipping cost
-        if ($creditMemo->getShippingAmount() > 0) {
+        $shippingAmountCurrency = $this->chargedCurrency->getCreditMemoShippingAmountCurrency($creditMemo);
+        if ($shippingAmountCurrency->getAmount() > 0) {
             ++$count;
             $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
                 $formFields,
                 $count,
                 $payment->getOrder(),
-                $creditMemo->getShippingAmount(),
-                $creditMemo->getShippingTaxAmount(),
-                $currency,
+                $shippingAmountCurrency->getAmount(),
+                $shippingAmountCurrency->getTaxAmount(),
+                $shippingAmountCurrency->getCurrencyCode(),
+                $payment
+            );
+        }
+
+        // Adjustment
+        $adjustmentAmountCurrency = $this->chargedCurrency->getCreditMemoAdjustmentAmountCurrency($creditMemo);
+        if ($adjustmentAmountCurrency->getAmount() != 0) {
+            $positive = $adjustmentAmountCurrency->getAmount() > 0 ? 'Positive' : '';
+            $negative = $adjustmentAmountCurrency->getAmount() < 0 ? 'Negative' : '';
+            $description = "Adjustment - " . implode(' | ', array_filter([$positive, $negative]));
+
+            ++$count;
+            $formFields = $this->adyenHelper->createOpenInvoiceLineAdjustment(
+                $formFields,
+                $count,
+                $description,
+                $adjustmentAmountCurrency->getAmount(),
+                $adjustmentAmountCurrency->getCurrencyCode(),
                 $payment
             );
         }
