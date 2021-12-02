@@ -28,6 +28,10 @@ use Adyen\Payment\Model\ResourceModel\StateData as StateDataResourceModel;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection as StateDataCollection;
 use Adyen\Payment\Model\StateData as StateDataModel;
 use Adyen\Payment\Model\StateDataFactory;
+use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\ResourceModel\Quote\Payment\Collection;
+use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 
 class StateData
 {
@@ -35,6 +39,9 @@ class StateData
     const CLEANUP_RESULT_CODES = array(
         "Authorised"
     );
+    const STATE_DATA_KEY = 'stateData';
+    const STATE_DATA_LIKE_STRING = '%stateData%';
+    const ADDITIONAL_INFORMATION_KEY='additional_information';
 
     /**
      * @var StateDataCollection
@@ -51,14 +58,58 @@ class StateData
      */
     private $stateDataResourceModel;
 
+    /**
+     * @var OrderPaymentRepositoryInterface
+     */
+    private $orderPaymentRepository;
+
+    /**
+     * @var SearchCriteriaBuilder
+     */
+    private $searchCriteriaBuilder;
+
+    /**
+     * @var Collection
+     */
+    private $quotePaymentCollection;
+
+    /**
+     * @var CartRepositoryInterface
+     */
+    private $cartRepository;
+
     public function __construct(
         StateDataCollection $stateDataCollection,
         StateDataFactory $stateDataFactory,
-        StateDataResourceModel $stateDataResourceModel
+        StateDataResourceModel $stateDataResourceModel,
+        OrderPaymentRepositoryInterface $orderPaymentRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        CartRepositoryInterface $cartRepository,
+        Collection $quotePaymentCollection
     ) {
         $this->stateDataCollection = $stateDataCollection;
         $this->stateDataFactory = $stateDataFactory;
         $this->stateDataResourceModel = $stateDataResourceModel;
+        $this->orderPaymentRepository = $orderPaymentRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->cartRepository = $cartRepository;
+        $this->quotePaymentCollection = $quotePaymentCollection;
+    }
+
+    public function getSalesOrderPaymentsWithStateData()
+    {
+        return $this->orderPaymentRepository->getList(
+            $this->searchCriteriaBuilder
+                ->addFilter(self::ADDITIONAL_INFORMATION_KEY, self::STATE_DATA_LIKE_STRING, "like")
+                ->create()
+        )->getItems();
+    }
+
+    public function getQuotePaymentsWithStateData()
+    {
+        return $this->quotePaymentCollection
+            ->addFieldToFilter(self::ADDITIONAL_INFORMATION_KEY, ['like' => self::STATE_DATA_LIKE_STRING])
+            ->getItems();
     }
 
     /**

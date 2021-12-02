@@ -24,6 +24,7 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -35,7 +36,6 @@ class AdyenClearStateDataObserver implements ObserverInterface
 {
 
     const ERROR_MSG = "State data was not cleaned-up: %s";
-    const STATE_DATA_KEY = "stateData";
 
     /**
      * @var CartRepositoryInterface
@@ -78,7 +78,7 @@ class AdyenClearStateDataObserver implements ObserverInterface
 
             try {
                 $quotePayment = $quote->getPayment();
-                $quotePayment->unsAdditionalInformation(self::STATE_DATA_KEY);
+                $quotePayment->unsAdditionalInformation(StateData::STATE_DATA_KEY);
                 $this->quotePaymentResourceModel->save($quotePayment);
             } catch (\Exception $exception) {
                 $this->adyenLogger->addError(__(self::ERROR_MSG, $exception->getMessage()));
@@ -86,7 +86,7 @@ class AdyenClearStateDataObserver implements ObserverInterface
 
             try {
                 $orderPayment = $order->getPayment();
-                $orderPayment->unsAdditionalInformation(self::STATE_DATA_KEY);
+                $orderPayment->unsAdditionalInformation(StateData::STATE_DATA_KEY);
                 $this->orderPaymentResourceModel->save($orderPayment);
             } catch (\Exception $exception) {
                 $this->adyenLogger->addError(__(self::ERROR_MSG, $exception->getMessage()));
