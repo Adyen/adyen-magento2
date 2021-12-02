@@ -92,8 +92,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion730($setup);
         }
 
-        if (version_compare($context->getVersion(), '8.0.0', '<')) {
-            $this->updateSchemaVersion800($setup);
+        if (version_compare($context->getVersion(), '8.0.1', '<')) {
+            $this->updateSchemaVersion801($setup);
         }
 
 
@@ -610,17 +610,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
      * @return void
      * @throws Zend_Db_Exception
      */
-    public function updateSchemaVersion800(SchemaSetupInterface $setup)
+    public function updateSchemaVersion801(SchemaSetupInterface $setup)
     {
         $table = $setup->getConnection()
-            ->newTable($setup->getTable(self::ADYEN_PAYMENT_ADDITIONAL_INFORMATION))
-            ->addColumn(
-                'entity_id',
-                Table::TYPE_INTEGER,
-                null,
-                ['identity' => true, 'unsigned' => true, 'nullable' => false, 'primary' => true],
-                'Adyen Payment Additional Information Entity ID'
-            )
+            ->newTable($setup->getTable(self::ADYEN_PAYMENT_RESPONSE))
             ->addColumn(
                 'payment_id',
                 Table::TYPE_INTEGER,

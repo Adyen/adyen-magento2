@@ -35,6 +35,11 @@ interface PaymentResponseInterface
      */
     const ENTITY_ID = 'entity_id';
 
+    /**
+     * Payment ID (foreign key)
+     */
+    const PAYMENT_ID = 'payment_id';
+
     /*
      * Merchant reference ID.
      */
@@ -51,6 +56,11 @@ interface PaymentResponseInterface
     const RESPONSE = 'response';
 
     /**
+     * Additional information
+     */
+    const ADDITIONAL_INFORMATION = 'additional_information';
+
+    /**
      * Gets the ID for the state data.
      *
      * @return int|null Entity ID.
@@ -65,6 +75,20 @@ interface PaymentResponseInterface
      */
     public function setEntityId($entityId);
 
+    /**
+     * Gets the ID for the state data.
+     *
+     * @return int|null Payment ID.
+     */
+    public function getPaymentId();
+
+    /**
+     * Sets Payment ID.
+     *
+     * @param int $paymentId
+     * @return $this
+     */
+    public function setPaymentId(int $paymentId);
 
     /**
      * Gets the merchant reference for the payment response
@@ -110,5 +134,20 @@ interface PaymentResponseInterface
      * @return $this
      */
     public function setResponse($response);
+
+    /**
+     * Gets the payment additionalInformation.
+     *
+     * @return string|null Payment AdditionalInformation.
+     */
+    public function getAdditionalInformation();
+
+    /**
+     * Sets payment additionalInformation.
+     *
+     * @param string $additionalInformation
+     * @return $this
+     */
+    public function setAdditionalInformation(string $additionalInformation);
 
 }

@@ -41,6 +41,22 @@ class PaymentResponse extends AbstractModel implements PaymentResponseInterface
         $this->_init(ResourceModel\PaymentResponse::class);
     }
 
+    /**
+     * @return array|int|mixed|null
+     */
+    public function getPaymentId()
+    {
+        return $this->getData(self::PAYMENT_ID);
+    }
+
+    /**
+     * @param int $paymentId
+     * @return AdditionalInformation
+     */
+    public function setPaymentId(int $paymentId)
+    {
+        return $this->setData(self::PAYMENT_ID, $paymentId);
+    }
 
     /**
      * @return mixed
@@ -91,5 +107,21 @@ class PaymentResponse extends AbstractModel implements PaymentResponseInterface
     public function setResponse($response)
     {
         return $this->setData(self::RESPONSE, $response);
+    }
+
+    /**
+     * @return array|mixed|string|null
+     */
+    public function getAdditionalInformation() {
+        return $this->getData(self::ADDITIONAL_INFORMATION);
+    }
+
+    /**
+     * @param string $additionalInformation
+     * @return AdditionalInformation
+     */
+    public function setAdditionalInformation(string $additionalInformation)
+    {
+        return $this->setData(self::ADDITIONAL_INFORMATION, $additionalInformation);
     }
 }
