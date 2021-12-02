@@ -95,7 +95,7 @@ class CaseManagement extends AbstractHelper
     public function markCaseAsPendingReview(Order $order, string $pspReference, bool $autoCapture = false): Order
     {
         $manualReviewComment = sprintf(
-            'Manual review required for order w/ pspReference: %s. Please check the Adyen platform.',
+            'Manual review required for order w/pspReference: %s. Please check the Adyen platform.',
             $pspReference
         );
 
@@ -119,6 +119,10 @@ class CaseManagement extends AbstractHelper
             ));
         } else {
             $order->addStatusHistoryComment($manualReviewComment);
+            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+                'Order %s is pending manual review. No status update was configured',
+                $order->getIncrementId(),
+            ));
         }
 
         return $order;
