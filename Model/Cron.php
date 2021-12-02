@@ -1132,17 +1132,20 @@ class Cron
                     $this->_originalReference
                 ));
 
+                $this->isAutoCapture = $this->_isAutoCapture();
+
                 // Finalize order only in case of auto capture. For manual capture the capture notification will initiate this call
-                if ($this->_isAutoCapture()) {
+                if ($this->isAutoCapture) {
                     $this->finalizeOrder(false);
                 }
                 break;
             case Notification::CAPTURE:
+                $this->isAutoCapture = $this->_isAutoCapture();
                 /*
                  * ignore capture if you are on auto capture
                  * this could be called if manual review is enabled and you have a capture delay
                  */
-                if (!$this->_isAutoCapture()) {
+                if (!$this->isAutoCapture) {
                     $this->finalizeOrder(true);
                     $capturedAmount = $this->adyenOrderPaymentHelper->getCapturedAmount($this->_order);
                     $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $this->_order->getOrderCurrencyCode());
@@ -2080,9 +2083,13 @@ class Cron
         if ($fullAmountFinalized) {
 
             $comment = "Adyen Payment Successfully completed";
-            $status = (!empty($status)) ? $status : $this->_order->getStatus();
-            $this->_order->addStatusHistoryComment(__($comment), $status);
-            $this->_setState($status);
+            if (!empty($status)) {
+                $this->_order->addStatusHistoryComment(__($comment), $status);
+                $this->_setState($status);
+            } elseif ($this->isAutoCapture) {
+                $this->_order->addStatusHistoryComment(__($comment));
+                $this->_order->setState(Order::STATE_PAYMENT_REVIEW);
+            }
 
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 'Order status is changed to authorised status, status is ' . $status
