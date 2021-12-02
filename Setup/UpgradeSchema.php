@@ -23,11 +23,14 @@
 
 namespace Adyen\Payment\Setup;
 
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Order\Payment;
+use Adyen\Payment\Model\PaymentResponse;
 use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Zend_Db_Exception;
 
 /**
@@ -40,6 +43,12 @@ class UpgradeSchema implements UpgradeSchemaInterface
     const ADYEN_STATE_DATA = 'adyen_state_data';
     const ADYEN_PAYMENT_RESPONSE = 'adyen_payment_response';
     const ADYEN_PAYMENT_ADDITIONAL_INFORMATION = 'adyen_payment_additional_information';
+
+    protected $adyenLogger;
+    public function __construct(\Adyen\Payment\Logger\AdyenLogger $adyenLogger)
+    {
+        $this->adyenLogger = $adyenLogger;
+    }
 
     /**
      * {@inheritdoc}
@@ -95,7 +104,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
         if (version_compare($context->getVersion(), '8.0.1', '<')) {
             $this->updateSchemaVersion801($setup);
         }
-
 
         $setup->endSetup();
     }
@@ -602,7 +610,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
     }
 
     /**
-     * Upgrade to 8.0.0
+     * Upgrade to 8.0.1
      *
      * New adyen_payment_additional_information table to save all payment details
      *
@@ -612,36 +620,51 @@ class UpgradeSchema implements UpgradeSchemaInterface
      */
     public function updateSchemaVersion801(SchemaSetupInterface $setup)
     {
-        $table = $setup->getConnection()
-            ->newTable($setup->getTable(self::ADYEN_PAYMENT_RESPONSE))
-            ->addColumn(
-                'payment_id',
-                Table::TYPE_INTEGER,
-                11,
-                ['unsigned' => true, 'nullable' => false],
-                'Order Payment Id'
-            )
-            ->addColumn(
-                'additional_information',
-                Table::TYPE_TEXT,
-                null,
-                ['unsigned' => true, 'nullable' => true],
-                'Payment Additional Information'
-            )
-            ->addForeignKey(
+        $connection = $setup->getConnection();
+        $adyenPaymentResponseTable = $setup->getTable(self::ADYEN_PAYMENT_RESPONSE);
+
+        // Add payment id column
+        $paymentIdColumn = [
+            'type'=> Table::TYPE_INTEGER,
+            'nullable' => false,
+            'comment' => 'Foreign key on corresponding payment',
+            'after' => PaymentResponse::ENTITY_ID
+        ];
+
+        $connection->addColumn(
+            $adyenPaymentResponseTable,
+            PaymentResponse::PAYMENT_ID,
+            $paymentIdColumn
+        );
+
+        // Add additional info column
+        $additionalInformationColumn = [
+            'type'=> Table::TYPE_TEXT,
+            'nullable' => true,
+            'comment' => 'Serialized json for additional data',
+            'after' => PaymentResponse::RESPONSE
+        ];
+
+        $connection->addColumn(
+            $adyenPaymentResponseTable,
+            PaymentResponse::ADDITIONAL_INFORMATION,
+            $additionalInformationColumn
+        );
+
+        // Add foreign key on payment id
+        $connection->addForeignKey(
                 $setup->getFkName(
-                    self::ADYEN_PAYMENT_ADDITIONAL_INFORMATION,
-                    'payment_id',
+                    self::ADYEN_PAYMENT_RESPONSE,
+                    PaymentResponse::PAYMENT_ID,
                     'sales_order_payment',
-                    'entity_id'
+                    OrderPaymentInterface::ENTITY_ID
                 ),
                 'payment_id',
                 $setup->getTable('sales_order_payment'),
                 'entity_id',
                 Table::ACTION_CASCADE
-            )
-            ->setComment('Adyen Payment Additional Information');
+            );
 
-        $setup->getConnection()->createTable($table);
+        // TODO: Check if the foreign key has effect!
     }
 }
