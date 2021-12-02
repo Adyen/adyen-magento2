@@ -1157,6 +1157,11 @@ class Cron
                  */
                 if ($this->_isAutoCapture()) {
                     $this->finalizeOrder(false);
+                } else {
+                    $this->caseManagementHelper->markCaseAsAccepted($this->_order, sprintf(
+                        'Manual review accepted for order w/pspReference: %s. Order pending capture.',
+                        $this->_originalReference
+                    ));
                 }
                 break;
             case Notification::CAPTURE:
@@ -2092,21 +2097,6 @@ class Cron
 
         if ($fullAmountFinalized) {
             $comment = "Adyen Payment Successfully completed";
-
-            // If manual review is true AND manual review status is set
-            if ($manualReviewComment == true && $this->_fraudManualReview) {
-                // check if different status is selected
-                $fraudManualReviewStatus = $this->configHelper->getFraudStatus(
-                    Config::XML_STATUS_FRAUD_MANUAL_REVIEW,
-                    $this->_order->getStoreId()
-                );
-
-                if ($fraudManualReviewStatus != "") {
-                    $status = $fraudManualReviewStatus;
-                    $comment = "Adyen Payment is in Manual Review. Please check the Adyen platform";
-                }
-            }
-
             $status = (!empty($status)) ? $status : $this->_order->getStatus();
             $this->_order->addStatusHistoryComment(__($comment), $status);
             $this->_setState($status);
