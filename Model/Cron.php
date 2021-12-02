@@ -1142,7 +1142,8 @@ class Cron
                 $this->_authorizePayment();
                 break;
             case Notification::MANUAL_REVIEW_REJECT:
-                // don't do anything it will send a CANCEL_OR_REFUND notification when this payment is captured
+                // Do not do any processing. Order should be cancelled/refunded when the CANCEL_OR_REFUND notification is received
+                $this->caseManagementHelper->markCaseAsRejected($this->_order, $this->_originalReference, $this->_isAutoCapture());
                 break;
             case Notification::MANUAL_REVIEW_ACCEPT:
                 $this->caseManagementHelper->markCaseAsAccepted($this->_order, sprintf(
