@@ -57,7 +57,7 @@
             <!-- ko foreach: $parent.getRegion(getMessageName()) -->
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
-            <div>
+            <div class = "error-message-hpp" style = "display:none" >
                 <span class="message message-error error hpp-message" data-bind="attr: {id: 'messages-' + paymentMethod.methodIdentifier}"></span>
             </div>
 
