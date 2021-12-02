@@ -161,4 +161,24 @@ class CaseManagement extends AbstractHelper
 
         return $order;
     }
+
+    /**
+     * Mark a pending manual review order as rejected, by adding a comment
+     *
+     * @param Order $order
+     * @param $originalPspReference
+     * @param $autoCapture
+     * @return Order
+     */
+    public function markCaseAsRejected(Order $order, $originalPspReference, $autoCapture): Order
+    {
+        $action = $autoCapture ? 'refunded' : 'cancelled';
+        $order->addStatusHistoryComment(sprintf(
+            'Manual review was rejected for order w/pspReference: %s. The order will be automatically %s.',
+            $originalPspReference,
+            $action
+        ));
+
+        return $order;
+    }
 }
