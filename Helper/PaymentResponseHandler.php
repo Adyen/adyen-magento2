@@ -24,6 +24,8 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\PaymentResponseFactory;
+use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order;
@@ -63,6 +65,21 @@ class PaymentResponseHandler
     private $orderResourceModel;
 
     /**
+     * @var PaymentResponseFactory
+     */
+    private $paymentResponseFactory;
+
+    /**
+     * @var \Adyen\Payment\Model\ResourceModel\PaymentResponse
+     */
+    private $paymentResponseResourceModel;
+
+    /**
+     * @var Collection
+     */
+    private $paymentResponseCollection;
+
+    /**
      * PaymentResponseHandler constructor.
      *
      * @param AdyenLogger $adyenLogger
@@ -73,12 +90,14 @@ class PaymentResponseHandler
         AdyenLogger $adyenLogger,
         Data $adyenHelper,
         Vault $vaultHelper,
-        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
+        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
+        Collection $paymentResponseCollection
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
+        $this->paymentResponseCollection = $paymentResponseCollection;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
@@ -120,6 +139,19 @@ class PaymentResponseHandler
         }
     }
 
+    public function findOrCreatePaymentResponseEntry($paymentResponse, $paymentId) {
+        // TODO: Verify return type
+
+        // Check if paymentResponse already exists, otherwise create one
+        $paymentResponse = $this->paymentResponseCollection->getPaymentResponseByPaymentId($paymentId);
+        if(is_null($paymentResponse)) {
+            $paymentResponse = $this->paymentResponseFactory->create();
+            $paymentResponse->setPaymentId($paymentId); // TODO: Should this be directly enforced as foreign key?
+        }
+
+        return $paymentResponse;
+    }
+
     /**
      * @param $paymentsResponse
      * @param OrderPaymentInterface $payment
@@ -128,6 +160,8 @@ class PaymentResponseHandler
      */
     public function handlePaymentResponse($paymentsResponse, $payment, $order = null)
     {
+        // TODO: Make sure all payment responses use this handler!
+
         if (empty($paymentsResponse)) {
             $this->adyenLogger->error("Payment details call failed, paymentsResponse is empty");
             return false;

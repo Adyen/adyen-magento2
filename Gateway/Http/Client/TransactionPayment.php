@@ -97,6 +97,7 @@ class TransactionPayment implements ClientInterface
             $paymentResponse->setResponse(json_encode($response));
             $paymentResponse->setResultCode($response['resultCode']);
             $paymentResponse->setMerchantReference($request["reference"]);
+            // TODO: Replace this with paymentResponseHandler!
 
             $this->paymentResponseResourceModel->save($paymentResponse);
         } catch (\Adyen\AdyenException $e) {
