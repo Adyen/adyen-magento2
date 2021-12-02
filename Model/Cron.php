@@ -1127,7 +1127,7 @@ class Cron
                 break;
             case Notification::MANUAL_REVIEW_ACCEPT:
                 $this->caseManagementHelper->markCaseAsAccepted($this->_order, sprintf(
-                    'Manual review accepted for order w/pspReference: %s. Order pending capture.',
+                    'Manual review accepted for order w/pspReference: %s',
                     $this->_originalReference
                 ));
 
