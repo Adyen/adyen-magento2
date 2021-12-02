@@ -48,4 +48,14 @@ class Collection extends AbstractCollection
     {
         return $this->addFieldToFilter('merchant_reference', ["in" => [$merchantReferences]])->getData();
     }
+
+    /**
+     * Fetch payment response with specific payment id
+     *
+     * @param int $paymentId
+     * @return array|null
+     */
+    public function getPaymentResponseByPaymentId(int $paymentId) {
+        return $this->addFieldToFilter('payment_id', $paymentId)->getData(); // TODO: Make sure this returns PaymentResponse object
+    }
 }
