@@ -913,13 +913,7 @@ class Cron
             }
         }
 
-        // If manual review is accepted and a status is set, change the order status through this comment history item
-        if ($this->_eventCode === Notification::MANUAL_REVIEW_ACCEPT) {
-            $this->caseManagementHelper->markCaseAsAccepted($this->_order, $comment);
-        } else {
-            $this->_order->addStatusHistoryComment($comment, $this->_order->getStatus());
-        }
-
+        $this->_order->addStatusHistoryComment($comment, $this->_order->getStatus());
         $this->_adyenLogger->addAdyenNotificationCronjob('Created comment history for this notification');
     }
 
@@ -1151,17 +1145,14 @@ class Cron
                 // don't do anything it will send a CANCEL_OR_REFUND notification when this payment is captured
                 break;
             case Notification::MANUAL_REVIEW_ACCEPT:
-                /*
-                 * only process this if you are on auto capture.
-                 * On manual capture you will always get Capture or CancelOrRefund notification
-                 */
+                $this->caseManagementHelper->markCaseAsAccepted($this->_order, sprintf(
+                    'Manual review accepted for order w/pspReference: %s. Order pending capture.',
+                    $this->_originalReference
+                ));
+
+                // Finalize order only in case of auto capture. For manual capture the capture notification will initiate this call
                 if ($this->_isAutoCapture()) {
                     $this->finalizeOrder(false);
-                } else {
-                    $this->caseManagementHelper->markCaseAsAccepted($this->_order, sprintf(
-                        'Manual review accepted for order w/pspReference: %s. Order pending capture.',
-                        $this->_originalReference
-                    ));
                 }
                 break;
             case Notification::CAPTURE:
@@ -1170,7 +1161,7 @@ class Cron
                  * this could be called if manual review is enabled and you have a capture delay
                  */
                 if (!$this->_isAutoCapture()) {
-                    $this->finalizeOrder(false, true);
+                    $this->finalizeOrder(true);
                     $capturedAmount = $this->adyenOrderPaymentHelper->getCapturedAmount($this->_order);
                     $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
                     $this->invoiceHelper->createAdyenInvoice(
@@ -1679,7 +1670,7 @@ class Cron
                     $this->_order->getIncrementId()
                 );
             } else {
-                $this->finalizeOrder();
+                $this->finalizeOrder(false);
             }
         } else {
             $this->_adyenLogger->addAdyenNotificationCronjob(
@@ -2018,11 +2009,10 @@ class Cron
      * Finalize order by setting it to captured if manual capture is enabled, or authorized if auto capture is used
      * Full order will only NOT be finalized if the full amount has not been captured/authorized.
      *
-     * @param bool $manualReviewComment
      * @param bool $createInvoice
      * @throws Exception|\Magento\Framework\Exception\LocalizedException
      */
-    protected function finalizeOrder($manualReviewComment = true, $createInvoice = false)
+    protected function finalizeOrder(bool $createInvoice)
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Set order to authorised');
         $amount = $this->_value;
