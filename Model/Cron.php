@@ -2091,17 +2091,24 @@ class Cron
 
         if ($fullAmountFinalized) {
             $comment = "Adyen Payment Successfully completed";
+            // If a status is set, add comment, set status and update the state based on the status
+            // Else add comment and if on auto capture, set state to payment review (replicate previous functionality)
+            // TODO: Check if state should be set to PAYMENT_REVIEW
             if (!empty($status)) {
                 $this->_order->addStatusHistoryComment(__($comment), $status);
                 $this->_setState($status);
-            } elseif ($this->isAutoCapture) {
+                $this->_adyenLogger->addAdyenNotificationCronjob(
+                    'Order status was changed to authorised status: ' . $status
+                );
+            } else {
                 $this->_order->addStatusHistoryComment(__($comment));
-                $this->_order->setState(Order::STATE_PAYMENT_REVIEW);
+                if ($this->isAutoCapture) {
+                    $this->_order->setState(Order::STATE_PAYMENT_REVIEW);
+                }
+                $this->_adyenLogger->addAdyenNotificationCronjob(
+                    'Order was finalized. Authorised status not set'
+                );
             }
-
-            $this->_adyenLogger->addAdyenNotificationCronjob(
-                'Order status is changed to authorised status, status is ' . $status
-            );
         } else {
             $this->_order->addStatusHistoryComment(__(sprintf(
                 'Partial capture w/amount %s %s was processed',
