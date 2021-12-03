@@ -16,7 +16,14 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php-version }}
-        tools: composer:v1, 
+        tools: composer:v1,
+
+    - name: Start Docker
+      run: PHP_VERSION=${{ matrix.php-version }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+
+    - name: Create branch for Composer and remove version from composer.json
+      run: git checkout -b integration-test-branch && sed -i '/version/d' ./composer.json
+
     - name: Test plugin installation
       run: |
         echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
@@ -25,5 +32,12 @@ jobs:
         CI: true
         MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
         MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
-    - name: Run PHPUnit
-      run: vendor/bin/phpunit Test/
+
+    - name: Upload the code into the docker container
+      run: docker cp $(pwd) magento-php:/data/extensions/
+
+    - name: Enable developer mode
+      run: docker exec magento-php php bin/magento deploy:mode:set developer
+
+    - name: Run tests
+      run: docker exec magento-php vendor/bin/phpunit /data/extensions/Test/
