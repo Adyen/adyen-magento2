@@ -47,6 +47,9 @@ interface OrderPaymentInterface
     // Payment has been manually captured
     const CAPTURE_STATUS_MANUAL_CAPTURE = 'Manually Captured';
 
+    // Payment has been partially manually captured
+    const CAPTURE_STATUS_PARTIAL_CAPTURE = 'Partially Captured';
+
     // Payment has not been captured yet
     const CAPTURE_STATUS_NO_CAPTURE = 'Not captured';
 
