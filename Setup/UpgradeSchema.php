@@ -76,6 +76,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion673($setup);
         }
 
+        if (version_compare($context->getVersion(), '8.1.0', '<')) {
+            $this->updateSchemaVersion801($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -431,6 +435,35 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $tableName,
             Payment::CAPTURE_STATUS,
             $adyenChargedCurrencyColumn
+        );
+    }
+
+    /**
+     * Upgrade to 8.0.1
+     *
+     * New total_captured column to keep track on the amount that has been captured
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     */
+    public function updateSchemaVersion801(SchemaSetupInterface $setup)
+    {
+        $connection = $setup->getConnection();
+        $adyenOrderPaymentTable = $setup->getTable(self::ADYEN_ORDER_PAYMENT);
+
+        $totalCapturedColumn = [
+            'type' => Table::TYPE_DECIMAL,
+            'nullable' => true,
+            'unsigned' => true,
+            'comment' => 'Field to determine the amount that was captured.',
+            'after' => Payment::CAPTURE_STATUS,
+            'length' => '12,4',
+        ];
+
+        $connection->addColumn(
+            $adyenOrderPaymentTable,
+            Payment::TOTAL_CAPTURED,
+            $totalCapturedColumn
         );
     }
 }
