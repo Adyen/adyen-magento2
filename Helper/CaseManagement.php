@@ -145,7 +145,7 @@ class CaseManagement extends AbstractHelper
 
         // Empty used to cater for empty string and null cases
         if (!empty($reviewAcceptStatus)) {
-            $order->addStatusHistoryComment($comment, $reviewAcceptStatus);
+            $order->addStatusHistoryComment(__($comment), $reviewAcceptStatus);
             $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
                 'Created comment history for this notification linked to order %s with status update to: %s',
                 $order->getIncrementId(),
