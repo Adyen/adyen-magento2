@@ -36,7 +36,9 @@ class AddressTest extends TestCase
     const HOUSE_NUMBER_LETTER = '456B';
     const HOUSE_NUMBER_SPACE_LETTER = '789 C';
     const HOUSE_NUMBERS = [self::HOUSE_NUMBER, self::HOUSE_NUMBER_LETTER, self::HOUSE_NUMBER_SPACE_LETTER];
+    const STREET_NAME_SPECIAL_CHARS = "Wróblewskiego";
     const STREET_NAME = "John-Paul's Ave.";
+    const STREET_NAMES = [self::STREET_NAME_SPECIAL_CHARS,self::STREET_NAME];
 
 
     /**
@@ -204,5 +206,56 @@ class AddressTest extends TestCase
         }
 
         return $addressConfigs;
+    }
+
+    /**
+     * @dataProvider streetNamesProvider
+     * @param $address
+     * @param $expectedResult
+     */
+    public function testGetStreetAndHouseNumberForStreetNames($address, $expectedResult)
+    {
+        /*
+         * Each test case provided by the dataProvider contains an address array,
+         * houseNumberStreetLine and streetLinesEnabled are fixed for testing the street name parsing
+         * and the expected result which should be returned from getStreetAndHouseNumberFromAddress()
+         */
+        for ($i = 1; $i <= count($address); $i++) {
+            $this->addressAdapter->method('getStreetLine' . $i)->willReturn($address[$i - 1]);
+        }
+        $this->addressAdapter->method('getCountryId')->willReturn("se");
+
+        $this->assertEquals(
+            $expectedResult,
+            $this->addressHelper->getStreetAndHouseNumberFromAddress(
+                $this->addressAdapter,
+                1,
+                2
+            )
+        );
+    }
+
+    public static function streetNamesProvider(): array
+    {
+        $streetNames = [];
+        foreach (self::STREET_NAMES as $street_name) {
+            $streetNames = array_merge(
+                $streetNames,
+                [
+                    [
+                        '$address' => [
+                            '132B',
+                            $street_name
+                        ],
+                        '$expectedResult' => [
+                            'name' => $street_name,
+                            'house_number' => '132B'
+                        ]
+                    ],
+                ]
+            );
+        }
+
+        return $streetNames;
     }
 }

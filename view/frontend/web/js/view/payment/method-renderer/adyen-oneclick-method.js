@@ -55,7 +55,7 @@ define(
         placeOrderAction,
         errorProcessor,
         adyenPaymentService,
-        AdyenComponent,
+        adyenCheckout,
         adyenConfiguration,
     ) {
 
@@ -86,7 +86,7 @@ define(
                 ]);
                 return this;
             },
-            initialize: function () {
+            initialize: async function () {
                 let self = this;
                 this._super();
 
@@ -120,7 +120,7 @@ define(
 
                 if (!!paymentMethodsResponse) {
 
-                    this.checkoutComponent = new AdyenCheckout({
+                    this.checkoutComponent = await adyenCheckout({
                             locale: adyenConfiguration.getLocale(),
                             clientKey: adyenConfiguration.getClientKey(),
                             environment: adyenConfiguration.getCheckoutEnvironment(),
