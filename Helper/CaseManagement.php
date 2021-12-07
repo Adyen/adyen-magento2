@@ -152,7 +152,7 @@ class CaseManagement extends AbstractHelper
                 $reviewAcceptStatus
             ));
         } else {
-            $order->addStatusHistoryComment($comment);
+            $order->addStatusHistoryComment(__($comment));
             $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
                 'Created comment history for this notification linked to order %s without any status update',
                 $order->getIncrementId()
