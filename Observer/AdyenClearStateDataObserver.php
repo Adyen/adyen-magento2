@@ -34,7 +34,6 @@ use Magento\Sales\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel
 
 class AdyenClearStateDataObserver implements ObserverInterface
 {
-
     const ERROR_MSG = "State data was not cleaned-up: %s";
 
     /**
@@ -81,7 +80,7 @@ class AdyenClearStateDataObserver implements ObserverInterface
                 $quotePayment->unsAdditionalInformation(StateData::STATE_DATA_KEY);
                 $this->quotePaymentResourceModel->save($quotePayment);
             } catch (\Exception $exception) {
-                $this->adyenLogger->addError(__(self::ERROR_MSG, $exception->getMessage()));
+                $this->adyenLogger->addError(sprintf(self::ERROR_MSG, $exception->getMessage()));
             }
 
             try {
@@ -89,7 +88,7 @@ class AdyenClearStateDataObserver implements ObserverInterface
                 $orderPayment->unsAdditionalInformation(StateData::STATE_DATA_KEY);
                 $this->orderPaymentResourceModel->save($orderPayment);
             } catch (\Exception $exception) {
-                $this->adyenLogger->addError(__(self::ERROR_MSG, $exception->getMessage()));
+                $this->adyenLogger->addError(sprintf(self::ERROR_MSG, $exception->getMessage()));
             }
         }
     }

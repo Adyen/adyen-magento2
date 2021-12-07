@@ -1584,7 +1584,6 @@ class Data extends AbstractHelper
     public function createAdyenBillingAgreement($order, $additionalData)
     {
         if (!empty($additionalData['recurring.recurringDetailReference'])) {
-            $listRecurringContracts = null;
             try {
                 // Get or create billing agreement
                 /** @var \Adyen\Payment\Model\Billing\Agreement $billingAgreement */
@@ -1617,9 +1616,8 @@ class Data extends AbstractHelper
                 $storeOneClick = $order->getPayment()->getAdditionalInformation('store_cc');
 
                 $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick, $order->getStoreId());
-                $billingAgreementErrors = $billingAgreement->getErrors();
 
-                if ($billingAgreement->isValid() && empty($billingAgreementErrors)) {
+                if ($billingAgreement->isValid()) {
                     if (!$this->agreementResourceModel->getOrderRelation(
                         $billingAgreement->getAgreementId(),
                         $order->getId()
@@ -1631,9 +1629,9 @@ class Data extends AbstractHelper
                     $order->addRelatedObject($billingAgreement);
                 } else {
                     $message = __('Failed to create billing agreement for this order. Reason(s): ') . join(
-                            ', ',
-                            $billingAgreementErrors
-                        );
+                        ', ',
+                        $billingAgreement->getErrors()
+                    );
                     throw new \Exception($message);
                 }
             } catch (\Exception $exception) {

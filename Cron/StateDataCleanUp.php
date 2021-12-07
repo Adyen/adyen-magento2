@@ -89,7 +89,7 @@ class StateDataCleanUp
             try {
                 $this->stateDataResourceModel->delete($expiredStateDataRow);
             } catch (\Exception $exception) {
-                $this->adyenLogger->addError(__("State data was not cleaned-up: %s", $exception->getMessage()));
+                $this->adyenLogger->addError(sprintf("State data was not cleaned-up: %s", $exception->getMessage()));
             }
         }
 
