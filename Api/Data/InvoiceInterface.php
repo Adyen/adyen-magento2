@@ -15,7 +15,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2018 Adyen B.V.
+ * Copyright (c) 2021 Adyen B.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -113,4 +113,45 @@ interface InvoiceInterface
      * @return $this
      */
     public function setInvoiceId($invoiceId);
+
+    /**
+     * @return int|null
+     */
+    public function getAmount();
+
+    /**
+     * @param $amount
+     */
+    public function setAmount($amount);
+
+    /**
+     * @return int|null
+     */
+    public function getAdyenPaymentOrderId();
+
+    /**
+     * @param $id
+     * @return mixed
+     */
+    public function setAdyenPaymentOrderId($id);
+
+    /**
+     * @return string|null
+     */
+    public function getStatus();
+
+    /**
+     * @param $status
+     */
+    public function setStatus($status);
+
+    /**
+     * @return mixed
+     */
+    public function getCreatedAt();
+
+    /**
+     * @param $createdAt
+     */
+    public function setCreatedAt($createdAt);
 }
