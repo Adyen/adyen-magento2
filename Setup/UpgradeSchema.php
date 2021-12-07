@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Setup;
 
 use Adyen\Payment\Api\Data\InvoiceInterface;
+use Adyen\Payment\Model\Invoice;
 use Adyen\Payment\Model\Order\Payment;
 use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
@@ -481,7 +482,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         $connection->addColumn(
             $adyenInvoiceTable,
-            'created_at',
+            InvoiceInterface::CREATED_AT,
             $createdAtColumn
         );
 
@@ -496,8 +497,21 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         $connection->addColumn(
             $adyenInvoiceTable,
-            'amount',
+            InvoiceInterface::AMOUNT,
             $amountColumn
+        );
+
+        $adyenInvoiceStatusColumn = [
+            'type' => Table::TYPE_TEXT,
+            'nullable' => true,
+            'comment' => 'Field to determine the status of the adyen_invoice',
+            'after' => InvoiceInterface::AMOUNT
+        ];
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            InvoiceInterface::STATUS,
+            $adyenInvoiceStatusColumn
         );
 
         $adyenOrderPaymentColumn = [
@@ -511,19 +525,19 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         $connection->addColumn(
             $adyenInvoiceTable,
-            'adyen_order_payment_id',
+            InvoiceInterface::ADYEN_ORDER_PAYMENT_ID,
             $adyenOrderPaymentColumn
         );
 
         $connection->addForeignKey(
             $setup->getFkName(
                 self::ADYEN_INVOICE,
-                'adyen_order_payment_id',
+                InvoiceInterface::ADYEN_ORDER_PAYMENT_ID,
                 self::ADYEN_ORDER_PAYMENT,
                 'entity_id'
             ),
             $setup->getTable(self::ADYEN_INVOICE),
-            'adyen_order_payment_id',
+            InvoiceInterface::ADYEN_ORDER_PAYMENT_ID,
             $setup->getTable(self::ADYEN_ORDER_PAYMENT),
             'entity_id'
         );
