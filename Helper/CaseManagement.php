@@ -118,7 +118,7 @@ class CaseManagement extends AbstractHelper
                 $reviewRequiredStatus
             ));
         } else {
-            $order->addStatusHistoryComment($manualReviewComment);
+            $order->addStatusHistoryComment(__($manualReviewComment));
             $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
                 'Order %s is pending manual review. No status update was configured',
                 $order->getIncrementId(),
