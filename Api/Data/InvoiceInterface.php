@@ -29,27 +29,19 @@ interface InvoiceInterface
     /**
      * Constants for keys of data array. Identical to the name of the getter in snake case.
      */
-
-    /*
-     * Entity ID.
-     */
     const ENTITY_ID = 'entity_id';
-    /*
-     * Pspreference of the capture.
-     */
     const PSPREFERENCE = 'pspreference';
-    /*
-     * Original Pspreference of the payment.
-     */
     const ORIGINAL_REFERENCE = 'original_reference';
-    /*
-     * Acquirer reference.
-     */
     const ACQUIRER_REFERENCE = 'acquirer_reference';
-    /*
-     * Invoice ID.
-     */
     const INVOICE_ID = 'invoice_id';
+    const ADYEN_ORDER_PAYMENT_ID = 'adyen_order_payment_id';
+    const AMOUNT = 'amount';
+    const CREATED_AT = 'created_at';
+    const STATUS = 'status';
+
+    const STATUS_PENDING_WEBHOOK = 'Pending Webhook';
+    const STATUS_SUCCESSFUL = 'Successful';
+    const STATUS_FAILED = 'Failed';
 
     /**
      * Gets the ID for the invoice.
