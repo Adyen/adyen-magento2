@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Setup;
 
+use Adyen\Payment\Api\Data\InvoiceInterface;
 use Adyen\Payment\Model\Order\Payment;
 use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
@@ -602,7 +603,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
     /**
      * Upgrade to 8.0.1
      *
-     * New total_captured column to keep track on the amount that has been captured
+     * New total_captured column on the adyen_order_payment table to keep track on the amount that has been captured
+     * New created_at column on the adyen_invoice table
+     * New amount column on the adyen_invoice table
+     * New adyen_order_payment_id column on the adyen_invoice table, with foreign key
      *
      * @param SchemaSetupInterface $setup
      * @return void
@@ -616,7 +620,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'type' => Table::TYPE_DECIMAL,
             'nullable' => true,
             'unsigned' => true,
-            'comment' => 'Field to determine the amount that was captured.',
+            'comment' => 'Field to determine the amount that has been captured.',
             'after' => Payment::CAPTURE_STATUS,
             'length' => '12,4',
         ];
@@ -625,6 +629,64 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $adyenOrderPaymentTable,
             Payment::TOTAL_CAPTURED,
             $totalCapturedColumn
+        );
+
+        $adyenInvoiceTable = $setup->getTable(self::ADYEN_INVOICE);
+
+        $createdAtColumn = [
+            'type' => Table::TYPE_TIMESTAMP,
+            'nullable' => true,
+            'comment' => 'Created at',
+            'default' => Table::TIMESTAMP_INIT,
+        ];
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            'created_at',
+            $createdAtColumn
+        );
+
+        $amountColumn = [
+            'type' => Table::TYPE_DECIMAL,
+            'nullable' => true,
+            'unsigned' => true,
+            'comment' => 'Field to determine the capture amount.',
+            'after' => InvoiceInterface::INVOICE_ID,
+            'length' => '12,4',
+        ];
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            'amount',
+            $amountColumn
+        );
+
+        $adyenOrderPaymentColumn = [
+            'type' => Table::TYPE_INTEGER,
+            'nullable' => true,
+            'unsigned' => true,
+            'length' => 11,
+            'comment' => 'Field to link this row to the an adyen_order_payment row.',
+            'after' => InvoiceInterface::INVOICE_ID,
+        ];
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            'adyen_order_payment_id',
+            $adyenOrderPaymentColumn
+        );
+
+        $connection->addForeignKey(
+            $setup->getFkName(
+                self::ADYEN_INVOICE,
+                'adyen_order_payment_id',
+                self::ADYEN_ORDER_PAYMENT,
+                'entity_id'
+            ),
+            $setup->getTable(self::ADYEN_INVOICE),
+            'adyen_order_payment_id',
+            $setup->getTable(self::ADYEN_ORDER_PAYMENT),
+            'entity_id'
         );
     }
 }
