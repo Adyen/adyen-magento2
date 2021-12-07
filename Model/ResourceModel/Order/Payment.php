@@ -62,7 +62,8 @@ class Payment extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     {
         $select = $this->getConnection()->select()
             ->from(['order_payment' => $this->getTable('adyen_order_payment')])
-            ->where('order_payment.payment_id=?', $paymentId);
+            ->where('order_payment.payment_id=?', $paymentId)
+            ->order(['order_payment.created_at ASC']);
 
         $result = $this->getConnection()->fetchAll($select);
 
