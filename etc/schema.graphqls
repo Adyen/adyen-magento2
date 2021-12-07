@@ -126,5 +126,5 @@ input AdyenAdditionalDataPosCloud {
 type StoreConfig @doc(description: "The type contains information about a store config") {
     adyen_client_key_test : String @doc(description: "Adyen client key for TEST environment.")
     adyen_client_key_live : String @doc(description: "Adyen client key for LIVE environment.")
-    adyen_environment : String @doc(description: "Adyen configured environment mode, LIVE or TEST.")
+    demo_mode : String @doc(description: "Adyen demo mode enabled (TEST).")
 }
