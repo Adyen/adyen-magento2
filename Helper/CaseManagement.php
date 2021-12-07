@@ -34,7 +34,7 @@ use Magento\Sales\Model\Order;
  * Class AdyenOrderPayment
  * @package Adyen\Payment\Helper
  */
-class CaseManagement extends AbstractHelper
+class CaseManagement
 {
     const FRAUD_MANUAL_REVIEW = 'fraudManualReview';
 
