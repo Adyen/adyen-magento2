@@ -39,7 +39,6 @@ class CaseManagementTest extends TestCase
     public function setUp(): void
     {
         $this->caseManagementHelper = new CaseManagement(
-            $this->createMock(Context::class),
             $this->createMock(AdyenLogger::class),
             $this->createMock(Config::class)
         );

@@ -51,15 +51,13 @@ class CaseManagement
     /**
      * CaseManagement constructor.
      *
-     * @param Context $context
      * @param AdyenLogger $adyenLogger
+     * @param Config $configHelper
      */
     public function __construct(
-        Context $context,
         AdyenLogger $adyenLogger,
         Config $configHelper
     ) {
-        parent::__construct($context);
         $this->adyenLogger = $adyenLogger;
         $this->configHelper = $configHelper;
     }
