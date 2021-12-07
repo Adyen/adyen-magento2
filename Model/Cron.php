@@ -329,7 +329,7 @@ class Cron
     /**
      * @var CaseManagement
      */
-    protected $caseManagementHelper;
+    private $caseManagementHelper;
 
     /**
      * Cron constructor.
@@ -2105,9 +2105,10 @@ class Cron
                 if ($this->isAutoCapture) {
                     $this->_order->setState(Order::STATE_PAYMENT_REVIEW);
                 }
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'Order was finalized. Authorised status not set'
-                );
+                $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
+                    'Order %s was finalized. Authorised status not set',
+                    $this->_order->getIncrementId()
+                ));
             }
         } else {
             $this->_order->addStatusHistoryComment(__(sprintf(
