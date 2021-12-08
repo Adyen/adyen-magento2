@@ -1,94 +1,94 @@
 type Query {
     adyenPaymentStatus (
         orderId: String @doc(description: "Magento Increment Order ID.")
-    ) : adyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentStatus")
+    ) : AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentStatus")
 
     adyenPaymentMethods (
         cart_id: String! @doc(description: "Cart ID.")
-    ) : adyenPaymentMethods @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentMethods")
+    ) : AdyenPaymentMethods @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentMethods")
 
     adyenPaymentDetails (
         payload: String! @doc(description: "Payload JSON String with orderId, details, paymentData and threeDSAuthenticationOnly.")
-    ) : adyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentDetails")
+    ) : AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentDetails")
 }
 
-type adyenPaymentStatus {
+type AdyenPaymentStatus {
     isFinal: Boolean @doc(description: "If True, no further action is required and customer should be redirect to success page.")
     resultCode: String @doc(description: "Current state of the order in Adyen.")
     additionalData: String @doc(description: "Additional data required for the next step in the payment process.")
     action: String @doc(description: "Object containing information about the payment's next step.")
 }
 
-type adyenPaymentMethods {
-    paymentMethodsResponse: paymentMethods @doc(description: "API response from Adyen with payment methods.")
-    paymentMethodsExtraDetails: [paymentMethodsExtraDetails] @doc(description: "Payment method's additional details.")
+type AdyenPaymentMethods {
+    paymentMethodsResponse: AdyenPaymentMethodsResponse @doc(description: "API response from Adyen with payment methods.")
+    paymentMethodsExtraDetails: [AdyenPaymentMethodsExtraDetails] @doc(description: "Payment method's additional details.")
 }
 
-type paymentMethods {
-    paymentMethods: [paymentMethodsArray]
+type AdyenPaymentMethodsResponse {
+    paymentMethods: [AdyenPaymentMethodsArray]
 }
 
-type paymentMethodsArray {
+type AdyenPaymentMethodsArray {
     name: String @doc(description: "The displayable name of this payment method.")
     type: String @doc(description: "The unique payment method code.")
     brand: String @doc(description: "Brand for the selected gift card. For example: plastix, hmclub.")
     brands: [String] @doc(description: "List of possible brands. For example: visa, mc.")
-    configuration: [paymentMethodsConfiguration] @doc(description: "The configuration of the payment method.")
-    details: [paymentMethodsDetails] @doc(description: "All input details to be provided to complete the payment with this payment method.")
-    issuers: [paymentMethodsIssuers] @doc(description: "Payment method issuer list.")
+    configuration: [AdyenPaymentMethodsConfiguration] @doc(description: "The configuration of the payment method.")
+    details: [AdyenPaymentMethodsDetails] @doc(description: "All input details to be provided to complete the payment with this payment method.")
+    issuers: [AdyenPaymentMethodsIssuers] @doc(description: "Payment method issuer list.")
 }
 
-type paymentMethodsConfiguration {
+type AdyenPaymentMethodsConfiguration {
     merchantId: String @doc(description: "ID of the merchant.")
     merchantName: String  @doc(description: "Name of the merchant.")
 }
 
-type paymentMethodsDetails {
+type AdyenPaymentMethodsDetails {
     key: String @doc(description: "The value to provide in the result.")
     type: String @doc(description: "The type of the required input.")
-    items: [paymentMethodsDetailsItems] @doc(description: "The items to choose from in case that the payment method includes a selection list.")
+    items: [AdyenPaymentMethodsDetailsItems] @doc(description: "The items to choose from in case that the payment method includes a selection list.")
     optional: String @doc(description: "True if this input is optional.")
     value: String @doc(description: "The value can be pre-filled, if available.")
 }
 
-type paymentMethodsIssuers {
+type AdyenPaymentMethodsIssuers {
     id: String @doc(description: "Issuer ID.")
     name: String @doc(description: "Issuer name.")
 }
 
-type paymentMethodsDetailsItems {
+type AdyenPaymentMethodsDetailsItems {
     id: String @doc(description: "The value to provide in the result.")
     name: String @doc(description: "The display name.")
 }
 
-type paymentMethodsExtraDetails {
+type AdyenPaymentMethodsExtraDetails {
     type: String @doc(description: "The unique payment method code.")
-    icon: icon @doc(description: "Icon for the payment method.")
+    icon: AdyenPaymentMethodIcon @doc(description: "Icon for the payment method.")
     isOpenInvoice: Boolean @doc(description: "True if the payment method is Open Invoice.")
-    configuration: paymentMethodsExtraDetailsConfiguration @doc(description: "Extra configuration settings.")
+    configuration: AdyenPaymentMethodsExtraDetailsConfiguration @doc(description: "Extra configuration settings.")
 }
 
-type icon {
+type AdyenPaymentMethodIcon {
     url: String @doc(description: "URL of the icon.")
     width: Int @doc(description: "Width of the icon in pixels.")
     height: Int @doc(description: "Height of the icon in pixels.")
 }
 
-type paymentMethodsExtraDetailsConfiguration {
+type AdyenPaymentMethodsExtraDetailsConfiguration {
     amount: Money @doc(description: "Current order amount in minor units.")
     currency: String @doc(description: "Current order currency.")
 }
 
 type Order {
-    adyen_payment_status: adyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentStatus")
+    adyen_payment_status: AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentStatus")
 }
 
 input PaymentMethodInput {
     adyen_additional_data_boleto: AdyenAdditionalDataBoleto @doc(description:"Required input for Adyen Boleto payments.")
     adyen_additional_data_cc: AdyenAdditionalDataCc @doc(description:"Required input for Adyen CC payments.")
     adyen_additional_data_hpp: AdyenAdditionalDataHpp @doc(description:"Required input for Adyen HPP payments.")
-    adyen_additional_data_oneclick: AdyenAdditionalDataOneclick @doc(desciption:"Required input for Adyen Oneclick payments.")
-    adyen_additional_data_pos_cloud: AdyenAdditionalDataPosCloud @doc(desciption:"Required input for Adyen POS Cloud payments.")
+    adyen_additional_data_oneclick: AdyenAdditionalDataOneclick @doc(description:"Required input for Adyen Oneclick payments.")
+    adyen_additional_data_pos_cloud: AdyenAdditionalDataPosCloud @doc(description:"Required input for Adyen POS Cloud payments.")
 }
 
 input AdyenAdditionalDataBoleto {
