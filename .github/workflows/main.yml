@@ -37,7 +37,7 @@ jobs:
       run: docker cp $(pwd) magento-php:/data/extensions/
 
     - name: Dump working directory
-      run: docker exec magento-php pwd && ls -la .. && ls -la /data/extensions
+      run: docker exec magento-php ls -la && docker exec magento-php ls -la /data/extensions
 
     - name: Enable developer mode
       run: docker exec magento-php php ./bin/magento deploy:mode:set developer
