@@ -36,8 +36,11 @@ jobs:
     - name: Upload the code into the docker container
       run: docker cp $(pwd) magento-php:/data/extensions/
 
+    - name: Dump working directory
+      run: docker exec magento-php pwd && ls -la
+
     - name: Enable developer mode
-      run: docker exec magento-php php bin/magento deploy:mode:set developer
+      run: docker exec magento-php php ./bin/magento deploy:mode:set developer
 
     - name: Run tests
       run: docker exec magento-php vendor/bin/phpunit /data/extensions/Test/
