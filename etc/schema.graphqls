@@ -79,11 +79,11 @@ type AdyenPaymentMethodsExtraDetailsConfiguration {
     currency: String @doc(description: "Current order currency.")
 }
 
-type AdyenOrderStatus {
+type Order {
     adyen_payment_status: AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentStatus")
 }
 
-input AdyenPaymentMethodInput {
+input PaymentMethodInput {
     adyen_additional_data_boleto: AdyenAdditionalDataBoleto @doc(description:"Required input for Adyen Boleto payments.")
     adyen_additional_data_cc: AdyenAdditionalDataCc @doc(description:"Required input for Adyen CC payments.")
     adyen_additional_data_hpp: AdyenAdditionalDataHpp @doc(description:"Required input for Adyen HPP payments.")
