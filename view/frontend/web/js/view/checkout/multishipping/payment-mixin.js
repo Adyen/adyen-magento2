@@ -32,7 +32,7 @@ define([
                 _validatePaymentMethod: function () {
                     let isValid;
                     let selectedPaymentMethod = $('#payment-methods input[name="payment[method]"]:checked').val();
-                    if (selectedPaymentMethod.startsWith('adyen')) {
+                    if (!!selectedPaymentMethod && selectedPaymentMethod.startsWith('adyen')) {
                         isValid = !!$('#stateData').val();
                     } else {
                         isValid = true;
