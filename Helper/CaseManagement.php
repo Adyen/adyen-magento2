@@ -109,6 +109,10 @@ class CaseManagement
         }
 
         if (!empty($reviewRequiredStatus)) {
+            // Ensure that when setting the reviewRequiredStatus, the state will be new.
+            if ($order->getState() !== Order::STATE_NEW) {
+                $order->setState(Order::STATE_NEW);
+            }
             $order->addStatusHistoryComment(__($manualReviewComment), $reviewRequiredStatus);
             $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
                 'Order %s is pending manual review. The following status will be set: %s',
