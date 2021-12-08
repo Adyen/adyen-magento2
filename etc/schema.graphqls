@@ -122,3 +122,9 @@ input AdyenAdditionalDataPosCloud {
     number_of_installments: Int @doc(description: "Number of installments for the payment.")
     terminal_id: String @doc(description: "Terminal ID of selected terminal.")
 }
+
+type StoreConfig @doc(description: "The type contains information about a store config") {
+    adyen_client_key_test : String @doc(description: "Adyen client key for TEST environment.")
+    adyen_client_key_live : String @doc(description: "Adyen client key for LIVE environment.")
+    adyen_demo_mode : String @doc(description: "Adyen demo mode enabled (TEST).")
+}
