@@ -26,7 +26,7 @@ jobs:
 
     - name: Test plugin installation
       run: |
-        curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/onelinesetup | bash -s -- magento.test 2.4.3-p1
+        curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash -s -- magento.test 2.4.3-p1 && bin/download 2.4.3-p1
 #        echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
 #        composer install --prefer-dist
 #      env:
