@@ -137,10 +137,9 @@ class CaptureDataBuilder implements BuilderInterface
         }
 
         $adyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments($payment->getId());
-        if (!is_null($adyenOrderPayments) && $amount < $orderAmountCents) {
-            return $this->buildPartialCaptureData($payment, $currency, $adyenOrderPayments, $invoiceAmountCurrency->getAmount());
-        } elseif (!is_null($adyenOrderPayments) && count($adyenOrderPayments) > 1 && $amount === $orderAmountCents) {
-            return $this->buildPartialCaptureData($payment, $currency, $adyenOrderPayments, $invoiceAmountCurrency->getAmount());
+        // If the full amount won't be captured OR there are multiple payments to capture
+        if (!is_null($adyenOrderPayments) && ($amount < $orderAmountCents || count($adyenOrderPayments) > 1)) {
+            return $this->buildMultipleCaptureData($payment, $currency, $adyenOrderPayments, $invoiceAmountCurrency->getAmount());
         }
 
         $modificationAmount = ['currency' => $currency, 'value' => $amount];

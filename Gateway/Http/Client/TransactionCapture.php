@@ -38,7 +38,9 @@ use Magento\Payment\Gateway\Http\TransferInterface;
 class TransactionCapture implements ClientInterface
 {
     const MULTIPLE_AUTHORIZATIONS = 'multiple_authorizations';
+    const FORMATTED_CAPTURE_AMOUNT = 'formatted_capture_amount';
     const CAPTURE_AMOUNT = 'capture_amount';
+    const ORIGINAL_REFERENCE = 'original_reference';
     const CAPTURE_RECEIVED = '[capture-received]';
 
     /**
@@ -103,11 +105,13 @@ class TransactionCapture implements ClientInterface
                 // Copy merchant account from parent array to every request array
                 $request[Requests::MERCHANT_ACCOUNT] = $requestContainer[Requests::MERCHANT_ACCOUNT];
                 $singleResponse = $service->capture($request);
-                $singleResponse[self::CAPTURE_AMOUNT] = $request['modificationAmount']['currency'] . ' ' .
+                $singleResponse[self::FORMATTED_CAPTURE_AMOUNT] = $request['modificationAmount']['currency'] . ' ' .
                 $this->adyenHelper->originalAmount(
                     $request['modificationAmount']['value'],
                     $request['modificationAmount']['currency']
                 );
+                $singleResponse[self::CAPTURE_AMOUNT] = $request['modificationAmount']['value'];
+                $singleResponse[self::ORIGINAL_REFERENCE] = $request['originalReference'];
                 $response[self::MULTIPLE_AUTHORIZATIONS][] = $singleResponse;
             } catch (AdyenException $e) {
                 $message = sprintf(

@@ -95,7 +95,7 @@ class PaymentCommentHistoryHandler implements HandlerInterface
         foreach ($responseContainer[TransactionCapture::MULTIPLE_AUTHORIZATIONS] as $response) {
             $responseCode = $this->getResponseCode($response);
             $pspReference = $this->getPspReference($response);
-            $amount = $response[TransactionCapture::CAPTURE_AMOUNT];
+            $amount = $response[TransactionCapture::FORMATTED_CAPTURE_AMOUNT];
 
             $type = 'Adyen Result response:';
             $comment = __(
