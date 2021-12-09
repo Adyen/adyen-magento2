@@ -34,7 +34,7 @@ jobs:
 #        MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
 
     - name: Upload the code into the docker container
-      run: docker cp $(pwd) magento-php:/data/extensions/ && docker exec magento-php composer require adyen/module-payment:dev-${GITHUB_REF##*/}
+      run: docker cp $(pwd) magento-php:/data/extensions/ && docker exec magento-php composer require adyen/module-payment:dev-PW-5856
 
     - name: Dump working directory
       run: docker exec magento-php ls -la /data/extensions/workdir && docker exec magento-php ls -la 
