@@ -18,14 +18,16 @@ jobs:
         php-version: ${{ matrix.php-version }}
         tools: composer:v1,
 
-    - name: Start Docker
-      run: PHP_VERSION=${{ matrix.php-version }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
-
-    - name: Create branch for Composer and remove version from composer.json
-      run: git checkout -b integration-test-branch && sed -i '/version/d' ./composer.json
+#    - name: Start Docker
+#      run: PHP_VERSION=${{ matrix.php-version }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+#
+#    - name: Create branch for Composer and remove version from composer.json
+#      run: git checkout -b integration-test-branch && sed -i '/version/d' ./composer.json
 
     - name: Test plugin installation
       run: |
+        git config --global init.defaultBranch main
+        git remote rm origin
         curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
         bin/download 2.4.3-p1
         docker-compose -f docker-compose.yml up -d
