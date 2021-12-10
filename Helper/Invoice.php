@@ -148,15 +148,16 @@ class Invoice extends AbstractHelper
     /**
      * Create an adyen_invoice entry
      *
-     * @param OrderPaymentInterface $payment
+     * @param Order\Payment $payment
      * @param string $pspReference
      * @param string $originalReference
-     * @param int $captureAmount
+     * @param int $captureAmountCents
      * @return \Adyen\Payment\Model\Invoice
      * @throws AlreadyExistsException
      */
-    public function createAdyenInvoice(OrderPaymentInterface $payment, string $pspReference, string $originalReference, int $captureAmount): \Adyen\Payment\Model\Invoice
+    public function createAdyenInvoice(Order\Payment $payment, string $pspReference, string $originalReference, int $captureAmountCents): \Adyen\Payment\Model\Invoice
     {
+        $order = $payment->getOrder();
         /** @var \Adyen\Payment\Api\Data\OrderPaymentInterface $adyenOrderPayment */
         $adyenOrderPayment = $this->orderPaymentResourceModel->getOrderPaymentDetails($originalReference, $payment->getEntityId());
 
@@ -164,7 +165,7 @@ class Invoice extends AbstractHelper
         $adyenInvoice = $this->adyenInvoiceFactory->create();
         $adyenInvoice->setPspreference($pspReference);
         $adyenInvoice->setAdyenPaymentOrderId($adyenOrderPayment[\Adyen\Payment\Api\Data\OrderPaymentInterface::ENTITY_ID]);
-        $adyenInvoice->setAmount($captureAmount);
+        $adyenInvoice->setAmount($this->adyenDataHelper->originalAmount($captureAmountCents, $order->getBaseCurrencyCode()));
         $adyenInvoice->setStatus(InvoiceInterface::STATUS_PENDING_WEBHOOK);
         $this->adyenInvoiceResourceModel->save($adyenInvoice);
 
