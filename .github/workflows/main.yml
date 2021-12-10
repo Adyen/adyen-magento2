@@ -34,7 +34,7 @@ jobs:
         echo "creating docker container"
         docker-compose -f docker-compose.yml up -d
         echo "running setup composer auth"
-        bin/clinotty bin/setup-composer-auth
+        bin/setup-composer-auth
         echo "cloning magento"
         bin/cli git clone git@github.com:magento/magento2.git .
         bin/cli git checkout 2.4-develop
