@@ -28,8 +28,11 @@ jobs:
       run: |
         git config --global init.defaultBranch main
         git remote rm origin
+        echo "running template"
         curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
+        echo "setting composer credentials"
         composer config -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
+        echo "downloading magento"
         bin/download 2.4.3-p1
         echo "creating docker container"
         docker-compose -f docker-compose.yml up -d
