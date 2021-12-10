@@ -84,7 +84,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function addPaymentFilterAscending($paymentId)
     {
         $this->addFieldToFilter('payment_id', $paymentId);
-        $this->getSelect()->order(['created_at ASC']);
+        $this->getSelect()->order(['entity_id ASC']);
         return $this;
     }
 
@@ -95,7 +95,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function addPaymentFilterDescending($paymentId)
     {
         $this->addFieldToFilter('payment_id', $paymentId);
-        $this->getSelect()->order(['created_at DESC']);
+        $this->getSelect()->order(['entity_id DESC']);
         return $this;
     }
 }
