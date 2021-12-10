@@ -607,6 +607,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
      * New total_captured column on the adyen_order_payment table to keep track on the amount that has been captured
      * New created_at column on the adyen_invoice table
      * New amount column on the adyen_invoice table
+     * Change invoice_id to be nullable on the adyen_invoice table
      * New adyen_order_payment_id column on the adyen_invoice table, with foreign key
      *
      * @param SchemaSetupInterface $setup
@@ -701,6 +702,17 @@ class UpgradeSchema implements UpgradeSchemaInterface
             InvoiceInterface::ADYEN_ORDER_PAYMENT_ID,
             $setup->getTable(self::ADYEN_ORDER_PAYMENT),
             'entity_id'
+        );
+
+        $connection->modifyColumn(
+            $adyenInvoiceTable,
+            Invoice::INVOICE_ID,
+            [
+                'type' => Table::TYPE_INTEGER,
+                'nullable' => true,
+                'unsigned' => true,
+                'comment' => 'Link to Magento Invoice table'
+            ]
         );
     }
 }
