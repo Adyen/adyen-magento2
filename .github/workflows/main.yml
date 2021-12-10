@@ -30,6 +30,7 @@ jobs:
         git remote rm origin
         curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
         bin/download 2.4.3-p1
+        echo $(tty)
         docker-compose -f docker-compose.yml up -d
         echo $(tty)
         composer config --global http-basic.repo.magento.com.username ${MAGENTO_USERNAME}
