@@ -23,7 +23,7 @@
 
 namespace Adyen\Payment\Helper;
 
-use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Adyen\Payment\Api\Data\InvoiceInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\InvoiceFactory;
 use Adyen\Payment\Model\Notification;
@@ -34,6 +34,7 @@ use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as AdyenOr
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice as InvoiceModel;
 
@@ -145,6 +146,32 @@ class Invoice extends AbstractHelper
     }
 
     /**
+     * Create an adyen_invoice entry
+     *
+     * @param OrderPaymentInterface $payment
+     * @param string $pspReference
+     * @param string $originalReference
+     * @param int $captureAmount
+     * @return \Adyen\Payment\Model\Invoice
+     * @throws AlreadyExistsException
+     */
+    public function createAdyenInvoice(OrderPaymentInterface $payment, string $pspReference, string $originalReference, int $captureAmount): \Adyen\Payment\Model\Invoice
+    {
+        /** @var \Adyen\Payment\Api\Data\OrderPaymentInterface $adyenOrderPayment */
+        $adyenOrderPayment = $this->orderPaymentResourceModel->getOrderPaymentDetails($originalReference, $payment->getEntityId());
+
+        /** @var \Adyen\Payment\Model\Invoice $adyenInvoice */
+        $adyenInvoice = $this->adyenInvoiceFactory->create();
+        $adyenInvoice->setPspreference($pspReference);
+        $adyenInvoice->setAdyenPaymentOrderId($adyenOrderPayment[\Adyen\Payment\Api\Data\OrderPaymentInterface::ENTITY_ID]);
+        $adyenInvoice->setAmount($captureAmount);
+        $adyenInvoice->setStatus(InvoiceInterface::STATUS_PENDING_WEBHOOK);
+        $this->adyenInvoiceResourceModel->save($adyenInvoice);
+
+        return $adyenInvoice;
+    }
+
+    /**
      * Create an adyen_invoice entry and link it to the passed invoice. If no invoice is passed, log message and
      * link to the first invoice in the invoiceCollection
      *
@@ -154,7 +181,7 @@ class Invoice extends AbstractHelper
      * @return mixed
      * @throws AlreadyExistsException
      */
-    public function createAdyenInvoice(Order $order, Notification $notification, InvoiceModel $invoice = null)
+    public function oldCreateAdyenInvoice(Order $order, Notification $notification, InvoiceModel $invoice = null)
     {
         $additionalData = $notification->getAdditionalData();
         $acquirerReference = $additionalData[Notification::ADDITIONAL_DATA] ?? null;
@@ -195,6 +222,7 @@ class Invoice extends AbstractHelper
     /**
      * Attempt to get the invoice linked to the capture notification by comparing the notification original reference
      * and the invoice pspReference
+     * TODO: Check me
      *
      * @param Order $order
      * @param Notification $captureNot
