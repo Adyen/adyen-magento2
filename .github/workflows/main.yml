@@ -29,14 +29,14 @@ jobs:
         git config --global init.defaultBranch main
         git remote rm origin
         composer config -a -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
-        curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/onelinesetup | bash -s -- magento.test 2.4.3-p1
-#        bin/download 2.4.3-p1
-#        docker-compose -f docker-compose.yml up -d
+        curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
+        bin/download 2.4.3-p1
+        docker-compose -f docker-compose.yml up -d
 #        composer config --global http-basic.repo.magento.com.username ${MAGENTO_USERNAME}
 #        composer config --global http-basic.repo.magento.com.password ${MAGENTO_PASSWORD}
-#        sh -t bin/setup-composer-auth
-#        bin/cli git clone git@github.com:magento/magento2.git .
-#        bin/composer install
+        bin/clinotty bin/setup-composer-auth
+        bin/cli git clone git@github.com:magento/magento2.git .
+        bin/composer install
       env:
         CI: true
         MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
