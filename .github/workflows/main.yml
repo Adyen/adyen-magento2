@@ -28,12 +28,13 @@ jobs:
       run: |
         git config --global init.defaultBranch main
         git remote rm origin
-        composer config -a -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
         curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
         bin/download 2.4.3-p1
+        composer config -a -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
         docker-compose -f docker-compose.yml up -d
         bin/clinotty bin/setup-composer-auth
         bin/cli git clone git@github.com:magento/magento2.git .
+        bin/cli git checkout 2.4-develop
         bin/composer install
       env:
         CI: true
