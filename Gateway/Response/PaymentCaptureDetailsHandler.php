@@ -26,7 +26,9 @@ namespace Adyen\Payment\Gateway\Response;
 use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Payment\Gateway\Response\HandlerInterface;
+use Magento\Sales\Model\Order;
 
 class PaymentCaptureDetailsHandler implements HandlerInterface
 {
@@ -55,7 +57,7 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
     {
         $payment = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
-        /** @var OrderPaymentInterface $payment */
+        /** @var Order\Payment $payment */
         $payment = $payment->getPayment();
 
         if (array_key_exists(TransactionCapture::MULTIPLE_AUTHORIZATIONS, $response)) {
@@ -73,16 +75,17 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
             // The capture request will return a capture-received message, but it doesn't mean the capture has been final
             // so the invoice is set to Pending
             if ($response["response"] === TransactionCapture::CAPTURE_RECEIVED) {
-                $this->setInvoiceToPending($payment);
+                //$this->setInvoiceToPending($payment);
             }
         }
     }
 
     /**
-     * @param $payment
+     * @param Order\Payment $payment
      * @param $responseContainer
+     * @throws AlreadyExistsException
      */
-    public function handleMultipleCaptureRequests($payment, $responseContainer)
+    public function handleMultipleCaptureRequests(Order\Payment $payment, $responseContainer)
     {
         $lastTransId = null;
         $this->adyenLogger->info(sprintf(
