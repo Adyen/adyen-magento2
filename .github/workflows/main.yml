@@ -31,8 +31,7 @@ jobs:
         curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
         bin/download 2.4.3-p1
         docker-compose -f docker-compose.yml up -d
-        tty=$(readlink /proc/$$/fd/2)
-        read ... < $tty
+        echo $(tty)
         composer config --global http-basic.repo.magento.com.username ${MAGENTO_USERNAME}
         composer config --global http-basic.repo.magento.com.password ${MAGENTO_PASSWORD}
         bin/setup-composer-auth
