@@ -28,6 +28,8 @@ jobs:
       run: |
         git config --global init.defaultBranch main
         git remote rm origin
+        composer config --global http-basic.repo.magento.com.username ${MAGENTO_USERNAME}
+        composer config --global http-basic.repo.magento.com.password ${MAGENTO_PASSWORD}
         curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/onelinesetup | bash -s -- magento.test 2.4.3-p1
 #        bin/download 2.4.3-p1
 #        docker-compose -f docker-compose.yml up -d
