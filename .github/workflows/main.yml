@@ -26,10 +26,7 @@ jobs:
 
     - name: Test plugin installation
       run: |
-        git config --global init.defaultBranch main
-#        git remote rm origin
-#        curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
-#        bin/download 2.4.3-p1
+        
         echo "dumping tty"
         echo $(tty)
         docker-compose -f docker-compose.yml up -d
