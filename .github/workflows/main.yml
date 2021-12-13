@@ -18,11 +18,11 @@ jobs:
         php-version: ${{ matrix.php-version }}
         tools: composer:v1,
 
-#    - name: Start Docker
-#      run: PHP_VERSION=${{ matrix.php-version }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
-#
-#    - name: Create branch for Composer and remove version from composer.json
-#      run: git checkout -b integration-test-branch && sed -i '/version/d' ./composer.json
+    - name: Start Docker
+      run: PHP_VERSION=${{ matrix.php-version }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+
+    - name: Create branch for Composer and remove version from composer.json
+      run: git checkout -b integration-test-branch && sed -i '/version/d' ./composer.json
 
     - name: Test plugin installation
       run: |
@@ -31,15 +31,15 @@ jobs:
         composer config -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
         curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
         mkdir -p ~/.composer ~/.ssh
-        bin/clinotty bin/download
-#        echo "setting composer credentials"
-#        composer config -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
-#        echo "creating docker container"
-#        docker-compose -f docker-compose.yml up -d
-#        bin/clinotty bin/setup-composer-auth
-#        bin/cli git clone git@github.com:magento/magento2.git .
-#        bin/cli git checkout 2.4-develop
-#        bin/composer install
+#        bin/clinotty bin/download
+        echo "setting composer credentials"
+        composer config -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
+        echo "creating docker container"
+        docker-compose -f docker-compose.yml up -d
+        bin/clinotty bin/setup-composer-auth
+        bin/cli git clone git@github.com:magento/magento2.git .
+        bin/cli git checkout 2.4-develop
+        bin/composer install
       env:
         CI: true
         MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
