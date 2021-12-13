@@ -37,4 +37,21 @@ class Invoice extends AbstractDb
     {
         $this->_init('adyen_invoice', 'entity_id');
     }
+
+    /**
+     * Get all the adyen_invoice entries linked to the adyen_order_payment
+     *
+     * @param $adyenPaymentId
+     * @return array|null
+     */
+    public function getAdyenInvoicesByAdyenPaymentId($adyenPaymentId): ?array
+    {
+        $select = $this->getConnection()->select()
+            ->from(['adyen_invoice' => $this->getTable('adyen_invoice')])
+            ->where('adyen_invoice.adyen_order_payment_id=?', $adyenPaymentId);
+
+        $result = $this->getConnection()->fetchAll($select);
+
+        return empty($result) ? null : $result;
+    }
 }
