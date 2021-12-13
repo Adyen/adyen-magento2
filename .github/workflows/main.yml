@@ -29,14 +29,14 @@ jobs:
         git config --global init.defaultBranch main
         git remote rm origin
         curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
-        mkdir -p ~/.composer ~/.ssh
         docker-compose -f docker-compose.yml up -d
         echo "setting composer basic username"
-        composer config -g http-basic.repo.magento.com.username ${MAGENTO_USERNAME}
+        composer config -a -g http-basic.repo.magento.com.username ${MAGENTO_USERNAME}
         echo "setting composer basic password"
-        composer config -g http-basic.repo.magento.com.password ${MAGENTO_PASSWORD}
+        composer config -a -g http-basic.repo.magento.com.password ${MAGENTO_PASSWORD}
         echo "running setup-composer-auth"
         bin/clinotty bin/setup-composer-auth
+        mkdir -p ~/.composer ~/.ssh
 #        bin/cli git clone git@github.com:magento/magento2.git .
 #        bin/cli git checkout 2.4-develop
 #        bin/composer install
