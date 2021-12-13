@@ -29,7 +29,9 @@ jobs:
         git config --global init.defaultBranch main
         git remote rm origin
         composer config -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
-        curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/onelinesetup | bash
+        curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
+        mkdir -p ~/.composer ~/.ssh
+        bin/clinotty bin/download
 #        echo "setting composer credentials"
 #        composer config -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
 #        echo "creating docker container"
