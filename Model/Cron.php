@@ -1144,13 +1144,9 @@ class Cron
                 if (!$this->isAutoCapture) {
                     $this->finalizeOrder(true);
                     $capturedAmount = $this->adyenOrderPaymentHelper->getCapturedAmount($this->_order);
-                    $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->_order->getGrandTotal(), $this->_order->getOrderCurrencyCode());
-                    $this->invoiceHelper->createAdyenInvoice(
-                        $this->_order,
-                        $this->notification,
-                        $this->invoiceHelper->getLinkedInvoiceToCaptureNotification($this->_order, $this->notification)
-                    );
-
+                    $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
+                    // TODO: Handle Exception handling
+                    $this->invoiceHelper->handleCaptureWebhook($this->_order, $this->notification,);
                     $fullAmountCaptured = $capturedAmount === $formattedOrderAmount;
                     $this->invoiceHelper->finalizeInvoices($this->_order, $this->notification, $fullAmountCaptured);
                 }
@@ -1966,7 +1962,7 @@ class Cron
                 }
 
                 $this->invoiceResource->save($invoice);
-                $this->invoiceHelper->createAdyenInvoice($this->_order, $this->notification, $invoice);
+                $this->invoiceHelper->handleCaptureWebhook($this->_order, $this->notification);
             } catch (Exception $e) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'Error saving invoice. The error message is: ' . $e->getMessage()

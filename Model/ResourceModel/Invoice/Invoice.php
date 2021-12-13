@@ -24,7 +24,10 @@
 
 namespace Adyen\Payment\Model\ResourceModel\Invoice;
 
+use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Setup\UpgradeSchema;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Sales\Model\Order;
 
 class Invoice extends AbstractDb
 {
@@ -51,6 +54,32 @@ class Invoice extends AbstractDb
             ->where('adyen_invoice.adyen_order_payment_id=?', $adyenPaymentId);
 
         $result = $this->getConnection()->fetchAll($select);
+
+        return empty($result) ? null : $result;
+    }
+
+    /**
+     * Get the respective adyen_invoice entry by using the pspReference of the original payment, the pspReference of the capture
+     * and the magento payment_id linked to this order
+     *
+     * @param Order $order
+     * @param Notification $notification
+     * @return array|null
+     */
+    public function getAdyenInvoiceByCaptureWebhook(Order $order, Notification $notification): ?array
+    {
+        $select = $this->getConnection()->select()
+            ->from(['adyen_invoice' => $this->getTable('adyen_invoice')])
+            ->joinInner(
+                ['aop' => 'adyen_order_payment'],
+                'aop.entity_id = adyen_invoice.adyen_order_payment_id'
+            )
+            ->where('aop.payment_id=?', $order->getPayment()->getEntityId())
+            ->where('adyen_invoice.pspReference=?', $notification->getPspreference())
+            ->where('aop.pspReference=?', $notification->getOriginalReference())
+            ->columns('adyen_invoice.*');
+
+        $result = $this->getConnection()->fetchRow($select);
 
         return empty($result) ? null : $result;
     }
