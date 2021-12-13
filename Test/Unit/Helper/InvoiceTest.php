@@ -182,23 +182,6 @@ class InvoiceTest extends TestCase
         $this->assertInstanceOf(AdyenInvoiceModel::class, $result);
     }
 
-    public function testGetLinkedInvoiceToCaptureNotification()
-    {
-        $reference = 'ACDC4321WXYZ0123';
-        $linkedInvoiceIndex = 1;
-        $invoiceCollection = $this->getMockInvoiceCollection($reference, false, $linkedInvoiceIndex);
-        $this->mockMethods($this->order, [
-            'getInvoiceCollection' => $invoiceCollection
-        ]);
-        $this->mockMethods($this->notification, [
-            'getOriginalReference' => $reference,
-        ]);
-
-        $result = $this->invoiceHelper->getLinkedInvoiceToCaptureNotification($this->order, $this->notification);
-
-        $this->assertEquals($result, $invoiceCollection[$linkedInvoiceIndex]);
-    }
-
     private function getMockInvoiceCollection($originalReference, $linkAll = false, $linkedIndex = null): array
     {
         $invoice = $this->getMockBuilder(Order\Invoice::class)
