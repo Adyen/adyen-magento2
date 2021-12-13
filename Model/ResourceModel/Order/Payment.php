@@ -23,6 +23,8 @@
 
 namespace Adyen\Payment\Model\ResourceModel\Order;
 
+use Adyen\Payment\Api\Data\OrderPaymentInterface;
+
 class Payment extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
@@ -56,14 +58,20 @@ class Payment extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      * Get all the adyen_order_payment entries linked to the paymentId
      *
      * @param $paymentId
+     * @param array $statuses
      * @return array|null
      */
-    public function getLinkedAdyenOrderPayments($paymentId)
+    public function getLinkedAdyenOrderPayments($paymentId, array $statuses = [])
     {
         $select = $this->getConnection()->select()
             ->from(['order_payment' => $this->getTable('adyen_order_payment')])
-            ->where('order_payment.payment_id=?', $paymentId)
-            ->order(['order_payment.created_at ASC']);
+            ->where('order_payment.payment_id=?', $paymentId);
+
+        if (!empty($statuses)) {
+            $select->where('order_payment.capture_status IN (?)', $statuses);
+        }
+
+        $select->order(['order_payment.created_at ASC']);
 
         $result = $this->getConnection()->fetchAll($select);
 

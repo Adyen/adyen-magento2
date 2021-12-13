@@ -173,6 +173,22 @@ class AdyenOrderPayment extends AbstractHelper
     }
 
     /**
+     * Add the amount of the adyen invoice to the total_captured field of the order_payment
+     *
+     * @param Payment $adyenOrderPayment
+     * @param float $amount
+     * @return Payment
+     * @throws AlreadyExistsException
+     */
+    public function addTotalCaptured(Payment $adyenOrderPayment, float $amount): Payment
+    {
+        $adyenOrderPayment->setTotalCaptured($adyenOrderPayment->getTotalCaptured() + $amount);
+        $this->orderPaymentResourceModel->save($adyenOrderPayment);
+
+        return $adyenOrderPayment;
+    }
+
+    /**
      * Create an entry in the adyen_order_payment table based on the passed notification
      *
      * @param Order $order
