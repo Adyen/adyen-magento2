@@ -30,10 +30,8 @@ jobs:
         git remote rm origin
         curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
         docker-compose -f docker-compose.yml up -d
-        echo "setting composer basic username"
-        composer config -a -g http-basic.repo.magento.com.username ${MAGENTO_USERNAME}
-        echo "setting composer basic password"
-        composer config -a -g http-basic.repo.magento.com.password ${MAGENTO_PASSWORD}
+        echo "setting composer basic username and pwd"
+        composer config -a -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
         echo "running setup-composer-auth"
         bin/clinotty bin/setup-composer-auth
         mkdir -p ~/.composer ~/.ssh
