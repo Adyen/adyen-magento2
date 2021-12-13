@@ -222,32 +222,6 @@ class Invoice extends AbstractHelper
     }
 
     /**
-     * Attempt to get the invoice linked to the capture notification by comparing the notification original reference
-     * and the invoice pspReference
-     * TODO: Check me
-     *
-     * @param Order $order
-     * @param Notification $captureNot
-     * @return InvoiceModel|null
-     */
-    public function getLinkedInvoiceToCaptureNotification(Order $order, Notification $captureNot): ?InvoiceModel
-    {
-        $returnInvoice = null;
-        $invoiceCollection = $order->getInvoiceCollection();
-        $originalReference = $captureNot->getOriginalReference();
-
-        foreach ($invoiceCollection as $invoice) {
-            $parsedTransId = $this->adyenDataHelper->parseTransactionId($invoice->getTransactionId());
-            if ($parsedTransId['pspReference'] === $originalReference) {
-                $returnInvoice = $invoice;
-            }
-        }
-
-        return $returnInvoice;
-    }
-
-
-    /**
      * Link all the adyen_invoices related to the adyen_order_payment with the passed invoiceModel
      *
      * @param Payment $adyenOrderPayment
