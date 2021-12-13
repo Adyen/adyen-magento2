@@ -5,11 +5,11 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         php-version: [7.3] #, 7.4]
-    
+
     steps:
     - uses: actions/checkout@v2
     - name: Use PHP ${{ matrix.php-version }}
@@ -31,7 +31,6 @@ jobs:
         composer config -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
         curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
         mkdir -p ~/.composer ~/.ssh
-#        bin/clinotty bin/download
         echo "setting composer credentials"
         composer config -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
         echo "creating docker container"
