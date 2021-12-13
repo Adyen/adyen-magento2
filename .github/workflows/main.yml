@@ -34,7 +34,8 @@ jobs:
         echo "setting composer basic username and pwd"
         echo "home is here $(pwd)"
         echo "composer config http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}" | bin/clinotty bash
-        bin/clinotty [ -d "./var/composer_home" ] && bin/clinotty cp /var/www/.composer/auth.json ./var/composer_home/auth.json
+        echo "$(ls -la)"
+        bin/clinotty [ -d "./var/composer_home" ] && bin/clinotty cp ~/.composer/auth.json ./var/composer_home/auth.json
 #
 #        bin/cli git clone git@github.com:magento/magento2.git .
 #        bin/cli git checkout 2.4-develop
