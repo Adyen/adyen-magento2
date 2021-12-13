@@ -623,10 +623,13 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $connection = $setup->getConnection();
         $adyenPaymentResponseTable = $setup->getTable(self::ADYEN_PAYMENT_RESPONSE);
 
+        // TODO: merchant_reference should not be nullable anymore
+
         // Add payment id column
         $paymentIdColumn = [
             'type'=> Table::TYPE_INTEGER,
-            'nullable' => false,
+            'nullable' => true,
+            'default' => null,
             'comment' => 'Foreign key on corresponding payment',
             'after' => PaymentResponse::ENTITY_ID
         ];
@@ -635,6 +638,20 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $adyenPaymentResponseTable,
             PaymentResponse::PAYMENT_ID,
             $paymentIdColumn
+        );
+
+        // Add store id column
+        $storeIdColumn = [
+            'type'=> Table::TYPE_INTEGER,
+            'nullable' => false,
+            'comment' => 'Store id for corresponding payment',
+            'after' => PaymentResponse::PAYMENT_ID
+        ];
+
+        $connection->addColumn(
+            $adyenPaymentResponseTable,
+            PaymentResponse::STORE_ID,
+            $storeIdColumn
         );
 
         // Add additional info column
@@ -652,18 +669,18 @@ class UpgradeSchema implements UpgradeSchemaInterface
         );
 
         // Add foreign key on payment id
-        $connection->addForeignKey(
-                $setup->getFkName(
-                    self::ADYEN_PAYMENT_RESPONSE,
-                    PaymentResponse::PAYMENT_ID,
-                    'sales_order_payment',
-                    OrderPaymentInterface::ENTITY_ID
-                ),
-                'payment_id',
-                $setup->getTable('sales_order_payment'),
-                'entity_id',
-                Table::ACTION_CASCADE
-            );
+//        $connection->addForeignKey(
+//                $setup->getFkName(
+//                    self::ADYEN_PAYMENT_RESPONSE,
+//                    PaymentResponse::PAYMENT_ID,
+//                    'sales_order_payment',
+//                    OrderPaymentInterface::ENTITY_ID
+//                ),
+//                'payment_id',
+//                $setup->getTable('sales_order_payment'),
+//                'entity_id',
+//                Table::ACTION_CASCADE
+//            );
 
         // TODO: Check if the foreign key has effect!
     }
