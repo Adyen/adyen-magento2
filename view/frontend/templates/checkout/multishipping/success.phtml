@@ -112,8 +112,10 @@ script;
             'Magento_Checkout/js/model/full-screen-loader',
             'Adyen_Payment/js/model/adyen-payment-service',
             'Magento_Checkout/js/model/error-processor'
-        ], function ($, adyenComponent, fullScreenLoader, adyenPaymentService, errorProcessor) {
-            var checkoutComponent = new AdyenCheckout({
+        ], function ($, AdyenCheckout, fullScreenLoader, adyenPaymentService, errorProcessor) {
+        (async function () { // RequireJS does not support async callback
+            console.trace();
+            var checkoutComponent = await AdyenCheckout({
                 locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
                 environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
                 clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>',
@@ -199,6 +201,7 @@ script;
                 }
             });
 
+        })();
         });
     </script>
     <div id="actionModalWrapper">

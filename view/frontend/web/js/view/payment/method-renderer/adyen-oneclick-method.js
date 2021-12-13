@@ -55,7 +55,7 @@ define(
         placeOrderAction,
         errorProcessor,
         adyenPaymentService,
-        adyenCheckout,
+        AdyenCheckout,
         adyenConfiguration,
     ) {
 
@@ -120,7 +120,7 @@ define(
 
                 if (!!paymentMethodsResponse) {
 
-                    this.checkoutComponent = await adyenCheckout({
+                    this.checkoutComponent = await AdyenCheckout({
                             locale: adyenConfiguration.getLocale(),
                             clientKey: adyenConfiguration.getClientKey(),
                             environment: adyenConfiguration.getCheckoutEnvironment(),

@@ -52,7 +52,7 @@ define(
         errorProcessor,
         adyenPaymentService,
         adyenConfiguration,
-        adyenCheckout
+        AdyenCheckout
     ) {
         'use strict';
         return Component.extend({
@@ -76,7 +76,7 @@ define(
                 this.vaultEnabler.setPaymentCode(this.getVaultCode());
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
 
-                this.checkoutComponent = await adyenCheckout({
+                this.checkoutComponent = await AdyenCheckout({
                         locale: adyenConfiguration.getLocale(),
                         clientKey: adyenConfiguration.getClientKey(),
                         environment: adyenConfiguration.getCheckoutEnvironment(),

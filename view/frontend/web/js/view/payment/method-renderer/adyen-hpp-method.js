@@ -51,17 +51,18 @@ define(
         layout,
         Messages,
         errorProcessor,
-        adyenCheckout,
+        AdyenCheckout,
         adyenConfiguration
     ) {
         'use strict';
 
-        // Exlude from the alternative payment methods rendering process
+        // Excluded from the alternative payment methods rendering process
         var unsupportedPaymentMethods = [
             'scheme',
             'boleto',
             'wechatpay',
-            'ratepay'];
+            'ratepay'
+        ];
 
         var popupModal;
         var selectedAlternativePaymentMethodType = ko.observable(null);
@@ -113,7 +114,7 @@ define(
 
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
                     var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
-                    this.checkoutComponent = await adyenCheckout({
+                    this.checkoutComponent = await AdyenCheckout({
                             locale: adyenConfiguration.getLocale(),
                             clientKey: adyenConfiguration.getClientKey(),
                             environment: adyenConfiguration.getCheckoutEnvironment(),
