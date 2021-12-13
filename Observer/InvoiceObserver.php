@@ -96,7 +96,7 @@ class InvoiceObserver implements ObserverInterface
             foreach ($updatedInvoices as $updatedInvoice) {
                 $capturedAmount += $updatedInvoice->getAmount();
             }
-            $this->adyenOrderPaymentHelper->addTotalCaptured($adyenOrderPaymentObject, $capturedAmount);
+            $this->adyenOrderPaymentHelper->addCaptureData($adyenOrderPaymentObject, $capturedAmount);
         }
     }
 }
