@@ -31,10 +31,9 @@ jobs:
         curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
         docker-compose -f docker-compose.yml up -d
         echo "setting composer basic username and pwd"
-        composer config -a -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
-        echo "running setup-composer-auth"
-        bin/clinotty bin/setup-composer-auth
-        mkdir -p ~/.composer ~/.ssh
+        echo "composer config --global http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}" | bin/clinotty bash
+        bin/clinotty [ -d "./var/composer_home" ] && bin/clinotty cp /var/www/.composer/auth.json ./var/composer_home/auth.json
+#        mkdir -p ~/.composer ~/.ssh
 #        bin/cli git clone git@github.com:magento/magento2.git .
 #        bin/cli git checkout 2.4-develop
 #        bin/composer install
