@@ -24,17 +24,19 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Api\Data\InvoiceInterface;
+use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Invoice as AdyenInvoice;
 use Adyen\Payment\Model\InvoiceFactory;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Model\Order\PaymentFactory;
+use Adyen\Payment\Model\ResourceModel\Invoice\Invoice as AdyenInvoiceResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as AdyenOrderPaymentCollection;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\AlreadyExistsException;
-use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice as InvoiceModel;
 
@@ -80,6 +82,11 @@ class Invoice extends AbstractHelper
      *
      * @param Context $context
      * @param AdyenLogger $adyenLogger
+     * @param Data $adyenDataHelper
+     * @param InvoiceResourceModel $invoiceResourceModel
+     * @param InvoiceFactory $adyenInvoiceFactory
+     * @param AdyenInvoiceResourceModel $adyenInvoiceResourceModel
+     * @param OrderPaymentResourceModel $orderPaymentResourceModel
      */
     public function __construct(
         Context $context,
@@ -243,5 +250,34 @@ class Invoice extends AbstractHelper
         }
 
         return $returnInvoice;
+    }
+
+
+    /**
+     * Link all the adyen_invoices related to the adyen_order_payment with the passed invoiceModel
+     *
+     * @param Payment $adyenOrderPayment
+     * @param InvoiceModel $invoice
+     * @return array
+     * @throws AlreadyExistsException
+     */
+    public function linkAndUpdateAdyenInvoices(Payment $adyenOrderPayment, InvoiceModel $invoice): array
+    {
+        $invoiceFactory = $this->adyenInvoiceFactory->create();
+        $updatedAdyenInvoices = [];
+        // TODO: Update the status of the adyenOrderPaymentObject (when handling webhook)
+
+        $adyenInvoices = $this->adyenInvoiceResourceModel->getAdyenInvoicesByAdyenPaymentId($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]);
+        foreach ($adyenInvoices as $adyenInvoice) {
+            if (is_null($adyenInvoice[AdyenInvoice::INVOICE_ID])) {
+                /** @var AdyenInvoice $adyenInvoiceObject */
+                $adyenInvoiceObject = $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
+                $adyenInvoiceObject->setInvoiceId($invoice->getEntityId());
+                $this->adyenInvoiceResourceModel->save($adyenInvoiceObject);
+                $updatedAdyenInvoices[] = $adyenInvoiceObject;
+            }
+        }
+
+        return $updatedAdyenInvoices;
     }
 }
