@@ -71,6 +71,8 @@ class InvoiceObserver implements ObserverInterface
      * Link all adyen_invoices to the appropriate magento invoice and update the total_captured of all the adyen_order_payment
      * entries linked to the payment
      *
+     * TODO: This will be executed on EVERY INVOICE SAVED
+     *
      * @param Observer $observer
      * @throws AlreadyExistsException
      */
@@ -88,15 +90,17 @@ class InvoiceObserver implements ObserverInterface
             [OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE, OrderPaymentInterface::CAPTURE_STATUS_PARTIAL_CAPTURE]
         );
 
-        foreach ($adyenOrderPayments as $adyenOrderPayment) {
-            $capturedAmount = 0;
-            /** @var \Adyen\Payment\Model\Order\Payment $adyenOrderPaymentObject */
-            $adyenOrderPaymentObject = $adyenOrderPaymentFactory->load($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID], OrderPaymentInterface::ENTITY_ID);
-            $updatedInvoices = $this->invoiceHelper->linkAndUpdateAdyenInvoices($adyenOrderPaymentObject, $invoice);
-            foreach ($updatedInvoices as $updatedInvoice) {
-                $capturedAmount += $updatedInvoice->getAmount();
+        if (!is_null($adyenOrderPayments)) {
+            foreach ($adyenOrderPayments as $adyenOrderPayment) {
+                $capturedAmount = 0;
+                /** @var \Adyen\Payment\Model\Order\Payment $adyenOrderPaymentObject */
+                $adyenOrderPaymentObject = $adyenOrderPaymentFactory->load($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID], OrderPaymentInterface::ENTITY_ID);
+                $updatedInvoices = $this->invoiceHelper->linkAndUpdateAdyenInvoices($adyenOrderPaymentObject, $invoice);
+                foreach ($updatedInvoices as $updatedInvoice) {
+                    $capturedAmount += $updatedInvoice->getAmount();
+                }
+                $this->adyenOrderPaymentHelper->addCaptureData($adyenOrderPaymentObject, $capturedAmount);
             }
-            $this->adyenOrderPaymentHelper->addCaptureData($adyenOrderPaymentObject, $capturedAmount);
         }
     }
 }

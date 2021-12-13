@@ -179,51 +179,45 @@ class Invoice extends AbstractHelper
     }
 
     /**
-     * Create an adyen_invoice entry and link it to the passed invoice. If no invoice is passed, log message and
-     * link to the first invoice in the invoiceCollection
+     * Handle a capture webhook notification by updating the acquirerReference and status fields of the adyen_invoice
+     * TODO: Handle case where notification is not successful
      *
      * @param Order $order
      * @param Notification $notification
-     * @param InvoiceModel|null $invoice
-     * @return mixed
+     * @return AdyenInvoice
      * @throws AlreadyExistsException
+     * @throws \Exception
      */
-    public function oldCreateAdyenInvoice(Order $order, Notification $notification, InvoiceModel $invoice = null)
+    public function handleCaptureWebhook(Order $order, Notification $notification): AdyenInvoice
     {
-        $additionalData = $notification->getAdditionalData();
-        $acquirerReference = $additionalData[Notification::ADDITIONAL_DATA] ?? null;
+        $invoiceFactory = $this->adyenInvoiceFactory->create();
         $pspReference = $notification->getPspreference();
         $originalReference = $notification->getOriginalReference();
 
-        if (is_null($invoice)) {
-            $invoiceId = $order->getInvoiceCollection()->getFirstItem()->getEntityId();
-            $this->adyenLogger->info(sprintf(
-                'Capture with pspReference %s (auth pspReference %s) linked to order %s could not be directly ' .
-                'linked to any invoice. This implies that this payment was included in a capture call with other ' .
-                'partial authorizations. Hence, capture will be linked by default to invoice %s',
-                $pspReference,
+        $adyenInvoice = $this->adyenInvoiceResourceModel->getAdyenInvoiceByCaptureWebhook(
+            $order,
+            $notification
+        );
+
+        if (is_null($adyenInvoice)) {
+            throw new \Exception(sprintf(
+                'Unable to find adyen_invoice linked to original reference %s, psp reference %s, and order %s',
                 $originalReference,
-                $order->getIncrementId(),
-                $invoiceId
+                $pspReference,
+                $order->getIncrementId()
             ));
-        } else {
-            $invoiceId = $invoice->getEntityId();
         }
 
-        $adyenInvoice = $this->adyenInvoiceFactory->create();
-        $adyenInvoice->setInvoiceId($invoiceId);
-        $adyenInvoice->setPspreference($pspReference);
-        $adyenInvoice->setOriginalReference($originalReference);
-        $adyenInvoice->setAcquirerReference($acquirerReference);
-        $this->adyenInvoiceResourceModel->save($adyenInvoice);
+        $additionalData = $notification->getAdditionalData();
+        $acquirerReference = $additionalData[Notification::ADDITIONAL_DATA] ?? null;
 
-        $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
-            'Adyen invoice entry created for payment with PSP Reference %s and original reference %s',
-            $pspReference,
-            $originalReference
-        ));
+        /** @var AdyenInvoice $adyenInvoiceObject */
+        $adyenInvoiceObject = $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
+        $adyenInvoiceObject->setAcquirerReference($acquirerReference);
+        $adyenInvoiceObject->setStatus(InvoiceInterface::STATUS_SUCCESSFUL);
+        $this->adyenInvoiceResourceModel->save($adyenInvoiceObject);
 
-        return $adyenInvoice;
+        return $adyenInvoiceObject;
     }
 
     /**
@@ -264,7 +258,6 @@ class Invoice extends AbstractHelper
     {
         $invoiceFactory = $this->adyenInvoiceFactory->create();
         $updatedAdyenInvoices = [];
-        // TODO: Update the status of the adyenOrderPaymentObject (when handling webhook)
 
         $adyenInvoices = $this->adyenInvoiceResourceModel->getAdyenInvoicesByAdyenPaymentId($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]);
         foreach ($adyenInvoices as $adyenInvoice) {
