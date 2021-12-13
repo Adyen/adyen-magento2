@@ -18,17 +18,16 @@ jobs:
         php-version: ${{ matrix.php-version }}
         tools: composer:v1,
 
-    - name: Start Docker
-      run: PHP_VERSION=${{ matrix.php-version }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
-
-    - name: Create branch for Composer and remove version from composer.json
-      run: git checkout -b integration-test-branch && sed -i '/version/d' ./composer.json
+#    - name: Start Docker
+#      run: PHP_VERSION=${{ matrix.php-version }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+#
+#    - name: Create branch for Composer and remove version from composer.json
+#      run: git checkout -b integration-test-branch && sed -i '/version/d' ./composer.json
 
     - name: Test plugin installation
       run: |
         git config --global init.defaultBranch main
         git remote rm origin
-        composer config -g http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}
         curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
         mkdir -p ~/.composer ~/.ssh
         echo "setting composer credentials"
@@ -53,14 +52,14 @@ jobs:
 #        MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
 #        MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
 
-    - name: Upload the code into the docker container
-      run: docker cp $(pwd) magento-php:/data/extensions/
-
-    - name: Dump working directory
-      run: docker exec magento-php ls -la /data/extensions/workdir && docker exec magento-php ls -la && docker exec magento-php ls -la /data/extensions && docker exec magento-php ls -la /data && docker exec magento-php ls -la /bin
-
-    - name: Enable developer mode
-      run: docker exec magento-php php ./bin/magento deploy:mode:set developer
+#    - name: Upload the code into the docker container
+#      run: docker cp $(pwd) magento-php:/data/extensions/
+#
+#    - name: Dump working directory
+#      run: docker exec magento-php ls -la /data/extensions/workdir && docker exec magento-php ls -la && docker exec magento-php ls -la /data/extensions && docker exec magento-php ls -la /data && docker exec magento-php ls -la /bin
+#
+#    - name: Enable developer mode
+#      run: docker exec magento-php php ./bin/magento deploy:mode:set developer
 
     - name: Run tests
       run: docker exec magento-php vendor/bin/phpunit /data/extensions/Test/
