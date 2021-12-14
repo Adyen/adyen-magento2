@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: [ 7.3 , 7.4]
+        php-version: [7.3 , 7.4]
         magento-version: ['2.4.0']
     services:
       mysql:
@@ -33,10 +33,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: "M2 Integration Tests with Magento 2 (PHP ${{ matrix.php-version }})"
-        uses: extdn/github-actions-m2/magento-integration-tests/${php_version}@master
+        uses: extdn/github-actions-m2/magento-integration-tests/${PHP_VERSION}@master
         with:
           module_name: Adyen_Payment
           composer_name: adyen/module-payment
           ce_version: ${{ matrix.magento-version }}
-        env:
-          php_version: ${{ matrix.php-version }}
+    env:
+      PHP_VERSION: ${{ matrix.php-version }}
