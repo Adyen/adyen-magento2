@@ -35,7 +35,7 @@ jobs:
       - name: M2 Integration Tests with Magento 2 (Php${{ matrix.php-version }})
         uses: extdn/github-actions-m2/magento-integration-tests/${{ matrix.php-version }}@master
         with:
-          php-version: ${{ matrix.php-version }}
+          php-version: "${{ matrix.php-version }}"
           module_name: Adyen_Payment
           composer_name: adyen/module-payment
           ce_version: "{{ matrix.magento-version }}"
