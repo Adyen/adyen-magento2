@@ -34,3 +34,4 @@ jobs:
           module_name: Adyen_Payment
           composer_name: adyen/module-payment
           ce_version: '2.4.0'
+          phpunit_file:
