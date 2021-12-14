@@ -34,7 +34,7 @@ define(
         'uiLayout',
         'Magento_Ui/js/model/messages',
         'Magento_Checkout/js/model/error-processor',
-        'Adyen_Payment/js/bundle',
+        'Adyen_Payment/js/adyen',
         'Adyen_Payment/js/model/adyen-configuration'
     ],
     function(

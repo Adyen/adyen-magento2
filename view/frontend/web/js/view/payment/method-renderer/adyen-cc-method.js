@@ -35,7 +35,7 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/bundle'
+        'Adyen_Payment/js/adyen'
     ],
     function(
         $,
