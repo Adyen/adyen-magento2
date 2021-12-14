@@ -38,4 +38,4 @@ jobs:
           php-version: ${{ matrix.php-version }}
           module_name: Adyen_Payment
           composer_name: adyen/module-payment
-          ce_version: {{ matrix.magento-version }}
+          ce_version: "{{ matrix.magento-version }}"
