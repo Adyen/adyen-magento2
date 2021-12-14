@@ -32,11 +32,11 @@ jobs:
       - uses: actions/checkout@v2
       - name: M2 Integration Tests with Magento 2 (PHP 7.4)
         uses: extdn/github-actions-m2/magento-integration-tests/7.4@master
-        with:
-          module_name: Adyen_Payment
-          composer_name: adyen/module-payment
-          ce_version: ${{ matrix.magento-version }}
-          magento_post_install_script: ./enable_dev.sh
+        env:
+          MODULE_NAME: Adyen_Payment
+          COMPOSER_NAME: adyen/module-payment
+          CE_VERSION: ${{ matrix.magento-version }}
+          MAGENTO_POST_INSTALL_SCRIPT: ../enable_dev.sh
 #      - name: M2 Integration Tests with Magento 2 (PHP 7.3)
 #        uses: extdn/github-actions-m2/magento-integration-tests/7.3@master
 #        with:
