@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        magento-version: ['2.4.0']
+        magento-version: ['2.4-develop']
     services:
       mysql:
         image: mysql:5.7
@@ -24,6 +24,10 @@ jobs:
           'xpack.security.enabled': false
           ES_JAVA_OPTS: "-Xms64m -Xmx512m"
         options: --health-cmd="curl localhost:9200/_cluster/health?wait_for_status=yellow&timeout=60s" --health-interval=10s --health-timeout=5s --health-retries=3
+    env:
+      REPOSITORY_URL: https://repo.magento.com/
+      MAGENTO_MARKETPLACE_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
+      MAGENTO_MARKETPLACE_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
     steps:
       - uses: actions/checkout@v2
       - name: M2 Integration Tests with Magento 2 (PHP 7.4)
