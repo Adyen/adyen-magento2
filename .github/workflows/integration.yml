@@ -33,9 +33,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: "M2 Integration Tests with Magento 2 (PHP ${{ matrix.php-version }})"
-        uses: extdn/github-actions-m2/magento-integration-tests/7.4@master
+        uses: extdn/github-actions-m2/magento-integration-tests/${php_version}@master
         with:
           module_name: Adyen_Payment
           composer_name: adyen/module-payment
-          php_version: ${{ matrix.php-version }}
           ce_version: ${{ matrix.magento-version }}
+        env:
+          php_version: ${{ matrix.php-version }}
