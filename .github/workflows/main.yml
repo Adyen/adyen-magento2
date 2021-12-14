@@ -24,26 +24,26 @@ jobs:
 #    - name: Create branch for Composer and remove version from composer.json
 #      run: git checkout -b integration-test-branch && sed -i '/version/d' ./composer.json
 #
-#    - name: Test plugin installation
-#      run: |
-#        git config --global init.defaultBranch main
-#        git remote rm origin
-#        curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
-#        docker-compose -f docker-compose.yml up -d
-#        mkdir -p ~/.composer ~/.ssh
-#        echo "setting composer basic username and pwd"
-#        echo "home is here $(pwd)"
-#        echo "composer config http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}" | bin/clinotty bash
-#        echo "$(ls -la)"
-#        bin/clinotty [ -d "./var/composer_home" ] && bin/clinotty cp ~/.composer/auth.json ./var/composer_home/auth.json
-#
-#        bin/cli git clone git@github.com:magento/magento2.git .
-#        bin/cli git checkout 2.4-develop
-#        bin/composer install
-#      env:
-#        CI: true
-#        MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
-#        MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
+    - name: Test plugin installation
+      run: |
+        git config --global init.defaultBranch main
+        git remote rm origin
+        curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
+        docker-compose -f docker-compose.yml up -d
+        mkdir -p ~/.composer ~/.ssh
+        echo "setting composer basic username and pwd"
+        echo "home is here $(pwd)"
+        echo "composer config http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}" | bin/clinotty bash
+        echo "$(ls -la)"
+        bin/clinotty [ -d "./var/composer_home" ] && bin/clinotty cp ~/.composer/auth.json ./var/composer_home/auth.json
+
+        bin/cli git clone git@github.com:magento/magento2.git .
+        bin/cli git checkout 2.4-develop
+        bin/composer install
+      env:
+        CI: true
+        MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
+        MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
 
 #    - name: Test plugin installation
 #      run: |
