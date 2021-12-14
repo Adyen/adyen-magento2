@@ -1,41 +1,67 @@
-name: m2-actions-test
-on: [push]
+name: Main CI workflow
+
+on: [push, pull_request]
 
 jobs:
-  magento2-build:
+  build:
     runs-on: ubuntu-latest
-    name: 'm2 unit tests & build'
-    services:
-      mysql:
-        image: docker://mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: magento
-          MYSQL_DATABASE: magento
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-      elasticsearch:
-        image: docker://elasticsearch:7.1.0
-        ports:
-          - 9200:9200
-        options: -e="discovery.type=single-node" --health-cmd="curl http://localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=10
+
+    strategy:
+      matrix:
+        php-version: [7.3] #, 7.4]
+
     steps:
-      - uses: actions/checkout@v1 # pulls your repository, M2 src must be in a magento directory
-      - name: 'launch magento2 unit test step'
-        if: ${{true}}
-        continue-on-error: true
-        uses: MAD-I-T/magento-actions@v3.4
-        env:
-          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
-        with:
-          php: '7.4'
-          process: 'unit-test'
-          elasticsearch: 1
-      - name: 'launch magento2 build step'
-        uses: MAD-I-T/magento-actions@v3.4
-        env:
-          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
-        with:
-          php: '7.4'
-          process: 'build'
-          elasticsearch: 1
+    - uses: actions/checkout@v2
+    - name: Use PHP ${{ matrix.php-version }}
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        tools: composer:v1,
+
+#    - name: Start Docker
+#      run: PHP_VERSION=${{ matrix.php-version }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+#
+#    - name: Create branch for Composer and remove version from composer.json
+#      run: git checkout -b integration-test-branch && sed -i '/version/d' ./composer.json
+#
+#    - name: Test plugin installation
+#      run: |
+#        git config --global init.defaultBranch main
+#        git remote rm origin
+#        curl -s https://raw.githubusercontent.com/markshust/docker-magento/master/lib/template | bash
+#        docker-compose -f docker-compose.yml up -d
+#        mkdir -p ~/.composer ~/.ssh
+#        echo "setting composer basic username and pwd"
+#        echo "home is here $(pwd)"
+#        echo "composer config http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}" | bin/clinotty bash
+#        echo "$(ls -la)"
+#        bin/clinotty [ -d "./var/composer_home" ] && bin/clinotty cp ~/.composer/auth.json ./var/composer_home/auth.json
+#
+#        bin/cli git clone git@github.com:magento/magento2.git .
+#        bin/cli git checkout 2.4-develop
+#        bin/composer install
+#      env:
+#        CI: true
+#        MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
+#        MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
+
+#    - name: Test plugin installation
+#      run: |
+#        echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
+#        composer install --prefer-dist
+#      env:
+#        CI: true
+#        MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
+#        MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
+
+#    - name: Upload the code into the docker container
+#      run: docker cp $(pwd) magento-php:/data/extensions/
+#
+#    - name: Dump working directory
+#      run: docker exec magento-php ls -la /data/extensions/workdir && docker exec magento-php ls -la && docker exec magento-php ls -la /data/extensions && docker exec magento-php ls -la /data && docker exec magento-php ls -la /bin
+#
+#    - name: Enable developer mode
+#      run: docker exec magento-php php ./bin/magento deploy:mode:set developer
+
+    - name: Run tests
+      run: docker exec magento-php vendor/bin/phpunit /data/extensions/Test/
