@@ -243,7 +243,7 @@ class CaptureDataBuilder implements BuilderInterface
                 // ELSE use only the amount required to complete the full capture
                 if ($counterAmount + $availableAmountToCapture <= $captureAmount) {
                     $counterAmount += $availableAmountToCapture;
-                    $amount = $adyenOrderPayment[OrderPaymentInterface::AMOUNT];
+                    $amount = $availableAmountToCapture;
                 } else {
                     // 43.77 - 0
                     $amount = $captureAmount - $counterAmount;
