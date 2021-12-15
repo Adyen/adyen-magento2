@@ -33,6 +33,7 @@ jobs:
         mkdir -p ~/.composer ~/.ssh
         echo "setting composer basic username and pwd"
         echo "home is here $(pwd)"
+        composer config --global home $(pwd)
         echo "composer config http-basic.repo.magento.com ${MAGENTO_USERNAME} ${MAGENTO_PASSWORD}" | bin/clinotty bash
         echo "$(ls -la)"
         bin/clinotty [ -d "./var/composer_home" ] && bin/clinotty cp ~/.composer/auth.json ./var/composer_home/auth.json
