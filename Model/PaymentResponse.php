@@ -159,7 +159,8 @@ class PaymentResponse extends AbstractModel implements PaymentResponseInterface
      * @return array|mixed|string|null
      */
     public function getAdditionalInformation() {
-        return $this->serializer->unserialize($this->getData(self::ADDITIONAL_INFORMATION)); //TODO: Change to correct serializer
+        $data = $this->getData(self::ADDITIONAL_INFORMATION);
+        return $data ? $this->serializer->unserialize($data) : null; //TODO: Change to correct serializer
     }
 
     /**s
@@ -190,6 +191,6 @@ class PaymentResponse extends AbstractModel implements PaymentResponseInterface
             $data[$field] = $additionalInformation;
         }
 
-        return $this->setData(self::ADDITIONAL_INFORMATION, json_encode($data));
+        return $this->setData(self::ADDITIONAL_INFORMATION, $this->serializer->serialize($data));
     }
 }

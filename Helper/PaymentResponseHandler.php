@@ -228,8 +228,6 @@ class PaymentResponseHandler
 
         if (!empty($paymentResponseData['additionalData'])) {
             $payment->setAdditionalInformation('additionalData', $paymentResponseData['additionalData']);
-//            $paymentResponse->setAdditionalInformation($paymentResponse['additionalData']);
-//            $paymentResponse->setAdditionalInformation($paymentResponseData['additionalData']);
         }
 
         if (!empty($paymentResponseData['pspReference'])) {
@@ -243,11 +241,6 @@ class PaymentResponseHandler
         if (!empty($paymentResponseData['details'])) {
             $payment->setAdditionalInformation('details', $paymentResponseData['details']);
         }
-
-        // Update response code?
-//        $this->paymentResponseResourceModel->save($paymentResponse);
-//
-//        if ($order === null) { return true; }
 
         // TODO: Should this flow be entered on the first request? (Or is it already triggered somewhere else? -> Maybe only trigger if payment id is available)
         switch ($paymentResponseData['resultCode']) {
