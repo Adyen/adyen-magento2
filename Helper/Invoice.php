@@ -206,7 +206,7 @@ class Invoice extends AbstractHelper
 
         foreach ($invoiceCollection as $invoice) {
             $parsedTransId = $this->adyenDataHelper->parseTransactionId($invoice->getTransactionId());
-            if ($parsedTransId['pspReference'] === $originalReference) {
+            if (isset($parsedTransId['pspReference']) && $parsedTransId['pspReference'] === $originalReference) {
                 $returnInvoice = $invoice;
             }
         }
