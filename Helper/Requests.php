@@ -358,7 +358,7 @@ class Requests extends AbstractHelper
         $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
         $stateData = $payment->getAdditionalInformation('stateData');
 
-        if ('adyen_pay_by_link' === $payment->getMethod()) {
+        if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
             $request['storePaymentMethodMode'] = 'askForConsent';
         } else {
             $request['storePaymentMethod'] = (bool)($stateData['storePaymentMethod'] ?? $storedPaymentMethodsEnabled);
