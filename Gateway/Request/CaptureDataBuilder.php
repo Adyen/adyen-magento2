@@ -139,7 +139,7 @@ class CaptureDataBuilder implements BuilderInterface
         $adyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments($payment->getId());
         // If the full amount won't be captured OR there are multiple payments to capture
         if (!is_null($adyenOrderPayments) && ($amount < $orderAmountCents || count($adyenOrderPayments) > 1)) {
-            return $this->buildMultipleCaptureData($payment, $currency, $adyenOrderPayments, $invoiceAmountCurrency->getAmount());
+            return $this->buildPartialOrMultipleCaptureData($payment, $currency, $adyenOrderPayments, $invoiceAmountCurrency->getAmount());
         }
 
         $modificationAmount = ['currency' => $currency, 'value' => $amount];
@@ -222,7 +222,9 @@ class CaptureDataBuilder implements BuilderInterface
     }
 
     /**
-     * Return the data of the multiple capture requests required to capture the full OR partial order
+     * Return the data of the multiple capture requests required to capture the full amount OR
+     * multiple capture requests required to capture a partial amount OR
+     * a single capture request required to capture a partial amount
      *
      * @param $payment
      * @param $currency
@@ -230,7 +232,7 @@ class CaptureDataBuilder implements BuilderInterface
      * @param $captureAmount
      * @return array
      */
-    public function buildMultipleCaptureData($payment, $currency, $adyenOrderPayments, $captureAmount)
+    public function buildPartialOrMultipleCaptureData($payment, $currency, $adyenOrderPayments, $captureAmount): array
     {
         $this->adyenLogger->debug(sprintf(
             'Building PARTIAL capture request for multiple authorisations, on payment %s', $payment->getId()
@@ -248,14 +250,12 @@ class CaptureDataBuilder implements BuilderInterface
                 $paymentAmount = $adyenOrderPayment[OrderPaymentInterface::AMOUNT];
                 $totalCaptured = $adyenOrderPayment[OrderPaymentInterface::TOTAL_CAPTURED];
                 $availableAmountToCapture = $paymentAmount - $totalCaptured;
-                // IF the counter amount + available amount to capture from this payment are LESS than the capture amount
-                // use the full amount of the payment
+                // IF the counter amount + available amount to capture from this payment are LESS (or eq) than the capture amount, use the available amount
                 // ELSE use only the amount required to complete the full capture
                 if ($counterAmount + $availableAmountToCapture <= $captureAmount) {
                     $counterAmount += $availableAmountToCapture;
                     $amount = $availableAmountToCapture;
                 } else {
-                    // 43.77 - 0
                     $amount = $captureAmount - $counterAmount;
                 }
 
