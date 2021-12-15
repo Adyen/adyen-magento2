@@ -30,6 +30,7 @@ use Adyen\Payment\Model\Invoice as AdyenInvoice;
 use Adyen\Payment\Model\InvoiceFactory;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\Payment;
+use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Invoice\Invoice as AdyenInvoiceResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -77,6 +78,14 @@ class Invoice extends AbstractHelper
     protected $orderPaymentResourceModel;
 
     /**
+     * @var PaymentFactory
+     */
+    protected $adyenOrderPaymentFactory;
+
+    /** @var AdyenOrderPayment $adyenOrderPaymentHelper */
+    protected $adyenOrderPaymentHelper;
+
+    /**
      * Invoice constructor.
      *
      * @param Context $context
@@ -86,6 +95,8 @@ class Invoice extends AbstractHelper
      * @param InvoiceFactory $adyenInvoiceFactory
      * @param AdyenInvoiceResourceModel $adyenInvoiceResourceModel
      * @param OrderPaymentResourceModel $orderPaymentResourceModel
+     * @param PaymentFactory $paymentFactory
+     * @param AdyenOrderPayment $adyenOrderPaymentHelper
      */
     public function __construct(
         Context $context,
@@ -94,7 +105,9 @@ class Invoice extends AbstractHelper
         InvoiceResourceModel $invoiceResourceModel,
         InvoiceFactory $adyenInvoiceFactory,
         AdyenInvoiceResourceModel $adyenInvoiceResourceModel,
-        OrderPaymentResourceModel $orderPaymentResourceModel
+        OrderPaymentResourceModel $orderPaymentResourceModel,
+        PaymentFactory $paymentFactory,
+        AdyenOrderPayment $adyenOrderPaymentHelper
     ) {
         parent::__construct($context);
         $this->adyenLogger = $adyenLogger;
@@ -103,6 +116,8 @@ class Invoice extends AbstractHelper
         $this->adyenInvoiceFactory = $adyenInvoiceFactory;
         $this->adyenInvoiceResourceModel = $adyenInvoiceResourceModel;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
+        $this->adyenOrderPaymentFactory = $paymentFactory;
+        $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
     }
 
     /**
@@ -191,33 +206,60 @@ class Invoice extends AbstractHelper
     public function handleCaptureWebhook(Order $order, Notification $notification): AdyenInvoice
     {
         $invoiceFactory = $this->adyenInvoiceFactory->create();
-        $pspReference = $notification->getPspreference();
-        $originalReference = $notification->getOriginalReference();
-
-        $adyenInvoice = $this->adyenInvoiceResourceModel->getAdyenInvoiceByCaptureWebhook(
-            $order,
-            $notification
-        );
+        $adyenInvoice = $this->adyenInvoiceResourceModel->getAdyenInvoiceByCaptureWebhook($order, $notification);
 
         if (is_null($adyenInvoice)) {
             throw new \Exception(sprintf(
                 'Unable to find adyen_invoice linked to original reference %s, psp reference %s, and order %s',
-                $originalReference,
-                $pspReference,
+                $notification->getOriginalReference(),
+                $notification->getPspreference(),
                 $order->getIncrementId()
             ));
         }
 
-        $additionalData = $notification->getAdditionalData();
-        $acquirerReference = $additionalData[Notification::ADDITIONAL_DATA] ?? null;
-
         /** @var AdyenInvoice $adyenInvoiceObject */
         $adyenInvoiceObject = $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
+
+        if (!$notification->isSuccessful()) {
+            return $this->handleFailedCaptureWebhook($adyenInvoiceObject, $notification);
+        }
+
+        $additionalData = $notification->getAdditionalData();
+        $acquirerReference = $additionalData[Notification::ADDITIONAL_DATA] ?? null;
         $adyenInvoiceObject->setAcquirerReference($acquirerReference);
         $adyenInvoiceObject->setStatus(InvoiceInterface::STATUS_SUCCESSFUL);
         $this->adyenInvoiceResourceModel->save($adyenInvoiceObject);
 
         return $adyenInvoiceObject;
+    }
+
+    /**
+     * @param AdyenInvoice $adyenInvoice
+     * @param Notification $notification
+     * @return AdyenInvoice
+     * @throws AlreadyExistsException
+     */
+    private function handleFailedCaptureWebhook(AdyenInvoice $adyenInvoice, Notification $notification): AdyenInvoice
+    {
+        $notificationAmount = $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
+        $orderPaymentFactory = $this->adyenOrderPaymentFactory->create();
+        /** @var Payment $orderPayment */
+        $orderPayment = $orderPaymentFactory->load($adyenInvoice->getAdyenPaymentOrderId(), OrderPaymentInterface::ENTITY_ID);
+        $newCapturedAmount = $orderPayment->getTotalCaptured() - $notificationAmount;
+
+        $orderPayment->setTotalCaptured($newCapturedAmount);
+        if ($newCapturedAmount > 0) {
+            $orderPayment->setCaptureStatus(OrderPaymentInterface::CAPTURE_STATUS_PARTIAL_CAPTURE);
+        } else {
+            $orderPayment->setCaptureStatus(OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE);
+        }
+
+        $this->orderPaymentResourceModel->save($orderPayment);
+
+        $adyenInvoice->setStatus(InvoiceInterface::STATUS_FAILED);
+        $this->adyenInvoiceResourceModel->save($adyenInvoice);
+
+        return $adyenInvoice;
     }
 
     /**
@@ -232,6 +274,7 @@ class Invoice extends AbstractHelper
     {
         $invoiceFactory = $this->adyenInvoiceFactory->create();
         $updatedAdyenInvoices = [];
+        $capturedAmount = 0;
 
         $adyenInvoices = $this->adyenInvoiceResourceModel->getAdyenInvoicesByAdyenPaymentId($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]);
         foreach ($adyenInvoices as $adyenInvoice) {
@@ -241,8 +284,11 @@ class Invoice extends AbstractHelper
                 $adyenInvoiceObject->setInvoiceId($invoice->getEntityId());
                 $this->adyenInvoiceResourceModel->save($adyenInvoiceObject);
                 $updatedAdyenInvoices[] = $adyenInvoiceObject;
+                $capturedAmount += $adyenInvoiceObject->getAmount();
             }
         }
+
+        $this->adyenOrderPaymentHelper->updatePaymentWithAmount($adyenOrderPayment, $capturedAmount);
 
         return $updatedAdyenInvoices;
     }

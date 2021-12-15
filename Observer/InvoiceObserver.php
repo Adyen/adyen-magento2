@@ -45,9 +45,6 @@ class InvoiceObserver implements ObserverInterface
     /** @var InvoiceHelper $invoiceHelper*/
     private $invoiceHelper;
 
-    /** @var AdyenOrderPayment $adyenOrderPaymentHelper */
-    private $adyenOrderPaymentHelper;
-
     /**
      * InvoiceObserver constructor.
      * @param Payment $adyenPaymentResourceModel
@@ -92,14 +89,9 @@ class InvoiceObserver implements ObserverInterface
 
         if (!is_null($adyenOrderPayments)) {
             foreach ($adyenOrderPayments as $adyenOrderPayment) {
-                $capturedAmount = 0;
                 /** @var \Adyen\Payment\Model\Order\Payment $adyenOrderPaymentObject */
                 $adyenOrderPaymentObject = $adyenOrderPaymentFactory->load($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID], OrderPaymentInterface::ENTITY_ID);
-                $updatedInvoices = $this->invoiceHelper->linkAndUpdateAdyenInvoices($adyenOrderPaymentObject, $invoice);
-                foreach ($updatedInvoices as $updatedInvoice) {
-                    $capturedAmount += $updatedInvoice->getAmount();
-                }
-                $this->adyenOrderPaymentHelper->addCaptureData($adyenOrderPaymentObject, $capturedAmount);
+                $this->invoiceHelper->linkAndUpdateAdyenInvoices($adyenOrderPaymentObject, $invoice);
             }
         }
     }
