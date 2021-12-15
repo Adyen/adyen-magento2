@@ -26,10 +26,13 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\PaymentResponseFactory;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
+use Adyen\Payment\Model\ResourceModel\PaymentResponse;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order;
 use Adyen\Payment\Helper\Vault;
+
 
 class PaymentResponseHandler
 {
@@ -75,9 +78,14 @@ class PaymentResponseHandler
     private $paymentResponseResourceModel;
 
     /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+    /**
      * @var Collection
      */
     private $paymentResponseCollection;
+
 
     /**
      * PaymentResponseHandler constructor.
@@ -91,13 +99,20 @@ class PaymentResponseHandler
         Data $adyenHelper,
         Vault $vaultHelper,
         \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
-        Collection $paymentResponseCollection
+
+        PaymentResponseFactory $paymentResponseFactory,
+        PaymentResponse $paymentResponseResourceModel,
+        Collection $paymentResponseCollection,
+        SerializerInterface $serializer
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         $this->vaultHelper = $vaultHelper;
+        $this->paymentResponseFactory = $paymentResponseFactory;
         $this->orderResourceModel = $orderResourceModel;
+        $this->paymentResponseResourceModel = $paymentResponseResourceModel;
         $this->paymentResponseCollection = $paymentResponseCollection;
+        $this->serializer = $serializer;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
@@ -139,58 +154,103 @@ class PaymentResponseHandler
         }
     }
 
-    public function findOrCreatePaymentResponseEntry($paymentResponse, $paymentId) {
+    public function findOrCreatePaymentResponseEntry($incrementId, $storeId) {
         // TODO: Verify return type
 
         // Check if paymentResponse already exists, otherwise create one
-        $paymentResponse = $this->paymentResponseCollection->getPaymentResponseByPaymentId($paymentId);
+        $paymentResponse = $this->paymentResponseCollection->getPaymentResponseByIncrementAndStoreId($incrementId, $storeId);
         if(is_null($paymentResponse)) {
             $paymentResponse = $this->paymentResponseFactory->create();
-            $paymentResponse->setPaymentId($paymentId); // TODO: Should this be directly enforced as foreign key?
+            $paymentResponse->setMerchantReference($incrementId); // TODO: Should this be directly enforced as foreign key?
+            $paymentResponse->setStoreId($storeId);
         }
 
         return $paymentResponse;
     }
 
     /**
-     * @param $paymentsResponse
+     * Updates the additional information in the adyen_payment_response table. Add if not yet exists, otherwise append
+     *
+     * @param $paymentResponse
+     * @param $paymentResponseData
+     * @return mixed
+     */
+    public function updateAdditionalInformation($paymentResponse, $paymentResponseData) {
+        $additionalInfoFields = ['additionalData']; // Add other fields to store in adyen_payment_response additional_information. E.g. pspReference
+
+        foreach($additionalInfoFields as $field) {
+            if (!empty($paymentResponseData[$field])) {
+                $paymentResponse->setAdditionalInformationByField($field, $paymentResponseData[$field]);
+            }
+        }
+
+        return $paymentResponse;
+    }
+
+    /**
+     * @param $paymentResponseData
      * @param OrderPaymentInterface $payment
      * @param OrderInterface|null $order
      * @return bool
+     * @throws \Magento\Framework\Exception\AlreadyExistsException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function handlePaymentResponse($paymentsResponse, $payment, $order = null)
+    public function handlePaymentResponse($paymentResponseData, $payment, $order = null)
     {
-        // TODO: Make sure all payment responses use this handler!
-
-        if (empty($paymentsResponse)) {
+        // TODO: Make sure all payment response calls use this handler!
+        if (empty($paymentResponseData)) {
             $this->adyenLogger->error("Payment details call failed, paymentsResponse is empty");
             return false;
         }
 
-        if (!empty($paymentsResponse['resultCode']))
-        $payment->setAdditionalInformation('resultCode', $paymentsResponse['resultCode']);
+        // Unique identifier for each payment
+        $incrementId = $payment->getOrder()->getIncrementId();
+        $storeId = $payment->getOrder()->getStoreId();
 
-        if (!empty($paymentsResponse['action'])) {
-            $payment->setAdditionalInformation('action', $paymentsResponse['action']);
+        $paymentResponse = $this->findOrCreatePaymentResponseEntry($incrementId, $storeId);
+        $paymentResponse = $this->updateAdditionalInformation($paymentResponse, $paymentResponseData);
+
+        // Set payment id if available
+        if ($payment->getEntityId() !== null) {
+            $paymentResponse->setPaymentId($payment->getEntityId());
         }
 
-        if (!empty($paymentsResponse['additionalData'])) {
-            $payment->setAdditionalInformation('additionalData', $paymentsResponse['additionalData']);
+        $this->paymentResponseResourceModel->save($paymentResponse);
+
+
+        if (!empty($paymentResponseData['resultCode'])) {
+            $payment->setAdditionalInformation('resultCode', $paymentResponseData['resultCode']);
         }
 
-        if (!empty($paymentsResponse['pspReference'])) {
-            $payment->setAdditionalInformation('pspReference', $paymentsResponse['pspReference']);
+        if (!empty($paymentResponseData['action'])) {
+            $payment->setAdditionalInformation('action', $paymentResponseData['action']);
         }
 
-        if (!empty($paymentsResponse['paymentData'])) {
-            $payment->setAdditionalInformation('adyenPaymentData', $paymentsResponse['paymentData']);
+        if (!empty($paymentResponseData['additionalData'])) {
+            $payment->setAdditionalInformation('additionalData', $paymentResponseData['additionalData']);
+//            $paymentResponse->setAdditionalInformation($paymentResponse['additionalData']);
+//            $paymentResponse->setAdditionalInformation($paymentResponseData['additionalData']);
         }
 
-        if (!empty($paymentsResponse['details'])) {
-            $payment->setAdditionalInformation('details', $paymentsResponse['details']);
+        if (!empty($paymentResponseData['pspReference'])) {
+            $payment->setAdditionalInformation('pspReference', $paymentResponseData['pspReference']);
         }
 
-        switch ($paymentsResponse['resultCode']) {
+        if (!empty($paymentResponseData['paymentData'])) {
+            $payment->setAdditionalInformation('adyenPaymentData', $paymentResponseData['paymentData']);
+        }
+
+        if (!empty($paymentResponseData['details'])) {
+            $payment->setAdditionalInformation('details', $paymentResponseData['details']);
+        }
+
+        // Update response code?
+//        $this->paymentResponseResourceModel->save($paymentResponse);
+//
+//        if ($order === null) { return true; }
+
+        // TODO: Should this flow be entered on the first request? (Or is it already triggered somewhere else? -> Maybe only trigger if payment id is available)
+        switch ($paymentResponseData['resultCode']) {
             case self::PRESENT_TO_SHOPPER:
             case self::PENDING:
             case self::RECEIVED:
@@ -216,27 +276,27 @@ class PaymentResponseHandler
                 }
                 break;
             case self::AUTHORISED:
-                if (!empty($paymentsResponse['pspReference'])) {
+                if (!empty($paymentResponseData['pspReference'])) {
                     // set pspReference as transactionId
-                    $payment->setCcTransId($paymentsResponse['pspReference']);
-                    $payment->setLastTransId($paymentsResponse['pspReference']);
+                    $payment->setCcTransId($paymentResponseData['pspReference']);
+                    $payment->setLastTransId($paymentResponseData['pspReference']);
 
                     // set transaction
-                    $payment->setTransactionId($paymentsResponse['pspReference']);
+                    $payment->setTransactionId($paymentResponseData['pspReference']);
                 }
 
-                if (!empty($paymentsResponse['additionalData']['recurring.recurringDetailReference']) &&
+                if (!empty($paymentResponseData['additionalData']['recurring.recurringDetailReference']) &&
                     $payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE) {
                     if ($this->adyenHelper->isCreditCardVaultEnabled()) {
-                        $this->vaultHelper->saveRecurringDetails($payment, $paymentsResponse['additionalData']);
+                        $this->vaultHelper->saveRecurringDetails($payment, $paymentResponseData['additionalData']);
                     } else {
                         $order = $payment->getOrder();
-                        $this->adyenHelper->createAdyenBillingAgreement($order, $paymentsResponse['additionalData']);
+                        $this->adyenHelper->createAdyenBillingAgreement($order, $paymentResponseData['additionalData']);
                     }
                 }
 
-                if (!empty($paymentsResponse['donationToken'])) {
-                    $payment->setAdditionalInformation('donationToken', $paymentsResponse['donationToken']);
+                if (!empty($paymentResponseData['donationToken'])) {
+                    $payment->setAdditionalInformation('donationToken', $paymentResponseData['donationToken']);
                 }
 
                 $this->orderResourceModel->save($order);
@@ -263,8 +323,8 @@ class PaymentResponseHandler
             default:
                 $this->adyenLogger->error(
                     sprintf("Payment details call failed for action, resultCode is %s Raw API responds: %s",
-                            $paymentsResponse['resultCode'],
-                            json_encode($paymentsResponse)
+                        $paymentResponseData['resultCode'],
+                            json_encode($paymentResponseData)
                     ));
 
                 return false;

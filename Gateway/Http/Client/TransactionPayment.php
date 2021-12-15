@@ -90,16 +90,6 @@ class TransactionPayment implements ClientInterface
 
         try {
             $response = $service->payments($request, $requestOptions);
-
-            // Store the /payments response in the database in case it is needed in order to finish the payment
-            /** @var PaymentResponse $paymentResponse */
-            $paymentResponse = $this->paymentResponseFactory->create();
-            $paymentResponse->setResponse(json_encode($response));
-            $paymentResponse->setResultCode($response['resultCode']);
-            $paymentResponse->setMerchantReference($request["reference"]);
-            // TODO: Replace this with paymentResponseHandler!
-
-            $this->paymentResponseResourceModel->save($paymentResponse);
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
         }

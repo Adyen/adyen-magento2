@@ -23,6 +23,11 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Adyen\Payment\Helper\PaymentResponseHandler;
+use Adyen\Payment\Model\PaymentResponseFactory;
+use Adyen\Payment\Model\ResourceModel\PaymentResponse;
+use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class CheckoutPaymentsDetailsHandler implements HandlerInterface
@@ -31,11 +36,46 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
      * @var \Adyen\Payment\Helper\Data
      */
     protected $adyenHelper;
+    /**
+     * @var PaymentResponseHandler
+     */
+    private $paymentResponseHandler;
+
+    /**
+     * @var PaymentResponseFactory
+     */
+    private $paymentResponseFactory;
+
+    /**
+     * @var \Adyen\Payment\Model\ResourceModel\PaymentResponse
+     */
+    private $paymentResponseResourceModel;
+
+    /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+    /**
+     * @var Collection
+     */
+    private $paymentResponseCollection;
 
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        PaymentResponseHandler $paymentResponseHandler,
+
+        PaymentResponseFactory $paymentResponseFactory,
+        PaymentResponse $paymentResponseResourceModel,
+        Collection $paymentResponseCollection,
+        SerializerInterface $serializer
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->paymentResponseHandler = $paymentResponseHandler;
+
+        $this->paymentResponseFactory = $paymentResponseFactory;
+        $this->paymentResponseResourceModel = $paymentResponseResourceModel;
+        $this->paymentResponseCollection = $paymentResponseCollection;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -49,6 +89,25 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
         $payment = $paymentDataObject->getPayment();
+
+        // save payment response
+        //        $this->paymentResponseHandler->handlePaymentResponse($response, $payment);
+
+        $incrementId = $payment->getOrder()->getIncrementId();
+        $storeId = $payment->getOrder()->getStoreId();
+
+        // Store the /payments response in the database in case it is needed in order to finish the payment
+        $paymentResponse = $this->paymentResponseFactory->create();
+        $paymentResponse->setResponse(json_encode($response));
+        $paymentResponse->setResultCode($response['resultCode']);
+
+        $paymentResponse->setMerchantReference($incrementId);
+        $paymentResponse->setStoreId($storeId);
+        $paymentResponse->setAdditionalInformationByField('additionalData', $response['additionalData']);
+        // TODO: Replace this with paymentResponseHandler!
+
+        $this->paymentResponseResourceModel->save($paymentResponse);
+
 
         // set transaction not to processing by default wait for notification
         $payment->setIsTransactionPending(true);

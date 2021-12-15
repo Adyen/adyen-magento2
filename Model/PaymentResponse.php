@@ -27,16 +27,44 @@ namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\PaymentResponseInterface;
 use Magento\Framework\Model\AbstractModel;
+use Magento\Framework\Serialize\SerializerInterface;
+
 
 class PaymentResponse extends AbstractModel implements PaymentResponseInterface
 {
+    /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+
+    /**
+     * @param \Magento\Framework\Model\Context $context
+     * @param \Magento\Framework\Registry $registry
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
+     * @param array $data
+     */
+    public function __construct(
+        \Magento\Framework\Model\Context $context,
+        \Magento\Framework\Registry $registry,
+        SerializerInterface $serializer,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        array $data = []
+    ) {
+        parent::__construct($context, $registry, $resource, $resourceCollection, $data);
+        $this->_construct();
+        $this->serializer = $serializer;
+    }
 
     /**
      * Initialize resource model
      *
      * @return void
      */
-    protected function _construct()
+    public function _construct(
+    )
     {
         $this->_init(ResourceModel\PaymentResponse::class);
     }
@@ -51,11 +79,29 @@ class PaymentResponse extends AbstractModel implements PaymentResponseInterface
 
     /**
      * @param int $paymentId
-     * @return AdditionalInformation
+     * @return PaymentResponse
      */
     public function setPaymentId(int $paymentId)
     {
         return $this->setData(self::PAYMENT_ID, $paymentId);
+    }
+
+
+    /**
+     * @return array|mixed|null
+     */
+    public function getStoreId()
+    {
+        return $this->getData(self::STORE_ID);
+    }
+
+    /**
+     * @param int $storeId
+     * @return PaymentResponse|mixed
+     */
+    public function setStoreId(int $storeId)
+    {
+        return $this->setData(self::STORE_ID, $storeId);
     }
 
     /**
@@ -113,15 +159,37 @@ class PaymentResponse extends AbstractModel implements PaymentResponseInterface
      * @return array|mixed|string|null
      */
     public function getAdditionalInformation() {
-        return $this->getData(self::ADDITIONAL_INFORMATION);
+        return $this->serializer->unserialize($this->getData(self::ADDITIONAL_INFORMATION)); //TODO: Change to correct serializer
+    }
+
+    /**s
+     * @param string[] $additionalInformation
+     * @return PaymentResponse
+     */
+    public function setAdditionalInformation($additionalInformation)
+    {
+        return $this->setData(self::ADDITIONAL_INFORMATION, $this->serializer->serialize($additionalInformation)); //TODO: Change to correct serializer
     }
 
     /**
-     * @param string $additionalInformation
-     * @return AdditionalInformation
+     * @param string $field
+     * @param $additionalInformation
+     * @return array|mixed|string
      */
-    public function setAdditionalInformation(string $additionalInformation)
-    {
-        return $this->setData(self::ADDITIONAL_INFORMATION, $additionalInformation);
+    public function setAdditionalInformationByField(string $field, $additionalInformation) {
+        $data = $this->getAdditionalInformation();
+        if ($data !== null && array_key_exists($field, $data)) {
+            // Special case if additionalInfo is a new object (e.g. additionalData)
+            if(is_array($additionalInformation)) {
+                $data[$field] = array_merge((array) $data[$field], (array) $additionalInformation);
+            } else {
+                $data[$field] = $additionalInformation;
+            }
+        } else {
+            $data = (array)$data;
+            $data[$field] = $additionalInformation;
+        }
+
+        return $this->setData(self::ADDITIONAL_INFORMATION, json_encode($data));
     }
 }

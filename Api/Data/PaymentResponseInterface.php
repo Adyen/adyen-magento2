@@ -30,27 +30,32 @@ interface PaymentResponseInterface
      * Constants for keys of data array. Identical to the name of the getter in snake case.
      */
 
-    /*
+    /**
      * Entity ID.
      */
     const ENTITY_ID = 'entity_id';
 
     /**
-     * Payment ID (foreign key)
+     * Payment ID
      */
     const PAYMENT_ID = 'payment_id';
 
-    /*
+    /**
+     * Store ID
+     */
+    const STORE_ID = 'store_id';
+
+    /**
      * Merchant reference ID.
      */
     const MERCHANT_REFERENCE = 'merchant_reference';
 
-    /*
+    /**
      * Payment Response Result Code.
      */
     const RESULT_CODE = 'result_code';
 
-    /*
+    /**
      * Payment Response.
      */
     const RESPONSE = 'response';
@@ -89,6 +94,21 @@ interface PaymentResponseInterface
      * @return $this
      */
     public function setPaymentId(int $paymentId);
+
+    /**
+     * Get store ID
+     *
+     * @return mixed
+     */
+    public function getStoreId();
+
+    /**
+     * Set store ID
+     *
+     * @param int $storeId
+     * @return mixed
+     */
+    public function setStoreId(int $storeId);
 
     /**
      * Gets the merchant reference for the payment response
@@ -149,5 +169,14 @@ interface PaymentResponseInterface
      * @return $this
      */
     public function setAdditionalInformation(string $additionalInformation);
+
+    /**
+     * Sets payment additionalInformation on specific field.
+     *
+     * @param string $field
+     * @param string $additionalInformation
+     * @return $this
+     */
+    public function setAdditionalInformationByField(string $field, string $additionalInformation);
 
 }
