@@ -161,7 +161,7 @@ class PaymentResponseHandler
         $paymentResponse = $this->paymentResponseCollection->getPaymentResponseByIncrementAndStoreId($incrementId, $storeId);
         if(is_null($paymentResponse)) {
             $paymentResponse = $this->paymentResponseFactory->create();
-            $paymentResponse->setMerchantReference($incrementId); // TODO: Should this be directly enforced as foreign key?
+            $paymentResponse->setMerchantReference($incrementId);
             $paymentResponse->setStoreId($storeId);
         }
 
@@ -187,6 +187,35 @@ class PaymentResponseHandler
         return $paymentResponse;
     }
 
+
+    /**
+     * Persists the payment response in the sales_order_payment table
+     *
+     * @param $paymentResponseData
+     * @param $payment
+     * @return mixed
+     * @throws \Magento\Framework\Exception\AlreadyExistsException
+     */
+    public function saveAdyenResponseData($paymentResponseData, $payment) {
+        // Unique identifier for each payment
+        $incrementId = $payment->getOrder()->getIncrementId();
+        $storeId = $payment->getOrder()->getStoreId();
+
+        $adyenPaymentResponse = $this->findOrCreatePaymentResponseEntry($incrementId, $storeId);
+        $adyenPaymentResponse->setResponse(json_encode($paymentResponseData)); // TODO: What to do with this? These two are overwritten on paymentDetails call
+        $adyenPaymentResponse->setResultCode($paymentResponseData['resultCode']);
+        $adyenPaymentResponse = $this->updateAdditionalInformation($adyenPaymentResponse, $paymentResponseData);
+
+        // Set payment id if available
+        if ($payment->getEntityId() !== null) {
+            $adyenPaymentResponse->setPaymentId($payment->getEntityId());
+        }
+
+        $this->paymentResponseResourceModel->save($adyenPaymentResponse);
+
+        return $adyenPaymentResponse;
+    }
+
     /**
      * @param $paymentResponseData
      * @param OrderPaymentInterface $payment
@@ -203,20 +232,7 @@ class PaymentResponseHandler
             return false;
         }
 
-        // Unique identifier for each payment
-        $incrementId = $payment->getOrder()->getIncrementId();
-        $storeId = $payment->getOrder()->getStoreId();
-
-        $paymentResponse = $this->findOrCreatePaymentResponseEntry($incrementId, $storeId);
-        $paymentResponse = $this->updateAdditionalInformation($paymentResponse, $paymentResponseData);
-
-        // Set payment id if available
-        if ($payment->getEntityId() !== null) {
-            $paymentResponse->setPaymentId($payment->getEntityId());
-        }
-
-        $this->paymentResponseResourceModel->save($paymentResponse);
-
+        $this->saveAdyenResponseData($paymentResponseData, $payment);
 
         if (!empty($paymentResponseData['resultCode'])) {
             $payment->setAdditionalInformation('resultCode', $paymentResponseData['resultCode']);

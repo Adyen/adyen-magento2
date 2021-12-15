@@ -91,23 +91,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
         $payment = $paymentDataObject->getPayment();
 
         // save payment response
-        //        $this->paymentResponseHandler->handlePaymentResponse($response, $payment);
-
-        $incrementId = $payment->getOrder()->getIncrementId();
-        $storeId = $payment->getOrder()->getStoreId();
-
-        // Store the /payments response in the database in case it is needed in order to finish the payment
-        $paymentResponse = $this->paymentResponseFactory->create();
-        $paymentResponse->setResponse(json_encode($response));
-        $paymentResponse->setResultCode($response['resultCode']);
-
-        $paymentResponse->setMerchantReference($incrementId);
-        $paymentResponse->setStoreId($storeId);
-        $paymentResponse->setAdditionalInformationByField('additionalData', $response['additionalData']);
-        // TODO: Replace this with paymentResponseHandler!
-
-        $this->paymentResponseResourceModel->save($paymentResponse);
-
+        $this->paymentResponseHandler->saveAdyenResponseData($response, $payment);
 
         // set transaction not to processing by default wait for notification
         $payment->setIsTransactionPending(true);

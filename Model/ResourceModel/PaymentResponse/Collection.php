@@ -120,11 +120,9 @@ class Collection extends AbstractCollection
 
         if (count($this->getData()) > 0) {
             // Not possible to use getFirstItem directly on the selection because the collection is already loaded.
-            // Thus, first clone the collection, clear to unload, setPageSize(1) to not
-            // load full collection (but should be max count of 1 anyway), now do getFirstItem
-            // TODO: Try just doing clear on the current collection
-            $collectionClone = clone $this;
-            return $collectionClone->clear()->setPageSize(1)->getFirstItem();
+            // Clear to unload, setPageSize(1) to not load full
+            // collection (but should be max count of 1 anyway), now do getFirstItem
+            return $this->clear()->setPageSize(1)->getFirstItem();
         } else {
             return null;
         }
