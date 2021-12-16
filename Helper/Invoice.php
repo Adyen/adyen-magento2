@@ -244,14 +244,16 @@ class Invoice extends AbstractHelper
         $capturedAmount = 0;
 
         $adyenInvoices = $this->adyenInvoiceResourceModel->getAdyenInvoicesByAdyenPaymentId($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]);
-        foreach ($adyenInvoices as $adyenInvoice) {
-            if (is_null($adyenInvoice[AdyenInvoice::INVOICE_ID])) {
-                /** @var AdyenInvoice $adyenInvoiceObject */
-                $adyenInvoiceObject = $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
-                $adyenInvoiceObject->setInvoiceId($invoice->getEntityId());
-                $this->adyenInvoiceResourceModel->save($adyenInvoiceObject);
-                $updatedAdyenInvoices[] = $adyenInvoiceObject;
-                $capturedAmount += $adyenInvoiceObject->getAmount();
+        if (!is_null($adyenInvoices)) {
+            foreach ($adyenInvoices as $adyenInvoice) {
+                if (is_null($adyenInvoice[AdyenInvoice::INVOICE_ID])) {
+                    /** @var AdyenInvoice $adyenInvoiceObject */
+                    $adyenInvoiceObject = $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
+                    $adyenInvoiceObject->setInvoiceId($invoice->getEntityId());
+                    $this->adyenInvoiceResourceModel->save($adyenInvoiceObject);
+                    $updatedAdyenInvoices[] = $adyenInvoiceObject;
+                    $capturedAmount += $adyenInvoiceObject->getAmount();
+                }
             }
         }
 
