@@ -1169,7 +1169,7 @@ class Cron
                     $capturedAmount = $this->adyenOrderPaymentHelper->getCapturedAmount($this->_order);
                     $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
                     // TODO: Handle Exception handling
-                    $this->invoiceHelper->handleCaptureWebhook($this->_order, $this->notification,);
+                    $this->invoiceHelper->handleCaptureWebhook($this->_order, $this->notification);
 
                     $fullAmountCaptured = $capturedAmount === $formattedOrderAmount;
                     $this->invoiceHelper->finalizeInvoices($this->_order, $this->notification, $fullAmountCaptured);
