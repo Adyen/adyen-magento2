@@ -55,7 +55,7 @@ class Payment extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     }
 
     /**
-     * Get all the adyen_order_payment entries linked to the paymentId
+     * Get all the adyen_order_payment entries linked to the paymentId. Optionally filter by status
      *
      * @param $paymentId
      * @param array $statuses

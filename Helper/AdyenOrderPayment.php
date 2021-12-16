@@ -204,6 +204,31 @@ class AdyenOrderPayment extends AbstractHelper
     }
 
     /**
+     * Check if the full amount of the order has been finalized (either Manually or Automatically)
+     *
+     * @param Order $order
+     * @return bool
+     */
+    public function isFullAmountFinalized(Order $order): bool
+    {
+        $finalizedAmount = 0;
+        $payment = $order->getPayment();
+        $finalizedAdyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments(
+            $payment->getEntityId(),
+            [OrderPaymentInterface::CAPTURE_STATUS_MANUAL_CAPTURE, OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE]
+        );
+
+        foreach ($finalizedAdyenOrderPayments as $adyenOrderPayment) {
+            $finalizedAmount += $adyenOrderPayment[OrderPaymentInterface::AMOUNT];
+        }
+
+        $finalizedAmountCents = $this->adyenDataHelper->formatAmount($finalizedAmount, $order->getOrderCurrencyCode());
+        $orderAmountCents = $this->adyenDataHelper->formatAmount($order->getGrandTotal(), $order->getOrderCurrencyCode());
+
+        return $finalizedAmountCents === $orderAmountCents;
+    }
+
+    /**
      * Create an entry in the adyen_order_payment table based on the passed notification
      *
      * @param Order $order
@@ -246,42 +271,5 @@ class AdyenOrderPayment extends AbstractHelper
         }
 
         return $adyenOrderPayment;
-    }
-
-    /**
-     * Set the capture_status of an adyen order payment to manually captured
-     *
-     * @param Order $order
-     * @param Notification $notification
-     * @return Payment|null
-     *
-     * @throws AlreadyExistsException
-     */
-    public function setCapturedAdyenOrderPayment(Order $order, Notification $notification)
-    {
-        $orderPayment = null;
-        $originalReference = $notification->getOriginalReference();
-        $paymentId = $order->getPayment()->getId();
-        $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
-            'Setting capture_status of adyen_order_payment with pspReference %s to Manual Capture',
-            $originalReference
-        ));
-
-        $orderPaymentDetails = $this->orderPaymentResourceModel->getOrderPaymentDetails($originalReference, $paymentId);
-
-        if (is_null($orderPaymentDetails) || !array_key_exists(OrderPaymentInterface::ENTITY_ID, $orderPaymentDetails)) {
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
-                'Unable to identify original auth with pspReference %s using capture with pspReference %s',
-                $originalReference,
-                $notification->getPspreference()
-            ));
-        } else {
-            $orderPaymentFactory = $this->adyenOrderPaymentFactory->create();
-            $orderPayment = $orderPaymentFactory->load($orderPaymentDetails['entity_id'], 'entity_id');
-            $orderPayment->setCaptureStatus(Payment::CAPTURE_STATUS_MANUAL_CAPTURE);
-            $this->orderPaymentResourceModel->save($orderPayment);
-        }
-
-        return $orderPayment;
     }
 }
