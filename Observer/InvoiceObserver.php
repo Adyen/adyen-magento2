@@ -32,7 +32,9 @@ use Adyen\Payment\Model\ResourceModel\Order\Payment;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Model\Order\StatusResolver;
 
 class InvoiceObserver implements ObserverInterface
 {
@@ -45,30 +47,31 @@ class InvoiceObserver implements ObserverInterface
     /** @var InvoiceHelper $invoiceHelper*/
     private $invoiceHelper;
 
+    /** @var StatusResolver $statusResolver */
+    private $statusResolver;
+
     /**
      * InvoiceObserver constructor.
      * @param Payment $adyenPaymentResourceModel
      * @param PaymentFactory $adyenOrderPaymentFactory
      * @param InvoiceHelper $invoiceHelper
-     * @param AdyenOrderPayment $adyenOrderPaymentHelper
+     * @param StatusResolver $statusResolver
      */
     public function __construct(
         Payment $adyenPaymentResourceModel,
         PaymentFactory $adyenOrderPaymentFactory,
         InvoiceHelper $invoiceHelper,
-        AdyenOrderPayment $adyenOrderPaymentHelper
+        StatusResolver $statusResolver
     ) {
         $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->invoiceHelper = $invoiceHelper;
-        $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
+        $this->statusResolver = $statusResolver;
     }
 
     /**
-     * Link all adyen_invoices to the appropriate magento invoice and update the total_captured of all the adyen_order_payment
-     * entries linked to the payment
-     *
-     * TODO: This will be executed on EVERY INVOICE SAVED
+     * Link all adyen_invoices to the appropriate magento invoice and set the order to PROCESSING to allow
+     * further invoices to be generated
      *
      * @param Observer $observer
      * @throws AlreadyExistsException
@@ -82,6 +85,11 @@ class InvoiceObserver implements ObserverInterface
         $order = $invoice->getOrder();
         $payment = $order->getPayment();
 
+        // If invoice has already been paid, exit observer
+        if ($invoice->wasPayCalled()) {
+            return;
+        }
+
         $adyenOrderPayments = $this->adyenPaymentResourceModel->getLinkedAdyenOrderPayments(
             $payment->getEntityId(),
             [OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE, OrderPaymentInterface::CAPTURE_STATUS_PARTIAL_CAPTURE]
@@ -93,6 +101,10 @@ class InvoiceObserver implements ObserverInterface
                 $adyenOrderPaymentObject = $adyenOrderPaymentFactory->load($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID], OrderPaymentInterface::ENTITY_ID);
                 $this->invoiceHelper->linkAndUpdateAdyenInvoices($adyenOrderPaymentObject, $invoice);
             }
+
+            // Set order to PROCESSING to allow further invoices to be generated
+            $order->setState(Order::STATE_PROCESSING);
+            $order->setStatus($this->statusResolver->getOrderStatusByState($order, Order::STATE_PROCESSING));
         }
     }
 }
