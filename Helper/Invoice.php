@@ -220,10 +220,6 @@ class Invoice extends AbstractHelper
         /** @var AdyenInvoice $adyenInvoiceObject */
         $adyenInvoiceObject = $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
 
-        if (!$notification->isSuccessful()) {
-            return $this->handleFailedCaptureWebhook($adyenInvoiceObject, $notification);
-        }
-
         $additionalData = $notification->getAdditionalData();
         $acquirerReference = $additionalData[Notification::ADDITIONAL_DATA] ?? null;
         $adyenInvoiceObject->setAcquirerReference($acquirerReference);
@@ -231,35 +227,6 @@ class Invoice extends AbstractHelper
         $this->adyenInvoiceResourceModel->save($adyenInvoiceObject);
 
         return $adyenInvoiceObject;
-    }
-
-    /**
-     * @param AdyenInvoice $adyenInvoice
-     * @param Notification $notification
-     * @return AdyenInvoice
-     * @throws AlreadyExistsException
-     */
-    private function handleFailedCaptureWebhook(AdyenInvoice $adyenInvoice, Notification $notification): AdyenInvoice
-    {
-        $notificationAmount = $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
-        $orderPaymentFactory = $this->adyenOrderPaymentFactory->create();
-        /** @var Payment $orderPayment */
-        $orderPayment = $orderPaymentFactory->load($adyenInvoice->getAdyenPaymentOrderId(), OrderPaymentInterface::ENTITY_ID);
-        $newCapturedAmount = $orderPayment->getTotalCaptured() - $notificationAmount;
-
-        $orderPayment->setTotalCaptured($newCapturedAmount);
-        if ($newCapturedAmount > 0) {
-            $orderPayment->setCaptureStatus(OrderPaymentInterface::CAPTURE_STATUS_PARTIAL_CAPTURE);
-        } else {
-            $orderPayment->setCaptureStatus(OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE);
-        }
-
-        $this->orderPaymentResourceModel->save($orderPayment);
-
-        $adyenInvoice->setStatus(InvoiceInterface::STATUS_FAILED);
-        $this->adyenInvoiceResourceModel->save($adyenInvoice);
-
-        return $adyenInvoice;
     }
 
     /**
