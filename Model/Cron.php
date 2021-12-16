@@ -2085,7 +2085,6 @@ class Cron
             $comment = "Adyen Payment Successfully completed";
             // If a status is set, add comment, set status and update the state based on the status
             // Else add comment and if on auto capture, set state to payment review (replicate previous functionality)
-            // TODO: Check if state should be set to PAYMENT_REVIEW
             if (!empty($status)) {
                 $this->_order->addStatusHistoryComment(__($comment), $status);
                 $this->_setState($status);
