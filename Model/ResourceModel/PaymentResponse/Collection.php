@@ -44,41 +44,6 @@ class Collection extends AbstractCollection
      */
     protected $serializer;
 
-//    /**
-//     * @param EntityFactoryInterface $entityFactory
-//     * @param Logger $logger
-//     * @param FetchStrategyInterface $fetchStrategy
-//     * @param ManagerInterface $eventManager
-//     * @param AdapterInterface|null $connection
-//     * @param AbstractDb|null $resource
-//     * @param SerializerInterface $serializer
-//     */
-//    public function __construct(
-//        EntityFactoryInterface $entityFactory,
-//        Logger $logger,
-//        FetchStrategyInterface $fetchStrategy,
-//        ManagerInterface $eventManager,
-//        SerializerInterface $serializer,
-//        AdapterInterface $connection = null,
-//        AbstractDb $resource = null
-//    ) {
-//        parent::__construct($entityFactory, $logger, $fetchStrategy, $eventManager, $connection, $resource);
-//        $this->serializer = $serializer;
-//        $this->_init(
-//            PaymentResponse::class,
-//            ResourceModel::class
-//        );
-//    }
-
-//    protected function _construct()
-//    {
-////        parent::_construct();
-//        $this->_init(
-//            PaymentResponse::class,
-//            ResourceModel::class
-//        );
-//    }
-
     public function _construct()
     {
         $this->_init(
