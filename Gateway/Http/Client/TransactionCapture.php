@@ -85,6 +85,7 @@ class TransactionCapture implements ClientInterface
 
         try {
             $response = $service->capture($request);
+            $response = $this->copyParamsToResponse($response, $request);
         } catch (AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
@@ -110,8 +111,7 @@ class TransactionCapture implements ClientInterface
                     $request['modificationAmount']['value'],
                     $request['modificationAmount']['currency']
                 );
-                $singleResponse[self::CAPTURE_AMOUNT] = $request['modificationAmount']['value'];
-                $singleResponse[self::ORIGINAL_REFERENCE] = $request['originalReference'];
+                $singleResponse = $this->copyParamsToResponse($singleResponse, $request);
                 $response[self::MULTIPLE_AUTHORIZATIONS][] = $singleResponse;
             } catch (AdyenException $e) {
                 $message = sprintf(
@@ -125,6 +125,21 @@ class TransactionCapture implements ClientInterface
                 $response[self::MULTIPLE_AUTHORIZATIONS]['error'] = $message;
             }
         }
+
+        return $response;
+    }
+
+    /**
+     * Copy data from the request to the response. This data will be used later when handling the response
+     *
+     * @param array $response
+     * @param array $request
+     * @return array
+     */
+    private function copyParamsToResponse(array $response, array $request): array
+    {
+        $response[self::CAPTURE_AMOUNT] = $request['modificationAmount']['value'];
+        $response[self::ORIGINAL_REFERENCE] = $request['originalReference'];
 
         return $response;
     }

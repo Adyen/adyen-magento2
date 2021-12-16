@@ -2048,23 +2048,13 @@ class Cron
         $this->_adyenLogger->addAdyenNotificationCronjob('Set order to authorised');
         $amount = $this->_value;
         $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
-
-        // If order was not set to automatically get captured, update the status of the adyen_order_payment
-        if (!$this->_isAutoCapture()) {
-            $this->adyenOrderPaymentHelper->setCapturedAdyenOrderPayment($this->_order, $this->notification);
-        }
-
-        // If the full amount is finalized by this singular notification OR the full amount has been finalized by
-        // multiple notifications
-        $fullAmountFinalized = $amount == $formattedOrderAmount ||
-            $this->adyenOrderPaymentHelper->getCapturedAmount($this->_order) === $formattedOrderAmount;
-
+        $fullAmountFinalized = $this->adyenOrderPaymentHelper->isFullAmountFinalized($this->_order);
         // If you are on manual capture AND full amount has been finalized, create invoice
         if ($createInvoice && $fullAmountFinalized) {
             $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
                 'Notification w/amount %s has completed the capturing of order %s w/amount %s',
                 $amount,
-                $this->_order->getId(),
+                $this->_order->getIncrementId(),
                 $formattedOrderAmount
             ));
             $this->_createInvoice();
