@@ -59,9 +59,9 @@ class Payment extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      *
      * @param $paymentId
      * @param array $statuses
-     * @return array|null
+     * @return array
      */
-    public function getLinkedAdyenOrderPayments($paymentId, array $statuses = [])
+    public function getLinkedAdyenOrderPayments($paymentId, array $statuses = []): array
     {
         $select = $this->getConnection()->select()
             ->from(['order_payment' => $this->getTable('adyen_order_payment')])
@@ -73,8 +73,6 @@ class Payment extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 
         $select->order(['order_payment.created_at ASC']);
 
-        $result = $this->getConnection()->fetchAll($select);
-
-        return empty($result) ? null : $result;
+        return $this->getConnection()->fetchAll($select);
     }
 }

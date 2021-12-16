@@ -94,17 +94,14 @@ class InvoiceObserver implements ObserverInterface
             $payment->getEntityId(),
             [OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE, OrderPaymentInterface::CAPTURE_STATUS_PARTIAL_CAPTURE]
         );
-
-        if (!is_null($adyenOrderPayments)) {
-            foreach ($adyenOrderPayments as $adyenOrderPayment) {
-                /** @var \Adyen\Payment\Model\Order\Payment $adyenOrderPaymentObject */
-                $adyenOrderPaymentObject = $adyenOrderPaymentFactory->load($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID], OrderPaymentInterface::ENTITY_ID);
-                $this->invoiceHelper->linkAndUpdateAdyenInvoices($adyenOrderPaymentObject, $invoice);
-            }
-
-            // Set order to PROCESSING to allow further invoices to be generated
-            $order->setState(Order::STATE_PROCESSING);
-            $order->setStatus($this->statusResolver->getOrderStatusByState($order, Order::STATE_PROCESSING));
+        foreach ($adyenOrderPayments as $adyenOrderPayment) {
+            /** @var \Adyen\Payment\Model\Order\Payment $adyenOrderPaymentObject */
+            $adyenOrderPaymentObject = $adyenOrderPaymentFactory->load($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID], OrderPaymentInterface::ENTITY_ID);
+            $this->invoiceHelper->linkAndUpdateAdyenInvoices($adyenOrderPaymentObject, $invoice);
         }
+
+        // Set order to PROCESSING to allow further invoices to be generated
+        $order->setState(Order::STATE_PROCESSING);
+        $order->setStatus($this->statusResolver->getOrderStatusByState($order, Order::STATE_PROCESSING));
     }
 }
