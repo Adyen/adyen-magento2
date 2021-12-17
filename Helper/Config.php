@@ -46,6 +46,8 @@ class Config
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
     const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
     const XML_PAYMENT_RETURN_URL = 'payment_return_url';
+    const XML_STATUS_FRAUD_MANUAL_REVIEW = 'fraud_manual_review_status';
+    const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
 
     /**
      * @var ScopeConfigInterface
@@ -317,6 +319,21 @@ class Config
     public function getPWAReturnUrl($storeId)
     {
         return $this->getConfigData(self::XML_PAYMENT_RETURN_URL, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    /**
+     * Retrieve the passed fraud status config
+     *
+     * @param int|string $storeId
+     * @return mixed
+     */
+    public function getFraudStatus($fraudStatus, $storeId)
+    {
+        return $this->getConfigData(
+            $fraudStatus,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
     }
 
     /**
