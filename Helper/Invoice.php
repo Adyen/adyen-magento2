@@ -90,11 +90,6 @@ class Invoice extends AbstractHelper
     protected $adyenOrderPaymentFactory;
 
     /**
-     * @var AdyenOrderPayment
-     */
-    protected $adyenOrderPaymentHelper;
-
-    /**
      * @var MagentoInvoiceFactory
      */
     protected $magentoInvoiceFactory;
@@ -110,7 +105,6 @@ class Invoice extends AbstractHelper
      * @param AdyenInvoiceResourceModel $adyenInvoiceResourceModel
      * @param OrderPaymentResourceModel $orderPaymentResourceModel
      * @param PaymentFactory $paymentFactory
-     * @param AdyenOrderPayment $adyenOrderPaymentHelper
      */
     public function __construct(
         Context $context,
@@ -121,7 +115,6 @@ class Invoice extends AbstractHelper
         AdyenInvoiceResourceModel $adyenInvoiceResourceModel,
         OrderPaymentResourceModel $orderPaymentResourceModel,
         PaymentFactory $paymentFactory,
-        AdyenOrderPayment $adyenOrderPaymentHelper,
         Collection $adyenInvoiceCollection,
         MagentoInvoiceFactory $magentoInvoiceFactory
     ) {
@@ -133,7 +126,6 @@ class Invoice extends AbstractHelper
         $this->adyenInvoiceResourceModel = $adyenInvoiceResourceModel;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
         $this->adyenOrderPaymentFactory = $paymentFactory;
-        $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->adyenInvoiceCollection = $adyenInvoiceCollection;
         $this->magentoInvoiceFactory = $magentoInvoiceFactory;
     }
@@ -244,14 +236,13 @@ class Invoice extends AbstractHelper
      *
      * @param Payment $adyenOrderPayment
      * @param InvoiceModel $invoice
-     * @return array
+     * @return float
      * @throws AlreadyExistsException
      */
-    public function linkAndUpdateAdyenInvoices(Payment $adyenOrderPayment, InvoiceModel $invoice): array
+    public function linkAndUpdateAdyenInvoices(Payment $adyenOrderPayment, InvoiceModel $invoice): float
     {
         $invoiceFactory = $this->adyenInvoiceFactory->create();
-        $updatedAdyenInvoices = [];
-        $capturedAmount = 0;
+        $linkedAmount = 0;
 
         $adyenInvoices = $this->adyenInvoiceResourceModel->getAdyenInvoicesByAdyenPaymentId($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID]);
         if (!is_null($adyenInvoices)) {
@@ -261,15 +252,12 @@ class Invoice extends AbstractHelper
                     $adyenInvoiceObject = $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
                     $adyenInvoiceObject->setInvoiceId($invoice->getEntityId());
                     $this->adyenInvoiceResourceModel->save($adyenInvoiceObject);
-                    $updatedAdyenInvoices[] = $adyenInvoiceObject;
-                    $capturedAmount += $adyenInvoiceObject->getAmount();
+                    $linkedAmount += $adyenInvoiceObject->getAmount();
                 }
             }
         }
 
-        $this->adyenOrderPaymentHelper->updatePaymentTotalCaptured($adyenOrderPayment, $capturedAmount);
-
-        return $updatedAdyenInvoices;
+        return $linkedAmount;
     }
 
     /**
