@@ -31,6 +31,7 @@ use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Webapi\Exception;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
@@ -1028,7 +1029,7 @@ class Cron
 
     /**
      * @param $ignoreHasInvoice
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     protected function _holdCancelOrder($ignoreHasInvoice)
     {
@@ -1150,21 +1151,7 @@ class Cron
                  * this could be called if manual review is enabled and you have a capture delay
                  */
                 if (!$this->isAutoCapture) {
-                    try {
-                        $adyenInvoice = $this->invoiceHelper->handleCaptureWebhook($this->_order, $this->notification);
-                        $adyenOrderPayment = $this->adyenOrderPaymentFactory->create()->load($adyenInvoice->getAdyenPaymentOrderId(), OrderPaymentInterface::ENTITY_ID);
-                        $this->adyenOrderPaymentHelper->refreshPaymentCaptureStatus($adyenOrderPayment, $this->notification->getAmountCurrency());
-                        $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
-                            'adyen_invoice %s linked to invoice %s and adyen_order_payment %s was created',
-                            $adyenInvoice->getEntityId(),
-                            $adyenInvoice->getInvoiceId(),
-                            $adyenInvoice->getAdyenPaymentOrderId()
-                        ));
-                    } catch (\Exception $e) {
-                        $this->_adyenLogger->addAdyenNotificationCronjob($e->getMessage());
-                    }
-
-                    $this->finalizeOrder();
+                    $this->handleManualCapture();
                 }
                 break;
             case Notification::OFFER_CLOSED:
@@ -1859,64 +1846,8 @@ class Cron
     }
 
     /**
-     * Get all the entries in the adyen_order_payment and compare their total to the order grand total
-     *
-     * @param int $paymentId
-     * @param string $orderCurrencyCode
-     * @return bool
-     */
-    protected function _isTotalAmount($paymentId, $orderCurrencyCode)
-    {
-        $this->_adyenLogger->addAdyenNotificationCronjob(
-            'Validate if after processing current AUTHORISATION notification, the full amount has been authorised'
-        );
-
-        // Get total amount of the order
-        $grandTotal = $this->_adyenHelper->formatAmount(
-            $this->_order->getGrandTotal(),
-            $this->_order->getOrderCurrencyCode()
-        );
-
-        // Get total amount currently authorised
-        $res = $this->_adyenOrderPaymentCollectionFactory
-            ->create()
-            ->getTotalAmount($paymentId);
-
-        if ($res && isset($res[0]) && is_array($res[0])) {
-            $amount = $res[0]['total_amount'];
-            $formattedOrderAmount = $this->_adyenHelper->formatAmount($amount, $orderCurrencyCode);
-            $this->_adyenLogger->addAdyenNotificationCronjob(
-                sprintf(
-                    'The grand total amount for order %s is %s and the currently authorised order amount is: %s',
-                    $this->_merchantReference,
-                    $grandTotal,
-                    $formattedOrderAmount
-                )
-            );
-
-            if ($grandTotal == $formattedOrderAmount) {
-                $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
-                    'Order %s has been fully authorized',
-                    $this->_merchantReference
-                ));
-
-                return true;
-            } else {
-                $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
-                    'This is a partial AUTHORISATION w/amount: %s. Full order amount: %s. Remaining amount: %s',
-                    $this->_value, $grandTotal, $this->_order->getGrandTotal() - $amount
-                ));
-
-                return false;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * @return void
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      * @throws Exception
      */
     protected function _createInvoice()
@@ -1992,7 +1923,7 @@ class Cron
      * Full order will only NOT be finalized if the full amount has not been captured/authorized.
      *
      * @param bool $createInvoice
-     * @throws Exception|\Magento\Framework\Exception\LocalizedException
+     * @throws Exception|LocalizedException
      */
     protected function finalizeOrder()
     {
@@ -2251,5 +2182,31 @@ class Cron
             $this->_currency,
             $this->_adyenHelper->originalAmount($this->_value, $this->_currency)
         )), false);
+    }
+
+    /**
+     * Handle the webhook by updating invoice related entities, update capture status of adyen_order_payment and
+     * finalize order
+     *
+     * @throws Exception
+     * @throws LocalizedException
+     */
+    private function handleManualCapture()
+    {
+        try {
+            $adyenInvoice = $this->invoiceHelper->handleCaptureWebhook($this->_order, $this->notification);
+            $adyenOrderPayment = $this->adyenOrderPaymentFactory->create()->load($adyenInvoice->getAdyenPaymentOrderId(), OrderPaymentInterface::ENTITY_ID);
+            $this->adyenOrderPaymentHelper->refreshPaymentCaptureStatus($adyenOrderPayment, $this->notification->getAmountCurrency());
+            $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
+                'adyen_invoice %s linked to invoice %s and adyen_order_payment %s was updated',
+                $adyenInvoice->getEntityId(),
+                $adyenInvoice->getInvoiceId(),
+                $adyenInvoice->getAdyenPaymentOrderId()
+            ));
+        } catch (\Exception $e) {
+            $this->_adyenLogger->addAdyenNotificationCronjob($e->getMessage());
+        }
+
+        $this->finalizeOrder();
     }
 }

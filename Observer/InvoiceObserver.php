@@ -101,7 +101,8 @@ class InvoiceObserver implements ObserverInterface
         foreach ($adyenOrderPayments as $adyenOrderPayment) {
             /** @var \Adyen\Payment\Model\Order\Payment $adyenOrderPaymentObject */
             $adyenOrderPaymentObject = $adyenOrderPaymentFactory->load($adyenOrderPayment[OrderPaymentInterface::ENTITY_ID], OrderPaymentInterface::ENTITY_ID);
-            $this->invoiceHelper->linkAndUpdateAdyenInvoices($adyenOrderPaymentObject, $invoice);
+            $linkedAmount = $this->invoiceHelper->linkAndUpdateAdyenInvoices($adyenOrderPaymentObject, $invoice);
+            $this->adyenOrderPaymentHelper->updatePaymentTotalCaptured($adyenOrderPaymentObject, $linkedAmount);
         }
 
         // Set order to PROCESSING to allow further invoices to be generated
