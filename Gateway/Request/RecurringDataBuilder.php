@@ -62,11 +62,13 @@ class RecurringDataBuilder implements BuilderInterface
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         $storeId = $payment->getOrder()->getStoreId();
-        $request['body'] = $this->adyenRequestsHelper->buildRecurringData(
-            $storeId,
-            $payment,
-            []
-        );
+        $request = [
+            'body' => $this->adyenRequestsHelper->buildRecurringData(
+                $storeId,
+                $payment,
+                []
+            )
+        ];
         return $request;
     }
 }
