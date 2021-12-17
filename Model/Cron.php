@@ -1155,7 +1155,7 @@ class Cron
 
                 // Finalize order only in case of auto capture. For manual capture the capture notification will initiate this call
                 if ($this->isAutoCapture) {
-                    $this->finalizeOrder(false);
+                    $this->finalizeOrder();
                 }
                 break;
             case Notification::CAPTURE:
@@ -1165,14 +1165,19 @@ class Cron
                  * this could be called if manual review is enabled and you have a capture delay
                  */
                 if (!$this->isAutoCapture) {
-                    $this->finalizeOrder(true);
-                    $capturedAmount = $this->adyenOrderPaymentHelper->getCapturedAmount($this->_order);
-                    $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
-                    // TODO: Handle Exception handling
-                    $this->invoiceHelper->handleCaptureWebhook($this->_order, $this->notification);
+                    try {
+                        $adyenInvoice = $this->invoiceHelper->handleCaptureWebhook($this->_order, $this->notification);
+                        $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
+                            'adyen_invoice %s linked to invoice %s and adyen_order_payment %s was created',
+                            $adyenInvoice->getEntityId(),
+                            $adyenInvoice->getInvoiceId(),
+                            $adyenInvoice->getAdyenPaymentOrderId()
+                        ));
+                    } catch (\Exception $e) {
+                        $this->_adyenLogger->addAdyenNotificationCronjob($e->getMessage());
+                    }
 
-                    $fullAmountCaptured = $capturedAmount === $formattedOrderAmount;
-                    $this->invoiceHelper->finalizeInvoices($this->_order, $this->notification, $fullAmountCaptured);
+                    $this->finalizeOrder();
                 }
                 break;
             case Notification::OFFER_CLOSED:
@@ -1671,7 +1676,7 @@ class Cron
                     $this->_order->getIncrementId()
                 );
             } else {
-                $this->finalizeOrder(false);
+                $this->finalizeOrder();
             }
         } else {
             $this->_adyenLogger->addAdyenNotificationCronjob(
@@ -2013,22 +2018,12 @@ class Cron
      * @param bool $createInvoice
      * @throws Exception|\Magento\Framework\Exception\LocalizedException
      */
-    protected function finalizeOrder(bool $createInvoice)
+    protected function finalizeOrder()
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Set order to authorised');
         $amount = $this->_value;
         $formattedOrderAmount = (int)$this->_adyenHelper->formatAmount($this->orderAmount, $this->orderCurrency);
         $fullAmountFinalized = $this->adyenOrderPaymentHelper->isFullAmountFinalized($this->_order);
-        // If you are on manual capture AND full amount has been finalized, create invoice
-        if ($createInvoice && $fullAmountFinalized) {
-            $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
-                'Notification w/amount %s has completed the capturing of order %s w/amount %s',
-                $amount,
-                $this->_order->getIncrementId(),
-                $formattedOrderAmount
-            ));
-            $this->_createInvoice();
-        }
 
         $status = $this->_getConfigData(
             'payment_authorized',
@@ -2077,6 +2072,12 @@ class Cron
         }
 
         if ($fullAmountFinalized) {
+            $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
+                'Notification w/amount %s has completed the capturing of order %s w/amount %s',
+                $amount,
+                $this->_order->getIncrementId(),
+                $formattedOrderAmount
+            ));
             $comment = "Adyen Payment Successfully completed";
             // If a status is set, add comment, set status and update the state based on the status
             // Else add comment and if on auto capture, set state to payment review (replicate previous functionality)

@@ -31,6 +31,7 @@ use Adyen\Payment\Model\InvoiceFactory;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Model\Order\PaymentFactory;
+use Adyen\Payment\Model\ResourceModel\Invoice\Collection;
 use Adyen\Payment\Model\ResourceModel\Invoice\Invoice as AdyenInvoiceResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as AdyenOrderPaymentCollection;
@@ -39,6 +40,8 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice as InvoiceModel;
+use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
+use Magento\Sales\Model\ResourceModel\Order\Invoice as InvoiceResourceModel;
 
 /**
  * Helper class for anything related to the invoice entity
@@ -73,6 +76,11 @@ class Invoice extends AbstractHelper
     protected $adyenInvoiceResourceModel;
 
     /**
+     * @var Collection
+     */
+    protected $adyenInvoiceCollection;
+
+    /**
      * @var OrderPaymentResourceModel
      */
     protected $orderPaymentResourceModel;
@@ -82,8 +90,15 @@ class Invoice extends AbstractHelper
      */
     protected $adyenOrderPaymentFactory;
 
-    /** @var AdyenOrderPayment $adyenOrderPaymentHelper */
+    /**
+     * @var AdyenOrderPayment
+     */
     protected $adyenOrderPaymentHelper;
+
+    /**
+     * @var MagentoInvoiceFactory
+     */
+    protected $magentoInvoiceFactory;
 
     /**
      * Invoice constructor.
@@ -107,7 +122,9 @@ class Invoice extends AbstractHelper
         AdyenInvoiceResourceModel $adyenInvoiceResourceModel,
         OrderPaymentResourceModel $orderPaymentResourceModel,
         PaymentFactory $paymentFactory,
-        AdyenOrderPayment $adyenOrderPaymentHelper
+        AdyenOrderPayment $adyenOrderPaymentHelper,
+        Collection $adyenInvoiceCollection,
+        MagentoInvoiceFactory $magentoInvoiceFactory
     ) {
         parent::__construct($context);
         $this->adyenLogger = $adyenLogger;
@@ -118,6 +135,8 @@ class Invoice extends AbstractHelper
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
         $this->adyenOrderPaymentFactory = $paymentFactory;
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
+        $this->adyenInvoiceCollection = $adyenInvoiceCollection;
+        $this->magentoInvoiceFactory = $magentoInvoiceFactory;
     }
 
     /**
@@ -125,45 +144,29 @@ class Invoice extends AbstractHelper
      * this captureNotification. If no invoice linked to this notification is found, log message.
      *
      * @param Order $order
-     * @param Notification $captureNotification
-     * @param bool $fullAmountCaptured
-     * @return array
-     * @throws AlreadyExistsException
+     * @return Order
+     * @throws \Exception
      */
-    public function finalizeInvoices(Order $order, Notification $captureNotification, bool $fullAmountCaptured = false): array
+    public function finalizeOrderInvoices(Order $order): Order
     {
-        $finalizedInvoices = [];
         $invoiceCollection = $order->getInvoiceCollection();
-        $pspReference = $captureNotification->getPspreference();
-        $originalReference = $captureNotification->getOriginalReference();
 
+        $this->adyenLogger->addAdyenNotificationCronjob('Invoices: ' . count($invoiceCollection));
+
+        /** @var InvoiceModel $invoice */
         foreach ($invoiceCollection as $invoice) {
-            $parsedTransId = $this->adyenDataHelper->parseTransactionId($invoice->getTransactionId());
-            // Loose comparison based on how Magento does the comparison in entity
-            if ($invoice->getState() == InvoiceModel::STATE_OPEN || !$invoice->wasPayCalled()) {
-                // If all invoices should be updated, or this is the single invoice that should be updated
-                if ($fullAmountCaptured || $parsedTransId['pspReference'] === $originalReference) {
-                    $invoice->pay();
-                    $this->invoiceResourceModel->save($invoice);
-                    $finalizedInvoices[] = $invoice->getEntityId();
-                }
+            if ($this->isFullInvoiceAmountManuallyCaptured($invoice)) {
+                $invoice->pay();
+            } else {
+                throw new \Exception(sprintf(
+                    'Not all adyen_invoice entries linked to magento invoice %s and order %s have been successfully captured',
+                    $invoice->getEntityId(),
+                    $order->getIncrementId()
+                ));
             }
         }
 
-        if (empty($finalizedInvoices)) {
-            $this->adyenLogger->info(sprintf(
-                'No invoice was finalized based on capture with pspReference %s, linked to order %s. ' .
-                'This implies that the full amount has not been captured yet and that no invoice is linked to ' .
-                'originalReference %s. Once the full amount has been captured, all invoices linked to order %s ' .
-                'should be set to PAID',
-                $pspReference,
-                $order->getIncrementId(),
-                $originalReference,
-                $order->getIncrementId()
-            ));
-        }
-
-        return $finalizedInvoices;
+        return $order;
     }
 
     /**
@@ -195,7 +198,7 @@ class Invoice extends AbstractHelper
 
     /**
      * Handle a capture webhook notification by updating the acquirerReference and status fields of the adyen_invoice
-     * TODO: Handle case where notification is not successful
+     * Also if all adyen_invoice entries linked to the magento invoice have been captured, finalize the magento invoice
      *
      * @param Order $order
      * @param Notification $notification
@@ -225,6 +228,14 @@ class Invoice extends AbstractHelper
         $adyenInvoiceObject->setAcquirerReference($acquirerReference);
         $adyenInvoiceObject->setStatus(InvoiceInterface::STATUS_SUCCESSFUL);
         $this->adyenInvoiceResourceModel->save($adyenInvoiceObject);
+
+        /** @var InvoiceModel $magentoInvoice */
+        $magentoInvoice = $this->magentoInvoiceFactory->create()->load($adyenInvoiceObject->getInvoiceId());
+
+        if ($this->isFullInvoiceAmountManuallyCaptured($magentoInvoice)) {
+            $magentoInvoice->pay();
+            $this->invoiceResourceModel->save($magentoInvoice);
+        }
 
         return $adyenInvoiceObject;
     }
@@ -260,5 +271,35 @@ class Invoice extends AbstractHelper
         $this->adyenOrderPaymentHelper->updatePaymentWithAmount($adyenOrderPayment, $capturedAmount);
 
         return $updatedAdyenInvoices;
+    }
+
+    /**
+     * Check if the full amount of the invoice has been manually captured
+     *
+     * @param InvoiceModel $invoice
+     * @return bool
+     */
+    public function isFullInvoiceAmountManuallyCaptured(InvoiceModel $invoice): bool
+    {
+        $invoiceCapturedAmount = 0;
+        $adyenInvoices = $this->adyenInvoiceCollection->getAdyenInvoicesLinkedToMagentoInvoice($invoice->getEntityId());
+
+        foreach ($adyenInvoices as $adyenInvoice) {
+            if ($adyenInvoice[InvoiceInterface::STATUS] === InvoiceInterface::STATUS_SUCCESSFUL) {
+                $invoiceCapturedAmount += $adyenInvoice[InvoiceInterface::AMOUNT];
+            }
+        }
+
+        $invoiceAmountCents = $this->adyenDataHelper->formatAmount(
+            $invoice->getGrandTotal(),
+            $invoice->getOrderCurrencyCode()
+        );
+
+        $invoiceCapturedAmountCents = $this->adyenDataHelper->formatAmount(
+            $invoiceCapturedAmount,
+            $invoice->getOrderCurrencyCode()
+        );
+
+        return $invoiceAmountCents === $invoiceCapturedAmountCents;
     }
 }

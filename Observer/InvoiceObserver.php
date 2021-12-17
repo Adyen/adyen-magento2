@@ -24,7 +24,6 @@
 namespace Adyen\Payment\Observer;
 
 use Adyen\Payment\Helper\AdyenOrderPayment;
-use Adyen\Payment\Model\Invoice as AdyenInvoice;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\Invoice as InvoiceHelper;
 use Adyen\Payment\Model\Order\PaymentFactory;
@@ -50,6 +49,9 @@ class InvoiceObserver implements ObserverInterface
     /** @var StatusResolver $statusResolver */
     private $statusResolver;
 
+    /** @var AdyenOrderPayment $adyenOrderPaymentHelper */
+    private $adyenOrderPaymentHelper;
+
     /**
      * InvoiceObserver constructor.
      * @param Payment $adyenPaymentResourceModel
@@ -61,12 +63,14 @@ class InvoiceObserver implements ObserverInterface
         Payment $adyenPaymentResourceModel,
         PaymentFactory $adyenOrderPaymentFactory,
         InvoiceHelper $invoiceHelper,
-        StatusResolver $statusResolver
+        StatusResolver $statusResolver,
+        AdyenOrderPayment $adyenOrderPaymentHelper
     ) {
         $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->invoiceHelper = $invoiceHelper;
         $this->statusResolver = $statusResolver;
+        $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
     }
 
     /**
@@ -85,8 +89,8 @@ class InvoiceObserver implements ObserverInterface
         $order = $invoice->getOrder();
         $payment = $order->getPayment();
 
-        // If invoice has already been paid, exit observer
-        if ($invoice->wasPayCalled()) {
+        // If invoice has already been paid or full amount is finalized, exit observer
+        if ($invoice->wasPayCalled() || $this->adyenOrderPaymentHelper->isFullAmountFinalized($order)) {
             return;
         }
 
