@@ -114,7 +114,6 @@ script;
             'Magento_Checkout/js/model/error-processor'
         ], function ($, AdyenCheckout, fullScreenLoader, adyenPaymentService, errorProcessor) {
         (async function () { // RequireJS does not support async callback
-            console.trace();
             var checkoutComponent = await AdyenCheckout({
                 locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
                 environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
