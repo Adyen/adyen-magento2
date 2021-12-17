@@ -2185,8 +2185,8 @@ class Cron
     }
 
     /**
-     * Handle the webhook by updating invoice related entities, update capture status of adyen_order_payment and
-     * finalize order
+     * Handle the webhook by updating invoice related entities, refresh capture status of adyen_order_payment and
+     * attempt to finalize order
      *
      * @throws Exception
      * @throws LocalizedException

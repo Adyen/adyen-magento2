@@ -25,6 +25,7 @@ namespace Adyen\Payment\Observer;
 
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Invoice as InvoiceHelper;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
@@ -52,25 +53,32 @@ class InvoiceObserver implements ObserverInterface
     /** @var AdyenOrderPayment $adyenOrderPaymentHelper */
     private $adyenOrderPaymentHelper;
 
+    /** @var Config $configHelper */
+    private $configHelper;
+
     /**
      * InvoiceObserver constructor.
      * @param Payment $adyenPaymentResourceModel
      * @param PaymentFactory $adyenOrderPaymentFactory
      * @param InvoiceHelper $invoiceHelper
      * @param StatusResolver $statusResolver
+     * @param AdyenOrderPayment $adyenOrderPaymentHelper
+     * @param Config $configHelper
      */
     public function __construct(
         Payment $adyenPaymentResourceModel,
         PaymentFactory $adyenOrderPaymentFactory,
         InvoiceHelper $invoiceHelper,
         StatusResolver $statusResolver,
-        AdyenOrderPayment $adyenOrderPaymentHelper
+        AdyenOrderPayment $adyenOrderPaymentHelper,
+        Config $configHelper
     ) {
         $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->invoiceHelper = $invoiceHelper;
         $this->statusResolver = $statusResolver;
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -105,8 +113,18 @@ class InvoiceObserver implements ObserverInterface
             $this->adyenOrderPaymentHelper->updatePaymentTotalCaptured($adyenOrderPaymentObject, $linkedAmount);
         }
 
+        $status = $this->configHelper->getConfigData(
+            'payment_authorized',
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            $order->getStoreId()
+        );
+
+        if (empty($status)) {
+            $status = $this->statusResolver->getOrderStatusByState($order, Order::STATE_PROCESSING);
+        }
+
         // Set order to PROCESSING to allow further invoices to be generated
         $order->setState(Order::STATE_PROCESSING);
-        $order->setStatus($this->statusResolver->getOrderStatusByState($order, Order::STATE_PROCESSING));
+        $order->setStatus($status);
     }
 }
