@@ -103,40 +103,6 @@ class AdyenOrderPayment extends AbstractHelper
     }
 
     /**
-     * Check if the total amount of the order has been authorised
-     *
-     * @param Order $order
-     * @return bool
-     */
-    public function isTotalAmountAuthorized(Order $order): bool
-    {
-        // Get total amount currently authorised
-        $queryResult = $this->adyenOrderPaymentCollection
-            ->create()
-            ->getTotalAmount($order->getPayment()->getEntityId());
-
-        if ($queryResult && isset($queryResult[0]) && is_array($queryResult[0])) {
-            $totalAmountAuthorized = $queryResult[0]['total_amount'];
-        } else {
-            $this->adyenLogger->error(
-                sprintf('Unable to obtain the total amount authorized of order %s', $order->getIncrementId())
-            );
-
-            return false;
-        }
-
-        $orderTotal = $this->adyenChargedCurrencyHelper->getOrderAmountCurrency($order, false);
-        $orderTotalAmount = $this->adyenDataHelper->formatAmount($orderTotal->getAmount(), $orderTotal->getCurrencyCode());
-        $totalAmountAuthorized = $this->adyenDataHelper->formatAmount($totalAmountAuthorized, $orderTotal->getCurrencyCode());
-
-        if ($totalAmountAuthorized === $orderTotalAmount) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Check if ANY adyen_order_payment linked to this order requires a manual capture
      *
      * @param Order $order
@@ -189,15 +155,36 @@ class AdyenOrderPayment extends AbstractHelper
      * @return Payment
      * @throws AlreadyExistsException
      */
-    public function updatePaymentWithAmount(Payment $adyenOrderPayment, float $amount): Payment
+    public function updatePaymentTotalCaptured(Payment $adyenOrderPayment, float $amount): Payment
     {
         $newTotalCaptured = $adyenOrderPayment->getTotalCaptured() + $amount;
         $adyenOrderPayment->setTotalCaptured($newTotalCaptured);
-        if ($newTotalCaptured < $adyenOrderPayment->getAmount()) {
-            $adyenOrderPayment->setCaptureStatus(OrderPaymentInterface::CAPTURE_STATUS_PARTIAL_CAPTURE);
+        $this->orderPaymentResourceModel->save($adyenOrderPayment);
+
+        return $adyenOrderPayment;
+    }
+
+    /**
+     * Refresh the capture_status of the adyen_order_payment by comparing the captured amount and the full amount
+     *
+     * @param Payment $adyenOrderPayment
+     * @param string $currency
+     * @return Payment
+     * @throws AlreadyExistsException
+     */
+    public function refreshPaymentCaptureStatus(Payment $adyenOrderPayment, string $currency): Payment
+    {
+        $this->adyenLogger->addAdyenNotificationCronjob('Currency: ' . $currency);
+        $totalCapturedCents = $this->adyenDataHelper->formatAmount($adyenOrderPayment->getTotalCaptured(), $currency);
+        $amountCents = $this->adyenDataHelper->formatAmount($adyenOrderPayment->getAmount(), $currency);
+
+        if ($totalCapturedCents < $amountCents) {
+            $captureStatus = OrderPaymentInterface::CAPTURE_STATUS_PARTIAL_CAPTURE;
         } else {
-            $adyenOrderPayment->setCaptureStatus(OrderPaymentInterface::CAPTURE_STATUS_MANUAL_CAPTURE);
+            $captureStatus = OrderPaymentInterface::CAPTURE_STATUS_MANUAL_CAPTURE;
         }
+
+        $adyenOrderPayment->setCaptureStatus($captureStatus);
         $this->orderPaymentResourceModel->save($adyenOrderPayment);
 
         return $adyenOrderPayment;
@@ -211,21 +198,30 @@ class AdyenOrderPayment extends AbstractHelper
      */
     public function isFullAmountFinalized(Order $order): bool
     {
-        $finalizedAmount = 0;
         $payment = $order->getPayment();
         $finalizedAdyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments(
             $payment->getEntityId(),
             [OrderPaymentInterface::CAPTURE_STATUS_MANUAL_CAPTURE, OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE]
         );
 
-        foreach ($finalizedAdyenOrderPayments as $adyenOrderPayment) {
-            $finalizedAmount += $adyenOrderPayment[OrderPaymentInterface::AMOUNT];
-        }
+        return $this->compareAdyenOrderPaymentsAmount($order, $finalizedAdyenOrderPayments);
+    }
 
-        $finalizedAmountCents = $this->adyenDataHelper->formatAmount($finalizedAmount, $order->getOrderCurrencyCode());
-        $orderAmountCents = $this->adyenDataHelper->formatAmount($order->getGrandTotal(), $order->getOrderCurrencyCode());
+    /**
+     * Check if the full amount of the order has been authorized
+     *
+     * @param Order $order
+     * @return bool
+     */
+    public function isFullAmountAuthorized(Order $order): bool
+    {
+        $payment = $order->getPayment();
+        $authorisedAdyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments(
+            $payment->getEntityId(),
+            [OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE]
+        );
 
-        return $finalizedAmountCents === $orderAmountCents;
+        return $this->compareAdyenOrderPaymentsAmount($order, $authorisedAdyenOrderPayments);
     }
 
     /**
@@ -271,5 +267,25 @@ class AdyenOrderPayment extends AbstractHelper
         }
 
         return $adyenOrderPayment;
+    }
+
+    /**
+     * Compare the total of the passed adyen order payments to the order grand total
+     *
+     * @param Order $order
+     * @param array $adyenOrderPayments
+     * @return bool
+     */
+    private function compareAdyenOrderPaymentsAmount(Order $order, array $adyenOrderPayments): bool
+    {
+        $adyenOrderPaymentsTotal = 0;
+        foreach ($adyenOrderPayments as $adyenOrderPayment) {
+            $adyenOrderPaymentsTotal += $adyenOrderPayment[OrderPaymentInterface::AMOUNT];
+        }
+
+        $adyenOrderPaymentsTotalCents = $this->adyenDataHelper->formatAmount($adyenOrderPaymentsTotal, $order->getOrderCurrencyCode());
+        $orderAmountCents = $this->adyenDataHelper->formatAmount($order->getGrandTotal(), $order->getOrderCurrencyCode());
+
+        return $adyenOrderPaymentsTotalCents === $orderAmountCents;
     }
 }
