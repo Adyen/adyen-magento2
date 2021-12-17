@@ -2089,9 +2089,6 @@ class Cron
                 );
             } else {
                 $this->_order->addStatusHistoryComment(__($comment));
-                if ($this->isAutoCapture) {
-                    $this->_order->setState(Order::STATE_PAYMENT_REVIEW);
-                }
                 $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
                     'Order %s was finalized. Authorised status not set',
                     $this->_order->getIncrementId()
