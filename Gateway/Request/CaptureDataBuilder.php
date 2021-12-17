@@ -118,7 +118,7 @@ class CaptureDataBuilder implements BuilderInterface
         $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
 
         // If total amount has not been authorized
-        if (!$this->adyenOrderPaymentHelper->isTotalAmountAuthorized($order)) {
+        if (!$this->adyenOrderPaymentHelper->isFullAmountAuthorized($order)) {
             $errorMessage = sprintf(
                 'Unable to send capture request for order %s. Full amount has not been authorized',
                 $order->getIncrementId()
@@ -234,14 +234,11 @@ class CaptureDataBuilder implements BuilderInterface
 
         while ($counterAmount < $captureAmountCents) {
             $adyenOrderPayment = $adyenOrderPayments[$i];
-            // If adyen payment has been partially captured, or not captured at all
-            if (in_array(
-                $adyenOrderPayment[OrderPaymentInterface::CAPTURE_STATUS],
-                [OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE, OrderPaymentInterface::CAPTURE_STATUS_PARTIAL_CAPTURE]
-            )) {
-                $paymentAmount = $adyenOrderPayment[OrderPaymentInterface::AMOUNT];
-                $totalCaptured = $adyenOrderPayment[OrderPaymentInterface::TOTAL_CAPTURED];
-                $availableAmountToCaptureCents = $this->adyenHelper->formatAmount($paymentAmount - $totalCaptured, $currency);
+            $paymentAmount = $adyenOrderPayment[OrderPaymentInterface::AMOUNT];
+            $totalCaptured = $adyenOrderPayment[OrderPaymentInterface::TOTAL_CAPTURED];
+            $availableAmountToCaptureCents = $this->adyenHelper->formatAmount($paymentAmount - $totalCaptured, $currency);
+            // If there is still some amount available to capture
+            if ($availableAmountToCaptureCents > 0) {
                 // IF the counter amount + available amount to capture from this payment are LESS (or eq) than the capture amount, use the available amount
                 // ELSE use only the amount required to complete the full capture
                 if ($counterAmount + $availableAmountToCaptureCents <= $captureAmountCents) {

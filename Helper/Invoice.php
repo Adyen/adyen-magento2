@@ -267,7 +267,7 @@ class Invoice extends AbstractHelper
             }
         }
 
-        $this->adyenOrderPaymentHelper->updatePaymentWithAmount($adyenOrderPayment, $capturedAmount);
+        $this->adyenOrderPaymentHelper->updatePaymentTotalCaptured($adyenOrderPayment, $capturedAmount);
 
         return $updatedAdyenInvoices;
     }
