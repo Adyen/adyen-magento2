@@ -29,10 +29,11 @@
     <script type="text/javascript">
         require([
             'jquery',
-            'Adyen_Payment/js/bundle'
-        ], function ($, adyenComponent) {
+            'Adyen_Payment/js/adyen'
+        ], function ($, AdyenCheckout) {
+        (async function () { // RequireJS does not support async callback
             var action = JSON.parse('<?= /* @noEscape */ $block->getAction(); ?>');
-            var checkoutComponent = new AdyenCheckout({
+            var checkoutComponent = await AdyenCheckout({
                 locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
                 environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
                 clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>'
@@ -42,6 +43,7 @@
             } catch(err) {
                 // Action component cannot be created
             }
+        })();
         });
     </script>
     <div id="ActionContainer"></div>
@@ -57,9 +59,10 @@ script;
     <?=$scriptString?>
     require([
         'jquery',
-        'Adyen_Payment/js/bundle',
+        'Adyen_Payment/js/adyen',
         'Adyen_Payment/js/model/adyen-payment-service'
-    ], function ($, adyenComponent, adyenPaymentService) {
+    ], function ($, AdyenCheckout, adyenPaymentService) {
+    (async function () { // RequireJS does not support async callback
         function handleOnDonate(state, component) {
             if (state.isValid) {
                 let payload = state.data;
@@ -94,7 +97,7 @@ script;
             onDonate: handleOnDonate,
             onCancel: handleOnCancel
         };
-        var checkoutComponent = new AdyenCheckout({
+        var checkoutComponent = await AdyenCheckout({
             locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
             environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
             clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>'
@@ -105,6 +108,7 @@ script;
             // Action component cannot be created
             console.log(err);
         }
+    })();
     });
 </script>
 <div id='donation-container'></div>

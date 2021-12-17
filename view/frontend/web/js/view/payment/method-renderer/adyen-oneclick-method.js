@@ -36,7 +36,7 @@ define(
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
-        'Adyen_Payment/js/bundle',
+        'Adyen_Payment/js/adyen',
         'Adyen_Payment/js/model/adyen-configuration',
     ],
     function (
@@ -55,7 +55,7 @@ define(
         placeOrderAction,
         errorProcessor,
         adyenPaymentService,
-        adyenCheckout,
+        AdyenCheckout,
         adyenConfiguration,
     ) {
 
@@ -120,7 +120,7 @@ define(
 
                 if (!!paymentMethodsResponse) {
 
-                    this.checkoutComponent = await adyenCheckout({
+                    this.checkoutComponent = await AdyenCheckout({
                             locale: adyenConfiguration.getLocale(),
                             clientKey: adyenConfiguration.getClientKey(),
                             environment: adyenConfiguration.getCheckoutEnvironment(),
