@@ -27,11 +27,7 @@ use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
-use Adyen\Payment\Helper\Config;
-use Adyen\Payment\Helper\Vault;
-use Adyen\Payment\Model\Order\Payment;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Webapi\Exception;
@@ -208,7 +204,7 @@ class Cron
     /**
      * @var
      */
-    protected $_fraudManualReview;
+    protected $requireFraudManualReview;
 
     /**
      * @var bool
