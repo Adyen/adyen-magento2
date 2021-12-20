@@ -338,6 +338,11 @@ class CheckoutDataBuilder implements BuilderInterface
                 $currency
             );
 
+            $formattedTaxPercentage = $this->adyenHelper->formatAmount(
+                (($formattedPriceIncludingTax - $formattedPriceExcludingTax) / $formattedPriceExcludingTax) * 100,
+                $currency
+            );
+
             $formFields['lineItems'][] = [
                 'id' => 'shippingCost',
                 'amountExcludingTax' => $formattedPriceExcludingTax,
@@ -345,7 +350,7 @@ class CheckoutDataBuilder implements BuilderInterface
                 'taxAmount' => $formattedTaxAmount,
                 'description' => $order->getShippingDescription(),
                 'quantity' => 1,
-                'taxPercentage' => ($formattedTaxAmount / $formattedPriceExcludingTax) * 100 * 100
+                'taxPercentage' => $formattedTaxPercentage
             ];
         }
 
