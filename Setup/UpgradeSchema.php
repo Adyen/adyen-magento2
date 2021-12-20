@@ -626,6 +626,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         // TODO: merchant_reference should not be nullable anymore
 
         // Add payment id column
+        // TODO: Default should be null instead of 0
         $paymentIdColumn = [
             'type'=> Table::TYPE_INTEGER,
             'nullable' => true,

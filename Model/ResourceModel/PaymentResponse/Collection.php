@@ -29,6 +29,7 @@ use Adyen\Payment\Model\PaymentResponse;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Data\Collection\Db\FetchStrategyInterface;
 use Magento\Framework\Data\Collection\EntityFactoryInterface;
+use Magento\Framework\DataObject;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
@@ -61,35 +62,5 @@ class Collection extends AbstractCollection
     public function getPaymentResponsesWithMerchantReferences($merchantReferences = [])
     {
         return $this->addFieldToFilter('merchant_reference', ["in" => [$merchantReferences]])->getData();
-    }
-
-    /**
-     * Fetch payment response with specific payment id
-     *
-     * @param int $paymentId
-     * @return array|null
-     */
-    public function getPaymentResponseByPaymentId(int $paymentId) {
-        // TODO: Fix this method
-        return $this->addFieldToFilter('payment_id', $paymentId)->getData(); // TODO: Make sure this returns PaymentResponse object
-    }
-
-    /**
-     * @param string $incrementId
-     * @param int $storeId
-     * @return \Magento\Framework\DataObject
-     */
-    public function getPaymentResponseByIncrementAndStoreId(string $incrementId, int $storeId) {
-        $this->addFieldToFilter(PaymentResponse::MERCHANT_REFERENCE, $incrementId);
-        $this->addFieldToFilter(PaymentResponse::STORE_ID, $storeId);
-
-        if (count($this->getData()) > 0) {
-            // Not possible to use getFirstItem directly on the selection because the collection is already loaded.
-            // Clear to unload, setPageSize(1) to not load full
-            // collection (but should be max count of 1 anyway), now do getFirstItem
-            return $this->clear()->setPageSize(1)->getFirstItem();
-        } else {
-            return null;
-        }
     }
 }

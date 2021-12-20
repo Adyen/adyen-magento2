@@ -27,6 +27,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\PaymentResponseFactory;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse;
+use Adyen\Payment\Model\ResourceModel\PaymentResponse\CollectionFactory as PaymentResponseCollectionFactory;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
@@ -81,10 +82,16 @@ class PaymentResponseHandler
      * @var SerializerInterface
      */
     private $serializer;
+
     /**
      * @var Collection
      */
     private $paymentResponseCollection;
+
+    /**
+     * @var PaymentResponseCollectionFactory
+     */
+    private $paymentResponseCollectionFactory;
 
 
     /**
@@ -103,6 +110,7 @@ class PaymentResponseHandler
         PaymentResponseFactory $paymentResponseFactory,
         PaymentResponse $paymentResponseResourceModel,
         Collection $paymentResponseCollection,
+        PaymentResponseCollectionFactory $paymentResponseCollectionFactory,
         SerializerInterface $serializer
     ) {
         $this->adyenLogger = $adyenLogger;
@@ -112,6 +120,7 @@ class PaymentResponseHandler
         $this->orderResourceModel = $orderResourceModel;
         $this->paymentResponseResourceModel = $paymentResponseResourceModel;
         $this->paymentResponseCollection = $paymentResponseCollection;
+        $this->paymentResponseCollectionFactory = $paymentResponseCollectionFactory;
         $this->serializer = $serializer;
     }
 
@@ -155,14 +164,16 @@ class PaymentResponseHandler
     }
 
     public function findOrCreatePaymentResponseEntry($incrementId, $storeId) {
-        // TODO: Verify return type
-
         // Check if paymentResponse already exists, otherwise create one
-        $paymentResponse = $this->paymentResponseCollection->getPaymentResponseByIncrementAndStoreId($incrementId, $storeId);
-        if(is_null($paymentResponse)) {
+        $paymentResponseDetails = $this->paymentResponseResourceModel->getPaymentResponseByIncrementAndStoreId($incrementId, $storeId);
+
+        if(is_null($paymentResponseDetails)) {
             $paymentResponse = $this->paymentResponseFactory->create();
             $paymentResponse->setMerchantReference($incrementId);
             $paymentResponse->setStoreId($storeId);
+        } else {
+            $paymentResponseFactory = $this->paymentResponseFactory->create();
+            $paymentResponse = $paymentResponseFactory->load($paymentResponseDetails['entity_id']);
         }
 
         return $paymentResponse;
