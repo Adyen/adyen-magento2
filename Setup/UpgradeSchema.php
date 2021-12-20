@@ -481,10 +481,23 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'default' => Table::TIMESTAMP_INIT,
         ];
 
+        $updatedAtColumn = [
+            'type' => Table::TYPE_TIMESTAMP,
+            'nullable' => true,
+            'comment' => 'Updated at',
+            'default' => Table::TIMESTAMP_INIT_UPDATE,
+        ];
+
         $connection->addColumn(
             $adyenInvoiceTable,
             InvoiceInterface::CREATED_AT,
             $createdAtColumn
+        );
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            InvoiceInterface::UPDATED_AT,
+            $updatedAtColumn
         );
 
         $amountColumn = [

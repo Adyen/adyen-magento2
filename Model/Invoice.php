@@ -213,4 +213,21 @@ class Invoice extends AbstractModel implements InvoiceInterface
     {
         return $this->setData(self::CREATED_AT, $createdAt);
     }
+
+    /**
+     * @return mixed
+     */
+    public function getUpdatedAt()
+    {
+        return $this->getData(self::UPDATED_AT);
+    }
+
+    /**
+     * @param $updatedAt
+     * @return Invoice
+     */
+    public function setUpdatedAt($updatedAt)
+    {
+        return $this->setData(self::UPDATED_AT, $updatedAt);
+    }
 }
