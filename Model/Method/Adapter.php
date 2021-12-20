@@ -24,7 +24,6 @@
 namespace Adyen\Payment\Model\Method;
 
 use Magento\Payment\Model\Method;
-use Magento\Framework\DataObject;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Payment\Gateway\Command\CommandManagerInterface;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
@@ -38,6 +37,8 @@ class Adapter extends Method\Adapter
      * @var \Adyen\Payment\Model\Api\PaymentRequest
      */
     protected $_paymentRequest;
+
+    protected $stateData;
 
     /**
      * Adapter constructor.
@@ -101,5 +102,15 @@ class Adapter extends Method\Adapter
             }
         }
         return $this;
+    }
+
+    public function setStateData($stateData)
+    {
+        $this->stateData = $stateData;
+    }
+
+    public function getStateData()
+    {
+        return $this->stateData;
     }
 }

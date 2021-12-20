@@ -112,8 +112,10 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
             );
         }
 
-        // Replace state data with the decoded and validated state data
-        $additionalData[self::STATE_DATA] = $stateData;
+        //Set stateData in method adapter and remove from payment's additionalData
+        $methodInstance = $paymentInfo->getMethodInstance();
+        $methodInstance->setStateData($stateData);
+        unset($additionalData[self::STATE_DATA]);
 
         // Set additional data in the payment
         foreach ($additionalData as $key => $data) {

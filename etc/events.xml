@@ -44,4 +44,7 @@
     <event name="sales_order_shipment_save_before">
         <observer name="adyen_shipment_save_before" instance="Adyen\Payment\Observer\BeforeShipmentObserver" />
     </event>
+    <event name="sales_model_service_quote_submit_before">
+        <observer name="adyen_copy_state_data_to_order_payment" instance="Adyen\Payment\Observer\AdyenCopyStateDataToOrderPaymentObserver" />
+    </event>
 </config>
