@@ -84,7 +84,7 @@ class AdyenOrderPaymentTest extends TestCase
             ->disableOriginalConstructor()
             ->setMethods(['create'])
             ->getMock();
-        $mockInvoiceHelper = $this->getMockBuilder(Invoice::class)
+        $this->mockInvoiceHelper = $this->getMockBuilder(Invoice::class)
             ->disableOriginalConstructor()
             ->getMock();
         $this->adyenOrderPaymentHelper = new AdyenOrderPayment(
@@ -95,7 +95,7 @@ class AdyenOrderPaymentTest extends TestCase
             $mockChargedCurrency,
             $this->mockOrderPaymentResourceModel,
             $this->mockAdyenOrderPaymentFactory,
-            $mockInvoiceHelper
+            $this->mockInvoiceHelper
         );
     }
 
