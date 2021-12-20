@@ -37,6 +37,7 @@ interface InvoiceInterface
     const ADYEN_ORDER_PAYMENT_ID = 'adyen_order_payment_id';
     const AMOUNT = 'amount';
     const CREATED_AT = 'created_at';
+    const UPDATED_AT = 'updated_at';
     const STATUS = 'status';
 
     const STATUS_PENDING_WEBHOOK = 'Pending Webhook';
@@ -154,4 +155,14 @@ interface InvoiceInterface
      * @param $createdAt
      */
     public function setCreatedAt($createdAt);
+
+    /**
+     * @return mixed
+     */
+    public function getUpdatedAt();
+
+    /**
+     * @param $updatedAt
+     */
+    public function setUpdatedAt($updatedAt);
 }
