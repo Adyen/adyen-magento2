@@ -131,36 +131,6 @@ class Invoice extends AbstractHelper
     }
 
     /**
-     * If the full amount has been captured, finalize all linked invoices, else finalize only the invoice linked to
-     * this captureNotification. If no invoice linked to this notification is found, log message.
-     *
-     * @param Order $order
-     * @return Order
-     * @throws \Exception
-     */
-    public function finalizeOrderInvoices(Order $order): Order
-    {
-        $invoiceCollection = $order->getInvoiceCollection();
-
-        $this->adyenLogger->addAdyenNotificationCronjob('Invoices: ' . count($invoiceCollection));
-
-        /** @var InvoiceModel $invoice */
-        foreach ($invoiceCollection as $invoice) {
-            if ($this->isFullInvoiceAmountManuallyCaptured($invoice)) {
-                $invoice->pay();
-            } else {
-                throw new \Exception(sprintf(
-                    'Not all adyen_invoice entries linked to magento invoice %s and order %s have been successfully captured',
-                    $invoice->getEntityId(),
-                    $order->getIncrementId()
-                ));
-            }
-        }
-
-        return $order;
-    }
-
-    /**
      * Create an adyen_invoice entry
      *
      * @param Order\Payment $payment
