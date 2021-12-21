@@ -78,8 +78,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion673($setup);
         }
 
-        if (version_compare($context->getVersion(), '8.1.0', '<')) {
-            $this->updateSchemaVersion801($setup);
+        if (version_compare($context->getVersion(), '6.7.6', '<')) {
+            $this->updateSchemaVersion676($setup);
         }
 
         $setup->endSetup();
@@ -441,7 +441,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
     }
 
     /**
-     * Upgrade to 8.0.1
+     * Upgrade to 6.7.4
      *
      * New total_captured column on the adyen_order_payment table to keep track on the amount that has been captured
      * New created_at column on the adyen_invoice table
@@ -452,7 +452,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
      * @param SchemaSetupInterface $setup
      * @return void
      */
-    public function updateSchemaVersion801(SchemaSetupInterface $setup)
+    public function updateSchemaVersion676(SchemaSetupInterface $setup)
     {
         $connection = $setup->getConnection();
         $adyenOrderPaymentTable = $setup->getTable(self::ADYEN_ORDER_PAYMENT);

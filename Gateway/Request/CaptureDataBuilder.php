@@ -27,9 +27,9 @@ use Adyen\AdyenException;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
 use Adyen\Payment\Helper\AdyenOrderPayment;
+use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data as DataHelper;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Order\Payment as PaymentModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Magento\Framework\App\Action\Context;
@@ -67,6 +67,11 @@ class CaptureDataBuilder implements BuilderInterface
     private $context;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * CaptureDataBuilder constructor.
      *
      * @param DataHelper $adyenHelper
@@ -74,19 +79,22 @@ class CaptureDataBuilder implements BuilderInterface
      * @param AdyenLogger $adyenLogger
      * @param Context $context
      * @param Payment $orderPaymentResourceModel
+     * @param ChargedCurrency $chargedCurrency
      */
     public function __construct(
         DataHelper $adyenHelper,
         AdyenOrderPayment $adyenOrderPaymentHelper,
         AdyenLogger $adyenLogger,
         Context $context,
-        Payment $orderPaymentResourceModel
+        Payment $orderPaymentResourceModel,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->adyenLogger = $adyenLogger;
         $this->context = $context;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -100,8 +108,6 @@ class CaptureDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $amount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
-
         $payment = $paymentDataObject->getPayment();
         /** @var Order $order */
         $order = $payment->getOrder();
@@ -113,8 +119,6 @@ class CaptureDataBuilder implements BuilderInterface
         $orderAmountCents = $this->adyenHelper->formatAmount($order->getGrandTotal(), $currency);
         $pspReference = $payment->getCcTransId();
         $currency = $payment->getOrder()->getOrderCurrencyCode();
-
-        $amount = $this->adyenHelper->formatAmount($amount, $currency);
         $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
 
         // If total amount has not been authorized

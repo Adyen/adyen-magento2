@@ -92,7 +92,6 @@ class AdyenOrderPaymentTest extends TestCase
             $mockLogger,
             $mockAdyenOrderPaymentCollection,
             $this->mockAdyenDataHelper,
-            $mockChargedCurrency,
             $this->mockOrderPaymentResourceModel,
             $this->mockAdyenOrderPaymentFactory,
             $this->mockInvoiceHelper

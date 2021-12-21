@@ -26,7 +26,6 @@ namespace Adyen\Payment\Model;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
-use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
