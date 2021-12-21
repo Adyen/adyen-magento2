@@ -110,7 +110,7 @@ class AdyenOrderPayment extends AbstractHelper
     }
 
     /**
-     * Add the amount to the total_captured field of the adyen_order_payment and update the status if necessary
+     * Add the amount to the total_captured field of the adyen_order_payment
      *
      * @param Payment $adyenOrderPayment
      * @param float $amount
