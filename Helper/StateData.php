@@ -31,10 +31,14 @@ use Adyen\Payment\Model\StateDataFactory;
 
 class StateData
 {
-
     const CLEANUP_RESULT_CODES = array(
         "Authorised"
     );
+
+    /**
+     * @var array Temporary (per request) storage of state data
+     */
+    private $stateData = [];
 
     /**
      * @var StateDataCollection
@@ -84,5 +88,15 @@ class StateData
         /** @var StateDataModel $stateData */
         $stateData = $this->stateDataFactory->create()->load($entityId);
         $this->stateDataResourceModel->delete($stateData);
+    }
+
+    public function setStateData(array $stateData)
+    {
+        $this->stateData = $stateData;
+    }
+
+    public function getStateData(): array
+    {
+        return $this->stateData;
     }
 }

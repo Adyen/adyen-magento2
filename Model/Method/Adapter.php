@@ -38,8 +38,6 @@ class Adapter extends Method\Adapter
      */
     protected $_paymentRequest;
 
-    protected $stateData;
-
     /**
      * Adapter constructor.
      *
@@ -102,15 +100,5 @@ class Adapter extends Method\Adapter
             }
         }
         return $this;
-    }
-
-    public function setStateData($stateData)
-    {
-        $this->stateData = $stateData;
-    }
-
-    public function getStateData()
-    {
-        return $this->stateData;
     }
 }

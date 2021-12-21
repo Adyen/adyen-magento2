@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
@@ -64,16 +65,24 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     protected $stateDataCollection;
 
     /**
+     * @var StateData
+     */
+    private $stateData;
+
+    /**
      * AdyenCcDataAssignObserver constructor.
-     *
      * @param CheckoutStateDataValidator $checkoutStateDataValidator
+     * @param Collection $stateDataCollection
+     * @param StateData $stateData
      */
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
-        Collection $stateDataCollection
+        Collection $stateDataCollection,
+        StateData $stateData
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataCollection = $stateDataCollection;
+        $this->stateData = $stateData;
     }
 
     /**
@@ -112,9 +121,8 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
             );
         }
 
-        //Set stateData in method adapter and remove from payment's additionalData
-        $methodInstance = $paymentInfo->getMethodInstance();
-        $methodInstance->setStateData($stateData);
+        // Set stateData in a service and remove from payment's additionalData
+        $this->stateData->setStateData($stateData);
         unset($additionalData[self::STATE_DATA]);
 
         // Set additional data in the payment
