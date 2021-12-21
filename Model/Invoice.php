@@ -86,6 +86,7 @@ class Invoice extends AbstractModel implements InvoiceInterface
     /**
      * Gets the Pspreference of the original Payment
      *
+     * @deprecated
      * @return mixed
      */
     public function getOriginalReference()
@@ -96,6 +97,7 @@ class Invoice extends AbstractModel implements InvoiceInterface
     /**
      * Sets the OriginalReference
      *
+     * @deprecated
      * @param $originalReference
      * @return $this
      */
