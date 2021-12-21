@@ -52,6 +52,7 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
     /**
      * @param array $handlingSubject
      * @param array $response
+     * @throws AlreadyExistsException
      */
     public function handle(array $handlingSubject, array $response)
     {
@@ -61,7 +62,7 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
         $payment = $payment->getPayment();
 
         if (array_key_exists(TransactionCapture::MULTIPLE_AUTHORIZATIONS, $response)) {
-            $this->handleMultipleCaptureRequests($payment, $response);
+            $this->handlePartialOrMultipleCaptureRequests($payment, $response);
         } else {
             // set pspReference as lastTransId only!
             $payment->setLastTransId($response['pspReference']);
@@ -85,7 +86,7 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
      * @param $responseContainer
      * @throws AlreadyExistsException
      */
-    public function handleMultipleCaptureRequests(Order\Payment $payment, $responseContainer)
+    public function handlePartialOrMultipleCaptureRequests(Order\Payment $payment, $responseContainer)
     {
         $lastTransId = null;
         $this->adyenLogger->info(sprintf(

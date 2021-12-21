@@ -114,7 +114,7 @@ class InvoiceObserver implements ObserverInterface
         }
 
         $status = $this->configHelper->getConfigData(
-            'payment_authorized',
+            'payment_pre_authorized',
             Config::XML_ADYEN_ABSTRACT_PREFIX,
             $order->getStoreId()
         );
