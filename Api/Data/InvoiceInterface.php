@@ -31,7 +31,10 @@ interface InvoiceInterface
      */
     const ENTITY_ID = 'entity_id';
     const PSPREFERENCE = 'pspreference';
+
+    /** @deprecated */
     const ORIGINAL_REFERENCE = 'original_reference';
+
     const ACQUIRER_REFERENCE = 'acquirer_reference';
     const INVOICE_ID = 'invoice_id';
     const ADYEN_ORDER_PAYMENT_ID = 'adyen_order_payment_id';
