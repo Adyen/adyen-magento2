@@ -64,6 +64,7 @@ class CaptureResponseValidator extends AbstractValidator
 
         if (empty($response['response']) || $response['response'] != TransactionCapture::CAPTURE_RECEIVED) {
             $errorMessages[] = $this->buildErrorMessages($response);
+            $isValid = false;
         }
 
         return $this->createResult($isValid, $errorMessages);
