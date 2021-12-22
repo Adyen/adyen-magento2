@@ -83,20 +83,20 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         $paymentInfo = $this->readPaymentModelArgument($observer);
 
         // Get additional data array
-        $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
-        if (!is_array($additionalData)) {
+        $additionalInformation = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
+        if (!is_array($additionalInformation)) {
             return;
         }
 
         // Get a validated additional data array
-        $additionalData = DataArrayValidator::getArrayOnlyWithApprovedKeys(
-            $additionalData,
+        $additionalInformation = DataArrayValidator::getArrayOnlyWithApprovedKeys(
+            $additionalInformation,
             self::$approvedAdditionalDataKeys
         );
 
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
-        if (!empty($additionalData[self::STATE_DATA])) {
-            $stateData = json_decode($additionalData[self::STATE_DATA], true);
+        if (!empty($additionalInformation[self::STATE_DATA])) {
+            $stateData = json_decode($additionalInformation[self::STATE_DATA], true);
         } else {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }
@@ -109,16 +109,16 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         }
 
         // Replace state data with the decoded and validated state data
-        $additionalData[self::STATE_DATA] = $stateData;
+        $additionalInformation[self::STATE_DATA] = $stateData;
 
         // Set additional data in the payment
-        foreach ($additionalData as $key => $data) {
+        foreach ($additionalInformation as $key => $data) {
             $paymentInfo->setAdditionalInformation($key, $data);
         }
 
         // set ccType
-        if (!empty($additionalData[self::BRAND_CODE])) {
-            $paymentInfo->setCcType($additionalData[self::BRAND_CODE]);
+        if (!empty($additionalInformation[self::BRAND_CODE])) {
+            $paymentInfo->setCcType($additionalInformation[self::BRAND_CODE]);
         }
     }
 }

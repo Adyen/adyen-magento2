@@ -253,10 +253,6 @@ class PaymentResponseHandler
             $payment->setAdditionalInformation('action', $paymentResponseData['action']);
         }
 
-        if (!empty($paymentResponseData['additionalData'])) {
-            $payment->setAdditionalInformation('additionalData', $paymentResponseData['additionalData']);
-        }
-
         if (!empty($paymentResponseData['pspReference'])) {
             $payment->setAdditionalInformation('pspReference', $paymentResponseData['pspReference']);
         }

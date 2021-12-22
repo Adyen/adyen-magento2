@@ -48,7 +48,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
      */
     private static $approvedAdditionalDataKeys = [
         self::STATE_DATA,
-        self::NUMBER_OF_INSTALLMENTS,
+        self::NUMBER_OF_INSTALLMENTS
     ];
 
     /**
