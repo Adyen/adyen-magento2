@@ -441,7 +441,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
     }
 
     /**
-     * Upgrade to 6.7.4
+     * Upgrade to 6.7.6
      *
      * New total_captured column on the adyen_order_payment table to keep track on the amount that has been captured
      * New created_at column on the adyen_invoice table
