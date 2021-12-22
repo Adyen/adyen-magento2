@@ -163,6 +163,14 @@ class PaymentResponseHandler
         }
     }
 
+    /**
+     * Check whether adyen_order_payment already contains an entry with the given ids, if not create one.
+     * Return found or created entry
+     *
+     * @param $incrementId
+     * @param $storeId
+     * @return \Adyen\Payment\Model\PaymentResponse
+     */
     public function findOrCreatePaymentResponseEntry($incrementId, $storeId) {
         // Check if paymentResponse already exists, otherwise create one
         $paymentResponseDetails = $this->paymentResponseResourceModel->getPaymentResponseByIncrementAndStoreId($incrementId, $storeId);
@@ -200,7 +208,7 @@ class PaymentResponseHandler
 
 
     /**
-     * Persists the payment response in the sales_order_payment table
+     * Persists the payment response in the adyen_payment_response table
      *
      * @param $paymentResponseData
      * @param $payment
@@ -213,7 +221,7 @@ class PaymentResponseHandler
         $storeId = $payment->getOrder()->getStoreId();
 
         $adyenPaymentResponse = $this->findOrCreatePaymentResponseEntry($incrementId, $storeId);
-        $adyenPaymentResponse->setResponse(json_encode($paymentResponseData)); // TODO: What to do with this? These two are overwritten on paymentDetails call
+        $adyenPaymentResponse->setResponse(json_encode($paymentResponseData));
         $adyenPaymentResponse->setResultCode($paymentResponseData['resultCode']);
         $adyenPaymentResponse = $this->updateAdditionalInformation($adyenPaymentResponse, $paymentResponseData);
 
@@ -228,6 +236,8 @@ class PaymentResponseHandler
     }
 
     /**
+     * Handles a payment response by saving it to the adyen_payment_response database, updating sales_order_payment table
+     *
      * @param $paymentResponseData
      * @param OrderPaymentInterface $payment
      * @param OrderInterface|null $order

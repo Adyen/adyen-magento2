@@ -111,7 +111,7 @@ class Result extends \Magento\Framework\App\Action\Action
     private $stateDataHelper;
 
     /**
-     * @var
+     * @var PaymentResponseHandler
      */
     private $paymentResponseHandler;
 

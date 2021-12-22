@@ -623,8 +623,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $connection = $setup->getConnection();
         $adyenPaymentResponseTable = $setup->getTable(self::ADYEN_PAYMENT_RESPONSE);
 
-        // TODO: merchant_reference should not be nullable anymore
-
         // Add payment id column
         // TODO: Default should be null instead of 0
         $paymentIdColumn = [
@@ -668,21 +666,5 @@ class UpgradeSchema implements UpgradeSchemaInterface
             PaymentResponse::ADDITIONAL_INFORMATION,
             $additionalInformationColumn
         );
-
-        // Add foreign key on payment id
-//        $connection->addForeignKey(
-//                $setup->getFkName(
-//                    self::ADYEN_PAYMENT_RESPONSE,
-//                    PaymentResponse::PAYMENT_ID,
-//                    'sales_order_payment',
-//                    OrderPaymentInterface::ENTITY_ID
-//                ),
-//                'payment_id',
-//                $setup->getTable('sales_order_payment'),
-//                'entity_id',
-//                Table::ACTION_CASCADE
-//            );
-
-        // TODO: Check if the foreign key has effect!
     }
 }

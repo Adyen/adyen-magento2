@@ -169,7 +169,7 @@ class PaymentResponse extends AbstractModel implements PaymentResponseInterface
      */
     public function setAdditionalInformation($additionalInformation)
     {
-        return $this->setData(self::ADDITIONAL_INFORMATION, $this->serializer->serialize($additionalInformation)); //TODO: Change to correct serializer
+        return $this->setData(self::ADDITIONAL_INFORMATION, $this->serializer->serialize($additionalInformation));
     }
 
     /**
