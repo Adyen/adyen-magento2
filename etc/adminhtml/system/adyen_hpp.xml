@@ -25,7 +25,7 @@
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_hpp" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
         <label><![CDATA[Alternative payment methods]]></label>
-        <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment>Process alternative payments methods</comment>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -41,7 +41,7 @@
         <field id="adyen_hpp_vault_active" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Store alternative payment methods</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <tooltip>Currenlty we support SEPA tokenisation only</tooltip>
+            <tooltip>Currently we support SEPA tokenization only</tooltip>
             <config_path>payment/adyen_hpp_vault/active</config_path>
         </field>
         <group id="adyen_hpp_openinvoice_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="100">

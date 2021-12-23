@@ -33,7 +33,7 @@
                 <debug>1</debug>
                 <title_renderer>title_image</title_renderer>
                 <sepa_flow>sale</sepa_flow>
-                <split_payments_refund_strategy>1</split_payments_refund_strategy>
+                <partial_payments_refund_strategy>1</partial_payments_refund_strategy>
                 <return_path>checkout/cart</return_path>
                 <group>adyen</group>
                 <notifications_can_cancel>1</notifications_can_cancel>
@@ -142,15 +142,14 @@
                 <recurring_type>NONE</recurring_type>
                 <group>adyen</group>
             </adyen_pos_cloud>
-            <adyen_pay_by_mail>
+            <adyen_pay_by_link>
                 <active>0</active>
-                <model>AdyenPaymentPayByMailFacade</model>
+                <model>AdyenPaymentPayByLinkFacade</model>
                 <order_status>pending</order_status>
-                <title>Adyen PayByMail</title>
+                <title>Adyen Pay by Link</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>7</sort_order>
-                <session_validity>3</session_validity>
-                <ship_before>5</ship_before>
+                <days_to_expire>1</days_to_expire>
                 <payment_action>order</payment_action>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>0</can_use_checkout>
@@ -163,7 +162,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <group>adyen</group>
-            </adyen_pay_by_mail>
+            </adyen_pay_by_link>
             <adyen_boleto>
                 <active>0</active>
                 <model>AdyenPaymentBoletoFacade</model>

@@ -200,6 +200,11 @@ class PaymentResponseHandler
                         $this->adyenHelper->createAdyenBillingAgreement($order, $paymentsResponse['additionalData']);
                     }
                 }
+
+                if (!empty($paymentsResponse['donationToken'])) {
+                    $payment->setAdditionalInformation('donationToken', $paymentsResponse['donationToken']);
+                }
+
                 $this->orderResourceModel->save($order);
                 break;
             case self::REFUSED:
@@ -213,6 +218,7 @@ class PaymentResponseHandler
 
                     if ($order->canCancel()) {
                         $order->cancel();
+                        $order->save();
                     } else {
                         $this->adyenLogger->addAdyenDebug('Order can not be canceled');
                     }

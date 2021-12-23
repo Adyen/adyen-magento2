@@ -59,7 +59,8 @@ class Hpp extends AbstractInfo
     public function getBankTransferData()
     {
         $result = [];
-        if (!empty($this->getInfo()->getOrder()->getPayment()) &&
+        if (!empty($this->getInfo()->getOrder()) &&
+            !empty($this->getInfo()->getOrder()->getPayment()) &&
             !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('bankTransfer.owner'))
         ) {
             $result = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation();
@@ -77,7 +78,8 @@ class Hpp extends AbstractInfo
     public function getMultibancoData()
     {
         $result = [];
-        if (!empty($this->getInfo()->getOrder()->getPayment()) &&
+        if (!empty($this->getInfo()->getOrder()) &&
+            !empty($this->getInfo()->getOrder()->getPayment()) &&
             !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('comprafacil.entity'))
         ) {
             $result = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation();
@@ -107,9 +109,9 @@ class Hpp extends AbstractInfo
      * @return null
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getSplitPayments()
+    public function getPartialPayments()
     {
-        // retrieve split payments of the order
+        // retrieve partial payments of the order
         $orderPaymentCollection = $this->_adyenOrderPaymentCollectionFactory
             ->create()
             ->addPaymentFilterAscending($this->getInfo()->getId());

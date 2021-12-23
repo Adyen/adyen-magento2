@@ -48,6 +48,9 @@ define(
             getHouseNumberStreetLine: function() {
                 return window.checkoutConfig.payment.adyen.houseNumberStreetLine;
             },
+            getCustomerStreetLinesEnabled: function () {
+                return window.checkoutConfig.payment.customerStreetLinesEnabled;
+            },
         };
     },
 );

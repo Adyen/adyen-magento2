@@ -178,7 +178,6 @@ class Result extends \Magento\Framework\App\Action\Action
             $session = $this->_session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
             $this->_redirect($successPath, ['_query' => ['utm_nooverride' => '1']]);
-
         } else {
             $this->_adyenLogger->addAdyenResult(
                 sprintf(
@@ -248,8 +247,10 @@ class Result extends \Magento\Framework\App\Action\Action
             ]
         );
 
-        // update the order
-        $result = $this->_validateUpdateOrder($order, $response);
+        // Save PSP reference from the response
+        if (!empty($response['pspReference'])) {
+            $this->payment->setAdditionalInformation('pspReference', $response['pspReference']);
+        }
 
         // Save payment token if available in the response
         if (!empty($response['additionalData']['recurring.recurringDetailReference']) &&
@@ -262,6 +263,14 @@ class Result extends \Magento\Framework\App\Action\Action
             }
             $this->orderResourceModel->save($order);
         }
+
+        // Save donation token if available in the response
+        if (!empty($response['donationToken'])) {
+            $this->payment->setAdditionalInformation('donationToken', $response['donationToken']);
+        }
+
+        // update the order
+        $result = $this->_validateUpdateOrder($order, $response);
 
         $this->_eventManager->dispatch(
             'adyen_payment_process_resulturl_after',

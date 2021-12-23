@@ -24,7 +24,6 @@
 
 /**
  * @var \Adyen\Payment\Block\Checkout\Multishipping\Success $block
- * @var Magento\Csp\Api\InlineUtilInterface $csp
  */
 $paymentResponseEntities = $block->getPaymentResponseEntities();
 ?>
@@ -104,17 +103,18 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
     window.checkoutConfig = {$checkoutConfig};
 script;
     ?>
-    <?= /* @noEscape */
-    $csp->renderTag('script', [], $scriptString) ?>
     <script type="text/javascript">
+        <?=$scriptString?>
+
         require([
             'jquery',
-            'Adyen_Payment/js/bundle',
+            'Adyen_Payment/js/adyen',
             'Magento_Checkout/js/model/full-screen-loader',
             'Adyen_Payment/js/model/adyen-payment-service',
             'Magento_Checkout/js/model/error-processor'
-        ], function ($, adyenComponent, fullScreenLoader, adyenPaymentService, errorProcessor) {
-            var checkoutComponent = new AdyenCheckout({
+        ], function ($, AdyenCheckout, fullScreenLoader, adyenPaymentService, errorProcessor) {
+        (async function () { // RequireJS does not support async callback
+            var checkoutComponent = await AdyenCheckout({
                 locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
                 environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
                 clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>',
@@ -163,7 +163,6 @@ script;
             function handleAdyenResult(responseJSON, orderId) {
                 var self = this;
                 var response = JSON.parse(responseJSON);
-                debugger;
                 let buttonLabel;
                 if (!!response.isFinal && response.resultCode === 'Authorised') {
                     buttonLabel = "<?= $block->escapeHtml($block->getPaymentCompletedLabel()) ?>";
@@ -201,6 +200,7 @@ script;
                 }
             });
 
+        })();
         });
     </script>
     <div id="actionModalWrapper">

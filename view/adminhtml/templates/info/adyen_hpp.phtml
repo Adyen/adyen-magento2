@@ -27,6 +27,7 @@
 <?php
 /**
  * @see \Magento\Payment\Block\Info
+ * @var \Adyen\Payment\Block\Info\Hpp $block
  */
 
 ?>
@@ -160,7 +161,7 @@ $_isDemoMode = $block->isDemoMode();
 <?php endif; ?>
 
 
-<?php if ($block->getSplitPayments()): ?>
+<?php if ($block->getPartialPayments()): ?>
     <table class="edit-order-table">
         <tr>
             <th scope="col">PspReference</th>
@@ -168,7 +169,7 @@ $_isDemoMode = $block->isDemoMode();
             <th scope="col">Amount</th>
             <th scope="col">Refunded</th>
         </tr>
-        <?php foreach ($block->getSplitPayments() as $payment): ?>
+        <?php foreach ($block->getPartialPayments() as $payment): ?>
             <tr>
                 <td><?= $block->escapeHtml($payment->getPspreference()); ?></td>
                 <td><?= $block->escapeHtml($payment->getPaymentMethod()); ?></td>

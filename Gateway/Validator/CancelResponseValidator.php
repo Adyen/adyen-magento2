@@ -69,6 +69,7 @@ class CancelResponseValidator extends AbstractValidator
             }
 
             $errorMessages[] = $errorMsg;
+            $isValid = false;
         }
 
         return $this->createResult($isValid, $errorMessages);

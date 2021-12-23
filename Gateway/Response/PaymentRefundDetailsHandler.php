@@ -39,6 +39,10 @@ class PaymentRefundDetailsHandler implements HandlerInterface
         $payment = $payment->getPayment();
 
         foreach ($response as $singleResponse) {
+            if (isset($singleResponse['error'])) {
+                throw new \Magento\Framework\Exception\LocalizedException("The refund failed. Please make sure the amount is not greater than the limit or negative. Otherwise, refer to the logs for details.");
+            }
+
             // set pspReference as lastTransId only!
             $payment->setLastTransId($singleResponse['pspReference']);
         }

@@ -78,18 +78,23 @@ class RefundDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $buildSubjectAmount = \Magento\Payment\Gateway\Helper\SubjectReader::readAmount($buildSubject);
+
         $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
-        $pspReference = $payment->getCcTransId();
         $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($payment->getOrder(), false);
-        $currency = $orderAmountCurrency->getCurrencyCode();
-        $amount = $buildSubjectAmount;
+
+        // Construct AdyenAmountCurrency from creditmemo
+        $creditMemo = $payment->getCreditMemo();
+        $creditMemoAmountCurrency = $this->chargedCurrency->getCreditMemoAmountCurrency($creditMemo, false);
+
+        $pspReference = $payment->getCcTransId();
+        $currency = $creditMemoAmountCurrency->getCurrencyCode();
+        $amount = $creditMemoAmountCurrency->getAmount();
         $storeId = $order->getStoreId();
         $method = $payment->getMethod();
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
 
-        // check if it contains a split payment
+        // check if it contains a partial payment
         $orderPaymentCollection = $this->orderPaymentCollectionFactory
             ->create()
             ->addFieldToFilter('payment_id', $payment->getId());
@@ -97,7 +102,7 @@ class RefundDataBuilder implements BuilderInterface
         // partial refund if multiple payments check refund strategy
         if ($orderPaymentCollection->getSize() > 1) {
             $refundStrategy = $this->adyenHelper->getAdyenAbstractConfigData(
-                'split_payments_refund_strategy',
+                'partial_payments_refund_strategy',
                 $order->getStoreId()
             );
             $ratio = null;
@@ -110,37 +115,37 @@ class RefundDataBuilder implements BuilderInterface
                 $orderPaymentCollection->addPaymentFilterDescending($payment->getId());
             } elseif ($refundStrategy == "3") {
                 // refund based on ratio
-                $ratio = $buildSubjectAmount / $orderAmountCurrency->getAmount();
+                $ratio = $amount / $orderAmountCurrency->getAmount();
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
             }
 
             // loop over payment methods and refund them all
             $requestBody = [];
-            foreach ($orderPaymentCollection as $splitPayment) {
-                // could be that not all the split payments need a refund
+            foreach ($orderPaymentCollection as $partialPayment) {
+                // could be that not all the partial payments need a refund
                 if ($amount > 0) {
                     if ($ratio) {
                         // refund based on ratio calculate refund amount
                         $modificationAmount = $ratio * (
-                                $splitPayment->getAmount() - $splitPayment->getTotalRefunded()
+                                $partialPayment->getAmount() - $partialPayment->getTotalRefunded()
                             );
                     } else {
-                        // total authorised amount of the split payment
-                        $splitPaymentAmount = $splitPayment->getAmount() - $splitPayment->getTotalRefunded();
+                        // total authorised amount of the partial payment
+                        $partialPaymentAmount = $partialPayment->getAmount() - $partialPayment->getTotalRefunded();
 
                         // if rest amount is zero go to next payment
-                        if (!$splitPaymentAmount > 0) {
+                        if (!$partialPaymentAmount > 0) {
                             continue;
                         }
 
-                        // if refunded amount is greater than split payment amount do a full refund
-                        if ($amount >= $splitPaymentAmount) {
-                            $modificationAmount = $splitPaymentAmount;
+                        // if refunded amount is greater than partial payment amount do a full refund
+                        if ($amount >= $partialPaymentAmount) {
+                            $modificationAmount = $partialPaymentAmount;
                         } else {
                             $modificationAmount = $amount;
                         }
                         // update amount with rest of the available amount
-                        $amount = $amount - $splitPaymentAmount;
+                        $amount = $amount - $partialPaymentAmount;
                     }
 
                     $modificationAmountObject = [
@@ -151,7 +156,7 @@ class RefundDataBuilder implements BuilderInterface
                     $requestBody[] = [
                         "modificationAmount" => $modificationAmountObject,
                         "reference" => $payment->getOrder()->getIncrementId(),
-                        "originalReference" => $splitPayment->getPspreference(),
+                        "originalReference" => $partialPayment->getPspreference(),
                         "merchantAccount" => $merchantAccount
                     ];
                 }
@@ -194,10 +199,8 @@ class RefundDataBuilder implements BuilderInterface
     {
         $formFields = [];
         $count = 0;
-        $currency = $this->chargedCurrency
-            ->getOrderAmountCurrency($payment->getOrder(), false)
-            ->getCurrencyCode();
 
+        // Construct AdyenAmountCurrency from creditmemo
         /**
          * @var \Magento\Sales\Model\Order\Creditmemo $creditMemo
          */
@@ -217,7 +220,7 @@ class RefundDataBuilder implements BuilderInterface
                 $count,
                 $refundItem->getName(),
                 $itemAmountCurrency->getAmount(),
-                $currency,
+                $itemAmountCurrency->getCurrencyCode(),
                 $itemAmountCurrency->getTaxAmount(),
                 $itemAmountCurrency->getAmount() + $itemAmountCurrency->getTaxAmount(),
                 $refundItem->getOrderItem()->getTaxPercent(),
@@ -228,15 +231,34 @@ class RefundDataBuilder implements BuilderInterface
         }
 
         // Shipping cost
-        if ($creditMemo->getShippingAmount() > 0) {
+        $shippingAmountCurrency = $this->chargedCurrency->getCreditMemoShippingAmountCurrency($creditMemo);
+        if ($shippingAmountCurrency->getAmount() > 0) {
             ++$count;
             $formFields = $this->adyenHelper->createOpenInvoiceLineShipping(
                 $formFields,
                 $count,
                 $payment->getOrder(),
-                $creditMemo->getShippingAmount(),
-                $creditMemo->getShippingTaxAmount(),
-                $currency,
+                $shippingAmountCurrency->getAmount(),
+                $shippingAmountCurrency->getTaxAmount(),
+                $shippingAmountCurrency->getCurrencyCode(),
+                $payment
+            );
+        }
+
+        // Adjustment
+        $adjustmentAmountCurrency = $this->chargedCurrency->getCreditMemoAdjustmentAmountCurrency($creditMemo);
+        if ($adjustmentAmountCurrency->getAmount() != 0) {
+            $positive = $adjustmentAmountCurrency->getAmount() > 0 ? 'Positive' : '';
+            $negative = $adjustmentAmountCurrency->getAmount() < 0 ? 'Negative' : '';
+            $description = "Adjustment - " . implode(' | ', array_filter([$positive, $negative]));
+
+            ++$count;
+            $formFields = $this->adyenHelper->createOpenInvoiceLineAdjustment(
+                $formFields,
+                $count,
+                $description,
+                $adjustmentAmountCurrency->getAmount(),
+                $adjustmentAmountCurrency->getCurrencyCode(),
                 $payment
             );
         }

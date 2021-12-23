@@ -99,7 +99,6 @@ class TransactionPayment implements ClientInterface
             $paymentResponse->setMerchantReference($request["reference"]);
 
             $this->paymentResponseResourceModel->save($paymentResponse);
-
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
         }

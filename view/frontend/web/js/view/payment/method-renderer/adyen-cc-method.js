@@ -35,7 +35,7 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/bundle'
+        'Adyen_Payment/js/adyen'
     ],
     function(
         $,
@@ -52,7 +52,7 @@ define(
         errorProcessor,
         adyenPaymentService,
         adyenConfiguration,
-        adyenComponent
+        AdyenCheckout
     ) {
         'use strict';
         return Component.extend({
@@ -70,13 +70,13 @@ define(
             /**
              * @returns {exports.initialize}
              */
-            initialize: function() {
+            initialize: async function () {
                 this._super();
                 this.vaultEnabler = new VaultEnabler();
                 this.vaultEnabler.setPaymentCode(this.getVaultCode());
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
 
-                this.checkoutComponent = new AdyenCheckout({
+                this.checkoutComponent = await AdyenCheckout({
                         locale: adyenConfiguration.getLocale(),
                         clientKey: adyenConfiguration.getClientKey(),
                         environment: adyenConfiguration.getCheckoutEnvironment(),
@@ -148,7 +148,7 @@ define(
                                 if (creditCardType in allInstallments) {
                                     // get for the creditcard the installments
                                     var installmentCreditcard = allInstallments[creditCardType];
-                                    var grandTotal = quote.totals().grand_total;
+                                    var grandTotal = self.grandTotal();
                                     var precision = quote.getPriceFormat().precision;
                                     var currencyCode = quote.totals().quote_currency_code;
 
@@ -455,6 +455,14 @@ define(
             },
             getPlaceOrderUrl: function() {
                 return window.checkoutConfig.payment.iframe.placeOrderUrl[this.getCode()];
+            },
+            grandTotal: function () {
+                for (const totalsegment of quote.getTotals()()['total_segments']) {
+                    if (totalsegment.code === 'grand_total') {
+                        return totalsegment.value;
+                    }
+                }
+                return quote.totals().grand_total;
             },
         });
     }

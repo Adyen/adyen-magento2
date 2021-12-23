@@ -52,9 +52,10 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                 'jquery',
                 'Magento_Sales/order/create/scripts',
                 'Magento_Sales/order/create/form',
-                'Adyen_Payment/js/bundle'
+                'Adyen_Payment/js/adyen'
             ],
-            function ($) {
+            function ($, scripts, form, AdyenCheckout) {
+            (async function () { // RequireJS does not support async callback
                 var ccTypes = <?= /* @noEscape */ json_encode($block->getCcAvailableTypesByAlt()); ?>;
 
                 // Get cc type by adyen cc type
@@ -73,10 +74,9 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                 }
                 var cardNode = document.getElementById("cardContainer-<?= /* @noEscape */ $code; ?>");
 
-                var checkout = new AdyenCheckout({
+                var checkout = await AdyenCheckout({
                     clientKey: "<?= /* @noEscape */ $block->getClientKey(); ?>",
                     environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
-                    hasHolderName: true,
                     locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
                     risk: {
                         enabled: false
@@ -90,8 +90,10 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                         brands: Object.keys(ccTypes),
                         hideCVC: hideCVC,
                         enableStoreDetails: false, // MOTO can't use CVC which is required for OneClick tokens
+                        hasHolderName: true,
                         installmentOptions: <?= /* @noEscape */ $block->getFormattedInstallments();?>,
                         showInstallmentAmounts: true,
+                        amount :<?= /* @noEscape */ $block->getAmount();?>,
                         onChange: function (state) {
                             if (state.isValid) {
                                 $('#adyen-cc-statedata').val(JSON.stringify(state.data));
@@ -102,6 +104,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                 } catch (e) {
                     console.log(e);
                 }
+            })();
             });
     </script>
 </fieldset>
