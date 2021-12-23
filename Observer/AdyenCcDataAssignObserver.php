@@ -113,14 +113,10 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         } else {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }
-
         // Get validated state data array
         if (!empty($stateData)) {
-            $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData(
-                $stateData
-            );
+            $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
         }
-
         // Set stateData in a service and remove from payment's additionalData
         $this->stateData->setStateData($stateData);
         unset($additionalData[self::STATE_DATA]);

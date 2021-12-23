@@ -54,25 +54,32 @@ class Requests extends AbstractHelper
      * @var Address
      */
     private $addressHelper;
+    /**
+     * @var StateData
+     */
+    private $stateData;
 
     /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
      * @param Config $adyenConfig
-     * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param UrlInterface $urlBuilder
      * @param Address $addressHelper
+     * @param StateData $stateData
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Helper\Config $adyenConfig,
-        \Magento\Framework\UrlInterface $urlBuilder,
-        Address $addressHelper
+        Data $adyenHelper,
+        Config $adyenConfig,
+        UrlInterface $urlBuilder,
+        Address $addressHelper,
+        StateData $stateData
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->urlBuilder = $urlBuilder;
         $this->addressHelper = $addressHelper;
+        $this->stateData = $stateData;
     }
 
     /**
@@ -355,8 +362,8 @@ class Requests extends AbstractHelper
         $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
         $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
         $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
-
-        $stateData = $payment->getAdditionalInformation('stateData');
+        $stateData = $this->stateData->getStateData();
+        
         $request['storePaymentMethod'] = (bool)($stateData['storePaymentMethod'] ?? $storedPaymentMethodsEnabled);
 
         //recurring
