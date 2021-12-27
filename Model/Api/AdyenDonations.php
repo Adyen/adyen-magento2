@@ -77,12 +77,7 @@ class AdyenDonations implements AdyenDonationsInterface
     public function donate($payload)
     {
         $payload = $this->jsonSerializer->unserialize($payload);
-
-        $donationsCaptureCommand = $this->commandPool->get('capture');
-
-        /**
-         * @var Order
-         */
+        /** @var Order */
         $order = $this->orderFactory->create()->load($this->checkoutSession->getLastOrderId());
 
         $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
@@ -90,13 +85,6 @@ class AdyenDonations implements AdyenDonationsInterface
             throw new LocalizedException(__('Donation failed: Invalid donationToken'));
         }
         $payload['donationToken'] = $donationToken;
-
-        if (!empty($order->getPayment()->getAdditionalInformation('stateData'))) {
-            $payload['paymentMethod'] = $order->getPayment()->getAdditionalInformation('stateData')['paymentMethod'];
-        } else {
-            $payload['paymentMethod'] = ['type' => 'scheme'];
-        }
-
         $payload['donationOriginalPspReference'] = $order->getPayment()->getAdditionalInformation('pspReference');
 
         $customerId = $order->getCustomerId();
@@ -107,6 +95,7 @@ class AdyenDonations implements AdyenDonationsInterface
             $payload['shopperReference'] = $guestCustomerId;
         }
 
+        $donationsCaptureCommand = $this->commandPool->get('capture');
         return $donationsCaptureCommand->execute(['payment' => $payload]);
     }
 }
