@@ -363,7 +363,6 @@ class Requests extends AbstractHelper
         $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
         $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
         $stateData = $this->stateData->getStateData();
-        
         $request['storePaymentMethod'] = (bool)($stateData['storePaymentMethod'] ?? $storedPaymentMethodsEnabled);
 
         //recurring

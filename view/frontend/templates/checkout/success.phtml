@@ -46,3 +46,76 @@
     </script>
     <div id="ActionContainer"></div>
 <?php endif; ?>
+<?php if ($block->showAdyenGiving()):
+    $checkoutConfig = /* @noEscape */
+    $block->getSerializedCheckoutConfig();
+    $scriptString = <<<script
+    window.checkoutConfig = {$checkoutConfig};
+script;
+?>
+<script>
+    <?=$scriptString?>
+    require([
+        'jquery',
+        'Adyen_Payment/js/adyen',
+        'Adyen_Payment/js/model/adyen-payment-service'
+    ], function ($, AdyenCheckout, adyenPaymentService) {
+    (async function () { // RequireJS does not support async callback
+        function handleOnDonate(state, component) {
+            if (state.isValid) {
+                let previousStateData;
+                try {
+                    previousStateData = JSON.parse(window.sessionStorage.getItem('adyen.stateData'));
+                } catch {
+                    previousStateData = {};
+                }
+                let payload = { ...previousStateData, ...state.data };
+                payload.returnUrl = window.location.href;
+                adyenPaymentService.donate(payload)
+                    .done(function (response) {
+                        component.setStatus("success");
+                    })
+                    .fail(function (response) {
+                        component.setStatus('error');
+                    });
+            } else {
+                component.setStatus('ready');
+            }
+        }
+        function handleOnCancel(state, component) {
+            // Redirect to default 'Continue Shopping' action
+            let continueActionUrl = $('.primary.action.continue')[0].href;
+            window.location = continueActionUrl;
+        }
+        const donationConfig = {
+            amounts: {
+                currency: "<?=$block->getOrder()->getOrderCurrencyCode()?>",
+                values: [<?=$block->getDonationComponentConfiguration()['donationAmounts'];?>]
+            },
+            backgroundUrl: "<?=$block->getDonationComponentConfiguration()['backgroundUrl'];?>",
+            description: "<?=$block->getDonationComponentConfiguration()['description'];?>",
+            logoUrl: "<?=$block->getDonationComponentConfiguration()['logoUrl'];?>",
+            name: "<?=$block->getDonationComponentConfiguration()['name'];?>",
+            url: "<?=$block->getDonationComponentConfiguration()['website'];?>",
+            showCancelButton: true,
+            onDonate: handleOnDonate,
+            onCancel: handleOnCancel
+        };
+        var checkoutComponent = await AdyenCheckout({
+            locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
+            environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
+            clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>'
+        });
+        try {
+            const donation = checkoutComponent.create('donation', donationConfig).mount('#donation-container');
+        } catch(err) {
+            // Action component cannot be created
+            console.log(err);
+        }
+    })();
+    });
+</script>
+<div id='donation-container'></div>
+<?php endif; ?>
+
+>>>>>>> 59748a13 ([PW-6023] Make donations using client state data)

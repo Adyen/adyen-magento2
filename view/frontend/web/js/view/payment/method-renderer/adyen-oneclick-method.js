@@ -359,23 +359,24 @@ define(
                                 isValid(!!state.isValid);
                             },
                             /**
-                             * Builds the payment details part of the payment information reqeust
+                             * Builds the payment details part of the payment information request
                              *
                              * @returns {{method: *, additional_data: {variant: *, recurring_detail_reference: *, number_of_installments: *, cvc: (string|*), expiryMonth: *, expiryYear: *}}}
                              */
                             getData: function () {
-                                var self = this;
+                                const self = this;
 
                                 let stateData;
                                 if ('component' in self) {
                                     stateData = self.component.data;
                                 }
-
+                                stateData = JSON.stringify(stateData);
+                                window.sessionStorage.setItem('adyen.stateData', stateData);
                                 return {
                                     'method': self.method,
                                     additional_data: {
                                         number_of_installments: numberOfInstallments(),
-                                        stateData: JSON.stringify(stateData),
+                                        stateData: stateData,
                                     },
                                 };
                             },
