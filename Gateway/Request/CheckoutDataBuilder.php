@@ -103,7 +103,8 @@ class CheckoutDataBuilder implements BuilderInterface
         $storeId = $order->getStoreId();
 
         // Initialize the request body with the current state data
-        $requestBody = $this->stateData->getStateData();
+        // Multishipping checkout uses the cc_number field for state data
+        $requestBody = $this->stateData->getStateData() ?: json_decode($payment->getCcNumber(), true);
 
         $order->setCanSendNewEmailFlag(in_array($payment->getMethod(), self::ORDER_EMAIL_REQUIRED_METHODS));
 
