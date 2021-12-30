@@ -76,7 +76,7 @@
                                 class="input-text"
                                 name="payment[social_security_number]"
                                 autocomplete="off"
-                                data-bind="attr: {id: getCode() + '_social_security_number', 'data-container': getCode() + '-social-security-number', 'data-validate': JSON.stringify({required:true})},
+                                data-bind="attr: {id: getCode() + '_social_security_number', 'data-container': getCode() + '-social-security-number', 'data-validate': JSON.stringify({required:true, 'validate-ssn':true})},
                                             enable: isActive($parents),
                                             value: socialSecurityNumber"
                                 data-validate="{required:true}">
