@@ -146,7 +146,7 @@ class Requests extends AbstractHelper
             }
 
             if ($countryId = $billingAddress->getCountryId()) {
-                $request['countryCode'] = $countryId;
+                $request['countryCode'] = 'BR';
             }
 
             $request['shopperLocale'] = $this->adyenHelper->getCurrentLocaleCode($storeId);
