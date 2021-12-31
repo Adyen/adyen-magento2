@@ -118,7 +118,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
             $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
         }
         // Set stateData in a service and remove from payment's additionalData
-        $this->stateData->setStateData($stateData);
+        $this->stateData->setStateData($stateData, $paymentInfo->getData('quote_id'));
         unset($additionalData[self::STATE_DATA]);
 
         // Set additional data in the payment

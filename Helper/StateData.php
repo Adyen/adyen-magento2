@@ -90,13 +90,13 @@ class StateData
         $this->stateDataResourceModel->delete($stateData);
     }
 
-    public function setStateData(array $stateData)
+    public function setStateData(array $stateData, int $quoteId)
     {
-        $this->stateData = $stateData;
+        $this->stateData[$quoteId] = $stateData;
     }
 
-    public function getStateData(): array
+    public function getStateData(int $quoteId): array
     {
-        return $this->stateData;
+        return $this->stateData[$quoteId];
     }
 }
