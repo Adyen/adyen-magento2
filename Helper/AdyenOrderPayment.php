@@ -161,6 +161,7 @@ class AdyenOrderPayment extends AbstractHelper
     public function isFullAmountFinalized(Order $order): bool
     {
         $invoiceAmountCents = 0;
+        $orderAmountCurrency = $this->adyenChargedCurrencyHelper->getOrderAmountCurrency($order);
         $autoAdyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments(
             $order->getPayment()->getEntityId(),
             [OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE]
@@ -182,7 +183,7 @@ class AdyenOrderPayment extends AbstractHelper
             }
         }
 
-        $orderAmountCents = $this->adyenDataHelper->formatAmount($order->getGrandTotal(), $order->getOrderCurrencyCode());
+        $orderAmountCents = $this->adyenDataHelper->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
 
         return $invoiceAmountCents === $orderAmountCents;
     }
@@ -256,12 +257,14 @@ class AdyenOrderPayment extends AbstractHelper
     private function compareAdyenOrderPaymentsAmount(Order $order, array $adyenOrderPayments): bool
     {
         $adyenOrderPaymentsTotal = 0;
+        $orderAmountCurrency = $this->adyenChargedCurrencyHelper->getOrderAmountCurrency($order);
+
         foreach ($adyenOrderPayments as $adyenOrderPayment) {
             $adyenOrderPaymentsTotal += $adyenOrderPayment[OrderPaymentInterface::AMOUNT];
         }
 
-        $adyenOrderPaymentsTotalCents = $this->adyenDataHelper->formatAmount($adyenOrderPaymentsTotal, $order->getOrderCurrencyCode());
-        $orderAmountCents = $this->adyenDataHelper->formatAmount($order->getGrandTotal(), $order->getOrderCurrencyCode());
+        $adyenOrderPaymentsTotalCents = $this->adyenDataHelper->formatAmount($adyenOrderPaymentsTotal, $orderAmountCurrency->getCurrencyCode());
+        $orderAmountCents = $this->adyenDataHelper->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
 
         return $adyenOrderPaymentsTotalCents === $orderAmountCents;
     }
