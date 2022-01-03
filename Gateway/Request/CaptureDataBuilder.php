@@ -115,9 +115,11 @@ class CaptureDataBuilder implements BuilderInterface
         /** @var \Magento\Sales\Model\Order\Invoice $latestInvoice */
         $latestInvoice = $order->getInvoiceCollection()->getLastItem();
         $invoiceAmountCurrency = $this->chargedCurrency->getInvoiceAmountCurrency($latestInvoice);
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
         $currency = $invoiceAmountCurrency->getCurrencyCode();
         $amount = $this->adyenHelper->formatAmount($invoiceAmountCurrency->getAmount(), $currency);
-        $orderAmountCents = $this->adyenHelper->formatAmount($order->getGrandTotal(), $currency);
+        $orderAmountCents = $this->adyenHelper->formatAmount($orderAmountCurrency->getAmount(), $currency);
+
         $pspReference = $payment->getCcTransId();
         $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
 
