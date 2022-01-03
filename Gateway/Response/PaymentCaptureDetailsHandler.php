@@ -90,8 +90,8 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
     {
         $lastTransId = null;
         $this->adyenLogger->info(sprintf(
-            'Handling multiple capture response in details handler for payment %s',
-            $payment->getId()
+            'Handling partial OR multiple capture response in details handler for order %s',
+            $payment->getOrder()->getIncrementId()
         ));
 
         $captureNotReceived = [];
