@@ -362,7 +362,10 @@ class Requests extends AbstractHelper
         $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
         $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
         $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
-        $stateData = $this->stateData->getStateData($payment->getOrder()->getQuoteId());
+        // Initialize the request body with the current state data
+        // Multishipping checkout uses the cc_number field for state data
+        $stateData = $this->stateData->getStateData($payment->getOrder()->getQuoteId()) ?:
+            json_decode($payment->getCcNumber(), true);
 
         if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
             $request['storePaymentMethodMode'] = 'askForConsent';

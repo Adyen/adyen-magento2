@@ -97,6 +97,6 @@ class StateData
 
     public function getStateData(int $quoteId): array
     {
-        return $this->stateData[$quoteId];
+        return $this->stateData[$quoteId] ?? [];
     }
 }
