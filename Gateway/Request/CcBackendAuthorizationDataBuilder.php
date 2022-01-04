@@ -23,34 +23,43 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
-use Magento\Payment\Gateway\Request\BuilderInterface;
+use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
+use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Gateway\Helper\SubjectReader;
+use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class CcBackendAuthorizationDataBuilder implements BuilderInterface
 {
+    /**
+     * @var StateData
+     */
+    private $stateData;
+
+    public function __construct(StateData $stateData)
+    {
+        $this->stateData = $stateData;
+    }
 
     /**
      * @param array $buildSubject
      * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function build(array $buildSubject)
+    public function build(array $buildSubject): array
     {
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        /** @var PaymentDataObject $paymentDataObject */
+        $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        $requestBody = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::STATE_DATA);
+        $requestBody = $this->stateData->getStateData($payment->getData('quote_id'));
 
         // if installments is set add it into the request
-        if ($payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) &&
-            $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) > 0
-        ) {
-            $requestBody['installments']['value'] = $payment->getAdditionalInformation(
-                AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS
-            );
+        $installments = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) ?: 0;
+        if ($installments > 0) {
+            $requestBody['installments']['value'] = $installments;
         }
-        $request['body'] = $requestBody;
 
-        return $request;
+        return [
+            'body' => $requestBody
+        ];
     }
 }

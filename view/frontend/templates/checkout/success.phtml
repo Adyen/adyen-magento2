@@ -65,7 +65,13 @@ script;
     (async function () { // RequireJS does not support async callback
         function handleOnDonate(state, component) {
             if (state.isValid) {
-                let payload = state.data;
+                let previousStateData;
+                try {
+                    previousStateData = JSON.parse(window.sessionStorage.getItem('adyen.stateData'));
+                } catch {
+                    previousStateData = {};
+                }
+                let payload = { ...previousStateData, ...state.data };
                 payload.returnUrl = window.location.href;
                 adyenPaymentService.donate(payload)
                     .done(function (response) {
