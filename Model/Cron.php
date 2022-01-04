@@ -559,20 +559,8 @@ class Cron
                 }
 
                 // log the executed notification
-                $this->_adyenLogger->addAdyenNotificationCronjob(print_r($notification->debug(), 1));
-
-                // get order
-                $incrementId = $notification->getMerchantReference();
-
-                $searchCriteria = $this->searchCriteriaBuilder
-                    ->addFilter('increment_id', $incrementId, 'eq')
-                    ->create();
-
-                $orderList = $this->orderRepository->getList($searchCriteria)->getItems();
-
-                /** @var \Magento\Sales\Model\Order $order */
-                $order = reset($orderList);
-                $this->_order = $order;
+                $this->_adyenLogger->addAdyenNotificationCronjob(json_encode($notification->debug()));
+                $this->setOrderByIncrementId($notification);
 
                 if (!$this->_order) {
                     // order does not exists remove from queue
@@ -2194,6 +2182,8 @@ class Cron
     {
         try {
             $adyenInvoice = $this->invoiceHelper->handleCaptureWebhook($this->_order, $this->notification);
+            // Refresh the order by fetching it from the db
+            $this->setOrderByIncrementId($this->notification);
             $adyenOrderPayment = $this->adyenOrderPaymentFactory->create()->load($adyenInvoice->getAdyenPaymentOrderId(), OrderPaymentInterface::ENTITY_ID);
             $this->adyenOrderPaymentHelper->refreshPaymentCaptureStatus($adyenOrderPayment, $this->notification->getAmountCurrency());
             $this->_adyenLogger->addAdyenNotificationCronjob(sprintf(
@@ -2207,5 +2197,25 @@ class Cron
         }
 
         $this->finalizeOrder();
+    }
+
+
+    /**
+     * Set the order data member by fetching the entity from the database.
+     * This should be moved out of this file in the future.
+     */
+    private function setOrderByIncrementId($notification)
+    {
+        $incrementId = $notification->getMerchantReference();
+
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter('increment_id', $incrementId, 'eq')
+            ->create();
+
+        $orderList = $this->orderRepository->getList($searchCriteria)->getItems();
+
+        /** @var \Magento\Sales\Model\Order $order */
+        $order = reset($orderList);
+        $this->_order = $order;
     }
 }

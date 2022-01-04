@@ -65,6 +65,11 @@ class Invoice extends AbstractHelper
     protected $invoiceResourceModel;
 
     /**
+     * @var \Magento\Sales\Model\ResourceModel\Order
+     */
+    protected $magentoOrderResourceModel;
+
+    /**
      * @var InvoiceFactory
      */
     protected $adyenInvoiceFactory;
@@ -105,6 +110,9 @@ class Invoice extends AbstractHelper
      * @param AdyenInvoiceResourceModel $adyenInvoiceResourceModel
      * @param OrderPaymentResourceModel $orderPaymentResourceModel
      * @param PaymentFactory $paymentFactory
+     * @param Collection $adyenInvoiceCollection
+     * @param MagentoInvoiceFactory $magentoInvoiceFactory
+     * @param \Magento\Sales\Model\ResourceModel\Order $magentoOrderResourceModel
      */
     public function __construct(
         Context $context,
@@ -116,7 +124,8 @@ class Invoice extends AbstractHelper
         OrderPaymentResourceModel $orderPaymentResourceModel,
         PaymentFactory $paymentFactory,
         Collection $adyenInvoiceCollection,
-        MagentoInvoiceFactory $magentoInvoiceFactory
+        MagentoInvoiceFactory $magentoInvoiceFactory,
+        \Magento\Sales\Model\ResourceModel\Order $magentoOrderResourceModel
     ) {
         parent::__construct($context);
         $this->adyenLogger = $adyenLogger;
@@ -128,6 +137,7 @@ class Invoice extends AbstractHelper
         $this->adyenOrderPaymentFactory = $paymentFactory;
         $this->adyenInvoiceCollection = $adyenInvoiceCollection;
         $this->magentoInvoiceFactory = $magentoInvoiceFactory;
+        $this->magentoOrderResourceModel = $magentoOrderResourceModel;
     }
 
     /**
@@ -226,6 +236,7 @@ class Invoice extends AbstractHelper
         if ($this->isFullInvoiceAmountManuallyCaptured($magentoInvoice)) {
             $magentoInvoice->pay();
             $this->invoiceResourceModel->save($magentoInvoice);
+            $this->magentoOrderResourceModel->save($magentoInvoice->getOrder());
         }
 
         return $adyenInvoiceObject;
