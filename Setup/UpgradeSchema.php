@@ -93,8 +93,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion730($setup);
         }
 
-        if (version_compare($context->getVersion(), '8.1.0', '<')) {
-            $this->updateSchemaVersion801($setup);
+        if (version_compare($context->getVersion(), '7.3.4', '<')) {
+            $this->updateSchemaVersion734($setup);
         }
 
         $setup->endSetup();
@@ -613,7 +613,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
      * @param SchemaSetupInterface $setup
      * @return void
      */
-    public function updateSchemaVersion801(SchemaSetupInterface $setup)
+    public function updateSchemaVersion734(SchemaSetupInterface $setup)
     {
         $connection = $setup->getConnection();
         $adyenOrderPaymentTable = $setup->getTable(self::ADYEN_ORDER_PAYMENT);
