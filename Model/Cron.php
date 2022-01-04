@@ -206,12 +206,12 @@ class Cron
     /**
      * @var
      */
-    protected $_fraudManualReview;
+    protected $requireFraudManualReview;
 
     /**
      * @var bool
      */
-    private $isAutoCapture;
+    protected $isAutoCapture;
 
     /**
      * @var ResourceModel\Order\Payment\CollectionFactory
