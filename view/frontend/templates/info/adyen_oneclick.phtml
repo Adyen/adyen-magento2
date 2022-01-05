@@ -26,4 +26,5 @@
 ?>
 <dl class="payment-method adyen_oneclick">
     <dt class="title"><?= $block->escapeHtml($block->getMethod()->getTitle()) ?></dt>
+    <dt class="title"><?= $block->escapeHtml(__($block->getCcTypeName())); ?></dt>
 </dl>

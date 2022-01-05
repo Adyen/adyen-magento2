@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Observer;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
 use Adyen\Service\Validator\DataArrayValidator;
@@ -70,6 +71,10 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
      * @var Collection
      */
     private $stateDataCollection;
+    /**
+     * @var StateData
+     */
+    private $stateData;
 
     /**
      * AdyenCcDataAssignObserver constructor.
@@ -83,12 +88,14 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
         CheckoutStateDataValidator $checkoutStateDataValidator,
         Data $adyenHelper,
         Context $context,
-        Collection $stateDataCollection
+        Collection $stateDataCollection,
+        StateData $stateData
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->adyenHelper = $adyenHelper;
         $this->appState = $context->getAppState();
         $this->stateDataCollection = $stateDataCollection;
+        $this->stateData = $stateData;
     }
 
     /**
@@ -119,16 +126,13 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
         } else {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }
-
         // Get validated state data array
         if (!empty($stateData)) {
-            $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData(
-                $stateData
-            );
+            $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
         }
-
-        // Replace state data with the decoded and validated state data
-        $additionalData[self::STATE_DATA] = $stateData;
+        // Set stateData in a service and remove from payment's additionalData
+        $this->stateData->setStateData($stateData, $paymentInfo->getData('quote_id'));
+        unset($additionalData[self::STATE_DATA]);
 
         // Set additional data in the payment
         foreach ($additionalData as $key => $data) {
