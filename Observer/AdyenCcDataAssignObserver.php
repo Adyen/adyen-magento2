@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
@@ -64,16 +65,24 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     protected $stateDataCollection;
 
     /**
+     * @var StateData
+     */
+    private $stateData;
+
+    /**
      * AdyenCcDataAssignObserver constructor.
-     *
      * @param CheckoutStateDataValidator $checkoutStateDataValidator
+     * @param Collection $stateDataCollection
+     * @param StateData $stateData
      */
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
-        Collection $stateDataCollection
+        Collection $stateDataCollection,
+        StateData $stateData
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataCollection = $stateDataCollection;
+        $this->stateData = $stateData;
     }
 
     /**
@@ -104,16 +113,13 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
         } else {
             $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }
-
         // Get validated state data array
         if (!empty($stateData)) {
-            $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData(
-                $stateData
-            );
+            $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
         }
-
-        // Replace state data with the decoded and validated state data
-        $additionalData[self::STATE_DATA] = $stateData;
+        // Set stateData in a service and remove from payment's additionalData
+        $this->stateData->setStateData($stateData, $paymentInfo->getData('quote_id'));
+        unset($additionalData[self::STATE_DATA]);
 
         // Set additional data in the payment
         foreach ($additionalData as $key => $data) {

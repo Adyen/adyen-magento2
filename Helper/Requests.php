@@ -27,6 +27,7 @@ use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\UrlInterface;
 use Magento\Payment\Model\InfoInterface;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
@@ -54,25 +55,32 @@ class Requests extends AbstractHelper
      * @var Address
      */
     private $addressHelper;
+    /**
+     * @var StateData
+     */
+    private $stateData;
 
     /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
      * @param Config $adyenConfig
-     * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param UrlInterface $urlBuilder
      * @param Address $addressHelper
+     * @param StateData $stateData
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Adyen\Payment\Helper\Config $adyenConfig,
-        \Magento\Framework\UrlInterface $urlBuilder,
-        Address $addressHelper
+        Data $adyenHelper,
+        Config $adyenConfig,
+        UrlInterface $urlBuilder,
+        Address $addressHelper,
+        StateData $stateData
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->urlBuilder = $urlBuilder;
         $this->addressHelper = $addressHelper;
+        $this->stateData = $stateData;
     }
 
     /**
@@ -355,9 +363,16 @@ class Requests extends AbstractHelper
         $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
         $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
         $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
+        // Initialize the request body with the current state data
+        // Multishipping checkout uses the cc_number field for state data
+        $stateData = $this->stateData->getStateData($payment->getOrder()->getQuoteId()) ?:
+            (json_decode($payment->getCcNumber(), true) ?: []);
 
-        $stateData = $payment->getAdditionalInformation('stateData');
-        $request['storePaymentMethod'] = (bool)($stateData['storePaymentMethod'] ?? $storedPaymentMethodsEnabled);
+        if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
+            $request['storePaymentMethodMode'] = 'askForConsent';
+        } else {
+            $request['storePaymentMethod'] = (bool)($stateData['storePaymentMethod'] ?? $storedPaymentMethodsEnabled);
+        }
 
         //recurring
         if ($storedPaymentMethodsEnabled) {

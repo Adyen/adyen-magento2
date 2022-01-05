@@ -41,6 +41,9 @@ class Config
     const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
     const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
+    const XML_PAYMENT_RETURN_URL = 'payment_return_url';
+    const XML_STATUS_FRAUD_MANUAL_REVIEW = 'fraud_manual_review_status';
+    const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
 
     /**
      * @var ScopeConfigInterface
@@ -212,6 +215,21 @@ class Config
     }
 
     /**
+     * Retrieve the passed fraud status config
+     *
+     * @param int|string $storeId
+     * @return mixed
+     */
+    public function getFraudStatus($fraudStatus, $storeId)
+    {
+        return $this->getConfigData(
+            $fraudStatus,
+            Config::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+    }
+
+    /**
      * Retrieve information from payment configuration
      *
      * @param string $field
@@ -220,7 +238,7 @@ class Config
      * @param bool|false $flag
      * @return bool|mixed
      */
-    private function getConfigData($field, $xmlPrefix, $storeId, $flag = false)
+    public function getConfigData($field, $xmlPrefix, $storeId, $flag = false)
     {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
 
