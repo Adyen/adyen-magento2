@@ -21,25 +21,49 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model;
+namespace Adyen\Payment\Cron;
 
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Config as ConfigHelper;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Invoice as InvoiceHelper;
+use Adyen\Payment\Helper\PaymentMethods as PaymentMethodsHelper;
+use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Api\PaymentRequest;
+use Adyen\Payment\Model\Billing\AgreementFactory;
+use Adyen\Payment\Model\InvoiceFactory;
+use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
+use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
+use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as AgreementCollectionFactory;
+use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
+use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
+use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Notification\NotifierInterface;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Framework\Webapi\Exception;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
 use Magento\Framework\Phrase\Renderer\Placeholder;
 use Magento\Framework\Phrase;
+use Magento\Sales\Model\Order\Payment\Transaction\Builder;
+use Magento\Sales\Model\OrderFactory;
 use Magento\Sales\Model\OrderRepository;
+use Magento\Sales\Model\ResourceModel\Order\Invoice as InvoiceResourceModel;
+use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
@@ -47,39 +71,39 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 
-class Cron
+class WebhookProcessor
 {
     /**
      * Logging instance
      *
-     * @var \Adyen\Payment\Logger\AdyenLogger
+     * @var AdyenLogger
      */
     protected $_adyenLogger;
 
     /**
-     * @var ResourceModel\Notification\CollectionFactory
+     * @var NotificationCollectionFactory
      */
     protected $_notificationFactory;
 
     /**
-     * @var \Magento\Sales\Model\OrderFactory
+     * @var OrderFactory
      */
     protected $_orderFactory;
 
     /**
-     * @var \Magento\Sales\Model\Order
+     * @var Order
      */
     protected $_order;
 
     /**
      * Core store config
      *
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     * @var ScopeConfigInterface
      */
     protected $_scopeConfig;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     protected $_adyenHelper;
 
@@ -94,22 +118,22 @@ class Cron
     protected $_invoiceSender;
 
     /**
-     * @var \Magento\Framework\DB\TransactionFactory
+     * @var TransactionFactory
      */
     protected $_transactionFactory;
 
     /**
-     * @var \Adyen\Payment\Model\Billing\AgreementFactory
+     * @var AgreementFactory
      */
     protected $_billingAgreementFactory;
 
     /**
-     * @var ResourceModel\Billing\Agreement\CollectionFactory
+     * @var AgreementCollectionFactory
      */
     protected $_billingAgreementCollectionFactory;
 
     /**
-     * @var Api\PaymentRequest
+     * @var PaymentRequest
      */
     protected $_adyenPaymentRequest;
 
@@ -123,89 +147,38 @@ class Cron
      */
     protected $_pspReference;
 
-    /**
-     * @var
-     */
     protected $_originalReference;
 
-    /**
-     * @var
-     */
     protected $_merchantReference;
 
-    /**
-     * @var
-     */
     protected $_acquirerReference;
 
-    /**
-     * @var
-     */
     protected $ratepayDescriptor;
 
-    /**
-     * @var
-     */
     protected $_eventCode;
 
-    /**
-     * @var
-     */
     protected $_success;
 
-    /**
-     * @var
-     */
     protected $_paymentMethod;
 
-    /**
-     * @var
-     */
     protected $_reason;
 
-    /**
-     * @var
-     */
     protected $_value;
 
-    /**
-     * @var
-     */
     protected $_currency;
 
-    /**
-     * @var
-     */
     protected $orderAmount;
 
-    /**
-     * @var
-     */
     protected $orderCurrency;
 
-    /**
-     * @var
-     */
     protected $_boletoOriginalAmount;
 
-    /**
-     * @var
-     */
     protected $_boletoPaidAmount;
 
-    /**
-     * @var
-     */
     protected $_modificationResult;
 
-    /**
-     * @var
-     */
     protected $_klarnaReservationNumber;
 
-    /**
-     * @var
-     */
     protected $requireFraudManualReview;
 
     /**
@@ -214,12 +187,12 @@ class Cron
     private $isAutoCapture;
 
     /**
-     * @var ResourceModel\Order\Payment\CollectionFactory
+     * @var OrderPaymentCollectionFactory
      */
     protected $_adyenOrderPaymentCollectionFactory;
 
     /**
-     * @var ResourceModel\InvoiceFactory
+     * @var InvoiceFactory
      */
     protected $_adyenInvoiceFactory;
 
@@ -229,7 +202,7 @@ class Cron
     protected $_areaList;
 
     /**
-     * @var \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory
+     * @var OrderStatusCollectionFactory
      */
     protected $_orderStatusCollection;
 
@@ -244,32 +217,32 @@ class Cron
     private $orderRepository;
 
     /**
-     * @var ResourceModel\Billing\Agreement
+     * @var Agreement
      */
     private $agreementResourceModel;
 
     /**
-     * @var \Magento\Sales\Model\Order\Payment\Transaction\Builder
+     * @var Builder
      */
     private $transactionBuilder;
 
     /**
-     * @var \Magento\Framework\Serialize\SerializerInterface
+     * @var SerializerInterface
      */
     private $serializer;
 
     /**
-     * @var \Magento\Framework\Notification\NotifierInterface
+     * @var NotifierInterface
      */
     private $notifierPool;
 
     /**
-     * @var \Magento\Framework\Stdlib\DateTime\TimezoneInterface
+     * @var TimezoneInterface
      */
     private $timezone;
 
     /**
-     * @var \Adyen\Payment\Helper\Config
+     * @var ConfigHelper
      */
     protected $configHelper;
 
@@ -299,17 +272,17 @@ class Cron
     private $chargedCurrency;
 
     /**
-     * @var \Adyen\Payment\Helper\PaymentMethods
+     * @var PaymentMethodsHelper
      */
     protected $paymentMethodsHelper;
 
     /**
-     * @var \Magento\Sales\Model\ResourceModel\Order\Invoice
+     * @var InvoiceResourceModel
      */
-    protected $invoiceResource;
+    protected $invoiceResourceModel;
 
     /**
-     * @var \Adyen\Payment\Model\ResourceModel\Order\Payment
+     * @var OrderPaymentResourceModel
      */
     protected $orderPaymentResourceModel;
 
@@ -319,7 +292,7 @@ class Cron
     protected $adyenOrderPaymentHelper;
 
     /**
-     * @var \Adyen\Payment\Helper\Invoice
+     * @var InvoiceHelper
      */
     protected $invoiceHelper;
 
@@ -336,72 +309,72 @@ class Cron
     /**
      * Cron constructor.
      *
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param ResourceModel\Notification\CollectionFactory $notificationFactory
-     * @param \Magento\Sales\Model\OrderFactory $orderFactory
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param ScopeConfigInterface $scopeConfig
+     * @param AdyenLogger $adyenLogger
+     * @param NotificationCollectionFactory $notificationFactory
+     * @param OrderFactory $orderFactory
+     * @param Data $adyenHelper
      * @param OrderSender $orderSender
      * @param InvoiceSender $invoiceSender
-     * @param \Magento\Framework\DB\TransactionFactory $transactionFactory
-     * @param Billing\AgreementFactory $billingAgreementFactory
-     * @param ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory
-     * @param Api\PaymentRequest $paymentRequest
-     * @param ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory
+     * @param TransactionFactory $transactionFactory
+     * @param AgreementFactory $billingAgreementFactory
+     * @param AgreementCollectionFactory $billingAgreementCollectionFactory
+     * @param PaymentRequest $paymentRequest
+     * @param OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory
      * @param InvoiceFactory $adyenInvoiceFactory
      * @param AreaList $areaList
-     * @param \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollection
+     * @param OrderStatusCollectionFactory $orderStatusCollection
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param OrderRepository $orderRepository
-     * @param ResourceModel\Billing\Agreement $agreementResourceModel
-     * @param \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder
-     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
-     * @param \Magento\Framework\Notification\NotifierInterface $notifierPool
-     * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezone
-     * @param \Adyen\Payment\Helper\Config $configHelper
+     * @param Agreement $agreementResourceModel
+     * @param Builder $transactionBuilder
+     * @param SerializerInterface $serializer
+     * @param NotifierInterface $notifierPool
+     * @param TimezoneInterface $timezone
+     * @param ConfigHelper $configHelper
      * @param PaymentTokenManagement $paymentTokenManagement
      * @param PaymentTokenFactoryInterface $paymentTokenFactory
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
      * @param EncryptorInterface $encryptor
      * @param ChargedCurrency $chargedCurrency
-     * @param \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
-     * @param ResourceModel\Order\Payment $orderPaymentResourceModel
-     * @param \Magento\Sales\Model\ResourceModel\Order\Invoice
+     * @param PaymentMethodsHelper $paymentMethodsHelper
+     * @param OrderPaymentResourceModel $orderPaymentResourceModel
+     * @param InvoiceResourceModel $invoiceResourceModel
      */
     public function __construct(
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory $notificationFactory,
-        \Magento\Sales\Model\OrderFactory $orderFactory,
-        \Adyen\Payment\Helper\Data $adyenHelper,
+        ScopeConfigInterface $scopeConfig,
+        AdyenLogger $adyenLogger,
+        NotificationCollectionFactory $notificationFactory,
+        OrderFactory $orderFactory,
+        Data $adyenHelper,
         OrderSender $orderSender,
         InvoiceSender $invoiceSender,
-        \Magento\Framework\DB\TransactionFactory $transactionFactory,
-        \Adyen\Payment\Model\Billing\AgreementFactory $billingAgreementFactory,
-        \Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementCollectionFactory,
-        \Adyen\Payment\Model\Api\PaymentRequest $paymentRequest,
-        \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
-        \Adyen\Payment\Model\InvoiceFactory $adyenInvoiceFactory,
+        TransactionFactory $transactionFactory,
+        AgreementFactory $billingAgreementFactory,
+        AgreementCollectionFactory $billingAgreementCollectionFactory,
+        PaymentRequest $paymentRequest,
+        OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
+        InvoiceFactory $adyenInvoiceFactory,
         AreaList $areaList,
-        \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollection,
+        OrderStatusCollectionFactory $orderStatusCollection,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         OrderRepository $orderRepository,
-        \Adyen\Payment\Model\ResourceModel\Billing\Agreement $agreementResourceModel,
-        \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder,
-        \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Magento\Framework\Notification\NotifierInterface $notifierPool,
-        \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezone,
-        \Adyen\Payment\Helper\Config $configHelper,
+        Agreement $agreementResourceModel,
+        Builder $transactionBuilder,
+        SerializerInterface $serializer,
+        NotifierInterface $notifierPool,
+        TimezoneInterface $timezone,
+        ConfigHelper $configHelper,
         PaymentTokenManagement $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
         EncryptorInterface $encryptor,
         ChargedCurrency $chargedCurrency,
-        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper,
-        ResourceModel\Order\Payment $orderPaymentResourceModel,
-        \Magento\Sales\Model\ResourceModel\Order\Invoice $invoiceResource,
+        PaymentMethodsHelper $paymentMethodsHelper,
+        OrderPaymentResourceModel $orderPaymentResourceModel,
+        InvoiceResourceModel $invoiceResourceModel,
         AdyenOrderPayment $adyenOrderPaymentHelper,
-        \Adyen\Payment\Helper\Invoice $invoiceHelper,
+        InvoiceHelper $invoiceHelper,
         CaseManagement $caseManagementHelper,
         PaymentFactory $adyenOrderPaymentFactory
     ) {
@@ -435,7 +408,7 @@ class Cron
         $this->chargedCurrency = $chargedCurrency;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
-        $this->invoiceResource = $invoiceResource;
+        $this->invoiceResourceModel = $invoiceResourceModel;
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->invoiceHelper = $invoiceHelper;
         $this->caseManagementHelper = $caseManagementHelper;
@@ -443,34 +416,206 @@ class Cron
     }
 
     /**
-     * Process the notification
+     * Run the webhook processor
      *
      * @return void
+     * @throws \Exception
      */
-    public function processNotification()
+    public function execute()
     {
         try {
-            $this->execute();
+            $this->doProcessWebhook();
         } catch (\Exception $e) {
             $this->_adyenLogger->addAdyenNotificationCronjob($e->getMessage() . "\n" . $e->getTraceAsString());
             throw $e;
         }
     }
 
-    /**
-     * @param $notification
-     * @return bool
-     */
-    private function shouldSkipProcessingNotification($notification)
+    public function doProcessWebhook()
     {
-        switch ($notification['event_code']) {
+        // needed for Magento < 2.2.0 https://github.com/magento/magento2/pull/8413
+        if (Phrase::getRenderer() instanceof Placeholder) {
+            $this->_areaList->getArea(Area::AREA_CRONTAB)->load(Area::PART_TRANSLATE);
+        }
+
+        $this->_order = null;
+
+        // Fetch notifications collection
+        $notifications = $this->_notificationFactory->create();
+        $notifications->notificationsToProcessFilter();
+
+        // Loop through and process notifications.
+        $count = 0;
+        foreach ($notifications as $notification) {
+            // Skip notifications that should be delayed
+            if ($this->shouldSkipProcessingNotification($notification)) {
+                continue;
+            }
+
+            if($this->processNotification($notification)) {
+                $count++;
+            }
+        }
+
+        if ($count > 0) {
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                sprintf(
+                    "Cronjob updated %s notification(s)",
+                    $count
+                )
+            );
+        }
+    }
+
+    private function processNotification(Notification $notification): bool
+    {
+        // ignore duplicate notification
+        if ($this->_isDuplicate($notification)) {
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                "This is a duplicate notification and will be ignored"
+            );
+
+            return true;
+        }
+
+        // set notification processing to true
+        $this->_updateNotification($notification, true, false);
+        $this->_adyenLogger->addAdyenNotificationCronjob(
+            sprintf("Processing notification %s", $notification->getEntityId())
+        );
+
+        try {
+            // log the executed notification
+            $this->_adyenLogger->addAdyenNotificationCronjob(json_encode($notification->debug()));
+            $this->setOrderByIncrementId($notification);
+            if (!$this->_order) {
+                // order does not exists remove from queue
+                $notification->delete();
+
+                return false;
+            }
+
+            // declare all variables that are needed
+            $this->_declareVariables($notification);
+
+            // add notification to comment history status is current status
+            $this->addNotificationDetailsHistoryComment();
+
+            $previousAdyenEventCode = $this->_order->getData('adyen_notification_event_code');
+
+            // update order details
+            $this->_updateAdyenAttributes($notification);
+
+            // check if success is true of false
+            if (strcmp($this->_success, 'false') == 0 || strcmp($this->_success, '0') == 0) {
+                /*
+                 * Only cancel the order when it is in state new, pending_payment, or payment review
+                 * After order creation alternative payment methods (HPP) has state new and status pending
+                 * while card payments has payment_review state and status
+                 * if the ORDER_CLOSED is failed (means partial payment has not be successful)
+                 */
+                if ($this->_order->getState() === Order::STATE_NEW ||
+                    $this->_order->getState() === Order::STATE_PENDING_PAYMENT ||
+                    $this->_order->getState() === Order::STATE_PAYMENT_REVIEW ||
+                    $this->_eventCode == Notification::ORDER_CLOSED
+                ) {
+                    $this->_adyenLogger->addAdyenNotificationCronjob('Going to cancel the order');
+
+                    // if payment is API check, check if API result pspreference is the same as reference
+                    if ($this->_eventCode == NOTIFICATION::AUTHORISATION
+                        && $this->_getPaymentMethodType() == 'api') {
+                        // don't cancel the order because order was successful through api
+                        $this->_adyenLogger->addAdyenNotificationCronjob(
+                            'order is not cancelled because api result was successful'
+                        );
+                    } else {
+                        /*
+                         * don't cancel the order if previous state is authorisation with success=true
+                         * Partial payments can fail if the second payment has failed the first payment is
+                         * refund/cancelled as well so if it is a partial payment that failed cancel the order as well
+                         */
+                        if ($previousAdyenEventCode != "AUTHORISATION : TRUE" ||
+                            $this->_eventCode == Notification::ORDER_CLOSED
+                        ) {
+                            if ($this->configHelper->getNotificationsCanCancel($this->_order->getStoreId())) {
+                                // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
+                                if ($this->_order->getState() === Order::STATE_PAYMENT_REVIEW
+                                ) {
+                                    $this->_order->setState(Order::STATE_NEW);
+                                }
+
+                                $this->_holdCancelOrder(false);
+                            } else {
+                                $this->_adyenLogger->addAdyenNotificationCronjob(
+                                    'order is not cancelled because "notifications_can_cancel" configuration' .
+                                    'is false.'
+                                );
+                            }
+                        } else {
+                            $this->_order->setData('adyen_notification_event_code', $previousAdyenEventCode);
+                            $this->_adyenLogger->addAdyenNotificationCronjob(
+                                'order is not cancelled because previous notification
+                                    was an authorisation that succeeded'
+                            );
+                        }
+                    }
+                } else {
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        'Order is already processed so ignore this notification state is:'
+                        . $this->_order->getState()
+                    );
+                }
+                //Trigger admin notice for unsuccessful REFUND notifications
+                if ($this->_eventCode == Notification::REFUND) {
+                    $this->addRefundFailedNotice();
+                }
+            } else {
+                // Notification is successful
+                $this->_processNotification();
+            }
+
+            try {
+                // set done to true
+                $this->_order->save();
+            } catch (\Exception $e) {
+                $this->_adyenLogger->addAdyenNotificationCronjob($e->getMessage());
+            }
+
+            $this->_updateNotification($notification, false, true);
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                sprintf("Notification %s is processed", $notification->getEntityId())
+            );
+
+            return true;
+        } catch (\Exception $e) {
+            $this->_updateNotification($notification, false, false);
+            $this->handleNotificationError($notification, $e->getMessage());
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                sprintf(
+                    "Notification %s had an error: %s \n %s",
+                    $notification->getEntityId(),
+                    $e->getMessage(),
+                    $e->getTraceAsString()
+                )
+            );
+        }
+    }
+
+    /**
+     * @param Notification $notification
+     * @return bool
+     * @todo Describe what this method does
+     */
+    private function shouldSkipProcessingNotification(Notification $notification)
+    {
+        switch ($notification->getEventCode()) {
             // Remove OFFER_CLOSED and AUTHORISATION success=false notifications for some time from the processing list
             // to ensure they won't close any order which has an AUTHORISED notification arrived a bit later than the
             // OFFER_CLOSED or the AUTHORISATION success=false one.
             case Notification::OFFER_CLOSED:
                 // OFFER_CLOSED notifications needs to be at least 10 minutes old to be processed
                 $offerClosedMinDate = new \DateTime('-10 minutes');
-                $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
+                $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification->getCreatedAt());
                 $minutesUntilProcessing = ($createdAt->format('U') - $offerClosedMinDate->format('U')) / 60;
 
                 if ($minutesUntilProcessing > 0) {
@@ -489,17 +634,14 @@ class Cron
                 break;
             case Notification::AUTHORISATION:
                 // Only delay success=false notifications processing
-                if (
-                    strcmp($notification['success'], 'true') == 0 ||
-                    strcmp($notification['success'], '1') == 0
-                ) {
+                if ($notification->isSuccessful()) {
                     // do not skip this notification but process it now
                     return false;
                 }
 
                 // AUTHORISATION success=false notifications needs to be at least 10 minutes old to be processed
                 $authorisationSuccessFalseMinDate = new \DateTime('-10 minutes');
-                $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification['created_at']);
+                $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification->getCreatedAt());
 
                 $minutesUntilProcessing = ($createdAt->format('U') - $authorisationSuccessFalseMinDate->format('U')) / 60;
 
@@ -522,179 +664,13 @@ class Cron
         return false;
     }
 
-    public function execute()
-    {
-        // needed for Magento < 2.2.0 https://github.com/magento/magento2/pull/8413
-        $renderer = Phrase::getRenderer();
-        if ($renderer instanceof Placeholder) {
-            $this->_areaList->getArea(Area::AREA_CRONTAB)->load(Area::PART_TRANSLATE);
-        }
-
-        $this->_order = null;
-
-        $notifications = $this->_notificationFactory->create();
-        $notifications->notificationsToProcessFilter();
-
-        // Loop thorugh notifications to set processing to true if notifiaction should not be skipped
-        foreach ($notifications as $notification) {
-            // Check if notification should be processed or not
-            if ($this->shouldSkipProcessingNotification($notification)) {
-                // Remove notification from collection which will be processed
-                $notifications->removeItemByKey($notification->getId());
-                continue;
-            }
-
-            // set notification processing to true
-            $this->_updateNotification($notification, true, false);
-        }
-
-        // loop over the notifications
-        $count = 0;
-        foreach ($notifications as $notification) {
-            try {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    sprintf("Processing notification %s", $notification->getEntityId())
-                );
-
-                // ignore duplicate notification
-                if ($this->_isDuplicate($notification)) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        "This is a duplicate notification and will be ignored"
-                    );
-                    $this->_updateNotification($notification, false, true);
-                    ++$count;
-                    continue;
-                }
-
-                // log the executed notification
-                $this->_adyenLogger->addAdyenNotificationCronjob(json_encode($notification->debug()));
-                $this->setOrderByIncrementId($notification);
-                if (!$this->_order) {
-                    // order does not exists remove from queue
-                    $notification->delete();
-                    continue;
-                }
-
-                // declare all variables that are needed
-                $this->_declareVariables($notification);
-
-                // add notification to comment history status is current status
-                $this->addNotificationDetailsHistoryComment();
-
-                $previousAdyenEventCode = $this->_order->getData('adyen_notification_event_code');
-
-                // update order details
-                $this->_updateAdyenAttributes($notification);
-
-                // check if success is true of false
-                if (strcmp($this->_success, 'false') == 0 || strcmp($this->_success, '0') == 0) {
-                    /*
-                     * Only cancel the order when it is in state new, pending_payment, or payment review
-                     * After order creation alternative payment methods (HPP) has state new and status pending
-                     * while card payments has payment_review state and status
-                     * if the ORDER_CLOSED is failed (means partial payment has not be successful)
-                     */
-                    if ($this->_order->getState() === \Magento\Sales\Model\Order::STATE_NEW ||
-                        $this->_order->getState() === \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT ||
-                        $this->_order->getState() === \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW ||
-                        $this->_eventCode == Notification::ORDER_CLOSED
-                    ) {
-                        $this->_adyenLogger->addAdyenNotificationCronjob('Going to cancel the order');
-
-                        // if payment is API check, check if API result pspreference is the same as reference
-                        if ($this->_eventCode == NOTIFICATION::AUTHORISATION
-                            && $this->_getPaymentMethodType() == 'api') {
-                            // don't cancel the order becasue order was successfull through api
-                            $this->_adyenLogger->addAdyenNotificationCronjob(
-                                'order is not cancelled because api result was succesfull'
-                            );
-                        } else {
-                            /*
-                             * don't cancel the order if previous state is authorisation with success=true
-                             * Partial payments can fail if the second payment has failed the first payment is
-                             * refund/cancelled as well so if it is a partial payment that failed cancel the order as well
-                             */
-                            if ($previousAdyenEventCode != "AUTHORISATION : TRUE" ||
-                                $this->_eventCode == Notification::ORDER_CLOSED
-                            ) {
-                                if ($this->configHelper->getNotificationsCanCancel($this->_order->getStoreId())) {
-                                    // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
-                                    if ($this->_order->getState() === \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW
-                                    ) {
-                                        $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
-                                    }
-
-                                    $this->_holdCancelOrder(false);
-                                } else {
-                                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                                        'order is not cancelled because "notifications_can_cancel" configuration' .
-                                        'is false.'
-                                    );
-                                }
-                            } else {
-                                $this->_order->setData('adyen_notification_event_code', $previousAdyenEventCode);
-                                $this->_adyenLogger->addAdyenNotificationCronjob(
-                                    'order is not cancelled because previous notification
-                                    was an authorisation that succeeded'
-                                );
-                            }
-                        }
-                    } else {
-                        $this->_adyenLogger->addAdyenNotificationCronjob(
-                            'Order is already processed so ignore this notification state is:'
-                            . $this->_order->getState()
-                        );
-                    }
-                    //Trigger admin notice for unsuccessful REFUND notifications
-                    if ($this->_eventCode == Notification::REFUND) {
-                        $this->addRefundFailedNotice();
-                    }
-                } else {
-                    // Notification is successful
-                    $this->_processNotification();
-                }
-
-                try {
-                    // set done to true
-                    $this->_order->save();
-                } catch (\Exception $e) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob($e->getMessage());
-                }
-
-                $this->_updateNotification($notification, false, true);
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    sprintf("Notification %s is processed", $notification->getEntityId())
-                );
-                ++$count;
-            } catch (\Exception $e) {
-                $this->_updateNotification($notification, false, false);
-                $this->handleNotificationError($notification, $e->getMessage());
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    sprintf(
-                        "Notification %s had an error: %s \n %s",
-                        $notification->getEntityId(),
-                        $e->getMessage(),
-                        $e->getTraceAsString()
-                    )
-                );
-            }
-        }
-        if ($count > 0) {
-            $this->_adyenLogger->addAdyenNotificationCronjob(
-                sprintf(
-                    "Cronjob updated %s notification(s)",
-                    $count
-                )
-            );
-        }
-    }
-
     /**
-     * @param $notification
+     * @param Notification $notification
      * @param $processing
      * @param $done
+     * @throws \Exception
      */
-    protected function _updateNotification($notification, $processing, $done)
+    protected function _updateNotification(Notification $notification, $processing, $done)
     {
         if ($done) {
             $notification->setDone(true);
@@ -824,7 +800,6 @@ class Cron
 
     /**
      * @desc order comments or history
-     * @param type $order
      */
     protected function addNotificationDetailsHistoryComment()
     {
@@ -1055,9 +1030,9 @@ class Cron
 
         // check if order has in invoice only cancel/hold if this is not the case
         if ($ignoreHasInvoice || !$this->_order->hasInvoices()) {
-            if ($orderStatus == \Magento\Sales\Model\Order::STATE_HOLDED) {
+            if ($orderStatus == Order::STATE_HOLDED) {
                 // Allow magento to hold order
-                $this->_order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_HOLD, true);
+                $this->_order->setActionFlag(Order::ACTION_FLAG_HOLD, true);
 
                 if ($this->_order->canHold()) {
                     $this->_order->hold();
@@ -1069,7 +1044,7 @@ class Cron
                 }
             } else {
                 // Allow magento to cancel order
-                $this->_order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
+                $this->_order->setActionFlag(Order::ACTION_FLAG_CANCEL, true);
 
                 if ($this->_order->canCancel()) {
                     $this->_order->cancel();
@@ -1215,7 +1190,7 @@ class Cron
                         $this->_order->getStoreId()
                     )) {
                     // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
-                    $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                    $this->_order->setState(Order::STATE_NEW);
                 }
                 $this->_holdCancelOrder(true);
                 break;
@@ -1233,7 +1208,7 @@ class Cron
                     }
                 } else {
                     if ($this->_order->isCanceled() ||
-                        $this->_order->getState() === \Magento\Sales\Model\Order::STATE_HOLDED
+                        $this->_order->getState() === Order::STATE_HOLDED
                     ) {
                         $this->_adyenLogger->addAdyenNotificationCronjob(
                             'Order is already cancelled or holded so do nothing'
@@ -1458,7 +1433,7 @@ class Cron
 
             $orderPayment = $this->_adyenOrderPaymentCollectionFactory
                 ->create()
-                ->addFieldToFilter(\Adyen\Payment\Model\Notification::PSPREFRENCE, $this->_originalReference)
+                ->addFieldToFilter(Notification::PSPREFRENCE, $this->_originalReference)
                 ->getFirstItem();
 
             if ($orderPayment->getId() > 0) {
@@ -1595,8 +1570,8 @@ class Cron
         $this->_adyenLogger->addAdyenNotificationCronjob('Prepare invoice for order');
 
         //Set order state to new because with order state payment_review it is not possible to create an invoice
-        if (strcmp($this->_order->getState(), \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW) == 0) {
-            $this->_order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+        if (strcmp($this->_order->getState(), Order::STATE_PAYMENT_REVIEW) == 0) {
+            $this->_order->setState(Order::STATE_NEW);
         }
 
         $paymentObj = $this->_order->getPayment();
@@ -1883,7 +1858,7 @@ class Cron
                     $invoice->register()->pay();
                 }
 
-                $this->invoiceResource->save($invoice);
+                $this->invoiceResourceModel->save($invoice);
             } catch (Exception $e) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'Error saving invoice. The error message is: ' . $e->getMessage()
@@ -2083,7 +2058,7 @@ class Cron
     /**
      * Add/update info on notification processing errors
      *
-     * @param \Adyen\Payment\Model\Notification $notification
+     * @param Notification $notification
      * @param string $errorMessage
      * @return void
      */
@@ -2096,7 +2071,7 @@ class Cron
     /**
      * Increases error count and appends error message to notification
      *
-     * @param \Adyen\Payment\Model\Notification $notification
+     * @param Notification $notification
      * @param string $errorMessage
      * @return void
      */
@@ -2222,7 +2197,7 @@ class Cron
 
         $orderList = $this->orderRepository->getList($searchCriteria)->getItems();
 
-        /** @var \Magento\Sales\Model\Order $order */
+        /** @var Order $order */
         $order = reset($orderList);
         $this->_order = $order;
     }
