@@ -887,7 +887,7 @@
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Model\Cron">
+    <type name="Adyen\Payment\Model\WebhookProcessor">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
