@@ -220,7 +220,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
      */
     public function isSuccessful(): bool
     {
-        return $this->getSuccess() === 'true';
+        return strcmp($this->getSuccess(), 'true') === 0 || strcmp($this->getSuccess(), '1') === 0;
     }
 
     /**

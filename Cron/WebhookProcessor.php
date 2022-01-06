@@ -447,6 +447,20 @@ class WebhookProcessor
         // Loop through and process notifications.
         $count = 0;
         foreach ($notifications as $notification) {
+            // ignore duplicate notification
+            if ($notification->isDuplicate(
+                    $notification->getPspreference(),
+                    $notification->getEventCode(),
+                    $notification->getSuccess(),
+                    $notification->getOriginalReference(),
+                    true
+                )
+            ) {
+                $this->_adyenLogger
+                    ->addAdyenNotificationCronjob("This is a duplicate notification and will be ignored");
+                continue;
+            }
+
             // Skip notifications that should be delayed
             if ($this->shouldSkipProcessingNotification($notification)) {
                 continue;
@@ -458,31 +472,16 @@ class WebhookProcessor
         }
 
         if ($count > 0) {
-            $this->_adyenLogger->addAdyenNotificationCronjob(
-                sprintf(
-                    "Cronjob updated %s notification(s)",
-                    $count
-                )
-            );
+            $this->_adyenLogger->addAdyenNotificationCronjob(sprintf("Cronjob updated %s notification(s)", $count));
         }
     }
 
     private function processNotification(Notification $notification): bool
     {
-        // ignore duplicate notification
-        if ($this->_isDuplicate($notification)) {
-            $this->_adyenLogger->addAdyenNotificationCronjob(
-                "This is a duplicate notification and will be ignored"
-            );
-
-            return true;
-        }
-
         // set notification processing to true
         $this->_updateNotification($notification, true, false);
-        $this->_adyenLogger->addAdyenNotificationCronjob(
-            sprintf("Processing notification %s", $notification->getEntityId())
-        );
+        $this->_adyenLogger
+            ->addAdyenNotificationCronjob(sprintf("Processing notification %s", $notification->getEntityId()));
 
         try {
             // log the executed notification
@@ -506,8 +505,11 @@ class WebhookProcessor
             // update order details
             $this->_updateAdyenAttributes($notification);
 
-            // check if success is true of false
-            if (strcmp($this->_success, 'false') == 0 || strcmp($this->_success, '0') == 0) {
+            // check if success is true or false
+            if ($notification->isSuccessful()) {
+                // Notification is successful
+                $this->_processNotification();
+            } else {
                 /*
                  * Only cancel the order when it is in state new, pending_payment, or payment review
                  * After order creation alternative payment methods (HPP) has state new and status pending
@@ -569,9 +571,6 @@ class WebhookProcessor
                 if ($this->_eventCode == Notification::REFUND) {
                     $this->addRefundFailedNotice();
                 }
-            } else {
-                // Notification is successful
-                $this->_processNotification();
             }
 
             try {
@@ -602,16 +601,15 @@ class WebhookProcessor
     }
 
     /**
+     * Remove OFFER_CLOSED and AUTHORISATION success=false notifications for some time from the processing list
+     * to ensure they won't close any order which has an AUTHORISED notification arrived a bit later than the
+     * OFFER_CLOSED or the AUTHORISATION success=false one.
      * @param Notification $notification
      * @return bool
-     * @todo Describe what this method does
      */
     private function shouldSkipProcessingNotification(Notification $notification)
     {
         switch ($notification->getEventCode()) {
-            // Remove OFFER_CLOSED and AUTHORISATION success=false notifications for some time from the processing list
-            // to ensure they won't close any order which has an AUTHORISED notification arrived a bit later than the
-            // OFFER_CLOSED or the AUTHORISATION success=false one.
             case Notification::OFFER_CLOSED:
                 // OFFER_CLOSED notifications needs to be at least 10 minutes old to be processed
                 $offerClosedMinDate = new \DateTime('-10 minutes');
@@ -681,29 +679,12 @@ class WebhookProcessor
     }
 
     /**
-     * Check if the notification is already executed if so this is a duplicate and ignore this one
-     *
-     * @param $notification
-     * @return bool
-     */
-    protected function _isDuplicate($notification)
-    {
-        return $notification->isDuplicate(
-            $notification->getPspreference(),
-            $notification->getEventCode(),
-            $notification->getSuccess(),
-            $notification->getOriginalReference(),
-            true
-        );
-    }
-
-    /**
      * Declare private variables for processing notification
      *
-     * @param Object $notification
+     * @param Notification $notification
      * @return void
      */
-    protected function _declareVariables($notification)
+    protected function _declareVariables(Notification $notification)
     {
         //TODO: Use notification and its getters where possible, instead of declaring values one by one
         $this->notification = $notification;
@@ -884,17 +865,15 @@ class WebhookProcessor
     }
 
     /**
-     * @param $notification
+     * @param Notification $notification
      */
-    protected function _updateAdyenAttributes($notification)
+    protected function _updateAdyenAttributes(Notification $notification)
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Updating the Adyen attributes of the order');
 
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()
         ) : "";
-
-        $_paymentCode = $this->_paymentMethodCode();
 
         if ($this->_eventCode == Notification::AUTHORISATION
             || $this->_eventCode == Notification::HANDLED_EXTERNALLY
@@ -903,10 +882,7 @@ class WebhookProcessor
              * if current notification is authorisation : false and
              * the  previous notification was authorisation : true do not update pspreference
              */
-            if (strcmp($this->_success, 'false') == 0 ||
-                strcmp($this->_success, '0') == 0 ||
-                strcmp($this->_success, '') == 0
-            ) {
+            if (!$notification->isSuccessful()) {
                 $previousAdyenEventCode = $this->_order->getData('adyen_notification_event_code');
                 if ($previousAdyenEventCode != "AUTHORISATION : TRUE") {
                     $this->_updateOrderPaymentWithAdyenAttributes($additionalData);
@@ -2187,7 +2163,7 @@ class WebhookProcessor
      * Set the order data member by fetching the entity from the database.
      * This should be moved out of this file in the future.
      */
-    private function setOrderByIncrementId($notification)
+    private function setOrderByIncrementId(Notification $notification)
     {
         $incrementId = $notification->getMerchantReference();
 
