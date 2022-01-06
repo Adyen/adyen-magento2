@@ -227,10 +227,12 @@ define(
              * @returns {{method: *}}
              */
             getData: function() {
+                let stateData = JSON.stringify(this.cardComponent.data);
+                window.sessionStorage.setItem('adyen.stateData', stateData);
                 return {
                     'method': this.item.method,
                     additional_data: {
-                        'stateData': JSON.stringify(this.cardComponent.data),
+                        'stateData': stateData,
                         'guestEmail': quote.guestEmail,
                         'cc_type': this.creditCardType(),
                         'combo_card_type': this.comboCardOption(),
