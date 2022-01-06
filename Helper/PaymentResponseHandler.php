@@ -239,10 +239,10 @@ class PaymentResponseHandler
                                     ->setComment(__('Order has been cancelled by "%1" payment response.', $payment->getMethod()));
                                 $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
                         } catch (\Exception $e) {
-                                $this->adyenLogger->addAdyenDebug(
-                                        __('Order cancel history comment error: %1', $e->getMessage())
-                                    );
-                                }
+                            $this->adyenLogger->addAdyenDebug(
+                                    __('Order cancel history comment error: %1', $e->getMessage())
+                                );
+                            }
                         } else { //previous canceling process
                             $this->adyenLogger->addAdyenDebug('Unsuccessful order canceling attempt by orderManagement service, use legacy process');
                             $order->cancel();

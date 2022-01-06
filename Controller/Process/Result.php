@@ -26,6 +26,7 @@ namespace Adyen\Payment\Controller\Process;
 use Adyen\Payment\Helper\StateData;
 use \Adyen\Payment\Model\Notification;
 use Adyen\Service\Validator\DataArrayValidator;
+use Adyen\Payment\Helper\PaymentResponseHandler;
 use Magento\Framework\App\Request\Http as Http;
 use Magento\Sales\Model\Order;
 
