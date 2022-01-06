@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
+use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -55,6 +56,10 @@ class Requests extends AbstractHelper
      * @var Address
      */
     private $addressHelper;
+    /**
+     * @var StateData
+     */
+    private $stateData;
 
     /**
      * Requests constructor.
@@ -68,12 +73,14 @@ class Requests extends AbstractHelper
         Data $adyenHelper,
         Config $adyenConfig,
         UrlInterface $urlBuilder,
-        Address $addressHelper
+        Address $addressHelper,
+        StateData $stateData
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->urlBuilder = $urlBuilder;
         $this->addressHelper = $addressHelper;
+        $this->stateData = $stateData;
     }
 
     /**
@@ -346,17 +353,23 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param $request
-     * @param $areaCode
-     * @param $storeId
+     * @param int $storeId
      * @param $payment
+     * @return array
      */
-    public function buildRecurringData(int $storeId, $payment, $request = [])
+    public function buildRecurringData(int $storeId, $payment): array
     {
-        $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
-        $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
+        $request = [];
+        // Recurring payments feature is not currently available for PayPal
+        if ($payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE) === 'paypal') {
+            return $request;
+        }
+
         $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
-        $stateData = $payment->getAdditionalInformation('stateData');
+        // Initialize the request body with the current state data
+        // Multishipping checkout uses the cc_number field for state data
+        $stateData = $this->stateData->getStateData($payment->getOrder()->getQuoteId()) ?:
+            json_decode($payment->getCcNumber(), true);
 
         if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
             $request['storePaymentMethodMode'] = 'askForConsent';
@@ -366,14 +379,11 @@ class Requests extends AbstractHelper
 
         //recurring
         if ($storedPaymentMethodsEnabled) {
-            if ($enableVault) {
+            if ($this->adyenHelper->isCreditCardVaultEnabled()) {
                 $request['recurringProcessingModel'] = 'Subscription';
             } else {
-                if ($enableOneclick) {
-                    $request['recurringProcessingModel'] = 'CardOnFile';
-                } else {
-                    $request['recurringProcessingModel'] = 'Subscription';
-                }
+                $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
+                $request['recurringProcessingModel'] = $enableOneclick ? 'CardOnFile' : 'Subscription';
             }
         }
 
