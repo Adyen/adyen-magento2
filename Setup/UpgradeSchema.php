@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Setup;
 
+use Adyen\Payment\Api\Data\CreditmemoInterface;
 use Adyen\Payment\Api\Data\InvoiceInterface;
 use Adyen\Payment\Model\Invoice;
 use Adyen\Payment\Model\Order\Payment;
@@ -30,6 +31,7 @@ use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
+use Magento\Sales\Model\Order\Email\Container\CreditmemoIdentity;
 use Zend_Db_Exception;
 
 /**
@@ -39,6 +41,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
 {
     const ADYEN_ORDER_PAYMENT = 'adyen_order_payment';
     const ADYEN_INVOICE = 'adyen_invoice';
+    const ADYEN_CREDITMEMO = 'adyen_creditmemo';
     const ADYEN_STATE_DATA = 'adyen_state_data';
     const ADYEN_PAYMENT_RESPONSE = 'adyen_payment_response';
 
@@ -96,6 +99,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         if (version_compare($context->getVersion(), '8.0.1', '<')) {
             $this->updateSchemaVersion801($setup);
         }
+        $this->updateSchemaVersion801($setup);
 
         $setup->endSetup();
     }
@@ -616,6 +620,9 @@ class UpgradeSchema implements UpgradeSchemaInterface
     public function updateSchemaVersion801(SchemaSetupInterface $setup)
     {
         $connection = $setup->getConnection();
+
+        // - Update adyen_order_payment table
+
         $adyenOrderPaymentTable = $setup->getTable(self::ADYEN_ORDER_PAYMENT);
 
         $totalCapturedColumn = [
@@ -632,6 +639,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
             Payment::TOTAL_CAPTURED,
             $totalCapturedColumn
         );
+
+        // - Update adyen_invoice table
 
         $adyenInvoiceTable = $setup->getTable(self::ADYEN_INVOICE);
 
@@ -727,5 +736,92 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'comment' => 'Link to Magento Invoice table'
             ]
         );
+
+        // - Create adyen_creditmemo table
+        $adyenCreditmemoTable = $setup->getConnection()
+            ->newTable($setup->getTable(self::ADYEN_CREDITMEMO))
+            ->addColumn(
+                CreditmemoInterface::ENTITY_ID,
+                Table::TYPE_INTEGER,
+                null,
+                ['identity' => true, 'unsigned' => true, 'nullable' => false, 'primary' => true],
+                'Adyen Creditmemo Entity ID'
+            )
+            ->addColumn(
+                CreditmemoInterface::PSPREFERENCE,
+                Table::TYPE_TEXT,
+                255,
+                ['unsigned' => true, 'nullable' => false],
+                'Adyen pspreference of the capture'
+            )
+            ->addColumn(
+                CreditmemoInterface::CREDITMEMO_ID,
+                Table::TYPE_INTEGER,
+                11,
+                ['unsigned' => true, 'nullable' => false],
+                'Creditmemo Id'
+            )
+            ->addColumn(
+                CreditmemoInterface::AMOUNT,
+                Table::TYPE_DECIMAL,
+                '12,4',
+                ['unsigned' => true, 'nullable' => false],
+                'Amount Refunded'
+            )
+            ->addColumn(
+                CreditmemoInterface::ADYEN_ORDER_PAYMENT_ID,
+                Table::TYPE_INTEGER,
+                11,
+                ['unsigned' => true, 'nullable' => false],
+                'ID of corresponding payment'
+            )
+            ->addColumn(
+                CreditmemoInterface::STATUS,
+                Table::TYPE_INTEGER,
+                11,
+                ['unsigned' => true, 'nullable' => true],
+                'Creditmemo status'
+            )
+            ->addColumn(
+                CreditmemoInterface::CREATED_AT,
+                Table::TYPE_TIMESTAMP,
+                null,
+                ['nullable' => false, 'default' => Table::TIMESTAMP_INIT],
+                'Created at'
+            )
+            ->addColumn(
+                CreditmemoInterface::UPDATED_AT,
+                Table::TYPE_TIMESTAMP,
+                null,
+                ['nullable' => false, 'default' => Table::TIMESTAMP_INIT_UPDATE],
+                'Updated at'
+            )
+            ->addForeignKey(
+                $setup->getFkName(
+                    self::ADYEN_CREDITMEMO,
+                    CreditmemoInterface::CREDITMEMO_ID,
+                    'sales_creditmemo',
+                    'entity_id'
+                ),
+                CreditmemoInterface::CREDITMEMO_ID,
+                $setup->getTable('sales_creditmemo'),
+                'entity_id',
+                Table::ACTION_CASCADE
+            )
+            ->addForeignKey(
+                $setup->getFkName(
+                    self::ADYEN_CREDITMEMO,
+                    CreditmemoInterface::ADYEN_ORDER_PAYMENT_ID,
+                    'adyen_order_payment',
+                    'entity_id'
+                ),
+                CreditmemoInterface::ADYEN_ORDER_PAYMENT_ID,
+                $setup->getTable('adyen_order_payment'),
+                'entity_id',
+                Table::ACTION_CASCADE
+            )
+            ->setComment('Adyen Creditmemo');
+
+        $setup->getConnection()->createTable($adyenCreditmemoTable);
     }
 }
