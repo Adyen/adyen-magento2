@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -28,53 +28,27 @@ interface OrderPaymentInterface
     /**
      * Constants for keys of data array. Identical to the name of the getter in snake case.
      */
-
-    /*
-     * Entity ID.
-     */
     const ENTITY_ID = 'entity_id';
-    /*
-     * Pspreference.
-     */
     const PSPREFRENCE = 'pspreference';
-    /*
-     * Merchantreference
-     */
     const MERCHANT_REFERENCE = 'merchant_reference';
-    /*
-    * payment_id
-    */
     const PAYMENT_ID = 'payment_id';
-    /*
-     * Paymentmethod
-     */
     const PAYMENT_METHOD = 'payment_method';
-    /*
-     * Amount
-     */
     const AMOUNT = 'amount';
-    /*
-     * Total Refunded
-     */
     const TOTAL_REFUNDED = 'total_refunded';
-    /*
-     * Created-at timestamp.
-     */
     const CREATED_AT = 'created_at';
-    /*
-     * Updated-at timestamp.
-     */
     const UPDATED_AT = 'updated_at';
-    /*
-     * Captured
-     */
     const CAPTURE_STATUS = 'capture_status';
+    const TOTAL_CAPTURED = 'total_captured';
+
 
     // Either manual capture is not being used OR payment method does not support manual capture
     const CAPTURE_STATUS_AUTO_CAPTURE = 'Auto Captured';
 
     // Payment has been manually captured
     const CAPTURE_STATUS_MANUAL_CAPTURE = 'Manually Captured';
+
+    // Payment has been partially manually captured
+    const CAPTURE_STATUS_PARTIAL_CAPTURE = 'Partially Captured';
 
     // Payment has not been captured yet
     const CAPTURE_STATUS_NO_CAPTURE = 'Not captured';
@@ -227,4 +201,18 @@ interface OrderPaymentInterface
      * @return mixed
      */
     public function getCaptureStatus();
+
+    /**
+     * Gets the TotalCaptured for the payment.
+     *
+     * @return int|null
+     */
+    public function getTotalCaptured();
+
+    /**
+     * Sets Total Captured.
+     *
+     * @param $totalCaptured
+     */
+    public function setTotalCaptured($totalCaptured);
 }

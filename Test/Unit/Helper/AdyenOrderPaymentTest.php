@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -26,6 +26,7 @@ namespace Adyen\Payment\Tests\Helper;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\Payment as AdyenPaymentModel;
@@ -54,6 +55,11 @@ class AdyenOrderPaymentTest extends TestCase
      */
     private $mockAdyenOrderPaymentFactory;
 
+    /**
+     * @var Invoice|\PHPUnit\Framework\MockObject\MockObject
+     */
+    private $mockInvoiceHelper;
+
     public function setUp(): void
     {
         $mockContext = $this->getMockBuilder(Context::class)
@@ -78,6 +84,9 @@ class AdyenOrderPaymentTest extends TestCase
             ->disableOriginalConstructor()
             ->setMethods(['create'])
             ->getMock();
+        $this->mockInvoiceHelper = $this->getMockBuilder(Invoice::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->adyenOrderPaymentHelper = new AdyenOrderPayment(
             $mockContext,
             $mockLogger,
@@ -85,76 +94,9 @@ class AdyenOrderPaymentTest extends TestCase
             $this->mockAdyenDataHelper,
             $mockChargedCurrency,
             $this->mockOrderPaymentResourceModel,
-            $this->mockAdyenOrderPaymentFactory
+            $this->mockAdyenOrderPaymentFactory,
+            $this->mockInvoiceHelper
         );
-    }
-
-    /**
-     * @dataProvider adyenOrderPaymentsData
-     * @param $orderPayments
-     * @param $status
-     * @param $expectedResult
-     */
-    public function testHasOrderPaymentWithCaptureStatus($orderPayments, $status, $expectedResult)
-    {
-        $order = $this->getMockBuilder(Order::class)->disableOriginalConstructor()->getMock();
-        $payment = $this->getMockBuilder(Order\Payment::class)->disableOriginalConstructor()->getMock();
-        $order->method('getPayment')->willReturn($payment);
-        $this->mockOrderPaymentResourceModel->method('getLinkedAdyenOrderPayments')->willReturn($orderPayments);
-        $result = $this->adyenOrderPaymentHelper->hasOrderPaymentWithCaptureStatus($order, $status);
-
-        $this->assertEquals($result, $expectedResult);
-    }
-
-    public function adyenOrderPaymentsData(): array
-    {
-        return [
-            [
-                'orderPayments' => [
-                    ['capture_status' => 'Auto Captured'],
-                    ['capture_status' => 'Manually Captured'],
-                    ['capture_status' => 'Auto Captured'],
-                ],
-                'status' => 'Manually Captured',
-                'expectedResult' => true,
-            ],
-            [
-                'orderPayments' => [
-                    ['capture_status' => 'Auto Captured'],
-                    ['capture_status' => 'Auto Captured'],
-                    ['capture_status' => 'Auto Captured'],
-                ],
-                'status' => 'Manually Captured',
-                'expectedResult' => false,
-            ],
-            [
-                'orderPayments' => [
-                    ['capture_status' => 'Auto Captured'],
-                    ['capture_status' => 'Auto Captured'],
-                    ['capture_status' => 'Auto Captured'],
-                ],
-                'status' => 'Not captured',
-                'expectedResult' => false,
-            ],
-            [
-                'orderPayments' => [
-                    ['capture_status' => 'Not captured'],
-                    ['capture_status' => 'Auto Captured'],
-                    ['capture_status' => 'Auto Captured'],
-                ],
-                'status' => 'Not captured',
-                'expectedResult' => true,
-            ],
-            [
-                'orderPayments' => [
-                    ['capture_status' => 'Auto Captured'],
-                    ['capture_status' => 'Auto Captured'],
-                    ['capture_status' => 'Auto Captured'],
-                ],
-                'status' => 'Auto Captured',
-                'expectedResult' => true,
-            ],
-        ];
     }
 
     public function testCreateAdyenOrderPayment()

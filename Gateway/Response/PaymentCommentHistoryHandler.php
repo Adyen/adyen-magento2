@@ -53,7 +53,7 @@ class PaymentCommentHistoryHandler implements HandlerInterface
         $payment = $readPayment->getPayment();
 
         if (array_key_exists(TransactionCapture::MULTIPLE_AUTHORIZATIONS, $response)) {
-            return $this->handleMultipleCaptureRequests($payment, $response);
+            return $this->handlePartialOrMultipleCaptureRequests($payment, $response);
         }
 
         $responseCode = $this->getResponseCode($response);
@@ -84,18 +84,18 @@ class PaymentCommentHistoryHandler implements HandlerInterface
      * @param array $responseContainer
      * @return $this
      */
-    private function handleMultipleCaptureRequests($payment, array $responseContainer)
+    private function handlePartialOrMultipleCaptureRequests($payment, array $responseContainer)
     {
         $this->adyenLogger->info(sprintf(
-            'Handling multiple capture response in comment history handler for payment %s',
-            $payment->getId()
+            'Handling partial OR multiple capture response in comment history handler for order %s',
+            $payment->getOrder()->getIncrementId()
         ));
 
         $resultEventCodes = [];
         foreach ($responseContainer[TransactionCapture::MULTIPLE_AUTHORIZATIONS] as $response) {
             $responseCode = $this->getResponseCode($response);
             $pspReference = $this->getPspReference($response);
-            $amount = $response[TransactionCapture::CAPTURE_AMOUNT];
+            $amount = $response[TransactionCapture::FORMATTED_CAPTURE_AMOUNT];
 
             $type = 'Adyen Result response:';
             $comment = __(
