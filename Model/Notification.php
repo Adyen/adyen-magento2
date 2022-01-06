@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -211,6 +211,16 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     public function setSuccess($success)
     {
         return $this->setData(self::SUCCESS, $success);
+    }
+
+    /**
+     * Check if notification is successful and return bool
+     *
+     * @return bool
+     */
+    public function isSuccessful(): bool
+    {
+        return $this->getSuccess() === 'true';
     }
 
     /**

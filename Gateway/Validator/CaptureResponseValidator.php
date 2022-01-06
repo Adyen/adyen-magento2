@@ -97,8 +97,8 @@ class CaptureResponseValidator extends AbstractValidator
      */
     private function buildErrorMessages($response, bool $multiple = false)
     {
-        if ($multiple && array_key_exists(TransactionCapture::CAPTURE_AMOUNT, $response)) {
-            $errorMsg = __('Error with capture on transaction with amount') . $response[TransactionCapture::CAPTURE_AMOUNT];
+        if ($multiple && array_key_exists(TransactionCapture::FORMATTED_CAPTURE_AMOUNT, $response)) {
+            $errorMsg = __('Error with capture on transaction with amount') . $response[TransactionCapture::FORMATTED_CAPTURE_AMOUNT];
         } else {
             $errorMsg = __('Error with capture');
         }
