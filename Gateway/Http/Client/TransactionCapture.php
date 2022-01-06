@@ -38,7 +38,9 @@ use Magento\Payment\Gateway\Http\TransferInterface;
 class TransactionCapture implements ClientInterface
 {
     const MULTIPLE_AUTHORIZATIONS = 'multiple_authorizations';
+    const FORMATTED_CAPTURE_AMOUNT = 'formatted_capture_amount';
     const CAPTURE_AMOUNT = 'capture_amount';
+    const ORIGINAL_REFERENCE = 'original_reference';
     const CAPTURE_RECEIVED = '[capture-received]';
 
     /**
@@ -83,6 +85,7 @@ class TransactionCapture implements ClientInterface
 
         try {
             $response = $service->capture($request);
+            $response = $this->copyParamsToResponse($response, $request);
         } catch (AdyenException $e) {
             $response['error'] = $e->getMessage();
         }
@@ -103,11 +106,12 @@ class TransactionCapture implements ClientInterface
                 // Copy merchant account from parent array to every request array
                 $request[Requests::MERCHANT_ACCOUNT] = $requestContainer[Requests::MERCHANT_ACCOUNT];
                 $singleResponse = $service->capture($request);
-                $singleResponse[self::CAPTURE_AMOUNT] = $request['modificationAmount']['currency'] . ' ' .
+                $singleResponse[self::FORMATTED_CAPTURE_AMOUNT] = $request['modificationAmount']['currency'] . ' ' .
                 $this->adyenHelper->originalAmount(
                     $request['modificationAmount']['value'],
                     $request['modificationAmount']['currency']
                 );
+                $singleResponse = $this->copyParamsToResponse($singleResponse, $request);
                 $response[self::MULTIPLE_AUTHORIZATIONS][] = $singleResponse;
             } catch (AdyenException $e) {
                 $message = sprintf(
@@ -121,6 +125,21 @@ class TransactionCapture implements ClientInterface
                 $response[self::MULTIPLE_AUTHORIZATIONS]['error'] = $message;
             }
         }
+
+        return $response;
+    }
+
+    /**
+     * Copy data from the request to the response. This data will be used later when handling the response
+     *
+     * @param array $response
+     * @param array $request
+     * @return array
+     */
+    private function copyParamsToResponse(array $response, array $request): array
+    {
+        $response[self::CAPTURE_AMOUNT] = $request['modificationAmount']['value'];
+        $response[self::ORIGINAL_REFERENCE] = $request['originalReference'];
 
         return $response;
     }

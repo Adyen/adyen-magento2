@@ -209,4 +209,21 @@ class Payment extends \Magento\Framework\Model\AbstractModel implements OrderPay
     {
         return $this->getData(self::CAPTURE_STATUS);
     }
+
+    /**
+     * @return int
+     */
+    public function getTotalCaptured()
+    {
+        return $this->getData(self::TOTAL_CAPTURED);
+    }
+
+    /**
+     * @param $totalCaptured
+     * @return Payment
+     */
+    public function setTotalCaptured($totalCaptured)
+    {
+        return $this->setData(self::TOTAL_CAPTURED, $totalCaptured);
+    }
 }

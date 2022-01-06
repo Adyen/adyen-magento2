@@ -15,7 +15,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2018 Adyen B.V.
+ * Copyright (c) 2021 Adyen B.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -29,27 +29,23 @@ interface InvoiceInterface
     /**
      * Constants for keys of data array. Identical to the name of the getter in snake case.
      */
-
-    /*
-     * Entity ID.
-     */
     const ENTITY_ID = 'entity_id';
-    /*
-     * Pspreference of the capture.
-     */
     const PSPREFERENCE = 'pspreference';
-    /*
-     * Original Pspreference of the payment.
-     */
+
+    /** @deprecated */
     const ORIGINAL_REFERENCE = 'original_reference';
-    /*
-     * Acquirer reference.
-     */
+
     const ACQUIRER_REFERENCE = 'acquirer_reference';
-    /*
-     * Invoice ID.
-     */
     const INVOICE_ID = 'invoice_id';
+    const ADYEN_ORDER_PAYMENT_ID = 'adyen_order_payment_id';
+    const AMOUNT = 'amount';
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = 'updated_at';
+    const STATUS = 'status';
+
+    const STATUS_PENDING_WEBHOOK = 'Pending Webhook';
+    const STATUS_SUCCESSFUL = 'Successful';
+    const STATUS_FAILED = 'Failed';
 
     /**
      * Gets the ID for the invoice.
@@ -121,4 +117,55 @@ interface InvoiceInterface
      * @return $this
      */
     public function setInvoiceId($invoiceId);
+
+    /**
+     * @return int|null
+     */
+    public function getAmount();
+
+    /**
+     * @param $amount
+     */
+    public function setAmount($amount);
+
+    /**
+     * @return int|null
+     */
+    public function getAdyenPaymentOrderId();
+
+    /**
+     * @param $id
+     * @return mixed
+     */
+    public function setAdyenPaymentOrderId($id);
+
+    /**
+     * @return string|null
+     */
+    public function getStatus();
+
+    /**
+     * @param $status
+     */
+    public function setStatus($status);
+
+    /**
+     * @return mixed
+     */
+    public function getCreatedAt();
+
+    /**
+     * @param $createdAt
+     */
+    public function setCreatedAt($createdAt);
+
+    /**
+     * @return mixed
+     */
+    public function getUpdatedAt();
+
+    /**
+     * @param $updatedAt
+     */
+    public function setUpdatedAt($updatedAt);
 }

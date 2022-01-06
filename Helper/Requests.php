@@ -369,7 +369,7 @@ class Requests extends AbstractHelper
         // Initialize the request body with the current state data
         // Multishipping checkout uses the cc_number field for state data
         $stateData = $this->stateData->getStateData($payment->getOrder()->getQuoteId()) ?:
-            json_decode($payment->getCcNumber(), true);
+            (json_decode($payment->getCcNumber(), true) ?: []);
 
         if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
             $request['storePaymentMethodMode'] = 'askForConsent';
