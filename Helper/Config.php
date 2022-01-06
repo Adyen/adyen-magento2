@@ -345,7 +345,7 @@ class Config
      * @param bool|false $flag
      * @return bool|mixed
      */
-    private function getConfigData($field, $xmlPrefix, $storeId, $flag = false)
+    public function getConfigData($field, $xmlPrefix, $storeId, $flag = false)
     {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
 
