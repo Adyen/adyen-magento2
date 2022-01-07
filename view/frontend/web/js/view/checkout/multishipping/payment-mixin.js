@@ -30,7 +30,14 @@ define([
             widgetFullName,
             jQuery[originalWidget.prototype.namespace][originalWidget.prototype.widgetName], {
                 _validatePaymentMethod: function () {
-                    return !!$('#stateData').val() && this._super();
+                    let isValid;
+                    let selectedPaymentMethod = $('#payment-methods input[name="payment[method]"]:checked').val();
+                    if (!!selectedPaymentMethod && selectedPaymentMethod.startsWith('adyen')) {
+                        isValid = !!$('#stateData').val();
+                    } else {
+                        isValid = true;
+                    }
+                    return isValid && this._super();
                 }
             });
     }

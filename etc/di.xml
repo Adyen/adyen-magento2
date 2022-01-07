@@ -34,7 +34,7 @@
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentGenericValueHandlerPool</argument>
         </arguments>
     </virtualType>
-    <virtualType name="AdyenPaymentCcFacade" type="Magento\Payment\Model\Method\Adapter">
+    <virtualType name="AdyenPaymentCcFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenCcConfigProvider::CODE</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Cc</argument>
@@ -64,7 +64,7 @@
             <argument name="commandPool" xsi:type="object">AdyenPaymentOneclickCommandPool</argument>
         </arguments>
     </virtualType>
-    <virtualType name="AdyenPaymentHppFacade" type="Magento\Payment\Model\Method\Adapter">
+    <virtualType name="AdyenPaymentHppFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::CODE</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Hpp</argument>

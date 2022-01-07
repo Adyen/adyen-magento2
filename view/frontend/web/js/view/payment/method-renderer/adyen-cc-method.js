@@ -35,7 +35,7 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/bundle'
+        'Adyen_Payment/js/adyen'
     ],
     function(
         $,
@@ -52,7 +52,7 @@ define(
         errorProcessor,
         adyenPaymentService,
         adyenConfiguration,
-        adyenComponent
+        AdyenCheckout
     ) {
         'use strict';
         return Component.extend({
@@ -70,13 +70,13 @@ define(
             /**
              * @returns {exports.initialize}
              */
-            initialize: function() {
+            initialize: async function () {
                 this._super();
                 this.vaultEnabler = new VaultEnabler();
                 this.vaultEnabler.setPaymentCode(this.getVaultCode());
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
 
-                this.checkoutComponent = new AdyenCheckout({
+                this.checkoutComponent = await AdyenCheckout({
                         locale: adyenConfiguration.getLocale(),
                         clientKey: adyenConfiguration.getClientKey(),
                         environment: adyenConfiguration.getCheckoutEnvironment(),
@@ -227,10 +227,12 @@ define(
              * @returns {{method: *}}
              */
             getData: function() {
+                let stateData = JSON.stringify(this.cardComponent.data);
+                window.sessionStorage.setItem('adyen.stateData', stateData);
                 return {
                     'method': this.item.method,
                     additional_data: {
-                        'stateData': JSON.stringify(this.cardComponent.data),
+                        'stateData': stateData,
                         'guestEmail': quote.guestEmail,
                         'cc_type': this.creditCardType(),
                         'combo_card_type': this.comboCardOption(),
