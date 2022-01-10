@@ -2,17 +2,17 @@
 Use Adyen's plugin for Magento 2 to offer frictionless payments online, in-app, and in-store.
 
 ## Integration
-The plugin integrates card component(Secured Fields) using Adyen Checkout for all card payments. Local/redirect payment methods are integrated with DirectoryLookup and HPP. For Point Of Sale (POS) payments we use Terminal API using Cloud-based communication. Boleto and SEPA are a direct API integration into Adyen.
+The plugin integrates card component (Secured Fields) using Adyen Checkout for all card payments. Local/redirect payment methods are integrated with DirectoryLookup and HPP. For Point Of Sale (POS) payments we use Terminal API using Cloud-based communication. Boleto and SEPA are a direct API integration into Adyen.
 
 ### Support Vault and Instant Purchase ###
-Inside Adyen toggle the following settings on inside the API and Responses section (settings -> API and Responses)
+Inside Adyen toggle the following settings on inside the API and Responses section (Settings -> API and Responses):
 * Recurring details
 * Card summary
 * Expiry date
 * Variant
 
 ## Requirements
-This plugin supports Magento2 version 
+This plugin supports Magento 2 version:
 * 2.2.9 and higher
 * 2.3.1 and higher
 * 2.4 
@@ -33,7 +33,7 @@ composer require adyen/module-payment
 bin/magento module:enable Adyen_Payment
 bin/magento setup:upgrade
 ```
-For more information see our [installation section](https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento?redirect#step1installtheplugin)
+For more information see our [installation section](https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento?redirect#step1installtheplugin).
 
  ## Documentation
 [Magento 2 documentation](https://docs.adyen.com/developers/plugins/magento-2)
@@ -53,9 +53,9 @@ Make sure that your Magento cron is running every minute. We are using a cronjob
 </group>
 ```
 
-The notification processing service queries the records that have been received at least 2 minutes ago. This is to ensure that Magento has created the order, and all save after events are executed. A handy tool to get insight into your cronjobs is AOE scheduler. You can download this tool through Magento Connect or GitHub.
+The notification processing service queries the records that have been received at least 2 minutes ago. This is to ensure that Magento has created the order, and all save after events are executed. A handy tool to get insight into your cronjobs is AOE scheduler. You can download this tool through Magento Marketplace or GitHub.
 
-If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html" target="_blank">this is described here</a>
+If you need to setup your cronjob in Magento <a href="http://devdocs.magento.com/guides/v2.0/config-guide/cli/config-cli-subcommands-cron.html" target="_blank">this is described here</a>.
 
 ## Verified payment methods
 
@@ -100,4 +100,4 @@ This module is using the Adyen APIs Library for PHP for all (API) connections to
 <a href="https://github.com/Adyen/adyen-php-api-library" target="_blank">This library can be found here</a>
 
 ## License
-MIT license. For more information, see the LICENSE file.
+MIT license. For more information, see the [LICENSE](LICENSE.txt) file.
