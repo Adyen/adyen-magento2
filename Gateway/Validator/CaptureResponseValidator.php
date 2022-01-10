@@ -64,6 +64,7 @@ class CaptureResponseValidator extends AbstractValidator
 
         if (empty($response['response']) || $response['response'] != TransactionCapture::CAPTURE_RECEIVED) {
             $errorMessages[] = $this->buildErrorMessages($response);
+            $isValid = false;
         }
 
         return $this->createResult($isValid, $errorMessages);
@@ -96,8 +97,8 @@ class CaptureResponseValidator extends AbstractValidator
      */
     private function buildErrorMessages($response, bool $multiple = false)
     {
-        if ($multiple && array_key_exists(TransactionCapture::CAPTURE_AMOUNT, $response)) {
-            $errorMsg = __('Error with capture on transaction with amount') . $response[TransactionCapture::CAPTURE_AMOUNT];
+        if ($multiple && array_key_exists(TransactionCapture::FORMATTED_CAPTURE_AMOUNT, $response)) {
+            $errorMsg = __('Error with capture on transaction with amount') . $response[TransactionCapture::FORMATTED_CAPTURE_AMOUNT];
         } else {
             $errorMsg = __('Error with capture');
         }

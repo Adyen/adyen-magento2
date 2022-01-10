@@ -26,6 +26,7 @@
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
         <css src="Adyen_Payment::css/order_create_styles.css"/>
+        <css src="Adyen_Payment::css/adyen.css"/>
     </head>
     <body>
         <referenceBlock name="order_create_billing_form">
