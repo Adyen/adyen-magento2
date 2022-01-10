@@ -3,10 +3,7 @@
   "description": "Official Magento2 Plugin to connect to Payment Service Provider Adyen.",
   "type": "magento2-module",
   "version": "8.1.0",
-  "license": [
-    "OSL-3.0",
-    "AFL-3.0"
-  ],
+  "license": "MIT",
   "repositories": [
     {
       "type": "composer",
