@@ -323,7 +323,7 @@ define(
                         self.currentMessageContainer),
                 ).fail(
                     function(response) {
-                        if (component.props.methodIdentifier == 'amazonpay') {
+                        if (component && component.props.methodIdentifier === 'amazonpay') {
                             component.handleDeclineFlow();
                         }
                         self.isPlaceOrderActionAllowed(true);

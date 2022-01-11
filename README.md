@@ -12,10 +12,9 @@ Inside Adyen toggle the following settings on inside the API and Responses secti
 * Variant
 
 ## Requirements
-This plugin supports Magento 2 version:
-* 2.2.9 and higher
-* 2.3.1 and higher
-* 2.4 
+This plugin supports Magento2 version
+* 2.3.7 and higher
+* 2.4 and higher
 
 ## Contributing
 We strongly encourage you to join us in contributing to this repository so everyone can benefit from:
