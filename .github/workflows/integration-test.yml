@@ -1,0 +1,28 @@
+name: Integration Tests
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - PHP_VERSION: php74-fpm
+            MAGENTO_VERSION: 2.4.2
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Start Docker
+        run: PHP_VERSION=${{ matrix.PHP_VERSION }} MAGENTO_VERSION=magento${{ matrix.MAGENTO_VERSION }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+
+      - name: Create branch for Composer
+        run: git checkout -b integration-test-branch
+
+      - name: Upload the code into the docker container
+        run: docker cp $(pwd) magento-php:/data/extensions/ && docker exec magento-php composer require Adyen/adyen-magento2:dev-integration-test-branch
+
+      - name: Enable developer mode
+        run: docker exec magento-php php bin/magento deploy:mode:set developer
+
+      - name: Run tests
+        run: docker exec magento-php bash -c "cd /data/dev/tests/integration/ && /data/vendor/bin/phpunit -c /data/dev/tests/integration/phpunit.xml"
