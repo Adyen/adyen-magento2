@@ -10,7 +10,7 @@ services:
       MYSQL_PASSWORD: magento
       MYSQL_SQL_TO_RUN: 'GRANT ALL ON *.* TO "root"@"%";'
   web:
-    image: ataberkylmz/magento2:latest
+    image: ataberkylmz/magento2:2.4.2
     container_name: magento2-container
     depends_on:
       - db
