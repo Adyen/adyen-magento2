@@ -23,7 +23,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\ResourceModel\Invoice;
+namespace Adyen\Payment\Model\ResourceModel\Creditmemo;
 
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 
