@@ -12,17 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Start Docker
-        run: PHP_VERSION=${{ matrix.PHP_VERSION }} MAGENTO_VERSION=magento${{ matrix.MAGENTO_VERSION }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+      - name: Create reverse proxy network
+        run: docker network create backend
 
-      - name: Create branch for Composer
-        run: git checkout -b integration-test-branch
+      - name: Run reverse proxy network
+        run: docker run -d --net backend -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock:ro jwilder/nginx-proxy
 
-      - name: Upload the code into the docker container
-        run: docker cp $(pwd) magento-php:/data/extensions/ && docker exec magento-php composer require Adyen/adyen-magento2:dev-integration-test-branch
+      - name: Setup database
+        run: docker run -d --net backend --name mariadb -e MARIADB_USER=magento -e MARIADB_PASSWORD=magento -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=magento mariadb:10.4
 
-      - name: Enable developer mode
-        run: docker exec magento-php php bin/magento deploy:mode:set developer
-
-      - name: Run tests
-        run: docker exec magento-php bash -c "cd /data/dev/tests/integration/ && /data/vendor/bin/phpunit -c /data/dev/tests/integration/phpunit.xml"
+      - name: Setup elasticsearch
+        run: docker run -d -m 512m --name elasticsearch --net backend -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.16.2
