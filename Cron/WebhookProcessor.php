@@ -44,6 +44,7 @@ use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as Notifica
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DB\TransactionFactory;
@@ -484,10 +485,13 @@ class WebhookProcessor
         }
     }
 
+    /**
+     * @throws \Exception
+     */
     private function processNotification(Notification $notification): bool
     {
         // set notification processing to true
-        $this->_updateNotification($notification, true, false);
+        $this->updateNotification($notification, true, false);
         $this->_adyenLogger
             ->addAdyenNotificationCronjob(sprintf("Processing notification %s", $notification->getEntityId()));
 
@@ -503,7 +507,7 @@ class WebhookProcessor
             }
 
             // declare all variables that are needed
-            $this->_declareVariables($notification);
+            $this->declareVariables($notification);
 
             // add notification to comment history status is current status
             $this->addNotificationDetailsHistoryComment();
@@ -511,12 +515,17 @@ class WebhookProcessor
             $previousAdyenEventCode = $this->_order->getData('adyen_notification_event_code');
 
             // update order details
-            $this->_updateAdyenAttributes($notification);
+            $this->updateAdyenAttributes($notification);
 
             // Get transition state
             $transitionState = $this->webhookHelper->getTransitionState($notification, $this->_order->getState());
-            // $transitionState = 'paid'
-            $this->handleOrderTransition($notification, $previousAdyenEventCode);
+
+            $this->handleOrderTransition($notification, $previousAdyenEventCode, $transitionState);
+
+            // Trigger admin notice for unsuccessful REFUND_FAILED notifications
+            if ($this->_eventCode == Notification::REFUND_FAILED) {
+                $this->addRefundFailedNotice();
+            }
 
             try {
                 // set done to true
@@ -525,14 +534,14 @@ class WebhookProcessor
                 $this->_adyenLogger->addAdyenNotificationCronjob($e->getMessage());
             }
 
-            $this->_updateNotification($notification, false, true);
+            $this->updateNotification($notification, false, true);
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 sprintf("Notification %s is processed", $notification->getEntityId())
             );
 
             return true;
         } catch (\Exception $e) {
-            $this->_updateNotification($notification, false, false);
+            $this->updateNotification($notification, false, false);
             $this->handleNotificationError($notification, $e->getMessage());
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 sprintf(
@@ -543,6 +552,115 @@ class WebhookProcessor
                 )
             );
         }
+    }
+
+    /**
+     * @param Notification $notification
+     * @param $previousAdyenEventCode
+     * @throws LocalizedException
+     */
+    private function handleOrderTransition(Notification $notification, $previousAdyenEventCode, $transitionState): void
+    {
+        switch ($transitionState) {
+            case PaymentStates::STATE_PAID:
+                $this->authorizePayment();
+                break;
+            case PaymentStates::STATE_FAILED:
+            case PaymentStates::STATE_CANCELLED:
+                $this->cancelPayment($previousAdyenEventCode);
+                break;
+        }
+    }
+
+    /**
+     * @param $previousAdyenEventCode
+     * @throws LocalizedException
+     */
+    private function cancelPayment($previousAdyenEventCode): void
+    {
+        $ignoreHasInvoice = true;
+        // if payment is API check, check if API result pspreference is the same as reference
+        if ($this->_eventCode == NOTIFICATION::AUTHORISATION) {
+            if ($this->_getPaymentMethodType() == 'api') {
+                // don't cancel the order because order was successful through api
+                $this->_adyenLogger->addAdyenNotificationCronjob(
+                    'order is not cancelled because api result was successful'
+                );
+                return;
+            }
+            $ignoreHasInvoice = false;
+        }
+
+        /*
+         * don't cancel the order if previous state is authorisation with success=true
+         * Partial payments can fail if the second payment has failed the first payment is
+         * refund/cancelled as well so if it is a partial payment that failed cancel the order as well
+         */
+        $previousSuccess = $this->_order->getData('adyen_notification_event_code_success');
+
+        if (($previousAdyenEventCode == "AUTHORISATION : TRUE" || !empty($previousSuccess)) &&
+            $this->_eventCode != Notification::ORDER_CLOSED
+        ) {
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                'order is not cancelled because previous notification
+                                    was an authorisation that succeeded'
+            );
+            return;
+        }
+
+        // Order is already Cancelled
+        if ($this->_order->isCanceled()) {
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                "Order is already cancelled, skipping OFFER_CLOSED"
+            );
+            return;
+        }
+
+        if ($this->_eventCode = Notification::OFFER_CLOSED) {
+            /*
+            * For cards, it can be 'visa', 'maestro',...
+            * For alternatives, it can be 'ideal', 'directEbanking',...
+            */
+            $notificationPaymentMethod = $this->_paymentMethod;
+
+            /*
+            * For cards, it can be 'VI', 'MI',...
+            * For alternatives, it can be 'ideal', 'directEbanking',...
+            */
+            $orderPaymentMethod = $this->_order->getPayment()->getCcType();
+
+            /*
+             * Returns if the payment method is wallet like wechatpayWeb, amazonpay, applepay, paywithgoogle
+             */
+            $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($orderPaymentMethod);
+
+            /*
+             * Return if payment method is cc like VI, MI
+             */
+            $isCCPaymentMethod = $this->_order->getPayment()->getMethod() === 'adyen_cc';
+
+            /*
+            * If the order was made with an Alternative payment method,
+            *  continue with the cancellation only if the payment method of
+            * the notification matches the payment method of the order.
+            */
+            if (!$isWalletPaymentMethod && !$isCCPaymentMethod && strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
+                $this->_adyenLogger->addAdyenNotificationCronjob(
+                    "The notification does not match the payment method of the order,
+                    skipping OFFER_CLOSED"
+                );
+                return;
+            }
+        }
+
+        // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
+        if (!$this->_order->canCancel() && $this->configHelper->getNotificationsCanCancel(
+                $this->_order->getStoreId()
+            )) {
+            $this->_order->setState(Order::STATE_NEW);
+        }
+
+        $this->_holdCancelOrder($ignoreHasInvoice);
     }
 
     /**
@@ -613,7 +731,7 @@ class WebhookProcessor
      * @param $done
      * @throws \Exception
      */
-    protected function _updateNotification(Notification $notification, $processing, $done)
+    private function updateNotification(Notification $notification, $processing, $done)
     {
         if ($done) {
             $notification->setDone(true);
@@ -629,7 +747,7 @@ class WebhookProcessor
      * @param Notification $notification
      * @return void
      */
-    protected function _declareVariables(Notification $notification)
+    private function declareVariables(Notification $notification)
     {
         //TODO: Use notification and its getters where possible, instead of declaring values one by one
         $this->notification = $notification;
@@ -812,7 +930,7 @@ class WebhookProcessor
     /**
      * @param Notification $notification
      */
-    protected function _updateAdyenAttributes(Notification $notification)
+    private function updateAdyenAttributes(Notification $notification)
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Updating the Adyen attributes of the order');
 
@@ -1026,7 +1144,7 @@ class WebhookProcessor
                 break;
             case Notification::HANDLED_EXTERNALLY:
             case Notification::AUTHORISATION:
-                $this->_authorizePayment();
+                $this->authorizePayment();
                 break;
             case Notification::MANUAL_REVIEW_REJECT:
                 // Do not do any processing. Order should be cancelled/refunded when the CANCEL_OR_REFUND notification is received
@@ -1398,10 +1516,7 @@ class WebhookProcessor
         }
     }
 
-    /**
-     * authorize payment
-     */
-    protected function _authorizePayment()
+    private function authorizePayment()
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Authorisation of the order');
         $this->isAutoCapture = $this->_isAutoCapture();
@@ -1899,7 +2014,6 @@ class WebhookProcessor
     /**
      * Set State from Status
      */
-
     protected function _setState($status)
     {
         $statusObject = $this->_orderStatusCollection->create()
@@ -2123,79 +2237,5 @@ class WebhookProcessor
         $this->_order = $order;
     }
 
-    /**
-     * @param Notification $notification
-     * @param $previousAdyenEventCode
-     * @throws LocalizedException
-     */
-    private function handleOrderTransition(Notification $notification, $previousAdyenEventCode): void
-    {
-        // check if success is true or false
-        if ($notification->isSuccessful()) {
-            // Notification is successful
-            $this->_processNotification();
-        } else {
-            /*
-             * Only cancel the order when it is in state new, pending_payment, or payment review
-             * After order creation alternative payment methods (HPP) has state new and status pending
-             * while card payments has payment_review state and status
-             * if the ORDER_CLOSED is failed (means partial payment has not be successful)
-             */
-            if ($this->_order->getState() === Order::STATE_NEW ||
-                $this->_order->getState() === Order::STATE_PENDING_PAYMENT ||
-                $this->_order->getState() === Order::STATE_PAYMENT_REVIEW ||
-                $this->_eventCode == Notification::ORDER_CLOSED
-            ) {
-                $this->_adyenLogger->addAdyenNotificationCronjob('Going to cancel the order');
 
-                // if payment is API check, check if API result pspreference is the same as reference
-                if ($this->_eventCode == NOTIFICATION::AUTHORISATION
-                    && $this->_getPaymentMethodType() == 'api') {
-                    // don't cancel the order because order was successful through api
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        'order is not cancelled because api result was successful'
-                    );
-                } else {
-                    /*
-                     * don't cancel the order if previous state is authorisation with success=true
-                     * Partial payments can fail if the second payment has failed the first payment is
-                     * refund/cancelled as well so if it is a partial payment that failed cancel the order as well
-                     */
-                    if ($previousAdyenEventCode != "AUTHORISATION : TRUE" ||
-                        $this->_eventCode == Notification::ORDER_CLOSED
-                    ) {
-                        if ($this->configHelper->getNotificationsCanCancel($this->_order->getStoreId())) {
-                            // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
-                            if ($this->_order->getState() === Order::STATE_PAYMENT_REVIEW
-                            ) {
-                                $this->_order->setState(Order::STATE_NEW);
-                            }
-
-                            $this->_holdCancelOrder(false);
-                        } else {
-                            $this->_adyenLogger->addAdyenNotificationCronjob(
-                                'order is not cancelled because "notifications_can_cancel" configuration' .
-                                'is false.'
-                            );
-                        }
-                    } else {
-                        $this->_order->setData('adyen_notification_event_code', $previousAdyenEventCode);
-                        $this->_adyenLogger->addAdyenNotificationCronjob(
-                            'order is not cancelled because previous notification
-                                    was an authorisation that succeeded'
-                        );
-                    }
-                }
-            } else {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'Order is already processed so ignore this notification state is:'
-                    . $this->_order->getState()
-                );
-            }
-            //Trigger admin notice for unsuccessful REFUND notifications
-            if ($this->_eventCode == Notification::REFUND) {
-                $this->addRefundFailedNotice();
-            }
-        }
-    }
 }
