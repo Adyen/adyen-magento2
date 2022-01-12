@@ -2,18 +2,31 @@ version: '3'
 
 services:
   db:
-    image: mysql:5.7
+    image: mariadb:10.4
+    container_name: mariadb
     environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: magento-test
-      MYSQL_USER: magento
-      MYSQL_PASSWORD: magento
-      MYSQL_SQL_TO_RUN: 'GRANT ALL ON *.* TO "root"@"%";'
+      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: magento-test
+      MARIADB_USER: magento
+      MARIADB_PASSWORD: magento
+  elastic:
+    image: elasticsearch:7.16.2
+    container_name: elasticsearch
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - "discovery.type=single-node"
   web:
     image: ataberkylmz/magento2:2.4.2
-    command: tail -F keep-alive
     container_name: magento2-container
+    environment:
+      - DB_SERVER=mariadb
+      - ELASTICSEARCH_SERVER=elasticsearch
+      - MAGENTO_HOST=magento2.test.com
+      - VIRTUAL_HOST=magento2.test.com
     depends_on:
       - db
+      - elastic
     volumes:
       - ./:/data/extensions/workdir

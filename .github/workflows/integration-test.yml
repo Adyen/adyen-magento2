@@ -12,20 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Create reverse proxy network
-        run: docker network create backend
-
-      - name: Run reverse proxy network
-        run: docker run -d --net backend -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock:ro jwilder/nginx-proxy
-
-      - name: Setup database
-        run: docker run -d --net backend --name mariadb -e MARIADB_USER=magento -e MARIADB_PASSWORD=magento -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=magento mariadb:10.4
-
-      - name: Setup elasticsearch
-        run: docker run -d -m 512m --name elasticsearch --net backend -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.16.2
-
       - name: Create docker image
-        run: VIRTUAL_HOST=magento2.test.com DB_SERVER=mariadb ELASTICSEARCH_SERVER=elasticsearch MAGENTO_HOST=magento2.test.com docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d
 
       - name: Show running containers
         run: docker container ls --all
