@@ -30,7 +30,7 @@ jobs:
       - name: Show running containers
         run: docker container ls --all
 
-      - name: [DEBUG] Run container manually
+      - name: DEBUG Run container manually
         run: docker run -d magento-container
 
       #- name: Create branch for Composer
