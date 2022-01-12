@@ -26,3 +26,15 @@ jobs:
 
       - name: Run docker image
         run: VIRTUAL_HOST=magento2.test.com DB_SERVER=mariadb ELASTICSEARCH_SERVER=elasticsearch MAGENTO_HOST=magento2.test.com docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+
+      #- name: Create branch for Composer
+      #  run: git checkout -b continuous-integration-test-branch
+
+      - name: Upload the code into the docker container
+        run: docker exec magento2-container composer require Adyen/adyen-magento2
+
+      - name: Enable developer mode
+        run: docker exec magento2-container php bin/magento deploy:mode:set developer
+
+      - name: Run tests
+        run: docker exec magento2-container bash -c "cd /data/dev/tests/integration/ && /data/vendor/bin/phpunit -c /data/dev/tests/integration/phpunit.xml"
