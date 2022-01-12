@@ -24,8 +24,11 @@ jobs:
       - name: Setup elasticsearch
         run: docker run -d -m 512m --name elasticsearch --net backend -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.16.2
 
-      - name: Run docker image
+      - name: Create docker image
         run: VIRTUAL_HOST=magento2.test.com DB_SERVER=mariadb ELASTICSEARCH_SERVER=elasticsearch MAGENTO_HOST=magento2.test.com docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+
+      - name: Show running containers
+        run: docker container ls --all
 
       #- name: Create branch for Composer
       #  run: git checkout -b continuous-integration-test-branch
