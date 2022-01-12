@@ -26,29 +26,53 @@
 namespace Adyen\Payment\Model;
 
 use Adyen\Payment\Api\Data\CreditmemoInterface;
-use Magento\Framework\Api\AttributeValueFactory;
-use Magento\Framework\Api\ExtensionAttributesFactory;
-use Magento\Rule\Model\AbstractModel;
+use Magento\Framework\Model\AbstractModel;
+use Magento\Framework\Registry;
+use Magento\Framework\Model\Context;
+use Magento\Framework\Model\ResourceModel\AbstractResource;
+use Magento\Framework\Data\Collection\AbstractDb;
+
+
+use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo;
+
 
 class Creditmemo extends AbstractModel implements CreditmemoInterface
 {
-    public function __construct(\Magento\Framework\Model\Context $context, \Magento\Framework\Registry $registry, \Magento\Framework\Data\FormFactory $formFactory, \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate, \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null, \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null, array $data = [], ExtensionAttributesFactory $extensionFactory = null, AttributeValueFactory $customAttributeFactory = null, \Magento\Framework\Serialize\Serializer\Json $serializer = null)
-    {
-        parent::__construct($context, $registry, $formFactory, $localeDate, $resource, $resourceCollection, $data, $extensionFactory, $customAttributeFactory, $serializer);
+
+    /**
+     * Creditmemo constructor.
+     * @param Context $context
+     * @param Registry $registry
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
+     */
+    public function __construct(
+        Context $context,
+        Registry $registry,
+        AbstractResource $resource = null,
+        AbstractDb $resourceCollection = null,
+        array $data = []
+    ) {
+        parent::__construct($context, $registry, $resource, $resourceCollection, $data);
     }
 
+    /**
+     * Initialize resource model
+     *
+     * @return void
+     */
     protected function _construct()
     {
-        $this->_init(\Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class);
+        $this->_init(Creditmemo::class);
     }
-
 
     /**
      * Gets the Pspreference for the creditmemo(capture).
      *
      * @return int|null Pspreference.
      */
-    public function getPspreference()
+    public function getPspreference(): ?int
     {
         return $this->getData(self::PSPREFERENCE);
     }
@@ -59,7 +83,7 @@ class Creditmemo extends AbstractModel implements CreditmemoInterface
      * @param string $pspreference
      * @return $this
      */
-    public function setPspreference($pspreference)
+    public function setPspreference($pspreference): Creditmemo
     {
         return $this->setData(self::PSPREFERENCE, $pspreference);
     }
@@ -69,9 +93,9 @@ class Creditmemo extends AbstractModel implements CreditmemoInterface
      *
      * @return int|null Creditmemo ID.
      */
-    public function getCreditmemoId()
+    public function getCreditmemoId(): ?int
     {
-        return $this->getData(self::INVOICE_ID);
+        return $this->getData(self::CREDITMEMO_ID);
     }
 
     /**
@@ -80,15 +104,15 @@ class Creditmemo extends AbstractModel implements CreditmemoInterface
      * @param int $creditmemoId
      * @return $this
      */
-    public function setCreditmemoId($creditmemoId)
+    public function setCreditmemoId($creditmemoId): Creditmemo
     {
-        return $this->setData(self::INVOICE_ID, $creditmemoId);
+        return $this->setData(self::CREDITMEMO_ID, $creditmemoId);
     }
 
     /**
      * @return int|null
      */
-    public function getAmount()
+    public function getAmount(): ?int
     {
         return $this->getData(self::AMOUNT);
     }
@@ -97,7 +121,7 @@ class Creditmemo extends AbstractModel implements CreditmemoInterface
      * @param $amount
      * @return Creditmemo
      */
-    public function setAmount($amount)
+    public function setAmount($amount): Creditmemo
     {
         return $this->setData(self::AMOUNT, $amount);
     }
@@ -105,7 +129,7 @@ class Creditmemo extends AbstractModel implements CreditmemoInterface
     /**
      * @return int|null
      */
-    public function getAdyenPaymentOrderId()
+    public function getAdyenPaymentOrderId(): ?int
     {
         return $this->getData(self::ADYEN_ORDER_PAYMENT_ID);
     }
@@ -114,7 +138,7 @@ class Creditmemo extends AbstractModel implements CreditmemoInterface
      * @param $id
      * @return Creditmemo
      */
-    public function setAdyenPaymentOrderId($id)
+    public function setAdyenPaymentOrderId($id): Creditmemo
     {
         return $this->setData(self::ADYEN_ORDER_PAYMENT_ID, $id);
     }
@@ -122,7 +146,7 @@ class Creditmemo extends AbstractModel implements CreditmemoInterface
     /**
      * @return string|null
      */
-    public function getStatus()
+    public function getStatus(): ?string
     {
         return $this->getData(self::STATUS);
     }
@@ -131,7 +155,7 @@ class Creditmemo extends AbstractModel implements CreditmemoInterface
      * @param $status
      * @return Creditmemo
      */
-    public function setStatus($status)
+    public function setStatus($status): Creditmemo
     {
         return $this->setData(self::STATUS, $status);
     }
@@ -148,7 +172,7 @@ class Creditmemo extends AbstractModel implements CreditmemoInterface
      * @param $createdAt
      * @return Creditmemo
      */
-    public function setCreatedAt($createdAt)
+    public function setCreatedAt($createdAt): Creditmemo
     {
         return $this->setData(self::CREATED_AT, $createdAt);
     }
@@ -165,7 +189,7 @@ class Creditmemo extends AbstractModel implements CreditmemoInterface
      * @param $updatedAt
      * @return Creditmemo
      */
-    public function setUpdatedAt($updatedAt)
+    public function setUpdatedAt($updatedAt): Creditmemo
     {
         return $this->setData(self::UPDATED_AT, $updatedAt);
     }

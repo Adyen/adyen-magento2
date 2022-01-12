@@ -34,7 +34,7 @@ use Magento\Framework\Registry;
 class Invoice extends AbstractModel implements InvoiceInterface
 {
     /**
-     * Notification constructor.
+     * Invoice constructor.
      *
      * @param Context $context
      * @param Registry $registry
