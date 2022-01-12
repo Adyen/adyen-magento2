@@ -50,7 +50,8 @@ class CcBackendAuthorizationDataBuilder implements BuilderInterface
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        $requestBody = $this->stateData->getStateData($payment->getData('quote_id'));
+        $order = $paymentDataObject->getOrder();
+        $requestBody = $this->stateData->getStateData($order->getQuoteId());
 
         // if installments is set add it into the request
         $installments = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) ?: 0;
