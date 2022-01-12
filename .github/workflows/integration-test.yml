@@ -22,7 +22,7 @@ jobs:
       #  run: git checkout -b continuous-integration-test-branch
 
       - name: Upload the code into the docker container
-        run: docker exec magento2-container composer require Adyen/adyen-magento2
+        run: docker exec magento2-container composer require adyen/module-payment
 
       - name: Enable developer mode
         run: docker exec magento2-container php bin/magento deploy:mode:set developer
