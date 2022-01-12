@@ -25,4 +25,4 @@ jobs:
         run: docker run -d -m 512m --name elasticsearch --net backend -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.16.2
 
       - name: Run docker image
-        run: docker run -d -e VIRTUAL_HOST=magento2.test.com -e DB_SERVER=mariadb -e ELASTICSEARCH_SERVER=elasticsearch -e MAGENTO_HOST=magento2.test.com --net backend --name magento ataberkylmz/magento2
+        run: docker run -d -e VIRTUAL_HOST=magento2.test.com -e DB_SERVER=mariadb -e ELASTICSEARCH_SERVER=elasticsearch -e MAGENTO_HOST=magento2.test.com --net backend --name magento docker-compose -f .github/workflows/templates/docker-compose.yml up -d
