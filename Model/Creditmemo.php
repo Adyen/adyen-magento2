@@ -6,7 +6,7 @@
  * #############  #####( ######  #####. ######  #############  #############
  *        ######  #####( ######  #####. ######  #####  ######  #####  ######
  * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * ###### ######  #####( ######  #####.g ######  #####          #####  ######
  * #############  #############  #############  #############  #####  ######
  *  ############   ############  #############   ############  #####  ######
  *                                      ######
@@ -31,9 +31,6 @@ use Magento\Framework\Registry;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Data\Collection\AbstractDb;
-
-
-use Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo;
 
 
 class Creditmemo extends AbstractModel implements CreditmemoInterface
@@ -64,7 +61,7 @@ class Creditmemo extends AbstractModel implements CreditmemoInterface
      */
     protected function _construct()
     {
-        $this->_init(Creditmemo::class);
+        $this->_init(Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class);
     }
 
     /**
