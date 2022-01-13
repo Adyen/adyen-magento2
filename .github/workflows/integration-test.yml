@@ -21,14 +21,8 @@ jobs:
         with:
           time: '60s'
 
-      - name: Show running containers
-        run: docker container ls --all
-
       #- name: Create branch for Composer
       #  run: git checkout -b continuous-integration-test-branch
-
-      - name: DEBUG check files
-        run: docker exec magento2-container ls -all
 
       - name: Upload the code into the docker container
         run: docker exec magento2-container composer require adyen/module-payment

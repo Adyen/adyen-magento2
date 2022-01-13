@@ -6,7 +6,7 @@ services:
     container_name: mariadb
     environment:
       MARIADB_ROOT_PASSWORD: root_password
-      MARIADB_DATABASE: magento-test
+      MARIADB_DATABASE: magento
       MARIADB_USER: magento
       MARIADB_PASSWORD: magento
   elastic:
