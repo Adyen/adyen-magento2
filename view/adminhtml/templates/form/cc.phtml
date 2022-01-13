@@ -52,9 +52,10 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                 'jquery',
                 'Magento_Sales/order/create/scripts',
                 'Magento_Sales/order/create/form',
-                'Adyen_Payment/js/bundle'
+                'Adyen_Payment/js/adyen'
             ],
-            function ($) {
+            function ($, scripts, form, AdyenCheckout) {
+            (async function () { // RequireJS does not support async callback
                 var ccTypes = <?= /* @noEscape */ json_encode($block->getCcAvailableTypesByAlt()); ?>;
 
                 // Get cc type by adyen cc type
@@ -73,7 +74,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                 }
                 var cardNode = document.getElementById("cardContainer-<?= /* @noEscape */ $code; ?>");
 
-                var checkout = new AdyenCheckout({
+                var checkout = await AdyenCheckout({
                     clientKey: "<?= /* @noEscape */ $block->getClientKey(); ?>",
                     environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
                     locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
@@ -103,6 +104,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                 } catch (e) {
                     console.log(e);
                 }
+            })();
             });
     </script>
 </fieldset>

@@ -25,6 +25,9 @@
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Adyen_Payment::css/adyen.css"/>
+    </head>
     <body>
         <referenceBlock name="checkout_billing" template="Adyen_Payment::checkout/multishipping/billing.phtml">
             <arguments>

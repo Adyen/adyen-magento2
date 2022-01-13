@@ -67,6 +67,7 @@ class RefundResponseValidator extends AbstractValidator
                 }
 
                 $errorMessages[] = $errorMsg;
+                $isValid = false;
             }
         }
 
