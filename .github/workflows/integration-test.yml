@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Create docker image
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml up
 
       - name: Show running containers
         run: docker container ls --all
@@ -23,10 +23,6 @@ jobs:
 
       - name: DEBUG check files
         run: docker exec magento2-container ls -all
-
-        # Temp solution since this should be done automatically on the docker-compose up
-      - name: Run magento install script
-        run: docker exec magento2-container /var/www/html/install_magento.sh
 
       - name: Upload the code into the docker container
         run: docker exec magento2-container composer require adyen/module-payment
