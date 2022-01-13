@@ -310,38 +310,34 @@ define(
 
                 return result;
             },
-            placeRedirectOrder: function(data, component) {
+            placeRedirectOrder: async function(data, component) {
                 var self = this;
 
                 // Place Order but use our own redirect url after
                 fullScreenLoader.startLoader();
                 $('.hpp-message').slideUp();
                 self.isPlaceOrderActionAllowed(false);
-
-                $.when(
+                await $.when(
                     placeOrderAction(data,
                         self.currentMessageContainer),
                 ).fail(
                     function(response) {
-                        if (component.props.methodIdentifier == 'amazonpay') {
-                            component.handleDeclineFlow();
-                        }
+
                         self.isPlaceOrderActionAllowed(true);
                         fullScreenLoader.stopLoader();
                         self.showErrorMessage(response);
                     },
-                ).done(
-                    function(orderId) {
-                        self.afterPlaceOrder();
-                        adyenPaymentService.getOrderPaymentStatus(
-                            orderId).
-                            done(function(responseJSON) {
-                                self.validateActionOrPlaceOrder(
-                                    responseJSON,
-                                    orderId, component);
-                            });
-                    },
-                );
+               ).done(
+                   function (orderId) {
+                       self.afterPlaceOrder();
+                       adyenPaymentService.getOrderPaymentStatus(
+                           orderId).done(function (responseJSON) {
+                           self.validateActionOrPlaceOrder(
+                               responseJSON,
+                               orderId, component);
+                       });
+                   },
+               );
             },
             /**
              * Some payment methods we do not want to render as it requires extra implementation
@@ -460,7 +456,7 @@ define(
                     mount(actionNode);
                 }
             },
-            handleOnSubmit: function(state, component) {
+            handleOnSubmit: async function(state, component) {
                 if (this.validate()) {
                     var data = {};
                     data.method = this.getCode();
@@ -477,7 +473,7 @@ define(
                     }
 
                     data.additional_data = additionalData;
-                    this.placeRedirectOrder(data, component);
+                    await this.placeRedirectOrder(data, component);
                 }
 
                 return false;
@@ -500,6 +496,7 @@ define(
                         window.checkoutConfig.payment[quote.paymentMethod().method].successPage,
                     );
                 }).fail(function(response) {
+
                     fullScreenLoader.stopLoader();
                     if (self.popupModal) {
                         self.closeModal(self.popupModal);
@@ -751,7 +748,17 @@ define(
                     configuration.productType = 'PayAndShip';
                     configuration.checkoutMode = 'ProcessOrder';
                     configuration.returnUrl = location.href;
-
+                    configuration.onSubmit = async(state, amazonPayComponent) => {
+                        try {
+                            var self = this;
+                            await self.handleOnSubmit(state.data, amazonPayComponent);
+                        } catch (error) {
+                            debugger;
+                            amazonPayComponent.handleDeclineFlow();
+                            //go to failed page
+                            self.handleOnSubmit(state.data, amazonPayComponent);
+                        }
+                    };
                     if (formattedShippingAddress &&
                         formattedShippingAddress.telephone) {
                         configuration.addressDetails = {
