@@ -20,7 +20,6 @@ services:
   web:
     image: ataberkylmz/magento2:2.4.2
     container_name: magento2-container
-    entrypoint: 'install_magento.sh'
     environment:
       - DB_SERVER=mariadb
       - ELASTICSEARCH_SERVER=elasticsearch
