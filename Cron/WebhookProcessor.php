@@ -80,108 +80,108 @@ class WebhookProcessor
      *
      * @var AdyenLogger
      */
-    protected $_adyenLogger;
+    private $_adyenLogger;
 
     /**
      * @var NotificationCollectionFactory
      */
-    protected $_notificationFactory;
+    private $_notificationFactory;
 
     /**
      * @var OrderFactory
      */
-    protected $_orderFactory;
+    private $_orderFactory;
 
     /**
      * @var Order
      */
-    protected $_order;
+    private $_order;
 
     /**
      * Core store config
      *
      * @var ScopeConfigInterface
      */
-    protected $_scopeConfig;
+    private $_scopeConfig;
 
     /**
      * @var Data
      */
-    protected $_adyenHelper;
+    private $_adyenHelper;
 
     /**
      * @var OrderSender
      */
-    protected $_orderSender;
+    private $_orderSender;
 
     /**
      * @var InvoiceSender
      */
-    protected $_invoiceSender;
+    private $_invoiceSender;
 
     /**
      * @var TransactionFactory
      */
-    protected $_transactionFactory;
+    private $_transactionFactory;
 
     /**
      * @var AgreementFactory
      */
-    protected $_billingAgreementFactory;
+    private $_billingAgreementFactory;
 
     /**
      * @var AgreementCollectionFactory
      */
-    protected $_billingAgreementCollectionFactory;
+    private $_billingAgreementCollectionFactory;
 
     /**
      * @var PaymentRequest
      */
-    protected $_adyenPaymentRequest;
+    private $_adyenPaymentRequest;
 
     /**
      * @var Notification
      */
-    protected $notification;
+    private $notification;
 
     /**
      * notification attributes
      */
-    protected $_pspReference;
+    private $_pspReference;
 
-    protected $_originalReference;
+    private $_originalReference;
 
-    protected $_merchantReference;
+    private $_merchantReference;
 
-    protected $_acquirerReference;
+    private $_acquirerReference;
 
-    protected $ratepayDescriptor;
+    private $ratepayDescriptor;
 
-    protected $_eventCode;
+    private $_eventCode;
 
-    protected $_success;
+    private $_success;
 
-    protected $_paymentMethod;
+    private $_paymentMethod;
 
-    protected $_reason;
+    private $_reason;
 
-    protected $_value;
+    private $_value;
 
-    protected $_currency;
+    private $_currency;
 
-    protected $orderAmount;
+    private $orderAmount;
 
-    protected $orderCurrency;
+    private $orderCurrency;
 
-    protected $_boletoOriginalAmount;
+    private $_boletoOriginalAmount;
 
-    protected $_boletoPaidAmount;
+    private $_boletoPaidAmount;
 
-    protected $_modificationResult;
+    private $_modificationResult;
 
-    protected $_klarnaReservationNumber;
+    private $_klarnaReservationNumber;
 
-    protected $requireFraudManualReview;
+    private $requireFraudManualReview;
 
     /**
      * @var bool
@@ -191,22 +191,22 @@ class WebhookProcessor
     /**
      * @var OrderPaymentCollectionFactory
      */
-    protected $_adyenOrderPaymentCollectionFactory;
+    private $_adyenOrderPaymentCollectionFactory;
 
     /**
      * @var InvoiceFactory
      */
-    protected $_adyenInvoiceFactory;
+    private $_adyenInvoiceFactory;
 
     /**
      * @var AreaList
      */
-    protected $_areaList;
+    private $_areaList;
 
     /**
      * @var OrderStatusCollectionFactory
      */
-    protected $_orderStatusCollection;
+    private $_orderStatusCollection;
 
     /**
      * @var SearchCriteriaBuilder
@@ -246,7 +246,7 @@ class WebhookProcessor
     /**
      * @var ConfigHelper
      */
-    protected $configHelper;
+    private $configHelper;
 
     /**
      * @var PaymentTokenManagement
@@ -256,17 +256,17 @@ class WebhookProcessor
     /**
      * @var PaymentTokenFactoryInterface
      */
-    protected $paymentTokenFactory;
+    private $paymentTokenFactory;
 
     /**
      * @var PaymentTokenRepositoryInterface
      */
-    protected $paymentTokenRepository;
+    private $paymentTokenRepository;
 
     /**
      * @var EncryptorInterface
      */
-    protected $encryptor;
+    private $encryptor;
 
     /**
      * @var ChargedCurrency
@@ -276,27 +276,27 @@ class WebhookProcessor
     /**
      * @var PaymentMethodsHelper
      */
-    protected $paymentMethodsHelper;
+    private $paymentMethodsHelper;
 
     /**
      * @var InvoiceResourceModel
      */
-    protected $invoiceResourceModel;
+    private $invoiceResourceModel;
 
     /**
      * @var OrderPaymentResourceModel
      */
-    protected $orderPaymentResourceModel;
+    private $orderPaymentResourceModel;
 
     /**
      * @var AdyenOrderPayment
      */
-    protected $adyenOrderPaymentHelper;
+    private $adyenOrderPaymentHelper;
 
     /**
      * @var InvoiceHelper
      */
-    protected $invoiceHelper;
+    private $invoiceHelper;
 
     /**
      * @var CaseManagement
@@ -1077,7 +1077,7 @@ class WebhookProcessor
     /**
      * @return mixed
      */
-    protected function _paymentMethodCode()
+    private function _paymentMethodCode()
     {
         return $this->_order->getPayment()->getMethod();
     }
@@ -1085,7 +1085,7 @@ class WebhookProcessor
     /**
      * @return mixed
      */
-    protected function _getPaymentMethodType()
+    private function _getPaymentMethodType()
     {
         return $this->_order->getPayment()->getPaymentMethodType();
     }
@@ -1093,7 +1093,7 @@ class WebhookProcessor
     /**
      * @desc order comments or history
      */
-    protected function addNotificationDetailsHistoryComment()
+    private function addNotificationDetailsHistoryComment()
     {
         $successResult = (strcmp($this->_success, 'true') == 0 ||
             strcmp($this->_success, '1') == 0) ? 'true' : 'false';
@@ -1207,7 +1207,7 @@ class WebhookProcessor
     /**
      * @param $additionalData
      */
-    protected function _updateOrderPaymentWithAdyenAttributes($additionalData)
+    private function _updateOrderPaymentWithAdyenAttributes($additionalData)
     {
         if ($additionalData && is_array($additionalData)) {
             $avsResult = (isset($additionalData['avsResult'])) ? $additionalData['avsResult'] : "";
@@ -1281,7 +1281,7 @@ class WebhookProcessor
      * @param $reason
      * @return string
      */
-    protected function _retrieveLast4DigitsFromReason($reason)
+    private function _retrieveLast4DigitsFromReason($reason)
     {
         $result = "";
 
@@ -1300,7 +1300,7 @@ class WebhookProcessor
      * @param $ignoreHasInvoice
      * @throws LocalizedException
      */
-    protected function _holdCancelOrder($ignoreHasInvoice)
+    private function _holdCancelOrder($ignoreHasInvoice)
     {
         if (!$this->configHelper->getNotificationsCanCancel($this->_order->getStoreId())) {
             $this->_adyenLogger->addAdyenNotificationCronjob(
@@ -1493,7 +1493,7 @@ class WebhookProcessor
      * @return void
      * @throws Exception
      */
-    protected function _prepareInvoice()
+    private function _prepareInvoice()
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Prepare invoice for order');
 
@@ -1550,7 +1550,7 @@ class WebhookProcessor
     /**
      * @return bool
      */
-    protected function _isAutoCapture()
+    private function _isAutoCapture()
     {
         // validate if payment methods allows manual capture
         if ($this->_manualCaptureAllowed()) {
@@ -1682,7 +1682,7 @@ class WebhookProcessor
      *
      * @return bool|null
      */
-    protected function _manualCaptureAllowed()
+    private function _manualCaptureAllowed()
     {
         $manualCaptureAllowed = null;
         $paymentMethod = $this->_paymentMethod;
@@ -1733,7 +1733,7 @@ class WebhookProcessor
     /**
      * @return bool
      */
-    protected function _isBankTransfer()
+    private function _isBankTransfer()
     {
         if (strlen($this->_paymentMethod) >= 12 && substr($this->_paymentMethod, 0, 12) == "bankTransfer") {
             $isBankTransfer = true;
@@ -1748,7 +1748,7 @@ class WebhookProcessor
      * @throws LocalizedException
      * @throws Exception
      */
-    protected function _createInvoice()
+    private function _createInvoice()
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Creating invoice for order');
 
@@ -1823,7 +1823,7 @@ class WebhookProcessor
      * @param bool $createInvoice
      * @throws Exception|LocalizedException
      */
-    protected function finalizeOrder()
+    private function finalizeOrder()
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Set order to authorised');
         $amount = $this->_value;
@@ -1906,7 +1906,7 @@ class WebhookProcessor
     /**
      * Set State from Status
      */
-    protected function _setState($status)
+    private function _setState($status)
     {
         $statusObject = $this->_orderStatusCollection->create()
             ->addFieldToFilter('main_table.status', $status)
@@ -1922,7 +1922,7 @@ class WebhookProcessor
      *
      * @throws bool
      */
-    protected function _createShipment()
+    private function _createShipment()
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Creating shipment for order');
         // create shipment for cash payment
@@ -1957,7 +1957,7 @@ class WebhookProcessor
      * @param $storeId
      * @return mixed
      */
-    protected function _getConfigData($field, $paymentMethodCode = 'adyen_cc', $storeId)
+    private function _getConfigData($field, $paymentMethodCode = 'adyen_cc', $storeId)
     {
         $path = 'payment/' . $paymentMethodCode . '/' . $field;
         return $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
@@ -1968,7 +1968,7 @@ class WebhookProcessor
      *
      * @return void
      */
-    protected function addRefundFailedNotice()
+    private function addRefundFailedNotice()
     {
         $this->notifierPool->addNotice(
             __("Adyen: Refund for order #%1 has failed", $this->_merchantReference),
@@ -2128,6 +2128,4 @@ class WebhookProcessor
         $order = reset($orderList);
         $this->_order = $order;
     }
-
-
 }
