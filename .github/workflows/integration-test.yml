@@ -25,10 +25,12 @@ jobs:
       #  run: git checkout -b continuous-integration-test-branch
 
       - name: Upload the code into the docker container
-        run: docker exec magento2-container composer require adyen/module-payment
+        run: docker exec magento2-container composer require adyen/module-payment:dev-feature/graphql-reapply
 
       - name: Enable developer mode
         run: docker exec magento2-container php bin/magento deploy:mode:set developer
 
       - name: Run tests
-        run: docker exec magento2-container bash -c "cd /data/dev/tests/integration/ && /data/vendor/bin/phpunit -c /data/dev/tests/integration/phpunit.xml"
+        run: docker exec magento2-container bash -c "cd /var/www/html/ && vendor/bin/phpunit -c vendor/adyen/module-payment/Test"
+
+      #docker exec magento2-container bash -c "cd /var/www/html/ && vendor/bin/phpunit --configuration vendor/adyen/module-payment/Test/api-functional/phpunit_graphql.xml --testsuite vendor/adyen/module-payment/Test/api-functional/GraphQl"
