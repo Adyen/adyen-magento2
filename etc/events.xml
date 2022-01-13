@@ -47,4 +47,7 @@
     <event name="sales_order_invoice_save_after">
         <observer name="adyen_invoice_save_after" instance="Adyen\Payment\Observer\InvoiceObserver" />
     </event>
+    <event name="sales_order_creditmemo_save_after">
+        <observer name="adyen_creditmemo_save_after" instance="Adyen\Payment\Observer\CreditmemoObserver" />
+    </event>
 </config>

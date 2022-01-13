@@ -34,5 +34,18 @@ class Collection extends AbstractCollection
         $this->_init(\Adyen\Payment\Model\Creditmemo::class, Creditmemo::class);
     }
 
-    //TODO: Add link function for magento-creditmemo <-> adyen-creditmemo
+    /**
+     *
+     * Get all the adyen_creditmemo linked to a magento invoice
+     * @param $creditmemoId
+     * @return array
+     */
+    public function getAdyenCreditmemosLinkedToMagentoCreditmemos($creditmemoId): array
+    {
+        $select = $this->getConnection()->select()
+            ->from(['adyen_creditmemo' => $this->getTable('adyen_creditmemo')])
+            ->where('adyen_creditmemo.creditmemo_id=?', $creditmemoId);
+
+        return $this->getConnection()->fetchAll($select);
+    }
 }
