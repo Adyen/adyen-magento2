@@ -520,11 +520,10 @@ class WebhookProcessor
             // Get transition state
             $transitionState = $this->webhookHelper->getTransitionState($notification, $this->_order->getState());
 
-            $this->handleOrderTransition($notification, $previousAdyenEventCode, $transitionState);
-
-            // Trigger admin notice for unsuccessful REFUND_FAILED notifications
-            if ($this->_eventCode == Notification::REFUND_FAILED) {
-                $this->addRefundFailedNotice();
+            if ($transitionState !== $this->webhookHelper->getCurrentState($this->_order->getState())) {
+                $this->handleOrderTransition($notification, $transitionState, $previousAdyenEventCode);
+            } else {
+                $this->handleUnchangedStates($notification->getEventCode());
             }
 
             try {
@@ -551,6 +550,8 @@ class WebhookProcessor
                     $e->getTraceAsString()
                 )
             );
+
+            return false;
         }
     }
 
@@ -559,15 +560,251 @@ class WebhookProcessor
      * @param $previousAdyenEventCode
      * @throws LocalizedException
      */
-    private function handleOrderTransition(Notification $notification, $previousAdyenEventCode, $transitionState): void
+    private function handleOrderTransition(Notification $notification, $transitionState, $previousAdyenEventCode): void
     {
         switch ($transitionState) {
             case PaymentStates::STATE_PAID:
-                $this->authorizePayment();
+                if (Notification::CAPTURE == $notification->getEventCode()) {
+                    /*
+                     * ignore capture if you are on auto capture
+                     * this could be called if manual review is enabled and you have a capture delay
+                     */
+                    if (!$this->_isAutoCapture()) {
+                        $this->handleManualCapture();
+                    }
+                } elseif (in_array($notification->getEventCode(), [Notification::REFUND, Notification::REFUND_FAILED])) {
+                    // Webhook module returns PAID for failed refunds, trigger admin notice
+                    $this->addRefundFailedNotice();
+                } else {
+                    $this->authorizePayment();
+                }
                 break;
             case PaymentStates::STATE_FAILED:
             case PaymentStates::STATE_CANCELLED:
-                $this->cancelPayment($previousAdyenEventCode);
+                $this->cancelPayment($notification, $this->_order, $previousAdyenEventCode);
+                break;
+            case PaymentStates::STATE_REFUNDED:
+                $this->refundPayment();
+                break;
+        }
+    }
+
+    private function handleUnchangedStates($eventCode): void
+    {
+        switch ($eventCode) {
+            case Notification::PENDING:
+                if ($this->_getConfigData(
+                    'send_email_bank_sepa_on_pending',
+                    'adyen_abstract',
+                    $this->_order->getStoreId()
+                )
+                ) {
+                    // Check if payment is banktransfer or sepa if true then send out order confirmation email
+                    if ($this->_isBankTransfer() || $this->_paymentMethod == 'sepadirectdebit') {
+                        if (!$this->_order->getEmailSent()) {
+                            $this->_sendOrderMail();
+                        }
+                    }
+                }
+                break;
+            case Notification::MANUAL_REVIEW_ACCEPT:
+                $this->caseManagementHelper->markCaseAsAccepted($this->_order, sprintf(
+                    'Manual review accepted for order w/pspReference: %s',
+                    $this->_originalReference
+                ));
+
+                $this->isAutoCapture = $this->_isAutoCapture();
+
+                // Finalize order only in case of auto capture. For manual capture the capture notification will initiate this call
+                if ($this->isAutoCapture) {
+                    $this->finalizeOrder();
+                }
+                break;
+            case Notification::MANUAL_REVIEW_REJECT:
+                // Do not do any processing. Order should be cancelled/refunded when the CANCEL_OR_REFUND notification is received
+                $this->caseManagementHelper->markCaseAsRejected($this->_order, $this->_originalReference, $this->_isAutoCapture());
+                break;
+            case Notification::RECURRING_CONTRACT:
+                // only store billing agreements if Vault is disabled
+                if (!$this->_adyenHelper->isCreditCardVaultEnabled()) {
+                    // storedReferenceCode
+                    $recurringDetailReference = $this->_pspReference;
+
+                    $storeId = $this->_order->getStoreId();
+                    $customerReference = $this->_order->getCustomerId();
+                    $listRecurringContracts = null;
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        __(
+                            'CustomerReference is: %1 and storeId is %2 and RecurringDetailsReference is %3',
+                            $customerReference,
+                            $storeId,
+                            $recurringDetailReference
+                        )
+                    );
+                    try {
+                        $listRecurringContracts = $this->_adyenPaymentRequest->getRecurringContractsForShopper(
+                            $customerReference,
+                            $storeId
+                        );
+                        $contractDetail = null;
+                        // get current Contract details and get list of all current ones
+                        $recurringReferencesList = [];
+
+                        if (!$listRecurringContracts) {
+                            throw new \Exception("Empty list recurring contracts");
+                        }
+                        // Find the reference on the list
+                        foreach ($listRecurringContracts as $rc) {
+                            $recurringReferencesList[] = $rc['recurringDetailReference'];
+                            if (isset($rc['recurringDetailReference']) &&
+                                $rc['recurringDetailReference'] == $recurringDetailReference
+                            ) {
+                                $contractDetail = $rc;
+                            }
+                        }
+
+                        if ($contractDetail == null) {
+                            $this->_adyenLogger->addAdyenNotificationCronjob(json_encode($listRecurringContracts));
+                            $message = __(
+                                'Failed to create billing agreement for this order ' .
+                                '(listRecurringCall did not contain contract)'
+                            );
+                            throw new \Exception($message);
+                        }
+
+                        $billingAgreements = $this->_billingAgreementCollectionFactory->create();
+                        $billingAgreements->addFieldToFilter('customer_id', $customerReference);
+
+                        // Get collection and update existing agreements
+
+                        foreach ($billingAgreements as $updateBillingAgreement) {
+                            if (!in_array($updateBillingAgreement->getReferenceId(), $recurringReferencesList)) {
+                                $updateBillingAgreement->setStatus(
+                                    \Adyen\Payment\Model\Billing\Agreement::STATUS_CANCELED
+                                );
+                            } else {
+                                $updateBillingAgreement->setStatus(
+                                    \Adyen\Payment\Model\Billing\Agreement::STATUS_ACTIVE
+                                );
+                            }
+                            $updateBillingAgreement->save();
+                        }
+
+                        // Get or create billing agreement
+                        $billingAgreement = $this->_billingAgreementFactory->create();
+                        $billingAgreement->load($recurringDetailReference, 'reference_id');
+                        // check if BA exists
+                        if (!($billingAgreement && $billingAgreement->getAgreementId() > 0
+                            && $billingAgreement->isValid())) {
+                            // create new
+                            $this->_adyenLogger->addAdyenNotificationCronjob("Creating new Billing Agreement");
+                            $this->_order->getPayment()->setBillingAgreementData(
+                                [
+                                    'billing_agreement_id' => $recurringDetailReference,
+                                    'method_code' => $this->_order->getPayment()->getMethodCode(),
+                                ]
+                            );
+
+                            $billingAgreement = $this->_billingAgreementFactory->create();
+                            $billingAgreement->setStoreId($this->_order->getStoreId());
+                            $billingAgreement->importOrderPaymentWithRecurringDetailReference($this->_order->getPayment(), $recurringDetailReference);
+                            $message = __('Created billing agreement #%1.', $recurringDetailReference);
+                        } else {
+                            $this->_adyenLogger->addAdyenNotificationCronjob
+                            (
+                                "Using existing Billing Agreement"
+                            );
+                            $billingAgreement->setIsObjectChanged(true);
+                            $message = __('Updated billing agreement #%1.', $recurringDetailReference);
+                        }
+
+                        // Populate billing agreement data
+                        $billingAgreement->parseRecurringContractData($contractDetail);
+                        if ($billingAgreement->isValid()) {
+                            if (!$this->agreementResourceModel->getOrderRelation(
+                                $billingAgreement->getAgreementId(),
+                                $this->_order->getId()
+                            )) {
+                                // save into sales_billing_agreement_order
+                                $billingAgreement->addOrderRelation($this->_order);
+
+                                // add to order to save agreement
+                                $this->_order->addRelatedObject($billingAgreement);
+                            }
+                        } else {
+                            $message = __('Failed to create billing agreement for this order.');
+                            throw new \Exception($message);
+                        }
+                    } catch (\Exception $exception) {
+                        $message = $exception->getMessage();
+                    }
+
+                    $this->_adyenLogger->addAdyenNotificationCronjob($message);
+                    $comment = $this->_order->addStatusHistoryComment($message, $this->_order->getStatus());
+                    $this->_order->addRelatedObject($comment);
+                }
+                //store recurring contract for alternative payments methods
+                if ($this->_paymentMethodCode() == 'adyen_hpp' && $this->configHelper->isStoreAlternativePaymentMethodEnabled()) {
+                    $paymentTokenAlternativePaymentMethod = null;
+                    try {
+                        //get the payment
+                        $payment = $this->_order->getPayment();
+                        $customerId = $this->_order->getCustomerId();
+
+                        $this->_adyenLogger->addAdyenNotificationCronjob(
+                            '$paymentMethodCode ' . $this->_paymentMethod
+                        );
+                        if (!empty($this->_pspReference)) {
+                            // Check if $paymentTokenAlternativePaymentMethod exists already
+                            $paymentTokenAlternativePaymentMethod = $this->paymentTokenManagement->getByGatewayToken(
+                                $this->_pspReference,
+                                $payment->getMethodInstance()->getCode(),
+                                $payment->getOrder()->getCustomerId()
+                            );
+
+
+                            // In case the payment token for this payment method does not exist, create it based on the additionalData
+                            if ($paymentTokenAlternativePaymentMethod === null) {
+                                $this->_adyenLogger->addAdyenNotificationCronjob('Creating new gateway token');
+                                /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
+                                $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
+                                    PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT
+                                );
+
+                                $details = [
+                                    'type' => $this->_paymentMethod,
+                                    'maskedCC' => $payment->getAdditionalInformation()['ibanNumber'],
+                                    'expirationDate' => 'N/A'
+                                ];
+
+                                $paymentTokenAlternativePaymentMethod->setCustomerId($customerId)
+                                    ->setGatewayToken($this->_pspReference)
+                                    ->setPaymentMethodCode(AdyenCcConfigProvider::CODE)
+                                    ->setPublicHash($this->encryptor->getHash($customerId . $this->_pspReference))
+                                    ->setTokenDetails(json_encode($details));
+                            } else {
+                                $this->_adyenLogger->addAdyenNotificationCronjob('Gateway token already exists');
+                            }
+
+                            //SEPA tokens don't expire. The expiration date is set 10 years from now
+                            $expDate = new DateTime('now', new DateTimeZone('UTC'));
+                            $expDate->add(new DateInterval('P10Y'));
+                            $paymentTokenAlternativePaymentMethod->setExpiresAt($expDate->format('Y-m-d H:i:s'));
+
+                            $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
+                            $this->_adyenLogger->addAdyenNotificationCronjob('New gateway token saved');
+                        }
+                    } catch (\Exception $exception) {
+                        $message = $exception->getMessage();
+                        $this->_adyenLogger->addAdyenNotificationCronjob(
+                            "An error occurred while saving the payment method " . $message
+                        );
+                    }
+                } else {
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        'Ignore recurring_contract notification because Vault feature is enabled'
+                    );
+                }
                 break;
         }
     }
@@ -576,11 +813,11 @@ class WebhookProcessor
      * @param $previousAdyenEventCode
      * @throws LocalizedException
      */
-    private function cancelPayment($previousAdyenEventCode): void
+    private function cancelPayment(Notification $notification, Order $order, $previousAdyenEventCode): void
     {
         $ignoreHasInvoice = true;
         // if payment is API check, check if API result pspreference is the same as reference
-        if ($this->_eventCode == NOTIFICATION::AUTHORISATION) {
+        if ($notification->getEventCode() == NOTIFICATION::AUTHORISATION) {
             if ($this->_getPaymentMethodType() == 'api') {
                 // don't cancel the order because order was successful through api
                 $this->_adyenLogger->addAdyenNotificationCronjob(
@@ -596,11 +833,9 @@ class WebhookProcessor
          * Partial payments can fail if the second payment has failed the first payment is
          * refund/cancelled as well so if it is a partial payment that failed cancel the order as well
          */
-        $previousSuccess = $this->_order->getData('adyen_notification_event_code_success');
+        $previousSuccess = $order->getData('adyen_notification_event_code_success');
 
-        if (($previousAdyenEventCode == "AUTHORISATION : TRUE" || !empty($previousSuccess)) &&
-            $this->_eventCode != Notification::ORDER_CLOSED
-        ) {
+        if ($previousAdyenEventCode == "AUTHORISATION : TRUE" || !empty($previousSuccess)) {
             $this->_adyenLogger->addAdyenNotificationCronjob(
                 'order is not cancelled because previous notification
                                     was an authorisation that succeeded'
@@ -609,14 +844,14 @@ class WebhookProcessor
         }
 
         // Order is already Cancelled
-        if ($this->_order->isCanceled()) {
+        if ($order->isCanceled() || $order->getState() === Order::STATE_HOLDED) {
             $this->_adyenLogger->addAdyenNotificationCronjob(
-                "Order is already cancelled, skipping OFFER_CLOSED"
+                "Order is already cancelled or holded, do nothing"
             );
             return;
         }
 
-        if ($this->_eventCode = Notification::OFFER_CLOSED) {
+        if (Notification::OFFER_CLOSED == $notification->getEventCode()) {
             /*
             * For cards, it can be 'visa', 'maestro',...
             * For alternatives, it can be 'ideal', 'directEbanking',...
@@ -627,7 +862,7 @@ class WebhookProcessor
             * For cards, it can be 'VI', 'MI',...
             * For alternatives, it can be 'ideal', 'directEbanking',...
             */
-            $orderPaymentMethod = $this->_order->getPayment()->getCcType();
+            $orderPaymentMethod = $order->getPayment()->getCcType();
 
             /*
              * Returns if the payment method is wallet like wechatpayWeb, amazonpay, applepay, paywithgoogle
@@ -637,7 +872,7 @@ class WebhookProcessor
             /*
              * Return if payment method is cc like VI, MI
              */
-            $isCCPaymentMethod = $this->_order->getPayment()->getMethod() === 'adyen_cc';
+            $isCCPaymentMethod = $order->getPayment()->getMethod() === 'adyen_cc';
 
             /*
             * If the order was made with an Alternative payment method,
@@ -654,15 +889,28 @@ class WebhookProcessor
         }
 
         // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
-        if (!$this->_order->canCancel() && $this->configHelper->getNotificationsCanCancel(
-                $this->_order->getStoreId()
-            )) {
-            $this->_order->setState(Order::STATE_NEW);
+        if (!$order->canCancel() && $this->configHelper->getNotificationsCanCancel($order->getStoreId())) {
+            $order->setState(Order::STATE_NEW);
         }
 
-        $this->_holdCancelOrder($ignoreHasInvoice);
+        $this->_holdCancelOrder(/** @todo Order $order, */$ignoreHasInvoice);
     }
 
+    private function refundPayment()
+    {
+        $ignoreRefundNotification = $this->_getConfigData(
+            'ignore_refund_notification',
+            'adyen_abstract',
+            $this->_order->getStoreId()
+        );
+        if ($ignoreRefundNotification != true) {
+            $this->_refundOrder();
+        } else {
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                'Setting to ignore refund notification is enabled so ignore this notification'
+            );
+        }
+    }
     /**
      * Remove OFFER_CLOSED and AUTHORISATION success=false notifications for some time from the processing list
      * to ensure they won't close any order which has an AUTHORISED notification arrived a bit later than the
@@ -1100,367 +1348,11 @@ class WebhookProcessor
     }
 
     /**
-     * Process the Notification
-     */
-    protected function _processNotification()
-    {
-        $this->_adyenLogger->addAdyenNotificationCronjob('Processing the notification');
-        $_paymentCode = $this->_paymentMethodCode();
-
-        switch ($this->_eventCode) {
-            case Notification::REFUND_FAILED:
-                //Trigger admin notice for REFUND_FAILED notifications
-                $this->addRefundFailedNotice();
-                break;
-            case Notification::REFUND:
-                $ignoreRefundNotification = $this->_getConfigData(
-                    'ignore_refund_notification',
-                    'adyen_abstract',
-                    $this->_order->getStoreId()
-                );
-                if ($ignoreRefundNotification != true) {
-                    $this->_refundOrder();
-                } else {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        'Setting to ignore refund notification is enabled so ignore this notification'
-                    );
-                }
-                break;
-            case Notification::PENDING:
-                if ($this->_getConfigData(
-                    'send_email_bank_sepa_on_pending',
-                    'adyen_abstract',
-                    $this->_order->getStoreId()
-                )
-                ) {
-                    // Check if payment is banktransfer or sepa if true then send out order confirmation email
-                    $isBankTransfer = $this->_isBankTransfer();
-                    if ($isBankTransfer || $this->_paymentMethod == 'sepadirectdebit') {
-                        if (!$this->_order->getEmailSent()) {
-                            $this->_sendOrderMail();
-                        }
-                    }
-                }
-                break;
-            case Notification::HANDLED_EXTERNALLY:
-            case Notification::AUTHORISATION:
-                $this->authorizePayment();
-                break;
-            case Notification::MANUAL_REVIEW_REJECT:
-                // Do not do any processing. Order should be cancelled/refunded when the CANCEL_OR_REFUND notification is received
-                $this->caseManagementHelper->markCaseAsRejected($this->_order, $this->_originalReference, $this->_isAutoCapture());
-                break;
-            case Notification::MANUAL_REVIEW_ACCEPT:
-                $this->caseManagementHelper->markCaseAsAccepted($this->_order, sprintf(
-                    'Manual review accepted for order w/pspReference: %s',
-                    $this->_originalReference
-                ));
-
-                $this->isAutoCapture = $this->_isAutoCapture();
-
-                // Finalize order only in case of auto capture. For manual capture the capture notification will initiate this call
-                if ($this->isAutoCapture) {
-                    $this->finalizeOrder();
-                }
-                break;
-            case Notification::CAPTURE:
-                $this->isAutoCapture = $this->_isAutoCapture();
-                /*
-                 * ignore capture if you are on auto capture
-                 * this could be called if manual review is enabled and you have a capture delay
-                 */
-                if (!$this->isAutoCapture) {
-                    $this->handleManualCapture();
-                }
-                break;
-            case Notification::OFFER_CLOSED:
-                $previousSuccess = $this->_order->getData('adyen_notification_event_code_success');
-
-                // Order is already Authorised
-                if (!empty($previousSuccess)) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        "Order is already authorised, skipping OFFER_CLOSED"
-                    );
-                    break;
-                }
-
-                // Order is already Cancelled
-                if ($this->_order->isCanceled()) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        "Order is already cancelled, skipping OFFER_CLOSED"
-                    );
-                    break;
-                }
-                /*
-                * For cards, it can be 'visa', 'maestro',...
-                * For alternatives, it can be 'ideal', 'directEbanking',...
-                */
-                $notificationPaymentMethod = $this->_paymentMethod;
-
-                /*
-                * For cards, it can be 'VI', 'MI',...
-                * For alternatives, it can be 'ideal', 'directEbanking',...
-                */
-                $orderPaymentMethod = $this->_order->getPayment()->getCcType();
-
-                /*
-                 * Returns if the payment method is wallet like wechatpayWeb, amazonpay, applepay, paywithgoogle
-                 */
-                $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($orderPaymentMethod);
-
-                /*
-                 * Return if payment method is cc like VI, MI
-                 */
-                $isCCPaymentMethod = $this->_order->getPayment()->getMethod() === 'adyen_cc';
-
-                /*
-                * If the order was made with an Alternative payment method,
-                *  continue with the cancellation only if the payment method of
-                * the notification matches the payment method of the order.
-                */
-                if ( !$isWalletPaymentMethod && !$isCCPaymentMethod && strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        "The notification does not match the payment method of the order,
-                    skipping OFFER_CLOSED"
-                    );
-                    break;
-                }
-                if (!$this->_order->canCancel() && $this->configHelper->getNotificationsCanCancel(
-                        $this->_order->getStoreId()
-                    )) {
-                    // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
-                    $this->_order->setState(Order::STATE_NEW);
-                }
-                $this->_holdCancelOrder(true);
-                break;
-            case Notification::CAPTURE_FAILED:
-            case Notification::CANCELLATION:
-            case Notification::CANCELLED:
-                $this->_holdCancelOrder(true);
-                break;
-            case Notification::CANCEL_OR_REFUND:
-                if (isset($this->_modificationResult) && $this->_modificationResult != "") {
-                    if ($this->_modificationResult == "cancel") {
-                        $this->_holdCancelOrder(true);
-                    } elseif ($this->_modificationResult == "refund") {
-                        $this->_refundOrder();
-                    }
-                } else {
-                    if ($this->_order->isCanceled() ||
-                        $this->_order->getState() === Order::STATE_HOLDED
-                    ) {
-                        $this->_adyenLogger->addAdyenNotificationCronjob(
-                            'Order is already cancelled or holded so do nothing'
-                        );
-                    } else {
-                        if ($this->_order->canCancel() || $this->_order->canHold()) {
-                            $this->_adyenLogger->addAdyenNotificationCronjob('try to cancel the order');
-                            $this->_holdCancelOrder(true);
-                        } else {
-                            $this->_adyenLogger->addAdyenNotificationCronjob('try to refund the order');
-                            // refund
-                            $this->_refundOrder();
-                        }
-                    }
-                }
-                break;
-
-            case Notification::RECURRING_CONTRACT:
-                // only store billing agreements if Vault is disabled
-                if (!$this->_adyenHelper->isCreditCardVaultEnabled()) {
-                    // storedReferenceCode
-                    $recurringDetailReference = $this->_pspReference;
-
-                    $storeId = $this->_order->getStoreId();
-                    $customerReference = $this->_order->getCustomerId();
-                    $listRecurringContracts = null;
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        __(
-                            'CustomerReference is: %1 and storeId is %2 and RecurringDetailsReference is %3',
-                            $customerReference,
-                            $storeId,
-                            $recurringDetailReference
-                        )
-                    );
-                    try {
-                        $listRecurringContracts = $this->_adyenPaymentRequest->getRecurringContractsForShopper(
-                            $customerReference,
-                            $storeId
-                        );
-                        $contractDetail = null;
-                        // get current Contract details and get list of all current ones
-                        $recurringReferencesList = [];
-
-                        if (!$listRecurringContracts) {
-                            throw new \Exception("Empty list recurring contracts");
-                        }
-                        // Find the reference on the list
-                        foreach ($listRecurringContracts as $rc) {
-                            $recurringReferencesList[] = $rc['recurringDetailReference'];
-                            if (isset($rc['recurringDetailReference']) &&
-                                $rc['recurringDetailReference'] == $recurringDetailReference
-                            ) {
-                                $contractDetail = $rc;
-                            }
-                        }
-
-                        if ($contractDetail == null) {
-                            $this->_adyenLogger->addAdyenNotificationCronjob(json_encode($listRecurringContracts));
-                            $message = __(
-                                'Failed to create billing agreement for this order ' .
-                                '(listRecurringCall did not contain contract)'
-                            );
-                            throw new \Exception($message);
-                        }
-
-                        $billingAgreements = $this->_billingAgreementCollectionFactory->create();
-                        $billingAgreements->addFieldToFilter('customer_id', $customerReference);
-
-                        // Get collection and update existing agreements
-
-                        foreach ($billingAgreements as $updateBillingAgreement) {
-                            if (!in_array($updateBillingAgreement->getReferenceId(), $recurringReferencesList)) {
-                                $updateBillingAgreement->setStatus(
-                                    \Adyen\Payment\Model\Billing\Agreement::STATUS_CANCELED
-                                );
-                            } else {
-                                $updateBillingAgreement->setStatus(
-                                    \Adyen\Payment\Model\Billing\Agreement::STATUS_ACTIVE
-                                );
-                            }
-                            $updateBillingAgreement->save();
-                        }
-
-                        // Get or create billing agreement
-                        $billingAgreement = $this->_billingAgreementFactory->create();
-                        $billingAgreement->load($recurringDetailReference, 'reference_id');
-                        // check if BA exists
-                        if (!($billingAgreement && $billingAgreement->getAgreementId() > 0
-                            && $billingAgreement->isValid())) {
-                            // create new
-                            $this->_adyenLogger->addAdyenNotificationCronjob("Creating new Billing Agreement");
-                            $this->_order->getPayment()->setBillingAgreementData(
-                                [
-                                    'billing_agreement_id' => $recurringDetailReference,
-                                    'method_code' => $this->_order->getPayment()->getMethodCode(),
-                                ]
-                            );
-
-                            $billingAgreement = $this->_billingAgreementFactory->create();
-                            $billingAgreement->setStoreId($this->_order->getStoreId());
-                            $billingAgreement->importOrderPaymentWithRecurringDetailReference($this->_order->getPayment(), $recurringDetailReference);
-                            $message = __('Created billing agreement #%1.', $recurringDetailReference);
-                        } else {
-                            $this->_adyenLogger->addAdyenNotificationCronjob
-                            (
-                                "Using existing Billing Agreement"
-                            );
-                            $billingAgreement->setIsObjectChanged(true);
-                            $message = __('Updated billing agreement #%1.', $recurringDetailReference);
-                        }
-
-                        // Populate billing agreement data
-                        $billingAgreement->parseRecurringContractData($contractDetail);
-                        if ($billingAgreement->isValid()) {
-                            if (!$this->agreementResourceModel->getOrderRelation(
-                                $billingAgreement->getAgreementId(),
-                                $this->_order->getId()
-                            )) {
-                                // save into sales_billing_agreement_order
-                                $billingAgreement->addOrderRelation($this->_order);
-
-                                // add to order to save agreement
-                                $this->_order->addRelatedObject($billingAgreement);
-                            }
-                        } else {
-                            $message = __('Failed to create billing agreement for this order.');
-                            throw new \Exception($message);
-                        }
-                    } catch (\Exception $exception) {
-                        $message = $exception->getMessage();
-                    }
-
-                    $this->_adyenLogger->addAdyenNotificationCronjob($message);
-                    $comment = $this->_order->addStatusHistoryComment($message, $this->_order->getStatus());
-                    $this->_order->addRelatedObject($comment);
-                }
-                //store recurring contract for alternative payments methods
-                if ($_paymentCode == 'adyen_hpp' && $this->configHelper->isStoreAlternativePaymentMethodEnabled()) {
-                    $paymentTokenAlternativePaymentMethod = null;
-                    try {
-                        //get the payment
-                        $payment = $this->_order->getPayment();
-                        $customerId = $this->_order->getCustomerId();
-
-                        $this->_adyenLogger->addAdyenNotificationCronjob(
-                            '$paymentMethodCode ' . $this->_paymentMethod
-                        );
-                        if (!empty($this->_pspReference)) {
-                            // Check if $paymentTokenAlternativePaymentMethod exists already
-                            $paymentTokenAlternativePaymentMethod = $this->paymentTokenManagement->getByGatewayToken(
-                                $this->_pspReference,
-                                $payment->getMethodInstance()->getCode(),
-                                $payment->getOrder()->getCustomerId()
-                            );
-
-
-                            // In case the payment token for this payment method does not exist, create it based on the additionalData
-                            if ($paymentTokenAlternativePaymentMethod === null) {
-                                $this->_adyenLogger->addAdyenNotificationCronjob('Creating new gateway token');
-                                /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
-                                $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
-                                    PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT
-                                );
-
-                                $details = [
-                                    'type' => $this->_paymentMethod,
-                                    'maskedCC' => $payment->getAdditionalInformation()['ibanNumber'],
-                                    'expirationDate' => 'N/A'
-                                ];
-
-                                $paymentTokenAlternativePaymentMethod->setCustomerId($customerId)
-                                    ->setGatewayToken($this->_pspReference)
-                                    ->setPaymentMethodCode(AdyenCcConfigProvider::CODE)
-                                    ->setPublicHash($this->encryptor->getHash($customerId . $this->_pspReference))
-                                    ->setTokenDetails(json_encode($details));
-                            } else {
-                                $this->_adyenLogger->addAdyenNotificationCronjob('Gateway token already exists');
-                            }
-
-                            //SEPA tokens don't expire. The expiration date is set 10 years from now
-                            $expDate = new DateTime('now', new DateTimeZone('UTC'));
-                            $expDate->add(new DateInterval('P10Y'));
-                            $paymentTokenAlternativePaymentMethod->setExpiresAt($expDate->format('Y-m-d H:i:s'));
-
-                            $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
-                            $this->_adyenLogger->addAdyenNotificationCronjob('New gateway token saved');
-                        }
-                    } catch (\Exception $exception) {
-                        $message = $exception->getMessage();
-                        $this->_adyenLogger->addAdyenNotificationCronjob(
-                            "An error occurred while saving the payment method " . $message
-                        );
-                    }
-                } else {
-                    $this->_adyenLogger->addAdyenNotificationCronjob(
-                        'Ignore recurring_contract notification because Vault feature is enabled'
-                    );
-                }
-                break;
-            default:
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    sprintf('This notification event: %s is not supported so will be ignored', $this->_eventCode)
-                );
-                break;
-        }
-    }
-
-    /**
      * Not implemented
      *
      * @return bool
      */
-    protected function _refundOrder()
+    private function _refundOrder()
     {
         $this->_adyenLogger->addAdyenNotificationCronjob('Refunding the order');
 
@@ -1694,20 +1586,20 @@ class WebhookProcessor
              * if you are using authcap the payment method is manual.
              * There will be a capture send to indicate if payment is successful
              */
-            if ($this->_paymentMethod == "sepadirectdebit" && $sepaFlow == "authcap") {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'Manual Capture is applied for sepa because it is in authcap flow'
-                );
-                return false;
-            }
-
-            // payment method ideal, cash adyen_boleto has direct capture
-            if ($this->_paymentMethod == "sepadirectdebit" && $sepaFlow != "authcap") {
-                $this->_adyenLogger->addAdyenNotificationCronjob(
-                    'This payment method does not allow manual capture.(2) paymentCode:' .
-                    $_paymentCode . ' paymentMethod:' . $this->_paymentMethod . ' sepaFLow:' . $sepaFlow
-                );
-                return true;
+            if ($this->_paymentMethod == "sepadirectdebit") {
+                if ($sepaFlow == "authcap") {
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        'Manual Capture is applied for sepa because it is in authcap flow'
+                    );
+                    return false;
+                } else {
+                    // payment method ideal, cash adyen_boleto has direct capture
+                    $this->_adyenLogger->addAdyenNotificationCronjob(
+                        'This payment method does not allow manual capture.(2) paymentCode:' .
+                        $_paymentCode . ' paymentMethod:' . $this->_paymentMethod . ' sepaFLow:' . $sepaFlow
+                    );
+                    return true;
+                }
             }
 
             if ($_paymentCode == "adyen_pos_cloud") {

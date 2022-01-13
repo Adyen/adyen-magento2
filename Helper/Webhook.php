@@ -56,7 +56,7 @@ class Webhook
      */
     public function getTransitionState(Notification $notification, $orderState): string
     {
-        $currentOrderState = self::WEBHOOK_ORDER_STATE_MAPPING[$orderState];
+        $currentOrderState = $this->getCurrentState($orderState);
         $webhookNotificationItem = \Adyen\Webhook\Notification::createItem([
             'eventCode' => $notification->getEventCode(),
             'success' => $notification->getSuccess()
@@ -66,8 +66,8 @@ class Webhook
         return $processor->process();
     }
 
-    public function processAuthorisation()
+    public function getCurrentState($orderState)
     {
-
+        return self::WEBHOOK_ORDER_STATE_MAPPING[$orderState] ?? null;
     }
 }
