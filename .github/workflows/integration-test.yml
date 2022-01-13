@@ -13,7 +13,13 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Create docker image
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml up
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+
+      # Temp solution to wait for install script to run
+      - name: Sleep for 60 seconds
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '60s'
 
       - name: Show running containers
         run: docker container ls --all
