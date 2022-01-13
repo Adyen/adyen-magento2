@@ -61,7 +61,7 @@ class Creditmemo extends AbstractModel implements CreditmemoInterface
      */
     protected function _construct()
     {
-        $this->_init(Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class);
+        $this->_init(\Adyen\Payment\Model\ResourceModel\Creditmemo\Creditmemo::class);
     }
 
     /**

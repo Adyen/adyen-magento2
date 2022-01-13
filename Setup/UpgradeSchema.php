@@ -758,8 +758,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 CreditmemoInterface::CREDITMEMO_ID,
                 Table::TYPE_INTEGER,
                 11,
-                ['unsigned' => true, 'nullable' => false],
-                'Creditmemo Id'
+                ['unsigned' => true, 'nullable' => true],
+                'Creditmemo Id, link to magento creditmemo entity'
             )
             ->addColumn(
                 CreditmemoInterface::AMOUNT,
@@ -799,18 +799,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ->addForeignKey(
                 $setup->getFkName(
                     self::ADYEN_CREDITMEMO,
-                    CreditmemoInterface::CREDITMEMO_ID,
-                    'sales_creditmemo',
-                    'entity_id'
-                ),
-                CreditmemoInterface::CREDITMEMO_ID,
-                $setup->getTable('sales_creditmemo'),
-                'entity_id',
-                Table::ACTION_CASCADE
-            )
-            ->addForeignKey(
-                $setup->getFkName(
-                    self::ADYEN_CREDITMEMO,
                     CreditmemoInterface::ADYEN_ORDER_PAYMENT_ID,
                     'adyen_order_payment',
                     'entity_id'
@@ -821,6 +809,20 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 Table::ACTION_CASCADE
             )
             ->setComment('Adyen Creditmemo');
+
+
+//        ->addForeignKey(
+//        $setup->getFkName(
+//            self::ADYEN_CREDITMEMO,
+//            CreditmemoInterface::CREDITMEMO_ID,
+//            'sales_creditmemo',
+//            'entity_id'
+//        ),
+//        CreditmemoInterface::CREDITMEMO_ID,
+//        $setup->getTable('sales_creditmemo'),
+//        'entity_id',
+//        Table::ACTION_CASCADE
+//    )
 
         $setup->getConnection()->createTable($adyenCreditmemoTable);
     }
