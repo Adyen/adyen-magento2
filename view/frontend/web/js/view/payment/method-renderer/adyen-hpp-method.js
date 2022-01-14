@@ -753,10 +753,7 @@ define(
                             var self = this;
                             await self.handleOnSubmit(state.data, amazonPayComponent);
                         } catch (error) {
-                            debugger;
                             amazonPayComponent.handleDeclineFlow();
-                            //go to failed page
-                            self.handleOnSubmit(state.data, amazonPayComponent);
                         }
                     };
                     if (formattedShippingAddress &&
