@@ -750,7 +750,6 @@ define(
                     configuration.returnUrl = location.href;
                     configuration.onSubmit = async(state, amazonPayComponent) => {
                         try {
-                            var self = this;
                             await self.handleOnSubmit(state.data, amazonPayComponent);
                         } catch (error) {
                             amazonPayComponent.handleDeclineFlow();
