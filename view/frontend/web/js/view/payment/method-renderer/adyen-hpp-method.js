@@ -322,7 +322,6 @@ define(
                         self.currentMessageContainer),
                 ).fail(
                     function(response) {
-
                         self.isPlaceOrderActionAllowed(true);
                         fullScreenLoader.stopLoader();
                         self.showErrorMessage(response);
