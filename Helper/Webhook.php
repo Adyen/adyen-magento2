@@ -474,7 +474,7 @@ class Webhook
     {
         switch ($notification->getEventCode()) {
             case Notification::PENDING:
-                if ($this->getConfigData(
+                if ($this->configHelper->getConfigData(
                     'send_email_bank_sepa_on_pending',
                     'adyen_abstract',
                     $this->order->getStoreId()
@@ -788,7 +788,7 @@ class Webhook
             return;
         }
 
-        $orderStatus = $this->getConfigData(
+        $orderStatus = $this->configHelper->getConfigData(
             'payment_cancelled',
             'adyen_abstract',
             $this->order->getStoreId()
@@ -913,7 +913,7 @@ class Webhook
         }
 
         if ($notification->getPaymentMethod() == "c_cash" &&
-            $this->getConfigData('create_shipment', 'adyen_cash', $this->order->getStoreId())
+            $this->configHelper->getConfigData('create_shipment', 'adyen_cash', $this->order->getStoreId())
         ) {
             $this->createShipment();
         }
@@ -921,7 +921,7 @@ class Webhook
 
     private function refundPayment(Notification $notification)
     {
-        $ignoreRefundNotification = $this->getConfigData(
+        $ignoreRefundNotification = $this->configHelper->getConfigData(
             'ignore_refund_notification',
             'adyen_abstract',
             $this->order->getStoreId()
@@ -1060,7 +1060,7 @@ class Webhook
 
         // If notification is pending status and pending status is set add the status change to the comment history
         if ($eventCode == Notification::PENDING) {
-            $pendingStatus = $this->getConfigData(
+            $pendingStatus = $this->configHelper->getConfigData(
                 'pending_status',
                 'adyen_abstract',
                 $order->getStoreId()
@@ -1226,7 +1226,7 @@ class Webhook
      */
     private function setPrePaymentAuthorized()
     {
-        $status = $this->getConfigData(
+        $status = $this->configHelper->getConfigData(
             'payment_pre_authorized',
             'adyen_abstract',
             $this->order->getStoreId()
@@ -1316,27 +1316,27 @@ class Webhook
         // validate if payment methods allows manual capture
         if ($this->manualCaptureAllowed($notificationPaymentMethod)) {
             $captureMode = trim(
-                $this->getConfigData(
+                $this->configHelper->getConfigData(
                     'capture_mode',
                     'adyen_abstract',
                     $this->order->getStoreId()
                 )
             );
             $sepaFlow = trim(
-                $this->getConfigData(
+                $this->configHelper->getConfigData(
                     'sepa_flow',
                     'adyen_abstract',
                     $this->order->getStoreId()
                 )
             );
             $paymentCode = $this->order->getPayment()->getMethod();
-            $captureModeOpenInvoice = $this->getConfigData(
+            $captureModeOpenInvoice = $this->configHelper->getConfigData(
                 'auto_capture_openinvoice',
                 'adyen_abstract',
                 $this->order->getStoreId()
             );
             $manualCapturePayPal = trim(
-                $this->getConfigData(
+                $this->configHelper->getConfigData(
                     'paypal_capture_mode',
                     'adyen_abstract',
                     $this->order->getStoreId()
@@ -1526,7 +1526,7 @@ class Webhook
 
 
                 $autoCapture = $this->isAutoCapture($notification->getPaymentMethod());
-                $createPendingInvoice = (bool)$this->getConfigData(
+                $createPendingInvoice = (bool)$this->configHelper->getConfigData(
                     'create_pending_invoice',
                     'adyen_abstract',
                     $this->order->getStoreId()
@@ -1592,7 +1592,7 @@ class Webhook
             ->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
         $fullAmountFinalized = $this->adyenOrderPaymentHelper->isFullAmountFinalized($order);
 
-        $status = $this->getConfigData(
+        $status = $this->configHelper->getConfigData(
             'payment_authorized',
             'adyen_abstract',
             $order->getStoreId()
@@ -1619,7 +1619,7 @@ class Webhook
                 $paidAmount = floatval(trim($paidAmount));
 
                 if ($paidAmount > $originalAmount) {
-                    $overpaidStatus = $this->getConfigData(
+                    $overpaidStatus = $this->configHelper->getConfigData(
                         'order_overpaid_status',
                         'adyen_boleto',
                         $order->getStoreId()
@@ -1627,7 +1627,7 @@ class Webhook
                     // check if there is selected a status if not fall back to the default
                     $status = (!empty($overpaidStatus)) ? $overpaidStatus : $status;
                 } else {
-                    $underpaidStatus = $this->getConfigData(
+                    $underpaidStatus = $this->configHelper->getConfigData(
                         'order_underpaid_status',
                         'adyen_boleto',
                         $order->getStoreId()
@@ -1710,20 +1710,6 @@ class Webhook
     }
 
     /**
-     * Retrieve information from payment configuration
-     *
-     * @param $field
-     * @param string $paymentMethodCode
-     * @param $storeId
-     * @return mixed
-     */
-    private function getConfigData($field, $paymentMethodCode = 'adyen_cc', $storeId)
-    {
-        $path = 'payment/' . $paymentMethodCode . '/' . $field;
-        return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
-    }
-
-    /**
      * Add admin notice message for refund failed notification
      *
      * @return void
@@ -1803,7 +1789,7 @@ class Webhook
     private function getVirtualStatus($status)
     {
         $this->logger->addAdyenNotificationCronjob('Product is a virtual product');
-        $virtualStatus = $this->getConfigData(
+        $virtualStatus = $this->configHelper->getConfigData(
             'payment_authorized_virtual',
             'adyen_abstract',
             $this->order->getStoreId()
