@@ -23,55 +23,10 @@
 
 namespace Adyen\Payment\Cron;
 
-use Adyen\Payment\Api\Data\OrderPaymentInterface;
-use Adyen\Payment\Helper\AdyenOrderPayment;
-use Adyen\Payment\Helper\CaseManagement;
-use Adyen\Payment\Helper\ChargedCurrency;
-use Adyen\Payment\Helper\Config as ConfigHelper;
-use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\Invoice as InvoiceHelper;
-use Adyen\Payment\Helper\PaymentMethods as PaymentMethodsHelper;
 use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Api\PaymentRequest;
-use Adyen\Payment\Model\Billing\AgreementFactory;
-use Adyen\Payment\Model\InvoiceFactory;
 use Adyen\Payment\Model\Notification;
-use Adyen\Payment\Model\Order\PaymentFactory;
-use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
-use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as AgreementCollectionFactory;
-use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
-use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
-use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
-use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Webhook\PaymentStates;
-use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\DB\TransactionFactory;
-use Magento\Framework\Encryption\EncryptorInterface;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Notification\NotifierInterface;
-use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
-use Magento\Framework\Webapi\Exception;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Email\Sender\OrderSender;
-use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
-use Magento\Framework\App\Area;
-use Magento\Framework\App\AreaList;
-use Magento\Framework\Phrase\Renderer\Placeholder;
-use Magento\Framework\Phrase;
-use Magento\Sales\Model\Order\Payment\Transaction\Builder;
-use Magento\Sales\Model\OrderFactory;
-use Magento\Sales\Model\OrderRepository;
-use Magento\Sales\Model\ResourceModel\Order\Invoice as InvoiceResourceModel;
-use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
-use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
-use Magento\Vault\Api\PaymentTokenRepositoryInterface;
-use Magento\Vault\Model\PaymentTokenManagement;
-use DateInterval;
-use DateTime;
-use DateTimeZone;
+use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
 
 class WebhookProcessor
 {
@@ -83,9 +38,9 @@ class WebhookProcessor
     private $adyenLogger;
 
     /**
-     * @var NotificationCollectionFactory
+     * @var CollectionFactory
      */
-    private $notificationFactory;
+    private $notificationCollectionFactory;
 
     /**
      * @var Webhook
@@ -97,16 +52,16 @@ class WebhookProcessor
      * Cron constructor.
      *
      * @param AdyenLogger $adyenLogger
-     * @param NotificationCollectionFactory $notificationFactory
+     * @param CollectionFactory $notificationCollectionFactory
      * @param Webhook $webhookHelper
      */
     public function __construct(
         AdyenLogger $adyenLogger,
-        NotificationCollectionFactory $notificationFactory,
+        CollectionFactory $notificationCollectionFactory,
         Webhook $webhookHelper
     ) {
         $this->adyenLogger = $adyenLogger;
-        $this->notificationFactory = $notificationFactory;
+        $this->notificationCollectionFactory = $notificationCollectionFactory;
         $this->webhookHelper = $webhookHelper;
     }
 
@@ -126,10 +81,13 @@ class WebhookProcessor
         }
     }
 
+    /**
+     * @throws \Exception
+     */
     public function doProcessWebhook()
     {
         // Fetch notifications collection
-        $notifications = $this->notificationFactory->create();
+        $notifications = $this->notificationCollectionFactory->create();
         $notifications->notificationsToProcessFilter();
 
         // Loop through and process notifications.

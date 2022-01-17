@@ -25,20 +25,16 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
-use Adyen\Payment\Cron\PaymentTokenInterface;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Invoice as InvoiceHelper;
 use Adyen\Payment\Helper\PaymentMethods as PaymentMethodsHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\PaymentRequest;
 use Adyen\Payment\Model\Billing\AgreementFactory;
-use Adyen\Payment\Model\InvoiceFactory;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as AgreementCollectionFactory;
-use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
-use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Webhook\Exception\InvalidDataException;
@@ -48,7 +44,6 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\AreaList;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -61,7 +56,6 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
-use Magento\Sales\Model\OrderFactory;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Invoice as InvoiceResourceModel;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
@@ -80,7 +74,6 @@ class Webhook
      * @var Order
      */
     private $order;
-
     /**
      * @var AdyenLogger
      */
@@ -97,14 +90,6 @@ class Webhook
      * @var ScopeConfigInterface
      */
     private $scopeConfig;
-    /**
-     * @var NotificationCollectionFactory
-     */
-    private $notificationFactory;
-    /**
-     * @var OrderFactory
-     */
-    private $orderFactory;
     /**
      * @var Data
      */
@@ -138,10 +123,6 @@ class Webhook
      */
     private $adyenOrderPaymentCollectionFactory;
     /**
-     * @var InvoiceFactory
-     */
-    private $adyenInvoiceFactory;
-    /**
      * @var OrderStatusCollectionFactory
      */
     private $orderStatusCollection;
@@ -166,7 +147,7 @@ class Webhook
      */
     private $timezone;
     /**
-     * @var Config
+     * @var ConfigHelper
      */
     private $configHelper;
     /**
@@ -202,7 +183,7 @@ class Webhook
      */
     private $adyenOrderPaymentHelper;
     /**
-     * @var Invoice
+     * @var InvoiceHelper
      */
     private $invoiceHelper;
     /**
@@ -228,8 +209,6 @@ class Webhook
         ScopeConfigInterface $scopeConfig,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         OrderRepository $orderRepository,
-        NotificationCollectionFactory $notificationFactory,
-        OrderFactory $orderFactory,
         Data $adyenHelper,
         OrderSender $orderSender,
         InvoiceSender $invoiceSender,
@@ -238,7 +217,6 @@ class Webhook
         AgreementCollectionFactory $billingAgreementCollectionFactory,
         PaymentRequest $paymentRequest,
         OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
-        InvoiceFactory $adyenInvoiceFactory,
         OrderStatusCollectionFactory $orderStatusCollection,
         Agreement $agreementResourceModel,
         Builder $transactionBuilder,
@@ -262,8 +240,6 @@ class Webhook
         $this->scopeConfig = $scopeConfig;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->orderRepository = $orderRepository;
-        $this->notificationFactory = $notificationFactory;
-        $this->orderFactory = $orderFactory;
         $this->adyenHelper = $adyenHelper;
         $this->orderSender = $orderSender;
         $this->invoiceSender = $invoiceSender;
@@ -272,7 +248,6 @@ class Webhook
         $this->billingAgreementCollectionFactory = $billingAgreementCollectionFactory;
         $this->paymentRequest = $paymentRequest;
         $this->adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
-        $this->adyenInvoiceFactory = $adyenInvoiceFactory;
         $this->orderStatusCollection = $orderStatusCollection;
         $this->agreementResourceModel = $agreementResourceModel;
         $this->transactionBuilder = $transactionBuilder;
@@ -670,7 +645,6 @@ class Webhook
                             // In case the payment token for this payment method does not exist, create it based on the additionalData
                             if ($paymentTokenAlternativePaymentMethod === null) {
                                 $this->logger->addAdyenNotificationCronjob('Creating new gateway token');
-                                /** @var PaymentTokenInterface $paymentTokenAlternativePaymentMethod */
                                 $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
                                     PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT
                                 );
