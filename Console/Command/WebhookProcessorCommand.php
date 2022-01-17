@@ -26,6 +26,9 @@ class WebhookProcessorCommand extends Command
         parent::configure();
     }
 
+    /**
+     * @throws \Exception
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $output->writeln('Starting webhook processor.');
