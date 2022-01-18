@@ -67,7 +67,7 @@ class Webhook
 {
     const WEBHOOK_ORDER_STATE_MAPPING = [
         Order::STATE_NEW => PaymentStates::STATE_NEW,
-        Order::STATE_HOLDED => PaymentStates::STATE_PENDING,
+        Order::STATE_PENDING_PAYMENT => PaymentStates::STATE_PENDING,
         Order::STATE_PAYMENT_REVIEW => PaymentStates::STATE_PENDING,
         Order::STATE_PROCESSING => PaymentStates::STATE_IN_PROGRESS,
         Order::STATE_COMPLETE => PaymentStates::STATE_PAID,
