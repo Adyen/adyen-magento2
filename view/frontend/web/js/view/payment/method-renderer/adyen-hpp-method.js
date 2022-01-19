@@ -310,14 +310,14 @@ define(
 
                 return result;
             },
-            placeRedirectOrder: async function(data, component) {
+            placeRedirectOrder:  function(data, component) {
                 var self = this;
 
                 // Place Order but use our own redirect url after
                 fullScreenLoader.startLoader();
                 $('.hpp-message').slideUp();
                 self.isPlaceOrderActionAllowed(false);
-                await $.when(
+                 $.when(
                     placeOrderAction(data,
                         self.currentMessageContainer),
                 ).fail(
@@ -455,7 +455,7 @@ define(
                     mount(actionNode);
                 }
             },
-            handleOnSubmit: async function(state, component) {
+            handleOnSubmit:  function(state, component) {
                 if (this.validate()) {
                     var data = {};
                     data.method = this.getCode();
@@ -472,7 +472,7 @@ define(
                     }
 
                     data.additional_data = additionalData;
-                    await this.placeRedirectOrder(data, component);
+                     this.placeRedirectOrder(data, component);
                 }
 
                 return false;
@@ -747,10 +747,11 @@ define(
                     configuration.productType = 'PayAndShip';
                     configuration.checkoutMode = 'ProcessOrder';
                     configuration.returnUrl = location.href;
-                    configuration.onSubmit = async(state, amazonPayComponent) => {
+                    configuration.onSubmit = (state, amazonPayComponent) => {
                         try {
-                            await self.handleOnSubmit(state.data, amazonPayComponent);
+                            self.handleOnSubmit(state.data, amazonPayComponent);
                         } catch (error) {
+                            //try this one first
                             amazonPayComponent.handleDeclineFlow();
                         }
                     };
@@ -796,20 +797,24 @@ define(
                         }).mount(containerId);
                         amazonPayComponent.submit();
                         result.component = amazonPayComponent;
-                    } else {
-                        const component = self.checkoutComponent.create(
-                            paymentMethod.methodIdentifier, configuration);
-                        if ('isAvailable' in component) {
-                            component.isAvailable().then(() => {
-                                component.mount(containerId);
-                            }).catch(e => {
-                                result.isAvailable(false);
-                            });
-                        } else {
-                            component.mount(containerId);
-                        }
-                        result.component = component;
                     }
+                    if (url.searchParams.has(amazonSessionKey)) {
+                        url.searchParams.delete(amazonSessionKey);
+                        history.replaceState(null, '', '?' + url.searchParams + location.hash);
+                    }
+                    const component = self.checkoutComponent.create(
+                        paymentMethod.methodIdentifier, configuration);
+                    if ('isAvailable' in component) {
+                        component.isAvailable().then(() => {
+                            component.mount(containerId);
+                        }).catch(e => {
+                            result.isAvailable(false);
+                        });
+                    } else {
+                        component.mount(containerId);
+                    }
+                    result.component = component;
+
                 } catch (err) {
                     // The component does not exist yet
                     if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
