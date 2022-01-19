@@ -165,10 +165,11 @@ class Result extends \Magento\Framework\App\Action\Action
     {
         // Receive all params as this could be a GET or POST request
         $response = $this->getRequest()->getParams();
-        $this->_adyenLogger->addAdyenResult(json_encode($response));
+        $result = false;
 
         if ($response) {
             $result = $this->validateResponse($response);
+            $this->_adyenLogger->addAdyenResult(json_encode($response));
 
             // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
             if (
@@ -191,13 +192,16 @@ class Result extends \Magento\Framework\App\Action\Action
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
             $this->_redirect($successPath, ['_query' => ['utm_nooverride' => '1']]);
         } else {
-            $this->_adyenLogger->addAdyenResult(
-                sprintf(
+            if (isset($this->_order)) {
+                $message = sprintf(
                     'Payment for order %s was unsuccessful, ' .
                     'it will be cancelled when the OFFER_CLOSED notification has been processed.',
                     $this->_order->getIncrementId()
-                )
-            );
+                );
+            } else {
+                $message = 'Invalid response received';
+            }
+            $this->_adyenLogger->addAdyenResult($message);
             $this->replaceCart($response);
             $this->_redirect($failPath, ['_query' => ['utm_nooverride' => '1']]);
         }
@@ -242,8 +246,6 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     protected function validateResponse($response)
     {
-        $result = true;
-
         $this->_adyenLogger->addAdyenResult('Processing ResultUrl');
 
         // send the payload verification payment\details request to validate the response
@@ -299,8 +301,9 @@ class Result extends \Magento\Framework\App\Action\Action
      * @param Order $order
      * @param $response
      * @return bool
+     * @throws \Magento\Framework\Exception\AlreadyExistsException
      */
-    protected function _validateUpdateOrder($order, $response)
+    protected function _validateUpdateOrder($order, $response): bool
     {
         $result = false;
 
