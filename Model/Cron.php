@@ -1521,6 +1521,8 @@ class Cron
         if ($isFullAmountAuthorized) {
             $this->_setPrePaymentAuthorized();
             $this->_prepareInvoice();
+            //set authorized amount in sales_order_payment
+            $this->_order->getPayment()->setAmountAuthorized($this->orderAmount);
         } else {
             $this->addProcessedStatusHistoryComment();
         }
