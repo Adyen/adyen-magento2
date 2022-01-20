@@ -472,4 +472,12 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     {
         return $this->setData(self::UPDATED_AT, $timestamp);
     }
+
+    public function isLessThan10MinutesOld(): bool
+    {
+        $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $this->getCreatedAt());
+        $tenMinutesAgo = new \DateTime('-10 minutes');
+
+        return $createdAt <= $tenMinutesAgo;
+    }
 }

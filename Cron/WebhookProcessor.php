@@ -103,8 +103,10 @@ class WebhookProcessor
                     true
                 )
             ) {
-                $this->adyenLogger
-                    ->addAdyenNotificationCronjob("This is a duplicate notification and will be ignored");
+                $this->adyenLogger->addAdyenNotificationCronjob(
+                    "This is a duplicate notification and will be ignored",
+                    $notification->toArray(['entity_id', 'pspreference', 'event_code', 'success', 'original_reference'])
+                );
                 continue;
             }
 

@@ -361,54 +361,22 @@ class Webhook
      */
     public function shouldSkipProcessingNotification(Notification $notification): bool
     {
-        switch ($notification->getEventCode()) {
-            case Notification::OFFER_CLOSED:
-                // OFFER_CLOSED notifications needs to be at least 10 minutes old to be processed
-                $offerClosedMinDate = new \DateTime('-10 minutes');
-                $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification->getCreatedAt());
-                $minutesUntilProcessing = ($createdAt->format('U') - $offerClosedMinDate->format('U')) / 60;
+        if (
+            Notification::OFFER_CLOSED === $notification->getEventCode() ||
+            (Notification::AUTHORISATION === $notification->getEventCode() && !$notification->isSuccessful())
+        ) {
+            if ($notification->isLessThan10MinutesOld()) {
+                $this->logger->addAdyenNotificationCronjob(
+                    sprintf(
+                        '%s notification (entity_id: %s) for merchant_reference: %s is skipped! Wait 10 minute before processing.',
+                        $notification->getEventCode(),
+                        $notification->getEntityId(),
+                        $notification->getMerchantReference()
+                    )
+                );
 
-                if ($minutesUntilProcessing > 0) {
-                    $this->logger->addAdyenNotificationCronjob(
-                        sprintf(
-                            'OFFER_CLOSED notification (entity_id: %s) for merchant_reference: %s is skipped! Wait %s minute(s) before processing.',
-                            $notification->getEntityId(),
-                            $notification->getMerchantReference(),
-                            $minutesUntilProcessing
-                        )
-                    );
-
-                    return true;
-                }
-
-                break;
-            case Notification::AUTHORISATION:
-                // Only delay success=false notifications processing
-                if ($notification->isSuccessful()) {
-                    // do not skip this notification but process it now
-                    return false;
-                }
-
-                // AUTHORISATION success=false notifications needs to be at least 10 minutes old to be processed
-                $authorisationSuccessFalseMinDate = new \DateTime('-10 minutes');
-                $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $notification->getCreatedAt());
-
-                $minutesUntilProcessing = ($createdAt->format('U') - $authorisationSuccessFalseMinDate->format('U')) / 60;
-
-                if ($minutesUntilProcessing > 0) {
-                    $this->logger->addAdyenNotificationCronjob(
-                        sprintf(
-                            'AUTHORISATION success=false notification (entity_id: %s) for merchant_reference: %s is skipped! Wait %s minute(s) before processing.',
-                            $notification->getEntityId(),
-                            $notification->getMerchantReference(),
-                            $minutesUntilProcessing
-                        )
-                    );
-
-                    return true;
-                }
-
-                break;
+                return true;
+            }
         }
 
         return false;
@@ -700,7 +668,7 @@ class Webhook
     {
         $ignoreHasInvoice = true;
         // if payment is API check, check if API result pspreference is the same as reference
-        if ($notification->getEventCode() == NOTIFICATION::AUTHORISATION) {
+        if ($notification->getEventCode() == Notification::AUTHORISATION) {
             if ('api' === $this->order->getPayment()->getPaymentMethodType()) {
                 // don't cancel the order because order was successful through api
                 $this->logger->addAdyenNotificationCronjob(

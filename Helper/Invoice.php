@@ -195,7 +195,7 @@ class Invoice extends AbstractHelper
         $adyenInvoiceObject = $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
 
         $additionalData = $notification->getAdditionalData();
-        $acquirerReference = $additionalData[Notification::ADDITIONAL_DATA] ?? null;
+        $acquirerReference = $additionalData[Notification::ADDITIONAL_DATA] ?? null; // @todo this can't be right
         $adyenInvoiceObject->setAcquirerReference($acquirerReference);
         $adyenInvoiceObject->setStatus(InvoiceInterface::STATUS_SUCCESSFUL);
         $this->adyenInvoiceResourceModel->save($adyenInvoiceObject);
