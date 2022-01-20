@@ -190,4 +190,21 @@ class Creditmemo extends AbstractModel implements CreditmemoInterface
     {
         return $this->setData(self::UPDATED_AT, $updatedAt);
     }
+
+    /**
+     * @return array|mixed|null
+     */
+    public function getOriginalReference()
+    {
+        return $this->getData(self::ORIGINAL_REFERENCE);
+    }
+
+    /**
+     * @param $originalReference
+     * @return Creditmemo
+     */
+    public function setOriginalReference($originalReference): Creditmemo
+    {
+        return $this->setData(self::ORIGINAL_REFERENCE, $originalReference);
+    }
 }

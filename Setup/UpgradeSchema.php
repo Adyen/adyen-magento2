@@ -752,7 +752,14 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 Table::TYPE_TEXT,
                 255,
                 ['unsigned' => true, 'nullable' => false],
-                'Adyen pspreference of the capture'
+                'Adyen pspreference of the refund'
+            )
+            ->addColumn(
+                CreditmemoInterface::ORIGINAL_REFERENCE,
+                Table::TYPE_TEXT,
+                255,
+                ['unsigned' => true, 'nullable' => true],
+                'Adyen original reference of the refund'
             )
             ->addColumn(
                 CreditmemoInterface::CREDITMEMO_ID,

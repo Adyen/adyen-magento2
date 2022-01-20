@@ -68,7 +68,7 @@ class PaymentRefundDetailsHandler implements HandlerInterface
             $this->creditmemoHelper->createAdyenCreditmemo(
                 $payment,
                 $singleResponse['pspReference'],
-                $payment->getCcTransId(),
+                $singleResponse[TransactionRefund::ORIGINAL_REFERENCE],
                 (int) $singleResponse[TransactionRefund::REFUND_AMOUNT]
             );
         }

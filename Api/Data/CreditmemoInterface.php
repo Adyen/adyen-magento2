@@ -11,6 +11,7 @@ interface CreditmemoInterface
      */
     const ENTITY_ID = 'entity_id';
     const PSPREFERENCE = 'pspreference';
+    const ORIGINAL_REFERENCE = 'original_reference';
 
     const CREDITMEMO_ID = 'creditmemo_id';
     const ADYEN_ORDER_PAYMENT_ID = 'adyen_order_payment_id';
@@ -48,6 +49,16 @@ interface CreditmemoInterface
      * @return $this
      */
     public function setPspreference($pspreference);
+
+    /**
+     * Get original reference
+     */
+    public function getOriginalReference();
+
+    /**
+     * Set original reference
+     */
+    public function setOriginalReference($originalReference);
 
     /**
      * Gets the CreditmemoID for the creditmemo.
