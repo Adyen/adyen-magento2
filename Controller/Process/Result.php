@@ -169,7 +169,6 @@ class Result extends \Magento\Framework\App\Action\Action
 
         if ($response) {
             $result = $this->validateResponse($response);
-            $this->_adyenLogger->addAdyenResult(json_encode($response));
 
             // Adjust the success path, fail path, and restore quote based on if it is a multishipping quote
             if (
@@ -188,6 +187,7 @@ class Result extends \Magento\Framework\App\Action\Action
         }
 
         if ($result) {
+            $this->_adyenLogger->addAdyenResult(json_encode($response));
             $session = $this->_session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
             $this->_redirect($successPath, ['_query' => ['utm_nooverride' => '1']]);
