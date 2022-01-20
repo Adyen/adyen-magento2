@@ -23,13 +23,12 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
-use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
+use Adyen\Payment\Gateway\Http\Client\TransactionRefund;
 use Adyen\Payment\Helper\Creditmemo;
 
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Response\HandlerInterface;
-use Magento\Sales\Model\Order;
 
 
 class PaymentRefundDetailsHandler implements HandlerInterface
@@ -66,13 +65,11 @@ class PaymentRefundDetailsHandler implements HandlerInterface
             // set pspReference as lastTransId only!
             $payment->setLastTransId($singleResponse['pspReference']);
 
-            // TODO: Problem - The original reference and amount are not available in the response
-            // TODO: Problem - Can the handling subject be used when there are multiple refunds?
             $this->creditmemoHelper->createAdyenCreditmemo(
                 $payment,
                 $singleResponse['pspReference'],
                 $payment->getCcTransId(),
-                $handlingSubject['amount']
+                (int) $singleResponse[TransactionRefund::REFUND_AMOUNT]
             );
         }
 

@@ -77,12 +77,10 @@ class Creditmemo extends AbstractHelper
         Order\Payment $payment,
         string $pspReference,
         string $originalReference,
-        int $refundAmount
+        int $refundAmountInCents
     ): \Adyen\Payment\Model\Creditmemo
     {
         $order = $payment->getOrder();
-
-        $refundAmountInCents = $refundAmount * 100;
 
         /** @var \Adyen\Payment\Api\Data\OrderPaymentInterface $adyenOrderPayment */
         $adyenOrderPayment = $this->orderPaymentResourceModel->getOrderPaymentDetails($originalReference, $payment->getEntityId());
