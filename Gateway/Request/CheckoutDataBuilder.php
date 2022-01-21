@@ -26,6 +26,7 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
@@ -61,23 +62,28 @@ class CheckoutDataBuilder implements BuilderInterface
      * @var Image
      */
     private $imageHelper;
-
+    /**
+     * @var StateData
+     */
+    private $stateData;
 
     /**
      * CheckoutDataBuilder constructor.
-     *
      * @param Data $adyenHelper
+     * @param StateData $stateData
      * @param CartRepositoryInterface $cartRepository
      * @param ChargedCurrency $chargedCurrency
      * @param Image $imageHelper
      */
     public function __construct(
         Data $adyenHelper,
+        StateData $stateData,
         CartRepositoryInterface $cartRepository,
         ChargedCurrency $chargedCurrency,
         Image $imageHelper
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->stateData = $stateData;
         $this->cartRepository = $cartRepository;
         $this->chargedCurrency = $chargedCurrency;
         $this->imageHelper = $imageHelper;
@@ -96,8 +102,10 @@ class CheckoutDataBuilder implements BuilderInterface
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
 
-        // Initialize the request body with the validated state data or empty array
-        $requestBody = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::STATE_DATA) ?: [];
+        // Initialize the request body with the current state data
+        // Multishipping checkout uses the cc_number field for state data
+        $requestBody = $this->stateData->getStateData($order->getQuoteId()) ?:
+            json_decode($payment->getCcNumber(), true);
 
         $order->setCanSendNewEmailFlag(in_array($payment->getMethod(), self::ORDER_EMAIL_REQUIRED_METHODS));
 

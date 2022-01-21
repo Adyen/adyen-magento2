@@ -55,6 +55,10 @@ class Requests extends AbstractHelper
      * @var Address
      */
     private $addressHelper;
+    /**
+     * @var StateData
+     */
+    private $stateData;
 
     /**
      * Requests constructor.
@@ -68,12 +72,14 @@ class Requests extends AbstractHelper
         Data $adyenHelper,
         Config $adyenConfig,
         UrlInterface $urlBuilder,
-        Address $addressHelper
+        Address $addressHelper,
+        StateData $stateData
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->urlBuilder = $urlBuilder;
         $this->addressHelper = $addressHelper;
+        $this->stateData = $stateData;
     }
 
     /**
@@ -356,7 +362,10 @@ class Requests extends AbstractHelper
         $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
         $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
         $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
-        $stateData = $payment->getAdditionalInformation('stateData');
+        // Initialize the request body with the current state data
+        // Multishipping checkout uses the cc_number field for state data
+        $stateData = $this->stateData->getStateData($payment->getOrder()->getQuoteId()) ?:
+            json_decode($payment->getCcNumber(), true);
 
         if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
             $request['storePaymentMethodMode'] = 'askForConsent';
