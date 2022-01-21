@@ -56,19 +56,17 @@ class RecurringDataBuilder implements BuilderInterface
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function build(array $buildSubject)
+    public function build(array $buildSubject): array
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         $storeId = $payment->getOrder()->getStoreId();
-        $request = [
+        return [
             'body' => $this->adyenRequestsHelper->buildRecurringData(
                 $storeId,
-                $payment,
-                []
+                $payment
             )
         ];
-        return $request;
     }
 }
