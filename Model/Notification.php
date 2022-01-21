@@ -478,6 +478,6 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
         $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $this->getCreatedAt());
         $tenMinutesAgo = new \DateTime('-10 minutes');
 
-        return $createdAt <= $tenMinutesAgo;
+        return $createdAt >= $tenMinutesAgo;
     }
 }

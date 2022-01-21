@@ -276,7 +276,6 @@ class Webhook
     /**
      * @param Notification $notification
      * @return bool
-     * @throws \Exception
      */
     public function processNotification(Notification $notification): bool
     {
@@ -911,7 +910,6 @@ class Webhook
      * @param Notification $notification
      * @param $processing
      * @param $done
-     * @throws \Exception
      */
     private function updateNotification(Notification $notification, $processing, $done)
     {
@@ -939,7 +937,7 @@ class Webhook
         if ($additionalData && is_array($additionalData)) {
             // boleto data
             if ($order->getPayment()->getMethod() == "adyen_boleto") {
-                $boletobancario = isset($additionalData['boletobancario']) ? $additionalData['boletobancario'] : null;
+                $boletobancario = $additionalData['boletobancario'] ?? null;
                 if ($boletobancario && is_array($boletobancario)) {
                     $this->boletoOriginalAmount =
                         isset($boletobancario['originalAmount']) ? trim($boletobancario['originalAmount']) : "";
@@ -948,14 +946,13 @@ class Webhook
                 }
             }
             $this->requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
-            $additionalData2 = isset($additionalData['additionalData']) ? $additionalData['additionalData'] : null;
+            $additionalData2 = $additionalData['additionalData'] ?? null;
             if ($additionalData2 && is_array($additionalData2)) {
                 $this->klarnaReservationNumber = isset($additionalData2['acquirerReference']) ? trim(
                     $additionalData2['acquirerReference']
                 ) : "";
             }
-            $ratepayDescriptor = isset($additionalData['openinvoicedata.descriptor']) ?
-                $additionalData['openinvoicedata.descriptor'] : "";
+            $ratepayDescriptor = $additionalData['openinvoicedata.descriptor'] ?? "";
             if ($ratepayDescriptor !== "") {
                 $this->ratepayDescriptor = $ratepayDescriptor;
             }
