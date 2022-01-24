@@ -25,6 +25,8 @@ services:
       - ELASTICSEARCH_SERVER=elasticsearch
       - MAGENTO_HOST=magento2.test.com
       - VIRTUAL_HOST=magento2.test.com
+      - ADMIN_USERNAME=${{ secrets.MAGENTO_USERNAME }}
+      - ADMIN_PASSWORD=${{ secrets.MAGENTO_PASSWORD }}
     depends_on:
       - db
       - elastic
