@@ -100,162 +100,113 @@ class AddressTest extends TestCase
     {
         $addressConfigs = [];
         foreach (self::HOUSE_NUMBERS as $house_number) {
-            $addressConfigs = array_merge($addressConfigs, [
-                [
-                    '$address' => [
-                        $house_number,
-                        self::STREET_NAME
+            foreach (self::STREET_NAMES as $street_name) {
+                $addressConfigs = array_merge($addressConfigs, [
+                    [
+                        '$address' => [
+                            $house_number,
+                            $street_name
+                        ],
+                        '$houseNumberStreetLine' => 1,
+                        '$streetLinesEnabled' => 2,
+                        '$expectedResult' => [
+                            'name' => $street_name,
+                            'house_number' => $house_number
+                        ]
                     ],
-                    '$houseNumberStreetLine' => 1,
-                    '$streetLinesEnabled' => 2,
-                    '$expectedResult' => [
-                        'name' => self::STREET_NAME,
-                        'house_number' => $house_number
-                    ]
-                ],
-                [
-                    '$address' => [
-                        self::STREET_NAME,
-                        $house_number
+                    [
+                        '$address' => [
+                            $street_name,
+                            $house_number
+                        ],
+                        '$houseNumberStreetLine' => 2,
+                        '$streetLinesEnabled' => 2,
+                        '$expectedResult' => [
+                            'name' => $street_name,
+                            'house_number' => $house_number
+                        ]
                     ],
-                    '$houseNumberStreetLine' => 2,
-                    '$streetLinesEnabled' => 2,
-                    '$expectedResult' => [
-                        'name' => self::STREET_NAME,
-                        'house_number' => $house_number
-                    ]
-                ],
-                [
-                    '$address' => [
-                        self::STREET_NAME,
-                        '',
-                        $house_number
+                    [
+                        '$address' => [
+                            $street_name,
+                            '',
+                            $house_number
+                        ],
+                        '$houseNumberStreetLine' => 3,
+                        '$streetLinesEnabled' => 3,
+                        '$expectedResult' => [
+                            'name' => $street_name,
+                            'house_number' => $house_number
+                        ]
                     ],
-                    '$houseNumberStreetLine' => 3,
-                    '$streetLinesEnabled' => 3,
-                    '$expectedResult' => [
-                        'name' => self::STREET_NAME,
-                        'house_number' => $house_number
-                    ]
-                ],
-                [
-                    '$address' => [
-                        self::STREET_NAME,
-                        '',
-                        '',
-                        $house_number
+                    [
+                        '$address' => [
+                            $street_name,
+                            '',
+                            '',
+                            $house_number
+                        ],
+                        '$houseNumberStreetLine' => 4,
+                        '$streetLinesEnabled' => 4,
+                        '$expectedResult' => [
+                            'name' => $street_name,
+                            'house_number' => $house_number
+                        ]
                     ],
-                    '$houseNumberStreetLine' => 4,
-                    '$streetLinesEnabled' => 4,
-                    '$expectedResult' => [
-                        'name' => self::STREET_NAME,
-                        'house_number' => $house_number
-                    ]
-                ],
-                /*
-                 * The following test case is an example of misconfiguration;
-                 * houseNumberStreetLine is set (non-zero) but full address is provided in house number field
-                 */
-                [
-                    '$address' => [self::STREET_NAME . ' ' . $house_number, ''],
-                    '$houseNumberStreetLine' => 1,
-                    '$streetLinesEnabled' => 2,
-                    '$expectedResult' => [
-                        'name' => '',
-                        'house_number' => self::STREET_NAME . ' ' . $house_number
-                    ]
-                ],
-                /* The following test cases will use the regex fallback to detect the house number and street name */
-                [
-                    '$address' => [self::STREET_NAME . ' ' . $house_number, ''],
-                    '$houseNumberStreetLine' => 0, // Config is disabled
-                    '$streetLinesEnabled' => 2,
-                    '$expectedResult' => [
-                        'name' => self::STREET_NAME,
-                        'house_number' => $house_number
-                    ]
-                ],
-                [
-                    '$address' => [$house_number . ' ' . self::STREET_NAME, ''],
-                    '$houseNumberStreetLine' => 0, // Config is disabled
-                    '$streetLinesEnabled' => 2,
-                    '$expectedResult' => [
-                        'name' => self::STREET_NAME,
-                        'house_number' => $house_number
-                    ]
-                ],
-                [
-                    '$address' => [self::STREET_NAME . ' ' . $house_number],
-                    '$houseNumberStreetLine' => 2,
-                    '$streetLinesEnabled' => 1, // Not enough street lines enabled
-                    '$expectedResult' => [
-                        'name' => self::STREET_NAME,
-                        'house_number' => $house_number
-                    ]
-                ],
-                [
-                    '$address' => [$house_number . ' ' . self::STREET_NAME], // House number field is empty
-                    '$houseNumberStreetLine' => 2,
-                    '$streetLinesEnabled' => 2,
-                    '$expectedResult' => [
-                        'name' => self::STREET_NAME,
-                        'house_number' => $house_number
-                    ]
-                ],
-            ]);
+                    /*
+                     * The following test case is an example of misconfiguration;
+                     * houseNumberStreetLine is set (non-zero) but full address is provided in house number field
+                     */
+                    [
+                        '$address' => [$street_name . ' ' . $house_number, ''],
+                        '$houseNumberStreetLine' => 1,
+                        '$streetLinesEnabled' => 2,
+                        '$expectedResult' => [
+                            'name' => '',
+                            'house_number' => $street_name . ' ' . $house_number
+                        ]
+                    ],
+                    /* The following test cases will use the regex fallback to detect the house number and street name */
+                    [
+                        '$address' => [$street_name . ' ' . $house_number, ''],
+                        '$houseNumberStreetLine' => 0, // Config is disabled
+                        '$streetLinesEnabled' => 2,
+                        '$expectedResult' => [
+                            'name' => $street_name,
+                            'house_number' => $house_number
+                        ]
+                    ],
+                    [
+                        '$address' => [$house_number . ' ' . $street_name, ''],
+                        '$houseNumberStreetLine' => 0, // Config is disabled
+                        '$streetLinesEnabled' => 2,
+                        '$expectedResult' => [
+                            'name' => $street_name,
+                            'house_number' => $house_number
+                        ]
+                    ],
+                    [
+                        '$address' => [$street_name . ' ' . $house_number],
+                        '$houseNumberStreetLine' => 2,
+                        '$streetLinesEnabled' => 1, // Not enough street lines enabled
+                        '$expectedResult' => [
+                            'name' => $street_name,
+                            'house_number' => $house_number
+                        ]
+                    ],
+                    [
+                        '$address' => [$house_number . ' ' . $street_name], // House number field is empty
+                        '$houseNumberStreetLine' => 2,
+                        '$streetLinesEnabled' => 2,
+                        '$expectedResult' => [
+                            'name' => $street_name,
+                            'house_number' => $house_number
+                        ]
+                    ],
+                ]);
+            }
         }
 
         return $addressConfigs;
-    }
-
-    /**
-     * @dataProvider streetNamesProvider
-     * @param $address
-     * @param $expectedResult
-     */
-    public function testGetStreetAndHouseNumberForStreetNames($address, $expectedResult)
-    {
-        /*
-         * Each test case provided by the dataProvider contains an address array,
-         * houseNumberStreetLine and streetLinesEnabled are fixed for testing the street name parsing
-         * and the expected result which should be returned from getStreetAndHouseNumberFromAddress()
-         */
-        for ($i = 1; $i <= count($address); $i++) {
-            $this->addressAdapter->method('getStreetLine' . $i)->willReturn($address[$i - 1]);
-        }
-        $this->addressAdapter->method('getCountryId')->willReturn("se");
-
-        $this->assertEquals(
-            $expectedResult,
-            $this->addressHelper->getStreetAndHouseNumberFromAddress(
-                $this->addressAdapter,
-                1,
-                2
-            )
-        );
-    }
-
-    public static function streetNamesProvider(): array
-    {
-        $streetNames = [];
-        foreach (self::STREET_NAMES as $street_name) {
-            $streetNames = array_merge(
-                $streetNames,
-                [
-                    [
-                        '$address' => [
-                            '132B',
-                            $street_name
-                        ],
-                        '$expectedResult' => [
-                            'name' => $street_name,
-                            'house_number' => '132B'
-                        ]
-                    ],
-                ]
-            );
-        }
-
-        return $streetNames;
     }
 }
