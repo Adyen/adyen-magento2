@@ -21,12 +21,12 @@ services:
     image: ataberkylmz/magento2:2.4.2
     container_name: magento2-container
     environment:
-        DB_SERVER: mariadb
-        ELASTICSEARCH_SERVER: elasticsearch
-        MAGENTO_HOST: magento2.test.com
-        VIRTUAL_HOST: magento2.test.com
-        ADMIN_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
-        ADMIN_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
+      DB_SERVER: mariadb
+      ELASTICSEARCH_SERVER: elasticsearch
+      MAGENTO_HOST: magento2.test.com
+      VIRTUAL_HOST: magento2.test.com
+      ADMIN_USERNAME: ${MAGENTO_USERNAME}
+      ADMIN_PASSWORD: ${MAGENTO_PASSWORD}
     depends_on:
       - db
       - elastic

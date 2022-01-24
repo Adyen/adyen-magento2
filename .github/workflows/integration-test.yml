@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Create docker image
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+        run: MAGENTO_USERNAME=${{ secrets.MAGENTO_USERNAME }} MAGENTO_PASSWORD=${{ secrets.MAGENTO_PASSWORD }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
 
       # Temp solution to wait for install script to run
       - name: Sleep for 120 seconds
