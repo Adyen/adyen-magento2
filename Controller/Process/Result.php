@@ -486,8 +486,13 @@ class Result extends \Magento\Framework\App\Action\Action
         // Check logged-in order ownership
         if ($this->customerSession->isLoggedIn()) {
             if ($order->getCustomerId() !== $this->customerSession->getCustomerId()) {
+                $this->_adyenLogger->addError("Order belongs to another customer", [
+                    'order' => $order->getId(),
+                    'customer' => $this->customerSession->getCustomerId()
+                ]);
+
                 throw new \Magento\Framework\Exception\AuthorizationException(
-                    __('Order belongs to another customer')
+                    __('Order is unavailable at the moment')
                 );
             }
         }
