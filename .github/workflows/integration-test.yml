@@ -30,7 +30,7 @@ jobs:
       - name: Enable developer mode
         run: docker exec magento2-container php bin/magento deploy:mode:set developer
 
-      - name: Run tests
-        run: docker exec magento2-container bash -c "cd /var/www/html/ && vendor/bin/phpunit -c vendor/adyen/module-payment/Test"
+      - name: Run unit tests
+        run: docker exec magento2-container bash -c "cd /var/www/html/ && vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit"
 
       #docker exec magento2-container bash -c "cd /var/www/html/ && vendor/bin/phpunit --configuration vendor/adyen/module-payment/Test/api-functional/phpunit_graphql.xml --testsuite vendor/adyen/module-payment/Test/api-functional/GraphQl"
