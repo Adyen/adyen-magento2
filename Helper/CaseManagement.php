@@ -123,7 +123,7 @@ class CaseManagement
             $order->addStatusHistoryComment(__($manualReviewComment));
             $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
                 'Order %s is pending manual review. No status update was configured',
-                $order->getIncrementId(),
+                $order->getIncrementId()
             ));
         }
 
