@@ -18,6 +18,9 @@ var config = {
              },
             'Magento_CheckoutAgreements/js/model/agreements-assigner': {
                 'Adyen_Payment/js/view/checkout/summary/agreements-assigner-mixin': true
+            },
+            'Magento_Ui/js/lib/validation/validator': {
+                'Adyen_Payment/js/view/checkout/validator-mixin': true
             }
         }
     }
