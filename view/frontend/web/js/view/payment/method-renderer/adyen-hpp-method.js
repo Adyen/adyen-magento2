@@ -472,7 +472,7 @@ define(
                     }
 
                     data.additional_data = additionalData;
-                     this.placeRedirectOrder(data, component);
+                    this.placeRedirectOrder(data, component);
                 }
 
                 return false;
@@ -742,16 +742,20 @@ define(
                         configuration.totalPriceLabel = configuration.configuration.merchantName;
                     }
                 }
+
                 // Extra amazon pay configuration first call to amazon page
                 if (paymentMethod.methodIdentifier.includes('amazonpay')) {
                     configuration.productType = 'PayAndShip';
                     configuration.checkoutMode = 'ProcessOrder';
-                    configuration.returnUrl = location.href;
+                    var url = new URL(location.href);
+                    if (url.searchParams.has('amazonCheckoutSessionId')) {
+                        url.searchParams.delete('amazonCheckoutSessionId');
+                    }
+                    configuration.returnUrl = url.href;
                     configuration.onSubmit = (state, amazonPayComponent) => {
                         try {
                             self.handleOnSubmit(state.data, amazonPayComponent);
                         } catch (error) {
-                            //try this one first
                             amazonPayComponent.handleDeclineFlow();
                         }
                     };
@@ -792,16 +796,12 @@ define(
                                 currency: configuration.amount.currency,
                                 value: configuration.amount.value
                             },
-                            returnUrl: location.href,
                             showChangePaymentDetailsButton: false
                         }).mount(containerId);
                         amazonPayComponent.submit();
                         result.component = amazonPayComponent;
                     }
-                    if (url.searchParams.has(amazonSessionKey)) {
-                        url.searchParams.delete(amazonSessionKey);
-                        history.replaceState(null, '', '?' + url.searchParams + location.hash);
-                    }
+
                     const component = self.checkoutComponent.create(
                         paymentMethod.methodIdentifier, configuration);
                     if ('isAvailable' in component) {
