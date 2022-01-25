@@ -26,7 +26,6 @@ namespace Adyen\Payment\Controller\Process;
 use Adyen\Payment\Helper\StateData;
 use \Adyen\Payment\Model\Notification;
 use Adyen\Service\Validator\DataArrayValidator;
-use Adyen\Payment\Helper\PaymentResponseHandler;
 use Magento\Framework\App\Request\Http as Http;
 use Magento\Sales\Model\Order;
 
@@ -78,6 +77,11 @@ class Result extends \Magento\Framework\App\Action\Action
     protected $_session;
 
     /**
+     * @var \Magento\Customer\Model\Session
+     */
+    private $customerSession;
+
+    /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
     protected $_adyenLogger;
@@ -110,11 +114,6 @@ class Result extends \Magento\Framework\App\Action\Action
     private $stateDataHelper;
 
     /**
-     * @var PaymentResponseHandler
-     */
-    private $paymentResponseHandler;
-
-    /**
      * Result constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -125,10 +124,6 @@ class Result extends \Magento\Framework\App\Action\Action
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Adyen\Payment\Helper\Quote $quoteHelper
-     * @param \Adyen\Payment\Helper\Vault $vaultHelper
-     * @param \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
-     * @param StateData $stateDataHelper
-     * @param PaymentResponseHandler $paymentResponseHandler
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -136,25 +131,25 @@ class Result extends \Magento\Framework\App\Action\Action
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory,
         \Magento\Checkout\Model\Session $session,
+        \Magento\Customer\Model\Session $customerSession,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Adyen\Payment\Helper\Quote $quoteHelper,
         \Adyen\Payment\Helper\Vault $vaultHelper,
         \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
-        StateData $stateDataHelper,
-        PaymentResponseHandler $paymentResponseHandler
+        StateData $stateDataHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
         $this->_orderHistoryFactory = $orderHistoryFactory;
         $this->_session = $session;
+        $this->customerSession = $customerSession;
         $this->_adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
         $this->quoteHelper = $quoteHelper;
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
         $this->stateDataHelper = $stateDataHelper;
-        $this->paymentResponseHandler = $paymentResponseHandler;
         parent::__construct($context);
     }
 
@@ -165,7 +160,14 @@ class Result extends \Magento\Framework\App\Action\Action
     {
         // Receive all params as this could be a GET or POST request
         $response = $this->getRequest()->getParams();
-        $this->_adyenLogger->addAdyenResult(json_encode($response));
+
+        // Check guest order ownership
+        if (!$this->customerSession->isLoggedIn()) {
+            $merchantReference = $this->getRequest()->getParam('merchantReference');
+            if (!$merchantReference || $merchantReference !== $this->_session->getLastRealOrderId()) {
+                return $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
+            }
+        }
 
         if ($response) {
             $result = $this->validateResponse($response);
@@ -491,6 +493,19 @@ class Result extends \Magento\Framework\App\Action\Action
                 __('Order cannot be loaded')
             );
         }
+        // Check logged-in order ownership
+        if ($this->customerSession->isLoggedIn()) {
+            if ($order->getCustomerId() !== $this->customerSession->getCustomerId()) {
+                $this->_adyenLogger->addError("Order belongs to another customer", [
+                    'order' => $order->getId(),
+                    'customer' => $this->customerSession->getCustomerId()
+                ]);
+
+                throw new \Magento\Framework\Exception\AuthorizationException(
+                    __('Order is unavailable at the moment')
+                );
+            }
+        }
 
         $this->payment = $order->getPayment();
 
@@ -527,7 +542,6 @@ class Result extends \Magento\Framework\App\Action\Action
 
         try {
             $response = $service->paymentsDetails($request);
-            $this->paymentResponseHandler->handlePaymentResponse($response, $this->payment, $order);
             $responseMerchantReference = !empty($response['merchantReference']) ? $response['merchantReference'] : null;
             $resultMerchantReference = !empty($result['merchantReference']) ? $result['merchantReference'] : null;
             $merchantReference = $responseMerchantReference ?: $resultMerchantReference;
