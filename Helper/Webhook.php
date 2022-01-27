@@ -38,11 +38,13 @@ use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as Agr
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Webhook\Exception\InvalidDataException;
+use Adyen\Webhook\Notification as WebhookNotification;
 use Adyen\Webhook\PaymentStates;
 use Adyen\Webhook\Processor\ProcessorFactory;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
+use Exception;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DB\TransactionFactory;
@@ -51,13 +53,16 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Notification\NotifierInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Email\Container\InvoiceIdentity;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Invoice as InvoiceResourceModel;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 use Magento\Vault\Model\PaymentTokenManagement;
@@ -324,7 +329,7 @@ class Webhook
             try {
                 // set done to true
                 $this->order->save();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->addAdyenNotificationCronjob($e->getMessage());
             }
 
@@ -334,7 +339,7 @@ class Webhook
             );
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->updateNotification($notification, false, false);
             $this->handleNotificationError($notification, $e->getMessage());
             $this->logger->addAdyenNotificationCronjob(
@@ -359,8 +364,7 @@ class Webhook
      */
     public function shouldSkipProcessingNotification(Notification $notification): bool
     {
-        if (
-            Notification::OFFER_CLOSED === $notification->getEventCode() ||
+        if (Notification::OFFER_CLOSED === $notification->getEventCode() ||
             (Notification::AUTHORISATION === $notification->getEventCode() && !$notification->isSuccessful())
         ) {
             if ($notification->isLessThan10MinutesOld()) {
@@ -393,7 +397,7 @@ class Webhook
      */
     private function getTransitionState(Notification $notification, $currentOrderState): string
     {
-        $webhookNotificationItem = \Adyen\Webhook\Notification::createItem([
+        $webhookNotificationItem = WebhookNotification::createItem([
             'eventCode' => $notification->getEventCode(),
             'success' => $notification->getSuccess(),
             'additionalData' => !empty($notification->getAdditionalData())
@@ -498,7 +502,7 @@ class Webhook
                         $recurringReferencesList = [];
 
                         if (!$listRecurringContracts) {
-                            throw new \Exception("Empty list recurring contracts");
+                            throw new Exception("Empty list recurring contracts");
                         }
                         // Find the reference on the list
                         foreach ($listRecurringContracts as $rc) {
@@ -516,7 +520,7 @@ class Webhook
                                 'Failed to create billing agreement for this order ' .
                                 '(listRecurringCall did not contain contract)'
                             );
-                            throw new \Exception($message);
+                            throw new Exception($message);
                         }
 
                         $billingAgreements = $this->billingAgreementCollectionFactory->create();
@@ -557,8 +561,7 @@ class Webhook
                             $billingAgreement->importOrderPaymentWithRecurringDetailReference($this->order->getPayment(), $recurringDetailReference);
                             $message = __('Created billing agreement #%1.', $recurringDetailReference);
                         } else {
-                            $this->logger->addAdyenNotificationCronjob
-                            (
+                            $this->logger->addAdyenNotificationCronjob(
                                 "Using existing Billing Agreement"
                             );
                             $billingAgreement->setIsObjectChanged(true);
@@ -580,9 +583,9 @@ class Webhook
                             }
                         } else {
                             $message = __('Failed to create billing agreement for this order.');
-                            throw new \Exception($message);
+                            throw new Exception($message);
                         }
-                    } catch (\Exception $exception) {
+                    } catch (Exception $exception) {
                         $message = $exception->getMessage();
                     }
 
@@ -639,7 +642,7 @@ class Webhook
                             $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
                             $this->logger->addAdyenNotificationCronjob('New gateway token saved');
                         }
-                    } catch (\Exception $exception) {
+                    } catch (Exception $exception) {
                         $message = $exception->getMessage();
                         $this->logger->addAdyenNotificationCronjob(
                             "An error occurred while saving the payment method " . $message
@@ -814,7 +817,7 @@ class Webhook
             if ($orderPayment->getId() > 0) {
                 $amountRefunded = $orderPayment->getTotalRefunded() +
                     $this->adyenHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
-                $orderPayment->setUpdatedAt(new \DateTime());
+                $orderPayment->setUpdatedAt(new DateTime());
                 $orderPayment->setTotalRefunded($amountRefunded);
                 $orderPayment->save();
                 $this->logger->addAdyenNotificationCronjob(
@@ -913,7 +916,7 @@ class Webhook
             $notification->setDone(true);
         }
         $notification->setProcessing($processing);
-        $notification->setUpdatedAt(new \DateTime());
+        $notification->setUpdatedAt(new DateTime());
         $notification->save();
     }
 
@@ -997,8 +1000,8 @@ class Webhook
 
         // if payment method is klarna, ratepay or openinvoice/afterpay show the reservartion number
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod(
-                $notification->getPaymentMethod()
-            ) && !empty($this->klarnaReservationNumber)) {
+            $notification->getPaymentMethod()
+        ) && !empty($this->klarnaReservationNumber)) {
             $klarnaReservationNumberText = "<br /> reservationNumber: " . $this->klarnaReservationNumber;
         } else {
             $klarnaReservationNumberText = "";
@@ -1176,7 +1179,7 @@ class Webhook
         try {
             $this->orderSender->send($this->order);
             $this->logger->addAdyenNotificationCronjob('Send orderconfirmation email to shopper');
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logger->addAdyenNotificationCronjob(
                 "Exception in Send Mail in Magento. This is an issue in the the core of Magento" .
                 $exception->getMessage()
@@ -1215,7 +1218,7 @@ class Webhook
      *
      * @param Notification $notification
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     private function prepareInvoice(Notification $notification)
     {
@@ -1238,7 +1241,7 @@ class Webhook
         $transaction = $this->transactionBuilder->setPayment($paymentObj)
             ->setOrder($this->order)
             ->setTransactionId($notification->getPspreference())
-            ->build(\Magento\Sales\Api\Data\TransactionInterface::TYPE_AUTH);
+            ->build(TransactionInterface::TYPE_AUTH);
 
         $transaction->setIsClosed(false);
         $transaction->save();
@@ -1372,8 +1375,7 @@ class Webhook
                 }
             }
             if (strcmp($captureMode, 'manual') === 0) {
-                $this->logger->addAdyenNotificationCronjob
-                (
+                $this->logger->addAdyenNotificationCronjob(
                     'Capture mode for this payment is set to manual'
                 );
                 return false;
@@ -1384,8 +1386,7 @@ class Webhook
              * (if the option auto capture mode for openinvoice is not set)
              */
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)) {
-                $this->logger->addAdyenNotificationCronjob
-                (
+                $this->logger->addAdyenNotificationCronjob(
                     'Capture mode for klarna is by default set to manual'
                 );
                 return false;
@@ -1471,7 +1472,7 @@ class Webhook
 
     /**
      * @param Notification $notification
-     * @throws \Exception
+     * @throws Exception
      */
     private function createInvoice(Notification $notification)
     {
@@ -1512,14 +1513,14 @@ class Webhook
                 }
 
                 $this->invoiceResourceModel->save($invoice);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->addAdyenNotificationCronjob('Error saving invoice: ' . $e->getMessage());
                 throw $e;
             }
 
             $invoiceAutoMail = (bool)$this->scopeConfig->isSetFlag(
-                \Magento\Sales\Model\Order\Email\Container\InvoiceIdentity::XML_PATH_EMAIL_ENABLED,
-                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+                InvoiceIdentity::XML_PATH_EMAIL_ENABLED,
+                ScopeInterface::SCOPE_STORE,
                 $this->order->getStoreId()
             );
 
@@ -1527,8 +1528,7 @@ class Webhook
                 $this->invoiceSender->send($invoice);
             }
         } else {
-            $this->logger->addAdyenNotificationCronjob
-            (
+            $this->logger->addAdyenNotificationCronjob(
                 'It is not possible to create invoice for this order',
                 [
                     'orderId' => $this->order->getId(),
@@ -1804,7 +1804,7 @@ class Webhook
                 $adyenInvoice->getInvoiceId(),
                 $adyenInvoice->getAdyenPaymentOrderId()
             ));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->addAdyenNotificationCronjob($e->getMessage());
         }
 
@@ -1831,5 +1831,4 @@ class Webhook
         $order = reset($orderList);
         $this->order = $order;
     }
-
 }
