@@ -748,9 +748,7 @@ define(
                     configuration.productType = 'PayAndShip';
                     configuration.checkoutMode = 'ProcessOrder';
                     var url = new URL(location.href);
-                    if (url.searchParams.has('amazonCheckoutSessionId')) {
-                        url.searchParams.delete('amazonCheckoutSessionId');
-                    }
+                    url.searchParams.delete('amazonCheckoutSessionId');
                     configuration.returnUrl = url.href;
                     configuration.onSubmit = async (state, amazonPayComponent) => {
                         try {
