@@ -51,7 +51,6 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Notification\NotifierInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
-use Magento\Framework\Webapi\Exception;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
@@ -388,7 +387,7 @@ class Webhook
 
     /**
      * @param Notification $notification
-     * @param $orderState
+     * @param $currentOrderState
      * @return string
      * @throws InvalidDataException
      */
@@ -408,7 +407,6 @@ class Webhook
     /**
      * @param Notification $notification
      * @param $transitionState
-     * @throws Exception
      * @throws LocalizedException
      */
     private function handleOrderTransition(Notification $notification, $transitionState): void
@@ -482,7 +480,6 @@ class Webhook
 
                     $storeId = $this->order->getStoreId();
                     $customerReference = $this->order->getCustomerId();
-                    $listRecurringContracts = null;
                     $this->logger->addAdyenNotificationCronjob(
                         __(
                             'CustomerReference is: %1 and storeId is %2 and RecurringDetailsReference is %3',
@@ -595,7 +592,6 @@ class Webhook
                 }
                 //store recurring contract for alternative payments methods
                 if ($order->getPayment()->getMethod() == 'adyen_hpp' && $this->configHelper->isStoreAlternativePaymentMethodEnabled()) {
-                    $paymentTokenAlternativePaymentMethod = null;
                     try {
                         //get the payment
                         $payment = $this->order->getPayment();
@@ -1217,8 +1213,9 @@ class Webhook
     /**
      * This function will only be called after we have verified that the full amount of the order has been AUTHORISED
      *
+     * @param Notification $notification
      * @return void
-     * @throws Exception
+     * @throws \Exception
      */
     private function prepareInvoice(Notification $notification)
     {
@@ -1473,9 +1470,8 @@ class Webhook
     }
 
     /**
-     * @return void
-     * @throws LocalizedException
-     * @throws Exception
+     * @param Notification $notification
+     * @throws \Exception
      */
     private function createInvoice(Notification $notification)
     {
@@ -1516,11 +1512,9 @@ class Webhook
                 }
 
                 $this->invoiceResourceModel->save($invoice);
-            } catch (Exception $e) {
-                $this->logger->addAdyenNotificationCronjob(
-                    'Error saving invoice. The error message is: ' . $e->getMessage()
-                );
-                throw new Exception(sprintf('Error saving invoice. The error message is:', $e->getMessage()));
+            } catch (\Exception $e) {
+                $this->logger->addAdyenNotificationCronjob('Error saving invoice: ' . $e->getMessage());
+                throw $e;
             }
 
             $invoiceAutoMail = (bool)$this->scopeConfig->isSetFlag(
@@ -1548,9 +1542,6 @@ class Webhook
     /**
      * Finalize order by setting it to captured if manual capture is enabled, or authorized if auto capture is used
      * Full order will only NOT be finalized if the full amount has not been captured/authorized.
-     *
-     * @param bool $createInvoice
-     * @throws Exception|LocalizedException
      */
     private function finalizeOrder(Order $order, Notification $notification)
     {
@@ -1656,7 +1647,6 @@ class Webhook
     {
         $this->logger->addAdyenNotificationCronjob('Creating shipment for order');
         // create shipment for cash payment
-        $payment = $this->order->getPayment()->getMethodInstance();
         if ($this->order->canShip()) {
             $itemQty = [];
             $shipment = $this->order->prepareShipment($itemQty);
@@ -1799,9 +1789,6 @@ class Webhook
     /**
      * Handle the webhook by updating invoice related entities, refresh capture status of adyen_order_payment and
      * attempt to finalize order
-     *
-     * @throws Exception
-     * @throws LocalizedException
      */
     private function handleManualCapture(Notification $notification)
     {
