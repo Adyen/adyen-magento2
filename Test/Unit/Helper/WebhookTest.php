@@ -83,7 +83,7 @@ class WebhookTest extends TestCase
             $this->createPartialMock(Data::class, []),
             $this->orderSender,
             $this->createMock(InvoiceSender::class),
-            $this->createMock(TransactionFactory::class),
+            $this->createGeneratedMock(TransactionFactory::class),
             $this->createGeneratedMock(AgreementFactory::class),
             $this->createGeneratedMock(AgreementCollectionFactory::class),
             $this->createMock(PaymentRequest::class),
