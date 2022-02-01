@@ -123,7 +123,7 @@
                 <config_path>payment/adyen_hpp/country_code</config_path>
             </field>
         </group>
-        <!--counrty specific settings-->
+        <!--country specific settings-->
         <group id="adyen_hpp_country_specific" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="210">
             <label>Country Specific Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
