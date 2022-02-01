@@ -364,21 +364,22 @@ class Webhook
      */
     public function shouldSkipProcessingNotification(Notification $notification): bool
     {
-        if (Notification::OFFER_CLOSED === $notification->getEventCode() ||
-            (Notification::AUTHORISATION === $notification->getEventCode() && !$notification->isSuccessful())
+        if ((
+                Notification::OFFER_CLOSED === $notification->getEventCode() ||
+                (Notification::AUTHORISATION === $notification->getEventCode() && !$notification->isSuccessful())
+            ) &&
+            $notification->isLessThan10MinutesOld()
         ) {
-            if ($notification->isLessThan10MinutesOld()) {
-                $this->logger->addAdyenNotificationCronjob(
-                    sprintf(
-                        '%s notification (entity_id: %s) for merchant_reference: %s is skipped! Wait 10 minute before processing.',
-                        $notification->getEventCode(),
-                        $notification->getEntityId(),
-                        $notification->getMerchantReference()
-                    )
-                );
+            $this->logger->addAdyenNotificationCronjob(
+                sprintf(
+                    '%s notification (entity_id: %s) for merchant_reference: %s is skipped! Wait 10 minute before processing.',
+                    $notification->getEventCode(),
+                    $notification->getEntityId(),
+                    $notification->getMerchantReference()
+                )
+            );
 
-                return true;
-            }
+            return true;
         }
 
         return false;
@@ -440,6 +441,8 @@ class Webhook
             case PaymentStates::STATE_REFUNDED:
                 $this->refundPayment($notification);
                 break;
+            default:
+                break;
         }
     }
 
@@ -447,18 +450,17 @@ class Webhook
     {
         switch ($notification->getEventCode()) {
             case Notification::PENDING:
-                if ($this->configHelper->getConfigData(
+                $sendEmailSepaOnPending = $this->configHelper->getConfigData(
                     'send_email_bank_sepa_on_pending',
                     'adyen_abstract',
                     $this->order->getStoreId()
-                )
-                ) {
-                    // Check if payment is banktransfer or sepa if true then send out order confirmation email
-                    if ($this->isBankTransfer($notification->getPaymentMethod()) || $notification->getPaymentMethod() == 'sepadirectdebit') {
-                        if (!$this->order->getEmailSent()) {
-                            $this->sendOrderMail();
-                        }
-                    }
+                );
+                // Check if payment is banktransfer or sepa if true then send out order confirmation email
+                if ($sendEmailSepaOnPending &&
+                    !$this->order->getEmailSent() &&
+                    ($this->isBankTransfer($notification->getPaymentMethod()) ||
+                        $notification->getPaymentMethod() == 'sepadirectdebit')) {
+                    $this->sendOrderMail();
                 }
                 break;
             case Notification::MANUAL_REVIEW_ACCEPT:
@@ -654,6 +656,8 @@ class Webhook
                     );
                 }
                 break;
+            default:
+                break;
         }
     }
 
@@ -773,10 +777,7 @@ class Webhook
                 if ($this->order->canHold()) {
                     $this->order->hold();
                 } else {
-                    $this->logger->addAdyenNotificationCronjob(
-                        'Order can not hold or is already on Hold'
-                    );
-                    return;
+                    $this->logger->addAdyenNotificationCronjob('Order can not hold or is already on Hold');
                 }
             } else {
                 // Allow magento to cancel order
@@ -786,7 +787,6 @@ class Webhook
                     $this->order->cancel();
                 } else {
                     $this->logger->addAdyenNotificationCronjob('Order can not be canceled');
-                    return;
                 }
             }
         } else {
@@ -838,13 +838,12 @@ class Webhook
         $matches = $this->adyenHelper->parseTransactionId($lastTransactionId);
         if (($matches['pspReference'] ?? '') == $notification->getOriginalReference() && empty($matches['suffix'])) {
             // refund is done through adyen backoffice so create a credit memo
-            $order = $this->order;
-            if ($order->canCreditmemo()) {
+            if ($this->order->canCreditmemo()) {
                 $amount = $this->adyenHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
-                $order->getPayment()->registerRefundNotification($amount);
+                $this->order->getPayment()->registerRefundNotification($amount);
 
                 $this->logger->addAdyenNotificationCronjob('Created credit memo for order');
-                $order->addStatusHistoryComment(__('Adyen Refund Successfully completed'), $order->getStatus());
+                $this->order->addStatusHistoryComment(__('Adyen Refund Successfully completed'), $this->order->getStatus());
             } else {
                 $this->logger->addAdyenNotificationCronjob('Could not create a credit memo for order');
             }
@@ -875,11 +874,9 @@ class Webhook
         }
 
         // for boleto confirmation mail is send on order creation
-        if ($notification->getPaymentMethod() != "adyen_boleto") {
-            // send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
-            if (!$this->order->getEmailSent()) {
-                $this->sendOrderMail();
-            }
+        // send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
+        if ($notification->getPaymentMethod() != "adyen_boleto" && !$this->order->getEmailSent()) {
+            $this->sendOrderMail();
         }
 
         if ($notification->getPaymentMethod() == "c_cash" &&
@@ -896,7 +893,7 @@ class Webhook
             'adyen_abstract',
             $this->order->getStoreId()
         );
-        if ($ignoreRefundNotification != true) {
+        if (!$ignoreRefundNotification) {
             $this->refundOrder($notification);
         } else {
             $this->logger->addAdyenNotificationCronjob(
@@ -1159,10 +1156,8 @@ class Webhook
 
         if ($reason != "") {
             $reasonArray = explode(":", $reason);
-            if ($reasonArray != null && is_array($reasonArray)) {
-                if (isset($reasonArray[1])) {
-                    $result = $reasonArray[1];
-                }
+            if ($reasonArray != null && is_array($reasonArray) && isset($reasonArray[1])) {
+                $result = $reasonArray[1];
             }
         }
         return $result;
@@ -1351,7 +1346,7 @@ class Webhook
             }
 
             // if auto capture mode for openinvoice is turned on then use auto capture
-            if ($captureModeOpenInvoice == true &&
+            if ($captureModeOpenInvoice &&
                 $this->adyenHelper->isPaymentMethodOpenInvoiceMethodValidForAutoCapture($notificationPaymentMethod)
             ) {
                 $this->logger->addAdyenNotificationCronjob(
