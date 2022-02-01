@@ -678,16 +678,16 @@ class Webhook
         }
 
         /*
-         * don't cancel the order if previous state is authorisation with success=true
-         * Partial payments can fail if the second payment has failed the first payment is
-         * refund/cancelled as well so if it is a partial payment that failed cancel the order as well
+         * Don't cancel the order if the payment has been captured.
+         * Partial payments can fail, if the second payment has failed then the first payment is
+         * refund/cancelled as well. So if it is a partial payment that failed cancel the order as well
          */
-        $previousSuccess = $this->order->getData('adyen_notification_event_code_success');
+        $paymentPreviouslyCaptured = $this->order->getData('adyen_notification_payment_captured');
 
-        if ($previousAdyenEventCode == "AUTHORISATION : TRUE" || !empty($previousSuccess)) {
+        if ($previousAdyenEventCode == "AUTHORISATION : TRUE" || !empty($paymentPreviouslyCaptured)) {
             $this->logger->addAdyenNotificationCronjob(
                 'order is not cancelled because previous notification
-                                    was an authorisation that succeeded'
+                                    was an authorisation that succeeded and payment was captured'
             );
             return;
         }
@@ -859,9 +859,9 @@ class Webhook
     {
         $this->logger->addAdyenNotificationCronjob('Authorisation of the order');
 
-        // Set adyen_notification_event_code_success to true so that we ignore a possible OFFER_CLOSED
-        if ($notification->isSuccessful()) {
-            $this->order->setData('adyen_notification_event_code_success', 1);
+        // Set adyen_notification_payment_captured to true so that we ignore a possible OFFER_CLOSED
+        if ($notification->isSuccessful() && $this->isAutoCapture($notification->getPaymentMethod())) {
+            $this->order->setData('adyen_notification_payment_captured', 1);
         }
 
         $this->adyenOrderPaymentHelper->createAdyenOrderPayment($this->order, $notification, $this->isAutoCapture($notification->getPaymentMethod()));
@@ -1178,7 +1178,7 @@ class Webhook
     {
         try {
             $this->orderSender->send($this->order);
-            $this->logger->addAdyenNotificationCronjob('Send orderconfirmation email to shopper');
+            $this->logger->addAdyenNotificationCronjob('Send order confirmation email to shopper');
         } catch (Exception $exception) {
             $this->logger->addAdyenNotificationCronjob(
                 "Exception in Send Mail in Magento. This is an issue in the the core of Magento" .
