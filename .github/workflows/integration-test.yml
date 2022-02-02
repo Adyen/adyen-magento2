@@ -15,6 +15,11 @@ jobs:
       - name: Create docker image
         run: MAGENTO_USERNAME=${{ secrets.MAGENTO_USERNAME }} MAGENTO_PASSWORD=${{ secrets.MAGENTO_PASSWORD }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
 
+      - name: Install N98-Magerun
+        run: | 
+          docker exec magento2-container wget -q https://files.magerun.net/n98-magerun2.phar
+          docker exec magento2-container chmod +x ./n98-magerun2.phar
+
       # Temp solution to wait for install script to run
       - name: Sleep for 120 seconds
         uses: jakejarvis/wait-action@master
@@ -28,9 +33,29 @@ jobs:
         run: docker exec magento2-container composer require adyen/module-payment:dev-feature/graphql-reapply
 
       - name: Enable developer mode
-        run: docker exec magento2-container php bin/magento deploy:mode:set developer
+        run: docker exec magento2-container bin/magento deploy:mode:set developer
+
+      - name: Enable module
+        run: docker exec magento2-container bin/magento module:enable Adyen_Payment
+
+      - name: Setup upgrade
+        run: docker exec magento2-container bin/magento setup:upgrade
+        
+      - name: Generate code
+        run: docker exec magento2-container bin/magento setup:di:compile
+
+      - name: Clear cache
+        run: docker exec magento2-container bin/magento cache:flush
+
+      - name: Configure the plugin
+        run: | 
+          docker exec magento2-container bin/magento config:set payment/adyen_abstract/demo_mode 1
+          docker exec magento2-container bin/magento config:set payment/adyen_hpp/active 1
+          docker exec magento2-container bin/magento config:set payment/adyen_abstract/merchant_account "${{secrets.ADYEN_MERCHANT}}"
+          docker exec magento2-container ./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${{secrets.ADYEN_API_KEY}}"
 
       - name: Run unit tests
-        run: docker exec magento2-container bash -c "cd /var/www/html/ && vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit"
+        run: docker exec magento2-container vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit
 
-      #docker exec magento2-container bash -c "cd /var/www/html/ && vendor/bin/phpunit --configuration vendor/adyen/module-payment/Test/api-functional/phpunit_graphql.xml --testsuite vendor/adyen/module-payment/Test/api-functional/GraphQl"
+      - name: Run GraphQL tests
+        run: docker exec -w /var/www/html/dev/tests/api-functional magento2-container ../../../vendor/bin/phpunit --configuration ../../../vendor/adyen/module-payment/Test/api-functional/phpunit_graphql.xml ../../../vendor/adyen/module-payment/Test/api-functional/GraphQl 
