@@ -291,6 +291,12 @@ class PaymentMethods extends AbstractHelper
             // return empty result
             return [];
         }
+        catch (\Adyen\ConnectionException $e) {
+            $this->adyenLogger->error(
+                "Curl request to the end point failed. Check the live-endpoint configuration"
+            );
+            return [];
+        }
 
         return $responseData;
     }
