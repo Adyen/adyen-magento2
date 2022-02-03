@@ -129,9 +129,8 @@ class WebhookTest extends TestCase
             'getEventCode' => 'AUTHORISATION',
             'getSuccess' => true,
         ]);
-        $this->orderSender->expects($this->once())
-            ->method('send')
-            ->with($this->order);
+        $notification->expects($this->never())
+            ->method('setErrorCount');
         $notification->expects($this->once())
             ->method('setDone')
             ->with(true);
