@@ -34,4 +34,4 @@ services:
       - db
       - elastic
     volumes:
-      - ./:/data/extensions/workdir
+      - ../../../:/data/extensions/workdir

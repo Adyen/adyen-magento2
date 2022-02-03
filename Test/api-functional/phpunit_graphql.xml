@@ -30,7 +30,7 @@
         <const name="TESTS_INSTALL_CONFIG_FILE" value="config/install-config-mysql.php"/>
         <const name="TESTS_GLOBAL_CONFIG_FILE" value="config/config-global.php"/>
         <!-- Webserver URL -->
-        <const name="TESTS_BASE_URL" value="https://magento.url"/>
+        <const name="TESTS_BASE_URL" value="http://magento2.test.com"/>
         <!-- Webserver API user -->
         <const name="TESTS_WEBSERVICE_USER" value="admin"/>
         <!-- Webserver API key -->
@@ -40,7 +40,7 @@
         <!-- Define XDEBUG_SESSION cookie value-->
         <const name="TESTS_XDEBUG_SESSION" value="phpstorm" />
 
-        <ini name="date.timezone" value="America/Los_Angeles"/>
+        <ini name="date.timezone" value="Europe/Amsterdam"/>
 
         <!-- Semicolon-separated 'glob' patterns, that match global XML configuration files -->
         <const name="TESTS_GLOBAL_CONFIG_DIR" value="../../../app/etc"/>
@@ -49,7 +49,7 @@
         <!--Defines if Magento should be installed before tests execution-->
         <const name="TESTS_MAGENTO_INSTALLATION" value="disabled"/>
         <!-- Magento mode for tests execution. Possible values are "default", "developer" and "production". -->
-        <const name="TESTS_MAGENTO_MODE" value="default"/>
+        <const name="TESTS_MAGENTO_MODE" value="developer"/>
         <const name="USE_OVERRIDE_CONFIG" value="enabled"/>
     </php>
 
