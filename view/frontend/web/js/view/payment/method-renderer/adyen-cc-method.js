@@ -121,13 +121,13 @@ define(
 
                 // installments
                 var allInstallments = self.getAllInstallments();
-
                 self.cardComponent = self.checkoutComponent.create('card', {
                     enableStoreDetails: self.getEnableStoreDetails(),
                     brands: self.getAvailableCardTypeAltCodes(),
-                    hasHolderName: adyenConfiguration.getHasHolderName(),
-                    holderNameRequired: adyenConfiguration.getHasHolderName() &&
-                        adyenConfiguration.getHolderNameRequired(),
+                    // Convert string to int and then to bool
+                    hasHolderName: !!+adyenConfiguration.getHasHolderName(),
+                    holderNameRequired: !!+(adyenConfiguration.getHasHolderName() &&
+                        adyenConfiguration.getHolderNameRequired()),
                     onChange: function(state, component) {
                         self.placeOrderAllowed(!!state.isValid);
                         self.storeCc = !!state.data.storePaymentMethod;
