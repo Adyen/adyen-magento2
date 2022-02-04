@@ -53,14 +53,10 @@ jobs:
 
       - name: Configure the plugin
         run: |
-          [[ -z "$ADYEN_MERCHANT" ]] && echo "Merchant is not set" && exit 5
           docker exec magento2-container bin/magento config:set payment/adyen_abstract/demo_mode 1
           docker exec magento2-container bin/magento config:set payment/adyen_hpp/active 1
-          docker exec magento2-container bin/magento config:set payment/adyen_abstract/merchant_account "$ADYEN_MERCHANT"
-          docker exec magento2-container ./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "$ADYEN_API_KEY" > /dev/null
-        env:
-          ADYEN_MERCHANT: ${{ secrets.ADYEN_MERCHANT }}
-          ADYEN_API_KEY: ${{ secrets.ADYEN_API_KEY }}
+          docker exec magento2-container bin/magento config:set payment/adyen_abstract/merchant_account "${{secrets.ADYEN_MERCHANT}}"
+          docker exec magento2-container ./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${{secrets.ADYEN_API_KEY}}" > /dev/null
 
       - name: Run unit tests
         run: docker exec magento2-container vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit
