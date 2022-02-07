@@ -21,6 +21,12 @@ jobs:
         with:
           time: '120s'
 
+      - name: Show install logs
+        run: docker logs magento2-container
+
+      - name: Prevent cron from interfering with test execution
+        run: docker exec magento2-container /etc/init.d/cron stop
+
       - name: Install N98-Magerun
         run: |
           docker exec magento2-container wget -q https://files.magerun.net/n98-magerun2.phar
