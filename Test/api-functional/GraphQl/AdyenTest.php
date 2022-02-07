@@ -66,7 +66,6 @@ QUERY;
             '',
         );
 
-        var_dump($response);
         $this->assertArrayHasKey('adyenPaymentMethods', $response);
         $this->assertArrayHasKey('paymentMethodsResponse', $response['adyenPaymentMethods']);
         $this->assertArrayHasKey('paymentMethodsExtraDetails', $response['adyenPaymentMethods']);
