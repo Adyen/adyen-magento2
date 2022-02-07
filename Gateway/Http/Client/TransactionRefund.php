@@ -30,7 +30,7 @@ use Magento\Payment\Gateway\Http\ClientInterface;
  */
 class TransactionRefund implements ClientInterface
 {
-    const REFUND_AMOUNT = 'capture_amount';
+    const REFUND_AMOUNT = 'refund_amount';
     const REFUND_CURRENCY = 'refund_currency';
     const ORIGINAL_REFERENCE = 'original_reference';
 

@@ -91,7 +91,7 @@ class Creditmemo extends AbstractHelper
         $adyenCreditmemo->setOriginalReference($originalReference);
         $adyenCreditmemo->setAdyenPaymentOrderId($adyenOrderPayment[\Adyen\Payment\Api\Data\OrderPaymentInterface::ENTITY_ID]);
         $adyenCreditmemo->setAmount($this->adyenDataHelper->originalAmount($refundAmountInCents, $order->getBaseCurrencyCode()));
-        // TODO: Add credit memo status here
+        // Once needed, a status update for the creditmemo can be added here.
         $this->adyenCreditmemoResourceModel->save($adyenCreditmemo);
 
         return $adyenCreditmemo;

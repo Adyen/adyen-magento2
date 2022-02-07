@@ -69,7 +69,7 @@ class PaymentRefundDetailsHandler implements HandlerInterface
                 $payment,
                 $singleResponse['pspReference'],
                 $singleResponse[TransactionRefund::ORIGINAL_REFERENCE],
-                (int) $singleResponse[TransactionRefund::REFUND_AMOUNT]
+                intval($singleResponse[TransactionRefund::REFUND_AMOUNT])
             );
         }
 
