@@ -46,9 +46,10 @@ define([
             self.cardComponent = self.checkoutComponent.create('card', {
                 enableStoreDetails: self.getEnableStoreDetails(),
                 brands: self.getAvailableCardTypeAltCodes(),
-                hasHolderName: adyenConfiguration.getHasHolderName(),
-                holderNameRequired: adyenConfiguration.getHasHolderName() &&
-                    adyenConfiguration.getHolderNameRequired(),
+                // Convert string to int and then to bool
+                hasHolderName: !!+adyenConfiguration.getHasHolderName(),
+                holderNameRequired: !!+(adyenConfiguration.getHasHolderName() &&
+                  adyenConfiguration.getHolderNameRequired()),
                 onChange: function (state) {
                     $('#stateData').val(state.isValid ? JSON.stringify(state.data) : '');
                     self.placeOrderAllowed(!!state.isValid);

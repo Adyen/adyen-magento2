@@ -63,15 +63,6 @@ class PaymentResponseHandler
     private $orderResourceModel;
 
     /**
-    * @var \Magento\Sales\Model\Service\OrderService
-    */
-    private $orderManagement;
-    /**
-    * @var \Magento\Sales\Model\Order\Status\HistoryFactory
-    */
-    private $orderStatusHistoryFactory;
-
-    /**
      * PaymentResponseHandler constructor.
      *
      * @param AdyenLogger $adyenLogger
@@ -82,16 +73,12 @@ class PaymentResponseHandler
         AdyenLogger $adyenLogger,
         Data $adyenHelper,
         Vault $vaultHelper,
-        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
-        \Magento\Sales\Api\OrderManagementInterface $orderManagement,
-        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory
+        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
-        $this->orderManagement = $orderManagement;
-        $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
@@ -230,28 +217,13 @@ class PaymentResponseHandler
                     $order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
 
                     if ($order->canCancel()) {
-                        if ($this->orderManagement->cancel($order->getEntityId())) { //new canceling process
-                            try {
-                                $orderStatusHistory = $this->orderStatusHistoryFactory->create()
-                                    ->setParentId($order->getEntityId())
-                                    ->setEntityName('order')
-                                    ->setStatus(Order::STATE_CANCELED)
-                                    ->setComment(__('Order has been cancelled by "%1" payment response.', $payment->getMethod()));
-                                $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
-                        } catch (\Exception $e) {
-                            $this->adyenLogger->addAdyenDebug(
-                                    __('Order cancel history comment error: %1', $e->getMessage())
-                                );
-                            }
-                        } else { //previous canceling process
-                            $this->adyenLogger->addAdyenDebug('Unsuccessful order canceling attempt by orderManagement service, use legacy process');
-                            $order->cancel();
-                            $order->save();
-                        }
+                        $order->cancel();
+                        $order->save();
                     } else {
                         $this->adyenLogger->addAdyenDebug('Order can not be canceled');
                     }
                 }
+
                 return false;
             case self::ERROR:
             default:
