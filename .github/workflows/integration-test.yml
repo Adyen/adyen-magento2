@@ -1,0 +1,76 @@
+name: Integration Tests
+on: [pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - PHP_VERSION: 7.4
+            MAGENTO_VERSION: 2.4.2
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create docker image
+        run: MAGENTO_USERNAME=${{ secrets.MAGENTO_USERNAME }} MAGENTO_PASSWORD=${{ secrets.MAGENTO_PASSWORD }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+
+      # Temp solution to wait for install script to run
+      - name: Sleep for 120 seconds
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '120s'
+
+      - name: Show install logs
+        run: docker logs magento2-container
+
+      - name: Prevent cron from interfering with test execution
+        run: docker exec magento2-container /etc/init.d/cron stop
+
+      - name: Install N98-Magerun
+        run: |
+          docker exec magento2-container wget -q https://files.magerun.net/n98-magerun2.phar
+          docker exec magento2-container chmod +x ./n98-magerun2.phar
+
+      - name: Check install
+        run: docker exec magento2-container ./n98-magerun2.phar sys:check
+
+      - name: Enable developer mode
+        run: docker exec magento2-container bin/magento deploy:mode:set developer
+
+      - name: Register local repository
+        run: |
+          docker exec magento2-container composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
+
+      - name: Install local package
+        run: docker exec magento2-container composer require "adyen/module-payment:*"
+
+      - name: Enable module
+        run: docker exec magento2-container bin/magento module:enable Adyen_Payment
+
+      - name: Setup upgrade
+        run: docker exec magento2-container bin/magento setup:upgrade
+
+      - name: Generate code
+        run: docker exec magento2-container bin/magento setup:di:compile
+
+      - name: Clear cache
+        run: docker exec magento2-container bin/magento cache:flush
+
+      - name: Configure the plugin
+        run: |
+          docker exec magento2-container bin/magento config:set payment/adyen_abstract/demo_mode 1
+          docker exec magento2-container bin/magento config:set payment/adyen_hpp/active 1
+          docker exec magento2-container bin/magento config:set payment/adyen_abstract/merchant_account "${{secrets.ADYEN_MERCHANT}}"
+          docker exec magento2-container ./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${{secrets.ADYEN_API_KEY}}" > /dev/null
+
+      - name: Run unit tests
+        run: docker exec magento2-container vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit
+
+      - name: Run GraphQL tests
+        run: |
+          docker exec -w $MAGENTO_ROOT/dev/tests/api-functional magento2-container $MAGENTO_ROOT/vendor/bin/phpunit --configuration $MAGENTO_ROOT/$PHPUNIT_CONFIG $MAGENTO_ROOT/$TEST_SUITE
+        env:
+          MAGENTO_ROOT: /var/www/html
+          PHPUNIT_CONFIG: vendor/adyen/module-payment/Test/api-functional/phpunit_graphql.xml
+          TEST_SUITE: vendor/adyen/module-payment/Test/api-functional/GraphQl

@@ -26,4 +26,4 @@ jobs:
         MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
         MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
     - name: Run PHPUnit
-      run: vendor/bin/phpunit Test/
+      run: vendor/bin/phpunit Test/Unit
