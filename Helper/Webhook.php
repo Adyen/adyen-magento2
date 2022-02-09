@@ -869,14 +869,13 @@ class Webhook
         if ($isFullAmountAuthorized) {
             $this->setPrePaymentAuthorized();
             $this->prepareInvoice($notification);
+            // For Boleto confirmation mail is sent on order creation
+            // Send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
+            if ($notification->getPaymentMethod() != "adyen_boleto" && !$this->order->getEmailSent()) {
+                $this->sendOrderMail();
+            }
         } else {
             $this->addProcessedStatusHistoryComment($notification);
-        }
-
-        // for boleto confirmation mail is send on order creation
-        // send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
-        if ($notification->getPaymentMethod() != "adyen_boleto" && !$this->order->getEmailSent()) {
-            $this->sendOrderMail();
         }
 
         if ($notification->getPaymentMethod() == "c_cash" &&
