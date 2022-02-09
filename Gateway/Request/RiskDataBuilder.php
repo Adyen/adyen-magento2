@@ -48,6 +48,8 @@ class RiskDataBuilder implements BuilderInterface
     /**
      * PaymentDataBuilder constructor.
      *
+     * @param Config $config
+     * @param StoreManagerInterface $storeManager
      * @param ChargedCurrency $chargedCurrency
      */
     public function __construct(
@@ -63,6 +65,7 @@ class RiskDataBuilder implements BuilderInterface
     /**
      * @param array $buildSubject
      * @return array
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function build(array $buildSubject)
     {
@@ -92,10 +95,10 @@ class RiskDataBuilder implements BuilderInterface
                 $itemIndex++;
             }
 
-            if ($order->getDiscountAmount() != 0) {
-                $requestBody['additionalData']['riskdata.promotions.promotion0.promotionDiscountAmount'] = $order->getDiscountAmount();
+            if ($amountCurrency->getDiscountAmount() != 0) {
+                $requestBody['additionalData']['riskdata.promotions.promotion0.promotionDiscountAmount'] = $amountCurrency->getDiscountAmount();
                 $requestBody['additionalData']['riskdata.promotions.promotion0.promotionCode'] = $order->getCouponCode();
-                $requestBody['additionalData']['riskdata.promotions.promotion0.promotionDiscountCurrency'] = $order->getOrderCurrencyCode();
+                $requestBody['additionalData']['riskdata.promotions.promotion0.promotionDiscountCurrency'] = $currencyCode;
                 $requestBody['additionalData']['riskdata.promotions.promotion0.promotionName'] = $order->getDataByKey('coupon_rule_name');
             }
         }
