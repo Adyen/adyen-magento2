@@ -16,7 +16,7 @@
             <argument name="extendedConfigData" xsi:type="array">
                 <item name="adyen_client_key_test" xsi:type="string">payment/adyen_abstract/client_key_test</item>
                 <item name="adyen_client_key_live" xsi:type="string">payment/adyen_abstract/client_key_live</item>
-                <item name="demo_mode" xsi:type="string">payment/adyen_abstract/demo_mode</item>
+                <item name="adyen_demo_mode" xsi:type="string">payment/adyen_abstract/demo_mode</item>
             </argument>
         </arguments>
     </type>
