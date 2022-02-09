@@ -37,7 +37,7 @@
                 ]]>
             </comment>
         </field>
-        <field id="send_additional_risk_data" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="send_level23_data" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Send Level 2/3 additional data</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/send_level23_data</config_path>
