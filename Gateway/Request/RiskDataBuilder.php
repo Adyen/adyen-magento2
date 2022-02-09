@@ -25,6 +25,7 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Sales\Model\Order\Item;
@@ -44,6 +45,10 @@ class RiskDataBuilder implements BuilderInterface
      * @var StoreManagerInterface
      */
     private $storeManager;
+    /**
+     * @var Data
+     */
+    private $adyenHelper;
 
     /**
      * PaymentDataBuilder constructor.
@@ -51,15 +56,18 @@ class RiskDataBuilder implements BuilderInterface
      * @param Config $config
      * @param StoreManagerInterface $storeManager
      * @param ChargedCurrency $chargedCurrency
+     * @param Data $adyenHelper
      */
     public function __construct(
         Config $config,
         StoreManagerInterface $storeManager,
-        ChargedCurrency $chargedCurrency
+        ChargedCurrency $chargedCurrency,
+        Data $adyenHelper
     ) {
         $this->chargedCurrency = $chargedCurrency;
         $this->config = $config;
         $this->storeManager = $storeManager;
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -83,11 +91,11 @@ class RiskDataBuilder implements BuilderInterface
             foreach ($order->getItems() as $item) {
                 /** @var Item $item */
                 if ($item->getPrice() == 0 && !empty($item->getParentItem())) {
-                    // products with variants get added to the order twice.
+                    // Products variants get added to the order as separate items, filter out the variants.
                     continue;
                 }
 
-                $additionalData[$basketPrefix . $itemIndex . '.amountPerItem'] = $item->getPrice(); // convert to minor units
+                $additionalData[$basketPrefix . $itemIndex . '.amountPerItem'] = $this->adyenHelper->formatAmount($item->getPrice(), $currencyCode);
                 $additionalData[$basketPrefix . $itemIndex . '.currency'] = $currencyCode;
                 $additionalData[$basketPrefix . $itemIndex . '.itemID'] = $item->getQuoteItemId();
                 $additionalData[$basketPrefix . $itemIndex . '.productTitle'] = $item->getName();
@@ -98,7 +106,7 @@ class RiskDataBuilder implements BuilderInterface
             }
 
             if ($order->getDiscountAmount() !== 0.0) {
-                $additionalData[$promotionsPrefix . '.promotionDiscountAmount'] = $order->getDiscountAmount(); // convert to minor units
+                $additionalData[$promotionsPrefix . '.promotionDiscountAmount'] = $this->adyenHelper->formatAmount($order->getDiscountAmount(), $currencyCode);
                 $additionalData[$promotionsPrefix . '.promotionCode'] = $order->getCouponCode();
                 $additionalData[$promotionsPrefix . '.promotionDiscountCurrency'] = $currencyCode;
                 $additionalData[$promotionsPrefix . '.promotionName'] = $order->getDataByKey('coupon_rule_name');
