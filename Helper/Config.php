@@ -346,6 +346,11 @@ class Config
         return (bool)$this->getConfigData('send_additional_risk_data', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
 
+    public function sendLevel23AdditionalData($storeId): bool
+    {
+        return (bool)$this->getConfigData('send_level23_data', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
     /**
      * Retrieve information from payment configuration
      *

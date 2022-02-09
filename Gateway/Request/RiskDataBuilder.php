@@ -74,8 +74,10 @@ class RiskDataBuilder implements BuilderInterface
             $paymentDataObject = SubjectReader::readPayment($buildSubject);
             $payment = $paymentDataObject->getPayment();
             $order = $payment->getOrder();
-            $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
-            $currencyCode = $amountCurrency->getCurrencyCode();
+            $currencyCode = $this->chargedCurrency->getOrderAmountCurrency($order)->getCurrencyCode();
+            $additionalData = [];
+            $basketPrefix = 'riskdata.basket.item';
+            $promotionsPrefix = 'riskdata.promotions.promotion0';
 
             $itemIndex = 0;
             foreach ($order->getItems() as $item) {
@@ -85,22 +87,24 @@ class RiskDataBuilder implements BuilderInterface
                     continue;
                 }
 
-                $requestBody['additionalData']['riskdata.basket.item'.$itemIndex.'.amountPerItem'] = $item->getPrice();
-                $requestBody['additionalData']['riskdata.basket.item'.$itemIndex.'.currency'] = $currencyCode;
-                $requestBody['additionalData']['riskdata.basket.item'.$itemIndex.'.itemID'] = $item->getQuoteItemId();
-                $requestBody['additionalData']['riskdata.basket.item'.$itemIndex.'.productTitle'] = $item->getName();
-                $requestBody['additionalData']['riskdata.basket.item'.$itemIndex.'.quantity'] = $item->getQtyOrdered();
-                $requestBody['additionalData']['riskdata.basket.item'.$itemIndex.'.sku'] = $item->getSku();
+                $additionalData[$basketPrefix . $itemIndex . '.amountPerItem'] = $item->getPrice(); // convert to minor units
+                $additionalData[$basketPrefix . $itemIndex . '.currency'] = $currencyCode;
+                $additionalData[$basketPrefix . $itemIndex . '.itemID'] = $item->getQuoteItemId();
+                $additionalData[$basketPrefix . $itemIndex . '.productTitle'] = $item->getName();
+                $additionalData[$basketPrefix . $itemIndex . '.quantity'] = $item->getQtyOrdered();
+                $additionalData[$basketPrefix . $itemIndex . '.sku'] = $item->getSku();
 
                 $itemIndex++;
             }
 
-            if ($amountCurrency->getDiscountAmount() != 0) {
-                $requestBody['additionalData']['riskdata.promotions.promotion0.promotionDiscountAmount'] = $amountCurrency->getDiscountAmount();
-                $requestBody['additionalData']['riskdata.promotions.promotion0.promotionCode'] = $order->getCouponCode();
-                $requestBody['additionalData']['riskdata.promotions.promotion0.promotionDiscountCurrency'] = $currencyCode;
-                $requestBody['additionalData']['riskdata.promotions.promotion0.promotionName'] = $order->getDataByKey('coupon_rule_name');
+            if ($order->getDiscountAmount() !== 0.0) {
+                $additionalData[$promotionsPrefix . '.promotionDiscountAmount'] = $order->getDiscountAmount(); // convert to minor units
+                $additionalData[$promotionsPrefix . '.promotionCode'] = $order->getCouponCode();
+                $additionalData[$promotionsPrefix . '.promotionDiscountCurrency'] = $currencyCode;
+                $additionalData[$promotionsPrefix . '.promotionName'] = $order->getDataByKey('coupon_rule_name');
             }
+
+            $requestBody['additionalData'] = $additionalData;
         }
 
         $requestBody["fraudOffset"] = "0";

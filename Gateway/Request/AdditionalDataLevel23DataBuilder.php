@@ -24,10 +24,11 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
-use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
+use Adyen\Util\Uuid;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Item;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -41,55 +42,60 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
      * @var StoreManagerInterface
      */
     private $storeManager;
-    /**
-     * @var ChargedCurrency
-     */
-    private $chargedCurrency;
 
     public function __construct(
         Config $config,
-        StoreManagerInterface $storeManager,
-        ChargedCurrency $chargedCurrency
+        StoreManagerInterface $storeManager
     )
     {
         $this->config = $config;
         $this->storeManager = $storeManager;
-        $this->chargedCurrency = $chargedCurrency;
     }
 
     public function build(array $buildSubject)
     {
         $requestBody = [];
-        if ($this->config->sendAdditionalRiskData($this->storeManager->getStore()->getId())) {
+        if ($this->config->sendLevel23AdditionalData($this->storeManager->getStore()->getId())) {
             $paymentDataObject = SubjectReader::readPayment($buildSubject);
             $payment = $paymentDataObject->getPayment();
+            /** @var Order $order */
             $order = $payment->getOrder();
-            $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order);
-            $requestBody['additionalData']['enhancedSchemeData.totalTaxAmount'] = $amountCurrency->getTaxAmount();
-            $requestBody['additionalData']['enhancedSchemeData.customerReference'] = str_pad($order->getCustomerId(), 3, '0', STR_PAD_LEFT);
-            $requestBody['additionalData']['enhancedSchemeData.freightAmount'] = $order->getBaseShippingAmount();
-            $requestBody['additionalData']['enhancedSchemeData.destinationPostalCode'] = $order;
-            $requestBody['additionalData']['enhancedSchemeData.destinationCountryCode'] = $order;
+
+            if (!$order->getCustomerIsGuest()) {
+                $customerReference = str_pad($order->getCustomerId(), 3, '0', STR_PAD_LEFT);
+            } else {
+                $uuid = Uuid::generateV4();
+                $guestCustomerId = $order->getIncrementId() . $uuid;
+                $customerReference = $guestCustomerId;
+            }
+            $prefix = 'enhancedSchemeData';
+            $requestBody['additionalData'][$prefix . '.totalTaxAmount'] = $order->getTaxAmount(); // convert to minor units
+            $requestBody['additionalData'][$prefix . '.customerReference'] = $customerReference;
+            if ($order->getIsNotVirtual()) {
+                $requestBody['additionalData'][$prefix . '.freightAmount'] = $order->getBaseShippingAmount(); // convert to minor units
+                $requestBody['additionalData'][$prefix . '.destinationPostalCode'] = $order->getShippingAddress()->getPostcode();
+                $requestBody['additionalData'][$prefix . '.destinationCountryCode'] = $order->getShippingAddress()->getCountryId();
+            }
 
             $itemIndex = 0;
             foreach ($order->getItems() as $item) {
                 /** @var Item $item */
                 if ($item->getPrice() == 0 && !empty($item->getParentItem())) {
-                    // products with variants get added to the order twice.
+                    // Skip product variants; products variants get added to the order items as separate items, filter them out.
                     continue;
                 }
 
-                $requestBody['additionalData']['enhancedSchemeData.itemDetailLine'.$itemIndex.'.description'] = $item->getName();
-                $requestBody['additionalData']['enhancedSchemeData.itemDetailLine'.$itemIndex.'.unitPrice'] = $item->getPrice();
-                $requestBody['additionalData']['enhancedSchemeData.itemDetailLine'.$itemIndex.'.discountAmount'] = $item->getDiscountAmount();
-                $requestBody['additionalData']['enhancedSchemeData.itemDetailLine'.$itemIndex.'.commodityCode'] = $item->getQuoteItemId();
-                $requestBody['additionalData']['enhancedSchemeData.itemDetailLine'.$itemIndex.'.quantity'] = $item->getQtyOrdered();
-                $requestBody['additionalData']['enhancedSchemeData.itemDetailLine'.$itemIndex.'.productCode'] = $item->getSku();
-                $requestBody['additionalData']['enhancedSchemeData.itemDetailLine'.$itemIndex.'.totalAmount'] = $item->getRowTotal();
+                $itemPrefix = $prefix . '.itemDetailLine';
+                $requestBody['additionalData'][$itemPrefix . $itemIndex . '.description'] = $item->getName();
+                $requestBody['additionalData'][$itemPrefix . $itemIndex . '.unitPrice'] = $item->getPrice(); // convert to minor units
+                $requestBody['additionalData'][$itemPrefix . $itemIndex . '.discountAmount'] = $item->getDiscountAmount(); // convert to minor units
+                $requestBody['additionalData'][$itemPrefix . $itemIndex . '.commodityCode'] = $item->getQuoteItemId();
+                $requestBody['additionalData'][$itemPrefix . $itemIndex . '.quantity'] = $item->getQtyOrdered();
+                $requestBody['additionalData'][$itemPrefix . $itemIndex . '.productCode'] = $item->getSku();
+                $requestBody['additionalData'][$itemPrefix . $itemIndex . '.totalAmount'] = $item->getRowTotal(); // convert to minor units
 
                 $itemIndex++;
             }
-
         }
 
         return ['body' => $requestBody];
