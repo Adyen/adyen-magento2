@@ -337,6 +337,16 @@ class Config
     }
 
     /**
+     * Determine whether or not to send additional riskdata properties in /payments and /authorize requests
+     * @param $storeId
+     * @return bool
+     */
+    public function sendAdditionalRiskData($storeId): bool
+    {
+        return (bool)$this->getConfigData('send_additional_risk_data', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    /**
      * Retrieve information from payment configuration
      *
      * @param string $field

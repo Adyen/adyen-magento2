@@ -328,17 +328,6 @@ class Requests extends AbstractHelper
      * @param array $request
      * @return array
      */
-    public function buildRiskData(array $request = [])
-    {
-        $request["fraudOffset"] = "0";
-
-        return $request;
-    }
-
-    /**
-     * @param array $request
-     * @return array
-     */
     public function buildBrowserData($request = [])
     {
         if (!empty($_SERVER['HTTP_USER_AGENT'])) {
