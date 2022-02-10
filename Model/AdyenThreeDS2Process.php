@@ -64,6 +64,21 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
     private $quoteHelper;
 
     /**
+     * @var \Magento\Sales\Api\OrderManagementInterface
+     */
+    private $orderManagement;
+
+    /**
+     * @var \Magento\Sales\Model\Order\Status\HistoryFactory
+     */
+    private $orderStatusHistoryFactory;
+
+    /**
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     */
+    protected $orderRepository;
+
+    /**
      * AdyenThreeDS2Process constructor.
      *
      * @param Session $checkoutSession
@@ -72,6 +87,9 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
      * @param AdyenLogger $adyenLogger
      * @param Vault $vaultHelper
      * @param Quote $quoteHelper
+     * @param \Magento\Sales\Api\OrderManagementInterface $orderManagement
+     * @param \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory
+     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         Session $checkoutSession,
@@ -79,7 +97,10 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         OrderFactory $orderFactory,
         AdyenLogger $adyenLogger,
         Vault $vaultHelper,
-        Quote $quoteHelper
+        Quote $quoteHelper,
+        \Magento\Sales\Api\OrderManagementInterface $orderManagement,
+        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
@@ -87,6 +108,9 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         $this->adyenLogger = $adyenLogger;
         $this->vaultHelper = $vaultHelper;
         $this->quoteHelper = $quoteHelper;
+        $this->orderManagement = $orderManagement;
+        $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
+        $this->orderRepository = $orderRepository;
     }
 
     /**
@@ -219,9 +243,27 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             // Always cancel the order if the payment has failed
             if (!$order->canCancel()) {
                 $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                $this->orderRepository->save($order);
             }
 
-            $order->cancel()->save();
+            if ($this->orderManagement->cancel($order->getEntityId())) { //new canceling process
+                try {
+                    $orderStatusHistory = $this->orderStatusHistoryFactory->create()
+                        ->setParentId($order->getEntityId())
+                        ->setEntityName('order')
+                        ->setStatus(\Magento\Sales\Model\Order::STATE_CANCELED)
+                        ->setComment(__('Order has been cancelled by "%1" payment response.', $payment->getMethod()));
+                    $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
+                } catch (\Exception $e) {
+                    $this->adyenLogger->addAdyenDebug(
+                        __('Order cancel history comment error: %1', $e->getMessage())
+                    );
+                }
+            } else { //previous canceling process
+                $this->adyenLogger->addAdyenDebug('Unsuccessful order canceling attempt by orderManagement service, use legacy process');
+                $order->cancel();
+                $order->save();
+            }
 
             $this->adyenLogger->error(
                 sprintf("Payment details call failed for action or 3ds2 payment method, resultcode is %s Raw API responds: %s",
