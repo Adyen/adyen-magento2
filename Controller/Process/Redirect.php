@@ -273,7 +273,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
                                 ->setParentId($order->getEntityId())
                                 ->setEntityName('order')
                                 ->setStatus(\Magento\Sales\Model\Order::STATE_CANCELED)
-                                ->setComment(__('Order has been cancelled by "%1" payment response.', $payment->getMethod()));
+                                ->setComment(__('Order has been cancelled by "%1" payment response.', $order->getPayment()->getMethod()));
                             $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
                         } catch (\Exception $e) {
                             $this->_adyenLogger->addAdyenDebug(
