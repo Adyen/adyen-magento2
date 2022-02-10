@@ -99,6 +99,16 @@ class Redirect extends \Magento\Framework\App\Action\Action
     private $quoteHelper;
 
     /**
+     * @var \Magento\Sales\Model\Order\Status\HistoryFactory
+     */
+    private $orderStatusHistoryFactory;
+
+    /**
+     * @var \Magento\Sales\Api\OrderManagementInterface
+     */
+    private $orderManagement;
+
+    /**
      * Redirect constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -122,7 +132,9 @@ class Redirect extends \Magento\Framework\App\Action\Action
         OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
         OrderPaymentResource $orderPaymentResource,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Adyen\Payment\Helper\Quote $quoteHelper
+        \Adyen\Payment\Helper\Quote $quoteHelper,
+        \Magento\Sales\Api\OrderManagementInterface $orderManagement,
+        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory
     ) {
         parent::__construct($context);
         $this->_adyenLogger = $adyenLogger;
@@ -134,6 +146,9 @@ class Redirect extends \Magento\Framework\App\Action\Action
         $this->orderPaymentResource = $orderPaymentResource;
         $this->serializer = $serializer;
         $this->quoteHelper = $quoteHelper;
+        $this->orderManagement = $orderManagement;
+        $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
+
         if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
             $request = $this->getRequest();
             if ($request instanceof Http && $request->isPost()) {
@@ -244,6 +259,32 @@ class Redirect extends \Magento\Framework\App\Action\Action
                     )->save();
 
                     $this->messageManager->addErrorMessage("3D-secure validation was unsuccessful");
+
+                    // Cancel order
+                    // Always cancel the order if the payment has failed
+                    if (!$order->canCancel()) {
+                        $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                        $this->_orderRepository->save($order);
+                    }
+
+                    if ($this->orderManagement->cancel($order->getEntityId())) { //new canceling process
+                        try {
+                            $orderStatusHistory = $this->orderStatusHistoryFactory->create()
+                                ->setParentId($order->getEntityId())
+                                ->setEntityName('order')
+                                ->setStatus(\Magento\Sales\Model\Order::STATE_CANCELED)
+                                ->setComment(__('Order has been cancelled by "%1" payment response.', $payment->getMethod()));
+                            $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
+                        } catch (\Exception $e) {
+                            $this->_adyenLogger->addAdyenDebug(
+                                __('Order cancel history comment error: %1', $e->getMessage())
+                            );
+                        }
+                    } else { //previous canceling process
+                        $this->_adyenLogger->addAdyenDebug('Unsuccessful order canceling attempt by orderManagement service, use legacy process');
+                        $order->cancel();
+                        $order->save();
+                    }
 
                     // Clone or restore the quote
                     $session = $this->_getCheckout();
