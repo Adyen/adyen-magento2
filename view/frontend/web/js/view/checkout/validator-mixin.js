@@ -23,7 +23,7 @@
 define(['jquery'], function($) {
     'use strict';
 
-    return function() {
+    return function(target) {
         $.validator.addMethod(
             "validate-ssn-br",
             function(value, element) {
@@ -32,5 +32,7 @@ define(['jquery'], function($) {
             },
             $.mage.__('Please enter a valid brazilian social security number (Ex: 123.456.789-10).')
         )
+
+        return target;
     }
 });
