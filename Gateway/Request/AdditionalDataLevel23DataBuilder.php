@@ -27,6 +27,7 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Requests;
 use Adyen\Util\Uuid;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -52,11 +53,16 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
      * @var ChargedCurrency
      */
     private $chargedCurrency;
+    /**
+     * @var Requests
+     */
+    private $adyenRequestHelper;
 
     public function __construct(
         Config $config,
         StoreManagerInterface $storeManager,
         ChargedCurrency $chargedCurrency,
+        Requests $adyenRequestHelper,
         Data $adyenHelper
     )
     {
@@ -64,6 +70,7 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
         $this->storeManager = $storeManager;
         $this->adyenHelper = $adyenHelper;
         $this->chargedCurrency = $chargedCurrency;
+        $this->adyenRequestHelper = $adyenRequestHelper;
     }
 
     public function build(array $buildSubject)
@@ -76,16 +83,9 @@ class AdditionalDataLevel23DataBuilder implements BuilderInterface
             $order = $payment->getOrder();
             $currencyCode = $this->chargedCurrency->getOrderAmountCurrency($order)->getCurrencyCode();
 
-            if (!$order->getCustomerIsGuest()) {
-                $customerReference = str_pad($order->getCustomerId(), 3, '0', STR_PAD_LEFT);
-            } else {
-                $uuid = Uuid::generateV4();
-                $guestCustomerId = $order->getIncrementId() . $uuid;
-                $customerReference = $guestCustomerId;
-            }
             $prefix = 'enhancedSchemeData';
             $requestBody['additionalData'][$prefix . '.totalTaxAmount'] = $this->adyenHelper->formatAmount($order->getTaxAmount(), $currencyCode);
-            $requestBody['additionalData'][$prefix . '.customerReference'] = $customerReference;
+            $requestBody['additionalData'][$prefix . '.customerReference'] = $this->adyenRequestHelper->getShopperReference($order->getCustomerId(), $order->getIncrementId());
             if ($order->getIsNotVirtual()) {
                 $requestBody['additionalData'][$prefix . '.freightAmount'] = $this->adyenHelper->formatAmount($order->getBaseShippingAmount(), $currencyCode);
                 $requestBody['additionalData'][$prefix . '.destinationPostalCode'] = $order->getShippingAddress()->getPostcode();
