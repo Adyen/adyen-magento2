@@ -23,6 +23,8 @@
 
 namespace Adyen\Payment\Setup;
 
+use Adyen\Payment\Api\Data\InvoiceInterface;
+use Adyen\Payment\Model\Invoice;
 use Adyen\Payment\Model\Order\Payment;
 use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
@@ -74,6 +76,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         if (version_compare($context->getVersion(), '6.7.3', '<')) {
             $this->updateSchemaVersion673($setup);
+        }
+
+        if (version_compare($context->getVersion(), '6.7.6', '<')) {
+            $this->updateSchemaVersion676($setup);
         }
 
         $setup->endSetup();
@@ -431,6 +437,134 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $tableName,
             Payment::CAPTURE_STATUS,
             $adyenChargedCurrencyColumn
+        );
+    }
+
+    /**
+     * Upgrade to 6.7.6
+     *
+     * New total_captured column on the adyen_order_payment table to keep track on the amount that has been captured
+     * New created_at column on the adyen_invoice table
+     * New amount column on the adyen_invoice table
+     * Change invoice_id to be nullable on the adyen_invoice table
+     * New adyen_order_payment_id column on the adyen_invoice table, with foreign key
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     */
+    public function updateSchemaVersion676(SchemaSetupInterface $setup)
+    {
+        $connection = $setup->getConnection();
+        $adyenOrderPaymentTable = $setup->getTable(self::ADYEN_ORDER_PAYMENT);
+
+        $totalCapturedColumn = [
+            'type' => Table::TYPE_DECIMAL,
+            'nullable' => true,
+            'unsigned' => true,
+            'comment' => 'Field to determine the amount that has been captured.',
+            'after' => Payment::CAPTURE_STATUS,
+            'length' => '12,4',
+        ];
+
+        $connection->addColumn(
+            $adyenOrderPaymentTable,
+            Payment::TOTAL_CAPTURED,
+            $totalCapturedColumn
+        );
+
+        $adyenInvoiceTable = $setup->getTable(self::ADYEN_INVOICE);
+
+        $createdAtColumn = [
+            'type' => Table::TYPE_TIMESTAMP,
+            'nullable' => true,
+            'comment' => 'Created at',
+            'default' => Table::TIMESTAMP_INIT,
+        ];
+
+        $updatedAtColumn = [
+            'type' => Table::TYPE_TIMESTAMP,
+            'nullable' => true,
+            'comment' => 'Updated at',
+            'default' => Table::TIMESTAMP_INIT_UPDATE,
+        ];
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            InvoiceInterface::CREATED_AT,
+            $createdAtColumn
+        );
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            InvoiceInterface::UPDATED_AT,
+            $updatedAtColumn
+        );
+
+        $amountColumn = [
+            'type' => Table::TYPE_DECIMAL,
+            'nullable' => true,
+            'unsigned' => true,
+            'comment' => 'Field to determine the capture amount.',
+            'after' => InvoiceInterface::INVOICE_ID,
+            'length' => '12,4',
+        ];
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            InvoiceInterface::AMOUNT,
+            $amountColumn
+        );
+
+        $adyenInvoiceStatusColumn = [
+            'type' => Table::TYPE_TEXT,
+            'nullable' => true,
+            'comment' => 'Field to determine the status of the adyen_invoice',
+            'after' => InvoiceInterface::AMOUNT
+        ];
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            InvoiceInterface::STATUS,
+            $adyenInvoiceStatusColumn
+        );
+
+        $adyenOrderPaymentColumn = [
+            'type' => Table::TYPE_INTEGER,
+            'nullable' => true,
+            'unsigned' => true,
+            'length' => 11,
+            'comment' => 'Field to link this row to the an adyen_order_payment row.',
+            'after' => InvoiceInterface::INVOICE_ID,
+        ];
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            InvoiceInterface::ADYEN_ORDER_PAYMENT_ID,
+            $adyenOrderPaymentColumn
+        );
+
+        $connection->addForeignKey(
+            $setup->getFkName(
+                self::ADYEN_INVOICE,
+                InvoiceInterface::ADYEN_ORDER_PAYMENT_ID,
+                self::ADYEN_ORDER_PAYMENT,
+                'entity_id'
+            ),
+            $setup->getTable(self::ADYEN_INVOICE),
+            InvoiceInterface::ADYEN_ORDER_PAYMENT_ID,
+            $setup->getTable(self::ADYEN_ORDER_PAYMENT),
+            'entity_id'
+        );
+
+        $connection->modifyColumn(
+            $adyenInvoiceTable,
+            Invoice::INVOICE_ID,
+            [
+                'type' => Table::TYPE_INTEGER,
+                'nullable' => true,
+                'unsigned' => true,
+                'comment' => 'Link to Magento Invoice table'
+            ]
         );
     }
 }
