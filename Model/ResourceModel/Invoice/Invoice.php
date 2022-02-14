@@ -68,10 +68,11 @@ class Invoice extends AbstractDb
      */
     public function getAdyenInvoiceByCaptureWebhook(Order $order, Notification $notification): ?array
     {
+        $adyenOrderPaymentTable = $this->getTable('adyen_order_payment');
         $select = $this->getConnection()->select()
             ->from(['adyen_invoice' => $this->getTable('adyen_invoice')])
             ->joinInner(
-                ['aop' => 'adyen_order_payment'],
+                ['aop' => $adyenOrderPaymentTable],
                 'aop.entity_id = adyen_invoice.adyen_order_payment_id'
             )
             ->where('aop.payment_id=?', $order->getPayment()->getEntityId())
