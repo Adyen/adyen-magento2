@@ -99,11 +99,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
     private $quoteHelper;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    private $dataHelper;
-
-    /**
      * Redirect constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -116,9 +111,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
      * @param OrderPaymentResource $orderPaymentResource
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      * @param \Adyen\Payment\Helper\Quote $quoteHelper
-     * @param \Magento\Sales\Api\OrderManagementInterface $orderManagement
-     * @param \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory
-     * @param \Adyen\Payment\Helper\Data $dateHelper
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -130,8 +122,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
         OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
         OrderPaymentResource $orderPaymentResource,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Adyen\Payment\Helper\Quote $quoteHelper,
-        \Adyen\Payment\Helper\Data $dateHelper
+        \Adyen\Payment\Helper\Quote $quoteHelper
     ) {
         parent::__construct($context);
         $this->_adyenLogger = $adyenLogger;
@@ -143,8 +134,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
         $this->orderPaymentResource = $orderPaymentResource;
         $this->serializer = $serializer;
         $this->quoteHelper = $quoteHelper;
-        $this->dataHelper = $dateHelper;
-
         if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
             $request = $this->getRequest();
             if ($request instanceof Http && $request->isPost()) {
@@ -255,14 +244,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
                     )->save();
 
                     $this->messageManager->addErrorMessage("3D-secure validation was unsuccessful");
-
-                    // Cancel order
-                    // Always cancel the order if the payment has failed
-                    if (!$order->canCancel()) {
-                        $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
-                        $this->_orderRepository->save($order);
-                    }
-                    $this->dataHelper->cancelOrder($order);
 
                     // Clone or restore the quote
                     $session = $this->_getCheckout();
