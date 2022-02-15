@@ -97,9 +97,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
         }
 
         if (version_compare($context->getVersion(), '8.0.1', '<')) {
-            $this->updateSchemaVersion801($setup);
+            $this->updateSchemaVersion811($setup);
         }
-        $this->updateSchemaVersion801($setup);
 
         $setup->endSetup();
     }
@@ -617,7 +616,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
      * @param SchemaSetupInterface $setup
      * @return void
      */
-    public function updateSchemaVersion801(SchemaSetupInterface $setup)
+    public function updateSchemaVersion811(SchemaSetupInterface $setup)
     {
         $connection = $setup->getConnection();
 
@@ -817,19 +816,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
             )
             ->setComment('Adyen Creditmemo');
 
-
-//        ->addForeignKey(
-//        $setup->getFkName(
-//            self::ADYEN_CREDITMEMO,
-//            CreditmemoInterface::CREDITMEMO_ID,
-//            'sales_creditmemo',
-//            'entity_id'
-//        ),
-//        CreditmemoInterface::CREDITMEMO_ID,
-//        $setup->getTable('sales_creditmemo'),
-//        'entity_id',
-//        Table::ACTION_CASCADE
-//    )
 
         $setup->getConnection()->createTable($adyenCreditmemoTable);
     }
