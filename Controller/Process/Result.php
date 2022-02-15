@@ -169,6 +169,9 @@ class Result extends \Magento\Framework\App\Action\Action
             }
         }
 
+        // Customer returned, clear the pending payment flag
+        $this->_session->unsPendingPayment();
+
         if ($response) {
             $result = $this->validateResponse($response);
 

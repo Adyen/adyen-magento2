@@ -288,6 +288,12 @@ class PaymentMethods extends AbstractHelper
             // return empty result
             return [];
         }
+        catch (\Adyen\ConnectionException $e) {
+            $this->adyenLogger->error(
+                "Connection to the endpoint failed. Check the Adyen Live endpoint prefix configuration."
+            );
+            return [];
+        }
 
         return $responseData;
     }

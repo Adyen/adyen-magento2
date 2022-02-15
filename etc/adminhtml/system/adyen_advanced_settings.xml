@@ -36,5 +36,6 @@
         <include path="Adyen_Payment::system/adyen_partial_payment.xml"/>
         <include path="Adyen_Payment::system/adyen_security.xml"/>
         <include path="Adyen_Payment::system/adyen_pwa.xml"/>
+        <include path="Adyen_Payment::system/adyen_additional_payment_settings.xml"/>
     </group>
 </include>
