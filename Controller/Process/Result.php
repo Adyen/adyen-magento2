@@ -23,11 +23,13 @@
 
 namespace Adyen\Payment\Controller\Process;
 
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\StateData;
 use \Adyen\Payment\Model\Notification;
 use Adyen\Service\Validator\DataArrayValidator;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Magento\Framework\App\Request\Http as Http;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 
 class Result extends \Magento\Framework\App\Action\Action
@@ -110,9 +112,14 @@ class Result extends \Magento\Framework\App\Action\Action
     private $stateDataHelper;
 
     /**
-     * @var PaymentResponseHandler
+     * @var Data
      */
-    private $paymentResponseHandler;
+    private $dataHelper;
+
+    /**
+     * @var OrderRepositoryInterface
+     */
+    private $orderRepository;
 
     /**
      * Result constructor.
@@ -128,7 +135,7 @@ class Result extends \Magento\Framework\App\Action\Action
      * @param \Adyen\Payment\Helper\Vault $vaultHelper
      * @param \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
      * @param StateData $stateDataHelper
-     * @param PaymentResponseHandler $paymentResponseHandler
+     * @param \Adyen\Payment\Helper\Data $dataHelper
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -142,7 +149,8 @@ class Result extends \Magento\Framework\App\Action\Action
         \Adyen\Payment\Helper\Vault $vaultHelper,
         \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
         StateData $stateDataHelper,
-        PaymentResponseHandler $paymentResponseHandler
+        Data $dataHelper,
+        OrderRepositoryInterface $orderRepository
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
@@ -154,7 +162,8 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
         $this->stateDataHelper = $stateDataHelper;
-        $this->paymentResponseHandler = $paymentResponseHandler;
+        $this->dataHelper = $dataHelper;
+        $this->orderRepository = $orderRepository;
         parent::__construct($context);
     }
 
@@ -377,6 +386,13 @@ class Result extends \Magento\Framework\App\Action\Action
                 success = false notification'
                 );
                 $result = false;
+
+                if (!$order->canCancel()) {
+                    $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                    $this->orderRepository->save($order);
+                }
+                $this->dataHelper->cancelOrder($order);
+
                 break;
             default:
                 $this->_adyenLogger->addAdyenResult('This event is not supported: ' . $authResult);
@@ -527,7 +543,6 @@ class Result extends \Magento\Framework\App\Action\Action
 
         try {
             $response = $service->paymentsDetails($request);
-            $this->paymentResponseHandler->handlePaymentResponse($response, $this->payment, $order);
             $responseMerchantReference = !empty($response['merchantReference']) ? $response['merchantReference'] : null;
             $resultMerchantReference = !empty($result['merchantReference']) ? $result['merchantReference'] : null;
             $merchantReference = $responseMerchantReference ?: $resultMerchantReference;
