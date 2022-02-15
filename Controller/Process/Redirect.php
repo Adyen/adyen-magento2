@@ -107,6 +107,10 @@ class Redirect extends \Magento\Framework\App\Action\Action
      * @var \Magento\Sales\Api\OrderManagementInterface
      */
     private $orderManagement;
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    private $dataHelper;
 
     /**
      * Redirect constructor.
@@ -121,6 +125,9 @@ class Redirect extends \Magento\Framework\App\Action\Action
      * @param OrderPaymentResource $orderPaymentResource
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      * @param \Adyen\Payment\Helper\Quote $quoteHelper
+     * @param \Magento\Sales\Api\OrderManagementInterface $orderManagement
+     * @param \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory
+     * @param \Adyen\Payment\Helper\Data $dateHelper
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -134,7 +141,8 @@ class Redirect extends \Magento\Framework\App\Action\Action
         \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Adyen\Payment\Helper\Quote $quoteHelper,
         \Magento\Sales\Api\OrderManagementInterface $orderManagement,
-        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory
+        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory,
+        \Adyen\Payment\Helper\Data $dateHelper
     ) {
         parent::__construct($context);
         $this->_adyenLogger = $adyenLogger;
@@ -146,8 +154,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
         $this->orderPaymentResource = $orderPaymentResource;
         $this->serializer = $serializer;
         $this->quoteHelper = $quoteHelper;
-        $this->orderManagement = $orderManagement;
-        $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
+        $this->dataHelper = $dateHelper;
 
         if (interface_exists(\Magento\Framework\App\CsrfAwareActionInterface::class)) {
             $request = $this->getRequest();
@@ -266,25 +273,7 @@ class Redirect extends \Magento\Framework\App\Action\Action
                         $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
                         $this->_orderRepository->save($order);
                     }
-
-                    if ($this->orderManagement->cancel($order->getEntityId())) { //new canceling process
-                        try {
-                            $orderStatusHistory = $this->orderStatusHistoryFactory->create()
-                                ->setParentId($order->getEntityId())
-                                ->setEntityName('order')
-                                ->setStatus(\Magento\Sales\Model\Order::STATE_CANCELED)
-                                ->setComment(__('Order has been cancelled by "%1" payment response.', $order->getPayment()->getMethod()));
-                            $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
-                        } catch (\Exception $e) {
-                            $this->_adyenLogger->addAdyenDebug(
-                                __('Order cancel history comment error: %1', $e->getMessage())
-                            );
-                        }
-                    } else { //previous canceling process
-                        $this->_adyenLogger->addAdyenDebug('Unsuccessful order canceling attempt by orderManagement service, use legacy process');
-                        $order->cancel();
-                        $order->save();
-                    }
+                    $this->dataHelper->cancelOrder($order);
 
                     // Clone or restore the quote
                     $session = $this->_getCheckout();

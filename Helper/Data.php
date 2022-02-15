@@ -145,6 +145,14 @@ class Data extends AbstractHelper
      * @var \Magento\Framework\Component\ComponentRegistrarInterface
      */
     private $componentRegistrar;
+    /**
+     * @var \Magento\Sales\Model\Order\Status\HistoryFactory
+     */
+    private $orderStatusHistoryFactory;
+    /**
+     * @var \Magento\Sales\Api\OrderManagementInterface
+     */
+    private $orderManagement;
 
     /**
      * Data constructor.
@@ -193,7 +201,10 @@ class Data extends AbstractHelper
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Magento\Backend\Helper\Data $helperBackend,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Magento\Framework\Component\ComponentRegistrarInterface $componentRegistrar
+        \Magento\Framework\Component\ComponentRegistrarInterface $componentRegistrar,
+        \Magento\Sales\Api\OrderManagementInterface $orderManagement,
+        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory
+
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -217,6 +228,8 @@ class Data extends AbstractHelper
         $this->helperBackend = $helperBackend;
         $this->serializer = $serializer;
         $this->componentRegistrar = $componentRegistrar;
+        $this->orderManagement = $orderManagement;
+        $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
     }
 
     /**
@@ -854,8 +867,23 @@ class Data extends AbstractHelper
                 }
                 break;
             default:
-                if ($order->canCancel()) {
-                    $order->cancel()->save();
+                if ($this->orderManagement->cancel($order->getEntityId())) { //new canceling process
+                    try {
+                        $orderStatusHistory = $this->orderStatusHistoryFactory->create()
+                            ->setParentId($order->getEntityId())
+                            ->setEntityName('order')
+                            ->setStatus(\Magento\Sales\Model\Order::STATE_CANCELED)
+                            ->setComment(__('Order has been cancelled by "%1" payment response.', $order->getPayment()->getMethod()));
+                        $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
+                    } catch (\Exception $e) {
+                        $this->adyenLogger->addAdyenDebug(
+                            __('Order cancel history comment error: %1', $e->getMessage())
+                        );
+                    }
+                } else { //previous canceling process
+                    $this->adyenLogger->addAdyenDebug('Unsuccessful order canceling attempt by orderManagement service, use legacy process');
+                    $order->cancel();
+                    $order->save();
                 }
                 break;
         }

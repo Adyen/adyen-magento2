@@ -77,6 +77,10 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
      * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
     protected $orderRepository;
+    /**
+     * @var Data
+     */
+    private $dataHelper;
 
     /**
      * AdyenThreeDS2Process constructor.
@@ -98,9 +102,8 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         AdyenLogger $adyenLogger,
         Vault $vaultHelper,
         Quote $quoteHelper,
-        \Magento\Sales\Api\OrderManagementInterface $orderManagement,
-        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory,
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
+        \Adyen\Payment\Helper\Data $dataHelper
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
@@ -108,9 +111,8 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         $this->adyenLogger = $adyenLogger;
         $this->vaultHelper = $vaultHelper;
         $this->quoteHelper = $quoteHelper;
-        $this->orderManagement = $orderManagement;
-        $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
         $this->orderRepository = $orderRepository;
+        $this->dataHelper = $dataHelper;
     }
 
     /**
@@ -245,25 +247,8 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
                 $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
                 $this->orderRepository->save($order);
             }
+            $this->dataHelper->cancelOrder($order);
 
-            if ($this->orderManagement->cancel($order->getEntityId())) { //new canceling process
-                try {
-                    $orderStatusHistory = $this->orderStatusHistoryFactory->create()
-                        ->setParentId($order->getEntityId())
-                        ->setEntityName('order')
-                        ->setStatus(\Magento\Sales\Model\Order::STATE_CANCELED)
-                        ->setComment(__('Order has been cancelled by "%1" payment response.', $payment->getMethod()));
-                    $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
-                } catch (\Exception $e) {
-                    $this->adyenLogger->addAdyenDebug(
-                        __('Order cancel history comment error: %1', $e->getMessage())
-                    );
-                }
-            } else { //previous canceling process
-                $this->adyenLogger->addAdyenDebug('Unsuccessful order canceling attempt by orderManagement service, use legacy process');
-                $order->cancel();
-                $order->save();
-            }
 
             $this->adyenLogger->error(
                 sprintf("Payment details call failed for action or 3ds2 payment method, resultcode is %s Raw API responds: %s",
