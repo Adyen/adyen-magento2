@@ -733,7 +733,7 @@ class Data extends AbstractHelper
                                 ->setParentId($order->getEntityId())
                                 ->setEntityName('order')
                                 ->setStatus(Order::STATE_CANCELED)
-                                ->setComment(__('Order has been cancelled by "%1" payment response.', $payment->getMethod()));
+                                ->setComment(__('Order has been cancelled by "%1" payment response.', $order->getPayment()->getMethod()));
                             $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
                         } catch (\Exception $e) {
                             $this->adyenLogger->addAdyenDebug(
