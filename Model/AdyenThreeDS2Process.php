@@ -64,6 +64,15 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
     private $quoteHelper;
 
     /**
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     */
+    protected $orderRepository;
+    /**
+     * @var Data
+     */
+    private $dataHelper;
+
+    /**
      * AdyenThreeDS2Process constructor.
      *
      * @param Session $checkoutSession
@@ -72,6 +81,7 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
      * @param AdyenLogger $adyenLogger
      * @param Vault $vaultHelper
      * @param Quote $quoteHelper
+     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         Session $checkoutSession,
@@ -79,7 +89,9 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         OrderFactory $orderFactory,
         AdyenLogger $adyenLogger,
         Vault $vaultHelper,
-        Quote $quoteHelper
+        Quote $quoteHelper,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
+        \Adyen\Payment\Helper\Data $dataHelper
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->adyenHelper = $adyenHelper;
@@ -87,6 +99,8 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
         $this->adyenLogger = $adyenLogger;
         $this->vaultHelper = $vaultHelper;
         $this->quoteHelper = $quoteHelper;
+        $this->orderRepository = $orderRepository;
+        $this->dataHelper = $dataHelper;
     }
 
     /**
@@ -219,9 +233,10 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
             // Always cancel the order if the payment has failed
             if (!$order->canCancel()) {
                 $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                $this->orderRepository->save($order);
             }
+            $this->dataHelper->cancelOrder($order);
 
-            $order->cancel()->save();
 
             $this->adyenLogger->error(
                 sprintf("Payment details call failed for action or 3ds2 payment method, resultcode is %s Raw API responds: %s",
