@@ -99,15 +99,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
     private $quoteHelper;
 
     /**
-     * @var \Magento\Sales\Model\Order\Status\HistoryFactory
-     */
-    private $orderStatusHistoryFactory;
-
-    /**
-     * @var \Magento\Sales\Api\OrderManagementInterface
-     */
-    private $orderManagement;
-    /**
      * @var \Adyen\Payment\Helper\Data
      */
     private $dataHelper;
@@ -140,8 +131,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
         OrderPaymentResource $orderPaymentResource,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Adyen\Payment\Helper\Quote $quoteHelper,
-        \Magento\Sales\Api\OrderManagementInterface $orderManagement,
-        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory,
         \Adyen\Payment\Helper\Data $dateHelper
     ) {
         parent::__construct($context);

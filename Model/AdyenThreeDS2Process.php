@@ -64,16 +64,6 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
     private $quoteHelper;
 
     /**
-     * @var \Magento\Sales\Api\OrderManagementInterface
-     */
-    private $orderManagement;
-
-    /**
-     * @var \Magento\Sales\Model\Order\Status\HistoryFactory
-     */
-    private $orderStatusHistoryFactory;
-
-    /**
      * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
     protected $orderRepository;
@@ -91,8 +81,6 @@ class AdyenThreeDS2Process implements AdyenThreeDS2ProcessInterface
      * @param AdyenLogger $adyenLogger
      * @param Vault $vaultHelper
      * @param Quote $quoteHelper
-     * @param \Magento\Sales\Api\OrderManagementInterface $orderManagement
-     * @param \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory
      * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
      */
     public function __construct(
