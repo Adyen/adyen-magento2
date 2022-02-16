@@ -471,6 +471,7 @@
                 <item name="address" xsi:type="string">Adyen\Payment\Gateway\Request\AddressDataBuilder</item>
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="risk" xsi:type="string">Adyen\Payment\Gateway\Request\RiskDataBuilder</item>
+                <item name="level23" xsi:type="string">Adyen\Payment\Gateway\Request\AdditionalDataLevel23DataBuilder</item>
                 <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="shopperinteraction" xsi:type="string">Adyen\Payment\Gateway\Request\ShopperInteractionDataBuilder</item>
@@ -491,7 +492,6 @@
                 <item name="expirydate" xsi:type="string">Adyen\Payment\Gateway\Request\ExpiryDateDataBuilder</item>
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="shopperinteraction" xsi:type="string">Adyen\Payment\Gateway\Request\ShopperInteractionDataBuilder</item>
-              
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="description" xsi:type="string">Adyen\Payment\Gateway\Request\DescriptionDataBuilder</item>
                 <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CheckoutDataBuilder</item>
@@ -510,6 +510,7 @@
                 <item name="address" xsi:type="string">Adyen\Payment\Gateway\Request\AddressDataBuilder</item>
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="risk" xsi:type="string">Adyen\Payment\Gateway\Request\RiskDataBuilder</item>
+                <item name="level23" xsi:type="string">Adyen\Payment\Gateway\Request\AdditionalDataLevel23DataBuilder</item>
                 <item name="returnurl" xsi:type="string">Adyen\Payment\Gateway\Request\ReturnUrlDataBuilder</item>
                 <item name="channel" xsi:type="string">Adyen\Payment\Gateway\Request\ChannelDataBuilder</item>
                 <item name="origin" xsi:type="string">Adyen\Payment\Gateway\Request\OriginDataBuilder</item>
@@ -543,6 +544,7 @@
                 <item name="address" xsi:type="string">Adyen\Payment\Gateway\Request\AddressDataBuilder</item>
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="risk" xsi:type="string">Adyen\Payment\Gateway\Request\RiskDataBuilder</item>
+                <item name="level23" xsi:type="string">Adyen\Payment\Gateway\Request\AdditionalDataLevel23DataBuilder</item>
                 <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="shopperinteraction" xsi:type="string">Adyen\Payment\Gateway\Request\ShopperInteractionDataBuilder</item>
@@ -564,6 +566,7 @@
                 <item name="address" xsi:type="string">Adyen\Payment\Gateway\Request\AddressDataBuilder</item>
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="risk" xsi:type="string">Adyen\Payment\Gateway\Request\RiskDataBuilder</item>
+                <item name="level23" xsi:type="string">Adyen\Payment\Gateway\Request\AdditionalDataLevel23DataBuilder</item>
                 <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="shopperinteraction" xsi:type="string">Adyen\Payment\Gateway\Request\ShopperInteractionDataBuilder</item>
@@ -887,7 +890,7 @@
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Model\Cron">
+    <type name="Adyen\Payment\Helper\Webhook">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
@@ -900,6 +903,14 @@
     <type name="Adyen\Payment\Model\Api\AdyenDonations">
         <arguments>
             <argument name="commandPool" xsi:type="object">AdyenPaymentDonationsCommandPool</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="adyen_webhookprocessorcommand" xsi:type="object">Adyen\Payment\Console\Command\WebhookProcessorCommand</item>
+            </argument>
         </arguments>
     </type>
 

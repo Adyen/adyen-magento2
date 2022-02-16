@@ -25,13 +25,9 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
-use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\UrlInterface;
-use Magento\Payment\Model\InfoInterface;
-use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
-use Magento\Quote\Api\Data\PaymentInterface;
 
 class Requests extends AbstractHelper
 {
@@ -48,11 +44,6 @@ class Requests extends AbstractHelper
     private $adyenConfig;
 
     /**
-     * @var UrlInterface
-     */
-    private $urlBuilder;
-
-    /**
      * @var Address
      */
     private $addressHelper;
@@ -60,6 +51,8 @@ class Requests extends AbstractHelper
      * @var StateData
      */
     private $stateData;
+
+    private $shopperReference;
 
     /**
      * Requests constructor.
@@ -118,13 +111,7 @@ class Requests extends AbstractHelper
         $additionalData = null,
         $request = []
     ) {
-        if ($customerId > 0) {
-            $request['shopperReference'] = str_pad($customerId, 3, '0', STR_PAD_LEFT);
-        } else {
-            $uuid = Uuid::generateV4();
-            $guestCustomerId = $payment->getOrder()->getIncrementId() . $uuid;
-            $request['shopperReference'] = $guestCustomerId;
-        }
+        $request['shopperReference'] = $this->getShopperReference($customerId, $payment->getOrder()->getIncrementId());
 
         // In case of virtual product and guest checkout there is a workaround to get the guest's email address
         if (!empty($additionalData['guestEmail'])) {
@@ -328,17 +315,6 @@ class Requests extends AbstractHelper
      * @param array $request
      * @return array
      */
-    public function buildRiskData(array $request = [])
-    {
-        $request["fraudOffset"] = "0";
-
-        return $request;
-    }
-
-    /**
-     * @param array $request
-     * @return array
-     */
     public function buildBrowserData($request = [])
     {
         if (!empty($_SERVER['HTTP_USER_AGENT'])) {
@@ -404,5 +380,25 @@ class Requests extends AbstractHelper
             'merchantAccount' => $this->adyenHelper->getAdyenMerchantAccount('adyen_giving', $storeId),
             'shopperInteraction' => 'Ecommerce'
         ];
+    }
+
+    /**
+     * @param string|null $customerId
+     * @param string $orderIncrementId
+     * @return string
+     */
+    public function getShopperReference($customerId, $orderIncrementId): string
+    {
+        if (!$this->shopperReference) {
+            if ($customerId) {
+                $this->shopperReference = str_pad($customerId, 3, '0', STR_PAD_LEFT);
+            } else {
+                $uuid = Uuid::generateV4();
+                $guestCustomerId = $orderIncrementId . $uuid;
+                $this->shopperReference = $guestCustomerId;
+            }
+        }
+
+        return $this->shopperReference;
     }
 }
