@@ -149,8 +149,8 @@ define(
 
                     self.adyenPaymentMethods(
                         self.getAdyenHppPaymentMethods(paymentMethodsResponse));
-                    fullScreenLoader.stopLoader();
                 }
+                fullScreenLoader.stopLoader();
             },
             getAdyenHppPaymentMethods: function(paymentMethodsResponse) {
                 var self = this;
