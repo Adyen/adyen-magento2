@@ -1,5 +1,3 @@
-<?xml version="1.0"?>
-<!--
 /**
  *                       ######
  *                       ######
@@ -16,22 +14,25 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
 
-    <module name="Adyen_Payment" setup_version="8.1.0">
-        <sequence>
-            <module name="Magento_Sales"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Checkout"/>
-            <module name="Magento_Paypal"/>
-            <module name="Magento_AdminNotification"/>
-            <module name="Magento_Vault"/>
-        </sequence>
-    </module>
-</config>
+define(['jquery'], function($) {
+    'use strict';
+
+    return function(target) {
+        $.validator.addMethod(
+            "validate-ssn-br",
+            function(value, element) {
+                // The format is 000.000.000-00
+                return /^([-\.\s]?(\d{3})){3}[-\.\s]?(\d{2})$/.test(value);
+            },
+            $.mage.__('Please enter a valid brazilian social security number (Ex: 123.456.789-10).')
+        )
+
+        return target;
+    }
+});

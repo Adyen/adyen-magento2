@@ -220,7 +220,7 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
      */
     public function isSuccessful(): bool
     {
-        return $this->getSuccess() === 'true';
+        return strcmp($this->getSuccess(), 'true') === 0 || strcmp($this->getSuccess(), '1') === 0;
     }
 
     /**
@@ -471,5 +471,13 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     public function setUpdatedAt($timestamp)
     {
         return $this->setData(self::UPDATED_AT, $timestamp);
+    }
+
+    public function isLessThan10MinutesOld(): bool
+    {
+        $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $this->getCreatedAt());
+        $tenMinutesAgo = new \DateTime('-10 minutes');
+
+        return $createdAt >= $tenMinutesAgo;
     }
 }
