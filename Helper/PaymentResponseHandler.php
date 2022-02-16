@@ -148,10 +148,6 @@ class PaymentResponseHandler
             $payment->setAdditionalInformation('pspReference', $paymentsResponse['pspReference']);
         }
 
-        if (!empty($paymentsResponse['paymentData'])) {
-            $payment->setAdditionalInformation('adyenPaymentData', $paymentsResponse['paymentData']);
-        }
-
         if (!empty($paymentsResponse['details'])) {
             $payment->setAdditionalInformation('details', $paymentsResponse['details']);
         }
