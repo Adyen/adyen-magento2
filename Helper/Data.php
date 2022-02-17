@@ -35,6 +35,8 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
+    const LIVE_AU = 'live-au';
+    const LIVE_US = 'live-us';
     // Only used for backend orders! Checkout in front-end is using different checkout version see web folder
     const CHECKOUT_COMPONENT_JS_LIVE = 'https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
     const CHECKOUT_COMPONENT_JS_TEST = 'https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js';
@@ -232,7 +234,21 @@ class Data extends AbstractHelper
     }
 
     /**
-     * return recurring types for configuration setting
+     * return Checkout frontend regions for configuration setting
+     *
+     * @return array
+     */
+    public function getCheckoutFrontendRegions()
+    {
+        return [
+            'eu' => 'Default (EU - Europe)',
+            'au' => 'AU - Australasia',
+            'us' => 'US - United States'
+        ];
+    }
+
+    /**
+     * return modes for configuration setting
      *
      * @return array
      */
@@ -245,7 +261,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * return recurring types for configuration setting
+     * return capture modes for configuration setting
      *
      * @return array
      */
@@ -258,7 +274,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * return recurring types for configuration setting
+     * return payment routines for configuration setting
      *
      * @return array
      */
@@ -813,6 +829,18 @@ class Data extends AbstractHelper
     public function getLiveEndpointPrefix($storeId = null)
     {
         $prefix = trim($this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId));
+        return $prefix;
+    }
+
+    /**
+     * Retrieve the Checkout frontend region
+     *
+     * @param null|int|string $storeId
+     * @return string
+     */
+    public function getCheckoutFrontendRegion($storeId = null)
+    {
+        $prefix = trim($this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId));
         return $prefix;
     }
 
@@ -1644,7 +1672,14 @@ class Data extends AbstractHelper
             return self::TEST;
         }
 
-        return self::LIVE;
+        switch ($this->getCheckoutFrontendRegion($storeId)) {
+            case "au":
+                return self::LIVE_AU;
+            case "us":
+                return self::LIVE_US;
+            default:
+                return self::LIVE;
+        }
     }
 
     /**

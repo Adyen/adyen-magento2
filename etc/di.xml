@@ -1070,6 +1070,7 @@
                 <item name="payment/adyen_abstract/notification_username" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/notification_password" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/live_endpoint_url_prefix" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/checkout_frontend_region" xsi:type="string">1</item>
                 <item name="payment/adyen_pos_cloud/pos_merchant_account" xsi:type="string">1</item>
                 <item name="payment/adyen_pos_cloud/api_key_test" xsi:type="string">1</item>
                 <item name="payment/adyen_pos_cloud/api_key_live" xsi:type="string">1</item>
