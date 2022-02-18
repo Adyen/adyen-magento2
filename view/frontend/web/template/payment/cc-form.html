@@ -31,7 +31,8 @@
 
             <!-- ko if: icon -->
             <img data-bind="attr: {
-                'src': icon.url
+                'src': icon.url,
+                'alt': getTitle() + ' logo'
                 }">
             <!--/ko-->
 
