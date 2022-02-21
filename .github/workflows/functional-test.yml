@@ -1,0 +1,41 @@
+name: Functional Tests
+on: [pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - PHP_VERSION: 7.4
+            MAGENTO_VERSION: 2.4.2
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create docker image
+        run: MAGENTO_USERNAME=${{ secrets.MAGENTO_USERNAME }} MAGENTO_PASSWORD=${{ secrets.MAGENTO_PASSWORD }} docker-compose -f .github/docker-compose.yml up -d
+
+      # Temp solution to wait for install script to run
+      - name: Sleep for 120 seconds
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '120s'
+
+      - name: Show install logs
+        run: docker logs magento2-container
+
+      - name: Prevent cron from interfering with test execution
+        run: docker exec magento2-container /etc/init.d/cron stop
+
+      - name: Install MFTF script
+        run: |
+          docker exec magento2-container ln -s /data/extensions/workdir/.github/scripts/mftf.sh /var/www/html/mftf.sh
+          docker exec magento2-container chmod +x /var/www/html/mftf.sh
+
+      - name: Build MFTF project
+        run: docker exec magento2-container /var/www/html/mftf.sh
+
+      - name: Run MFTF tests
+        run: |
+          docker exec magento2-container vendor/bin/mftf doctor
+          docker exec magento2-container vendor/bin/mftf run:test AdminLoginSuccessfulTest --remove
