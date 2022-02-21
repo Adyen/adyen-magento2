@@ -63,6 +63,11 @@ class PaymentResponseHandler
     private $orderResourceModel;
 
     /**
+     * @var Data
+     */
+    private $dataHelper;
+
+    /**
      * PaymentResponseHandler constructor.
      *
      * @param AdyenLogger $adyenLogger
@@ -73,12 +78,14 @@ class PaymentResponseHandler
         AdyenLogger $adyenLogger,
         Data $adyenHelper,
         Vault $vaultHelper,
-        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
+        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
+        Data $dataHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
+        $this->dataHelper = $dataHelper;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
@@ -209,17 +216,9 @@ class PaymentResponseHandler
                     // Set order to new so it can be cancelled
                     $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
                     $order->save();
-
                     $order->setActionFlag(\Magento\Sales\Model\Order::ACTION_FLAG_CANCEL, true);
-
-                    if ($order->canCancel()) {
-                        $order->cancel();
-                        $order->save();
-                    } else {
-                        $this->adyenLogger->addAdyenDebug('Order can not be canceled');
-                    }
+                    $this->dataHelper->cancelOrder($order);
                 }
-
                 return false;
             case self::ERROR:
             default:
