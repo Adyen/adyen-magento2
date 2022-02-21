@@ -82,7 +82,7 @@ class Installments extends \Magento\Config\Block\System\Config\Form\Field\FieldA
         $this->addColumn(
             'amount',
             [
-                'label' => __('Amount Range'),
+                'label' => __('Minimum Amount'),
                 'renderer' => false,
             ]
         );
