@@ -90,4 +90,4 @@ $_isDemoMode = $block->isDemoMode();
         padding-bottom: 5px;
     }
 </style>
-<?= $block->escapeHtml($block->getMethod()->getInfoInstance()->getAdditionalInformation('receipt')); ?>
+<?= $block->getMethod()->getInfoInstance()->getAdditionalInformation('receipt'); ?>

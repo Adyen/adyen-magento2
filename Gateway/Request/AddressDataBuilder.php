@@ -57,7 +57,12 @@ class AddressDataBuilder implements BuilderInterface
         $billingAddress = $order->getBillingAddress();
         $shippingAddress = $order->getShippingAddress();
 
-        $request['body'] = $this->adyenRequestsHelper->buildAddressData($billingAddress, $shippingAddress, []);
+        $request['body'] = $this->adyenRequestsHelper->buildAddressData(
+            $billingAddress,
+            $shippingAddress,
+            $order->getStoreId(),
+            []
+        );
 
         return $request;
     }

@@ -29,134 +29,94 @@
     <script type="text/javascript">
         require([
             'jquery',
-            'adyenCheckout3101'
+            'Adyen_Payment/js/adyen'
         ], function ($, AdyenCheckout) {
+        (async function () { // RequireJS does not support async callback
             var action = JSON.parse('<?= /* @noEscape */ $block->getAction(); ?>');
-            var checkoutComponent = new AdyenCheckout({
+            var checkoutComponent = await AdyenCheckout({
                 locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
                 environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
-                originKey: '<?= $block->escapeHtml($block->getOriginKey()); ?>'
+                clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>'
             });
             try {
                 checkoutComponent.createFromAction(action).mount('#ActionContainer');
             } catch(err) {
                 // Action component cannot be created
             }
+        })();
         });
     </script>
     <div id="ActionContainer"></div>
-<?php else: ?>
-    <?php if ($block->isBoletoPayment()): ?>
-    <?php
-    $boletoData = $block->getBoletoData();
-    ?>
-    <p>
-        <?= $block->escapeHtml(__('Boleto PDF: ')); ?>
-        <a href="<?= $block->escapeUrl($boletoData['downloadUrl']); ?>">
-            <?= $block->escapeHtml(__('Click here to download the Boleto PDF')); ?>
-        </a>
-    </p>
+<?php endif; ?>
+<?php if ($block->showAdyenGiving()):
+    $checkoutConfig = /* @noEscape */
+    $block->getSerializedCheckoutConfig();
+    $scriptString = <<<script
+    window.checkoutConfig = {$checkoutConfig};
+script;
+?>
+<script>
+    <?=$scriptString?>
+    require([
+        'jquery',
+        'Adyen_Payment/js/adyen',
+        'Adyen_Payment/js/model/adyen-payment-service'
+    ], function ($, AdyenCheckout, adyenPaymentService) {
+    (async function () { // RequireJS does not support async callback
+        function handleOnDonate(state, component) {
+            if (state.isValid) {
+                let previousStateData;
+                try {
+                    previousStateData = JSON.parse(window.sessionStorage.getItem('adyen.stateData'));
+                } catch {
+                    previousStateData = {};
+                }
+                let payload = { ...previousStateData, ...state.data };
+                payload.returnUrl = window.location.href;
+                adyenPaymentService.donate(payload)
+                    .done(function (response) {
+                        component.setStatus("success");
+                    })
+                    .fail(function (response) {
+                        component.setStatus('error');
+                    });
+            } else {
+                component.setStatus('ready');
+            }
+        }
+        function handleOnCancel(state, component) {
+            // Redirect to default 'Continue Shopping' action
+            let continueActionUrl = $('.primary.action.continue')[0].href;
+            window.location = continueActionUrl;
+        }
+        const donationConfig = {
+            amounts: {
+                currency: "<?=$block->getOrder()->getOrderCurrencyCode()?>",
+                values: [<?=$block->getDonationComponentConfiguration()['donationAmounts'];?>]
+            },
+            backgroundUrl: "<?=$block->getDonationComponentConfiguration()['backgroundUrl'];?>",
+            description: "<?=$block->getDonationComponentConfiguration()['description'];?>",
+            logoUrl: "<?=$block->getDonationComponentConfiguration()['logoUrl'];?>",
+            name: "<?=$block->getDonationComponentConfiguration()['name'];?>",
+            url: "<?=$block->getDonationComponentConfiguration()['website'];?>",
+            showCancelButton: true,
+            onDonate: handleOnDonate,
+            onCancel: handleOnCancel
+        };
+        var checkoutComponent = await AdyenCheckout({
+            locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
+            environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
+            clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>'
+        });
+        try {
+            const donation = checkoutComponent.create('donation', donationConfig).mount('#donation-container');
+        } catch(err) {
+            // Action component cannot be created
+            console.log(err);
+        }
+    })();
+    });
+</script>
+<div id='donation-container'></div>
 <?php endif; ?>
 
-    <?php if (!empty($block->getBankTransferData())): ?>
-    <?php
-    $banktranferData = $block->getBankTransferData();
-    $order = $block->getOrder();
-    ?>
-    <h2><?= $block->escapeHtml(__('Pay using Bank transfer')); ?></h2>
-    <p><?= $block->escapeHtml(
-            __('Please transfer the amount using the reference below to the following bank account')
-        ); ?></p>
-    <table>
-        <tbody>
-        <?php if (!empty($order->getGrandTotal())): ?>
-            <tr>
-                <th scope="row"><?= $block->escapeHtml(__('Amount')); ?></th>
-                <td><?= /* @noEscape */
-                    $order->formatPrice($order->getGrandTotal()); ?></td>
-            </tr>
-        <?php endif; ?>
-
-        <?php if (!empty($banktranferData['bankTransfer.reference'])): ?>
-            <tr>
-                <th scope="row"><?= $block->escapeHtml(__('With reference')); ?></th>
-                <td><?= $block->escapeHtml($banktranferData['bankTransfer.reference']); ?></td>
-            </tr>
-        <?php endif; ?>
-
-        <?php if (!empty($banktranferData['bankTransfer.owner'])): ?>
-            <tr>
-                <th scope="row"><?= $block->escapeHtml(__('Beneficiary Name')); ?></th>
-                <td><?= $block->escapeHtml($banktranferData['bankTransfer.owner']); ?></td>
-            </tr>
-        <?php endif; ?>
-
-        <?php if (!empty($banktranferData['bankTransfer.bankName'])): ?>
-            <tr>
-                <th scope="row"><?= $block->escapeHtml(__('Bank')); ?></th>
-                <td><?= $block->escapeHtml($banktranferData['bankTransfer.bankName']); ?></td>
-            </tr>
-        <?php endif; ?>
-
-        <?php if (!empty($banktranferData['bankTransfer.iban'])): ?>
-            <tr>
-                <th scope="row"><?= $block->escapeHtml(__('IBAN')); ?></th>
-                <td><?= $block->escapeHtml($banktranferData['bankTransfer.iban']); ?></td>
-            </tr>
-        <?php endif; ?>
-
-        <?php if (!empty($banktranferData['bankTransfer.accountCode'])): ?>
-            <tr>
-                <th scope="row"><?= $block->escapeHtml(__('Bankaccount')); ?></th>
-                <td><?= $block->escapeHtml($banktranferData['bankTransfer.accountCode']); ?></td>
-            </tr>
-        <?php endif; ?>
-        </tbody>
-    </table>
-<?php elseif (!empty($block->getMultibancoData())): ?>
-    <?php
-    $multibancoData = $block->getMultibancoData();
-    ?>
-    <h2><?= $block->escapeHtml(__('Pay using Multibanco')); ?></h2>
-    <p><?= $block->escapeHtml(
-            __(
-                'Please pay with the provided Multibanco reference and entity before payment deadline in order to ' .
-                'complete our payment'
-            )
-        ); ?></p>
-    <table>
-        <tbody>
-
-        <?php if (strcmp($multibancoData['paymentMethodType'], 'multibanco') === 0): ?>
-            <tr>
-                <th scope="row"><?= $block->escapeHtml(__('Entity')); ?></th>
-                <td><?= $block->escapeHtml($multibancoData['entity']); ?></td>
-            </tr>
-        <?php endif; ?>
-
-        <?php if (!empty($multibancoData['reference'])): ?>
-            <tr>
-                <th scope="row"><?= $block->escapeHtml(__('Reference')); ?></th>
-                <td><?= $block->escapeHtml($multibancoData['reference']); ?></td>
-            </tr>
-        <?php endif; ?>
-
-        <?php if (!empty($multibancoData['totalAmount'])): ?>
-            <tr>
-                <th scope="row"><?= $block->escapeHtml(__('Amount')); ?></th>
-                <td><?= /* @noEscape */
-                    $block->priceHelper->currency($multibancoData['totalAmount']['value']); ?>
-                </td>
-            </tr>
-        <?php endif; ?>
-
-        <?php if (!empty($multibancoData['expiresAt'])): ?>
-            <tr>
-                <th scope="row"><?= $block->escapeHtml(__('Payment deadline')); ?></th>
-                <td><?= $block->escapeHtml($multibancoData['expiresAt']); ?></td>
-            </tr>
-        <?php endif; ?>
-        </tbody>
-    </table>
-    <?php endif; ?>
-<?php endif; ?>

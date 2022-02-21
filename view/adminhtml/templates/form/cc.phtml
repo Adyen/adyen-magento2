@@ -23,7 +23,7 @@
 
 // @codingStandardsIgnoreFile
 /**
- * @var \Magento\Payment\Block\Adminhtml\Transparent\Form $block
+ * @var \Adyen\Payment\Block\Form\Cc $block
  */
 $code = $block->escapeHtml($block->getMethodCode());
 $ccType = $block->getInfoData('cc_type');
@@ -34,65 +34,29 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
 <fieldset class="admin__fieldset payment-method"
           id="payment_form_<?= /* @noEscape */ $code; ?>"
           style="display:none">
-    <span id="noApiKey"
+    <span id="noClientKey"
           class="message message-error error"
-          style="visibility: hidden"><?= $block->escapeHtml(
-              __(
-                  'Please configure an API Key and a live endpoint prefix(if in Production Mode) in your Adyen ' .
-                  'Required Settings'
-              )
-          ); ?>
+          style="display: none"><?= $block->escapeHtml(
+            __(
+                'Please configure a Client key and a live endpoint prefix (if in Production Mode) in your Adyen ' .
+                'Required Settings'
+            )
+        ); ?>
     </span>
-    <div class="field admin__field">
-        <label for="<?= /* @noEscape */ $code; ?>_cc_owner">
-            <span><?= $block->escapeHtml(__('Name on Card')); ?></span>
-        </label>
-        <div>
-            <input type="text" id="<?= /* @noEscape */ $code; ?>_cc_owner" name="payment[holderName]"
-                   title="<?= $block->escapeHtml(__('Name on Card')); ?>"
-                   class="admin__control-text"
-                   value="<?= /* @noEscape */ $block->getInfoData('cc_owner'); ?>"
-                   placeholder="<?= $block->escapeHtml(__('Name on Card')); ?>"/>
-        </div>
-    </div>
-
+    <input name="payment[stateData]" id="adyen-cc-statedata" type="hidden">
     <div id="cardContainer-<?= /* @noEscape */ $code; ?>"></div>
-    <input id="<?= /* @noEscape */ $code; ?>-number" type="hidden" name="payment[number]">
-    <input id="<?= /* @noEscape */ $code; ?>-cvc" type="hidden" name="payment[cvc]">
-    <input id="<?= /* @noEscape */ $code; ?>-expiryMonth" type="hidden" name="payment[expiryMonth]">
-    <input id="<?= /* @noEscape */ $code; ?>-expiryYear" type="hidden" name="payment[expiryYear]">
-    <input id="<?= /* @noEscape */ $code; ?>-cc_type" type="hidden" name="payment[cc_type]">
-    <input id="<?= /* @noEscape */ $code; ?>-store_cc" type="hidden" name="payment[store_cc]">
-
-    <?php if ($block->isVaultEnabled()): ?>
-        <div class="field choice">
-            <input type="checkbox"
-                   id="<?= /* @noEscape */ $code; ?>_vault"
-                   name="payment[is_active_payment_token_enabler]"
-                   class="checkbox"/>
-            <label class="label" for="<?= /* @noEscape */ $code; ?>_vault">
-                <span><?= $block->escapeHtml('Save for later use.'); ?></span>
-            </label>
-        </div>
-    <?php endif; ?>
 
     <script>
         require(
             [
                 'jquery',
                 'Magento_Sales/order/create/scripts',
-                "Magento_Sales/order/create/form"
+                'Magento_Sales/order/create/form',
+                'Adyen_Payment/js/adyen'
             ],
-            function () {
+            function ($, scripts, form, AdyenCheckout) {
+            (async function () { // RequireJS does not support async callback
                 var ccTypes = <?= /* @noEscape */ json_encode($block->getCcAvailableTypesByAlt()); ?>;
-
-                //<![CDATA[
-
-                // Append checkout card components script
-                var scriptTag = document.createElement('script');
-                scriptTag.src = "<?= $block->escapeHtml($block->getCheckoutCardComponentJs()); ?>";
-                scriptTag.type = "text/javascript";
-                document.body.appendChild(scriptTag);
 
                 // Get cc type by adyen cc type
                 var getCcCodeByAltCode = function (altCode) {
@@ -104,80 +68,43 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                     return "";
                 }
 
-                /*
-                 * Initialize secure fields and set up the onChange callback to
-                 *  - fill the input fields with the encrypted data
-                 *  - show the helper text when necessary
-                 */
-                var secureFieldsInitialize = function () {
+                if (!"<?= $block->getClientKey(); ?>") {
+                    document.getElementById('noClientKey').style = "visibility: visible; display:inline-block";
+                    return;
+                }
+                var cardNode = document.getElementById("cardContainer-<?= /* @noEscape */ $code; ?>");
 
-                    if (!"<?= $block->getCheckoutOriginKeys(); ?>") {
-                        document.getElementById('noApiKey').style = "visibility: visible; display:inline-block";
-                        return;
-                    }
-                    var cardNode = document.getElementById("cardContainer-<?= /* @noEscape */ $code; ?>");
+                var checkout = await AdyenCheckout({
+                    clientKey: "<?= /* @noEscape */ $block->getClientKey(); ?>",
+                    environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
+                    locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
+                    risk: {
+                        enabled: false
+                    },
 
-                    var checkout = new AdyenCheckout({
-                        locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
-                        risk: {
-                            enabled: false
-                        }
-                    });
-                    var hideCVC = "<?= !$block->hasVerification(); ?>";
+                });
+                var hideCVC = "<?= !$block->hasVerification(); ?>";
 
+                try {
                     var card = checkout.create('card', {
-                        originKey: "<?= /* @noEscape */ $block->getCheckoutOriginKeys(); ?>",
-                        environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
-                        type: 'card',
-                        groupTypes: ccTypes,
+                        brands: Object.keys(ccTypes),
                         hideCVC: hideCVC,
-                        enableStoreDetails: "<?= /* @noEscape */ $block->allowRecurring() && !$block->isVaultEnabled();?>",
-
+                        enableStoreDetails: false, // MOTO can't use CVC which is required for OneClick tokens
+                        hasHolderName: true,
+                        installmentOptions: <?= /* @noEscape */ $block->getFormattedInstallments();?>,
+                        showInstallmentAmounts: true,
+                        amount :<?= /* @noEscape */ $block->getAmount();?>,
                         onChange: function (state) {
-                            // When the state is valid update the input fields
                             if (state.isValid) {
-                                // Here we enable the button if the component is now valid
-                                jQuery("#<?= /* @noEscape */ $code; ?>-number").val(
-                                    state.data.paymentMethod.encryptedCardNumber
-                                );
-                                jQuery("#<?= /* @noEscape */ $code; ?>-expiryMonth").val(
-                                    state.data.paymentMethod.encryptedExpiryMonth
-                                );
-                                jQuery("#<?= /* @noEscape */ $code; ?>-expiryYear").val(
-                                    state.data.paymentMethod.encryptedExpiryYear
-                                );
-                                jQuery("#<?= /* @noEscape */ $code; ?>-cvc").val(
-                                    state.data.paymentMethod.encryptedSecurityCode
-                                );
-                                jQuery("#<?= /* @noEscape */ $code; ?>-store_cc").val(state.data.storePaymentMethod);
+                                $('#adyen-cc-statedata').val(JSON.stringify(state.data));
                             }
-                        },
-                        onBrand: function (state) {
-                            if (state.isValid) {
-                                jQuery("#<?= /* @noEscape */ $code; ?>-cc_type").val(getCcCodeByAltCode(state.brand));
-                            }
-                        },
-                        onError: function () {
                         }
                     });
                     card.mount(cardNode);
+                } catch (e) {
+                    console.log(e);
                 }
-
-                // Load card components and force wait until the external script is loaded
-                if (scriptTag.readyState) {
-                    scriptTag.onreadystatechange = function () {
-                        if (script.readyState == "loaded" ||
-                            script.readyState == "complete") {
-                            script.onreadystatechange = null;
-                            secureFieldsInitialize();
-                        }
-                    };
-                } else {
-                    scriptTag.onload = function () {
-                        secureFieldsInitialize();
-                    };
-                }
-                //]]>
+            })();
             });
     </script>
 </fieldset>

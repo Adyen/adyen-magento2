@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Gateway\Validator;
 
+use Adyen\Payment\Gateway\Http\Client\TransactionCapture;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
 
 class CaptureResponseValidator extends AbstractValidator
@@ -33,7 +34,7 @@ class CaptureResponseValidator extends AbstractValidator
     private $adyenLogger;
 
     /**
-     * GeneralResponseValidator constructor.
+     * CaptureResponseValidator constructor.
      *
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
@@ -48,7 +49,7 @@ class CaptureResponseValidator extends AbstractValidator
 
     /**
      * @param array $validationSubject
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return \Magento\Payment\Gateway\Validator\ResultInterface
      */
     public function validate(array $validationSubject)
     {
@@ -57,17 +58,57 @@ class CaptureResponseValidator extends AbstractValidator
         $isValid = true;
         $errorMessages = [];
 
-        if (empty($response['response']) || $response['response'] != '[capture-received]') {
-            $errorMsg = __('Error with capture');
-            $this->adyenLogger->error($errorMsg);
+        if (array_key_exists(TransactionCapture::MULTIPLE_AUTHORIZATIONS, $response)) {
+            return $this->validateMultipleCaptureRequests($response);
+        }
 
-            if (!empty($response['error'])) {
-                $this->adyenLogger->error($response['error']);
-            }
-
-            $errorMessages[] = $errorMsg;
+        if (empty($response['response']) || $response['response'] != TransactionCapture::CAPTURE_RECEIVED) {
+            $errorMessages[] = $this->buildErrorMessages($response);
+            $isValid = false;
         }
 
         return $this->createResult($isValid, $errorMessages);
+    }
+
+    /**
+     * Validate a response which contains multiple capture responses
+     *
+     * @param $responseContainer
+     * @return \Magento\Payment\Gateway\Validator\ResultInterface
+     */
+    public function validateMultipleCaptureRequests($responseContainer)
+    {
+        $isValid = true;
+        $errorMessages = [];
+
+        foreach ($responseContainer[TransactionCapture::MULTIPLE_AUTHORIZATIONS] as $response) {
+            if (empty($response['response']) || $response['response'] != TransactionCapture::CAPTURE_RECEIVED) {
+                $errorMessages[] = $this->buildErrorMessages($response, true);
+            }
+        }
+
+        return $this->createResult($isValid, $errorMessages);
+    }
+
+    /**
+     * @param $response
+     * @param bool $multiple
+     * @return \Magento\Framework\Phrase|string
+     */
+    private function buildErrorMessages($response, bool $multiple = false)
+    {
+        if ($multiple && array_key_exists(TransactionCapture::FORMATTED_CAPTURE_AMOUNT, $response)) {
+            $errorMsg = __('Error with capture on transaction with amount') . $response[TransactionCapture::FORMATTED_CAPTURE_AMOUNT];
+        } else {
+            $errorMsg = __('Error with capture');
+        }
+
+        $this->adyenLogger->error($errorMsg);
+
+        if (!empty($response['error'])) {
+            $this->adyenLogger->error($response['error']);
+        }
+
+        return $errorMsg;
     }
 }

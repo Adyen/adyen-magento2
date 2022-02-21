@@ -43,9 +43,9 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
     protected $urlBuilder;
 
     /**
-     * @var \Adyen\Payment\Helper\PaymentMethods
+     * @var \Adyen\Payment\Helper\ConnectedTerminals
      */
-    protected $paymentMethodsHelper;
+    protected $connectedTerminalsHelper;
 
     /**
      * @var \Adyen\Payment\Helper\Data
@@ -62,20 +62,20 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
      *
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\UrlInterface $urlBuilder
-     * @param \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper
+     * @param \Adyen\Payment\Helper\ConnectedTerminals $connectedTerminalsHelper
      * @param \Adyen\Payment\Helper\Data $adyenHelper
      * @param \Magento\Framework\Serialize\SerializerInterface $serializer
      */
     public function __construct(
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Adyen\Payment\Helper\PaymentMethods $paymentMethodsHelper,
+        \Adyen\Payment\Helper\ConnectedTerminals $connectedTerminalsHelper,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         $this->request = $request;
         $this->urlBuilder = $urlBuilder;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->connectedTerminalsHelper = $connectedTerminalsHelper;
         $this->adyenHelper = $adyenHelper;
         $this->serializer = $serializer;
     }
@@ -92,7 +92,7 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
             'payment' => [
                 self::CODE => [
                     'isActive' => true,
-                    'redirectUrl' => $this->urlBuilder->getUrl(
+                    'successPage' => $this->urlBuilder->getUrl(
                         '/checkout/onepage/success/',
                         ['_secure' => $this->getRequest()->isSecure()]
                     )
@@ -137,7 +137,7 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
      */
     protected function getConnectedTerminals()
     {
-        $connectedTerminals = $this->paymentMethodsHelper->getConnectedTerminals();
+        $connectedTerminals = $this->connectedTerminalsHelper->getConnectedTerminals();
 
         if (!empty($connectedTerminals['uniqueTerminalIds'])) {
             return $connectedTerminals['uniqueTerminalIds'];

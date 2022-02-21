@@ -37,7 +37,7 @@ class DataTest extends \PHPUnit\Framework\TestCase
             ->getMock();
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         $context = $this->getSimpleMock(\Magento\Framework\App\Helper\Context::class);
         $encryptor = $this->getSimpleMock(\Magento\Framework\Encryption\EncryptorInterface::class);
@@ -62,10 +62,12 @@ class DataTest extends \PHPUnit\Framework\TestCase
                                                        \Model\ResourceModel\Billing\Agreement::class);
         $localeResolver = $this->getSimpleMock(\Magento\Framework\Locale\ResolverInterface::class);
         $config = $this->getSimpleMock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
-        $helperBackend = $this->getSimpleMock(\Magento\Backend\Helper\Data::class);
         $serializer = $this->getSimpleMock(\Magento\Framework\Serialize\SerializerInterface::class);
         $componentRegistrar = $this->getSimpleMock(\Magento\Framework
                                                    \Component\ComponentRegistrarInterface::class);
+        $localeHelper = $this->getSimpleMock(\Adyen\Payment\Helper\Locale::class);
+        $orderManagement = $this->getSimpleMock(\Magento\Sales\Api\OrderManagementInterface::class);
+        $orderStatusHistoryFactory = $this->getSimpleMock(\Magento\Sales\Model\Order\Status\HistoryFactory::class);
 
         $this->dataHelper = new \Adyen\Payment\Helper\Data(
             $context,
@@ -87,9 +89,11 @@ class DataTest extends \PHPUnit\Framework\TestCase
             $agreementResourceModel,
             $localeResolver,
             $config,
-            $helperBackend,
             $serializer,
-            $componentRegistrar
+            $componentRegistrar,
+            $localeHelper,
+            $orderManagement,
+            $orderStatusHistoryFactory
         );
     }
 
@@ -99,7 +103,7 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('1200', $this->dataHelper->formatAmount('12.00', 'USD'));
         $this->assertEquals('12', $this->dataHelper->formatAmount('12.00', 'JPY'));
     }
-    
+
     public function testisPaymentMethodOpenInvoiceMethod()
     {
         $this->assertEquals(true, $this->dataHelper->isPaymentMethodOpenInvoiceMethod('klarna'));
@@ -122,6 +126,25 @@ class DataTest extends \PHPUnit\Framework\TestCase
     {
         $pspSearchUrl = $this->dataHelper->getPspReferenceSearchUrl($pspReference, $checkoutEnvironment);
         $this->assertEquals($expectedResult, $pspSearchUrl);
+    }
+
+    public function testGetPspReferenceWithNoAdditions(){
+        $this->assertEquals(
+            ['pspReference' => '852621234567890A', 'suffix' => ''],
+            $this->dataHelper->parseTransactionId('852621234567890A')
+        );
+        $this->assertEquals(
+            ['pspReference' => '852621234567890A', 'suffix' => '-refund'],
+            $this->dataHelper->parseTransactionId('852621234567890A-refund')
+        );
+        $this->assertEquals(
+            ['pspReference' => '852621234567890A', 'suffix' => '-capture'],
+            $this->dataHelper->parseTransactionId('852621234567890A-capture')
+        );
+        $this->assertEquals(
+            ['pspReference' => '852621234567890A', 'suffix' => '-capture-refund'],
+            $this->dataHelper->parseTransactionId('852621234567890A-capture-refund')
+        );
     }
 
     public static function checkoutEnvironmentsProvider()

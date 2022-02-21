@@ -23,89 +23,96 @@
 
 namespace Adyen\Payment\Gateway\Validator;
 
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
+use Magento\Payment\Gateway\Validator\ResultInterface;
+use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 
 class CheckoutResponseValidator extends AbstractValidator
 {
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
+     * @var AdyenLogger
      */
     private $adyenLogger;
-
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
+    /**
+     * @var Session
+     */
+    private $checkoutSession;
 
     /**
-     * GeneralResponseValidator constructor.
+     * CheckoutResponseValidator constructor.
      *
-     * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param ResultInterfaceFactory $resultFactory
+     * @param AdyenLogger $adyenLogger
+     * @param Data $adyenHelper
+     * @param Session $checkoutSession
      */
     public function __construct(
-        \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        ResultInterfaceFactory $resultFactory,
+        AdyenLogger $adyenLogger,
+        Data $adyenHelper,
+        Session $checkoutSession
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
+        $this->checkoutSession = $checkoutSession;
         parent::__construct($resultFactory);
     }
 
     /**
      * @param array $validationSubject
-     * @return \Magento\Payment\Gateway\Validator\ResultInterface
+     * @return ResultInterface
+     * @throws LocalizedException
      */
     public function validate(array $validationSubject)
     {
-        $response = \Magento\Payment\Gateway\Helper\SubjectReader::readResponse($validationSubject);
-        $paymentDataObjectInterface = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($validationSubject);
+        $response = SubjectReader::readResponse($validationSubject);
+        $paymentDataObjectInterface = SubjectReader::readPayment($validationSubject);
         $payment = $paymentDataObjectInterface->getPayment();
 
         $payment->setAdditionalInformation('3dActive', false);
         $isValid = true;
         $errorMessages = [];
-        $resultCode = array_key_exists("resultCode", $response) ? $response['resultCode']:'';
+
         // validate result
-        if (!empty($resultCode)) {
+        if (!empty($response['resultCode'])) {
+            $resultCode = $response['resultCode'];
             $payment->setAdditionalInformation('resultCode', $resultCode);
+
+            if (!empty($response['action'])) {
+                $payment->setAdditionalInformation('action', $response['action']);
+            } else {
+                // No further action needed, so payment result is conclusive
+                $this->checkoutSession->unsPendingPayment();
+            }
+
+            if (!empty($response['additionalData'])) {
+                $payment->setAdditionalInformation('additionalData', $response['additionalData']);
+            }
+
+            if (!empty($response['pspReference'])) {
+                $payment->setAdditionalInformation('pspReference', $response['pspReference']);
+            }
+
+            if (!empty($response['details'])) {
+                $payment->setAdditionalInformation('details', $response['details']);
+            }
+
+            if (!empty($response['donationToken'])) {
+                $payment->setAdditionalInformation('donationToken', $response['donationToken']);
+            }
+
             switch ($resultCode) {
-                case "IdentifyShopper":
-                    $payment->setAdditionalInformation('threeDSType', $resultCode);
-                    $payment->setAdditionalInformation(
-                        'threeDS2Token',
-                        $response['authentication']['threeds2.fingerprintToken']
-                    );
-                    $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
-                    break;
-                case "ChallengeShopper":
-                    $payment->setAdditionalInformation('threeDSType', $resultCode);
-                    $payment->setAdditionalInformation(
-                        'threeDS2Token',
-                        $response['authentication']['threeds2.challengeToken']
-                    );
-                    $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
-                    break;
                 case "Authorised":
                 case "Received":
-                    // For banktransfers store all bankTransfer details
-                    if (!empty($response['additionalData']['bankTransfer.owner'])) {
-                        foreach ($response['additionalData'] as $key => $value) {
-                            if (strpos($key, 'bankTransfer') === 0) {
-                                $payment->setAdditionalInformation($key, $value);
-                            }
-                        }
-                    } elseif (!empty($response['additionalData']['comprafacil.entity'])) {
-                        //Multibanco resultCode has changed after checkout v49 and
-                        // comprafacil.entity is not received anymore
-                        foreach ($response['additionalData'] as $key => $value) {
-                            if (strpos($key, 'comprafacil') === 0) {
-                                $payment->setAdditionalInformation($key, $value);
-                            }
-                        }
-                    }
-
                     // Save cc_type if available in the response
                     if (!empty($response['additionalData']['paymentMethod'])) {
                         $ccType = $this->adyenHelper->getMagentoCreditCartType(
@@ -114,109 +121,29 @@ class CheckoutResponseValidator extends AbstractValidator
                         $payment->setAdditionalInformation('cc_type', $ccType);
                         $payment->setCcType($ccType);
                     }
-                    $payment->setAdditionalInformation('pspReference', $response['pspReference']);
                     break;
+                case "IdentifyShopper":
+                case "ChallengeShopper":
                 case "PresentToShopper":
-                    if (!empty($response['action'])) {
-                        $payment->setAdditionalInformation('action', $response['action']);
-                    }
-                    if (!empty($response['pspReference'])) {
-                        $payment->setAdditionalInformation('pspReference', $response['pspReference']);
-                    }
-                    break;
                 case 'Pending':
-                    $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
-                    if (!empty($response['action'])) {
-                        $payment->setAdditionalInformation('action', $response['action']);
-                    }
-                    break;
                 case "RedirectShopper":
-                    $payment->setAdditionalInformation('threeDSType', $resultCode);
-
-                    $redirectUrl = null;
-                    $paymentData = null;
-
-                    if (!empty($response['redirect']['url'])) {
-                        $redirectUrl = $response['redirect']['url'];
-                    }
-
-                    if (!empty($response['redirect']['method'])) {
-                        $redirectMethod = $response['redirect']['method'];
-                    }
-
-                    if (!empty($response['paymentData'])) {
-                        $paymentData = $response['paymentData'];
-                    }
-
-                    // If the redirect data is there then the payment is a card payment with 3d secure
-                    if (
-                        isset($response['redirect']['data']['PaReq']) &&
-                        isset($response['redirect']['data']['MD'])
-                    ) {
-                        $paReq = null;
-                        $md = null;
-
-                        $payment->setAdditionalInformation('3dActive', true);
-
-                        if (!empty($response['redirect']['data']['PaReq'])) {
-                            $paReq = $response['redirect']['data']['PaReq'];
-                        }
-
-                        if (!empty($response['redirect']['data']['MD'])) {
-                            $md = $response['redirect']['data']['MD'];
-                        }
-
-                        if ($paReq && $md && $redirectUrl && $paymentData && $redirectMethod) {
-                            $payment->setAdditionalInformation('redirectUrl', $redirectUrl);
-                            $payment->setAdditionalInformation('redirectMethod', $redirectMethod);
-                            $payment->setAdditionalInformation('paRequest', $paReq);
-                            $payment->setAdditionalInformation('md', $md);
-                            $payment->setAdditionalInformation('paymentData', $paymentData);
-                        } else {
-                            $isValid = false;
-                            $errorMsg = __('3D secure is not valid.');
-                            $this->adyenLogger->error($errorMsg);
-                            $errorMessages[] = $errorMsg;
-                        }
-                        // otherwise it is an alternative payment method which only requires the
-                        // redirect url to be present
-                    } else {
-                        // Flag to show we are in the checkoutAPM flow
-                        $payment->setAdditionalInformation('checkoutAPM', true);
-
-                        if (!empty($response['details'])) {
-                            $payment->setAdditionalInformation('details', $response['details']);
-                        }
-                        if ($redirectUrl && $paymentData && $redirectMethod) {
-                            $payment->setAdditionalInformation('redirectUrl', $redirectUrl);
-                            $payment->setAdditionalInformation('redirectMethod', $redirectMethod);
-                            $payment->setAdditionalInformation('paymentData', $paymentData);
-                        } else {
-                            $isValid = false;
-                            $errorMsg = __('Payment method is not valid.');
-                            $this->adyenLogger->error($errorMsg);
-                            $errorMessages[] = $errorMsg;
-                        }
-                    }
+                    // nothing extra
                     break;
                 case "Refused":
                     $errorMsg = __('The payment is REFUSED.');
                     // this will result the specific error
-                    throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
-                    break;
+                    throw new LocalizedException($errorMsg);
                 default:
                     $errorMsg = __('Error with payment method please select different payment method.');
-                    throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
-                    break;
+                    throw new LocalizedException($errorMsg);
             }
         } else {
-            $errorMsg = __('Error with payment method please select different payment method.');
-
             if (!empty($response['error'])) {
                 $this->adyenLogger->error($response['error']);
             }
 
-            throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
+            $errorMsg = __('Error with payment method please select different payment method.');
+            throw new LocalizedException($errorMsg);
         }
 
         return $this->createResult($isValid, $errorMessages);

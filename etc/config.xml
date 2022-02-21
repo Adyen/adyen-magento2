@@ -33,12 +33,13 @@
                 <debug>1</debug>
                 <title_renderer>title_image</title_renderer>
                 <sepa_flow>sale</sepa_flow>
-                <split_payments_refund_strategy>1</split_payments_refund_strategy>
+                <partial_payments_refund_strategy>1</partial_payments_refund_strategy>
                 <return_path>checkout/cart</return_path>
-                <enable_oneclick>1</enable_oneclick>
-                <enable_recurring>0</enable_recurring>
                 <group>adyen</group>
                 <notifications_can_cancel>1</notifications_can_cancel>
+                <charged_currency>display</charged_currency>
+                <clone_quote>0</clone_quote>
+                <house_number_street_line>0</house_number_street_line>
             </adyen_abstract>
             <adyen_cc>
                 <active>1</active>
@@ -48,6 +49,8 @@
                 <sort_order>2</sort_order>
                 <cctypes>AE,VI,MC,DI</cctypes>
                 <useccv>1</useccv>
+                <has_holder_name>1</has_holder_name>
+                <holder_name_required>0</holder_name_required>
                 <payment_action>authorize</payment_action>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>1</can_use_checkout>
@@ -62,7 +65,6 @@
                 <can_cancel>1</can_cancel>
                 <can_authorize_vault>1</can_authorize_vault>
                 <can_capture_vault>1</can_capture_vault>
-                <threeds2_enabled>1</threeds2_enabled>
                 <group>adyen</group>
             </adyen_cc>
             <adyen_cc_vault>
@@ -73,14 +75,6 @@
                     <tokenFormat>Adyen\Payment\Model\InstantPurchase\CreditCard\TokenFormatter</tokenFormat>
                 </instant_purchase>
             </adyen_cc_vault>
-            <adyen_google_pay_vault>
-                <model>AdyenPaymentGooglePayVaultFacade</model>
-                <title>Stored Cards (Adyen)</title>
-                <instant_purchase>
-                    <available>Adyen\Payment\Model\InstantPurchase\CreditCard\AvailabilityChecker</available>
-                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\CreditCard\TokenFormatter</tokenFormat>
-                </instant_purchase>
-            </adyen_google_pay_vault>
             <adyen_oneclick>
                 <active>1</active>
                 <model>AdyenPaymentOneclickFacade</model>
@@ -148,14 +142,14 @@
                 <recurring_type>NONE</recurring_type>
                 <group>adyen</group>
             </adyen_pos_cloud>
-            <adyen_pay_by_mail>
+            <adyen_pay_by_link>
                 <active>0</active>
-                <model>AdyenPaymentPayByMailFacade</model>
+                <model>AdyenPaymentPayByLinkFacade</model>
                 <order_status>pending</order_status>
-                <title>Adyen PayByMail</title>
+                <title>Adyen Pay by Link</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>7</sort_order>
-                <session_validity>3</session_validity>
+                <days_to_expire>1</days_to_expire>
                 <payment_action>order</payment_action>
                 <is_gateway>1</is_gateway>
                 <can_use_checkout>0</can_use_checkout>
@@ -168,7 +162,7 @@
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <group>adyen</group>
-            </adyen_pay_by_mail>
+            </adyen_pay_by_link>
             <adyen_boleto>
                 <active>0</active>
                 <model>AdyenPaymentBoletoFacade</model>
@@ -182,53 +176,13 @@
                 <can_authorize>1</can_authorize>
                 <can_capture>1</can_capture>
                 <can_capture_partial>1</can_capture_partial>
-                <can_use_internal>1</can_use_internal>
+                <can_use_internal>0</can_use_internal>
                 <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
                 <group>adyen</group>
             </adyen_boleto>
-            <adyen_apple_pay>
-                <active>0</active>
-                <model>AdyenPaymentApplePayFacade</model>
-                <title>Adyen Apple Pay</title>
-                <allowspecific>0</allowspecific>
-                <sort_order>9</sort_order>
-                <payment_action>authorize</payment_action>
-                <is_gateway>1</is_gateway>
-                <can_use_checkout>1</can_use_checkout>
-                <can_authorize>1</can_authorize>
-                <can_capture>1</can_capture>
-                <can_capture_partial>1</can_capture_partial>
-                <can_use_internal>0</can_use_internal>
-                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
-                <can_refund>1</can_refund>
-                <can_void>1</can_void>
-                <can_cancel>1</can_cancel>
-                <group>adyen</group>
-            </adyen_apple_pay>
-            <adyen_google_pay>
-                <active>0</active>
-                <model>AdyenPaymentGooglePayFacade</model>
-                <title>Adyen Google Pay</title>
-                <allowspecific>0</allowspecific>
-                <sort_order>10</sort_order>
-                <payment_action>authorize</payment_action>
-                <is_gateway>1</is_gateway>
-                <can_use_checkout>1</can_use_checkout>
-                <can_authorize>1</can_authorize>
-                <can_capture>1</can_capture>
-                <can_capture_partial>1</can_capture_partial>
-                <can_use_internal>0</can_use_internal>
-                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
-                <can_refund>1</can_refund>
-                <can_void>1</can_void>
-                <can_cancel>1</can_cancel>
-                <can_authorize_vault>1</can_authorize_vault>
-                <can_capture_vault>1</can_capture_vault>
-                <group>adyen</group>
-            </adyen_google_pay>
         </payment>
     </default>
 </config>

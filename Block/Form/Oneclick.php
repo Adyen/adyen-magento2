@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,7 +23,13 @@
 
 namespace Adyen\Payment\Block\Form;
 
-class Oneclick extends \Adyen\Payment\Block\Form\Cc
+use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Data;
+use Magento\Backend\Model\Session\Quote;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\Payment\Block\Form;
+
+class Oneclick extends Form
 {
     /**
      * @var string
@@ -31,29 +37,33 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
     protected $_template = 'Adyen_Payment::form/oneclick.phtml';
 
     /**
-     * @var \Magento\Backend\Model\Session\Quote
+     * @var Quote
      */
     protected $_sessionQuote;
 
     /**
-     * Oneclick constructor.
-     *
-     * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param \Magento\Payment\Model\Config $paymentConfig
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Checkout\Model\Session $checkoutSession
-     * @param array $data
+     * @var ChargedCurrency
      */
+    protected $chargedCurrency;
+    /**
+     * @var Data
+     */
+    private $adyenHelper;
+
     public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
-        \Magento\Payment\Model\Config $paymentConfig,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Checkout\Model\Session $checkoutSession,
-        \Magento\Backend\Model\Session\Quote $sessionQuote,
+        Context $context,
+        Quote $sessionQuote,
+        ChargedCurrency $chargedCurrency,
+        Data $adyenHelper,
         array $data = []
     ) {
-        parent::__construct($context, $paymentConfig, $adyenHelper, $checkoutSession, $data);
+        parent::__construct(
+            $context,
+            $data
+        );
         $this->_sessionQuote = $sessionQuote;
+        $this->chargedCurrency = $chargedCurrency;
+        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -63,13 +73,8 @@ class Oneclick extends \Adyen\Payment\Block\Form\Cc
     {
         $customerId = $this->_sessionQuote->getCustomerId();
         $storeId = $this->_sessionQuote->getStoreId();
-        $grandTotal = $this->_sessionQuote->getQuote()->getGrandTotal();
+        $grandTotal = $this->chargedCurrency->getQuoteAmountCurrency($this->_sessionQuote->getQuote())->getAmount();
 
-        // For backend only allow recurring payments
-        $recurringType = \Adyen\Payment\Model\RecurringType::RECURRING;
-
-        $cards = $this->adyenHelper->getOneClickPaymentMethods($customerId, $storeId, $grandTotal, $recurringType);
-
-        return $cards;
+        return $this->adyenHelper->getOneClickPaymentMethods($customerId, $storeId, $grandTotal);
     }
 }

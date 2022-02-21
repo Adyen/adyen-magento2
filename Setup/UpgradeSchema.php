@@ -23,10 +23,14 @@
 
 namespace Adyen\Payment\Setup;
 
+use Adyen\Payment\Api\Data\InvoiceInterface;
+use Adyen\Payment\Model\Invoice;
+use Adyen\Payment\Model\Order\Payment;
 use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
+use Zend_Db_Exception;
 
 /**
  * Upgrade the Catalog module DB scheme
@@ -35,6 +39,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
 {
     const ADYEN_ORDER_PAYMENT = 'adyen_order_payment';
     const ADYEN_INVOICE = 'adyen_invoice';
+    const ADYEN_STATE_DATA = 'adyen_state_data';
+    const ADYEN_PAYMENT_RESPONSE = 'adyen_payment_response';
 
     /**
      * {@inheritdoc}
@@ -69,6 +75,26 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         if (version_compare($context->getVersion(), '5.4.0', '<')) {
             $this->updateSchemaVersion540($setup);
+        }
+
+        if (version_compare($context->getVersion(), '7.0.0', '<')) {
+            $this->updateSchemaVersion700($setup);
+        }
+
+        if (version_compare($context->getVersion(), '7.1.1', '<')) {
+            $this->updateSchemaVersion711($setup);
+        }
+
+        if (version_compare($context->getVersion(), '7.2.0', '<')) {
+            $this->updateSchemaVersion720($setup);
+        }
+
+        if (version_compare($context->getVersion(), '7.3.0', '<')) {
+            $this->updateSchemaVersion730($setup);
+        }
+
+        if (version_compare($context->getVersion(), '8.0.1', '<')) {
+            $this->updateSchemaVersion801($setup);
         }
 
         $setup->endSetup();
@@ -147,49 +173,49 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ->newTable($setup->getTable(self::ADYEN_ORDER_PAYMENT))
             ->addColumn(
                 'entity_id',
-                \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                Table::TYPE_INTEGER,
                 null,
                 ['identity' => true, 'unsigned' => true, 'nullable' => false, 'primary' => true],
                 'Adyen Payment ID'
             )
             ->addColumn(
                 'pspreference',
-                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                Table::TYPE_TEXT,
                 255,
                 ['unsigned' => true, 'nullable' => false],
                 'Pspreference'
             )
             ->addColumn(
                 'merchant_reference',
-                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                Table::TYPE_TEXT,
                 255,
                 ['unsigned' => true, 'nullable' => false],
                 'Merchant Reference'
             )
             ->addColumn(
                 'payment_id',
-                \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                Table::TYPE_INTEGER,
                 11,
                 ['unsigned' => true, 'nullable' => false],
                 'Order Payment Id'
             )
             ->addColumn(
                 'payment_method',
-                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                Table::TYPE_TEXT,
                 255,
                 ['unsigned' => true, 'nullable' => true],
                 'Payment Method'
             )
             ->addColumn(
                 'amount',
-                \Magento\Framework\DB\Ddl\Table::TYPE_DECIMAL,
+                Table::TYPE_DECIMAL,
                 '12,4',
                 ['unsigned' => true, 'nullable' => false],
                 'Amount'
             )
             ->addColumn(
                 'total_refunded',
-                \Magento\Framework\DB\Ddl\Table::TYPE_DECIMAL,
+                Table::TYPE_DECIMAL,
                 '12,4',
                 ['unsigned' => true, 'nullable' => false],
                 'Total Refunded'
@@ -227,7 +253,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'payment_id',
                 $setup->getTable('sales_order_payment'),
                 'entity_id',
-                \Magento\Framework\DB\Ddl\Table::ACTION_CASCADE
+                Table::ACTION_CASCADE
             )
             ->setComment('Adyen Order Payment');
 
@@ -311,35 +337,35 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ->newTable($setup->getTable(self::ADYEN_INVOICE))
             ->addColumn(
                 'entity_id',
-                \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                Table::TYPE_INTEGER,
                 null,
                 ['identity' => true, 'unsigned' => true, 'nullable' => false, 'primary' => true],
                 'Adyen Invoice Entity ID'
             )
             ->addColumn(
                 'pspreference',
-                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                Table::TYPE_TEXT,
                 255,
                 ['unsigned' => true, 'nullable' => false],
                 'Adyen pspreference of the capture'
             )
             ->addColumn(
                 'original_reference',
-                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                Table::TYPE_TEXT,
                 255,
                 ['unsigned' => true, 'nullable' => true],
                 'Adyen OriginalReference of the payment'
             )
             ->addColumn(
                 'acquirer_reference',
-                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                Table::TYPE_TEXT,
                 255,
                 ['unsigned' => true, 'nullable' => true],
                 'Adyen AcquirerReference of the capture'
             )
             ->addColumn(
                 'invoice_id',
-                \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                Table::TYPE_INTEGER,
                 11,
                 ['unsigned' => true, 'nullable' => false],
                 'Invoice Id'
@@ -354,7 +380,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'invoice_id',
                 $setup->getTable('sales_invoice'),
                 'entity_id',
-                \Magento\Framework\DB\Ddl\Table::ACTION_CASCADE
+                Table::ACTION_CASCADE
             )
             ->setComment('Adyen Invoice');
 
@@ -400,6 +426,306 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $tableName,
             \Adyen\Payment\Model\Notification::ERROR_MESSAGE,
             $adyenNotificationErrorMessageColumn
+        );
+    }
+
+    /**
+     * Upgrade to 7.0.0
+     *
+     * New sales_order column for the currency charged based on the Adyen config option (base or display)
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     */
+    public function updateSchemaVersion700(SchemaSetupInterface $setup)
+    {
+        $connection = $setup->getConnection();
+        $tableName = $setup->getTable('sales_order');
+
+        $adyenChargedCurrencyColumn = [
+            'type' => Table::TYPE_TEXT,
+            'length' => 255,
+            'nullable' => true,
+            'default' => null,
+            'comment' => 'Charged currency depending on Adyen config option',
+            'after' => 'adyen_notification_event_code_success'
+        ];
+
+        $connection->addColumn(
+            $tableName,
+            'adyen_charged_currency',
+            $adyenChargedCurrencyColumn
+        );
+    }
+
+    /**
+     * Upgrade to 7.1.1
+     *
+     * New adyen_state_data table to persist state data to be used for payment requests
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     * @throws Zend_Db_Exception
+     */
+    public function updateSchemaVersion711(SchemaSetupInterface $setup)
+    {
+        $table = $setup->getConnection()
+            ->newTable($setup->getTable(self::ADYEN_STATE_DATA))
+            ->addColumn(
+                'entity_id',
+                Table::TYPE_INTEGER,
+                null,
+                ['identity' => true, 'unsigned' => true, 'nullable' => false, 'primary' => true],
+                'Adyen State Data Entity ID'
+            )
+            ->addColumn(
+                'quote_id',
+                Table::TYPE_INTEGER,
+                null,
+                ['unsigned' => true, 'nullable' => false],
+                'Magento Quote ID'
+            )
+            ->addColumn(
+                'state_data',
+                Table::TYPE_TEXT,
+                null,
+                ['unsigned' => true, 'nullable' => true],
+                'Adyen Payment State Data'
+            )
+            ->setComment('Adyen Payment State Data');
+
+        $setup->getConnection()->createTable($table);
+    }
+
+    /**
+     * Upgrade to 7.2.0
+     *
+     * New adyen_payment_response table to persist payment response for multi-shipping
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     * @throws Zend_Db_Exception
+     */
+    public function updateSchemaVersion720(SchemaSetupInterface $setup)
+    {
+        $table = $setup->getConnection()
+            ->newTable($setup->getTable(self::ADYEN_PAYMENT_RESPONSE))
+            ->addColumn(
+                'entity_id',
+                Table::TYPE_INTEGER,
+                null,
+                ['identity' => true, 'unsigned' => true, 'nullable' => false, 'primary' => true],
+                'Adyen Payment Response Entity ID'
+            )
+            ->addColumn(
+                'merchant_reference',
+                Table::TYPE_TEXT,
+                255,
+                ['unsigned' => true, 'nullable' => true],
+                'Merchant reference ID'
+            )
+            ->addColumn(
+                'result_code',
+                Table::TYPE_TEXT,
+                null,
+                ['unsigned' => true, 'nullable' => true],
+                'Payment Response Result Code'
+            )
+            ->addColumn(
+                'response',
+                Table::TYPE_TEXT,
+                null,
+                ['unsigned' => true, 'nullable' => true],
+                'Payment Response'
+            )
+            ->setComment('Adyen Payment Response');
+
+        $setup->getConnection()->createTable($table);
+    }
+
+    /**
+     * Upgrade to 7.3.0
+     *
+     * New capture_status column to keep track on if and how the order payment was captured
+     * New created_at and updated_at columns in adyen_state_data table to perform old records cleanup
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     */
+    public function updateSchemaVersion730(SchemaSetupInterface $setup)
+    {
+        $connection = $setup->getConnection();
+        $adyenOrderPaymentTable = $setup->getTable(self::ADYEN_ORDER_PAYMENT);
+
+        $adyenChargedCurrencyColumn = [
+            'type' => Table::TYPE_TEXT,
+            'nullable' => true,
+            'comment' => 'Field to determine if and how order payment was captured',
+            'after' => Payment::TOTAL_REFUNDED
+        ];
+
+        $connection->addColumn(
+            $adyenOrderPaymentTable,
+            Payment::CAPTURE_STATUS,
+            $adyenChargedCurrencyColumn
+        );
+
+        $adyenStateDataTable = $setup->getTable(self::ADYEN_STATE_DATA);
+
+        $updatedAtColumn = [
+            'type' => Table::TYPE_TIMESTAMP,
+            'nullable' => true,
+            'comment' => 'Updated at',
+            'default' => Table::TIMESTAMP_INIT_UPDATE,
+            'after' => 'state_data'
+        ];
+
+        $connection->addColumn(
+            $adyenStateDataTable,
+            'updated_at',
+            $updatedAtColumn
+        );
+
+        $createdAtColumn = [
+            'type' => Table::TYPE_TIMESTAMP,
+            'nullable' => true,
+            'comment' => 'Created at',
+            'default' => Table::TIMESTAMP_INIT,
+            'after' => 'state_data'
+        ];
+
+        $connection->addColumn(
+            $adyenStateDataTable,
+            'created_at',
+            $createdAtColumn
+        );
+    }
+
+    /**
+     * Upgrade to 8.0.1
+     *
+     * New total_captured column on the adyen_order_payment table to keep track on the amount that has been captured
+     * New created_at column on the adyen_invoice table
+     * New amount column on the adyen_invoice table
+     * Change invoice_id to be nullable on the adyen_invoice table
+     * New adyen_order_payment_id column on the adyen_invoice table, with foreign key
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     */
+    public function updateSchemaVersion801(SchemaSetupInterface $setup)
+    {
+        $connection = $setup->getConnection();
+        $adyenOrderPaymentTable = $setup->getTable(self::ADYEN_ORDER_PAYMENT);
+
+        $totalCapturedColumn = [
+            'type' => Table::TYPE_DECIMAL,
+            'nullable' => true,
+            'unsigned' => true,
+            'comment' => 'Field to determine the amount that has been captured.',
+            'after' => Payment::CAPTURE_STATUS,
+            'length' => '12,4',
+        ];
+
+        $connection->addColumn(
+            $adyenOrderPaymentTable,
+            Payment::TOTAL_CAPTURED,
+            $totalCapturedColumn
+        );
+
+        $adyenInvoiceTable = $setup->getTable(self::ADYEN_INVOICE);
+
+        $createdAtColumn = [
+            'type' => Table::TYPE_TIMESTAMP,
+            'nullable' => true,
+            'comment' => 'Created at',
+            'default' => Table::TIMESTAMP_INIT,
+        ];
+
+        $updatedAtColumn = [
+            'type' => Table::TYPE_TIMESTAMP,
+            'nullable' => true,
+            'comment' => 'Updated at',
+            'default' => Table::TIMESTAMP_INIT_UPDATE,
+        ];
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            InvoiceInterface::CREATED_AT,
+            $createdAtColumn
+        );
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            InvoiceInterface::UPDATED_AT,
+            $updatedAtColumn
+        );
+
+        $amountColumn = [
+            'type' => Table::TYPE_DECIMAL,
+            'nullable' => true,
+            'unsigned' => true,
+            'comment' => 'Field to determine the capture amount.',
+            'after' => InvoiceInterface::INVOICE_ID,
+            'length' => '12,4',
+        ];
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            InvoiceInterface::AMOUNT,
+            $amountColumn
+        );
+
+        $adyenInvoiceStatusColumn = [
+            'type' => Table::TYPE_TEXT,
+            'nullable' => true,
+            'comment' => 'Field to determine the status of the adyen_invoice',
+            'after' => InvoiceInterface::AMOUNT
+        ];
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            InvoiceInterface::STATUS,
+            $adyenInvoiceStatusColumn
+        );
+
+        $adyenOrderPaymentColumn = [
+            'type' => Table::TYPE_INTEGER,
+            'nullable' => true,
+            'unsigned' => true,
+            'length' => 11,
+            'comment' => 'Field to link this row to the an adyen_order_payment row.',
+            'after' => InvoiceInterface::INVOICE_ID,
+        ];
+
+        $connection->addColumn(
+            $adyenInvoiceTable,
+            InvoiceInterface::ADYEN_ORDER_PAYMENT_ID,
+            $adyenOrderPaymentColumn
+        );
+
+        $connection->addForeignKey(
+            $setup->getFkName(
+                self::ADYEN_INVOICE,
+                InvoiceInterface::ADYEN_ORDER_PAYMENT_ID,
+                self::ADYEN_ORDER_PAYMENT,
+                'entity_id'
+            ),
+            $setup->getTable(self::ADYEN_INVOICE),
+            InvoiceInterface::ADYEN_ORDER_PAYMENT_ID,
+            $setup->getTable(self::ADYEN_ORDER_PAYMENT),
+            'entity_id'
+        );
+
+        $connection->modifyColumn(
+            $adyenInvoiceTable,
+            Invoice::INVOICE_ID,
+            [
+                'type' => Table::TYPE_INTEGER,
+                'nullable' => true,
+                'unsigned' => true,
+                'comment' => 'Link to Magento Invoice table'
+            ]
         );
     }
 }

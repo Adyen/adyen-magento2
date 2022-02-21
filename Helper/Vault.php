@@ -106,7 +106,7 @@ class Vault
         try {
             $paymentToken = $this->getVaultPaymentToken($payment, $additionalData);
         } catch (Exception $exception) {
-            $this->adyenLogger->error(print_r($exception, true));
+            $this->adyenLogger->error(json_encode($exception));
             return;
         }
 
@@ -145,14 +145,7 @@ class Vault
             $paymentToken = $this->paymentTokenFactory->create(
                 PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
             );
-
             $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
-
-            if (strpos($additionalData[self::PAYMENT_METHOD], "paywithgoogle") !== false
-                && !empty($additionalData['paymentMethodVariant'])) {
-                $additionalData[self::PAYMENT_METHOD] = $additionalData['paymentMethodVariant'];
-                $paymentToken->setIsVisible(false);
-            }
         } else {
             $paymentTokenSaveRequired = true;
         }

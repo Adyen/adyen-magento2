@@ -115,8 +115,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
                 self::CODE => [
                     'vaultCode' => self::CC_VAULT_CODE,
                     'isActive' => true,
-                    'redirectUrl' => $this->_urlBuilder->getUrl(
-                        'adyen/process/redirect/',
+                    'successPage' => $this->_urlBuilder->getUrl(
+                        'checkout/onepage/success',
                         ['_secure' => $this->_getRequest()->isSecure()]
                     )
                 ]
@@ -143,18 +143,13 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
 
         $enableOneclick = $this->_adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
 
-        $canCreateBillingAgreement = false;
-        if ($enableOneclick) {
-            $canCreateBillingAgreement = true;
-        }
-
         $config['payment']['adyenCc']['methodCode'] = self::CODE;
 
         $config['payment']['adyenCc']['locale'] = $this->_adyenHelper->getStoreLocale(
             $this->storeManager->getStore()->getId()
         );
 
-        $config['payment']['adyenCc']['canCreateBillingAgreement'] = $canCreateBillingAgreement;
+        $config['payment']['adyenCc']['isOneClickEnabled'] = $enableOneclick;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();
 
 
