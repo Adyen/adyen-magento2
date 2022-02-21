@@ -33,7 +33,7 @@ class CancelResponseValidator extends AbstractValidator
     private $adyenLogger;
 
     /**
-     * GeneralResponseValidator constructor.
+     * CancelResponseValidator constructor.
      *
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
@@ -69,6 +69,7 @@ class CancelResponseValidator extends AbstractValidator
             }
 
             $errorMessages[] = $errorMsg;
+            $isValid = false;
         }
 
         return $this->createResult($isValid, $errorMessages);

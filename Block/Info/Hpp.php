@@ -23,8 +23,28 @@
 
 namespace Adyen\Payment\Block\Info;
 
+use Adyen\Payment\Helper\ChargedCurrency;
+use Magento\Framework\View\Element\Template;
+
 class Hpp extends AbstractInfo
 {
+
+    /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
+        Template\Context $context,
+        ChargedCurrency $chargedCurrency,
+        array $data = []
+    ) {
+        $this->chargedCurrency = $chargedCurrency;
+        parent::__construct($adyenHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
+    }
+
     /**
      * @var string
      */
@@ -39,7 +59,8 @@ class Hpp extends AbstractInfo
     public function getBankTransferData()
     {
         $result = [];
-        if (!empty($this->getInfo()->getOrder()->getPayment()) &&
+        if (!empty($this->getInfo()->getOrder()) &&
+            !empty($this->getInfo()->getOrder()->getPayment()) &&
             !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('bankTransfer.owner'))
         ) {
             $result = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation();
@@ -57,7 +78,8 @@ class Hpp extends AbstractInfo
     public function getMultibancoData()
     {
         $result = [];
-        if (!empty($this->getInfo()->getOrder()->getPayment()) &&
+        if (!empty($this->getInfo()->getOrder()) &&
+            !empty($this->getInfo()->getOrder()->getPayment()) &&
             !empty($this->getInfo()->getOrder()->getPayment()->getAdditionalInformation('comprafacil.entity'))
         ) {
             $result = $this->getInfo()->getOrder()->getPayment()->getAdditionalInformation();
@@ -76,12 +98,20 @@ class Hpp extends AbstractInfo
     }
 
     /**
+     * @return \Adyen\Payment\Model\AdyenAmountCurrency
+     */
+    public function getOrderAmountCurrency()
+    {
+        return $this->chargedCurrency->getOrderAmountCurrency($this->getInfo()->getOrder(), false);
+    }
+
+    /**
      * @return null
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getSplitPayments()
+    public function getPartialPayments()
     {
-        // retrieve split payments of the order
+        // retrieve partial payments of the order
         $orderPaymentCollection = $this->_adyenOrderPaymentCollectionFactory
             ->create()
             ->addPaymentFilterAscending($this->getInfo()->getId());

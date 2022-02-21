@@ -23,60 +23,79 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Model\ResourceModel\StateData\Collection;
+use Adyen\Service\Validator\CheckoutStateDataValidator;
+use Adyen\Service\Validator\DataArrayValidator;
+use Magento\Framework\App\State;
 use Magento\Framework\Event\Observer;
+use Magento\Framework\Model\Context;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
 
 class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
 {
-    const RECURRING_DETAIL_REFERENCE = 'recurring_detail_reference';
-    const ENCRYPTED_SECURITY_CODE = 'cvc';
+    const CC_TYPE = 'cc_type';
+    const BRAND = 'brand';
     const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
-    const VARIANT = 'variant';
-    const JAVA_ENABLED = 'java_enabled';
-    const SCREEN_COLOR_DEPTH = 'screen_color_depth';
-    const SCREEN_WIDTH = 'screen_width';
-    const SCREEN_HEIGHT = 'screen_height';
-    const TIMEZONE_OFFSET = 'timezone_offset';
-    const LANGUAGE = 'language';
+    const STATE_DATA = 'stateData';
+    const PAYMENT_METHOD = 'paymentMethod';
 
     /**
+     * Approved root level keys from additional data array
+     *
      * @var array
      */
-    protected $additionalInformationList = [
-        self::RECURRING_DETAIL_REFERENCE,
-        self::ENCRYPTED_SECURITY_CODE,
+    private static $approvedAdditionalDataKeys = [
+        self::STATE_DATA,
         self::NUMBER_OF_INSTALLMENTS,
-        self::VARIANT,
-        self::JAVA_ENABLED,
-        self::SCREEN_COLOR_DEPTH,
-        self::SCREEN_WIDTH,
-        self::SCREEN_HEIGHT,
-        self::TIMEZONE_OFFSET,
-        self::LANGUAGE
     ];
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var CheckoutStateDataValidator
+     */
+    private $checkoutStateDataValidator;
+
+    /**
+     * @var Data
      */
     private $adyenHelper;
 
     /**
-     * @var \Magento\Framework\App\State
+     * @var State
      */
     private $appState;
 
     /**
+     * @var Collection
+     */
+    private $stateDataCollection;
+    /**
+     * @var StateData
+     */
+    private $stateData;
+
+    /**
      * AdyenCcDataAssignObserver constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param CheckoutStateDataValidator $checkoutStateDataValidator
+     * @param Data $adyenHelper
+     * @param Context $context
+     * @param Collection $stateDataCollection
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\Model\Context $context
+        CheckoutStateDataValidator $checkoutStateDataValidator,
+        Data $adyenHelper,
+        Context $context,
+        Collection $stateDataCollection,
+        StateData $stateData
     ) {
+        $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->adyenHelper = $adyenHelper;
         $this->appState = $context->getAppState();
+        $this->stateDataCollection = $stateDataCollection;
+        $this->stateData = $stateData;
     }
 
     /**
@@ -85,27 +104,45 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
      */
     public function execute(Observer $observer)
     {
+        // Get request fields
         $data = $this->readDataArgument($observer);
+        $paymentInfo = $this->readPaymentModelArgument($observer);
 
+        // Get additional data array
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
         if (!is_array($additionalData)) {
             return;
         }
 
-        $paymentInfo = $this->readPaymentModelArgument($observer);
+        // Get a validated additional data array
+        $additionalData = DataArrayValidator::getArrayOnlyWithApprovedKeys(
+            $additionalData,
+            self::$approvedAdditionalDataKeys
+        );
+
+        // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
+        if (!empty($additionalData[self::STATE_DATA])) {
+            $stateData = json_decode($additionalData[self::STATE_DATA], true);
+        } else {
+            $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
+        }
+        // Get validated state data array
+        if (!empty($stateData)) {
+            $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
+        }
+        // Set stateData in a service and remove from payment's additionalData
+        $this->stateData->setStateData($stateData, $paymentInfo->getData('quote_id'));
+        unset($additionalData[self::STATE_DATA]);
+
+        // Set additional data in the payment
+        foreach ($additionalData as $key => $data) {
+            $paymentInfo->setAdditionalInformation($key, $data);
+        }
 
         // set ccType
-        $variant = $additionalData['variant'];
-        $ccType = $this->adyenHelper->getMagentoCreditCartType($variant);
-        $paymentInfo->setCcType($ccType);
-
-        foreach ($this->additionalInformationList as $additionalInformationKey) {
-            if (isset($additionalData[$additionalInformationKey])) {
-                $paymentInfo->setAdditionalInformation(
-                    $additionalInformationKey,
-                    $additionalData[$additionalInformationKey]
-                );
-            }
+        if (!empty($stateData[self::PAYMENT_METHOD][self::BRAND])) {
+            $ccType = $this->adyenHelper->getMagentoCreditCartType($stateData[self::PAYMENT_METHOD][self::BRAND]);
+            $paymentInfo->setCcType($ccType)->setAdditionalInformation(self::CC_TYPE, $ccType);
         }
 
         // set customerInteraction
@@ -115,11 +152,6 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
         } else {
             $paymentInfo->setAdditionalInformation('customer_interaction', false);
         }
-
-        // set ccType
-        $variant = $additionalData['variant'];
-        $ccType = $this->adyenHelper->getMagentoCreditCartType($variant);
-        $paymentInfo->setAdditionalInformation('cc_type', $ccType);
     }
 
     /**

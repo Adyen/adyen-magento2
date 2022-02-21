@@ -37,7 +37,7 @@ class IpAddressTest extends \PHPUnit\Framework\TestCase
             ->getMock();
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $cache = $this->getSimpleMock(\Magento\Framework\App\CacheInterface::class);
         $cache->method('load')->willReturn(

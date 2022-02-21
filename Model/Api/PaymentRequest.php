@@ -100,18 +100,27 @@ class PaymentRequest extends DataObject
 
         $md = $payment->getAdditionalInformation('md');
         $paResponse = $payment->getAdditionalInformation('paResponse');
+        $redirectResult = $payment->getAdditionalInformation('redirectResult');
         $paymentData = $payment->getAdditionalInformation('paymentData');
 
+        $payment->unsAdditionalInformation('redirectResult');
         $payment->unsAdditionalInformation('paymentData');
         $payment->unsAdditionalInformation('paRequest');
         $payment->unsAdditionalInformation('md');
 
+        $details = [];
+        if (!empty($md) && !empty($paResponse)) {
+            $details["MD"] = $md;
+            $details["PaRes"] = $paResponse;
+        }
+
+        if (!empty($redirectResult)) {
+            $details["redirectResult"] = $redirectResult;
+        }
+
         $request = [
             "paymentData" => $paymentData,
-            "details" => [
-                "MD" => $md,
-                "PaRes" => $paResponse
-            ]
+            "details" => $details
         ];
 
         try {
@@ -209,7 +218,7 @@ class PaymentRequest extends DataObject
     public function disableRecurringContract($recurringDetailReference, $shopperReference, $storeId)
     {
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
-
+        $shopperReference = str_pad($shopperReference, 3, '0', STR_PAD_LEFT);
         $request = [
             "merchantAccount" => $merchantAccount,
             "shopperReference" => $shopperReference,

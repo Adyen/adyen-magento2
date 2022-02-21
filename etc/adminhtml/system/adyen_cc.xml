@@ -22,14 +22,16 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_cc" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1"
            showInStore="1">
         <label><![CDATA[CreditCard API integration]]></label>
-        <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
-        <fieldset_css>adyen-method-adyen-cc</fieldset_css>
-        <comment>Process creditcard payments inside your checkout.</comment>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <comment> <![CDATA[
+                <p>Process creditcard payments inside your checkout.
+                    </p>
+            ]]>
+        </comment>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Enabled</label>
@@ -53,31 +55,18 @@
             <source_model>Adyen\Payment\Model\Config\Source\CcType</source_model>
             <config_path>payment/adyen_cc/cctypes</config_path>
         </field>
-        <field id="adyen_cc_vault" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1"
-               showInStore="0">
-            <label>Vault Enabled</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/adyen_cc_vault/active</config_path>
-        </field>
-        <field id="adyen_cc_threeds2" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1"
-               showInStore="1">
-            <label>3DS2.0 Enabled</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/adyen_cc/threeds2_enabled</config_path>
-        </field>
-
         <group id="adyen_cc_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1"
-               sortOrder="150">
+               sortOrder="60">
             <label>Advanced Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-            <field id="enable_installments" translate="label" type="select" sortOrder="219" showInDefault="1"
+            <field id="enable_installments" translate="label" type="select" sortOrder="10" showInDefault="1"
                    showInWebsite="1" showInStore="1">
                 <label>Enable Installments</label>
                 <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 <tooltip>Enable installments for each credit card type.</tooltip>
                 <config_path>payment/adyen_cc/enable_installments</config_path>
             </field>
-            <field id="installments" translate="label" sortOrder="220" showInDefault="1" showInWebsite="1"
+            <field id="installments" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1"
                    showInStore="1">
                 <label>Installments</label>
                 <depends>
@@ -93,17 +82,16 @@
                 <config_path>payment/adyen_cc/installments</config_path>
             </field>
         </group>
-
-        <group id="adyen_cc_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="200">
+        <group id="adyen_cc_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="70">
             <label>Country Specific Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-            <field id="allowspecific" translate="label" type="allowspecific" sortOrder="100" showInDefault="1"
+            <field id="allowspecific" translate="label" type="allowspecific" sortOrder="10" showInDefault="1"
                    showInWebsite="1" showInStore="0">
                 <label>Payment from Applicable Countries</label>
                 <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
                 <config_path>payment/adyen_cc/allowspecific</config_path>
             </field>
-            <field id="specificcountry" translate="label" type="multiselect" sortOrder="200" showInDefault="1"
+            <field id="specificcountry" translate="label" type="multiselect" sortOrder="20" showInDefault="1"
                    showInWebsite="1" showInStore="0">
                 <label>Payment from Specific Countries</label>
                 <source_model>Magento\Directory\Model\Config\Source\Country</source_model>

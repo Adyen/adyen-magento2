@@ -23,9 +23,10 @@
  */
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <!--alternative payment methods-->
     <group id="adyen_hpp" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
         <label><![CDATA[Alternative payment methods]]></label>
-        <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment>Process alternative payments methods</comment>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -41,8 +42,10 @@
         <field id="adyen_hpp_vault_active" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Store alternative payment methods</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <tooltip>Currently we support SEPA tokenization only</tooltip>
             <config_path>payment/adyen_hpp_vault/active</config_path>
         </field>
+        <!--klarna\ratePay\afterpay settings-->
         <group id="adyen_hpp_openinvoice_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="100">
             <label>Klarna\RatePay\Afterpay Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
@@ -52,6 +55,56 @@
                 <config_path>payment/adyen_hpp/ratepay_id</config_path>
             </field>
         </group>
+        <!--boleto-->
+        <group id="adyen_boleto" translate="label" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label><![CDATA[Boleto integration]]></label>
+            <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+            <fieldset_css>adyen-method-adyen-cc</fieldset_css>
+            <comment>Process Boleto transactions</comment>
+            <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Enabled</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>payment/adyen_boleto/active</config_path>
+            </field>
+            <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Title</label>
+                <config_path>payment/adyen_boleto/title</config_path>
+            </field>
+            <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Sort Order</label>
+                <frontend_class>validate-number</frontend_class>
+                <config_path>payment/adyen_boleto/sort_order</config_path>
+            </field>
+            <field id="cctypes" translate="label" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Boleto Types</label>
+                <depends><field id="active">1</field></depends>
+                <validate>validate-no-empty</validate>
+                <source_model>Adyen\Payment\Model\Config\Source\BoletoType</source_model>
+                <config_path>payment/adyen_boleto/boletotypes</config_path>
+            </field>
+            <field id="delivery_days" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Days for Delivery</label>
+                <tooltip>How many days to be added to the current date for delivery. Only numbers allowed.</tooltip>
+                <frontend_class>validate-number</frontend_class>
+                <config_path>payment/adyen_boleto/delivery_days</config_path>
+            </field>
+            <group id="adyen_boleto_country_specific" translate="label" showInDefault="1" showInWebsite="1" sortOrder="210">
+                <label>Country Specific Settings</label>
+                <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+                <field id="allowspecific" translate="label" type="allowspecific" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Payment from Applicable Countries</label>
+                    <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                    <config_path>payment/adyen_boleto/allowspecific</config_path>
+                </field>
+                <field id="specificcountry" translate="label" type="multiselect" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Payment from Specific Countries</label>
+                    <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                    <can_be_empty>1</can_be_empty>
+                    <config_path>payment/adyen_boleto/specificcountry</config_path>
+                </field>
+            </group>
+        </group>
+        <!--advanced settings-->
         <group id="adyen_hpp_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="200">
             <label>Advanced Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
@@ -70,6 +123,7 @@
                 <config_path>payment/adyen_hpp/country_code</config_path>
             </field>
         </group>
+        <!--country specific settings-->
         <group id="adyen_hpp_country_specific" translate="label" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="210">
             <label>Country Specific Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>

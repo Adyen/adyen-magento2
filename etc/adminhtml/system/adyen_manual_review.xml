@@ -24,7 +24,7 @@
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_manual_review" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label><![CDATA[Advanced: Manual Review]]></label>
+        <label><![CDATA[Manual Review]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <comment>
             <![CDATA[

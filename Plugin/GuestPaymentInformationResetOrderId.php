@@ -72,7 +72,10 @@ class GuestPaymentInformationResetOrderId
         try {
             $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
             $quoteId = $quoteIdMask->getQuoteId();
-            $this->quoteRepository->get($quoteId)->setReservedOrderId(null);
+            $quote = $this->quoteRepository->get($quoteId);
+            if ($quote->getPayment()->getMethod() !== 'adyen_pos_cloud') {
+                $quote->setReservedOrderId(null);
+            }
         } catch (\Exception $e) {
             $this->adyenLogger->error("Failed to reset reservedOrderId for guest shopper" . $e->getMessage());
         }

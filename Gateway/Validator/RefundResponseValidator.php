@@ -33,7 +33,7 @@ class RefundResponseValidator extends AbstractValidator
     private $adyenLogger;
 
     /**
-     * GeneralResponseValidator constructor.
+     * RefundResponseValidator constructor.
      *
      * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
@@ -67,6 +67,7 @@ class RefundResponseValidator extends AbstractValidator
                 }
 
                 $errorMessages[] = $errorMsg;
+                $isValid = false;
             }
         }
 

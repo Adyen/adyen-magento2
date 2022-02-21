@@ -39,8 +39,8 @@
 
     <div class="payment-method-content">
 
-        <!-- ko ifnot: (getOriginKey()) -->
-        <span class="message message-error error"><!-- ko text: $t('Please configure an API Key and a live endpoint prefix(if in Production Mode) in your Adyen Required Settings')-->
+        <!-- ko ifnot: (getClientKey()) -->
+        <span class="message message-error error"><!-- ko text: $t('Please configure an API Key, a Client Key and a live endpoint prefix(if in Production Mode) in your Adyen Required Settings')-->
             <!-- /ko --></span>
         <!--/ko-->
 
@@ -95,9 +95,9 @@
                     <div class="checkout-component-dock" afterRender="renderSecureFields()" data-bind="attr: { id: 'cardContainer'}"></div>
                 </div>
 
-                <div id="threeDS2Wrapper">
-                    <div id="threeDS2Modal">
-                        <div id="threeDS2Container"></div>
+                <div id="cc_actionModalWrapper">
+                    <div id="cc_actionModal">
+                        <div id="cc_actionContainer"></div>
                     </div>
                 </div>
 
@@ -128,19 +128,6 @@
 
 
                 <!-- /ko -->
-
-                <!-- ko if: (isVaultEnabled())-->
-                <div class="field choice">
-                    <input type="checkbox"
-                           name="vault[is_enabled]"
-                           class="checkbox"
-                           data-bind="attr: {'id': getCode() + '_enable_vault'}, checked: vaultEnabler.isActivePaymentTokenEnabler"/>
-                    <label class="label" data-bind="attr: {'for': getCode() + '_enable_vault'}">
-                        <span><!-- ko i18n: 'Save for later use.'--><!-- /ko --></span>
-                    </label>
-                </div>
-                <!-- /ko -->
-
             </fieldset>
 
             <div class="checkout-agreements-block">

@@ -23,6 +23,13 @@
 
 namespace Adyen\Payment\Block\Form;
 
+use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Installments;
+use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Customer\Model\Session;
+use Magento\Framework\Exception\LocalizedException;
+
 class Cc extends \Magento\Payment\Block\Form\Cc
 {
     /**
@@ -46,6 +53,36 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     protected $checkoutSession;
 
     /**
+     * @var Installments
+     */
+    private $installmentsHelper;
+
+    /**
+     * @var Installments
+     */
+    private $chargedCurrency;
+
+    /**
+     * @var \Magento\Backend\Model\Session\Quote
+     */
+    private $backendCheckoutSession;
+
+    /**
+     * @var AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
+     * @var Config
+     */
+    private $configHelper;
+
+    /**
+     * @var Session
+     */
+    private $customerSession;
+
+    /**
      * Cc constructor.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
@@ -59,29 +96,33 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         \Magento\Payment\Model\Config $paymentConfig,
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Backend\Model\Session\Quote $backendCheckoutSession,
+        Installments $installmentsHelper,
+        ChargedCurrency $chargedCurrency,
+        AdyenLogger $adyenLogger,
+        Config $configHelper,
+        Session $customerSession,
         array $data = []
     ) {
         parent::__construct($context, $paymentConfig);
         $this->adyenHelper = $adyenHelper;
         $this->appState = $context->getAppState();
         $this->checkoutSession = $checkoutSession;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCheckoutCardComponentJs()
-    {
-        return $this->adyenHelper->getCheckoutCardComponentJs($this->checkoutSession->getQuote()->getStore()->getId());
+        $this->backendCheckoutSession = $backendCheckoutSession;
+        $this->installmentsHelper = $installmentsHelper;
+        $this->chargedCurrency = $chargedCurrency;
+        $this->adyenLogger = $adyenLogger;
+        $this->configHelper = $configHelper;
+        $this->customerSession = $customerSession;
     }
 
     /**
      * @return string
      * @throws \Adyen\AdyenException
      */
-    public function getCheckoutOriginKeys()
+    public function getClientKey()
     {
-        return $this->adyenHelper->getOriginKeyForBaseUrl();
+        return $this->adyenHelper->getClientKey();
     }
 
     /**
@@ -138,23 +179,107 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     }
 
     /**
-     * Allow checkbox for MOTO payments to be saved as RECURRING
-     *
-     * @return bool
-     */
-    public function allowRecurring()
-    {
-        if ($this->adyenHelper->getAdyenAbstractConfigData('enable_recurring', null)) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * @return mixed
      */
     public function isVaultEnabled()
     {
         return $this->adyenHelper->isCreditCardVaultEnabled();
+    }
+
+    /**
+     * @return string
+     */
+    public function getFormattedInstallments()
+    {
+        try {
+            $quoteAmountCurrency = $this->getQuoteAmountCurrency();
+            return $this->installmentsHelper->formatInstallmentsConfig(
+                $this->adyenHelper->getAdyenCcConfigData('installments',
+                    $this->_storeManager->getStore()->getId()
+                ),
+                $this->adyenHelper->getAdyenCcTypes(),
+                $quoteAmountCurrency->getAmount()
+            );
+        } catch (\Throwable $e) {
+            $this->adyenLogger->error(
+                'There was an error fetching the installments config: ' . $e->getMessage()
+            );
+            return '{}';
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function getHasHolderName()
+    {
+        return (bool)$this->configHelper->getHasHolderName();
+    }
+
+    /**
+     * @return bool
+     */
+    public function getHolderNameRequired()
+    {
+        return $this->configHelper->getHolderNameRequired() && $this->configHelper->getHasHolderName();
+    }
+
+    /**
+     * @return bool
+     */
+    public function getEnableStoreDetails()
+    {
+        $enableOneclick = (bool)$this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
+        $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
+        $loggedIn = $this->customerSession->isLoggedIn();
+        return ($enableOneclick || $enableVault) && $loggedIn;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getEnableRisk()
+    {
+        try {
+            return $this->appState->getAreaCode() !== \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE;
+        } catch (LocalizedException $exception) {
+            // Suppress exception, assume that risk should be enabled
+            return true;
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getAmount()
+    {
+        try {
+            $quoteAmountCurrency = $this->getQuoteAmountCurrency();
+            $value = $quoteAmountCurrency->getAmount();
+            $currency = $quoteAmountCurrency->getCurrencyCode();
+            $amount = array("value" => $value, "currency" => $currency);
+
+            return json_encode($amount);
+
+        } catch (\Throwable $e) {
+            $this->adyenLogger->error(
+                'There was an error fetching the amount for installments config: ' . $e->getMessage()
+            );
+            return '{}';
+        }
+    }
+
+    /**
+     * @return \Adyen\Payment\Model\AdyenAmountCurrency
+     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    protected function getQuoteAmountCurrency(): \Adyen\Payment\Model\AdyenAmountCurrency
+    {
+        $quote = $this->_appState->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML ?
+            $this->backendCheckoutSession->getQuote() :
+            $this->checkoutSession->getQuote();
+
+        return $this->chargedCurrency->getQuoteAmountCurrency($quote);
     }
 }

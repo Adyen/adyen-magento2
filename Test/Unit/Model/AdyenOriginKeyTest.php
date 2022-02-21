@@ -33,7 +33,7 @@ class AdyenOriginKeyTest extends TestCase
     /** @var AdyenHelper|MockObject */
     private $helper;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->helper = $this->getMockBuilder(AdyenHelper::class)
             ->disableOriginalConstructor()
