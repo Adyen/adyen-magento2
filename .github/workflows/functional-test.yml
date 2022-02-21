@@ -35,7 +35,9 @@ jobs:
       - name: Build MFTF project
         run: docker exec magento2-container /var/www/html/mftf.sh
 
+      - name: Check setup
+        run: docker exec magento2-container vendor/bin/mftf doctor
+
       - name: Run MFTF tests
         run: |
-          docker exec magento2-container vendor/bin/mftf doctor
           docker exec magento2-container vendor/bin/mftf run:test AdminLoginSuccessfulTest --remove

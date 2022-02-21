@@ -13,7 +13,6 @@ bin/magento cache:flush
 
 # Configuration
 bin/magento config:set cms/wysiwyg/enabled disabled
-bin/magento cache:clean config full_page
 bin/magento config:set admin/security/admin_account_sharing 1
 bin/magento config:set admin/security/use_form_key 0
 bin/magento cache:clean config full_page
