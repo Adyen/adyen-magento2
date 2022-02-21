@@ -557,20 +557,6 @@ class Result extends \Magento\Framework\App\Action\Action
 
         $request["details"] = $details;
 
-        if (!empty($this->payment)) {
-            // for pending payment that redirect we store this under adyenPaymentData
-            // TODO: refactor the code in the plugin that all paymentData is stored in paymentData and not in adyenPaymentData
-            if (!empty($this->payment->getAdditionalInformation('adyenPaymentData'))) {
-                $request['paymentData'] = $this->payment->getAdditionalInformation("adyenPaymentData");
-
-                // remove paymentData from db
-                $this->payment->unsAdditionalInformation('adyenPaymentData');
-                $this->payment->save();
-            }
-        } else {
-            $this->_adyenLogger->addError("Payment object cannot be loaded from order");
-        }
-
         try {
             $response = $service->paymentsDetails($request);
             $responseMerchantReference = !empty($response['merchantReference']) ? $response['merchantReference'] : null;
