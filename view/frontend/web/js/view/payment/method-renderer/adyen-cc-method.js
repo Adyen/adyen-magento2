@@ -192,6 +192,7 @@ define(
                 }
             },
             showModal: function() {
+                var self = this;
                 let popupModal = $('#cc_actionModal').modal({
                     // disable user to hide popup
                     clickableOverlay: false,
@@ -200,6 +201,18 @@ define(
                     // empty buttons, we don't need that
                     buttons: [],
                     modalClass: 'cc_actionModal',
+                    closed: function() {
+                        // call endpoint with state.data if available
+                        let request = {};
+                        request.orderId = self.orderId;
+                        request.cancelled = true;
+
+                        adyenPaymentService.paymentDetails(request).fail(function(response) {
+                            errorProcessor.process(response, self.messageContainer);
+                            self.isPlaceOrderActionAllowed(true);
+                            fullScreenLoader.stopLoader();
+                        });
+                    },
                 });
 
                 popupModal.modal('openModal');
