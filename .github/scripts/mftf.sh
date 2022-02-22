@@ -1,5 +1,6 @@
 #!/bin/bash
-        
+set -euo pipefail
+
 # docker-compose -f .github/docker-compose.yml up -d
 # sleep 120
 
@@ -12,6 +13,10 @@ bin/magento setup:di:compile
 bin/magento cache:flush
 
 # Configuration
+bin/magento config:set currency/options/allow USD,EUR
+bin/magento config:set currency/options/default USD
+bin/magento config:set currency/options/base USD
+
 bin/magento config:set cms/wysiwyg/enabled disabled
 bin/magento config:set admin/security/admin_account_sharing 1
 bin/magento config:set admin/security/use_form_key 0
@@ -25,8 +30,8 @@ rm -f dev/tests/acceptance/.env;
 vendor/bin/mftf setup:env \
     --MAGENTO_BASE_URL "http://${MAGENTO_HOST}/" \
     --MAGENTO_BACKEND_NAME $ADMIN_URLEXT \
-    --MAGENTO_ADMIN_USERNAME $ADMIN_USERNAME \
-    --MAGENTO_ADMIN_PASSWORD $ADMIN_PASSWORD \
+    --MAGENTO_ADMIN_USERNAME $MAGENTO_ADMIN_USERNAME \
+    --MAGENTO_ADMIN_PASSWORD $MAGENTO_ADMIN_PASSWORD \
     --BROWSER chrome \
     --ELASTICSEARCH_VERSION 7;
 echo 'SELENIUM_HOST=selenium' >> dev/tests/acceptance/.env;

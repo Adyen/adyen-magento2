@@ -34,8 +34,6 @@ services:
       ELASTICSEARCH_SERVER: elasticsearch
       MAGENTO_HOST: magento2.test.com
       VIRTUAL_HOST: magento2.test.com
-      ADMIN_USERNAME: admin
-      ADMIN_PASSWORD: 123123q
       ADMIN_URLEXT: admin
     depends_on:
       - db
