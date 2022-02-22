@@ -20,7 +20,7 @@ jobs:
         env:
           MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
           MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
-      
+
       # Temp solution to wait for install script to run
       - name: Sleep for 120 seconds
         uses: jakejarvis/wait-action@master
@@ -33,13 +33,8 @@ jobs:
       - name: Prevent cron from interfering with test execution
         run: docker exec magento2-container /etc/init.d/cron stop
 
-      - name: Install MFTF script
-        run: |
-          docker exec magento2-container ln -s /data/extensions/workdir/.github/scripts/mftf.sh /var/www/html/mftf.sh
-          docker exec magento2-container chmod +x /var/www/html/mftf.sh
-
       - name: Build MFTF project
-        run: docker exec magento2-container /var/www/html/mftf.sh
+        run: docker exec -e MAGENTO_ADMIN_USERNAME -e MAGENTO_ADMIN_PASSWORD magento2-container ./mftf.sh
 
       - name: Check setup
         run: docker exec magento2-container vendor/bin/mftf doctor

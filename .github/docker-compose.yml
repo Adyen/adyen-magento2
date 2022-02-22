@@ -40,6 +40,8 @@ services:
       - elastic
     volumes:
       - ../:/data/extensions/workdir
+      - ./scripts/mftf.sh:/var/www/html/mftf.sh
+
   ## Selenium for MFTF tests
   selenium:
    image: selenium/standalone-chrome-debug:3.8.1
