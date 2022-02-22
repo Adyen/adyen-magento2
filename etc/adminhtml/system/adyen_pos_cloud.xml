@@ -95,7 +95,7 @@
             </depends>
             <tooltip>Configure your installment: Insert the minimum amount required to
                 make the configured installment available in the amount range column.
-                Example: if the amount range is configured to 100 and the number of installments to 4x, the shopper
+                Example: if the minimum amount is configured to 100 and the number of installments to 4x, the shopper
                 will see the 4x option only if the payment total is higher or equal than 100.
             </tooltip>
             <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\InstallmentsPosCloud</frontend_model>
