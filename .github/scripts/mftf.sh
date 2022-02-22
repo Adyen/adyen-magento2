@@ -30,8 +30,8 @@ rm -f dev/tests/acceptance/.env;
 vendor/bin/mftf setup:env \
     --MAGENTO_BASE_URL "http://${MAGENTO_HOST}/" \
     --MAGENTO_BACKEND_NAME $ADMIN_URLEXT \
-    --MAGENTO_ADMIN_USERNAME $MAGENTO_ADMIN_USERNAME \
-    --MAGENTO_ADMIN_PASSWORD $MAGENTO_ADMIN_PASSWORD \
+    --MAGENTO_ADMIN_USERNAME $ADMIN_USERNAME \
+    --MAGENTO_ADMIN_PASSWORD $ADMIN_PASSWORD \
     --BROWSER chrome \
     --ELASTICSEARCH_VERSION 7;
 echo 'SELENIUM_HOST=selenium' >> dev/tests/acceptance/.env;

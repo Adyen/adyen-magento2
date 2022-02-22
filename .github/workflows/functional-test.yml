@@ -10,16 +10,13 @@ jobs:
             MAGENTO_VERSION: 2.4.2
     runs-on: ubuntu-latest
     env:
-      MAGENTO_ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
-      MAGENTO_ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
+      ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
+      ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v2
 
       - name: Create docker image
         run: docker-compose -f .github/docker-compose.yml up -d
-        env:
-          MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
-          MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
 
       # Temp solution to wait for install script to run
       - name: Sleep for 120 seconds
@@ -34,7 +31,7 @@ jobs:
         run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Build MFTF project
-        run: docker exec -e MAGENTO_ADMIN_USERNAME -e MAGENTO_ADMIN_PASSWORD magento2-container ./mftf.sh
+        run: docker exec magento2-container ./mftf.sh
 
       - name: Check setup
         run: docker exec magento2-container vendor/bin/mftf doctor

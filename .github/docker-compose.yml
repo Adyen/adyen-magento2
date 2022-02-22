@@ -30,11 +30,14 @@ services:
         aliases:
           - magento2.test.com
     environment:
-      DB_SERVER: mariadb
-      ELASTICSEARCH_SERVER: elasticsearch
-      MAGENTO_HOST: magento2.test.com
-      VIRTUAL_HOST: magento2.test.com
-      ADMIN_URLEXT: admin
+      - DB_SERVER=mariadb
+      - ELASTICSEARCH_SERVER=elasticsearch
+      - MAGENTO_HOST=magento2.test.com
+      - VIRTUAL_HOST=magento2.test.com
+      - ADMIN_URLEXT=admin
+      - ADMIN_USERNAME
+      - ADMIN_PASSWORD
+
     depends_on:
       - db
       - elastic
