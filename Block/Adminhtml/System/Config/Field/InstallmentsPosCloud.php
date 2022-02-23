@@ -59,7 +59,7 @@ class InstallmentsPosCloud extends \Magento\Config\Block\System\Config\Form\Fiel
         $this->addColumn(
             'amount',
             [
-                'label' => __('Amount Range'),
+                'label' => __('Minimum Amount'),
                 'renderer' => false,
             ]
         );
