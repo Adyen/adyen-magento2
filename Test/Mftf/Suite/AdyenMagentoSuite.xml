@@ -5,6 +5,7 @@
             <!-- Test core functionalities still work with our plugin -->
             <test name="AdminLoginSuccessfulTest"/>
             <test name="AdminCreateCreditMemoPartialRefundTest"/>
+            <test name="CreateInvoiceWithShipmentAndCheckInvoicedOrderTest"/>
             <!-- Any other tests the plugin may define -->
             <module name="Adyen_Payment"/>
         </include>

@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Create docker image
+      - name: Start services
         run: docker-compose -f .github/docker-compose.yml up -d
 
       # Temp solution to wait for install script to run
@@ -38,3 +38,6 @@ jobs:
 
       - name: Run MFTF tests
         run: docker exec magento2-container vendor/bin/mftf run:group --remove AdyenMagentoSuite
+
+      - name: Shutdown
+        run: docker-compose -f .github/docker-compose.yml down --volumes
