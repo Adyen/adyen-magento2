@@ -1,9 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# docker-compose -f .github/docker-compose.yml up -d
-# sleep 120
-
 # Install plugin 
 composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
 composer require "adyen/module-payment:*"

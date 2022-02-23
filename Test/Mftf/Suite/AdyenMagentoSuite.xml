@@ -3,7 +3,8 @@
     <suite name="AdyenMagentoSuite">
         <include>
             <!-- Test core functionalities still work with our plugin -->
-            <test name="AdminLoginSuccessfulTest"/>
+            <test name="StorefrontReorderAsGuestTest"/>
+            <test name="AdminCreateSimpleProductTest"/>
             <test name="AdminCreateCreditMemoPartialRefundTest"/>
             <test name="CreateInvoiceWithShipmentAndCheckInvoicedOrderTest"/>
             <!-- Any other tests the plugin may define -->
