@@ -29,8 +29,11 @@
                data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
         <label data-bind="attr: {'for': getCode()}" class="label">
 
-            <!-- ko if: showLogo() -->
-            <div data-bind="attr: { 'class': 'adyen-sprite ' + getCode() }"></div>
+            <!-- ko if: icon -->
+            <img data-bind="attr: {
+                'src': icon.url,
+                'alt': getTitle() + ' logo'
+                }">
             <!--/ko-->
 
             <span data-bind="text: getTitle()"></span>
