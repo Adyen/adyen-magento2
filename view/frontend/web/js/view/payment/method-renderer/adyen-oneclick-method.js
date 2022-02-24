@@ -178,9 +178,9 @@ define(
 
                 if (action.type === 'threeDS2' || action.type === 'await') {
                     popupModal = self.showModal();
-                    actionContainer = '#actionModalContent';
+                    actionContainer = '#cc_actionModalContent';
                 } else {
-                    actionContainer = '#oneclick_actionModalContent';
+                    actionContainer = '#' + this.modalLabel + 'Content';
                 }
                 try {
                     this.checkoutComponent.createFromAction(
