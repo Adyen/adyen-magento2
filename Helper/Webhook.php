@@ -335,7 +335,8 @@ class Webhook
 
             $this->updateNotification($notification, false, true);
             $this->logger->addAdyenNotificationCronjob(
-                sprintf("Notification %s is processed", $notification->getEntityId())
+                sprintf("Notification %s was processed", $notification->getEntityId()),
+                $this->getLogOrderContext()
             );
 
             return true;
@@ -1824,5 +1825,18 @@ class Webhook
         /** @var Order $order */
         $order = reset($orderList);
         $this->order = $order;
+    }
+
+    /**
+     * @return array
+     */
+    private function getLogOrderContext(): array
+    {
+        return isset($this->order) ? [
+            'orderId' => $this->order->getId(),
+            'orderIncrementId' => $this->order->getIncrementId(),
+            'orderState' => $this->order->getState(),
+            'orderStatus' => $this->order->getStatus()
+        ] : [];
     }
 }
