@@ -52,8 +52,13 @@ define(
                 // reconstruct the threeDS2Modal container again otherwise component can not find the threeDS2Modal
                 $('#' + modalLabel + 'Wrapper').
                 append('<div id=' + modalLabel + '>' +
-                    '<div id=' + (modalLabel + "Container") + '></div>' +
+                    '<div id=' + (modalLabel + "Content") + '></div>' +
                     '</div>');
+
+                // $('#cc_actionModalWrapper').
+                // append('<div id="cc_actionModal">' +
+                //     '<div id="cc_actionContainer"></div>' +
+                //     '</div>');
             }
         };
     }

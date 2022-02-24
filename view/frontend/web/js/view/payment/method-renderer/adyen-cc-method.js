@@ -68,6 +68,7 @@ define(
                 installment: '', // keep it until the component implements installments
                 orderId: 0, // TODO is this the best place to store it?
                 storeCc: false,
+                modalLabel: 'actionModal'
             },
             /**
              * @returns {exports.initialize}
@@ -187,21 +188,21 @@ define(
 
                 try {
                     self.checkoutComponent.createFromAction(
-                        action).mount('#cc_actionContainer');
+                        action).mount('#' + this.modalLabel);
                 } catch (e) {
                     console.log(e);
                     self.closeModal(popupModal);
                 }
             },
             showModal: function() {
-                return AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.isPlaceOrderActionAllowed, "cc_actionModal")
+                return AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.isPlaceOrderActionAllowed, this.modalLabel)
             },
             /**
              * This method is a workaround to close the modal in the right way and reconstruct the threeDS2Modal.
              * This will solve issues when you cancel the 3DS2 challenge and retry the payment
              */
             closeModal: function(popupModal) {
-                AdyenPaymentModal.closeModal(popupModal, "cc_actionModal")
+                AdyenPaymentModal.closeModal(popupModal, this.modalLabel)
             },
             /**
              * Get data for place order
