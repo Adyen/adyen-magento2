@@ -1,5 +1,5 @@
 name: Functional Tests
-on: [pull_request]
+on: [workflow_dispatch, pull_request]
 
 jobs:
   build:
@@ -20,12 +20,11 @@ jobs:
 
       # Temp solution to wait for install script to run
       - name: Sleep for 120 seconds
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '120s'
-
+        run: sleep 120s
+        shell: bash
+  
       - name: Show install logs
-        run: docker logs magento2-container
+        run: docker logs --tail 100 magento2-container
 
       - name: Prevent cron from interfering with test execution
         run: docker exec magento2-container /etc/init.d/cron stop
@@ -38,6 +37,9 @@ jobs:
 
       - name: Run MFTF tests
         run: docker exec magento2-container vendor/bin/mftf run:group --remove AdyenMagentoSuite
+
+      - name: Retry once on failure
+        run: docker exec magento2-container vendor/bin/mftf run:failed
 
       - name: Shutdown
         run: docker-compose -f .github/docker-compose.yml down --volumes
