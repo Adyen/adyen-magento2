@@ -54,11 +54,6 @@ define(
                 append('<div id=' + modalLabel + '>' +
                     '<div id=' + (modalLabel + "Content") + '></div>' +
                     '</div>');
-
-                // $('#cc_actionModalWrapper').
-                // append('<div id="cc_actionModal">' +
-                //     '<div id="cc_actionContainer"></div>' +
-                //     '</div>');
             }
         };
     }

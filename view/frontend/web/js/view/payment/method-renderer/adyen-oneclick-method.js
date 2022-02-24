@@ -77,6 +77,7 @@ define(
                 recurringDetailReference: '',
                 variant: '',
                 numberOfInstallments: '',
+                modalLabel: 'oneclick_actionModal'
             },
             initObservable: function () {
                 this._super().observe([
@@ -177,9 +178,9 @@ define(
 
                 if (action.type === 'threeDS2' || action.type === 'await') {
                     popupModal = self.showModal();
-                    actionContainer = '#cc_actionContainer';
+                    actionContainer = '#actionModalContent';
                 } else {
-                    actionContainer = '#oneclick_actionContainer';
+                    actionContainer = '#oneclick_actionModalContent';
                 }
                 try {
                     this.checkoutComponent.createFromAction(
@@ -505,10 +506,10 @@ define(
                 return true;
             },
             showModal: function() {
-                return AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.isPlaceOrderActionAllowed, "cc_actionModal")
+                return AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.isPlaceOrderActionAllowed, this.modalLabel)
             },
             closeModal: function(popupModal) {
-                AdyenPaymentModal.closeModal(popupModal, "cc_actionModal")
+                AdyenPaymentModal.closeModal(popupModal, this.modalLabel)
             },
         });
     },

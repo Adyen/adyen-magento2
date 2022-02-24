@@ -68,7 +68,7 @@ define(
                 installment: '', // keep it until the component implements installments
                 orderId: 0, // TODO is this the best place to store it?
                 storeCc: false,
-                modalLabel: 'actionModal'
+                modalLabel: 'cc_actionModal'
             },
             /**
              * @returns {exports.initialize}

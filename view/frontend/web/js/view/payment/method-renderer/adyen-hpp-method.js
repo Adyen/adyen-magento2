@@ -79,6 +79,7 @@ define(
                 orderId: 0,
                 paymentMethods: {},
                 handleActionPaymentMethods: ['paypal'],
+                modalLabel: 'hpp_actionModal'
             },
             showPayButtonPaymentMethods: [
                 'paypal',
@@ -390,7 +391,7 @@ define(
              * This will solve issues when you cancel the 3DS2 challenge and retry the payment
              */
             closeModal: function(popupModal) {
-                adyenPaymentModal.closeModal(popupModal, "ActionModal")
+                adyenPaymentModal.closeModal(popupModal, this.modalLabel)
             },
             getSelectedAlternativePaymentMethodType: ko.computed(function() {
 
@@ -426,10 +427,10 @@ define(
             },
             renderActionComponent: function(resultCode, action, component) {
                 var self = this;
-                var actionNode = document.getElementById('ActionContainer');
+                var actionNode = document.getElementById(this.modalLabel + 'Content');
                 fullScreenLoader.stopLoader();
 
-                self.popupModal = adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.isPlaceOrderActionAllowed, "ActionContainer")
+                self.popupModal = adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.isPlaceOrderActionAllowed, this.modalLabel)
 
                 // If this is a handleAction method then do it that way, otherwise createFrom action
                 if (self.handleActionPaymentMethods.includes(
