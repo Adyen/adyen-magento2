@@ -504,35 +504,12 @@ define(
             isShowLegend: function () {
                 return true;
             },
-            showModal: function () {
-                let popupModal = $('#cc_actionModal').modal({
-                    // disable user to hide popup
-                    clickableOverlay: false,
-                    responsive: true,
-                    innerScroll: false,
-                    // empty buttons, we don't need that
-                    buttons: [],
-                    modalClass: 'cc_actionModal',
-                });
-
-                popupModal.modal('openModal');
-
-                return popupModal;
-            }, closeModal: function (popupModal) {
-                popupModal.modal('closeModal');
-                $('.cc_actionModal').remove();
-                $('.oneclick_actionModal').remove();
-                $('.modals-overlay').remove();
-                $('body').removeClass('_has-modal');
-
-                // reconstruct the threeDS2Modal container again otherwise component can not find the threeDS2Modal
-                $('#cc_actionModalWrapper').append('<div id="cc_actionModal">' +
-                    '<div id="cc_actionContainer"></div>' +
-                    '</div>');
-                $('#oneclick_actionModalWrapper').append('<div id="oneclick_actionModal">' +
-                    '<div id="oneclick_actionContainer"></div>' +
-                    '</div>');
-            }
+            showModal: function() {
+                return AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.isPlaceOrderActionAllowed, "cc_actionModal")
+            },
+            closeModal: function(popupModal) {
+                AdyenPaymentModal.closeModal(popupModal, "cc_actionModal")
+            },
         });
     },
 );

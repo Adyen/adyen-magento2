@@ -122,6 +122,7 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
         // cancellation request without `state.data`
         if (!empty($payload['cancelled']) && empty($apiPayload)) {
             $this->checkoutSession->restoreQuote();
+            $this->adyenHelper->cancelOrder($order);
             throw $this->createCancelledException();
         }
 
