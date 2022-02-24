@@ -57,6 +57,8 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
+    const LIVE_AU = 'live-au';
+    const LIVE_US = 'live-us';
     const PSP_REFERENCE_REGEX = '/(?P<pspReference>[0-9.A-Z]{16})(?P<suffix>[a-z\-]*)/';
     const AFTERPAY = 'afterpay';
     const AFTERPAY_TOUCH = 'afterpaytouch';
@@ -277,7 +279,21 @@ class Data extends AbstractHelper
     }
 
     /**
-     * return recurring types for configuration setting
+     * return Checkout frontend regions for configuration setting
+     *
+     * @return array
+     */
+    public function getCheckoutFrontendRegions()
+    {
+        return [
+            'eu' => 'Default (EU - Europe)',
+            'au' => 'AU - Australasia',
+            'us' => 'US - United States'
+        ];
+    }
+
+    /**
+     * return modes for configuration setting
      *
      * @return array
      */
@@ -290,7 +306,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * return recurring types for configuration setting
+     * return capture modes for configuration setting
      *
      * @return array
      */
@@ -303,7 +319,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * return recurring types for configuration setting
+     * return payment routines for configuration setting
      *
      * @return array
      */
@@ -706,6 +722,18 @@ class Data extends AbstractHelper
     public function getLiveEndpointPrefix($storeId = null)
     {
         $prefix = trim($this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId));
+        return $prefix;
+    }
+
+    /**
+     * Retrieve the Checkout frontend region
+     *
+     * @param null|int|string $storeId
+     * @return string
+     */
+    public function getCheckoutFrontendRegion($storeId = null)
+    {
+        $prefix = trim($this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId));
         return $prefix;
     }
 
@@ -1598,7 +1626,14 @@ class Data extends AbstractHelper
             return self::TEST;
         }
 
-        return self::LIVE;
+        switch ($this->getCheckoutFrontendRegion($storeId)) {
+            case "au":
+                return self::LIVE_AU;
+            case "us":
+                return self::LIVE_US;
+            default:
+                return self::LIVE;
+        }
     }
 
     /**
