@@ -109,6 +109,14 @@
                 <![CDATA[Provide the unique live url prefix: <strong>[random]-[company name]</strong> from the Developers => API URLs menu in the Adyen Customer Area. For more information, please check <a href="https://docs.adyen.com/developers/development-resources/live-endpoints#checkoutendpoints">  our documentation</a>.]]></comment>
             <config_path>payment/adyen_abstract/live_endpoint_url_prefix</config_path>
         </field>
+        <field id="checkout_frontend_region" translate="label" type="select" sortOrder="95" showInDefault="1"
+               showInWebsite="1" showInStore="0">
+            <label>Checkout frontend region</label>
+            <source_model>Adyen\Payment\Model\Config\Source\CheckoutFrontendRegion</source_model>
+            <config_path>payment/adyen_abstract/checkout_frontend_region</config_path>
+            <tooltip>
+                <![CDATA[The region to load your frontend resources (e.g. secured field iframes) from. Should be set to the region closest to where your shopper is located.]]></tooltip>
+        </field>
         <field id="charged_currency" translate="label" type="hidden" sortOrder="100" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Charged currency</label>
