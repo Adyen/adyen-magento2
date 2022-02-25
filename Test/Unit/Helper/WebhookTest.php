@@ -27,6 +27,7 @@ use Magento\Sales\Api\Data\OrderSearchResultInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
+use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
@@ -106,7 +107,8 @@ class WebhookTest extends TestCase
             $this->createMock(InvoiceHelper::class),
             $this->caseManagementHelper,
             $this->createGeneratedMock(PaymentFactory::class),
-            $this->createMock(AdyenLogger::class)
+            $this->createMock(AdyenLogger::class),
+            $this->createMock(MagentoInvoiceFactory::class)
         );
     }
 
