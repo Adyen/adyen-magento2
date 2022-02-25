@@ -690,7 +690,8 @@ class Cron
                         $notification->getEntityId(),
                         $e->getMessage(),
                         $e->getTraceAsString()
-                    )
+                    ),
+                    $this->adyenOrderPaymentHelper->getLogOrderContext($this->_order)
                 );
             }
         }
