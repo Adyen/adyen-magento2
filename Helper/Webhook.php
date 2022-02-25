@@ -58,6 +58,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Container\InvoiceIdentity;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
+use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Invoice as InvoiceResourceModel;
@@ -203,6 +204,11 @@ class Webhook
      */
     private $adyenOrderPaymentFactory;
 
+    /**
+     * @var MagentoInvoiceFactory
+     */
+    private $magentoInvoiceFactory;
+
     private $boletoOriginalAmount;
 
     private $boletoPaidAmount;
@@ -243,7 +249,8 @@ class Webhook
         InvoiceHelper $invoiceHelper,
         CaseManagement $caseManagementHelper,
         PaymentFactory $adyenOrderPaymentFactory,
-        AdyenLogger $logger
+        AdyenLogger $logger,
+        MagentoInvoiceFactory $magentoInvoiceFactory
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
@@ -275,6 +282,7 @@ class Webhook
         $this->caseManagementHelper = $caseManagementHelper;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->logger = $logger;
+        $this->magentoInvoiceFactory = $magentoInvoiceFactory;
     }
 
     /**
@@ -299,6 +307,11 @@ class Webhook
 
                 return false;
             }
+
+            $this->logger->addAdyenNotificationCronjob(
+                sprintf("Notification %s will be processed", $notification->getEntityId()),
+                $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
+            );
 
             // declare all variables that are needed
             $this->declareVariables($this->order, $notification);
@@ -336,7 +349,7 @@ class Webhook
             $this->updateNotification($notification, false, true);
             $this->logger->addAdyenNotificationCronjob(
                 sprintf("Notification %s was processed", $notification->getEntityId()),
-                $this->getLogOrderContext()
+                $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
             );
 
             return true;
@@ -349,7 +362,8 @@ class Webhook
                     $notification->getEntityId(),
                     $e->getMessage(),
                     $e->getTraceAsString()
-                )
+                ),
+                $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
             );
 
             return false;
@@ -1508,6 +1522,10 @@ class Webhook
                 }
 
                 $this->invoiceResourceModel->save($invoice);
+                $this->logger->addAdyenNotificationCronjob(
+                    sprintf('Notification %s created an invoice.', $notification->getEntityId()),
+                    $this->invoiceHelper->getLogInvoiceContext($invoice)
+                );
             } catch (Exception $e) {
                 $this->logger->addAdyenNotificationCronjob('Error saving invoice: ' . $e->getMessage());
                 throw $e;
@@ -1524,12 +1542,13 @@ class Webhook
             }
         } else {
             $this->logger->addAdyenNotificationCronjob(
-                'It is not possible to create invoice for this order',
-                [
-                    'orderId' => $this->order->getId(),
-                    'orderState' => $this->order->getState(),
-                    'orderStatus' => $this->order->getStatus()
-                ]
+                sprintf('Unable to create invoice when handling Notification %s', $notification->getEntityId()),
+                array_merge($this->adyenOrderPaymentHelper->getLogOrderContext($this->order), [
+                    'canUnhold' => $this->order->canUnhold(),
+                    'isPaymentReview' => $this->order->isPaymentReview(),
+                    'isCancelled' => $this->order->isCanceled(),
+                    'invoiceActionFlag' => $this->order->getActionFlag(Order::ACTION_FLAG_INVOICE)
+                ])
             );
         }
     }
@@ -1799,13 +1818,18 @@ class Webhook
                 $adyenInvoice->getInvoiceId(),
                 $adyenInvoice->getAdyenPaymentOrderId()
             ));
+
+            $magentoInvoice = $this->magentoInvoiceFactory->create()->load($adyenInvoice->getInvoiceId(), Order\Invoice::ENTITY_ID);
+            $this->logger->addAdyenNotificationCronjob(
+                sprintf('Notification %s updated invoice %s.', $notification->getEntityId(), $magentoInvoice->getEntityid()),
+                $this->invoiceHelper->getLogInvoiceContext($magentoInvoice)
+            );
         } catch (Exception $e) {
             $this->logger->addAdyenNotificationCronjob($e->getMessage());
         }
 
         $this->finalizeOrder($this->order, $notification);
     }
-
 
     /**
      * Set the order data member by fetching the entity from the database.
@@ -1825,18 +1849,5 @@ class Webhook
         /** @var Order $order */
         $order = reset($orderList);
         $this->order = $order;
-    }
-
-    /**
-     * @return array
-     */
-    private function getLogOrderContext(): array
-    {
-        return isset($this->order) ? [
-            'orderId' => $this->order->getId(),
-            'orderIncrementId' => $this->order->getIncrementId(),
-            'orderState' => $this->order->getState(),
-            'orderStatus' => $this->order->getStatus()
-        ] : [];
     }
 }
