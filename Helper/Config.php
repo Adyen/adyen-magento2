@@ -222,7 +222,7 @@ class Config
      */
     public function getHasHolderName($storeId = null)
     {
-        return $this->getConfigData(self::XML_HAS_HOLDER_NAME, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+        return $this->getConfigData(self::XML_HAS_HOLDER_NAME, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
     /**
@@ -244,7 +244,7 @@ class Config
      */
     public function getHolderNameRequired($storeId = null)
     {
-        return $this->getConfigData(self::XML_HOLDER_NAME_REQUIRED, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+        return $this->getConfigData(self::XML_HOLDER_NAME_REQUIRED, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
     /**

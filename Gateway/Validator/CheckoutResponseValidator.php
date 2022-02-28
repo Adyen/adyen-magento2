@@ -102,10 +102,6 @@ class CheckoutResponseValidator extends AbstractValidator
                 $payment->setAdditionalInformation('pspReference', $response['pspReference']);
             }
 
-            if (!empty($response['paymentData'])) {
-                $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
-            }
-
             if (!empty($response['details'])) {
                 $payment->setAdditionalInformation('details', $response['details']);
             }
