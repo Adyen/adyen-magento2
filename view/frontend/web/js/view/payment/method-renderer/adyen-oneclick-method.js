@@ -38,6 +38,7 @@ define(
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/adyen',
         'Adyen_Payment/js/model/adyen-configuration',
+        'Adyen_Payment/js/model/adyen-payment-modal'
     ],
     function (
         ko,
@@ -57,6 +58,7 @@ define(
         adyenPaymentService,
         AdyenCheckout,
         adyenConfiguration,
+        adyenPaymentModal
     ) {
 
         'use strict';
@@ -177,14 +179,12 @@ define(
                 fullScreenLoader.stopLoader();
 
                 if (action.type === 'threeDS2' || action.type === 'await') {
+                    this.modalLabel = 'cc_actionModal'
                     popupModal = self.showModal();
-                    actionContainer = '#cc_actionModalContent';
-                } else {
-                    actionContainer = '#' + this.modalLabel + 'Content';
                 }
                 try {
                     this.checkoutComponent.createFromAction(
-                        action).mount(actionContainer);
+                        action).mount('#' + this.modalLabel + 'Content');
                 } catch (e) {
                     console.log(e);
                     self.closeModal(popupModal);
@@ -506,10 +506,10 @@ define(
                 return true;
             },
             showModal: function() {
-                return AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.isPlaceOrderActionAllowed, this.modalLabel)
+                return adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.isPlaceOrderActionAllowed, this.modalLabel)
             },
             closeModal: function(popupModal) {
-                AdyenPaymentModal.closeModal(popupModal, this.modalLabel)
+                adyenPaymentModal.closeModal(popupModal, this.modalLabel)
             },
         });
     },
