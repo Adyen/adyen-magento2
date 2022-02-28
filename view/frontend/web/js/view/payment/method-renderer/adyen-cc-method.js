@@ -76,15 +76,30 @@ define(
                 this.vaultEnabler.setPaymentCode(this.getVaultCode());
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
 
-                this.checkoutComponent = await AdyenCheckout({
-                        locale: adyenConfiguration.getLocale(),
-                        clientKey: adyenConfiguration.getClientKey(),
-                        environment: adyenConfiguration.getCheckoutEnvironment(),
-                        paymentMethodsResponse: adyenPaymentService.getPaymentMethods().paymentMethodsResponse,
-                        onAdditionalDetails: this.handleOnAdditionalDetails.bind(this)
-                    }
-                );
+                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+                let self = this;
+                paymentMethodsObserver.subscribe(function(paymentMethodsResponse) {
+                    self.loadCheckoutComponent(paymentMethodsResponse)
+                });
+
+                self.loadCheckoutComponent(paymentMethodsObserver());
                 return this;
+            },
+            loadCheckoutComponent: async function (paymentMethodsResponse) {
+                if (!!paymentMethodsResponse.paymentMethodsResponse) {
+                    this.checkoutComponent = await AdyenCheckout({
+                            locale: adyenConfiguration.getLocale(),
+                            clientKey: adyenConfiguration.getClientKey(),
+                            environment: adyenConfiguration.getCheckoutEnvironment(),
+                            paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
+                            onAdditionalDetails: this.handleOnAdditionalDetails.bind(this)
+                        }
+                    );
+                }
+
+                if (!!paymentMethodsResponse.paymentMethodsExtraDetails && !!paymentMethodsResponse.paymentMethodsExtraDetails.card) {
+                    this.icon = paymentMethodsResponse.paymentMethodsExtraDetails.card.icon;
+                }
             },
             initObservable: function() {
                 this._super().observe([
@@ -124,10 +139,9 @@ define(
                 self.cardComponent = self.checkoutComponent.create('card', {
                     enableStoreDetails: self.getEnableStoreDetails(),
                     brands: self.getAvailableCardTypeAltCodes(),
-                    // Convert string to int and then to bool
-                    hasHolderName: !!+adyenConfiguration.getHasHolderName(),
-                    holderNameRequired: !!+(adyenConfiguration.getHasHolderName() &&
-                        adyenConfiguration.getHolderNameRequired()),
+                    hasHolderName: adyenConfiguration.getHasHolderName(),
+                    holderNameRequired: adyenConfiguration.getHasHolderName() &&
+                        adyenConfiguration.getHolderNameRequired(),
                     onChange: function(state, component) {
                         self.placeOrderAllowed(!!state.isValid);
                         self.storeCc = !!state.data.storePaymentMethod;

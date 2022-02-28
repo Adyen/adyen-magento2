@@ -15,31 +15,42 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
+ * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-// @codingStandardsIgnoreFile
+namespace Adyen\Payment\Model\Config\Source;
 
-/**
- * @var $block \Adyen\Payment\Block\Info\PayByLink
- * @var $escaper \Magento\Framework\Escaper
- */
-if (!isset($escaper)) {
-    $escaper = $block;
+class CheckoutFrontendRegion implements \Magento\Framework\Option\ArrayInterface
+{
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    protected $_adyenHelper;
+
+    /**
+     * CheckoutFrontendRegion constructor.
+     *
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     */
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper
+    ) {
+        $this->_adyenHelper = $adyenHelper;
+    }
+
+    /**
+     * @return array
+     */
+    public function toOptionArray()
+    {
+        $checkoutRegions = $this->_adyenHelper->getCheckoutFrontendRegions();
+
+        foreach ($checkoutRegions as $code => $label) {
+            $options[] = ['value' => $code, 'label' => $label];
+        }
+        return $options;
+    }
 }
-$paymentInfo = $block->getInfo();
-?>
-<span><?= $escaper->escapeHtml($block->getMethod()->getTitle()); ?></span>
-<?php if (!empty($paymentInfo->getAdditionalInformation('payByLinkUrl'))): ?>
-    <div>
-        <a rel=noopener
-           target="_blank"
-           href="<?= $escaper->escapeHtml($paymentInfo->getAdditionalInformation('payByLinkUrl')); ?>">
-            <?= $escaper->escapeHtml(__('Payment Link')) ?>
-        </a>
-    </div>
-<?php endif; ?>
-<?= $escaper->escapeHtml($block->getChildHtml()); ?>
