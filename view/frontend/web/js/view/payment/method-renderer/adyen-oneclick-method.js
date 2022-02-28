@@ -174,7 +174,6 @@ define(
                 var self = this;
 
                 let popupModal;
-                let actionContainer;
 
                 fullScreenLoader.stopLoader();
 
