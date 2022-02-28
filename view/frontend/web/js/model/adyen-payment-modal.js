@@ -13,7 +13,6 @@ define(
 
         return {
             showModal: function(adyenPaymentService, fullScreenLoader, messageContainer, orderId, isPlaceOrderActionAllowed, modalLabel) {
-                var self = this;
                 let popupModal = $('#' + modalLabel).modal({
                     // disable user to hide popup
                     clickableOverlay: false,
