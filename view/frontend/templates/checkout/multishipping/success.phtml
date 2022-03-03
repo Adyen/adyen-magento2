@@ -111,38 +111,46 @@ script;
             'Adyen_Payment/js/adyen',
             'Magento_Checkout/js/model/full-screen-loader',
             'Adyen_Payment/js/model/adyen-payment-service',
-            'Magento_Checkout/js/model/error-processor'
-        ], function ($, AdyenCheckout, fullScreenLoader, adyenPaymentService, errorProcessor) {
+            'Magento_Checkout/js/model/error-processor',
+            'Magento_Ui/js/model/messages',
+            'Adyen_Payment/js/model/adyen-payment-modal'
+        ], function ($, AdyenCheckout, fullScreenLoader, adyenPaymentService, errorProcessor, Messages, adyenPaymentModal) {
         (async function () { // RequireJS does not support async callback
-            var checkoutComponent = await AdyenCheckout({
+            let checkoutComponent = await AdyenCheckout({
                 locale: '<?= $block->escapeHtml($block->getLocale()); ?>',
                 environment: '<?= $block->escapeHtml($block->getEnvironment()); ?>',
                 clientKey: '<?= $block->escapeHtml($block->getClientKey()); ?>',
                 onAdditionalDetails: handleOnAdditionalDetails.bind(this),
             });
 
-            var paymentSelected;
+            let paymentSelected;
+            let modalLabel = 'actionModal'
+            let messageContainer = new Messages();
 
             function showModal() {
-                let popupModal = $('#actionModal').modal({
-                    clickableOverlay: false,
-                    responsive: true,
-                    innerScroll: false,
-                    buttons: [],
-                    modalClass: 'actionModal',
-                });
-                popupModal.modal('openModal');
-                return popupModal;
+                let orderId = $(paymentSelected).data('order-id');
+
+                /**
+                 * Hacky way of setting labels to payment failed on closing the modal
+                 * // TODO: This function should be removed once multishipping
+                 *  allows a modal to be closed without closing the order
+                 */
+                function setPaymentFailedLabel(paymentFailed) {
+                    if (paymentFailed) {
+                        let buttonLabel = "<?= $block->escapeHtml($block->getPaymentFailedLabel()) ?>";
+
+                        $(paymentSelected).attr('disabled', true)
+                            .addClass('adyen-payment-finished')
+                            .removeClass('adyen-payment-unfinished')
+                            .html(buttonLabel);
+                    }
+                }
+
+                return adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, messageContainer, orderId, modalLabel, setPaymentFailedLabel)
             }
 
             function closeModal(popupModal) {
-                popupModal.modal('closeModal');
-                $('.actionModal').remove();
-                $('.modals-overlay').remove();
-                $('body').removeClass('_has-modal');
-
-                // reconstruct the threeDS2Modal container again otherwise component can not find the threeDS2Modal
-                $('#actionModalWrapper').append('<div id="actionModal"><div id="actionContainer"></div></div>');
+                adyenPaymentModal.closeModal(popupModal, modalLabel)
             }
 
             function handleOnAdditionalDetails(result) {
@@ -194,7 +202,7 @@ script;
 
                     checkoutComponent
                         .createFromAction(response.action)
-                        .mount('#actionContainer');
+                        .mount("#" + modalLabel + "Content");
                 } catch (err) {
                     console.log(err);
                 }
@@ -205,7 +213,7 @@ script;
     </script>
     <div id="actionModalWrapper">
         <div id="actionModal">
-            <div id="actionContainer"></div>
+            <div id="actionModalContent"></div>
         </div>
     </div>
 <?php endif; ?>

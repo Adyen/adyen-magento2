@@ -12,7 +12,7 @@ define(
         'use strict';
 
         return {
-            showModal: function(adyenPaymentService, fullScreenLoader, messageContainer, orderId, isPlaceOrderActionAllowed, modalLabel) {
+            showModal: function(adyenPaymentService, fullScreenLoader, messageContainer, orderId, modalLabel, isPlaceOrderActionAllowed=(ko.observable(true))) {
                 let popupModal = $('#' + modalLabel).modal({
                     // disable user to hide popup
                     clickableOverlay: false,

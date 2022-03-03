@@ -505,7 +505,7 @@ define(
                 return true;
             },
             showModal: function() {
-                return adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.isPlaceOrderActionAllowed, this.modalLabel)
+                return adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
             },
             closeModal: function(popupModal) {
                 adyenPaymentModal.closeModal(popupModal, this.modalLabel)

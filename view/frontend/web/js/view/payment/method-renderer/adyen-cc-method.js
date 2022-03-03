@@ -209,7 +209,7 @@ define(
                 }
             },
             showModal: function() {
-                return AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.isPlaceOrderActionAllowed, this.modalLabel)
+                return AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
             },
             /**
              * This method is a workaround to close the modal in the right way and reconstruct the threeDS2Modal.

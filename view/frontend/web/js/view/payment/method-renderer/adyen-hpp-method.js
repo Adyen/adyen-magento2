@@ -430,7 +430,7 @@ define(
                 var actionNode = document.getElementById(this.modalLabel + 'Content');
                 fullScreenLoader.stopLoader();
 
-                self.popupModal = adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.isPlaceOrderActionAllowed, this.modalLabel)
+                self.popupModal = adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
 
                 // If this is a handleAction method then do it that way, otherwise createFrom action
                 if (self.handleActionPaymentMethods.includes(
