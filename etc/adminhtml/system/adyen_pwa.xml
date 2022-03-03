@@ -39,12 +39,15 @@
             <tooltip>Only relevant if you process payments from an external URL different to that of Magento</tooltip>
             <config_path>payment/adyen_abstract/payment_origin_url</config_path>
         </field>
-
-        <field id="payments_return_url" translate="label" type="text" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="payments_return_url" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Payment Return URL</label>
             <tooltip>The URL that redirect payment methods will return to after the shopper completes a payment in a 3rd party gateway. Default return URL endpoint is {YOUR_MAGENTO_BASE_URL}/adyen/process/result</tooltip>
             <config_path>payment/adyen_abstract/payment_return_url</config_path>
         </field>
-
+        <field id="custom_success_redirect_path" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Custom Success Redirect Path</label>
+            <tooltip>Only relevant if the success path of your headless integration is not "checkout/onepage/success". If set, this will add the Order Increment ID as a query parameter.</tooltip>
+            <config_path>payment/adyen_abstract/custom_success_redirect_path</config_path>
+        </field>
     </group>
 </include>
