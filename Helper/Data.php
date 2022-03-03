@@ -44,6 +44,7 @@ use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
+use Magento\Sales\Model\Order;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
@@ -56,6 +57,8 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
+    const LIVE_AU = 'live-au';
+    const LIVE_US = 'live-us';
     const PSP_REFERENCE_REGEX = '/(?P<pspReference>[0-9.A-Z]{16})(?P<suffix>[a-z\-]*)/';
     const AFTERPAY = 'afterpay';
     const AFTERPAY_TOUCH = 'afterpaytouch';
@@ -174,6 +177,15 @@ class Data extends AbstractHelper
     private $localeHelper;
 
     /**
+     * @var \Magento\Sales\Model\Service\OrderService
+     */
+    private $orderManagement;
+    /**
+     * @var \Magento\Sales\Model\Order\Status\HistoryFactory
+     */
+    private $orderStatusHistoryFactory;
+
+    /**
      * Data constructor.
      *
      * @param Context $context
@@ -198,6 +210,7 @@ class Data extends AbstractHelper
      * @param SerializerInterface $serializer
      * @param ComponentRegistrarInterface $componentRegistrar
      * @param Locale $localeHelper
+     *
      */
     public function __construct(
         Context $context,
@@ -221,7 +234,9 @@ class Data extends AbstractHelper
         ScopeConfigInterface $config,
         SerializerInterface $serializer,
         ComponentRegistrarInterface $componentRegistrar,
-        Locale $localeHelper
+        Locale $localeHelper,
+        \Magento\Sales\Api\OrderManagementInterface $orderManagement,
+        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -245,6 +260,8 @@ class Data extends AbstractHelper
         $this->serializer = $serializer;
         $this->componentRegistrar = $componentRegistrar;
         $this->localeHelper = $localeHelper;
+        $this->orderManagement = $orderManagement;
+        $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
     }
 
     /**
@@ -262,7 +279,21 @@ class Data extends AbstractHelper
     }
 
     /**
-     * return recurring types for configuration setting
+     * return Checkout frontend regions for configuration setting
+     *
+     * @return array
+     */
+    public function getCheckoutFrontendRegions()
+    {
+        return [
+            'eu' => 'Default (EU - Europe)',
+            'au' => 'AU - Australasia',
+            'us' => 'US - United States'
+        ];
+    }
+
+    /**
+     * return modes for configuration setting
      *
      * @return array
      */
@@ -275,7 +306,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * return recurring types for configuration setting
+     * return capture modes for configuration setting
      *
      * @return array
      */
@@ -288,7 +319,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * return recurring types for configuration setting
+     * return payment routines for configuration setting
      *
      * @return array
      */
@@ -695,6 +726,18 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Retrieve the Checkout frontend region
+     *
+     * @param null|int|string $storeId
+     * @return string
+     */
+    public function getCheckoutFrontendRegion($storeId = null)
+    {
+        $prefix = trim($this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId));
+        return $prefix;
+    }
+
+    /**
      * Cancels the order
      *
      * @param $order
@@ -712,7 +755,26 @@ class Data extends AbstractHelper
                 break;
             default:
                 if ($order->canCancel()) {
-                    $order->cancel()->save();
+                    if ($this->orderManagement->cancel($order->getEntityId())) { //new canceling process
+                        try {
+                            $orderStatusHistory = $this->orderStatusHistoryFactory->create()
+                                ->setParentId($order->getEntityId())
+                                ->setEntityName('order')
+                                ->setStatus(Order::STATE_CANCELED)
+                                ->setComment(__('Order has been cancelled by "%1" payment response.', $order->getPayment()->getMethod()));
+                            $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
+                        } catch (\Exception $e) {
+                            $this->adyenLogger->addAdyenDebug(
+                                __('Order cancel history comment error: %1', $e->getMessage())
+                            );
+                        }
+                    } else { //previous canceling process
+                        $this->adyenLogger->addAdyenDebug('Unsuccessful order canceling attempt by orderManagement service, use legacy process');
+                        $order->cancel();
+                        $order->save();
+                    }
+                } else {
+                    $this->adyenLogger->addAdyenDebug('Order can not be canceled');
                 }
                 break;
         }
@@ -1564,7 +1626,14 @@ class Data extends AbstractHelper
             return self::TEST;
         }
 
-        return self::LIVE;
+        switch ($this->getCheckoutFrontendRegion($storeId)) {
+            case "au":
+                return self::LIVE_AU;
+            case "us":
+                return self::LIVE_US;
+            default:
+                return self::LIVE;
+        }
     }
 
     /**

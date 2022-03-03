@@ -27,7 +27,9 @@
  * @var $block \Adyen\Payment\Block\Info\PayByLink
  * @var $escaper \Magento\Framework\Escaper
  */
-
+if (!isset($escaper)) {
+    $escaper = $block;
+}
 $paymentInfo = $block->getInfo();
 ?>
 <span><?= $escaper->escapeHtml(__('The payment can be completed with the following link:')); ?></span>
