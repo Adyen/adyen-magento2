@@ -336,6 +336,10 @@ class Requests extends AbstractHelper
     public function buildRecurringData(int $storeId, $payment): array
     {
         $request = [];
+        if ($payment->getMethod() === PaymentMethods::ADYEN_HPP && !$this->adyenConfig->isStoreAlternativePaymentMethodEnabled()) {
+            return $request;
+        }
+
         // Recurring payments feature is not currently available for PayPal
         if ($payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE) === 'paypal') {
             return $request;

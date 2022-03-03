@@ -30,6 +30,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
  */
 class PaymentMethods extends AbstractHelper
 {
+    const ADYEN_HPP = 'adyen_hpp';
 
     const METHODS_WITH_BRAND_LOGO = [
         "giftcard"

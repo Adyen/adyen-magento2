@@ -200,7 +200,7 @@ class Config
      */
     public function isStoreAlternativePaymentMethodEnabled($storeId = null)
     {
-        return $this->getConfigData('active', self::XML_ADYEN_HPP_VAULT, $storeId);
+        return $this->getConfigData('active', self::XML_ADYEN_HPP_VAULT, $storeId, true);
     }
 
     /**
