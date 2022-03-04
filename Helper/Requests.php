@@ -52,6 +52,11 @@ class Requests extends AbstractHelper
      */
     private $stateData;
 
+    /**
+     * @var PaymentMethods
+     */
+    private $paymentMethodsHelper;
+
     private $shopperReference;
 
     /**
@@ -67,13 +72,15 @@ class Requests extends AbstractHelper
         Config $adyenConfig,
         UrlInterface $urlBuilder,
         Address $addressHelper,
-        StateData $stateData
+        StateData $stateData,
+        PaymentMethods $paymentMethodsHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->urlBuilder = $urlBuilder;
         $this->addressHelper = $addressHelper;
         $this->stateData = $stateData;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -329,21 +336,15 @@ class Requests extends AbstractHelper
     }
 
     /**
+     *
+     *
      * @param int $storeId
      * @param $payment
      * @return array
      */
-    public function buildRecurringData(int $storeId, $payment): array
+    public function buildCardRecurringData(int $storeId, $payment): array
     {
         $request = [];
-        if ($payment->getMethod() === PaymentMethods::ADYEN_HPP && !$this->adyenConfig->isStoreAlternativePaymentMethodEnabled()) {
-            return $request;
-        }
-
-        // Recurring payments feature is not currently available for PayPal
-        if ($payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE) === 'paypal') {
-            return $request;
-        }
 
         $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
         // Initialize the request body with the current state data
@@ -366,6 +367,56 @@ class Requests extends AbstractHelper
                 $request['recurringProcessingModel'] = $enableOneclick ? 'CardOnFile' : 'Subscription';
             }
         }
+
+        return $request;
+    }
+
+    /**
+     * @param int $storeId
+     * @param $payment
+     * @return array
+     */
+    public function buildAlternativePaymentRecurringData(int $storeId, $payment): array
+    {
+        $request = [];
+
+        $brand = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+        if (!$this->adyenConfig->isStoreAlternativePaymentMethodEnabled() ||
+            !$this->paymentMethodsHelper->paymentMethodSupportsRecurring($brand)) {
+
+            return $request;
+        }
+
+        // TODO: Check this ... Recurring payments feature is not currently available for PayPal
+        if ($brand === 'paypal') {
+            return $request;
+        }
+
+        /*$storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
+        // Initialize the request body with the current state data
+        // Multishipping checkout uses the cc_number field for state data
+        $stateData = $this->stateData->getStateData($payment->getOrder()->getQuoteId()) ?:
+            (json_decode($payment->getCcNumber(), true) ?: []);
+
+        if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
+            $request['storePaymentMethodMode'] = 'askForConsent';
+        } else {
+            $request['storePaymentMethod'] = (bool)($stateData['storePaymentMethod'] ?? $storedPaymentMethodsEnabled);
+        }*/
+
+        $request['storePaymentMethod'] = true;
+        $request['recurringProcessingModel'] = 'CardOnFile';
+
+        /*
+        //recurring
+        if ($storedPaymentMethodsEnabled) {
+            if ($this->adyenHelper->isCreditCardVaultEnabled()) {
+                $request['recurringProcessingModel'] = 'Subscription';
+            } else {
+                $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
+                $request['recurringProcessingModel'] = $enableOneclick ? 'CardOnFile' : 'Subscription';
+            }
+        }*/
 
         return $request;
     }

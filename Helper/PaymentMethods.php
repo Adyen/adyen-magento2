@@ -31,6 +31,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
 class PaymentMethods extends AbstractHelper
 {
     const ADYEN_HPP = 'adyen_hpp';
+    const ADYEN_CC = 'adyen_cc';
 
     const METHODS_WITH_BRAND_LOGO = [
         "giftcard"
@@ -490,5 +491,63 @@ class PaymentMethods extends AbstractHelper
             'alipay_hk'
         ];
         return in_array($notificationPaymentMethod, $walletPaymentMethods);
+    }
+
+    /**
+     * Check if the payment method used was a card
+     *
+     * @param $payment
+     * @return bool
+     */
+    public function isCardPayment($payment): bool
+    {
+        return $payment->getMethod() === self::ADYEN_CC;
+    }
+
+    /**
+     * Check if the passed payment method supports recurring functionality.
+     * If a payment method is in this list it does not necessarily imply that it is already supported
+     * by the plugin
+     *
+     * @param string $lpm
+     * @return bool
+     */
+    public function paymentMethodSupportsRecurring(string $paymentMethod): bool
+    {
+        $paymentMethodRecurring = [
+            'ach',
+            'amazonpay',
+            'applepay',
+            'directdebit_GB',
+            'bcmc',
+            'dana',
+            'dankort',
+            'eps',
+            'gcash',
+            'giropay',
+            'googlepay',
+            'paywithgoogle',
+            'gopay_wallet',
+            'ideal',
+            'kakaopay',
+            'klarna',
+            'klarna_account',
+            'klarna_b2b',
+            'klarna_paynow',
+            'momo_wallet',
+            'paymaya_wallet',
+            'paypal',
+            'sepadirectdebit',
+            'trustly',
+            'twint',
+            'uatp',
+            'billdesk_upi',
+            'payu_IN_upi',
+            'vipps',
+            'yandex_money',
+            'zip'
+        ];
+
+        return in_array($paymentMethod, $paymentMethodRecurring);
     }
 }

@@ -23,6 +23,9 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\Requests;
+use Magento\Framework\Model\Context;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class RecurringDataBuilder implements BuilderInterface
@@ -33,22 +36,30 @@ class RecurringDataBuilder implements BuilderInterface
     private $appState;
 
     /**
-     * @var \Adyen\Payment\Helper\Requests
+     * @var Requests
      */
     private $adyenRequestsHelper;
 
     /**
+     * @var PaymentMethods
+     */
+    private $paymentMethodsHelper;
+
+    /**
      * RecurringDataBuilder constructor.
      *
-     * @param \Magento\Framework\Model\Context $context
-     * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+     * @param Context $context
+     * @param Requests $adyenRequestsHelper
+     * @param PaymentMethods $paymentMethodsHelper
      */
     public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+        Context $context,
+        Requests $adyenRequestsHelper,
+        PaymentMethods $paymentMethodsHelper
     ) {
         $this->appState = $context->getAppState();
         $this->adyenRequestsHelper = $adyenRequestsHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -62,11 +73,15 @@ class RecurringDataBuilder implements BuilderInterface
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         $storeId = $payment->getOrder()->getStoreId();
+
+        if ($this->paymentMethodsHelper->isCardPayment($payment)) {
+            $body = $this->adyenRequestsHelper->buildCardRecurringData($storeId, $payment);
+        } else {
+            $body = $this->adyenRequestsHelper->buildAlternativePaymentRecurringData($storeId, $payment);
+        }
+
         return [
-            'body' => $this->adyenRequestsHelper->buildRecurringData(
-                $storeId,
-                $payment
-            )
+            'body' => $body
         ];
     }
 }
