@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Adyen\Util\Uuid;
@@ -405,7 +406,12 @@ class Requests extends AbstractHelper
         }*/
 
         $request['storePaymentMethod'] = true;
-        $request['recurringProcessingModel'] = 'CardOnFile';
+        //TODO: Update this
+        if ($this->adyenConfig->getAlternativePaymentMethodTokenType($storeId) === RecurringType::ONECLICK) {
+            $request['recurringProcessingModel'] = 'CardOnFile';
+        } else {
+            $request['recurringProcessingModel'] = 'Subscription';
+        }
 
         /*
         //recurring
