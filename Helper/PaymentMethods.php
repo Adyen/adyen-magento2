@@ -270,13 +270,13 @@ class PaymentMethods extends AbstractHelper
 
         $grandTotal = (float) $grandTotal;
 
-        if ($grandTotal > 0) {
+        if ($grandTotal >= 0) {
             return $grandTotal;
         }
 
         throw new \Exception(
             sprintf(
-                'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float > `0`, got `%f`.',
+                'Cannot retrieve a valid grand total from quote ID: `%s`. Expected a float >= `0`, got `%f`.',
                 $this->getQuote()->getEntityId(),
                 $grandTotal
             )
