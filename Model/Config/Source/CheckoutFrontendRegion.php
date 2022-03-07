@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -21,17 +20,37 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
 
-    <module name="Adyen_Payment" setup_version="8.2.0">
-        <sequence>
-            <module name="Magento_Sales"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Checkout"/>
-            <module name="Magento_Paypal"/>
-            <module name="Magento_AdminNotification"/>
-            <module name="Magento_Vault"/>
-        </sequence>
-    </module>
-</config>
+namespace Adyen\Payment\Model\Config\Source;
+
+class CheckoutFrontendRegion implements \Magento\Framework\Option\ArrayInterface
+{
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    protected $_adyenHelper;
+
+    /**
+     * CheckoutFrontendRegion constructor.
+     *
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     */
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper
+    ) {
+        $this->_adyenHelper = $adyenHelper;
+    }
+
+    /**
+     * @return array
+     */
+    public function toOptionArray()
+    {
+        $checkoutRegions = $this->_adyenHelper->getCheckoutFrontendRegions();
+
+        foreach ($checkoutRegions as $code => $label) {
+            $options[] = ['value' => $code, 'label' => $label];
+        }
+        return $options;
+    }
+}
