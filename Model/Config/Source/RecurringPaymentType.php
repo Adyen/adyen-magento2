@@ -23,22 +23,26 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
-class RecurringPaymentType implements \Magento\Framework\Option\ArrayInterface
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Recurring;
+use Magento\Framework\Data\OptionSourceInterface;
+
+class RecurringPaymentType implements OptionSourceInterface
 {
     const UNDEFINED_OPTION_LABEL = 'NONE';
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     protected $_adyenHelper;
 
     /**
      * RecurringPaymentType constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Data $adyenHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        Data $adyenHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
     }
@@ -46,16 +50,15 @@ class RecurringPaymentType implements \Magento\Framework\Option\ArrayInterface
     /**
      * @return array
      */
-    public function toOptionArray()
+    public function toOptionArray(): array
     {
-        $recurringTypes = $this->_adyenHelper->getRecurringTypes();
+        $options = [];
+        $recurringTypes = Recurring::getRecurringTypes();
 
         foreach ($recurringTypes as $code => $label) {
-            if ($code == \Adyen\Payment\Model\RecurringType::ONECLICK ||
-                $code == \Adyen\Payment\Model\RecurringType::RECURRING) {
-                $options[] = ['value' => $code, 'label' => $label];
-            }
+            $options[] = ['value' => $code, 'label' => $label];
         }
+
         return $options;
     }
 }
