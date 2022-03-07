@@ -495,36 +495,15 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
-     * Check if the payment method used was a card
+     * Check if the method of the passed payment is equal to the method passed in this function
      *
      * @param $payment
+     * @param string $method
      * @return bool
      */
-    public function isCardPayment($payment): bool
+    public function checkPaymentMethod($payment, string $method): bool
     {
-        return $payment->getMethod() === self::ADYEN_CC;
-    }
-
-    /**
-     * Check if the payment method used was an alternative payment method
-     *
-     * @param $payment
-     * @return bool
-     */
-    public function isAlternativePayment($payment): bool
-    {
-        return $payment->getMethod() === self::ADYEN_HPP;
-    }
-
-    /**
-     * Check if the payment method used was a tokenized payment
-     *
-     * @param $payment
-     * @return bool
-     */
-    public function isTokenPayment($payment): bool
-    {
-        return $payment->getMethod() === self::ADYEN_ONE_CLICK;
+        return $payment->getMethod() === $method;
     }
 
     /**

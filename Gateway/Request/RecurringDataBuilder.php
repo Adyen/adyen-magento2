@@ -92,12 +92,13 @@ class RecurringDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
+        $method = $payment->getMethod();
 
-        if ($this->paymentMethodsHelper->isCardPayment($payment)) {
+        if ($method === PaymentMethods::ADYEN_CC) {
             $body = $this->adyenRequestsHelper->buildCardRecurringData($storeId, $payment);
-        } elseif ($this->paymentMethodsHelper->isAlternativePayment($payment)) {
+        } elseif ($method === PaymentMethods::ADYEN_HPP) {
             $body = $this->adyenRequestsHelper->buildAlternativePaymentRecurringData($storeId, $payment);
-        } elseif ($this->paymentMethodsHelper->isTokenPayment($payment)) {
+        } elseif ($method === PaymentMethods::ADYEN_ONE_CLICK) {
             $body = $this->adyenRequestsHelper->buildTokenizedPaymentRecurringData($storeId, $payment);
         } else {
             $this->adyenLogger->addAdyenWarning(
