@@ -23,37 +23,50 @@
 
 namespace Adyen\Payment\Model\Billing;
 
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentMethods;
+use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Model\Context;
+use Magento\Framework\Model\ResourceModel\AbstractResource;
+use Magento\Framework\Registry;
+use Magento\Framework\Stdlib\DateTime\DateTimeFactory;
+use Magento\Paypal\Model\ResourceModel\Billing\Agreement\CollectionFactory;
 use Magento\Sales\Model\Order\Payment;
 
 class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
+
+    /** @var Config */
+    private $configHelper;
 
     /**
      * Agreement constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Framework\Model\Context $context
-     * @param \Magento\Framework\Registry $registry
+     * @param Data $adyenHelper
+     * @param Context $context
+     * @param Registry $registry
      * @param \Magento\Payment\Helper\Data $paymentData
-     * @param \Magento\Paypal\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementFactory
-     * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateFactory
-     * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
-     * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
+     * @param CollectionFactory $billingAgreementFactory
+     * @param DateTimeFactory $dateFactory
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
      * @param array $data
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\Model\Context $context,
-        \Magento\Framework\Registry $registry,
+        Data $adyenHelper,
+        Context $context,
+        Registry $registry,
         \Magento\Payment\Helper\Data $paymentData,
-        \Magento\Paypal\Model\ResourceModel\Billing\Agreement\CollectionFactory $billingAgreementFactory,
-        \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateFactory,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        CollectionFactory $billingAgreementFactory,
+        DateTimeFactory $dateFactory,
+        Config $configHelper,
+        AbstractResource $resource = null,
+        AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct(
@@ -68,6 +81,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         );
 
         $this->adyenHelper = $adyenHelper;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -256,6 +270,46 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         if (!empty($contractDetail['pos_payment'])) {
             $agreementData['posPayment'] = true;
         }
+
+        $this->setAgreementData($agreementData);
+
+        return $this;
+    }
+
+    /**
+     * For sync result to store alternative billing agreement. Currently only sepa is supported. This should be changed
+     * to utilise the factory method for different payment methods
+     *
+     * @param $contractDetail
+     * @param $storeId
+     * @return $this
+     */
+    public function setAlternativePaymentMethodBillingAgreement($contractDetail, $storeId): Agreement
+    {
+        $this
+            ->setMethodCode(PaymentMethods::ADYEN_ONE_CLICK)
+            ->setReferenceId($contractDetail['recurring.recurringDetailReference']);
+
+        $variant = $contractDetail['paymentMethod'];
+
+        $label = __(
+            '%1, %2, %3',
+            $variant,
+            $contractDetail['sepadirectdebit.dateOfSignature'],
+            $contractDetail['sepadirectdebit.mandateId']
+        );
+
+        $this->setAgreementLabel($label);
+        $recurringType = $this->configHelper->getAlternativePaymentMethodTokenType($storeId);
+
+        $agreementData = [
+            'details' => [
+                'dateOfSignature' => $contractDetail['sepadirectdebit.dateOfSignature'],
+                'mandateId' => $contractDetail['sepadirectdebit.mandateId'],
+            ],
+            'variant' => $variant,
+            'billingAgreementType' => $recurringType
+        ];
 
         $this->setAgreementData($agreementData);
 

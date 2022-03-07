@@ -107,7 +107,12 @@ class Recurring
                 // Populate billing agreement data
                 $storeOneClick = $order->getPayment()->getAdditionalInformation('store_cc');
 
-                $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick, $order->getStoreId());
+                if ($order->getPayment()->getMethod() === PaymentMethods::ADYEN_CC) {
+                    $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick, $order->getStoreId());
+                } else {
+                    $billingAgreement->setAlternativePaymentMethodBillingAgreement($additionalData, $order->getStoreId());
+                }
+
                 $billingAgreementErrors = $billingAgreement->getErrors();
 
                 if ($billingAgreement->isValid() && empty($billingAgreementErrors)) {
