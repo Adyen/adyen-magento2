@@ -393,36 +393,8 @@ class Requests extends AbstractHelper
             return $request;
         }
 
-        /*$storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
-        // Initialize the request body with the current state data
-        // Multishipping checkout uses the cc_number field for state data
-        $stateData = $this->stateData->getStateData($payment->getOrder()->getQuoteId()) ?:
-            (json_decode($payment->getCcNumber(), true) ?: []);
-
-        if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
-            $request['storePaymentMethodMode'] = 'askForConsent';
-        } else {
-            $request['storePaymentMethod'] = (bool)($stateData['storePaymentMethod'] ?? $storedPaymentMethodsEnabled);
-        }*/
-
         $request['storePaymentMethod'] = true;
-        //TODO: Update this
-        if ($this->adyenConfig->getAlternativePaymentMethodTokenType($storeId) === RecurringType::ONECLICK) {
-            $request['recurringProcessingModel'] = 'CardOnFile';
-        } else {
-            $request['recurringProcessingModel'] = 'Subscription';
-        }
-
-        /*
-        //recurring
-        if ($storedPaymentMethodsEnabled) {
-            if ($this->adyenHelper->isCreditCardVaultEnabled()) {
-                $request['recurringProcessingModel'] = 'Subscription';
-            } else {
-                $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
-                $request['recurringProcessingModel'] = $enableOneclick ? 'CardOnFile' : 'Subscription';
-            }
-        }*/
+        $request['recurringProcessingModel'] = $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
 
         return $request;
     }

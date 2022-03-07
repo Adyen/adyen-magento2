@@ -55,8 +55,8 @@ class RecurringPaymentType implements OptionSourceInterface
         $options = [];
         $recurringTypes = Recurring::getRecurringTypes();
 
-        foreach ($recurringTypes as $code => $label) {
-            $options[] = ['value' => $code, 'label' => $label];
+        foreach ($recurringTypes as $recurringType) {
+            $options[] = ['value' => $recurringType, 'label' => $recurringType];
         }
 
         return $options;
