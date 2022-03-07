@@ -32,6 +32,7 @@ class PaymentMethods extends AbstractHelper
 {
     const ADYEN_HPP = 'adyen_hpp';
     const ADYEN_CC = 'adyen_cc';
+    const ADYEN_ONE_CLICK = 'adyen_oneclick';
 
     const METHODS_WITH_BRAND_LOGO = [
         "giftcard"
@@ -502,6 +503,28 @@ class PaymentMethods extends AbstractHelper
     public function isCardPayment($payment): bool
     {
         return $payment->getMethod() === self::ADYEN_CC;
+    }
+
+    /**
+     * Check if the payment method used was an alternative payment method
+     *
+     * @param $payment
+     * @return bool
+     */
+    public function isAlternativePayment($payment): bool
+    {
+        return $payment->getMethod() === self::ADYEN_HPP;
+    }
+
+    /**
+     * Check if the payment method used was a tokenized payment
+     *
+     * @param $payment
+     * @return bool
+     */
+    public function isTokenPayment($payment): bool
+    {
+        return $payment->getMethod() === self::ADYEN_ONE_CLICK;
     }
 
     /**
