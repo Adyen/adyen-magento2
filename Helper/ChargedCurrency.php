@@ -110,12 +110,12 @@ class ChargedCurrency
             );
         }
         return new AdyenAmountCurrency(
-            $item->getPrice(),
+            $item->getRowTotal()/$item->getQty(),
             $item->getQuote()->getQuoteCurrencyCode(),
             $item->getDiscountAmount(),
-            $item->getPriceInclTax() - $item->getPrice(),
+            $item->getRowTotalInclTax()/$item->getQty() - $item->getRowTotal()/$item->getQty(),
             null,
-            $item->getPriceInclTax()
+            $item->getRowTotalInclTax()/$item->getQty()
         );
     }
 
