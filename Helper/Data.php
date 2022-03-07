@@ -24,7 +24,6 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Billing\AgreementFactory;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingCollectionFactory;
@@ -142,16 +141,6 @@ class Data extends AbstractHelper
     protected $cache;
 
     /**
-     * @var AgreementFactory
-     */
-    protected $billingAgreementFactory;
-
-    /**
-     * @var Agreement
-     */
-    private $agreementResourceModel;
-
-    /**
      * @var ResolverInterface
      */
     private $localeResolver;
@@ -203,8 +192,6 @@ class Data extends AbstractHelper
      * @param AdyenLogger $adyenLogger
      * @param StoreManagerInterface $storeManager
      * @param CacheInterface $cache
-     * @param AgreementFactory $billingAgreementFactory
-     * @param Agreement $agreementResourceModel
      * @param ResolverInterface $localeResolver
      * @param ScopeConfigInterface $config
      * @param SerializerInterface $serializer
@@ -228,8 +215,6 @@ class Data extends AbstractHelper
         AdyenLogger $adyenLogger,
         StoreManagerInterface $storeManager,
         CacheInterface $cache,
-        AgreementFactory $billingAgreementFactory,
-        Agreement $agreementResourceModel,
         ResolverInterface $localeResolver,
         ScopeConfigInterface $config,
         SerializerInterface $serializer,
@@ -253,8 +238,6 @@ class Data extends AbstractHelper
         $this->adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
         $this->cache = $cache;
-        $this->billingAgreementFactory = $billingAgreementFactory;
-        $this->agreementResourceModel = $agreementResourceModel;
         $this->localeResolver = $localeResolver;
         $this->config = $config;
         $this->serializer = $serializer;
@@ -1644,77 +1627,6 @@ class Data extends AbstractHelper
     private function createAdyenCheckoutUtilityService($client)
     {
         return new \Adyen\Service\CheckoutUtility($client);
-    }
-
-    /**
-     * @param $order
-     * @param $additionalData
-     */
-    public function createAdyenBillingAgreement($order, $additionalData)
-    {
-        if (!empty($additionalData['recurring.recurringDetailReference'])) {
-            $listRecurringContracts = null;
-            try {
-                // Get or create billing agreement
-                /** @var \Adyen\Payment\Model\Billing\Agreement $billingAgreement */
-                $billingAgreement = $this->billingAgreementFactory->create();
-                $billingAgreement->load($additionalData['recurring.recurringDetailReference'], 'reference_id');
-
-                // check if BA exists
-                if (!($billingAgreement && $billingAgreement->getAgreementId() > 0 && $billingAgreement->isValid())) {
-                    // create new BA
-                    $billingAgreement = $this->billingAgreementFactory->create();
-                    $billingAgreement->setStoreId($order->getStoreId());
-                    $billingAgreement->importOrderPaymentWithRecurringDetailReference(
-                        $order->getPayment(),
-                        $additionalData['recurring.recurringDetailReference']
-                    );
-
-                    $message = __(
-                        'Created billing agreement #%1.',
-                        $additionalData['recurring.recurringDetailReference']
-                    );
-                } else {
-                    $billingAgreement->setIsObjectChanged(true);
-                    $message = __(
-                        'Updated billing agreement #%1.',
-                        $additionalData['recurring.recurringDetailReference']
-                    );
-                }
-
-                // Populate billing agreement data
-                $storeOneClick = $order->getPayment()->getAdditionalInformation('store_cc');
-
-                $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick, $order->getStoreId());
-                $billingAgreementErrors = $billingAgreement->getErrors();
-
-                if ($billingAgreement->isValid() && empty($billingAgreementErrors)) {
-                    if (!$this->agreementResourceModel->getOrderRelation(
-                        $billingAgreement->getAgreementId(),
-                        $order->getId()
-                    )) {
-                        // save into billing_agreement_order
-                        $billingAgreement->addOrderRelation($order);
-                    }
-                    // add to order to save agreement
-                    $order->addRelatedObject($billingAgreement);
-                } else {
-                    $message = __('Failed to create billing agreement for this order. Reason(s): ') . join(
-                            ', ',
-                            $billingAgreementErrors
-                        );
-                    throw new \Exception($message);
-                }
-            } catch (\Exception $exception) {
-                $message = $exception->getMessage();
-                $this->adyenLogger->error("exception: " . $message);
-            }
-
-            $comment = $order->addStatusHistoryComment($message, $order->getStatus());
-
-            $order->addRelatedObject($comment);
-            $order->save();
-        }
     }
 
     /**
