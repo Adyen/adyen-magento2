@@ -92,6 +92,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
      */
     public function execute(Observer $observer)
     {
+        $additionalDataToSave = [];
         // Get request fields
         $data = $this->readDataArgument($observer);
         $paymentInfo = $this->readPaymentModelArgument($observer);
@@ -118,12 +119,21 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         if (!empty($stateData)) {
             $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
         }
+
+        if (array_key_exists('iban', $stateData['paymentMethod'])) {
+            $additionalDataToSave['iban'] = $stateData['paymentMethod']['iban'];
+        }
+
+        if (array_key_exists('ownerName', $stateData['paymentMethod'])) {
+            $additionalDataToSave['ownerName'] = $stateData['paymentMethod']['ownerName'];
+        }
+
         // Set stateData in a service and remove from payment's additionalData
         $this->stateData->setStateData($stateData, $paymentInfo->getData('quote_id'));
         unset($additionalData[self::STATE_DATA]);
 
         // Set additional data in the payment
-        foreach ($additionalData as $key => $data) {
+        foreach (array_merge($additionalData, $additionalDataToSave) as $key => $data) {
             $paymentInfo->setAdditionalInformation($key, $data);
         }
 

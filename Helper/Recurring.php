@@ -71,8 +71,9 @@ class Recurring
     /**
      * @param $order
      * @param $additionalData
+     * @param array $savedPaymentData
      */
-    public function createAdyenBillingAgreement($order, $additionalData)
+    public function createAdyenBillingAgreement($order, $additionalData, $savedPaymentData = [])
     {
         if (!empty($additionalData['recurring.recurringDetailReference'])) {
             $listRecurringContracts = null;
@@ -110,7 +111,7 @@ class Recurring
                 if ($order->getPayment()->getMethod() === PaymentMethods::ADYEN_CC) {
                     $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick, $order->getStoreId());
                 } else {
-                    $billingAgreement->setAlternativePaymentMethodBillingAgreement($additionalData, $order->getStoreId());
+                    $billingAgreement->setAlternativePaymentMethodBillingAgreement($additionalData, $order->getStoreId(), $savedPaymentData);
                 }
 
                 $billingAgreementErrors = $billingAgreement->getErrors();

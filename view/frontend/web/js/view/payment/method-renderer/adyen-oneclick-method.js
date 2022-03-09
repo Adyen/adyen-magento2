@@ -369,6 +369,14 @@ define(
                                 let stateData;
                                 if ('component' in self) {
                                     stateData = self.component.data;
+                                } else if (self.agreement_data.bank) {
+                                    stateData = {
+                                        paymentMethod: {
+                                            type: self.agreement_data.variant,
+                                            iban: self.agreement_data.bank.iban,
+                                            ownerName: self.agreement_data.bank.ownerName
+                                        }
+                                    };
                                 } else {
                                     stateData = {
                                         paymentMethod: {
@@ -387,7 +395,6 @@ define(
                                 };
                             },
                             validate: function () {
-
                                 var code = self.item.method;
                                 var value = this.value;
                                 var codeValue = code + '_' + value;

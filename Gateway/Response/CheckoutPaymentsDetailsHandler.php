@@ -78,7 +78,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             $payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE
         ) {
             $order = $payment->getOrder();
-            $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData']);
+            $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $payment->getAdditionalInformation());
         }
 
         // do not close transaction so you can do a cancel() and void

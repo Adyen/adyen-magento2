@@ -284,31 +284,30 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
      * @param $storeId
      * @return $this
      */
-    public function setAlternativePaymentMethodBillingAgreement($contractDetail, $storeId): Agreement
+    public function setAlternativePaymentMethodBillingAgreement(array $additionalData, $storeId, array $savedPaymentData): Agreement
     {
         $this
             ->setMethodCode(PaymentMethods::ADYEN_ONE_CLICK)
-            ->setReferenceId($contractDetail['recurring.recurringDetailReference']);
+            ->setReferenceId($additionalData['recurring.recurringDetailReference']);
 
-        $variant = $contractDetail['paymentMethod'];
+        $variant = $additionalData['paymentMethod'];
 
         $label = __(
-            '%1, %2, %3',
-            $variant,
-            $contractDetail['sepadirectdebit.dateOfSignature'],
-            $contractDetail['sepadirectdebit.mandateId']
+            '%1, %2',
+            $savedPaymentData['ownerName'],
+            $savedPaymentData['iban']
         );
 
         $this->setAgreementLabel($label);
         $recurringType = $this->configHelper->getAlternativePaymentMethodTokenType($storeId);
 
         $agreementData = [
-            'details' => [
-                'dateOfSignature' => $contractDetail['sepadirectdebit.dateOfSignature'],
-                'mandateId' => $contractDetail['sepadirectdebit.mandateId'],
+            'bank' => [
+                'ownerName' => $savedPaymentData['ownerName'],
+                'iban' => $savedPaymentData['iban'],
             ],
             'variant' => $variant,
-            'contractTypes' => $recurringType
+            'contractTypes' => [$recurringType]
         ];
 
         $this->setAgreementData($agreementData);
