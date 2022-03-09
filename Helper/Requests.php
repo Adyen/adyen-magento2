@@ -388,11 +388,6 @@ class Requests extends AbstractHelper
             return $request;
         }
 
-        // TODO: Check this ... Recurring payments feature is not currently available for PayPal
-        if ($brand === 'paypal') {
-            return $request;
-        }
-
         $request['storePaymentMethod'] = true;
         $request['recurringProcessingModel'] = $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
 

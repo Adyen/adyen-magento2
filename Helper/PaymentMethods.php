@@ -509,15 +509,17 @@ class PaymentMethods extends AbstractHelper
     /**
      * Check if the passed payment method supports recurring functionality.
      * If a payment method is in this list it does not necessarily imply that it is already supported
-     * by the plugin
+     * by the plugin.
      *
-     * @param string $lpm
+     * Currently only SEPA is allowed on our Magento plugin.
+     *
+     * @param string $paymentMethod
      * @return bool
      */
     public function paymentMethodSupportsRecurring(string $paymentMethod): bool
     {
         $paymentMethodRecurring = [
-            'ach',
+            /*'ach',
             'amazonpay',
             'applepay',
             'directdebit_GB',
@@ -539,7 +541,6 @@ class PaymentMethods extends AbstractHelper
             'momo_wallet',
             'paymaya_wallet',
             'paypal',
-            'sepadirectdebit',
             'trustly',
             'twint',
             'uatp',
@@ -547,7 +548,8 @@ class PaymentMethods extends AbstractHelper
             'payu_IN_upi',
             'vipps',
             'yandex_money',
-            'zip'
+            'zip',*/
+            'sepadirectdebit',
         ];
 
         return in_array($paymentMethod, $paymentMethodRecurring);
