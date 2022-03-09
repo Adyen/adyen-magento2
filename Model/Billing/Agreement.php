@@ -280,8 +280,9 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
      * For sync result to store alternative billing agreement. Currently only sepa is supported. This should be changed
      * to utilise the factory method for different payment methods
      *
-     * @param $contractDetail
+     * @param array $additionalData
      * @param $storeId
+     * @param array $savedPaymentData
      * @return $this
      */
     public function setAlternativePaymentMethodBillingAgreement(array $additionalData, $storeId, array $savedPaymentData): Agreement

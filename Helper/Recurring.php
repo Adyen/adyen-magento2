@@ -73,10 +73,9 @@ class Recurring
      * @param $additionalData
      * @param array $savedPaymentData
      */
-    public function createAdyenBillingAgreement($order, $additionalData, $savedPaymentData = [])
+    public function createAdyenBillingAgreement($order, $additionalData, array $savedPaymentData = [])
     {
         if (!empty($additionalData['recurring.recurringDetailReference'])) {
-            $listRecurringContracts = null;
             try {
                 // Get or create billing agreement
                 /** @var \Adyen\Payment\Model\Billing\Agreement $billingAgreement */

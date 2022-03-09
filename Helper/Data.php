@@ -68,7 +68,7 @@ class Data extends AbstractHelper
     const CLEARPAY = 'clearpay';
     const ZIP = 'zip';
     const PAYBRIGHT = 'paybright';
-
+    const SEPA = 'sepadirectdebit';
 
     /**
      * @var EncryptorInterface
