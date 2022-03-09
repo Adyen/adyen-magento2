@@ -308,7 +308,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
                 'mandateId' => $contractDetail['sepadirectdebit.mandateId'],
             ],
             'variant' => $variant,
-            'billingAgreementType' => $recurringType
+            'contractTypes' => $recurringType
         ];
 
         $this->setAgreementData($agreementData);

@@ -902,7 +902,7 @@ class Data extends AbstractHelper
 
             // check if contractType is supporting the selected contractType for OneClick payments
             $allowedContractTypes = $agreementData['contractTypes'];
-            if (in_array(RecurringType::ONECLICK , $allowedContractTypes)) {
+            if (in_array(RecurringType::ONECLICK , $allowedContractTypes) || in_array(Recurring::CARD_ON_FILE, $allowedContractTypes)) {
                 // check if AgreementLabel is set and if contract has an recurringType
                 if ($billingAgreement->getAgreementLabel()) {
                     // for Ideal use sepadirectdebit because it is

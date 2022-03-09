@@ -239,7 +239,8 @@ define(
 
                         // for recurring enable the placeOrder button at all times
                         var placeOrderAllowed = true;
-                        if (self.hasVerification()) {
+                        // if verification returns true and this is a card token
+                        if (self.hasVerification() && billingAgreement.agreement_data.card) {
                             placeOrderAllowed = false;
                         } else {
                             // for recurring cards there is no validation needed
@@ -296,7 +297,6 @@ define(
                                     additionalValidators.validate()) {
                                     fullScreenLoader.startLoader();
                                     this.isPlaceOrderActionAllowed(false);
-
                                     this.getPlaceOrderDeferredObject().fail(
                                         function () {
                                             fullScreenLoader.stopLoader();
@@ -369,6 +369,12 @@ define(
                                 let stateData;
                                 if ('component' in self) {
                                     stateData = self.component.data;
+                                } else {
+                                    stateData = {
+                                        paymentMethod: {
+                                            type: self.agreement_data.variant,
+                                        }
+                                    };
                                 }
                                 stateData = JSON.stringify(stateData);
                                 window.sessionStorage.setItem('adyen.stateData', stateData);
@@ -392,10 +398,7 @@ define(
                                     $(form).validation('isValid');
 
                                 // bcmc does not have any cvc
-                                if (!validate ||
-                                    (isValid() == false && variant() !=
-                                        'bcmc' && variant() !=
-                                        'maestro')) {
+                                if (!validate || (isValid() == false && variant() != 'bcmc' && variant() != 'maestro' && variant() != 'sepadirectdebit')) {
                                     return false;
                                 }
 
@@ -424,10 +427,7 @@ define(
                                 return self.afterPlaceOrder(); // needed for placeOrder method
                             },
                             getPlaceOrderDeferredObject: function () {
-                                return $.when(
-                                    placeOrderAction(this.getData(),
-                                        this.getMessageContainer()),
-                                );
+                                return $.when(placeOrderAction(this.getData(), this.getMessageContainer()));
                             },
                         };
                     });
