@@ -85,8 +85,6 @@ class DataTest extends \PHPUnit\Framework\TestCase
             $adyenLogger,
             $storeManager,
             $cache,
-            $billingAgreementFactory,
-            $agreementResourceModel,
             $localeResolver,
             $config,
             $serializer,
