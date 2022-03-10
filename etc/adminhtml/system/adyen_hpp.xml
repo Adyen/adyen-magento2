@@ -47,7 +47,7 @@
         </field>
         <field id="adyen_hpp_token_type" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Token type</label>
-            <tooltip>Currently we support SEPA tokenization only</tooltip>
+            <tooltip>Currently only SEPA tokenization is supported</tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\RecurringPaymentType</source_model>
             <config_path>payment/adyen_hpp/token_type</config_path>
             <depends>

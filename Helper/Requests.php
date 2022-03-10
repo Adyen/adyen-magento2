@@ -388,13 +388,20 @@ class Requests extends AbstractHelper
             return $request;
         }
 
-        $request['storePaymentMethod'] = true;
-        $request['recurringProcessingModel'] = $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
+
+        $recurringModel = $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
+        if (isset($recurringModel)) {
+            $request['storePaymentMethod'] = true;
+            $request['recurringProcessingModel'] = $recurringModel;
+        }
 
         return $request;
     }
 
     /**
+     * Build the recurring data to be sent in case of a tokenized payment.
+     * Model will be fetched according to the type (card/other pm) of the original payment
+     *
      * @param int $storeId
      * @param $payment
      * @return array

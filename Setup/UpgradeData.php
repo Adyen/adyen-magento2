@@ -23,8 +23,10 @@
 
 namespace Adyen\Payment\Setup;
 
+use Adyen\Payment\Helper\Config;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
+use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
@@ -41,12 +43,19 @@ class UpgradeData implements UpgradeDataInterface
      */
     private $reinitableConfig;
 
+    /**
+     * @var Config
+     */
+    private $configHelper;
+
     public function __construct(
         WriterInterface $configWriter,
-        ReinitableConfigInterface $reinitableConfig
+        ReinitableConfigInterface $reinitableConfig,
+        Config $configHelper
     ) {
         $this->configWriter = $configWriter;
         $this->reinitableConfig = $reinitableConfig;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -63,6 +72,10 @@ class UpgradeData implements UpgradeDataInterface
 
         if (version_compare($context->getVersion(), '8.0.0'. '<')) {
             $this->updateSchemaVersion800($setup);
+        }
+
+        if (version_compare($context->getVersion(), '8.2.1'. '<')) {
+            $this->updateSchemaVersion821($setup);
         }
 
         $setup->endSetup();
@@ -168,5 +181,43 @@ class UpgradeData implements UpgradeDataInterface
             ['path' => 'payment/adyen_abstract/partial_payments_refund_strategy'],
             ['path = ?' => 'payment/adyen_abstract/split_payments_refund_strategy']
         );
+    }
+
+    /**
+     * If Store alternative payment methods is on, turn the config off, since it was previously NOT operational.
+     * This will ensure that if this config is turned back on, the Token type will also be saved.
+     *
+     * @param ModuleDataSetupInterface $setup
+     */
+    public function updateSchemaVersion821(ModuleDataSetupInterface $setup)
+    {
+        $configDataTable = $setup->getTable('core_config_data');
+        $pathStoreAlternativePaymentMethod = 'payment/adyen_hpp_vault/active';
+        $connection = $setup->getConnection();
+
+        $select = $connection->select()
+            ->from($configDataTable)
+            ->where(
+                'path = ?',
+                'payment/adyen_hpp_vault/active'
+            );
+
+        $configsStoreAlternativePaymentMethods = $connection->fetchAll($select);
+
+        foreach ($configsStoreAlternativePaymentMethods as $config) {
+            $scope = $config['scope'];
+            $scopeId = $config['scope_id'];
+            if ($config['value'] === '1') {
+                $this->configWriter->save(
+                    $pathStoreAlternativePaymentMethod,
+                    '0',
+                    $scope,
+                    $scopeId
+                );
+            }
+        }
+
+        // re-initialize otherwise it will cause errors
+        $this->reinitableConfig->reinit();
     }
 }
