@@ -171,16 +171,33 @@ class UpgradeData implements UpgradeDataInterface
         $this->reinitableConfig->reinit();
     }
 
+    /**
+     * Ensure that new path does not exist before updating
+     *
+     * @param ModuleDataSetupInterface $setup
+     */
     public function updateSchemaVersion800(ModuleDataSetupInterface $setup)
     {
+        $partialPaymentsPath = 'payment/adyen_abstract/partial_payments_refund_strategy';
         $configDataTable = $setup->getTable('core_config_data');
         $connection = $setup->getConnection();
 
-        $connection->update(
-            $configDataTable,
-            ['path' => 'payment/adyen_abstract/partial_payments_refund_strategy'],
-            ['path = ?' => 'payment/adyen_abstract/split_payments_refund_strategy']
-        );
+        $select = $connection->select()
+            ->from($configDataTable)
+            ->where(
+                'path = ?',
+                $partialPaymentsPath
+            );
+
+        $partialPaymentConfig = $connection->fetchRow($select);
+
+        if (is_null($partialPaymentConfig)) {
+            $connection->update(
+                $configDataTable,
+                ['path' => 'payment/adyen_abstract/partial_payments_refund_strategy'],
+                ['path = ?' => 'payment/adyen_abstract/split_payments_refund_strategy']
+            );
+        }
     }
 
     /**
@@ -199,7 +216,7 @@ class UpgradeData implements UpgradeDataInterface
             ->from($configDataTable)
             ->where(
                 'path = ?',
-                'payment/adyen_hpp_vault/active'
+                $pathStoreAlternativePaymentMethod
             );
 
         $configsStoreAlternativePaymentMethods = $connection->fetchAll($select);
