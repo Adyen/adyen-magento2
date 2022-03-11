@@ -505,10 +505,13 @@ class PaymentMethods extends AbstractHelper
 
     /**
      * Check if the passed payment method supports recurring functionality.
-     * If a payment method is in this list it does not necessarily imply that it is already supported
-     * by the plugin.
      *
      * Currently only SEPA is allowed on our Magento plugin.
+     * Possible future payment methods:
+     *
+     * 'ach','amazonpay','applepay','directdebit_GB','bcmc','dana','dankort','eps','gcash','giropay','googlepay','paywithgoogle',
+     * 'gopay_wallet','ideal','kakaopay','klarna','klarna_account','klarna_b2b','klarna_paynow','momo_wallet','paymaya_wallet',
+     * 'paypal','trustly','twint','uatp','billdesk_upi','payu_IN_upi','vipps','yandex_money','zip'
      *
      * @param string $paymentMethod
      * @return bool
@@ -516,36 +519,6 @@ class PaymentMethods extends AbstractHelper
     public function paymentMethodSupportsRecurring(string $paymentMethod): bool
     {
         $paymentMethodRecurring = [
-            /*'ach',
-            'amazonpay',
-            'applepay',
-            'directdebit_GB',
-            'bcmc',
-            'dana',
-            'dankort',
-            'eps',
-            'gcash',
-            'giropay',
-            'googlepay',
-            'paywithgoogle',
-            'gopay_wallet',
-            'ideal',
-            'kakaopay',
-            'klarna',
-            'klarna_account',
-            'klarna_b2b',
-            'klarna_paynow',
-            'momo_wallet',
-            'paymaya_wallet',
-            'paypal',
-            'trustly',
-            'twint',
-            'uatp',
-            'billdesk_upi',
-            'payu_IN_upi',
-            'vipps',
-            'yandex_money',
-            'zip',*/
             'sepadirectdebit',
         ];
 
