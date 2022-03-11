@@ -26,6 +26,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Model\Billing\AgreementFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
+use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
 class Recurring
 {
@@ -106,11 +107,12 @@ class Recurring
 
                 // Populate billing agreement data
                 $storeOneClick = $order->getPayment()->getAdditionalInformation('store_cc');
+                $payment = $order->getPayment();
 
-                if ($order->getPayment()->getMethod() === PaymentMethods::ADYEN_CC) {
+                if ($payment->getMethod() === PaymentMethods::ADYEN_CC) {
                     $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick, $order->getStoreId());
-                } else {
-                    $billingAgreement->setAlternativePaymentMethodBillingAgreement($additionalData, $order->getStoreId(), $savedPaymentData);
+                } elseif ($payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE) === Data::SEPA) {
+                    $billingAgreement->setSepaBillingAgreement($additionalData, $order->getStoreId(), $savedPaymentData);
                 }
 
                 $billingAgreementErrors = $billingAgreement->getErrors();

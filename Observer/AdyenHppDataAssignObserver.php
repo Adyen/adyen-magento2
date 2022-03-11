@@ -125,7 +125,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         }
 
         if ($additionalData[self::BRAND_CODE] === Data::SEPA) {
-            $additionalDataToSave = $this->getAdditionalDataToSave($stateData);
+            $additionalDataToSave = $this->getSepaAdditionalDataToSave($stateData);
         }
 
         // Set stateData in a service and remove from payment's additionalData
@@ -152,7 +152,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
      * @param array $stateData
      * @return array
      */
-    private function getAdditionalDataToSave(array $stateData): array
+    private function getSepaAdditionalDataToSave(array $stateData): array
     {
         $additionalData = [];
         if (array_key_exists('iban', $stateData['paymentMethod'])) {
