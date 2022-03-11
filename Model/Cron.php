@@ -33,8 +33,10 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Webapi\Exception;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
+use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
 use Magento\Framework\Phrase\Renderer\Placeholder;
@@ -117,6 +119,11 @@ class Cron
      * @var Notification
      */
     protected $notification;
+
+    /**
+     * @var MagentoInvoiceFactory
+     */
+    protected $magentoInvoiceFactory;
 
     /**
      * notification attributes
@@ -403,7 +410,8 @@ class Cron
         AdyenOrderPayment $adyenOrderPaymentHelper,
         \Adyen\Payment\Helper\Invoice $invoiceHelper,
         CaseManagement $caseManagementHelper,
-        PaymentFactory $adyenOrderPaymentFactory
+        PaymentFactory $adyenOrderPaymentFactory,
+        MagentoInvoiceFactory $magentoInvoiceFactory
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -440,6 +448,7 @@ class Cron
         $this->invoiceHelper = $invoiceHelper;
         $this->caseManagementHelper = $caseManagementHelper;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
+        $this->magentoInvoiceFactory = $magentoInvoiceFactory;
     }
 
     /**
@@ -575,6 +584,11 @@ class Cron
                     continue;
                 }
 
+                $this->_adyenLogger->addAdyenNotificationCronjob(
+                    sprintf("Notification %s will be processed", $notification->getEntityId()),
+                    $this->adyenOrderPaymentHelper->getLogOrderContext($this->_order)
+                );
+
                 // declare all variables that are needed
                 $this->_declareVariables($notification);
 
@@ -663,7 +677,8 @@ class Cron
 
                 $this->_updateNotification($notification, false, true);
                 $this->_adyenLogger->addAdyenNotificationCronjob(
-                    sprintf("Notification %s is processed", $notification->getEntityId())
+                    sprintf("Notification %s was processed", $notification->getEntityId()),
+                    $this->adyenOrderPaymentHelper->getLogOrderContext($this->_order)
                 );
                 ++$count;
             } catch (\Exception $e) {
@@ -675,7 +690,8 @@ class Cron
                         $notification->getEntityId(),
                         $e->getMessage(),
                         $e->getTraceAsString()
-                    )
+                    ),
+                    $this->adyenOrderPaymentHelper->getLogOrderContext($this->_order)
                 );
             }
         }
@@ -1884,6 +1900,11 @@ class Cron
                 }
 
                 $this->invoiceResource->save($invoice);
+
+                $this->_adyenLogger->addAdyenNotificationCronjob(
+                    sprintf('Notification %s created an invoice.', $this->notification->getEntityId()),
+                    $this->invoiceHelper->getLogInvoiceContext($invoice)
+                );
             } catch (Exception $e) {
                 $this->_adyenLogger->addAdyenNotificationCronjob(
                     'Error saving invoice. The error message is: ' . $e->getMessage()
@@ -1901,14 +1922,14 @@ class Cron
                 $this->_invoiceSender->send($invoice);
             }
         } else {
-            $this->_adyenLogger->addAdyenNotificationCronjob
-            (
-                'It is not possible to create invoice for this order',
-                [
-                    'orderId' => $this->_order->getId(),
-                    'orderState' => $this->_order->getState(),
-                    'orderStatus' => $this->_order->getStatus()
-                ]
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                sprintf('Unable to create invoice when handling Notification %s', $this->notification->getEntityId()),
+                array_merge($this->adyenOrderPaymentHelper->getLogOrderContext($this->_order), [
+                    'canUnhold' => $this->_order->canUnhold(),
+                    'isPaymentReview' => $this->_order->isPaymentReview(),
+                    'isCancelled' => $this->_order->isCanceled(),
+                    'invoiceActionFlag' => $this->_order->getActionFlag(Order::ACTION_FLAG_INVOICE)
+                ])
             );
         }
     }
@@ -2200,6 +2221,12 @@ class Cron
                 $adyenInvoice->getInvoiceId(),
                 $adyenInvoice->getAdyenPaymentOrderId()
             ));
+
+            $magentoInvoice = $this->magentoInvoiceFactory->create()->load($adyenInvoice->getInvoiceId(), Order\Invoice::ENTITY_ID);
+            $this->_adyenLogger->addAdyenNotificationCronjob(
+                sprintf('Notification %s updated invoice %s.', $this->notification->getEntityId(), $magentoInvoice->getEntityid()),
+                $this->invoiceHelper->getLogInvoiceContext($magentoInvoice)
+            );
         } catch (\Exception $e) {
             $this->_adyenLogger->addAdyenNotificationCronjob($e->getMessage());
         }
