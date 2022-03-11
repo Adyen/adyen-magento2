@@ -337,7 +337,7 @@ class Requests extends AbstractHelper
     }
 
     /**
-     *
+     * Build the recurring data when payment is done using a card
      *
      * @param int $storeId
      * @param $payment
@@ -373,6 +373,8 @@ class Requests extends AbstractHelper
     }
 
     /**
+     * Build the recurring data when payment is done trough an alternative payment method
+     *
      * @param int $storeId
      * @param $payment
      * @return array
