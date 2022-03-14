@@ -34,6 +34,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Model\Order;
+use Adyen\Payment\Helper\Config;
 
 /**
  * Helper class for anything related to the adyen_order_payment entity
@@ -79,6 +80,11 @@ class AdyenOrderPayment extends AbstractHelper
     protected $invoiceHelper;
 
     /**
+     * @var Config
+     */
+    protected $config;
+
+    /**
      * AdyenOrderPayment constructor.
      *
      * @param Context $context
@@ -97,7 +103,8 @@ class AdyenOrderPayment extends AbstractHelper
         ChargedCurrency $adyenChargedCurrencyHelper,
         OrderPaymentResourceModel $orderPaymentResourceModel,
         PaymentFactory $adyenOrderPaymentFactory,
-        Invoice $invoiceHelper
+        Invoice $invoiceHelper,
+        Config $config
     ) {
         parent::__construct($context);
         $this->adyenLogger = $adyenLogger;
@@ -107,6 +114,7 @@ class AdyenOrderPayment extends AbstractHelper
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->invoiceHelper = $invoiceHelper;
+        $this->config = $config;
     }
 
     /**
@@ -214,7 +222,7 @@ class AdyenOrderPayment extends AbstractHelper
     {
         $adyenOrderPayment = null;
         $payment = $order->getPayment();
-        $chargedCurrencyCode = $this->adyenChargedCurrencyHelper->getChargedCurrency() === "display"
+        $chargedCurrencyCode = $this->config->getChargedCurrency() === "display"
             ? $order->getOrderCurrencyCode() : $order->getBaseCurrencyCode();
         $amount = $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $chargedCurrencyCode);
         $captureStatus = $autoCapture ? Payment::CAPTURE_STATUS_AUTO_CAPTURE : Payment::CAPTURE_STATUS_NO_CAPTURE;
