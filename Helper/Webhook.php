@@ -70,6 +70,9 @@ use Magento\Vault\Model\PaymentTokenManagement;
 
 class Webhook
 {
+    // Adyen Custom States
+    const STATE_MAINTAIN = ['maintain' => 'Maintain state'];
+
     const WEBHOOK_ORDER_STATE_MAPPING = [
         Order::STATE_NEW => PaymentStates::STATE_NEW,
         Order::STATE_PENDING_PAYMENT => PaymentStates::STATE_PENDING,
@@ -1572,6 +1575,8 @@ class Webhook
             $order->getStoreId()
         );
 
+        // TODO: Add no status change checker here
+
         // virtual order can have different status
         if ($order->getIsVirtual()) {
             $status = $this->getVirtualStatus($status);
@@ -1623,7 +1628,12 @@ class Webhook
             $comment = "Adyen Payment Successfully completed";
             // If a status is set, add comment, set status and update the state based on the status
             // Else add comment
-            if (!empty($status)) {
+            if ($status == key(self::STATE_MAINTAIN)) {
+                $order->addStatusHistoryComment(__($comment), $status);
+                $this->logger->addAdyenNotificationCronjob(
+                    'Order has been prevented to change state.'
+                );
+            } else if (!empty($status)) {
                 $order->addStatusHistoryComment(__($comment), $status);
                 $this->setState($status);
                 $this->logger->addAdyenNotificationCronjob(
