@@ -26,6 +26,8 @@
          xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_required_settings" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1"
            showInStore="1">
+        <fieldset_css>adyen_required_settings</fieldset_css>
+
         <label><![CDATA[Required Settings]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <field id="api_key_test" translate="label" type="obscure" sortOrder="10" showInDefault="1" showInWebsite="1"
@@ -62,6 +64,7 @@
         </field>
         <field id="merchant_account" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1"
                showInStore="1">
+
             <label>Merchant Account</label>
             <config_path>payment/adyen_abstract/merchant_account</config_path>
             <source_model>Adyen\Payment\Model\Config\Source\MerchantAccounts</source_model>

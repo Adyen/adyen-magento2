@@ -12,7 +12,7 @@
                 jQuery('#adyen_payments_configuration_errors').hide();
                 var params = {};
                 new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
-                    parameters:     params,
+                    params: {xapikey:'the-x-api-key'},
                     loaderArea:     false,
                     asynchronous:   true,
                     onCreate: function() {
@@ -22,9 +22,9 @@
                         document.getElementById("adyen_configure_merchants").disabled = true;
                     },
                     onSuccess: function (response) {
+                        debugger;
                         //add html response
                         progressSpan.find('.processing').hide();
-                        var clientkey = response.responseJSON.messages.clientKey;
                         var resultText = '';
                         if (response.status > 200) {
                             resultText = response.statusText;
@@ -32,8 +32,7 @@
                             var merchantAccountSelect = document.getElementById(
                                 "payment_us_adyen_group_all_in_one_adyen_required_settings_merchant_account");
                             //remove previous accounts
-                            var i, L = merchantAccountSelect.options.length - 1;
-                            for(i = L; i >= 0; i--) {
+                            for(var i = merchantAccountSelect.options.length - 1; i >= 0; i--) {
                                 merchantAccountSelect.remove(i);
                             }
                             //add the merchant accounts to the html element
@@ -41,7 +40,9 @@
                             for (i = 0; i < accounts.length; i++) {
                                 merchantAccountSelect.add( new Option(accounts[i],accounts[i]));
                             }
+                            merchantAccountSelect.value = response.responseJSON.currentMerchantAccount;
                             //add the clientkey
+                            var clientkey = response.responseJSON.messages.clientKey;
                             if (response.responseJSON.mode == 'test') {
                                 var clientKeyIdTest = document.getElementById(
                                     'payment_us_adyen_group_all_in_one_adyen_required_settings_client_key_test');
