@@ -44,6 +44,7 @@ class ProcessingMaintain extends \Magento\Sales\Model\Config\Source\Order\Status
         foreach ($statuses as $code => $label) {
             $options[] = ['value' => $code, 'label' => $label];
         }
+
         return $options;
     }
 }
