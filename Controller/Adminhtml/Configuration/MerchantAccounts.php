@@ -3,32 +3,47 @@
 namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Helper\ManagementHelper;
 use Magento\Framework\App\Action\Context;
+use Magento\Framework\Controller\Result\JsonFactory;
 
 class MerchantAccounts extends \Magento\Backend\App\Action
 {
 
+const TEST_MODE = 'test';
+    const LIVE_MODE = 'production';
+
     /**
-     * @var \Adyen\Payment\Helper\ManagementApi
+     * @var ManagementHelper
      */
-    protected $managementApi;
+    protected $managementHelper;
+
+    /**
+     * @var JsonFactory
+     */
+    protected $resultJsonFactory;
 
     public function __construct(
         Context $context,
-        \Adyen\Payment\Helper\ManagementApi $managementApi
+        ManagementHelper $managementHelper,
+        JsonFactory $resultJsonFactory
     ) {
         parent::__construct($context);
-
-        $this->managementApi = $managementApi;
+        $this->resultJsonFactory = $resultJsonFactory;
+        $this->managementHelper = $managementHelper;
     }
 
     /**
-     * @throws \Adyen\AdyenException
+     * @return \Magento\Framework\Controller\Result\Json
      */
     public function execute()
     {
         try {
-            $test = $this->managementApi->createMerchantAccountResource()->list();
+            $response = $this->managementHelper->getMerchantAccountWithClientkey();
+            $resultJson = $this->resultJsonFactory->create();
+            $resultJson->setData(['messages' => $response, 'mode' => self::TEST_MODE]);
+
+            return $resultJson;
         } catch (AdyenException $e) {
         }
     }

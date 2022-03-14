@@ -29,31 +29,39 @@ namespace Adyen\Payment\Helper;
  */
 
 use Adyen\Service\Management;
+use Magento\Store\Model\StoreManager;
 
-class ManagementApi
+class ManagementHelper
 {
     /**
-     * @var ManagementApi
+     * @var Management
      */
-    protected $managementapi;
+    protected $management;
 
     /**
-     * ManagementApi constructor.
-     * @param $management
-     * @param \Adyen\
+     * ManagementHelper constructor.
+     * @param StoreManager $storeManager
+     * @param Data $adyenHelper
      * @throws \Adyen\AdyenException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function __construct($managementapi)
+    public function __construct(StoreManager $storeManager, Data $adyenHelper)
     {
-        $this->managementapi = $managementapi;
+         $storeId = $storeManager->getStore()->getId();
+         $client = $adyenHelper->initializeAdyenClient($storeId);
+         $this->management = new \Adyen\Service\Management($client);
     }
 
     /**
-     * @param $client
-     * @return \Adyen\Service\ResourceModel\Management\MerchantAccount
+     * @return array
+     * @throws \Adyen\AdyenException
      */
-    public function createMerchantAccountResource()
+    public function getMerchantAccountWithClientkey()
     {
-        return $this->management->merchantAccount;
+        $merchantAccount = [];
+        $response = $this->management->me->retrieve();
+        $merchantAccount['clientKey'] = $response['clientKey'];
+        $merchantAccount['associatedMerchantAccounts']= $response['associatedMerchantAccounts'];
+        return $merchantAccount;
     }
 }

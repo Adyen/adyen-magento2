@@ -9,7 +9,7 @@
 
             jQuery('#adyen_configure_merchants').click(function ()
             {
-                jQuery('#adyen_configure_errors').hide();
+                jQuery('#adyen_payments_configuration_errors').hide();
                 var params = {};
                 new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
                     parameters:     params,
@@ -18,42 +18,52 @@
                     onCreate: function() {
                         progressSpan.find('.configured').hide();
                         progressSpan.find('.processing').show();
-                        jQuery('#adyen_configure_errors_message').text('');
+                        jQuery('#adyen_payments_configured_message').text('');
                         document.getElementById("adyen_configure_merchants").disabled = true;
                     },
-                    onSuccess: function(response)
-                    {
+                    onSuccess: function (response) {
+                        //add html response
                         progressSpan.find('.processing').hide();
-
+                        var clientkey = response.responseJSON.messages.clientKey;
                         var resultText = '';
                         if (response.status > 200) {
                             resultText = response.statusText;
                         } else {
+                            var merchantAccountSelect = document.getElementById(
+                                "payment_us_adyen_group_all_in_one_adyen_required_settings_merchant_account");
+                            //remove previous accounts
+                            var i, L = merchantAccountSelect.options.length - 1;
+                            for(i = L; i >= 0; i--) {
+                                merchantAccountSelect.remove(i);
+                            }
+                            //add the merchant accounts to the html element
+                            var accounts = response.responseJSON.messages.associatedMerchantAccounts;
+                            for (i = 0; i < accounts.length; i++) {
+                                merchantAccountSelect.add( new Option(accounts[i],accounts[i]));
+                            }
+                            //add the clientkey
+                            if (response.responseJSON.mode == 'test') {
+                                var clientKeyIdTest = document.getElementById(
+                                    'payment_us_adyen_group_all_in_one_adyen_required_settings_client_key_test');
+                                clientKeyIdTest.value = clientkey;
+                            }
+                            elseif(response.responseJSON.mode == 'production')
+                            {
+                                var clientKeyIdLive = document.getElementById(
+                                    'payment_us_adyen_group_all_in_one_adyen_required_settings_client_key_live');
+                                clientKeyIdLive.value = clientkey;
+                            }
                             resultText = 'Completed';
                             progressSpan.find('.configured').show();
                         }
-                        jQuery('#stripe_payments_configured_message').text(resultText);
-
-                        try
-                        {
-                            if (typeof response.responseJSON.errors == "number" && response.responseJSON.errors > 0)
-                            {
-                                jQuery('#adyen_configure_errors').show();
-                                if (response.responseJSON.errors == 1)
-                                    jQuery('#adyen_configure_errors .message').text(response.responseJSON.errors + " error was logged under var/log/stripe_payments_webhooks.log");
-                                else if (response.responseJSON.errors > 1)
-                                    jQuery('#adyen_configure_errors .message').text(response.responseJSON.errors + " errors were logged under var/log/stripe_payments_webhooks.log");
-                            }
-                        }
-                        catch (e)
-                        {
-                            console.warn(e);
-                        }
+                        var configurationErrors = document.getElementById(
+                            'adyen_payments_configuration_errors');
+                        configurationErrors.value = resultText;
                     },
                     onFailure: function(response)
                     {
                         progressSpan.find('.processing').hide();
-                        jQuery('#adyen_configure_errors').text("Failed");
+                        jQuery('#adyen_payments_configured_message').text("Failed");
                     },
                     onComplete: function()
                     {
@@ -69,11 +79,12 @@
 <span class="adyen-required-settings-config-admin" id="progress">
     <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
     <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
-    <span id="adyen_configure_merchants_message"></span>
-    <div id="adyen_configure_merchants_errors" class="message-system-inner">
+    <span id="adyen_payments_configured_message"></span>
+    <div id="adyen_payments_configuration_errors" class="message-system-inner">
         <div class="message message-warning"></div>
     </div>
 </span>
+<!--if we want to add a note under the button-->
 <p class="note">
-    <span><?php echo __('This is a note'); ?></span>
+    <span><?php echo __(''); ?></span>
 </p>

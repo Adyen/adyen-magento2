@@ -58,7 +58,6 @@
         </field>
         <field id="adyen_get_merchant_accounts" translate="label comment" type="button" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <frontend_model>Adyen\Payment\Model\Config\Adminhtml\MerchantAccounts</frontend_model>
-
             <label></label>
         </field>
         <field id="merchant_account" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1"
@@ -71,25 +70,7 @@
             <comment>
                 <![CDATA[<a target="_blank" href="https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#step3configuretheplugininmagento">Click here for explanation.</a>]]></comment>
         </field>
-        <field id="notification_username" translate="label" type="text" sortOrder="60" showInDefault="1"
-               showInWebsite="1" showInStore="1">
-            <label>Notification User Name</label>
-            <config_path>payment/adyen_abstract/notification_username</config_path>
-            <tooltip>Set a user name of your choice here and copy it over to Adyen Customer Area => Developers =>
-                Webhooks => Standard Notification => User Name.
-            </tooltip>
-        </field>
-        <field id="notification_password" translate="label" type="obscure" sortOrder="70" showInDefault="1"
-               showInWebsite="1" showInStore="1">
-            <label>Notification Password</label>
-            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-            <config_path>payment/adyen_abstract/notification_password</config_path>
-            <tooltip>Set a password of your choice and copy it over to Adyen Customer Area => Developers => Webhooks =>
-                Standard Notification => Password.
-            </tooltip>
-        </field>
-
-        <field id="client_key_test" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="1"
+        <field id="client_key_test" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1"
                showInStore="0">
             <label>Client key for Test</label>
             <tooltip>If you don't know your Client Key, you can find it in your Test Customer Area. Navigate to
@@ -98,7 +79,7 @@
             </tooltip>
             <config_path>payment/adyen_abstract/client_key_test</config_path>
         </field>
-        <field id="client_key_live" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1"
+        <field id="client_key_live" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1"
                showInStore="0">
             <label>Client key for Live</label>
             <tooltip>If you don't know your Client Key, you can find it in your Live Customer Area. Navigate to
@@ -106,6 +87,23 @@
                 "Authentication" section.
             </tooltip>
             <config_path>payment/adyen_abstract/client_key_live</config_path>
+        </field>
+        <field id="notification_username" translate="label" type="text" sortOrder="80" showInDefault="1"
+               showInWebsite="1" showInStore="1">
+            <label>Notification User Name</label>
+            <config_path>payment/adyen_abstract/notification_username</config_path>
+            <tooltip>Set a user name of your choice here and copy it over to Adyen Customer Area => Developers =>
+                Webhooks => Standard Notification => User Name.
+            </tooltip>
+        </field>
+        <field id="notification_password" translate="label" type="obscure" sortOrder="90" showInDefault="1"
+               showInWebsite="1" showInStore="1">
+            <label>Notification Password</label>
+            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <config_path>payment/adyen_abstract/notification_password</config_path>
+            <tooltip>Set a password of your choice and copy it over to Adyen Customer Area => Developers => Webhooks =>
+                Standard Notification => Password.
+            </tooltip>
         </field>
         <field id="live_endpoint_url_prefix" translate="label" type="text" sortOrder="100" showInDefault="1"
                showInWebsite="1" showInStore="0">
