@@ -214,7 +214,9 @@ class AdyenOrderPayment extends AbstractHelper
     {
         $adyenOrderPayment = null;
         $payment = $order->getPayment();
-        $amount = $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $order->getOrderCurrencyCode());
+        $chargedCurrencyCode = $this->adyenChargedCurrencyHelper->getChargedCurrency() === "display"
+            ? $order->getOrderCurrencyCode() : $order->getBaseCurrencyCode();
+        $amount = $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $chargedCurrencyCode);
         $captureStatus = $autoCapture ? Payment::CAPTURE_STATUS_AUTO_CAPTURE : Payment::CAPTURE_STATUS_NO_CAPTURE;
         $merchantReference = $notification->getMerchantReference();
         $pspReference = $notification->getPspreference();
