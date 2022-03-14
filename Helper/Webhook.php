@@ -614,7 +614,7 @@ class Webhook
                     $this->order->addRelatedObject($comment);
                 }
                 //store recurring contract for alternative payments methods
-                if ($order->getPayment()->getMethod() == 'adyen_hpp' && $this->configHelper->isStoreAlternativePaymentMethodEnabled()) {
+                if ($order->getPayment()->getMethod() === PaymentMethods::ADYEN_HPP && $this->configHelper->isStoreAlternativePaymentMethodEnabled()) {
                     try {
                         //get the payment
                         $payment = $this->order->getPayment();
