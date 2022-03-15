@@ -51,10 +51,14 @@ const TEST_MODE = 'test';
     public function execute()
     {
         try {
-            $request = $this->request;
-            $key = $this->request->getParam('xapikey');
+
+            $postRequest = $this->getRequest()->getPostValue();
+            $xapikey = $postRequest['xapikey'];
+            if(str_contains($xapikey, '*')){
+                $xapikey = '';
+            }
+            $response = $this->managementHelper->getMerchantAccountWithClientkey($xapikey);
             $currentMerchantAccount = $this->_adyenHelper->getAdyenMerchantAccount('adyen_cc');
-            $response = $this->managementHelper->getMerchantAccountWithClientkey();
             $resultJson = $this->resultJsonFactory->create();
             $resultJson->setData(['messages' => $response, 'mode' => self::TEST_MODE,
                                  'currentMerchantAccount'=>$currentMerchantAccount]);

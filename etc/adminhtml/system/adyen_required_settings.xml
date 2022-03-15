@@ -26,7 +26,7 @@
          xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_required_settings" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1"
            showInStore="1">
-        <fieldset_css>adyen_required_settings</fieldset_css>
+        <fieldset_css>adyen_required_config_settings</fieldset_css>
 
         <label><![CDATA[Required Settings]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>

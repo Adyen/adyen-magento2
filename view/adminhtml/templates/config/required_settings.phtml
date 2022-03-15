@@ -7,12 +7,24 @@
         {
             var progressSpan = jQuery('#progress');
 
-            jQuery('#adyen_configure_merchants').click(function ()
-            {
+            jQuery('#adyen_configure_merchants').click(function () {
+
+                var xapi_key = 'alexandros';
+                var demoMode = document.querySelector(
+                    "div.adyen_required_config_settings select[name*='demo_mode']").value;
+                if (demoMode == 1) {
+                    xapi_key = document.querySelector(
+                        "div.adyen_required_config_settings input[name*='api_key_test']").value;
+                } else {
+                    xapi_key = document.querySelector(
+                        "div.adyen_required_config_settings input[name*='api_key_live']").value;
+                }
+
                 jQuery('#adyen_payments_configuration_errors').hide();
-                var params = {};
+
                 new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
-                    params: {xapikey:'the-x-api-key'},
+                    parameters: {xapikey:xapi_key},
+                    type: "POST",
                     loaderArea:     false,
                     asynchronous:   true,
                     onCreate: function() {
@@ -29,10 +41,10 @@
                         if (response.status > 200) {
                             resultText = response.statusText;
                         } else {
-                            var merchantAccountSelect = document.getElementById(
-                                "payment_us_adyen_group_all_in_one_adyen_required_settings_merchant_account");
+                            var merchantAccountSelect = document.querySelector(
+                                "div.adyen_required_config_settings select[name*='merchant_account']");
                             //remove previous accounts
-                            for(var i = merchantAccountSelect.options.length - 1; i >= 0; i--) {
+                            for (var i = merchantAccountSelect.options.length - 1; i >= 0; i--) {
                                 merchantAccountSelect.remove(i);
                             }
                             //add the merchant accounts to the html element
@@ -44,14 +56,14 @@
                             //add the clientkey
                             var clientkey = response.responseJSON.messages.clientKey;
                             if (response.responseJSON.mode == 'test') {
-                                var clientKeyIdTest = document.getElementById(
-                                    'payment_us_adyen_group_all_in_one_adyen_required_settings_client_key_test');
+                                var clientKeyIdTest = document.querySelector(
+                                    "div.adyen_required_config_settings input[name*='client_key_test']");
                                 clientKeyIdTest.value = clientkey;
                             }
                             elseif(response.responseJSON.mode == 'production')
                             {
-                                var clientKeyIdLive = document.getElementById(
-                                    'payment_us_adyen_group_all_in_one_adyen_required_settings_client_key_live');
+                                var clientKeyIdLive = document.querySelector(
+                                    "div.adyen_required_config_settings input[name*='client_key_live']");
                                 clientKeyIdLive.value = clientkey;
                             }
                             resultText = 'Completed';
@@ -63,6 +75,7 @@
                     },
                     onFailure: function(response)
                     {
+                        debugger
                         progressSpan.find('.processing').hide();
                         jQuery('#adyen_payments_configured_message').text("Failed");
                     },

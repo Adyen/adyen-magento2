@@ -37,6 +37,14 @@ class ManagementHelper
      * @var Management
      */
     protected $management;
+    /**
+     * @var Data
+     */
+    private $adyenHelper;
+    /**
+     * @var StoreManager
+     */
+    private $storeManager;
 
     /**
      * ManagementHelper constructor.
@@ -47,18 +55,21 @@ class ManagementHelper
      */
     public function __construct(StoreManager $storeManager, Data $adyenHelper)
     {
-         $storeId = $storeManager->getStore()->getId();
-         $client = $adyenHelper->initializeAdyenClient($storeId);
-         $this->management = new \Adyen\Service\Management($client);
+        $this->adyenHelper = $adyenHelper;
+        $this->storeManager = $storeManager;
+        $storeId = $storeManager->getStore()->getId();
     }
 
     /**
      * @return array
      * @throws \Adyen\AdyenException
      */
-    public function getMerchantAccountWithClientkey()
+    public function getMerchantAccountWithClientkey($xapikey)
     {
         $merchantAccount = [];
+        $storeId = $this->storeManager->getStore()->getId();
+        $client = $this->adyenHelper->initializeAdyenClient($storeId, $xapikey);
+        $this->management = new \Adyen\Service\Management($client);
         $response = $this->management->me->retrieve();
         $merchantAccount['clientKey'] = $response['clientKey'];
         $merchantAccount['associatedMerchantAccounts']= $response['associatedMerchantAccounts'];
