@@ -5,12 +5,13 @@
         ],
         function(jQuery)
         {
-            var progressSpan = jQuery('#progress');
+            jQuery('#adyen_payments_configuration_errors').hide();
+            let progressSpan = jQuery('#progress');
 
             jQuery('#adyen_configure_merchants').click(function () {
 
-                var xapi_key = 'alexandros';
-                var demoMode = document.querySelector(
+                let xapi_key = '';
+                let demoMode = document.querySelector(
                     "div.adyen_required_config_settings select[name*='demo_mode']").value;
                 if (demoMode == 1) {
                     xapi_key = document.querySelector(
@@ -20,10 +21,8 @@
                         "div.adyen_required_config_settings input[name*='api_key_live']").value;
                 }
 
-                jQuery('#adyen_payments_configuration_errors').hide();
-
                 new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
-                    parameters: {xapikey:xapi_key},
+                    parameters: {xapikey: xapi_key},
                     type: "POST",
                     loaderArea:     false,
                     asynchronous:   true,
@@ -34,49 +33,46 @@
                         document.getElementById("adyen_configure_merchants").disabled = true;
                     },
                     onSuccess: function (response) {
-                        debugger;
                         //add html response
                         progressSpan.find('.processing').hide();
-                        var resultText = '';
+                        let resultText = '';
                         if (response.status > 200) {
                             resultText = response.statusText;
+                        } else if (response.responseJSON === null) {
+                            resultText = "Could not retrieve the response";
                         } else {
-                            var merchantAccountSelect = document.querySelector(
+                            let merchantAccountSelect = document.querySelector(
                                 "div.adyen_required_config_settings select[name*='merchant_account']");
                             //remove previous accounts
-                            for (var i = merchantAccountSelect.options.length - 1; i >= 0; i--) {
+                            for (let i = merchantAccountSelect.options.length - 1; i >= 0; i--) {
                                 merchantAccountSelect.remove(i);
                             }
                             //add the merchant accounts to the html element
-                            var accounts = response.responseJSON.messages.associatedMerchantAccounts;
+                            let accounts = response.responseJSON.messages.associatedMerchantAccounts;
                             for (i = 0; i < accounts.length; i++) {
-                                merchantAccountSelect.add( new Option(accounts[i],accounts[i]));
+                                merchantAccountSelect.add(new Option(accounts[i], accounts[i]));
                             }
                             merchantAccountSelect.value = response.responseJSON.currentMerchantAccount;
                             //add the clientkey
-                            var clientkey = response.responseJSON.messages.clientKey;
+                            let clientkey = response.responseJSON.messages.clientKey;
                             if (response.responseJSON.mode == 'test') {
-                                var clientKeyIdTest = document.querySelector(
+                                let clientKeyIdTest = document.querySelector(
                                     "div.adyen_required_config_settings input[name*='client_key_test']");
                                 clientKeyIdTest.value = clientkey;
-                            }
-                            elseif(response.responseJSON.mode == 'production')
-                            {
-                                var clientKeyIdLive = document.querySelector(
+                            } else if (response.responseJSON.mode == 'production') {
+                                let clientKeyIdLive = document.querySelector(
                                     "div.adyen_required_config_settings input[name*='client_key_live']");
                                 clientKeyIdLive.value = clientkey;
                             }
                             resultText = 'Completed';
                             progressSpan.find('.configured').show();
                         }
-                        var configurationErrors = document.getElementById(
-                            'adyen_payments_configuration_errors');
-                        configurationErrors.value = resultText;
+                        jQuery('#adyen_payments_configured_message').text(resultText);
                     },
                     onFailure: function(response)
                     {
-                        debugger
                         progressSpan.find('.processing').hide();
+                        jQuery('#adyen_payments_configured_message').show();
                         jQuery('#adyen_payments_configured_message').text("Failed");
                     },
                     onComplete: function()
@@ -100,5 +96,5 @@
 </span>
 <!--if we want to add a note under the button-->
 <p class="note">
-    <span><?php echo __(''); ?></span>
+    <span><?php echo __('Retrieves the associated merchant accounts and client key'); ?></span>
 </p>
