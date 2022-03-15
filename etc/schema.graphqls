@@ -10,6 +10,7 @@ type Query {
 
     adyenPaymentDetails (
         payload: String! @doc(description: "Payload JSON String with orderId, details, paymentData and threeDSAuthenticationOnly.")
+        cart_id: String! @doc(description: "Cart ID.")
     ) : AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentDetails")
 }
 
