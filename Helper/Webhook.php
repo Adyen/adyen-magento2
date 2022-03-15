@@ -884,6 +884,12 @@ class Webhook
         if ($isFullAmountAuthorized) {
             $this->setPrePaymentAuthorized();
             $this->prepareInvoice($notification);
+
+            // Set authorized amount in sales_order_payment
+            $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($this->order, false);
+            $orderAmount = $orderAmountCurrency->getAmount();
+            $this->order->getPayment()->setAmountAuthorized($orderAmount);
+
             // For Boleto confirmation mail is sent on order creation
             // Send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
             if ($notification->getPaymentMethod() != "adyen_boleto" && !$this->order->getEmailSent()) {
