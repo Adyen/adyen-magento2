@@ -25,14 +25,15 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Model\Resolver;
 
+use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\Serialize\Serializer\Json;
-use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 use Magento\Sales\Model\Order;
 
 class GetAdyenPaymentDetails implements ResolverInterface
@@ -52,34 +53,34 @@ class GetAdyenPaymentDetails implements ResolverInterface
     protected $jsonSerializer;
 
     /**
-     * @var GetCartForUser
-     */
-    protected $getCartForUser;
-
-    /**
      * @var AdyenLogger
      */
     protected $adyenLogger;
 
     /**
+     * @var Quote
+     */
+    protected $quoteHelper;
+
+    /**
      * @param DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider
      * @param Order $order
      * @param Json $jsonSerializer
-     * @param GetCartForUser $getCartForUser
      * @param AdyenLogger $adyenLogger
+     * @param Quote $quoteHelper
      */
     public function __construct(
         DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider,
         Order $order,
         Json $jsonSerializer,
-        GetCartForUser $getCartForUser,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        Quote $quoteHelper
     ) {
         $this->getAdyenPaymentStatusDataProvider = $getAdyenPaymentStatusDataProvider;
         $this->order = $order;
         $this->jsonSerializer = $jsonSerializer;
-        $this->getCartForUser = $getCartForUser;
         $this->adyenLogger = $adyenLogger;
+        $this->quoteHelper = $quoteHelper;
     }
 
     /**
@@ -105,19 +106,19 @@ class GetAdyenPaymentDetails implements ResolverInterface
 
         try {
             $payload = $this->jsonSerializer->unserialize($args['payload']);
-            $cart = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
+            $cart = $this->quoteHelper->getInactiveQuoteForUser($maskedCartId, $currentUserId, $storeId);
             $order = $this->order->loadByIncrementId($payload['orderId']);
             $orderId = $order->getEntityId();
 
             if (is_null($orderId) || $order->getQuoteId() !== $cart->getEntityId()) {
                 throw new GraphQlNoSuchEntityException(__('Order does not exist'));
             }
-        } catch (GraphQlNoSuchEntityException $exception) {
+        } catch (NoSuchEntityException $exception) {
             if (isset($payload) && array_key_exists('orderId', $payload)) {
                 $this->adyenLogger->addWarning(sprintf('Attempted to get the payment details for order %s.', $payload['orderId']));
             }
 
-            throw $exception;
+            throw new GraphQlNoSuchEntityException(__('Order does not exist'));
         }
 
         // Set the orderId in the payload to the entity id, instead of the incrementId

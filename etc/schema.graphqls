@@ -1,7 +1,7 @@
 type Query {
     adyenPaymentStatus (
         orderId: String @doc(description: "Magento Increment Order ID.")
-        cartId: String! @doc(description: "Cart ID.")
+        cartId: String @doc(description: "Cart ID.")
     ) : AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentStatus")
 
     adyenPaymentMethods (
@@ -79,10 +79,6 @@ type AdyenPaymentMethodIcon {
 type AdyenPaymentMethodsExtraDetailsConfiguration {
     amount: Money @doc(description: "Current order amount in minor units.")
     currency: String @doc(description: "Current order currency.")
-}
-
-type Order {
-    adyen_payment_status: AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentStatus")
 }
 
 input PaymentMethodInput {

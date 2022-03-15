@@ -25,6 +25,8 @@
 namespace Adyen\Payment\Helper;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\QuoteRepository;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -63,13 +65,19 @@ class Quote
      */
     private $orderRepository;
 
+    /**
+     * @var MaskedQuoteIdToQuoteIdInterface
+     */
+    private $maskedQuoteIdToQuoteId;
+
     public function __construct(
         CartRepositoryInterface $cartRepository,
         QuoteRepository $quoteRepository,
         OrderRepository $orderRepository,
         QuoteAddressFactory $quoteAddressFactory,
         QuoteAddressResource $quoteAddressResource,
-        SearchCriteriaBuilder $searchCriteriaBuilder
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
     ) {
         $this->cartRepository = $cartRepository;
         $this->quoteRepository = $quoteRepository;
@@ -77,6 +85,7 @@ class Quote
         $this->quoteAddressFactory = $quoteAddressFactory;
         $this->quoteAddressResource = $quoteAddressResource;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
     }
 
     /**
@@ -129,5 +138,61 @@ class Quote
         $quote = reset($quoteList);
 
         return $quote->getIsMultiShipping();
+    }
+
+    /**
+     * Get inactive quote for user. This function is very similar to GetCartForUser::execute.
+     *
+     * @param string $cartHash
+     * @param int|null $customerId
+     * @param int $storeId
+     * @return QuoteModel
+     * @throws NoSuchEntityException
+     */
+    public function getInactiveQuoteForUser(string $cartHash, ?int $customerId, int $storeId): QuoteModel
+    {
+        try {
+            $cartId = $this->maskedQuoteIdToQuoteId->execute($cartHash);
+        } catch (NoSuchEntityException $exception) {
+            throw new NoSuchEntityException(
+                __('Could not find a cart with ID "%masked_cart_id"', ['masked_cart_id' => $cartHash])
+            );
+        }
+
+        try {
+            /** @var QuoteModel $cart */
+            $cart = $this->cartRepository->get($cartId);
+        } catch (NoSuchEntityException $e) {
+            throw new NoSuchEntityException(
+                __('Could not find a cart with ID "%masked_cart_id"', ['masked_cart_id' => $cartHash])
+            );
+        }
+
+        if ($cart->getIsActive()) {
+            throw new NoSuchEntityException(__('The cart is active.'));
+        }
+
+        if ((int)$cart->getStoreId() !== $storeId) {
+            throw new NoSuchEntityException(__(
+                'Wrong store code specified for cart "%masked_cart_id"',
+                ['masked_cart_id' => $cartHash]
+            ));
+        }
+
+        $cartCustomerId = (int)$cart->getCustomerId();
+
+        /* Guest cart, allow operations */
+        if (0 === $cartCustomerId && (null === $customerId || 0 === $customerId)) {
+            return $cart;
+        }
+
+        if ($cartCustomerId !== $customerId) {
+            throw new NoSuchEntityException(__(
+                'The current user cannot perform operations on cart "%masked_cart_id"',
+                ['masked_cart_id' => $cartHash]
+            ));
+        }
+
+        return $cart;
     }
 }

@@ -25,13 +25,14 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Model\Resolver;
 
+use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
-use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 use Magento\Sales\Model\Order;
 
 class GetAdyenPaymentStatus implements ResolverInterface
@@ -48,31 +49,31 @@ class GetAdyenPaymentStatus implements ResolverInterface
     protected $order;
 
     /**
-     * @var GetCartForUser
-     */
-    protected $getCartForUser;
-
-    /**
      * @var AdyenLogger
      */
     protected $adyenLogger;
 
     /**
+     * @var Quote
+     */
+    protected $quoteHelper;
+
+    /**
      * @param DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider
      * @param Order $order
-     * @param GetCartForUser $getCartForUser
      * @param AdyenLogger $adyenLogger
+     * @param Quote $quoteHelper
      */
     public function __construct(
         DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider,
         Order $order,
-        GetCartForUser $getCartForUser,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        Quote $quoteHelper
     ) {
         $this->getAdyenPaymentStatusDataProvider = $getAdyenPaymentStatusDataProvider;
         $this->order = $order;
-        $this->getCartForUser = $getCartForUser;
         $this->adyenLogger = $adyenLogger;
+        $this->quoteHelper = $quoteHelper;
     }
 
     /**
@@ -87,8 +88,8 @@ class GetAdyenPaymentStatus implements ResolverInterface
     ) {
         if (empty($args['orderId']) && empty($value['order_id'])) {
             throw new GraphQlInputException(__('Required parameter "order_id" is missing'));
-        } elseif (empty($args['cartId']) && empty($value['cartId'])) {
-            throw new GraphQlInputException(__('Required parameter "cartId" is missing'));
+        } elseif (empty($args['cartId']) && empty($value['cart_id'])) {
+            throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
         }
 
         if (isset($args['orderId'])) {
@@ -101,7 +102,7 @@ class GetAdyenPaymentStatus implements ResolverInterface
         $currentUserId = $context->getUserId();
         $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
         try {
-            $cart = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
+            $cart = $this->quoteHelper->getInactiveQuoteForUser($maskedCartId, $currentUserId, $storeId);
             $order = $this->order->loadByIncrementId($orderIncrementId);
             $orderId = $order->getId();
 
@@ -111,12 +112,10 @@ class GetAdyenPaymentStatus implements ResolverInterface
 
             return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentStatus($orderId);
 
-        } catch (GraphQlNoSuchEntityException $e) {
-            $logMessage = isset($cart) ? sprintf('Attempted to get the payment status of order %s, using cart %s.', $orderIncrementId, $cart->getEntityId()) :
-                sprintf('Attempted to get the payment status of order %s.', $orderIncrementId);
-            $this->adyenLogger->addWarning($logMessage);
+        } catch (NoSuchEntityException $e) {
+            $this->adyenLogger->addWarning(sprintf('Attempted to get the payment status for order %s.', $orderIncrementId));
 
-            throw $e;
+            throw new GraphQlNoSuchEntityException(__('Order does not exist'));
         }
     }
 }
