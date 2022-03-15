@@ -16,6 +16,31 @@ This plugin supports Magento2 version
 * 2.3.7 and higher
 * 2.4 and higher
 
+## Releases
+
+1. **Major** releases are done ONLY when we absolutely need to. We try to not to introduce breaking changes and do major releases as rare as possible. Average now is **yearly**.
+2. **Minor** releases are scheduled but not limited to **once a month** (first week of a month). 
+3. After each bug fix is resolved, we aim to make a **patch** release. A patch releas is scheduled but not limited to **once in 2 weeks.**
+
+**Note: This can be subject to change based on the load and dependancies of the Integration tools team. **
+
+## Support & Maintenance
+
+There are three levels of support we provide for our Magento 2 plugins.
+1. Level 1 > 12 months  - full support (including new features) *Keep in mind that some new features are not possible on older versions, therefore this is not inclusive of ALL new features that are built.* 
+2. Level 2 > 12 months - 18 months - high priority bugs / security only 
+3. Level 3 > 18 months - 24 months  - security updates only (no support from support team)
+*** After Level 3 there is no support or maintenance from Adyen and it should be treated as a native integration of the merchant.
+
+The schedule for the current maintained branches of the Magento 2 plugin.
+
+|  Plugin Major Version   |  Release Date  |  Level 1 Support ends   |  Level 2 Support ends   |  Level 3 Support ends  |
+|  :-----          |  :-----          |  :-----          |  :-----          |  :-----          |
+|  Version 6 |  March 2020  |  September 31 2021 |  March 31 2022 |  September 31 2022 |
+|  Version 7 |  April 2021 |  September 31 2022 |  March 31 2023 |  September 31 2023 |
+|  Version 8 |  Novemeber 2021 |  March 31 2023 |  September 2023 | March 2024 |
+|  Version 9 |  - |  12 months after release |  18 months after release |  24 months after release |
+
 ## Contributing
 We strongly encourage you to join us in contributing to this repository so everyone can benefit from:
 * New features and functionality
