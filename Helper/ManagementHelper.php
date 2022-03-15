@@ -57,12 +57,13 @@ class ManagementHelper
     {
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
-        $storeId = $storeManager->getStore()->getId();
     }
 
     /**
+     * @param $xapikey
      * @return array
      * @throws \Adyen\AdyenException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getMerchantAccountWithClientkey($xapikey)
     {
@@ -72,7 +73,7 @@ class ManagementHelper
         $this->management = new \Adyen\Service\Management($client);
         $response = $this->management->me->retrieve();
         $merchantAccount['clientKey'] = $response['clientKey'];
-        $merchantAccount['associatedMerchantAccounts']= $response['associatedMerchantAccounts'];
+        $merchantAccount['associatedMerchantAccounts'] = $response['associatedMerchantAccounts'];
         return $merchantAccount;
     }
 }

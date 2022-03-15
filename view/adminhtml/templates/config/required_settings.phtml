@@ -9,7 +9,6 @@
             let progressSpan = jQuery('#progress');
 
             jQuery('#adyen_configure_merchants').click(function () {
-
                 let xapi_key = '';
                 let demoMode = document.querySelector(
                     "div.adyen_required_config_settings select[name*='demo_mode']").value;
@@ -20,7 +19,6 @@
                     xapi_key = document.querySelector(
                         "div.adyen_required_config_settings input[name*='api_key_live']").value;
                 }
-
                 new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
                     parameters: {xapikey: xapi_key},
                     type: "POST",
