@@ -25,7 +25,7 @@ We provide three levels of support:
 
 *** After Level 3 there is no support or maintenance from Adyen and it should be treated as a native integration of the merchant.
 
-The schedule for the current maintained branches of the Magento 2 plugin.
+The schedule for the current maintained branches is:
 
 |  Plugin Major Version   |  Release Date  |  Level 1 Support ends   |  Level 2 Support ends   |  Level 3 Support ends  |
 |  :-----          |  :-----          |  :-----          |  :-----          |  :-----          |
