@@ -65,15 +65,15 @@ class ManagementHelper
      * @throws \Adyen\AdyenException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getMerchantAccountWithClientkey($xapikey)
+    public function getMerchantAccountWithClientkey(string $xapikey): array
     {
-        $merchantAccount = [];
         $storeId = $this->storeManager->getStore()->getId();
         $client = $this->adyenHelper->initializeAdyenClient($storeId, $xapikey);
-        $this->management = new \Adyen\Service\Management($client);
-        $response = $this->management->me->retrieve();
-        $merchantAccount['clientKey'] = $response['clientKey'];
-        $merchantAccount['associatedMerchantAccounts'] = $response['associatedMerchantAccounts'];
-        return $merchantAccount;
+        $management = $this->adyenHelper->createManagementService($client);
+        $response = $management->me->retrieve();
+        return [
+            'clientKey' => $response['clientKey'],
+            'associatedMerchantAccounts' => $response['associatedMerchantAccounts'],
+        ];
     }
 }

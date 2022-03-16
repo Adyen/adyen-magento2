@@ -10,9 +10,9 @@
 
             jQuery('#adyen_configure_merchants').click(function () {
                 let xapi_key = '';
-                let demoMode = document.querySelector(
+                let demo_mode = document.querySelector(
                     "div.adyen_required_config_settings select[name*='demo_mode']").value;
-                if (demoMode == 1) {
+                if (demo_mode == 1) {
                     xapi_key = document.querySelector(
                         "div.adyen_required_config_settings input[name*='api_key_test']").value;
                 } else {
@@ -20,7 +20,7 @@
                         "div.adyen_required_config_settings input[name*='api_key_live']").value;
                 }
                 new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
-                    parameters: {xapikey: xapi_key},
+                    parameters: {xapikey: xapi_key, demoMode: demo_mode},
                     type: "POST",
                     loaderArea:     false,
                     asynchronous:   true,
@@ -70,8 +70,7 @@
                     onFailure: function(response)
                     {
                         progressSpan.find('.processing').hide();
-                        jQuery('#adyen_payments_configured_message').show();
-                        jQuery('#adyen_payments_configured_message').text("Failed");
+                        jQuery('#adyen_payments_configured_message').text("Failed").show();
                     },
                     onComplete: function()
                     {

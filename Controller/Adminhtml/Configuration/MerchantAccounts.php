@@ -10,9 +10,8 @@ use Magento\Framework\Controller\Result\JsonFactory;
 class MerchantAccounts extends \Magento\Backend\App\Action
 {
 
-const TEST_MODE = 'test';
+    const TEST_MODE = 'test';
     const LIVE_MODE = 'production';
-
     /**
      * @var ManagementHelper
      */
@@ -50,21 +49,40 @@ const TEST_MODE = 'test';
      */
     public function execute()
     {
+        $resultJson = $this->resultJsonFactory->create();
         try {
-
-            $postRequest = $this->getRequest()->getPostValue();
-            $xapikey = $postRequest['xapikey'];
-            if(str_contains($xapikey, '*')){
+            $xapikey = $this->getRequest()->getParam('xapikey', '');
+            $demoMode = $this->getRequest()->getParam('demoMode', '');
+            if (str_contains($xapikey, '*')) {
                 $xapikey = '';
             }
             $response = $this->managementHelper->getMerchantAccountWithClientkey($xapikey);
             $currentMerchantAccount = $this->_adyenHelper->getAdyenMerchantAccount('adyen_cc');
             $resultJson = $this->resultJsonFactory->create();
-            $resultJson->setData(['messages' => $response, 'mode' => self::TEST_MODE,
-                                 'currentMerchantAccount'=>$currentMerchantAccount]);
-
+            $resultJson->setData(
+                [
+                    'messages' => $response,
+                    'mode' => $this->getDemoMode($demoMode),
+                    'currentMerchantAccount' => $currentMerchantAccount
+                ]
+            );
             return $resultJson;
         } catch (AdyenException $e) {
+            $resultJson->setHttpResponseCode(400);
+            $resultJson->setData(
+                [
+                    'error' => $e->getMessage(),
+                ]
+            );
         }
+        return $resultJson;
+    }
+
+    private function getDemoMode($mode): string
+    {
+        if ($mode == 0) {
+            return self::LIVE_MODE;
+        }
+        return self::TEST_MODE;
     }
 }
