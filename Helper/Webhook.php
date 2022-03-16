@@ -1208,11 +1208,13 @@ class Webhook
             'adyen_abstract',
             $this->order->getStoreId()
         );
+        // Possible states entered by the configured status
+        $possibleStates = ['new', 'processing'];
 
         // only do this if status in configuration is set
         if (!empty($status)) {
             $this->order->setStatus($status);
-            $this->setState($status, ['new', 'processing']);
+            $this->setState($status, $possibleStates);
 
             $this->logger->addAdyenNotificationCronjob(
                 'Order status is changed to Pre-authorised status, status is ' . $status
@@ -1571,6 +1573,8 @@ class Webhook
             'adyen_abstract',
             $order->getStoreId()
         );
+        // Possible states entered by the configured status
+        $possibleStates = ['processing'];
 
         // virtual order can have different status
         if ($order->getIsVirtual()) {
@@ -1625,7 +1629,8 @@ class Webhook
             // Else add comment
             if (!empty($status)) {
                 $order->addStatusHistoryComment(__($comment), $status);
-                $this->setState($status, ['processing']); // TODO: make this dynamic!
+
+                $this->setState($status, $possibleStates);
                 $this->logger->addAdyenNotificationCronjob(
                     'Order status was changed to authorised status: ' . $status
                 );
