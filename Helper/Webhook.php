@@ -1212,7 +1212,7 @@ class Webhook
         // only do this if status in configuration is set
         if (!empty($status)) {
             $this->order->setStatus($status);
-            $this->setState($status);
+            $this->setState($status, ['new', 'processing']);
 
             $this->logger->addAdyenNotificationCronjob(
                 'Order status is changed to Pre-authorised status, status is ' . $status
@@ -1625,7 +1625,7 @@ class Webhook
             // Else add comment
             if (!empty($status)) {
                 $order->addStatusHistoryComment(__($comment), $status);
-                $this->setState($status);
+                $this->setState($status, ['processing']); // TODO: make this dynamic!
                 $this->logger->addAdyenNotificationCronjob(
                     'Order status was changed to authorised status: ' . $status
                 );
@@ -1641,15 +1641,27 @@ class Webhook
     /**
      * Set State from Status
      */
-    private function setState($status)
+    private function setState($status, $possibleStates)
     {
-        $statusObject = $this->orderStatusCollection->create()
-            ->addFieldToFilter('main_table.status', $status)
-            ->joinStates()
-            ->getFirstItem();
+        $this->logger->addAdyenNotificationCronjob('Looking for states: ' . json_encode($possibleStates));
 
-        $this->order->setState($statusObject->getState());
-        $this->logger->addAdyenNotificationCronjob('State is changed to  ' . $statusObject->getState());
+        // Loop over possible states, select first available status that fits this state
+        foreach ($possibleStates as $state) {
+            $statusObject = $this->orderStatusCollection->create()
+                ->addFieldToFilter('main_table.status', $status)
+                ->joinStates()
+                ->addStateFilter($state)
+                ->getFirstItem();
+
+            if ($statusObject->getState() == $state) {
+                // Exit function if fitting state is found
+                $this->order->setState($statusObject->getState());
+                $this->logger->addAdyenNotificationCronjob('State is changed to  ' . $statusObject->getState());
+                return;
+            }
+        }
+
+        $this->logger->addAdyenNotificationCronjob('No new state assigned, status should be connected to one of the following states: ' . json_encode($possibleStates));
     }
 
     /**
