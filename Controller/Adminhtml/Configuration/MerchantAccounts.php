@@ -4,7 +4,6 @@ namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\ManagementHelper;
-use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 
 class MerchantAccounts extends \Magento\Backend\App\Action
@@ -31,7 +30,7 @@ class MerchantAccounts extends \Magento\Backend\App\Action
     protected $_adyenHelper;
 
     public function __construct(
-        Context $context,
+        \Magento\Framework\App\Action\Context $context,
         ManagementHelper $managementHelper,
         JsonFactory $resultJsonFactory,
         \Magento\Framework\App\Request\Http $request,
