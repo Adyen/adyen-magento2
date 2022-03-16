@@ -1722,16 +1722,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param $client
-     * @return \Adyen\Service\Management
-     * @throws \Adyen\AdyenException
-     */
-    public function createManagementService($client)
-    {
-        return new \Adyen\Service\Management($client);
-    }
-
-    /**
      * @param string $date
      * @param string $format
      * @return mixed

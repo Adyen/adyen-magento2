@@ -28,7 +28,6 @@ namespace Adyen\Payment\Helper;
  * @package Adyen\Payment\Helper
  */
 
-use Adyen\Service\Management;
 use Magento\Store\Model\StoreManager;
 
 class ManagementHelper
@@ -56,7 +55,7 @@ class ManagementHelper
     }
 
     /**
-     * @param $xapikey
+     * @param string $xapikey
      * @return array
      * @throws \Adyen\AdyenException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -65,7 +64,7 @@ class ManagementHelper
     {
         $storeId = $this->storeManager->getStore()->getId();
         $client = $this->adyenHelper->initializeAdyenClient($storeId, $xapikey);
-        $management = $this->adyenHelper->createManagementService($client);
+        $management = new \Adyen\Service\Management($client);
         $response = $management->me->retrieve();
         return [
             'clientKey' => $response['clientKey'],
