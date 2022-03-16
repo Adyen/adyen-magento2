@@ -34,10 +34,6 @@ use Magento\Store\Model\StoreManager;
 class ManagementHelper
 {
     /**
-     * @var Management
-     */
-    protected $management;
-    /**
      * @var Data
      */
     private $adyenHelper;

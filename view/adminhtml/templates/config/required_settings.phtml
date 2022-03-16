@@ -28,7 +28,7 @@
                         progressSpan.find('.configured').hide();
                         progressSpan.find('.processing').show();
                         jQuery('#adyen_payments_configured_message').text('');
-                        document.getElementById("adyen_configure_merchants").disabled = true;
+                        jQuery("#adyen_configure_merchants").prop('disabled', true);
                     },
                     onSuccess: function (response) {
                         //add html response
@@ -74,7 +74,7 @@
                     },
                     onComplete: function()
                     {
-                        document.getElementById("adyen_configure_merchants").disabled = false;
+                        jQuery("#adyen_configure_merchants").prop('disabled', false);
                     }
                 });
             });
