@@ -1643,8 +1643,6 @@ class Webhook
      */
     private function setState($status, $possibleStates)
     {
-        $this->logger->addAdyenNotificationCronjob('Looking for states: ' . json_encode($possibleStates));
-
         // Loop over possible states, select first available status that fits this state
         foreach ($possibleStates as $state) {
             $statusObject = $this->orderStatusCollection->create()
