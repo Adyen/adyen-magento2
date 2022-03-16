@@ -49,5 +49,4 @@ class MerchantAccounts extends \Magento\Config\Block\System\Config\Form\Field
 
         return $button->toHtml();
     }
-
 }
