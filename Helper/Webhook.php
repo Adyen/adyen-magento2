@@ -1361,7 +1361,7 @@ class Webhook
 
             // if auto capture mode for openinvoice is turned on then use auto capture
             if ($captureModeOpenInvoice &&
-                $this->adyenHelper->isPaymentMethodOpenInvoiceMethodValidForAutoCapture($notificationPaymentMethod)
+                $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)
             ) {
                 $this->logger->addAdyenNotificationCronjob(
                     'This payment method is configured to be working as auto capture '
