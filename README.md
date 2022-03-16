@@ -23,7 +23,7 @@ We provide three levels of support:
 2. **Level 2 (12 months - 18 months)**: high priority bugs / security only 
 3. Level 3 > 18 months - 24 months  - security updates only (no support from support team)
 
-*** After Level 3 there is no support or maintenance from Adyen and it should be treated as a native integration of the merchant.
+> After Level 3 there is no support or maintenance from Adyen and it should be treated as a native integration of the merchant.
 
 The schedule for the current maintained branches is:
 
