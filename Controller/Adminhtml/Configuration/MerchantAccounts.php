@@ -87,3 +87,4 @@ class MerchantAccounts extends Action
         return self::TEST_MODE;
     }
 }
+
