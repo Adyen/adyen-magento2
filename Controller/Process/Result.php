@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Controller\Process;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
 use \Adyen\Payment\Model\Notification;
 use Adyen\Service\Validator\DataArrayValidator;
@@ -127,6 +128,11 @@ class Result extends \Magento\Framework\App\Action\Action
     private $orderRepository;
 
     /**
+     * @var Recurring
+     */
+    private $recurringHelper;
+
+    /**
      * Result constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -156,7 +162,8 @@ class Result extends \Magento\Framework\App\Action\Action
         \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
         StateData $stateDataHelper,
         Data $dataHelper,
-        OrderRepositoryInterface $orderRepository
+        OrderRepositoryInterface $orderRepository,
+        Recurring $recurringHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
@@ -171,6 +178,7 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->stateDataHelper = $stateDataHelper;
         $this->dataHelper = $dataHelper;
         $this->orderRepository = $orderRepository;
+        $this->recurringHelper = $recurringHelper;
         parent::__construct($context);
     }
 
@@ -204,7 +212,7 @@ class Result extends \Magento\Framework\App\Action\Action
                 $successPath = $failPath = 'multishipping/checkout/success';
                 $setQuoteAsActive = true;
             } else {
-                $successPath = 'checkout/onepage/success';
+                $successPath = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
                 $failPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
                 $setQuoteAsActive = false;
             }
@@ -215,7 +223,11 @@ class Result extends \Magento\Framework\App\Action\Action
         if ($result) {
             $session = $this->_session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
-            $this->_redirect($successPath, ['_query' => ['utm_nooverride' => '1']]);
+            // Add OrderIncrementId to redirect parameters for headless support.
+            $redirectParams = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
+                ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->_order->getIncrementId()]]
+                : ['_query' => ['utm_nooverride' => '1']];
+            $this->_redirect($successPath, $redirectParams);
         } else {
             $this->_adyenLogger->addAdyenResult(
                 sprintf(
@@ -297,7 +309,7 @@ class Result extends \Magento\Framework\App\Action\Action
                 $this->vaultHelper->saveRecurringDetails($this->payment, $response['additionalData']);
             } else {
                 $order = $this->payment->getOrder();
-                $this->_adyenHelper->createAdyenBillingAgreement($order, $response['additionalData']);
+                $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $this->payment->getAdditionalInformation());
             }
             $this->orderResourceModel->save($order);
         }

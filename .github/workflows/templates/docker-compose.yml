@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  db:
+    image: mariadb:10.4
+    container_name: mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: magento
+      MARIADB_USER: magento
+      MARIADB_PASSWORD: magento
+  elastic:
+    image: elasticsearch:7.16.2
+    container_name: elasticsearch
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - "discovery.type=single-node"
+      - ES_JAVA_OPTS=-Xms750m -Xmx750m
+  web:
+    image: ataberkylmz/magento2:2.4.2
+    container_name: magento2-container
+    extra_hosts:
+      - "magento2.test.com:127.0.0.1"
+    environment:
+      DB_SERVER: mariadb
+      ELASTICSEARCH_SERVER: elasticsearch
+      MAGENTO_HOST: magento2.test.com
+      VIRTUAL_HOST: magento2.test.com
+      ADMIN_USERNAME: ${MAGENTO_USERNAME}
+      ADMIN_PASSWORD: ${MAGENTO_PASSWORD}
+    depends_on:
+      - db
+      - elastic
+    volumes:
+      - ../../../:/data/extensions/workdir
