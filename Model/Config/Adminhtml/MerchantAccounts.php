@@ -1,4 +1,27 @@
 <?php
+/**
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2022 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
 namespace Adyen\Payment\Model\Config\Adminhtml;
 
 class MerchantAccounts extends \Magento\Config\Block\System\Config\Form\Field
@@ -7,6 +30,7 @@ class MerchantAccounts extends \Magento\Config\Block\System\Config\Form\Field
 
     public function render(\Magento\Framework\Data\Form\Element\AbstractElement $element)
     {
+        // Remove scope label
         $element->unsScope()->unsCanUseWebsiteValue()->unsCanUseDefaultValue();
         return parent::render($element);
     }
@@ -28,7 +52,7 @@ class MerchantAccounts extends \Magento\Config\Block\System\Config\Form\Field
         )->setData(
             [
                 'id' => 'adyen_configure_merchants',
-                'label' => __('Get your merchant accounts from Adyen'),
+                'label' => __('Get available merchant accounts from Adyen'),
             ]
         );
 
