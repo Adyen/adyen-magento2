@@ -15,11 +15,11 @@ class ProcessingMaintain extends \Magento\Sales\Model\Config\Source\Order\Status
     /**
      * @var string[]
      */
-    protected $_stateStatuses = [
+    private $stateStatuses = [
         \Magento\Sales\Model\Order::STATE_PROCESSING,
     ];
 
-    protected $_adyenStateStatuses = Webhook::STATE_MAINTAIN;
+    private $adyenStateStatuses = AdyenStates::STATE_MAINTAIN_STATUS;
 
     /**
      * @param \Magento\Sales\Model\Order\Config $orderConfig
@@ -34,11 +34,11 @@ class ProcessingMaintain extends \Magento\Sales\Model\Config\Source\Order\Status
      */
     public function toOptionArray()
     {
-        $statuses = $this->_stateStatuses
-            ? $this->_orderConfig->getStateStatuses($this->_stateStatuses)
+        $statuses = $this->stateStatuses
+            ? $this->_orderConfig->getStateStatuses($this->stateStatuses)
             : $this->_orderConfig->getStatuses();
 
-        $statuses = array_merge($statuses, $this->_adyenStateStatuses);
+        $statuses = array_merge($statuses, $this->adyenStateStatuses);
 
         $options = [];
         foreach ($statuses as $code => $label) {

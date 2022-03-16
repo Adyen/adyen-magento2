@@ -31,6 +31,7 @@ use Adyen\Payment\Helper\PaymentMethods as PaymentMethodsHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\PaymentRequest;
 use Adyen\Payment\Model\Billing\AgreementFactory;
+use Adyen\Payment\Model\Config\Source\Status\AdyenStates;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
@@ -70,9 +71,6 @@ use Magento\Vault\Model\PaymentTokenManagement;
 
 class Webhook
 {
-    // Adyen Custom States
-    const STATE_MAINTAIN = ['maintain' => 'Maintain status'];
-
     const WEBHOOK_ORDER_STATE_MAPPING = [
         Order::STATE_NEW => PaymentStates::STATE_NEW,
         Order::STATE_PENDING_PAYMENT => PaymentStates::STATE_PENDING,
@@ -80,6 +78,7 @@ class Webhook
         Order::STATE_PROCESSING => PaymentStates::STATE_IN_PROGRESS,
         Order::STATE_COMPLETE => PaymentStates::STATE_PAID,
         Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED,
+        AdyenStates::STATE_MAINTAIN => PaymentStates::STATE_MAINTAIN
     ];
 
     /**
@@ -1577,7 +1576,7 @@ class Webhook
 
         // Set state back to previous state to prevent update if 'maintain status' was configured
         $maintainingState = false;
-        if ($status == key(self::STATE_MAINTAIN)) {
+        if ($status === PaymentStates::STATE_MAINTAIN) {
             $maintainingState = true;
             $status = $order->getStatus();
         }
@@ -1636,13 +1635,15 @@ class Webhook
             if (!empty($status) && $maintainingState) {
                 $order->addStatusHistoryComment(__($comment), $status);
                 $this->logger->addAdyenNotificationCronjob(
-                    'Maintaining current status: ' . $status
+                    'Maintaining current status: ' . $status,
+                    $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
                 );
             } else if (!empty($status)) {
                 $order->addStatusHistoryComment(__($comment), $status);
                 $this->setState($status);
                 $this->logger->addAdyenNotificationCronjob(
-                    'Order status was changed to authorised status: ' . $status
+                    'Order status was changed to authorised status: ' . $status,
+                    $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
                 );
             } else {
                 $order->addStatusHistoryComment(__($comment));
