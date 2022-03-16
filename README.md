@@ -21,7 +21,7 @@ This plugin supports Magento2 version
 We provide three levels of support:
 1. **Level 1 (12 months)**: full support (including new features) *Keep in mind that some new features are not possible on older versions, therefore this is not inclusive of ALL new features that are built.* 
 2. **Level 2 (12 months - 18 months)**: high priority bugs / security only.
-3. **Level 3 (18 months - 24 months)**: security updates only (no support from support team)
+3. **Level 3 (18 months - 24 months)**: security updates only (no support from support team).
 
 > After Level 3 there is no support or maintenance from Adyen and it should be treated as a native integration of the merchant.
 
