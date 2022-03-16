@@ -121,7 +121,7 @@ QUERY;
             '',
         );
 
-        $adyenPaymentStatusArray = $response['adyen_payment_status'];
+        $adyenPaymentStatusArray = $response['adyenPaymentStatus'];
 
         self::assertArrayHasKey('isFinal', $adyenPaymentStatusArray);
         self::assertArrayHasKey('resultCode', $adyenPaymentStatusArray);
