@@ -23,7 +23,9 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Model\Config\Source\CcType;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
+use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Adyen\Payment\Observer\AdyenOneclickDataAssignObserver;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -61,6 +63,11 @@ class Requests extends AbstractHelper
     private $stateData;
 
     /**
+     * @var PaymentMethods
+     */
+    private $paymentMethodsHelper;
+
+    /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
@@ -74,13 +81,15 @@ class Requests extends AbstractHelper
         Config $adyenConfig,
         UrlInterface $urlBuilder,
         Address $addressHelper,
-        StateData $stateData
+        StateData $stateData,
+        PaymentMethods $paymentMethodsHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
         $this->urlBuilder = $urlBuilder;
         $this->addressHelper = $addressHelper;
         $this->stateData = $stateData;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -353,15 +362,16 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * @param $request
-     * @param $areaCode
-     * @param $storeId
+     * Build the recurring data when payment is done using a card
+     *
+     * @param int $storeId
      * @param $payment
+     * @return array
      */
-    public function buildRecurringData(int $storeId, $payment, $request = [])
+    public function buildCardRecurringData(int $storeId, $payment)
     {
-        $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
-        $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
+        $request = [];
+
         $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
         // Initialize the request body with the current state data
         // Multishipping checkout uses the cc_number field for state data
@@ -372,15 +382,63 @@ class Requests extends AbstractHelper
 
         //recurring
         if ($storedPaymentMethodsEnabled) {
-            if ($enableVault) {
+            if ($this->adyenHelper->isCreditCardVaultEnabled()) {
                 $request['recurringProcessingModel'] = 'Subscription';
             } else {
-                if ($enableOneclick) {
-                    $request['recurringProcessingModel'] = 'CardOnFile';
-                } else {
-                    $request['recurringProcessingModel'] = 'Subscription';
-                }
+                $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
+                $request['recurringProcessingModel'] = $enableOneclick ? 'CardOnFile' : 'Subscription';
             }
+        }
+
+        return $request;
+    }
+
+    /**
+     * Build the recurring data when payment is done trough an alternative payment method
+     *
+     * @param int $storeId
+     * @param $payment
+     * @return array
+     */
+    public function buildAlternativePaymentRecurringData(int $storeId, $payment): array
+    {
+        $request = [];
+
+        $brand = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+        if (!$this->adyenConfig->isStoreAlternativePaymentMethodEnabled() ||
+            !$this->paymentMethodsHelper->paymentMethodSupportsRecurring($brand)) {
+
+            return $request;
+        }
+
+
+        $recurringModel = $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
+        if (isset($recurringModel)) {
+            $request['storePaymentMethod'] = true;
+            $request['recurringProcessingModel'] = $recurringModel;
+        }
+
+        return $request;
+    }
+
+    /**
+     * Build the recurring data to be sent in case of a tokenized payment.
+     * Model will be fetched according to the type (card/other pm) of the original payment
+     *
+     * @param int $storeId
+     * @param $payment
+     * @return array
+     */
+    public function buildTokenizedPaymentRecurringData(int $storeId, $payment): array
+    {
+        $request = [];
+
+        if (in_array($payment->getAdditionalInformation('cc_type'), CcType::ALLOWED_TYPES)) {
+            //TODO: This should be revised in a future update
+            $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
+            $request['recurringProcessingModel'] = $enableOneclick ? 'CardOnFile' : 'Subscription';
+        } else {
+            $request['recurringProcessingModel'] = $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
         }
 
         return $request;

@@ -63,6 +63,11 @@ class PaymentResponseHandler
     private $orderResourceModel;
 
     /**
+     * @var Recurring
+     */
+    private $recurringHelper;
+
+    /**
      * PaymentResponseHandler constructor.
      *
      * @param AdyenLogger $adyenLogger
@@ -73,12 +78,14 @@ class PaymentResponseHandler
         AdyenLogger $adyenLogger,
         Data $adyenHelper,
         Vault $vaultHelper,
-        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
+        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
+        Recurring $recurringHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
+        $this->recurringHelper = $recurringHelper;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
@@ -197,7 +204,7 @@ class PaymentResponseHandler
                         $this->vaultHelper->saveRecurringDetails($payment, $paymentsResponse['additionalData']);
                     } else {
                         $order = $payment->getOrder();
-                        $this->adyenHelper->createAdyenBillingAgreement($order, $paymentsResponse['additionalData']);
+                        $this->recurringHelper->createAdyenBillingAgreement($order, $paymentsResponse['additionalData']);
                     }
                 }
                 $this->orderResourceModel->save($order);

@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
@@ -68,6 +69,9 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
      * AdyenHppDataAssignObserver constructor.
      *
      * @param CheckoutStateDataValidator $checkoutStateDataValidator
+     * @param Collection $stateDataCollection
+     * @param StateData $stateData
+     * @param Session $checkoutSession
      */
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
@@ -85,6 +89,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
      */
     public function execute(Observer $observer)
     {
+        $additionalDataToSave = [];
         // Get request fields
         $data = $this->readDataArgument($observer);
         $paymentInfo = $this->readPaymentModelArgument($observer);
@@ -111,12 +116,17 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         if (!empty($stateData)) {
             $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
         }
+
+        if ($additionalData[self::BRAND_CODE] === Data::SEPA) {
+            $additionalDataToSave = $this->getSepaAdditionalDataToSave($stateData);
+        }
+
         // Set stateData in a service and remove from payment's additionalData
         $this->stateData->setStateData($stateData, $paymentInfo->getData('quote_id'));
         unset($additionalData[self::STATE_DATA]);
 
         // Set additional data in the payment
-        foreach ($additionalData as $key => $data) {
+        foreach (array_merge($additionalData, $additionalDataToSave) as $key => $data) {
             $paymentInfo->setAdditionalInformation($key, $data);
         }
 
@@ -124,5 +134,25 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         if (!empty($additionalData[self::BRAND_CODE])) {
             $paymentInfo->setCcType($additionalData[self::BRAND_CODE]);
         }
+    }
+
+    /**
+     * Get the additional data to save. This data will be required if the payment is to be tokenized
+     *
+     * @param array $stateData
+     * @return array
+     */
+    private function getSepaAdditionalDataToSave(array $stateData): array
+    {
+        $additionalData = [];
+        if (array_key_exists('iban', $stateData['paymentMethod'])) {
+            $additionalData['iban'] = $stateData['paymentMethod']['iban'];
+        }
+
+        if (array_key_exists('ownerName', $stateData['paymentMethod'])) {
+            $additionalData['ownerName'] = $stateData['paymentMethod']['ownerName'];
+        }
+
+        return $additionalData;
     }
 }

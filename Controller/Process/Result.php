@@ -23,6 +23,7 @@
 
 namespace Adyen\Payment\Controller\Process;
 
+use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
 use \Adyen\Payment\Model\Notification;
 use Adyen\Service\Validator\DataArrayValidator;
@@ -114,6 +115,11 @@ class Result extends \Magento\Framework\App\Action\Action
     private $stateDataHelper;
 
     /**
+     * @var Recurring
+     */
+    private $recurringHelper;
+
+    /**
      * Result constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -137,7 +143,8 @@ class Result extends \Magento\Framework\App\Action\Action
         \Adyen\Payment\Helper\Quote $quoteHelper,
         \Adyen\Payment\Helper\Vault $vaultHelper,
         \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
-        StateData $stateDataHelper
+        StateData $stateDataHelper,
+        Recurring $recurringHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
@@ -150,6 +157,7 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
         $this->stateDataHelper = $stateDataHelper;
+        $this->recurringHelper = $recurringHelper;
         parent::__construct($context);
     }
 
@@ -268,7 +276,7 @@ class Result extends \Magento\Framework\App\Action\Action
                 $this->vaultHelper->saveRecurringDetails($this->payment, $response['additionalData']);
             } else {
                 $order = $this->payment->getOrder();
-                $this->_adyenHelper->createAdyenBillingAgreement($order, $response['additionalData']);
+                $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $this->payment->getAdditionalInformation());
             }
             $this->orderResourceModel->save($order);
         }
