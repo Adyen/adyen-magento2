@@ -77,8 +77,7 @@ class Webhook
         Order::STATE_PAYMENT_REVIEW => PaymentStates::STATE_PENDING,
         Order::STATE_PROCESSING => PaymentStates::STATE_IN_PROGRESS,
         Order::STATE_COMPLETE => PaymentStates::STATE_PAID,
-        Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED,
-        AdyenStates::STATE_MAINTAIN => PaymentStates::STATE_MAINTAIN
+        Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED
     ];
 
     /**
@@ -1576,7 +1575,7 @@ class Webhook
 
         // Set state back to previous state to prevent update if 'maintain status' was configured
         $maintainingState = false;
-        if ($status === PaymentStates::STATE_MAINTAIN) {
+        if ($status === AdyenStates::STATE_MAINTAIN) {
             $maintainingState = true;
             $status = $order->getStatus();
         }
