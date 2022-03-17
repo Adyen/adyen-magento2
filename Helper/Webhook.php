@@ -80,6 +80,14 @@ class Webhook
     ];
 
     /**
+     * Indicative matrix for possible states to enter after given event
+     */
+    const STATE_TRANSITION_MATRIX = [
+        'payment_pre_authorized' => [Order::STATE_NEW, Order::STATE_PROCESSING],
+        'payment_authorized' => [Order::STATE_PROCESSING]
+    ];
+
+    /**
      * @var Order
      */
     private $order;
@@ -1203,13 +1211,13 @@ class Webhook
      */
     private function setPrePaymentAuthorized()
     {
+        $eventLabel = "payment_pre_authorized";
         $status = $this->configHelper->getConfigData(
-            'payment_pre_authorized',
+            $eventLabel,
             'adyen_abstract',
             $this->order->getStoreId()
         );
-        // Possible states entered by the configured status
-        $possibleStates = ['new', 'processing'];
+        $possibleStates = self::STATE_TRANSITION_MATRIX[$eventLabel];
 
         // only do this if status in configuration is set
         if (!empty($status)) {
@@ -1568,13 +1576,13 @@ class Webhook
             ->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
         $fullAmountFinalized = $this->adyenOrderPaymentHelper->isFullAmountFinalized($order);
 
+        $eventLabel = 'payment_authorized';
         $status = $this->configHelper->getConfigData(
-            'payment_authorized',
+            $eventLabel,
             'adyen_abstract',
             $order->getStoreId()
         );
-        // Possible states entered by the configured status
-        $possibleStates = ['processing'];
+        $possibleStates = self::STATE_TRANSITION_MATRIX[$eventLabel];
 
         // virtual order can have different status
         if ($order->getIsVirtual()) {
