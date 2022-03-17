@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,38 +23,33 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
+use Adyen\Payment\Helper\Data;
+use Magento\Payment\Model\Config;
+
 /**
  * @codeCoverageIgnore
  */
 class CcType extends \Magento\Payment\Model\Source\Cctype
 {
+    const ALLOWED_TYPES = ['VI', 'MC', 'AE', 'DI', 'JCB', 'UN', 'MI', 'DN', 'BCMC', 'HIPERCARD', 'ELO', 'TROY', 'DANKORT', 'CB'];
+
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $_adyenHelper;
 
     /**
      * CcType constructor.
      *
-     * @param \Magento\Payment\Model\Config $paymentConfig
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Config $paymentConfig
+     * @param Data $adyenHelper
      */
     public function __construct(
-        \Magento\Payment\Model\Config $paymentConfig,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        Config $paymentConfig,
+        Data $adyenHelper
     ) {
         parent::__construct($paymentConfig);
         $this->_adyenHelper = $adyenHelper;
-    }
-
-    /**
-     * Allowed credit card types
-     *
-     * @return string[]
-     */
-    public function getAllowedTypes()
-    {
-        return ['VI', 'MC', 'AE', 'DI', 'JCB', 'UN', 'MI', 'DN', 'BCMC', 'HIPERCARD', 'ELO', 'TROY', 'DANKORT', 'CB'];
     }
 
     /**
@@ -65,7 +60,7 @@ class CcType extends \Magento\Payment\Model\Source\Cctype
         /**
          * making filter by allowed cards
          */
-        $allowed = $this->getAllowedTypes();
+        $allowed = self::ALLOWED_TYPES;
         $options = [];
 
         foreach ($this->_adyenHelper->getAdyenCcTypes() as $code => $name) {

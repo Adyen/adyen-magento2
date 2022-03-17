@@ -23,6 +23,12 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\AdyenOrderPayment;
+use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\Requests;
+use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Model\Context;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class RecurringDataBuilder implements BuilderInterface
@@ -33,40 +39,76 @@ class RecurringDataBuilder implements BuilderInterface
     private $appState;
 
     /**
-     * @var \Adyen\Payment\Helper\Requests
+     * @var Requests
      */
     private $adyenRequestsHelper;
 
     /**
+     * @var PaymentMethods
+     */
+    private $paymentMethodsHelper;
+
+    /**
+     * @var AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
+     * @var AdyenOrderPayment
+     */
+    private $adyenOrderPayment;
+
+    /**
      * RecurringDataBuilder constructor.
      *
-     * @param \Magento\Framework\Model\Context $context
-     * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+     * @param Context $context
+     * @param Requests $adyenRequestsHelper
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+        Context $context,
+        Requests $adyenRequestsHelper,
+        PaymentMethods $paymentMethodsHelper,
+        AdyenLogger $adyenLogger,
+        AdyenOrderPayment $adyenOrderPayment
     ) {
         $this->appState = $context->getAppState();
         $this->adyenRequestsHelper = $adyenRequestsHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->adyenLogger = $adyenLogger;
+        $this->adyenOrderPayment = $adyenOrderPayment;
     }
 
     /**
      * @param array $buildSubject
      * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function build(array $buildSubject): array
     {
+        $body = [];
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        $storeId = $payment->getOrder()->getStoreId();
+        $order = $payment->getOrder();
+        $storeId = $order->getStoreId();
+        $method = $payment->getMethod();
+
+        if ($method === PaymentMethods::ADYEN_CC) {
+            $body = $this->adyenRequestsHelper->buildCardRecurringData($storeId, $payment);
+        } elseif ($method === PaymentMethods::ADYEN_HPP) {
+            $body = $this->adyenRequestsHelper->buildAlternativePaymentRecurringData($storeId, $payment);
+        } elseif ($method === PaymentMethods::ADYEN_ONE_CLICK) {
+            $body = $this->adyenRequestsHelper->buildTokenizedPaymentRecurringData($storeId, $payment);
+        } else {
+            $this->adyenLogger->addAdyenWarning(
+                sprintf('Unknown payment method: %s', $payment->getMethod()),
+                $this->adyenOrderPayment->getLogOrderContext($order)
+            );
+        }
+
         return [
-            'body' => $this->adyenRequestsHelper->buildRecurringData(
-                $storeId,
-                $payment
-            )
+            'body' => $body
         ];
     }
 }
