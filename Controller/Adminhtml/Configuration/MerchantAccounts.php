@@ -76,7 +76,8 @@ class MerchantAccounts extends Action
         try {
             $xapikey = $this->getRequest()->getParam('xapikey', '');
             $demoMode = $this->getRequest()->getParam('demoMode', '');
-            if (str_contains($xapikey, '*')) {
+            //Use the stored xapi key if the return value is encrypted chars only or it is empty,
+            if (!empty($xapikey) && preg_match('/^\*+$/', $xapikey)) {
                 $xapikey = '';
             }
             $response = $this->managementHelper->getMerchantAccountWithClientkey($xapikey);
