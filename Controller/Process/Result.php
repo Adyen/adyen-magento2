@@ -196,25 +196,7 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     protected function replaceCart($response)
     {
-        if ($this->_adyenHelper->getConfigData(
-            "clone_quote",
-            "adyen_abstract",
-            $this->_order->getStoreId(),
-            true
-        )) {
-            try {
-                $newQuote = $this->quoteHelper->cloneQuote($this->_session->getQuote(), $this->_order);
-                $this->_session->replaceQuote($newQuote);
-            } catch (\Magento\Framework\Exception\LocalizedException $e) {
-                $this->_session->restoreQuote();
-                $this->_adyenLogger->addAdyenResult(
-                    'Error when trying to create a new quote, ' .
-                    'the previous quote has been restored instead: ' . $e->getMessage()
-                );
-            }
-        } else {
-            $this->_session->restoreQuote();
-        }
+        $this->_session->restoreQuote();
 
         if (isset($response['authResult']) && $response['authResult'] == \Adyen\Payment\Model\Notification::CANCELLED) {
             $this->messageManager->addError(__('You have cancelled the order. Please try again'));
