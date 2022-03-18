@@ -30,6 +30,15 @@ type AdyenPaymentMethodsResponse {
     paymentMethods: [AdyenPaymentMethodsArray]
 }
 
+type PlaceOrderOutput {
+    order: Order!,
+    cart: CartMaskedId!
+}
+
+type CartMaskedId {
+    id: String! @doc(description: "Cart ID.")
+}
+
 type AdyenPaymentMethodsArray {
     name: String @doc(description: "The displayable name of this payment method.")
     type: String @doc(description: "The unique payment method code.")
