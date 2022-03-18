@@ -105,7 +105,6 @@ class Result extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         $response = $this->getRequest()->getParams();
-        $this->_adyenLogger->addAdyenResult(print_r($response, true));
 
         if ($response) {
             $result = $this->validateResponse($response);
