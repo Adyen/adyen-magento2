@@ -77,11 +77,6 @@ class Result extends \Magento\Framework\App\Action\Action
     protected $_session;
 
     /**
-     * @var \Magento\Customer\Model\Session
-     */
-    private $customerSession;
-
-    /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
     protected $_adyenLogger;
@@ -131,7 +126,6 @@ class Result extends \Magento\Framework\App\Action\Action
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory,
         \Magento\Checkout\Model\Session $session,
-        \Magento\Customer\Model\Session $customerSession,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Adyen\Payment\Helper\Quote $quoteHelper,
@@ -143,7 +137,6 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->_orderFactory = $orderFactory;
         $this->_orderHistoryFactory = $orderHistoryFactory;
         $this->_session = $session;
-        $this->customerSession = $customerSession;
         $this->_adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
         $this->quoteHelper = $quoteHelper;
@@ -160,14 +153,7 @@ class Result extends \Magento\Framework\App\Action\Action
     {
         // Receive all params as this could be a GET or POST request
         $response = $this->getRequest()->getParams();
-
-        // Check guest order ownership
-        if (!$this->customerSession->isLoggedIn()) {
-            $merchantReference = $this->getRequest()->getParam('merchantReference');
-            if (!$merchantReference || $merchantReference !== $this->_session->getLastRealOrderId()) {
-                return $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
-            }
-        }
+        $this->_adyenLogger->addAdyenResult(json_encode($response));
 
         if ($response) {
             $result = $this->validateResponse($response);
@@ -482,19 +468,6 @@ class Result extends \Magento\Framework\App\Action\Action
             throw new \Magento\Framework\Exception\LocalizedException(
                 __('Order cannot be loaded')
             );
-        }
-        // Check logged-in order ownership
-        if ($this->customerSession->isLoggedIn()) {
-            if ($order->getCustomerId() !== $this->customerSession->getCustomerId()) {
-                $this->_adyenLogger->addError("Order belongs to another customer", [
-                    'order' => $order->getId(),
-                    'customer' => $this->customerSession->getCustomerId()
-                ]);
-
-                throw new \Magento\Framework\Exception\AuthorizationException(
-                    __('Order is unavailable at the moment')
-                );
-            }
         }
 
         $this->payment = $order->getPayment();
