@@ -32,11 +32,7 @@ type AdyenPaymentMethodsResponse {
 
 type PlaceOrderOutput {
     order: Order!,
-    cart: CartMaskedId!
-}
-
-type CartMaskedId {
-    id: String! @doc(description: "Cart ID.")
+    cart: Cart!
 }
 
 type AdyenPaymentMethodsArray {

@@ -24,8 +24,11 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\QuoteRepository;
@@ -35,6 +38,7 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote as QuoteModel;
 use Magento\Quote\Model\Quote\AddressFactory as QuoteAddressFactory;
 use Magento\Quote\Model\ResourceModel\Quote\Address as QuoteAddressResource;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderRepository;
 
@@ -44,22 +48,27 @@ class Quote
      * @var QuoteRepository
      */
     private $quoteRepository;
+
     /**
      * @var CartRepositoryInterface
      */
     private $cartRepository;
+
     /**
      * @var QuoteAddressFactory
      */
     private $quoteAddressFactory;
+
     /**
      * @var QuoteAddressResource
      */
     private $quoteAddressResource;
+
     /**
      * @var SearchCriteriaBuilder
      */
     private $searchCriteriaBuilder;
+
     /**
      * @var OrderRepository
      */
@@ -70,6 +79,16 @@ class Quote
      */
     private $maskedQuoteIdToQuoteId;
 
+    /**
+     * @var FilterBuilder
+     */
+    private $filterBuilder;
+
+    /**
+     * @var AdyenLogger
+     */
+    private $adyenLogger;
+
     public function __construct(
         CartRepositoryInterface $cartRepository,
         QuoteRepository $quoteRepository,
@@ -77,7 +96,8 @@ class Quote
         QuoteAddressFactory $quoteAddressFactory,
         QuoteAddressResource $quoteAddressResource,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId
+        MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+        FilterBuilder $filterBuilder
     ) {
         $this->cartRepository = $cartRepository;
         $this->quoteRepository = $quoteRepository;
@@ -86,6 +106,7 @@ class Quote
         $this->quoteAddressResource = $quoteAddressResource;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
+        $this->filterBuilder = $filterBuilder;
     }
 
     /**
@@ -194,5 +215,35 @@ class Quote
         }
 
         return $cart;
+    }
+
+    /**
+     * @param string $incrementId
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function getQuoteByOrderIncrementId(string $incrementId): CartInterface
+    {
+        $orderFilter = $this->filterBuilder
+            ->setField(OrderInterface::INCREMENT_ID)
+            ->setConditionType('eq')
+            ->setValue($incrementId)
+            ->create();
+
+        $this->searchCriteriaBuilder->addFilters([$orderFilter]);
+        $searchCriteria = $this->searchCriteriaBuilder->create();
+        $searchResult = $this->orderRepository->getList($searchCriteria);
+
+        if ($searchResult->getTotalCount() !== 1) {
+            throw new NoSuchEntityException(__(
+                sprintf('Order with increment id %s not found OR multiple orders exist', $incrementId)
+            ));
+        }
+
+        $orders = $searchResult->getItems();
+        /** @var OrderInterface $order*/
+        $order = reset($orders);
+
+        return $this->cartRepository->get($order->getQuoteId());
     }
 }
