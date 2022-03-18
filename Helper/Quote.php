@@ -25,15 +25,13 @@
 namespace Adyen\Payment\Helper;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Quote\Model\Quote\Address;
-use Magento\Quote\Model\QuoteRepository;
 use Magento\Framework\Exception\AlreadyExistsException;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote as QuoteModel;
+use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\Quote\AddressFactory as QuoteAddressFactory;
+use Magento\Quote\Model\QuoteRepository;
 use Magento\Quote\Model\ResourceModel\Quote\Address as QuoteAddressResource;
-use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderRepository;
 
 class Quote
@@ -65,35 +63,16 @@ class Quote
 
     public function __construct(
         CartRepositoryInterface $cartRepository,
-        QuoteRepository $quoteRepository,
         OrderRepository $orderRepository,
         QuoteAddressFactory $quoteAddressFactory,
         QuoteAddressResource $quoteAddressResource,
         SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         $this->cartRepository = $cartRepository;
-        $this->quoteRepository = $quoteRepository;
         $this->orderRepository = $orderRepository;
         $this->quoteAddressFactory = $quoteAddressFactory;
         $this->quoteAddressResource = $quoteAddressResource;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-    }
-
-    /**
-     * @param QuoteModel $newQuote
-     * @param Order $previousOrder
-     * @return false|QuoteModel
-     * @throws LocalizedException
-     */
-    public function cloneQuote(QuoteModel $newQuote, Order $previousOrder)
-    {
-        $oldQuote = $this->quoteRepository->get($previousOrder->getQuoteId());
-        $newQuote->merge($oldQuote)->collectTotals();
-        $newQuote->setShippingAddress($oldQuote->getShippingAddress());
-        $newQuote->setBillingAddress($oldQuote->getBillingAddress());
-        $this->cartRepository->save($newQuote);
-        $this->cloneQuoteAddresses($oldQuote, $newQuote);
-        return $newQuote;
     }
 
     /**
