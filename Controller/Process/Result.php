@@ -26,10 +26,8 @@ namespace Adyen\Payment\Controller\Process;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
-use \Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\Notification;
 use Adyen\Service\Validator\DataArrayValidator;
-use Adyen\Payment\Helper\PaymentResponseHandler;
-use Magento\Framework\App\Request\Http as Http;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 
@@ -79,11 +77,6 @@ class Result extends \Magento\Framework\App\Action\Action
      * @var \Magento\Checkout\Model\Session
      */
     protected $_session;
-
-    /**
-     * @var \Magento\Customer\Model\Session
-     */
-    private $customerSession;
 
     /**
      * @var \Adyen\Payment\Logger\AdyenLogger
@@ -154,7 +147,6 @@ class Result extends \Magento\Framework\App\Action\Action
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory,
         \Magento\Checkout\Model\Session $session,
-        \Magento\Customer\Model\Session $customerSession,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Adyen\Payment\Helper\Quote $quoteHelper,
@@ -169,7 +161,6 @@ class Result extends \Magento\Framework\App\Action\Action
         $this->_orderFactory = $orderFactory;
         $this->_orderHistoryFactory = $orderHistoryFactory;
         $this->_session = $session;
-        $this->customerSession = $customerSession;
         $this->_adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
         $this->quoteHelper = $quoteHelper;
