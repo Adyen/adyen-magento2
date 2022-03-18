@@ -7,6 +7,7 @@ The plugin integrates card component (Secured Fields) using Adyen Checkout for a
 ### Support Vault and Instant Purchase ###
 Inside Adyen toggle the following settings on inside the API and Responses section (Settings -> API and Responses):
 * Recurring details
+* Card bin
 * Card summary
 * Expiry date
 * Variant
