@@ -1457,10 +1457,38 @@ class Webhook
             case 'givex':
             case 'valuelink':
             case 'twint':
+            case 'carnet':
+            case 'pix':
+            case 'klarna':
+            case 'oney':
+            case 'affirm':
+            case 'bright':
+            case 'amazonpay':
+            case 'applepay':
+            case 'googlepay':
+            case 'mobilepay':
+            case 'paypal':
+            case 'twint':
+            case 'vipps':
                 $manualCaptureAllowed = true;
                 break;
             default:
                 break;
+        }
+
+        $paymentMethodsWithVariants = array(
+            'boleto',
+            'clearpay',
+            'afterpay',
+            'ratepay',
+            'zip',
+        );
+
+        //check the pm variants
+        foreach ($paymentMethodsWithVariants as $paymentMethod) {
+            if(str_contains($notificationPaymentMethod,$paymentMethod)){
+                $manualCaptureAllowed = true;
+            }
         }
 
         return $manualCaptureAllowed;
