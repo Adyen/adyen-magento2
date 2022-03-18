@@ -51,9 +51,7 @@
 <?php if ($block->showAdyenGiving()):
     $checkoutConfig = /* @noEscape */
     $block->getSerializedCheckoutConfig();
-    $scriptString = <<<script
-    window.checkoutConfig = {$checkoutConfig};
-script;
+    $scriptString = __('window.checkoutConfig = %1;', $checkoutConfig);
 ?>
 <script>
     <?=$scriptString?>
