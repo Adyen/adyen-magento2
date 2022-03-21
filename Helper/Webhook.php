@@ -1467,8 +1467,6 @@ class Webhook
             case 'applepay':
             case 'googlepay':
             case 'mobilepay':
-            case 'paypal':
-            case 'twint':
             case 'vipps':
                 $manualCaptureAllowed = true;
                 break;
