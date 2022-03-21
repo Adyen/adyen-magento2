@@ -92,12 +92,9 @@ class GetAdyenPaymentStatus implements ResolverInterface
             throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
         }
 
-        if (isset($args['orderId'])) {
-            $orderIncrementId = $args['orderId'];
-        } else {
-            $orderIncrementId = $value['order_id'];
-        }
-        $maskedCartId = $args['cartId'];
+        // Get the required values either from the passed arguments OR the query parameters (used in request chaining)
+        $orderIncrementId = $args['orderId'] ?? $value['order_id'];
+        $maskedCartId = $args['cartId'] ?? $value['cart_id'];
 
         $currentUserId = $context->getUserId();
         $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
@@ -113,7 +110,10 @@ class GetAdyenPaymentStatus implements ResolverInterface
             return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentStatus($orderId);
 
         } catch (NoSuchEntityException $e) {
-            $this->adyenLogger->addWarning(sprintf('Attempted to get the payment status for order %s.', $orderIncrementId));
+            $this->adyenLogger->addWarning(sprintf(
+                'Attempted to get the payment status for order %s. Exception: %s',
+                $orderIncrementId, $e->getMessage()
+            ));
 
             throw new GraphQlNoSuchEntityException(__('Order does not exist'));
         }
