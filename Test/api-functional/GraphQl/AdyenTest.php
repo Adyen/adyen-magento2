@@ -232,24 +232,39 @@ QUERY;
     {
         return <<<QUERY
 mutation {
-  setPaymentMethodAndPlaceOrder(input: {
-      cart_id: "$maskedQuoteId"
-      payment_method: {
-          code: "$methodCode",
-          {$adyenAdditionalData}
-      }
-  }) {
-    order {
-      order_number
-      cart_id
-      adyen_payment_status {
-        isFinal
-        resultCode
-        additionalData
-        action
-      }
+    setPaymentMethodOnCart(
+        input: {
+            cart_id: $maskedQuoteId
+            payment_method: {
+              code: "$methodCode",
+              {$adyenAdditionalData}
+            }
+        }
+    ) {
+        cart {
+            selected_payment_method {
+                code
+                title
+            }
+        }
     }
-  }
+
+    placeOrder(
+        input: {
+            cart_id: $maskedQuoteId
+        }
+    ) {
+        order {
+            order_number
+            cart_id
+            adyen_payment_status {
+                isFinal
+                resultCode
+                additionalData
+                action
+            }
+        }
+    }
 }
 QUERY;
     }
