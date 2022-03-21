@@ -23,8 +23,6 @@
 
 namespace Adyen\Payment\Logger\Handler;
 
-use Adyen\Payment\Logger\AdyenLogger;
-
 class AdyenWarning extends AdyenBase
 {
     /**
