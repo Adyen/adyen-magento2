@@ -86,14 +86,14 @@ class GetAdyenPaymentStatus implements ResolverInterface
         array $value = null,
         array $args = null
     ) {
-        if (empty($args['orderId']) && empty($value['order_id'])) {
+        if (empty($args['orderNumber']) && empty($value['order_number'])) {
             throw new GraphQlInputException(__('Required parameter "order_id" is missing'));
         } elseif (empty($args['cartId']) && empty($value['cart_id'])) {
             throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
         }
 
         // Get the required values either from the passed arguments OR the query parameters (used in request chaining)
-        $orderIncrementId = $args['orderId'] ?? $value['order_id'];
+        $orderIncrementId = $args['orderNumber'] ?? $value['order_number'];
         $maskedCartId = $args['cartId'] ?? $value['cart_id'];
 
         $currentUserId = $context->getUserId();

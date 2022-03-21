@@ -958,7 +958,7 @@
                 sortOrder="10"/>
     </type>
     <type name="Magento\QuoteGraphQl\Model\Resolver\PlaceOrder">
-        <plugin name="GraphQlPlaceOrder" type="Adyen\Payment\Plugin\GraphQlPlaceOrder" sortOrder="10"/>
+        <plugin name="GraphQlPlaceOrderAddCartId" type="Adyen\Payment\Plugin\GraphQlPlaceOrderAddCartId" sortOrder="10"/>
     </type>
 
     <virtualType name="AdyenCancelOrders" type="Adyen\Payment\Cron\CancelOrders">
