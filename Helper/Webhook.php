@@ -1474,20 +1474,20 @@ class Webhook
                 break;
         }
 
-        $paymentMethodsWithVariants = array(
-            'boleto',
-            'clearpay',
-            'afterpay',
-            'ratepay',
-            'zip',
-        );
-
-        //check the pm variants
-        foreach ($paymentMethodsWithVariants as $paymentMethod) {
-            if(str_contains($notificationPaymentMethod,$paymentMethod)){
-                $manualCaptureAllowed = true;
-            }
-        }
+//        $paymentMethodsWithVariants = array(
+//            'boleto',
+//            'clearpay',
+//            'afterpay',
+//            'ratepay',
+//            'zip',
+//        );
+//
+//        //check the pm variants
+//        foreach ($paymentMethodsWithVariants as $paymentMethod) {
+//            if(str_contains($notificationPaymentMethod,$paymentMethod)){
+//                $manualCaptureAllowed = true;
+//            }
+//        }
 
         return $manualCaptureAllowed;
     }
