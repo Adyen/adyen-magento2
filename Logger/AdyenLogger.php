@@ -34,7 +34,7 @@ class AdyenLogger extends Logger
     const ADYEN_NOTIFICATION = 201;
     const ADYEN_RESULT = 202;
     const ADYEN_NOTIFICATION_CRONJOB = 203;
-    const ADYEN_WARNING = 301;
+    const ADYEN_WARNING = 300;
 
     /**
      * Logging levels from syslog protocol defined in RFC 5424
@@ -50,8 +50,7 @@ class AdyenLogger extends Logger
         202 => 'ADYEN_RESULT',
         203 => 'ADYEN_NOTIFICATION_CRONJOB',
         250 => 'NOTICE',
-        300 => 'WARNING',
-        301 => 'ADYEN_WARNING',
+        300 => 'ADYEN_WARNING',
         400 => 'ERROR',
         500 => 'CRITICAL',
         550 => 'ALERT',
