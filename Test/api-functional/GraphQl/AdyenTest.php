@@ -97,13 +97,14 @@ QUERY;
         $query = $this->getPlaceOrderQuery($maskedQuoteId, $methodCode, $adyenAdditionalData);
         $response = $this->graphQlMutation($query);
 
-        self::assertArrayHasKey('setPaymentMethodAndPlaceOrder', $response);
-        self::assertArrayHasKey('order', $response['setPaymentMethodAndPlaceOrder']);
-        self::assertArrayHasKey('order_number', $response['setPaymentMethodAndPlaceOrder']['order']);
-        self::assertArrayHasKey('adyen_payment_status', $response['setPaymentMethodAndPlaceOrder']['order']);
-        self::assertArrayHasKey('isFinal', $response['setPaymentMethodAndPlaceOrder']['order']['adyen_payment_status']);
-        self::assertArrayHasKey('resultCode', $response['setPaymentMethodAndPlaceOrder']['order']['adyen_payment_status']);
-        self::assertArrayHasKey('action', $response['setPaymentMethodAndPlaceOrder']['order']['adyen_payment_status']);
+        self::assertArrayHasKey('placeOrder', $response);
+        self::assertArrayHasKey('order', $response['placeOrder']);
+        self::assertArrayHasKey('order_number', $response['placeOrder']['order']);
+        self::assertArrayHasKey('cart_id', $response['placeOrder']['order']);
+        self::assertArrayHasKey('adyen_payment_status', $response['placeOrder']['order']);
+        self::assertArrayHasKey('isFinal', $response['placeOrder']['order']['adyen_payment_status']);
+        self::assertArrayHasKey('resultCode', $response['placeOrder']['order']['adyen_payment_status']);
+        self::assertArrayHasKey('action', $response['placeOrder']['order']['adyen_payment_status']);
     }
 
     /**
