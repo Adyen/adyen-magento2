@@ -234,7 +234,7 @@ QUERY;
 mutation {
     setPaymentMethodOnCart(
         input: {
-            cart_id: $maskedQuoteId
+            cart_id: "$maskedQuoteId"
             payment_method: {
               code: "$methodCode",
               {$adyenAdditionalData}
