@@ -251,7 +251,7 @@ mutation {
 
     placeOrder(
         input: {
-            cart_id: $maskedQuoteId
+            cart_id: "$maskedQuoteId"
         }
     ) {
         order {
