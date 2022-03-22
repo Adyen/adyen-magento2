@@ -27,6 +27,7 @@ use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -1387,7 +1388,7 @@ class Cron
                     $this->_order->addRelatedObject($comment);
                 }
                 //store recurring contract for alternative payments methods
-                if ($_paymentCode == 'adyen_hpp' && $this->configHelper->isStoreAlternativePaymentMethodEnabled()) {
+                if ($_paymentCode == PaymentMethods::ADYEN_HPP && $this->configHelper->isStoreAlternativePaymentMethodEnabled()) {
                     $paymentTokenAlternativePaymentMethod = null;
                     try {
                         //get the payment

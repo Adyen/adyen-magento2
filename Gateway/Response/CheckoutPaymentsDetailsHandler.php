@@ -23,19 +23,24 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Recurring;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class CheckoutPaymentsDetailsHandler implements HandlerInterface
 {
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
+    /** @var Data  */
     protected $adyenHelper;
 
+    /** @var Recurring */
+    private $recurringHelper;
+
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        Data $adyenHelper,
+        Recurring $recurringHelper
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->recurringHelper = $recurringHelper;
     }
 
     /**
@@ -73,7 +78,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             $payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE
         ) {
             $order = $payment->getOrder();
-            $this->adyenHelper->createAdyenBillingAgreement($order, $response['additionalData']);
+            $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $payment->getAdditionalInformation());
         }
 
         // do not close transaction so you can do a cancel() and void
