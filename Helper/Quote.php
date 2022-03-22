@@ -24,8 +24,10 @@
 
 namespace Adyen\Payment\Helper;
 
+use Exception;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote as QuoteModel;
 use Magento\Quote\Model\Quote\Address;
@@ -63,36 +65,18 @@ class Quote
 
     public function __construct(
         CartRepositoryInterface $cartRepository,
+        QuoteRepository $quoteRepository,
         OrderRepository $orderRepository,
         QuoteAddressFactory $quoteAddressFactory,
         QuoteAddressResource $quoteAddressResource,
         SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         $this->cartRepository = $cartRepository;
+        $this->quoteRepository = $quoteRepository;
         $this->orderRepository = $orderRepository;
         $this->quoteAddressFactory = $quoteAddressFactory;
         $this->quoteAddressResource = $quoteAddressResource;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-    }
-
-    /**
-     * @param QuoteModel $oldQuote
-     * @param QuoteModel $newQuote
-     * @return false|QuoteModel
-     * @throws AlreadyExistsException
-     */
-    protected function cloneQuoteAddresses(QuoteModel $oldQuote, QuoteModel $newQuote)
-    {
-        foreach ([Address::ADDRESS_TYPE_SHIPPING, Address::ADDRESS_TYPE_BILLING] as $type) {
-            $quoteAddress = $this->quoteAddressFactory->create();
-            if ($type == Address::ADDRESS_TYPE_SHIPPING) {
-                $this->quoteAddressResource->load($quoteAddress, $oldQuote->getShippingAddress()->getId());
-            } else {
-                $this->quoteAddressResource->load($quoteAddress, $oldQuote->getBillingAddress()->getId());
-            }
-            $quoteAddress->setQuoteId($newQuote->getId())->unsetData('address_id');
-            $this->quoteAddressResource->save($quoteAddress);
-        }
     }
 
     public function getIsQuoteMultiShippingWithMerchantReference(string $merchantReference)
@@ -108,5 +92,23 @@ class Quote
         $quote = reset($quoteList);
 
         return $quote->getIsMultiShipping();
+    }
+
+    /**
+     * Try to disable a quote after successful payment
+     * @param $quoteId
+     */
+    public function disableQuote($quoteId)
+    {
+        try {
+            $quote = $this->quoteRepository->get($quoteId);
+        } catch (NoSuchEntityException $e) {
+            return;
+        }
+        if (!$quote || !$quote->getIsActive()) {
+            return;
+        }
+        $quote->setIsActive(false);
+        $this->cartRepository->save($quote);
     }
 }

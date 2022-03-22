@@ -71,6 +71,10 @@ class PaymentResponseHandler
      * @var Recurring
      */
     private $recurringHelper;
+    /**
+     * @var Quote
+     */
+    private $quoteHelper;
 
     /**
      * PaymentResponseHandler constructor.
@@ -85,7 +89,8 @@ class PaymentResponseHandler
         Vault $vaultHelper,
         \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
         Data $dataHelper,
-        Recurring $recurringHelper
+        Recurring $recurringHelper,
+        Quote $quoteHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
@@ -93,6 +98,7 @@ class PaymentResponseHandler
         $this->orderResourceModel = $orderResourceModel;
         $this->dataHelper = $dataHelper;
         $this->recurringHelper = $recurringHelper;
+        $this->quoteHelper = $quoteHelper;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
@@ -216,6 +222,7 @@ class PaymentResponseHandler
                 }
 
                 $this->orderResourceModel->save($order);
+                $this->quoteHelper->disableQuote($order->getQuoteId());
                 break;
             case self::REFUSED:
                 // Cancel order in case result is refused
