@@ -34,7 +34,6 @@ class AdyenLogger extends Logger
     const ADYEN_NOTIFICATION = 201;
     const ADYEN_RESULT = 202;
     const ADYEN_NOTIFICATION_CRONJOB = 203;
-    const ADYEN_WARNING = 300;
 
     /**
      * Logging levels from syslog protocol defined in RFC 5424
@@ -50,7 +49,7 @@ class AdyenLogger extends Logger
         202 => 'ADYEN_RESULT',
         203 => 'ADYEN_NOTIFICATION_CRONJOB',
         250 => 'NOTICE',
-        300 => 'ADYEN_WARNING',
+        300 => 'WARNING',
         400 => 'ERROR',
         500 => 'CRITICAL',
         550 => 'ALERT',
@@ -78,7 +77,7 @@ class AdyenLogger extends Logger
 
     public function addAdyenWarning($message, array $context = []): bool
     {
-        return $this->addRecord(static::ADYEN_WARNING, $message, $context);
+        return $this->addRecord(static::WARNING, $message, $context);
     }
 
     public function addAdyenResult($message, array $context = [])
@@ -99,7 +98,7 @@ class AdyenLogger extends Logger
      * @param array $context The log context
      * @return Boolean Whether the record has been processed
      */
-    public function addRecord($level, $message, array $context = [])
+    public function addRecord(int $level, $message, array $context = []): bool
     {
         $context['is_exception'] = $message instanceof \Exception;
         return parent::addRecord($level, $message, $context);
