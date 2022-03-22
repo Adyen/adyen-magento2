@@ -130,7 +130,8 @@ class GetAdyenPaymentDetails implements ResolverInterface
             return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentDetails($this->jsonSerializer->serialize($payload));
         } catch (LocalizedException $exception) {
             $this->adyenLogger->addError(sprintf('GraphQl payment details call failed with error message: %s', $exception->getMessage()));
-
+            // In the future, use the message and the code passed by the exception. Since currently the message and code are not
+            // being passed, use this generic message.
             throw new GraphQlAdyenException(__('An unknown error has occurred'), null, 000);
         }
     }
