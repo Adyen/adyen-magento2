@@ -27,6 +27,7 @@ namespace Adyen\Payment\Model\Resolver\DataProvider;
 
 use Adyen\Payment\Model\Api\AdyenOrderPaymentStatus;
 use Adyen\Payment\Model\Api\AdyenPaymentDetails;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\Serializer\Json;
 
 class GetAdyenPaymentStatus
@@ -70,6 +71,11 @@ class GetAdyenPaymentStatus
         return $this->formatResponse($adyenPaymentStatus);
     }
 
+    /**
+     * @param String $payload
+     * @return array
+     * @throws LocalizedException
+     */
     public function getGetAdyenPaymentDetails(String $payload) {
         $adyenPaymentDetails = $this->jsonSerializer->unserialize($this->adyenPaymentDetails->initiate($payload));
         return $this->formatResponse($adyenPaymentDetails);

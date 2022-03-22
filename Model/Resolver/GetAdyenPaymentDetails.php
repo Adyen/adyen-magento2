@@ -25,8 +25,10 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Model\Resolver;
 
+use Adyen\Payment\Exception\GraphQlAdyenException;
 use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
@@ -115,7 +117,7 @@ class GetAdyenPaymentDetails implements ResolverInterface
             }
         } catch (NoSuchEntityException $exception) {
             if (isset($payload) && array_key_exists('orderId', $payload)) {
-                $this->adyenLogger->addWarning(sprintf('Attempted to get the payment details for order %s.', $payload['orderId']));
+                $this->adyenLogger->addError(sprintf('Attempted to get the payment details for order %s.', $payload['orderId']));
             }
 
             throw new GraphQlNoSuchEntityException(__('Order does not exist'));
@@ -124,6 +126,12 @@ class GetAdyenPaymentDetails implements ResolverInterface
         // Set the orderId in the payload to the entity id, instead of the incrementId
         $payload['orderId'] = $order->getId();
 
-        return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentDetails($this->jsonSerializer->serialize($payload));
+        try {
+            return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentDetails($this->jsonSerializer->serialize($payload));
+        } catch (LocalizedException $exception) {
+            $this->adyenLogger->addError(sprintf('GraphQl payment details call failed with error message: %s', $exception->getMessage()));
+
+            throw new GraphQlAdyenException(__('An unknown error has occurred'), null, 000);
+        }
     }
 }
