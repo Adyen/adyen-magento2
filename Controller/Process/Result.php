@@ -181,9 +181,6 @@ class Result extends \Magento\Framework\App\Action\Action
         // Receive all params as this could be a GET or POST request
         $response = $this->getRequest()->getParams();
 
-        // Customer returned, clear the pending payment flag
-        $this->_session->unsPendingPayment();
-
         if ($response) {
             $result = $this->validateResponse($response);
 
