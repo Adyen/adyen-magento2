@@ -885,11 +885,6 @@ class Webhook
             $this->setPrePaymentAuthorized();
             $this->prepareInvoice($notification);
 
-            // Set authorized amount in sales_order_payment
-            $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($this->order, false);
-            $orderAmount = $orderAmountCurrency->getAmount();
-            $this->order->getPayment()->setAmountAuthorized($orderAmount);
-
             // For Boleto confirmation mail is sent on order creation
             // Send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
             if ($notification->getPaymentMethod() != "adyen_boleto" && !$this->order->getEmailSent()) {
@@ -898,6 +893,11 @@ class Webhook
         } else {
             $this->addProcessedStatusHistoryComment($notification);
         }
+
+        // Set authorized amount in sales_order_payment
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($this->order, false);
+        $orderAmount = $orderAmountCurrency->getAmount();
+        $this->order->getPayment()->setAmountAuthorized($orderAmount);
 
         if ($notification->getPaymentMethod() == "c_cash" &&
             $this->configHelper->getConfigData('create_shipment', 'adyen_cash', $this->order->getStoreId())
