@@ -104,6 +104,14 @@ class NotificationColumn extends \Magento\Ui\Component\Listing\Columns\Column
                     $item["pspreference"]
                 );
             }
+
+            if (!$item["done"]) {
+                $item["actions"] = sprintf(
+                    '<a href="%s">%s</a>',
+                    $orderUrl = $this->backendHelper->getUrl("adyen/notifications/reprocess", ["entity_id" => $item["entity_id"]]),
+                    "Reprocess"
+                );
+            }
         }
 
         return $dataSource;
