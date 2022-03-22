@@ -39,6 +39,7 @@ class Config
     const XML_HAS_HOLDER_NAME = "has_holder_name";
     const XML_HOLDER_NAME_REQUIRED = "holder_name_required";
     const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
+    const XML_ADYEN_HPP = 'adyen_hpp';
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
     const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
     const XML_PAYMENT_RETURN_URL = 'payment_return_url';
@@ -149,6 +150,17 @@ class Config
     }
 
     /**
+     * Get how the alternative payment should be tokenized
+     *
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function getAlternativePaymentMethodTokenType($storeId = null)
+    {
+        return $this->getConfigData('token_type', self::XML_ADYEN_HPP, $storeId);
+    }
+
+    /**
      * Check if alternative payment methods vault is enabled
      *
      * @param null|int|string $storeId
@@ -156,7 +168,7 @@ class Config
      */
     public function isStoreAlternativePaymentMethodEnabled($storeId = null)
     {
-        return $this->getConfigData('active', self::XML_ADYEN_HPP_VAULT, $storeId);
+        return $this->getConfigData('active', self::XML_ADYEN_HPP_VAULT, $storeId, true);
     }
 
     /**

@@ -75,6 +75,11 @@ class AdyenLogger extends Logger
         return $this->addRecord(static::ADYEN_DEBUG, $message, $context);
     }
 
+    public function addAdyenWarning($message, array $context = []): bool
+    {
+        return $this->addRecord(static::WARNING, $message, $context);
+    }
+
     public function addAdyenResult($message, array $context = [])
     {
         return $this->addRecord(static::ADYEN_RESULT, $message, $context);

@@ -23,8 +23,10 @@
 
 namespace Adyen\Payment\Setup;
 
+use Adyen\Payment\Helper\Config;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
+use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
@@ -41,12 +43,19 @@ class UpgradeData implements UpgradeDataInterface
      */
     private $reinitableConfig;
 
+    /**
+     * @var Config
+     */
+    private $configHelper;
+
     public function __construct(
         WriterInterface $configWriter,
-        ReinitableConfigInterface $reinitableConfig
+        ReinitableConfigInterface $reinitableConfig,
+        Config $configHelper
     ) {
         $this->configWriter = $configWriter;
         $this->reinitableConfig = $reinitableConfig;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -59,6 +68,10 @@ class UpgradeData implements UpgradeDataInterface
 
         if (version_compare($context->getVersion(), '2.4.4', '<')) {
             $this->updateSchemaVersion244($setup);
+        }
+
+        if (version_compare($context->getVersion(), '7.3.7'. '<')) {
+            $this->updateSchemaVersion737($setup);
         }
 
         $setup->endSetup();
@@ -147,6 +160,44 @@ class UpgradeData implements UpgradeDataInterface
                         $scopeId
                     );
                     break;
+            }
+        }
+
+        // re-initialize otherwise it will cause errors
+        $this->reinitableConfig->reinit();
+    }
+
+    /**
+     * If Store alternative payment methods is on, turn the config off, since it was previously NOT operational.
+     * This will ensure that if this config is turned back on, the Token type will also be saved.
+     *
+     * @param ModuleDataSetupInterface $setup
+     */
+    public function updateSchemaVersion737(ModuleDataSetupInterface $setup)
+    {
+        $configDataTable = $setup->getTable('core_config_data');
+        $pathStoreAlternativePaymentMethod = 'payment/adyen_hpp_vault/active';
+        $connection = $setup->getConnection();
+
+        $select = $connection->select()
+            ->from($configDataTable)
+            ->where(
+                'path = ?',
+                $pathStoreAlternativePaymentMethod
+            );
+
+        $configsStoreAlternativePaymentMethods = $connection->fetchAll($select);
+
+        foreach ($configsStoreAlternativePaymentMethods as $config) {
+            $scope = $config['scope'];
+            $scopeId = $config['scope_id'];
+            if ($config['value'] === '1') {
+                $this->configWriter->save(
+                    $pathStoreAlternativePaymentMethod,
+                    '0',
+                    $scope,
+                    $scopeId
+                );
             }
         }
 
