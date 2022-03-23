@@ -126,7 +126,7 @@ class GetAdyenPaymentMethods implements ResolverInterface
             return $adyenPaymentMethodsResponse ? $this->preparePaymentMethodGraphQlResponse($adyenPaymentMethodsResponse) : [];
         } catch (GraphQlAuthorizationException | GraphQlInputException | GraphQlNoSuchEntityException $exception) {
             $this->adyenLogger->addError(sprintf('GraphQl payment methods call failed with error message: %s', $exception->getMessage()));
-            throw new $exception;
+            throw $exception;
         } catch (Exception $exception) {
             $this->adyenLogger->addError(sprintf('GraphQl payment methods call failed with error message: %s', $exception->getMessage()));
             // In the future, use the message and the code passed by the exception. Since currently the message and code are not
