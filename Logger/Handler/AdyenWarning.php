@@ -15,50 +15,27 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Config\Source;
+namespace Adyen\Payment\Logger\Handler;
 
-use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\Recurring;
-use Magento\Framework\Data\OptionSourceInterface;
+use Adyen\Payment\Logger\AdyenLogger;
 
-class RecurringPaymentType implements OptionSourceInterface
+class AdyenWarning extends AdyenBase
 {
-    const UNDEFINED_OPTION_LABEL = 'NONE';
+    /**
+     * @var string
+     */
+    protected $fileName = '/var/log/adyen/warning.log';
 
     /**
-     * @var Data
+     * @var int
      */
-    protected $_adyenHelper;
+    protected $loggerType = AdyenLogger::WARNING;
 
-    /**
-     * RecurringPaymentType constructor.
-     *
-     * @param Data $adyenHelper
-     */
-    public function __construct(
-        Data $adyenHelper
-    ) {
-        $this->_adyenHelper = $adyenHelper;
-    }
-
-    /**
-     * @return array
-     */
-    public function toOptionArray(): array
-    {
-        $options = [];
-        $recurringTypes = Recurring::getRecurringTypes();
-
-        foreach ($recurringTypes as $recurringType) {
-            $options[] = ['value' => $recurringType, 'label' => $recurringType];
-        }
-
-        return $options;
-    }
+    protected $level = AdyenLogger::WARNING;
 }

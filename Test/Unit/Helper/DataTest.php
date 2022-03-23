@@ -56,10 +56,6 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $adyenLogger = $this->getSimpleMock(\Adyen\Payment\Logger\AdyenLogger::class);
         $storeManager = $this->getSimpleMock(\Magento\Store\Model\StoreManager::class);
         $cache = $this->getSimpleMock(\Magento\Framework\App\CacheInterface::class);
-        $billingAgreementFactory = $this->getSimpleMock(\Adyen\Payment
-                                                        \Model\Billing\AgreementFactory::class);
-        $agreementResourceModel = $this->getSimpleMock(\Adyen\Payment
-                                                       \Model\ResourceModel\Billing\Agreement::class);
         $localeResolver = $this->getSimpleMock(\Magento\Framework\Locale\ResolverInterface::class);
         $config = $this->getSimpleMock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
         $serializer = $this->getSimpleMock(\Magento\Framework\Serialize\SerializerInterface::class);
@@ -83,8 +79,6 @@ class DataTest extends \PHPUnit\Framework\TestCase
             $adyenLogger,
             $storeManager,
             $cache,
-            $billingAgreementFactory,
-            $agreementResourceModel,
             $localeResolver,
             $config,
             $serializer,
