@@ -738,9 +738,10 @@ class Webhook
             $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($orderPaymentMethod);
 
             /*
-             * Return if payment method is cc like VI, MI
+             * Return true if payment method is cc like VI, MI or oneclick
              */
-            $isCCPaymentMethod = $this->order->getPayment()->getMethod() === 'adyen_cc';
+            $isCCPaymentMethod = $this->order->getPayment()->getMethod() === 'adyen_cc'
+                || $this->order->getPayment()->getMethod() === 'adyen_oneclick';
 
             /*
             * If the order was made with an Alternative payment method,
