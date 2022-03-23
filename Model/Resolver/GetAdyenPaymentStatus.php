@@ -31,6 +31,8 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
+use Magento\Framework\GraphQl\Query\Resolver\ContextInterface;
+use Magento\Framework\GraphQl\Query\Resolver\Value;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Sales\Model\Order;
@@ -76,8 +78,18 @@ class GetAdyenPaymentStatus implements ResolverInterface
         $this->quoteHelper = $quoteHelper;
     }
 
+
     /**
      * @inheritdoc
+     *
+     * @param Field $field
+     * @param ContextInterface $context
+     * @param ResolveInfo $info
+     * @param array|null $value
+     * @param array|null $args
+     * @return array|Value|mixed
+     * @throws GraphQlInputException
+     * @throws GraphQlNoSuchEntityException
      */
     public function resolve(
         Field $field,
@@ -87,12 +99,12 @@ class GetAdyenPaymentStatus implements ResolverInterface
         array $args = null
     ) {
         if (empty($args['orderNumber']) && empty($value['order_number'])) {
-            throw new GraphQlInputException(__('Required parameter "order_id" is missing'));
+            throw new GraphQlInputException(__('Required parameter "order_number" is missing'));
         } elseif (empty($args['cartId']) && empty($value['cart_id'])) {
             throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
         }
 
-        // Get the required values either from the passed arguments OR the query parameters (used in request chaining)
+        // Get the required values either from the passed arguments OR the query parameters (used when requests are combined)
         $orderIncrementId = $args['orderNumber'] ?? $value['order_number'];
         $maskedCartId = $args['cartId'] ?? $value['cart_id'];
 
