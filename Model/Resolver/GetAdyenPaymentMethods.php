@@ -85,6 +85,8 @@ class GetAdyenPaymentMethods implements ResolverInterface
 
 
     /**
+     * @inheritdoc
+     *
      * @param Field $field
      * @param ContextInterface $context
      * @param ResolveInfo $info
