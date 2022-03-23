@@ -105,11 +105,11 @@ class NotificationColumn extends \Magento\Ui\Component\Listing\Columns\Column
                 );
             }
 
-            if (!$item["done"]) {
+            if (!$item["done"] && $item["processing"]) {
                 $item["actions"] = sprintf(
                     '<a href="%s">%s</a>',
-                    $orderUrl = $this->backendHelper->getUrl("adyen/notifications/reprocess", ["entity_id" => $item["entity_id"]]),
-                    "Reprocess"
+                    $orderUrl = $this->backendHelper->getUrl("adyen/notifications/webhookReprocess", ["entity_id" => $item["entity_id"]]),
+                    "Reprocess Webhook"
                 );
             }
         }

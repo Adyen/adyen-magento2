@@ -29,7 +29,7 @@ use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Message\ManagerInterface;
 
-class Reprocess extends \Magento\Backend\App\Action
+class WebhookReprocess extends \Magento\Backend\App\Action
 {
     /**
      * @var CollectionFactory
@@ -81,10 +81,10 @@ class Reprocess extends \Magento\Backend\App\Action
         $notification = $notification->getItemById($this->getRequest()->getParam('entity_id'));
 
         if($this->webhookHelper->processNotification($notification)) {
-            $this->messageManager->addSuccessMessage(__("Webhook notification processed successfully!"));
+            $this->messageManager->addSuccessMessage(__("Webhook notification reprocessed successfully!"));
         }
         else {
-            $this->messageManager->addErrorMessage(__("Issue occured while processing the webhook notificaton!"));
+            $this->messageManager->addErrorMessage(__("Issue occured while reprocessing the webhook notification!"));
         }
 
         return $redirect;
