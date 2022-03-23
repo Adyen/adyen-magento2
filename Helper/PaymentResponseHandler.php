@@ -61,6 +61,10 @@ class PaymentResponseHandler
      * @var \Magento\Sales\Model\ResourceModel\Order
      */
     private $orderResourceModel;
+    /**
+     * @var Quote
+     */
+    private $quoteHelper;
 
     /**
      * PaymentResponseHandler constructor.
@@ -73,12 +77,14 @@ class PaymentResponseHandler
         AdyenLogger $adyenLogger,
         Data $adyenHelper,
         Vault $vaultHelper,
-        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
+        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
+        Quote $quoteHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
+        $this->quoteHelper = $quoteHelper;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
@@ -201,6 +207,7 @@ class PaymentResponseHandler
                     }
                 }
                 $this->orderResourceModel->save($order);
+                $this->quoteHelper->disableQuote($order->getQuoteId());
                 break;
             case self::REFUSED:
                 // Cancel order in case result is refused
