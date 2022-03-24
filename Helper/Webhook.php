@@ -31,7 +31,7 @@ use Adyen\Payment\Helper\PaymentMethods as PaymentMethodsHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\PaymentRequest;
 use Adyen\Payment\Model\Billing\AgreementFactory;
-use Adyen\Payment\Model\Config\Source\Status\AdyenStates;
+use Adyen\Payment\Model\Config\Source\Status\AdyenState;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
@@ -1575,7 +1575,7 @@ class Webhook
 
         // Set state back to previous state to prevent update if 'maintain status' was configured
         $maintainingState = false;
-        if ($status === AdyenStates::STATE_MAINTAIN) {
+        if ($status === AdyenState::STATE_MAINTAIN) {
             $maintainingState = true;
             $status = $order->getStatus();
         }

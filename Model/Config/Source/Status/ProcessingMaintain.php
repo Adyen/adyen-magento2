@@ -1,8 +1,26 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
  */
+
 namespace Adyen\Payment\Model\Config\Source\Status;
 
 use Adyen\Payment\Helper\Webhook;
@@ -19,7 +37,7 @@ class ProcessingMaintain extends \Magento\Sales\Model\Config\Source\Order\Status
         \Magento\Sales\Model\Order::STATE_PROCESSING,
     ];
 
-    private $adyenStateStatuses = AdyenStates::STATE_MAINTAIN_STATUS;
+    private $adyenStateStatuses = AdyenState::STATE_MAINTAIN_STATUS;
 
     /**
      * @param \Magento\Sales\Model\Order\Config $orderConfig
