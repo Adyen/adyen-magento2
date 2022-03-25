@@ -26,6 +26,10 @@ namespace Adyen\Payment\Block\Adminhtml\System\Config\FieldSet;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\View\Helper\SecureHtmlRenderer;
 
+/**
+ * Class DownloadLogs
+ * @package Adyen\Payment\Block\Adminhtml\System\Config\FieldSet
+ */
 class DownloadLogs extends \Magento\Config\Block\System\Config\Form\Fieldset
 {
     /**
@@ -38,8 +42,11 @@ class DownloadLogs extends \Magento\Config\Block\System\Config\Form\Fieldset
      */
     private $secureRenderer;
 
+
     /**
+     * DownloadLogs constructor.
      * @param \Magento\Backend\Block\Context $context
+     * @param \Magento\Backend\Helper\Data $backendHelper
      * @param \Magento\Backend\Model\Auth\Session $authSession
      * @param \Magento\Framework\View\Helper\Js $jsHelper
      * @param \Magento\Config\Model\Config $backendConfig
@@ -48,6 +55,7 @@ class DownloadLogs extends \Magento\Config\Block\System\Config\Form\Fieldset
      */
     public function __construct(
         \Magento\Backend\Block\Context $context,
+        \Magento\Backend\Helper\Data $backendHelper,
         \Magento\Backend\Model\Auth\Session $authSession,
         \Magento\Framework\View\Helper\Js $jsHelper,
         \Magento\Config\Model\Config $backendConfig,
@@ -56,6 +64,7 @@ class DownloadLogs extends \Magento\Config\Block\System\Config\Form\Fieldset
     )
     {
         $this->_backendConfig = $backendConfig;
+        $this->backendHelper = $backendHelper;
         $secureRenderer = $secureRenderer ?? ObjectManager::getInstance()->get(SecureHtmlRenderer::class);
         parent::__construct($context, $authSession, $jsHelper, $data, $secureRenderer);
         $this->secureRenderer = $secureRenderer;
@@ -68,11 +77,11 @@ class DownloadLogs extends \Magento\Config\Block\System\Config\Form\Fieldset
      */
     protected function _getHeaderTitleHtml($element)
     {
-        $downloadUrl = "#";
+        $downloadUrl = $this->backendHelper->getUrl("adyen/logs/download");
         $cssClasses = "adyen-logs-download-button";
 
         $html = "
-            <div class='download-logs-container'>
+            <div class='adyen-logs-download-container'>
                 <a href='$downloadUrl' class='$cssClasses'>Download Logs</a>
             </div>
         ";

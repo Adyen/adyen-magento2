@@ -1,3 +1,4 @@
+<?php
 /**
  *                       ######
  *                       ######
@@ -20,26 +21,33 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-ul.adyen-list {
-    margin: 0 20px 10px;
-}
+namespace Adyen\Payment\Controller\Adminhtml\Logs;
 
-.adyen-logs-download {
-    margin-left: 0 !important;
-    margin-top: 25px;
-}
+use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Response\Http\FileFactory;
 
-.adyen-logs-download-button {
-    display: inline-block;
-    padding: 15px 25px;
-    background-color: #eb5202;
-    color: #fff !important;
-    transition: all 0.2s;
-    font-weight: bold;
-}
+class Download extends \Magento\Backend\App\Action
+{
 
-.adyen-logs-download-button:hover {
-    text-decoration: none;
-    opacity: 0.7;
-    transition: all 0.2s;
+    private $fileFactory;
+
+    public function __construct(
+        FileFactory $fileFactory,
+        Context $context
+    )
+    {
+        $this->fileFactory = $fileFactory;
+        parent::__construct($context);
+    }
+
+    /**
+     *
+     * @return \Magento\Framework\View\Result\Raw
+     */
+    public function execute()
+    {
+        $resultPage = $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_RAW);
+
+        return $resultPage;
+    }
 }
