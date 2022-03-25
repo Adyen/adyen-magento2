@@ -114,13 +114,11 @@ class GetAdyenPaymentStatus implements ResolverInterface
             $cart = $this->quoteHelper->getInactiveQuoteForUser($maskedCartId, $currentUserId, $storeId);
             $order = $this->order->loadByIncrementId($orderIncrementId);
             $orderId = $order->getId();
-
             if (!$orderId || $order->getQuoteId() !== $cart->getEntityId()) {
                 throw new GraphQlNoSuchEntityException(__('Order does not exist'));
             }
 
             return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentStatus($orderId);
-
         } catch (NoSuchEntityException $e) {
             $this->adyenLogger->addWarning(sprintf(
                 'Attempted to get the payment status for order %s. Exception: %s',
