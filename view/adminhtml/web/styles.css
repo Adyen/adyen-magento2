@@ -14,7 +14,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -22,4 +22,24 @@
 
 ul.adyen-list {
     margin: 0 20px 10px;
+}
+
+.adyen-logs-download {
+    margin-left: 0 !important;
+}
+
+.adyen-logs-download-button a {
+    margin-top: 25px;
+    display: inline-block;
+    padding: 15px 25px;
+    background-color: #eb5202;
+    color: #fff;
+    transition: all 0.2s;
+    font-weight: bold;
+}
+
+.adyen-logs-download-button a:hover {
+    text-decoration: none;
+    opacity: 0.7;
+    transition: all 0.2s;
 }

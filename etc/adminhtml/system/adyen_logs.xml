@@ -22,21 +22,20 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
-    <group id="adyen_advanced_settings" translate="label" type="text" sortOrder="120" showInDefault="1"
-           showInWebsite="1"
-           showInStore="1">
-        <label><![CDATA[Advanced settings]]></label>
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_logs" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[Logs]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-        <include path="Adyen_Payment::system/adyen_order_processing.xml"/>
-        <include path="Adyen_Payment::system/adyen_notifications.xml"/>
-        <include path="Adyen_Payment::system/adyen_checkout_experience.xml"/>
-        <include path="Adyen_Payment::system/adyen_manual_review.xml"/>
-        <include path="Adyen_Payment::system/adyen_partial_payment.xml"/>
-        <include path="Adyen_Payment::system/adyen_security.xml"/>
-        <include path="Adyen_Payment::system/adyen_pwa.xml"/>
-        <include path="Adyen_Payment::system/adyen_additional_payment_settings.xml"/>
-        <include path="Adyen_Payment::system/adyen_logs.xml"/>
+        <comment>
+            <![CDATA[
+                <p>
+                    You can download Adyen logs from below.
+                </p>
+            ]]>
+        </comment>
+        <group id="adyen_logs_download_button" translate="label" type="text" sortOrder="101" showInDefault="1" showInWebsite="1" showInStore="1">
+            <fieldset_css>adyen-logs-download</fieldset_css>
+            <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\FieldSet\DownloadLogs</frontend_model>
+        </group>
     </group>
 </include>
