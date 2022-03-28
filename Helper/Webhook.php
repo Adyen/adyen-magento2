@@ -31,6 +31,7 @@ use Adyen\Payment\Helper\PaymentMethods as PaymentMethodsHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\PaymentRequest;
 use Adyen\Payment\Model\Billing\AgreementFactory;
+use Adyen\Payment\Model\Config\Source\Status\AdyenState;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
@@ -76,7 +77,7 @@ class Webhook
         Order::STATE_PAYMENT_REVIEW => PaymentStates::STATE_PENDING,
         Order::STATE_PROCESSING => PaymentStates::STATE_IN_PROGRESS,
         Order::STATE_COMPLETE => PaymentStates::STATE_PAID,
-        Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED,
+        Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED
     ];
 
     /**
@@ -738,9 +739,10 @@ class Webhook
             $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($orderPaymentMethod);
 
             /*
-             * Return if payment method is cc like VI, MI
+             * Return true if payment method is cc like VI, MI or oneclick
              */
-            $isCCPaymentMethod = $this->order->getPayment()->getMethod() === 'adyen_cc';
+            $isCCPaymentMethod = $this->order->getPayment()->getMethod() === 'adyen_cc'
+                || $this->order->getPayment()->getMethod() === 'adyen_oneclick';
 
             /*
             * If the order was made with an Alternative payment method,
@@ -1578,6 +1580,13 @@ class Webhook
             $order->getStoreId()
         );
 
+        // Set state back to previous state to prevent update if 'maintain status' was configured
+        $maintainingState = false;
+        if ($status === AdyenState::STATE_MAINTAIN) {
+            $maintainingState = true;
+            $status = $order->getStatus();
+        }
+
         // virtual order can have different status
         if ($order->getIsVirtual()) {
             $status = $this->getVirtualStatus($status);
@@ -1629,11 +1638,18 @@ class Webhook
             $comment = "Adyen Payment Successfully completed";
             // If a status is set, add comment, set status and update the state based on the status
             // Else add comment
-            if (!empty($status)) {
+            if (!empty($status) && $maintainingState) {
+                $order->addStatusHistoryComment(__($comment), $status);
+                $this->logger->addAdyenNotificationCronjob(
+                    'Maintaining current status: ' . $status,
+                    $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
+                );
+            } else if (!empty($status)) {
                 $order->addStatusHistoryComment(__($comment), $status);
                 $this->setState($status);
                 $this->logger->addAdyenNotificationCronjob(
-                    'Order status was changed to authorised status: ' . $status
+                    'Order status was changed to authorised status: ' . $status,
+                    $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
                 );
             } else {
                 $order->addStatusHistoryComment(__($comment));

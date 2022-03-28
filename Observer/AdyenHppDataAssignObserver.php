@@ -124,7 +124,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
             $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
         }
 
-        if ($additionalData[self::BRAND_CODE] === Data::SEPA) {
+        if (array_key_exists(self::BRAND_CODE, $additionalData) && $additionalData[self::BRAND_CODE] === Data::SEPA) {
             $additionalDataToSave = $this->getSepaAdditionalDataToSave($stateData);
         }
 

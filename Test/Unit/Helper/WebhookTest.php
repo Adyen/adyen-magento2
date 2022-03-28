@@ -264,4 +264,17 @@ class WebhookTest extends TestCase
 
         $this->assertTrue($result);
     }
+
+    public function testProcessOfferClosed()
+    {
+        $notification = $this->createConfiguredMock(Notification::class, [
+            'getEventCode' => Notification::OFFER_CLOSED,
+            'getSuccess' => true
+        ]);
+
+        $this->order->method('getState')->willReturn(Order::STATE_PAYMENT_REVIEW);
+        $result = $this->sut->processNotification($notification);
+        $this->assertTrue($result);
+    }
+
 }

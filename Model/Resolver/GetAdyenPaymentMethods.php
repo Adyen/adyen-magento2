@@ -35,15 +35,16 @@ use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 
 class GetAdyenPaymentMethods implements ResolverInterface
 {
-
     /**
      * @var GetCartForUser
      */
     protected $getCartForUser;
+
     /**
      * @var PaymentMethods
      */
     protected $_paymentMethodsHelper;
+
     /**
      * @var Json
      */
