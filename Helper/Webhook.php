@@ -81,6 +81,14 @@ class Webhook
     ];
 
     /**
+     * Indicative matrix for possible states to enter after given event
+     */
+    const STATE_TRANSITION_MATRIX = [
+        'payment_pre_authorized' => [Order::STATE_NEW, Order::STATE_PROCESSING],
+        'payment_authorized' => [Order::STATE_PROCESSING]
+    ];
+
+    /**
      * @var Order
      */
     private $order;
@@ -1211,16 +1219,18 @@ class Webhook
      */
     private function setPrePaymentAuthorized()
     {
+        $eventLabel = "payment_pre_authorized";
         $status = $this->configHelper->getConfigData(
-            'payment_pre_authorized',
+            $eventLabel,
             'adyen_abstract',
             $this->order->getStoreId()
         );
+        $possibleStates = self::STATE_TRANSITION_MATRIX[$eventLabel];
 
         // only do this if status in configuration is set
         if (!empty($status)) {
             $this->order->setStatus($status);
-            $this->setState($status);
+            $this->setState($status, $possibleStates);
 
             $this->logger->addAdyenNotificationCronjob(
                 'Order status is changed to Pre-authorised status, status is ' . $status
@@ -1574,11 +1584,13 @@ class Webhook
             ->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
         $fullAmountFinalized = $this->adyenOrderPaymentHelper->isFullAmountFinalized($order);
 
+        $eventLabel = 'payment_authorized';
         $status = $this->configHelper->getConfigData(
-            'payment_authorized',
+            $eventLabel,
             'adyen_abstract',
             $order->getStoreId()
         );
+        $possibleStates = self::STATE_TRANSITION_MATRIX[$eventLabel];
 
         // Set state back to previous state to prevent update if 'maintain status' was configured
         $maintainingState = false;
@@ -1646,7 +1658,8 @@ class Webhook
                 );
             } else if (!empty($status)) {
                 $order->addStatusHistoryComment(__($comment), $status);
-                $this->setState($status);
+
+                $this->setState($status, $possibleStates);
                 $this->logger->addAdyenNotificationCronjob(
                     'Order status was changed to authorised status: ' . $status,
                     $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
@@ -1663,15 +1676,25 @@ class Webhook
     /**
      * Set State from Status
      */
-    private function setState($status)
+    private function setState($status, $possibleStates)
     {
-        $statusObject = $this->orderStatusCollection->create()
-            ->addFieldToFilter('main_table.status', $status)
-            ->joinStates()
-            ->getFirstItem();
+        // Loop over possible states, select first available status that fits this state
+        foreach ($possibleStates as $state) {
+            $statusObject = $this->orderStatusCollection->create()
+                ->addFieldToFilter('main_table.status', $status)
+                ->joinStates()
+                ->addStateFilter($state)
+                ->getFirstItem();
 
-        $this->order->setState($statusObject->getState());
-        $this->logger->addAdyenNotificationCronjob('State is changed to  ' . $statusObject->getState());
+            if ($statusObject->getState() == $state) {
+                // Exit function if fitting state is found
+                $this->order->setState($statusObject->getState());
+                $this->logger->addAdyenNotificationCronjob('State is changed to  ' . $statusObject->getState());
+                return;
+            }
+        }
+
+        $this->logger->addAdyenNotificationCronjob('No new state assigned, status should be connected to one of the following states: ' . json_encode($possibleStates));
     }
 
     /**
