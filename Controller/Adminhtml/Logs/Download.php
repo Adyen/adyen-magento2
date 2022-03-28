@@ -24,7 +24,9 @@
 namespace Adyen\Payment\Controller\Adminhtml\Logs;
 
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\Response\Http\FileFactory;
+use \Adyen\Payment\Helper\Data;
+use \Magento\Framework\App\ProductMetadataInterface;
+use \Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Class Download
@@ -32,7 +34,6 @@ use Magento\Framework\App\Response\Http\FileFactory;
  */
 class Download extends \Magento\Backend\App\Action
 {
-
     /**
      * @var
      */
@@ -49,22 +50,45 @@ class Download extends \Magento\Backend\App\Action
     private $logFilePath;
 
     /**
-     * @var FileFactory
+     * @var Data
      */
-    private $fileFactory;
+    private $adyenHelper;
+
+    /**
+     * @var ProductMetadataInterface
+     */
+    private $productMetaData;
+
+    /**
+     * @var StoreManagerInterface
+     */
+    private $storeManagers;
+
+    /**
+     * Sets the log file name
+     */
+    private function setLogFilePath() {
+        $this->logFilePath = $this->logsDirectory . '/' . $this->logFileName;
+    }
 
     /**
      * Download constructor.
-     * @param FileFactory $fileFactory
      * @param Context $context
+     * @param Data $adyenHelper
+     * @param ProductMetadataInterface $productMetadata
+     * @param StoreManagerInterface $storeManagers
      */
     public function __construct(
-        FileFactory $fileFactory,
-        Context $context
+        Context $context,
+        Data $adyenHelper,
+        ProductMetadataInterface $productMetadata,
+        StoreManagerInterface $storeManagers
     )
     {
-        $this->fileFactory = $fileFactory;
         $this->logsDirectory = 'var/log';
+        $this->adyenHelper = $adyenHelper;
+        $this->productMetaData = $productMetadata;
+        $this->storeManagers = $storeManagers;
         $this->logFileName = 'M2-AdyenLogs-' . date('Y-m-d_H-i') . '.zip';
 
         $this->setLogFilePath();
@@ -80,13 +104,16 @@ class Download extends \Magento\Backend\App\Action
     {
         $resultPage = $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_RAW);
 
+        $this->createCurrentApplicationInfoFile();
         $this->createArchive();
-
         $this->downloadArchive();
 
         return $resultPage;
     }
 
+    /**
+     * Downloads the created archive.
+     */
     private function downloadArchive() {
         header('Content-Type: application/zip');
         header('Content-Disposition: attachment; filename=' . basename($this->logFileName));
@@ -97,6 +124,9 @@ class Download extends \Magento\Backend\App\Action
         readfile($this->logFilePath);
     }
 
+    /**
+     * Creates a zip file with the content of Adyen logs.
+     */
     private function createArchive() {
         $zip = new \ZipArchive();
 
@@ -119,7 +149,81 @@ class Download extends \Magento\Backend\App\Action
         $zip->close();
     }
 
-    private function setLogFilePath() {
-        $this->logFilePath = $this->logsDirectory . '/' . $this->logFileName;
+    /**
+     * Creates a snapshot of the current configurations for Adyen module & Magento
+     */
+    private function createCurrentApplicationInfoFile() {
+        $adyenPaymentSource = sprintf(
+            'Adyen module version: %s',
+            $this->adyenHelper->getModuleVersion()
+        );
+
+        $magentoVersion = sprintf("\nMagento version: %s", $this->productMetaData->getVersion());
+
+        $environment = sprintf(
+            "\nEnvironment: %s, with live endpoint prefix: %s",
+            $this->adyenHelper->getCheckoutEnvironment(),
+            $this->adyenHelper->getLiveEndpointPrefix()
+        );
+
+        $time = sprintf(
+            "\nDate and time: %s",
+            date('Y-m-d H:i:s')
+        );
+
+        $content = $adyenPaymentSource . $magentoVersion . $environment . $time . $this->getConfigurationValues();
+
+        $filePath = fopen($this->logsDirectory . "/adyen/applicationInfo", "wb");
+        fwrite($filePath, $content);
+        fclose($filePath);
+    }
+
+    /**
+     * @return string
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    private function getConfigurationValues() {
+        $storeId = $this->storeManagers->getStore()->getId();
+
+        $configValues = "\n\nConfiguration values: \n";
+
+        $configs['merchantAccount'] = sprintf(
+            "\nMerchant account: %s",
+            $this->adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId)
+        );
+
+        $modes = $this->adyenHelper->getModes();
+        $configs['mode'] = sprintf("\nMode: %s",
+            $modes[$this->adyenHelper->getAdyenAbstractConfigData('demo_mode', $storeId)]
+        );
+
+        $configs['notificationUser'] = sprintf(
+            "\nNotification user: %s",
+            $this->adyenHelper->getAdyenAbstractConfigData('notification_username', $storeId)
+        );
+
+        $configs['clientKeyTest'] = sprintf(
+            "\nClient key test: %s",
+            $this->adyenHelper->getAdyenAbstractConfigData('client_key_test', $storeId)
+        );
+
+        $configs['clientKeyLive'] = sprintf(
+            "\nClient key live: %s",
+            $this->adyenHelper->getAdyenAbstractConfigData('client_key_live', $storeId)
+        );
+
+        $apiKeyTest = $this->adyenHelper->getAPIKey();
+        if (!empty($apiKeyTest)) {
+            $configs['apiKeyTest'] = sprintf(
+                "\nApi key last 4: %s",
+                substr($apiKeyTest, -4)
+            );
+        }
+
+        foreach ($configs as $config) {
+            $configValues .= $config;
+        }
+
+        return $configValues;
     }
 }
