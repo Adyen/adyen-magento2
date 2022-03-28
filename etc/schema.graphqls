@@ -1,6 +1,6 @@
 type Query {
     adyenPaymentStatus (
-        orderId: String @doc(description: "Magento Increment Order ID.")
+        orderNumber: String @doc(description: "Magento Increment Order ID.")
         cartId: String @doc(description: "Cart ID.")
     ) : AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentStatus")
 
