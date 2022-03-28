@@ -15,37 +15,36 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Config\Source;
+namespace Adyen\Payment\Model\Config\Source\Status;
+
+use Adyen\Payment\Helper\Webhook;
 
 /**
- * Class RecurringType
- * @package Adyen\Payment\Model\Config\Source
- * @deprecated Use RecurringPaymentType instead
+ * Order Statuses source model
  */
-class RecurringType implements \Magento\Framework\Option\ArrayInterface
+class ProcessingMaintain extends \Magento\Sales\Model\Config\Source\Order\Status
 {
-    const UNDEFINED_OPTION_LABEL = 'NONE';
+    /**
+     * @var string[]
+     */
+    private $stateStatuses = [
+        \Magento\Sales\Model\Order::STATE_PROCESSING,
+    ];
+
+    private $adyenStateStatuses = AdyenState::STATE_MAINTAIN_STATUS;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @param \Magento\Sales\Model\Order\Config $orderConfig
      */
-    protected $_adyenHelper;
-
-    /**
-     * RecurringType constructor.
-     *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     */
-    public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
-    ) {
-        $this->_adyenHelper = $adyenHelper;
+    public function __construct(\Magento\Sales\Model\Order\Config $orderConfig)
+    {
+        $this->_orderConfig = $orderConfig;
     }
 
     /**
@@ -53,12 +52,17 @@ class RecurringType implements \Magento\Framework\Option\ArrayInterface
      */
     public function toOptionArray()
     {
-        $recurringTypes = $this->_adyenHelper->getRecurringTypes();
+        $statuses = $this->stateStatuses
+            ? $this->_orderConfig->getStateStatuses($this->stateStatuses)
+            : $this->_orderConfig->getStatuses();
 
-        $options = [['value' => '', 'label' => __(self::UNDEFINED_OPTION_LABEL)]];
-        foreach ($recurringTypes as $code => $label) {
+        $statuses = array_merge($statuses, $this->adyenStateStatuses);
+
+        $options = [];
+        foreach ($statuses as $code => $label) {
             $options[] = ['value' => $code, 'label' => $label];
         }
+
         return $options;
     }
 }
