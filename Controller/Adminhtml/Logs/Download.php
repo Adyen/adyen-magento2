@@ -67,7 +67,8 @@ class Download extends \Magento\Backend\App\Action
     /**
      * Sets the log file name
      */
-    private function setLogFilePath() {
+    private function setLogFilePath()
+    {
         $this->logFilePath = $this->logsDirectory . '/' . $this->logFileName;
     }
 
@@ -114,7 +115,8 @@ class Download extends \Magento\Backend\App\Action
     /**
      * Downloads the created archive.
      */
-    private function downloadArchive() {
+    private function downloadArchive()
+    {
         header('Content-Type: application/zip');
         header('Content-Disposition: attachment; filename=' . basename($this->logFileName));
         header('Expires: 0');
@@ -127,7 +129,8 @@ class Download extends \Magento\Backend\App\Action
     /**
      * Creates a zip file with the content of Adyen logs.
      */
-    private function createArchive() {
+    private function createArchive()
+    {
         $zip = new \ZipArchive();
 
         $zip->open($this->logFilePath , \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
@@ -152,7 +155,8 @@ class Download extends \Magento\Backend\App\Action
     /**
      * Creates a snapshot of the current configurations for Adyen module & Magento
      */
-    private function createCurrentApplicationInfoFile() {
+    private function createCurrentApplicationInfoFile()
+    {
         $adyenPaymentSource = sprintf(
             'Adyen module version: %s',
             $this->adyenHelper->getModuleVersion()
@@ -182,7 +186,8 @@ class Download extends \Magento\Backend\App\Action
      * @return string
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    private function getConfigurationValues() {
+    private function getConfigurationValues()
+    {
         $storeId = $this->storeManagers->getStore()->getId();
 
         $configValues = "\n\nConfiguration values: \n";
