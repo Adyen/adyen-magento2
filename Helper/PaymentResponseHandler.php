@@ -24,10 +24,9 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Logger\AdyenLogger;
+use Exception;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
-use Magento\Sales\Model\Order;
-use Adyen\Payment\Helper\Vault;
 
 class PaymentResponseHandler
 {
@@ -217,7 +216,13 @@ class PaymentResponseHandler
                     }
                 }
                 $this->orderResourceModel->save($order);
-                $this->quoteHelper->disableQuote($order->getQuoteId());
+                try {
+                    $this->quoteHelper->disableQuote($order->getQuoteId());
+                } catch (Exception $e) {
+                    $this->adyenLogger->error('Failed to disable quote: ' . $e->getMessage(), [
+                        'quoteId' => $order->getQuoteId()
+                    ]);
+                }
                 break;
             case self::REFUSED:
                 // Cancel order in case result is refused

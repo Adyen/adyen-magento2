@@ -79,14 +79,11 @@ class Quote
     /**
      * Try to disable a quote after successful payment
      * @param $quoteId
+     * @throws NoSuchEntityException
      */
     public function disableQuote($quoteId)
     {
-        try {
-            $quote = $this->quoteRepository->get($quoteId);
-        } catch (NoSuchEntityException $e) {
-            return;
-        }
+        $quote = $this->quoteRepository->get($quoteId);
         if (!$quote || !$quote->getIsActive()) {
             return;
         }
