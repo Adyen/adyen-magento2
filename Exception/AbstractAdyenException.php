@@ -13,29 +13,23 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2022 Adyen B.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
+namespace Adyen\Payment\Exception;
 
-namespace Adyen\Payment\Logger\Handler;
+use Magento\Framework\Exception\LocalizedException;
 
-use Adyen\Payment\Logger\AdyenLogger;
-
-class AdyenWarning extends AdyenBase
+class AbstractAdyenException extends LocalizedException
 {
     /**
-     * @var string
+     * Error codes that are safe to display to the shopper.
+     * @see https://docs.adyen.com/development-resources/error-codes
      */
-    protected $fileName = '/var/log/adyen/warning.log';
-
-    /**
-     * @var int
-     */
-    protected $loggerType = AdyenLogger::WARNING;
-
-    protected $level = AdyenLogger::WARNING;
+    const SAFE_ERROR_CODES = [000, 124];
 }

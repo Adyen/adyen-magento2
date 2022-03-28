@@ -29,6 +29,7 @@ use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Invoice as InvoiceResourceModel;
@@ -46,12 +47,15 @@ class WebhookTest extends TestCase
     private $orderSender;
     private $adyenOrderPaymentCollectionFactory;
     private $caseManagementHelper;
+    private $adyenOrderPaymentHelper;
+    private $transactionBuilder;
+    private $payment;
 
     protected function setUp(): void
     {
-        $payment = $this->createMock(Payment::class);
+        $this->payment = $this->createMock(Payment::class);
         $this->order = $this->createMock(Order::class);
-        $this->order->method('getPayment')->willReturn($payment);
+        $this->order->method('getPayment')->willReturn($this->payment);
         $this->order->method('getGlobalCurrencyCode')->willReturn('EUR');
         $this->order->method('getOrderCurrencyCode')->willReturn('EUR');
         $this->order->method('getBaseGrandTotal')->willReturn('64.0000');
@@ -76,6 +80,8 @@ class WebhookTest extends TestCase
             ->setMethods(['create'])
             ->getMock();
         $this->caseManagementHelper = $this->createMock(CaseManagement::class);
+        $this->adyenOrderPaymentHelper = $this->createMock(AdyenOrderPayment::class);
+        $this->transactionBuilder = $this->createMock(Builder::class);
 
         $this->sut = new Webhook(
             $this->createMock(ScopeConfigInterface::class),
@@ -91,7 +97,7 @@ class WebhookTest extends TestCase
             $this->adyenOrderPaymentCollectionFactory,
             $this->createGeneratedMock(OrderStatusCollectionFactory::class),
             $this->createMock(Agreement::class),
-            $this->createMock(Builder::class),
+            $this->transactionBuilder,
             $this->createMock(SerializerInterface::class),
             $this->createMock(NotifierInterface::class),
             $this->createMock(TimezoneInterface::class),
@@ -103,7 +109,7 @@ class WebhookTest extends TestCase
             new ChargedCurrency($this->configHelper),
             $this->createMock(PaymentMethodsHelper::class),
             $this->createMock(InvoiceResourceModel::class),
-            $this->createMock(AdyenOrderPayment::class),
+            $this->adyenOrderPaymentHelper,
             $this->createMock(InvoiceHelper::class),
             $this->caseManagementHelper,
             $this->createGeneratedMock(PaymentFactory::class),
@@ -136,6 +142,30 @@ class WebhookTest extends TestCase
         $notification->expects($this->once())
             ->method('setDone')
             ->with(true);
+
+        $result = $this->sut->processNotification($notification);
+
+        $this->assertTrue($result);
+    }
+
+    public function testProcessNotificationAuthorisationFullAmount()
+    {
+        $this->adyenOrderPaymentHelper->method('isFullAmountAuthorized')->willReturn(true);
+        $this->transactionBuilder->method('setPayment')->willReturnSelf();
+        $this->transactionBuilder->method('setOrder')->willReturnSelf();
+        $this->transactionBuilder->method('setTransactionId')->willReturnSelf();
+        $this->transactionBuilder->method('build')->willReturn($this->createMock(Transaction::class));
+        $this->order->method('getState')->willReturn(Order::STATE_NEW);
+        $notification = $this->createConfiguredMock(Notification::class, [
+            'getEventCode' => 'AUTHORISATION',
+            'getSuccess' => true,
+        ]);
+        $this->orderSender->expects($this->once())
+            ->method('send')
+            ->with($this->order);
+        $this->payment->expects($this->once())
+            ->method('setAmountAuthorized')
+            ->with('64.0000');
 
         $result = $this->sut->processNotification($notification);
 
@@ -234,4 +264,17 @@ class WebhookTest extends TestCase
 
         $this->assertTrue($result);
     }
+
+    public function testProcessOfferClosed()
+    {
+        $notification = $this->createConfiguredMock(Notification::class, [
+            'getEventCode' => Notification::OFFER_CLOSED,
+            'getSuccess' => true
+        ]);
+
+        $this->order->method('getState')->willReturn(Order::STATE_PAYMENT_REVIEW);
+        $result = $this->sut->processNotification($notification);
+        $this->assertTrue($result);
+    }
+
 }
