@@ -30,6 +30,9 @@ use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
 class Recurring
 {
+    const MODE_MAGENTO_VAULT = 'Magento Vault';
+    const MODE_ADYEN_TOKENIZATION = 'Adyen Tokenization';
+
     const CARD_ON_FILE = 'CardOnFile';
     const SUBSCRIPTION = 'Subscription';
 
@@ -66,6 +69,17 @@ class Recurring
         return [
             self::CARD_ON_FILE,
             self::SUBSCRIPTION
+        ];
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function getRecurringMethods(): array
+    {
+        return [
+            self::MODE_MAGENTO_VAULT,
+            self::MODE_ADYEN_TOKENIZATION
         ];
     }
 
