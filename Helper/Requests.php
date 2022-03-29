@@ -48,6 +48,7 @@ class Requests extends AbstractHelper
      * @var Address
      */
     private $addressHelper;
+
     /**
      * @var StateData
      */
@@ -57,6 +58,11 @@ class Requests extends AbstractHelper
      * @var PaymentMethods
      */
     private $paymentMethodsHelper;
+
+    /**
+     * @var Recurring $recurringHelper
+     */
+    private $recurringHelper;
 
     private $shopperReference;
 
@@ -74,7 +80,8 @@ class Requests extends AbstractHelper
         UrlInterface $urlBuilder,
         Address $addressHelper,
         StateData $stateData,
-        PaymentMethods $paymentMethodsHelper
+        PaymentMethods $paymentMethodsHelper,
+        Recurring $recurringHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
@@ -82,6 +89,7 @@ class Requests extends AbstractHelper
         $this->addressHelper = $addressHelper;
         $this->stateData = $stateData;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->recurringHelper = $recurringHelper;
     }
 
     /**
@@ -361,7 +369,7 @@ class Requests extends AbstractHelper
 
         //recurring
         if ($storedPaymentMethodsEnabled) {
-            if ($this->adyenHelper->isCreditCardVaultEnabled()) {
+            if ($this->recurringHelper->isCreditCardVaultEnabled()) {
                 $request['recurringProcessingModel'] = 'Subscription';
             } else {
                 $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);

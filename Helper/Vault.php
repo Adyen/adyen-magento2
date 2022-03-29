@@ -78,23 +78,30 @@ class Vault
      */
     private $paymentTokenRepository;
 
+    /**
+     * @var Recurring
+     */
+    private $recurringHelper;
+
     public function __construct(
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
         PaymentTokenManagement $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
-        PaymentTokenRepositoryInterface $paymentTokenRepository
+        PaymentTokenRepositoryInterface $paymentTokenRepository,
+        Recurring $recurringHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
         $this->paymentTokenManagement = $paymentTokenManagement;
         $this->paymentTokenFactory = $paymentTokenFactory;
         $this->paymentTokenRepository = $paymentTokenRepository;
+        $this->recurringHelper = $recurringHelper;
     }
 
     public function saveRecurringDetails($payment, array $additionalData)
     {
-        if (!$this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId()) &&
+        if (!$this->recurringHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId()) &&
             !$this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())) {
             return;
         }
