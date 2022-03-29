@@ -66,7 +66,12 @@ jobs:
 
       - name: Run unit tests
         run: docker exec magento2-container vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit
-
+      
+      - name: Run E2E tests
+        run: |
+          docker exec playwright git clone https://github.com/Adyen/adyen-integration-tools-tests.git
+          docker exec -w /var/www/html/adyen-integration-tools-tests -e PLAYWRIGHT_MAGENTO_BASE_URL=magento2.test.com playwright npx playwright test --project=chromium --config=./projects/magento/magento.config.cjs
+          
       - name: Run GraphQL tests
         run: |
           docker exec -w $MAGENTO_ROOT/dev/tests/api-functional magento2-container $MAGENTO_ROOT/vendor/bin/phpunit --configuration $MAGENTO_ROOT/$PHPUNIT_CONFIG $MAGENTO_ROOT/$TEST_SUITE
