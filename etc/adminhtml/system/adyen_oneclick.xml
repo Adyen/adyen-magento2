@@ -28,20 +28,48 @@
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment><![CDATA[During checkout shoppers can choose to have their payment details remembered and stored for trusted websites in Adyen’s highly secure platform. Adyen takes care of this process for its customers. Shoppers can then select the stored payment method in the checkout.]]></comment>
-
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Enabled</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_oneclick/active</config_path>
         </field>
+        <field id="recurring_card_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Mode</label>
+            <tooltip>
+                Test
+            </tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\Recurring\RecurringMode</source_model>
+            <config_path>payment/adyen_oneclick/mode</config_path>
+            <depends>
+                <field id="active">1</field>
+            </depends>
+        </field>
+        <field id="recurring_card_token_type" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Token Type</label>
+            <tooltip>
+                Test
+            </tooltip>
+            <source_model>Adyen\Payment\Model\Config\Source\Recurring\RecurringType</source_model>
+            <config_path>payment/adyen_oneclick/recurring_card_token_type</config_path>
+            <depends>
+                <field id="active">1</field>
+                <field id="recurring_card_mode">Adyen Tokenization</field>
+            </depends>
+        </field>
         <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Title</label>
             <config_path>payment/adyen_oneclick/title</config_path>
+            <depends>
+                <field id="active">1</field>
+            </depends>
         </field>
         <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Sort Order</label>
             <frontend_class>validate-number</frontend_class>
             <config_path>payment/adyen_oneclick/sort_order</config_path>
+            <depends>
+                <field id="active">1</field>
+            </depends>
         </field>
         <group id="adyen_oneclick_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="200">
             <label>Advanced Settings</label>
@@ -52,20 +80,5 @@
                 <config_path>payment/adyen_oneclick/share_billing_agreement</config_path>
             </field>
         </group>
-        <field id="adyen_cc_vault" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1"
-               showInStore="0">
-            <label>Vault Enabled</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/adyen_cc_vault/active</config_path>
-        </field>
-        <field id="enable_oneclick" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1"
-               showInStore="1">
-            <label>Enable OneClick</label>
-            <tooltip>The shopper opts in to storing their card details for future use. The shopper is present for the
-                subsequent transaction, for cards the security code (CVC/CVV) is required.
-            </tooltip>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/adyen_abstract/enable_oneclick</config_path>
-        </field>
     </group>
 </include>
