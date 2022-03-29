@@ -74,7 +74,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
         }
 
         if (!empty($response['additionalData']['recurring.recurringDetailReference']) &&
-            !$this->adyenHelper->isCreditCardVaultEnabled() &&
+            !$this->recurringHelper->isCreditCardVaultEnabled() &&
             $payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE
         ) {
             $order = $payment->getOrder();

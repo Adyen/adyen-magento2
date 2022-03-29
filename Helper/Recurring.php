@@ -42,10 +42,11 @@ class Recurring
     /** @var AgreementFactory */
     private $billingAgreementFactory;
 
-    /**
-     * @var Agreement
-     */
+    /** @var Agreement  */
     private $billingAgreementResourceModel;
+
+    /** @var Config */
+    private $config;
 
     /**
      * Recurring constructor.
@@ -53,12 +54,14 @@ class Recurring
     public function __construct(
         AdyenLogger $adyenLogger,
         AgreementFactory $agreementFactory,
-        Agreement $billingAgreementResourceModel
+        Agreement $billingAgreementResourceModel,
+        Config $config
     )
     {
         $this->adyenLogger = $adyenLogger;
         $this->billingAgreementFactory = $agreementFactory;
         $this->billingAgreementResourceModel = $billingAgreementResourceModel;
+        $this->config = $config;
     }
 
     /**
@@ -158,5 +161,16 @@ class Recurring
             $order->addRelatedObject($comment);
             $order->save();
         }
+    }
+
+    /**
+     * Check if Magento Vault is enabled
+     *
+     * @param null $storeId
+     * @return bool
+     */
+    public function isCreditCardVaultEnabled($storeId = null): bool
+    {
+        return $this->config->getCardRecurringMode($storeId) === self::MODE_MAGENTO_VAULT;
     }
 }
