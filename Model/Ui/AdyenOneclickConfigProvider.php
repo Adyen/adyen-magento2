@@ -26,6 +26,7 @@ namespace Adyen\Payment\Model\Ui;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Recurring;
+use Adyen\Payment\Helper\Vault;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\RequestInterface;
@@ -84,9 +85,9 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
     private $chargedCurrency;
 
     /**
-     * @var Recurring
+     * @var Vault
      */
-    private $recurringHelper;
+    private $vaultHelper;
 
     /**
      * AdyenOneclickConfigProvider constructor.
@@ -99,6 +100,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
      * @param UrlInterface $urlBuilder
      * @param CcConfig $ccConfig
      * @param ChargedCurrency $chargedCurrency
+     * @param Vault $vaultHelper
      */
     public function __construct(
         Data $adyenHelper,
@@ -109,7 +111,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         UrlInterface $urlBuilder,
         CcConfig $ccConfig,
         ChargedCurrency $chargedCurrency,
-        Recurring $recurringHelper
+        Vault $vaultHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
@@ -119,7 +121,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         $this->_urlBuilder = $urlBuilder;
         $this->ccConfig = $ccConfig;
         $this->chargedCurrency = $chargedCurrency;
-        $this->recurringHelper = $recurringHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -143,7 +145,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         ];
 
         // don't show this payment method if vault is enabled
-        if ($this->recurringHelper->isCreditCardVaultEnabled()) {
+        if ($this->vaultHelper->isCardVaultEnabled()) {
             $config['payment']['adyenOneclick']['methodCode'] = self::CODE;
             $config['payment'][self::CODE]['isActive'] = false;
             return $config;

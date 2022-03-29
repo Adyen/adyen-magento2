@@ -16,7 +16,7 @@
  * Adyen Payment Module
  *
  * @author Adyen BV <support@adyen.com>
- * @copyright (c) 2020 Adyen B.V.
+ * @copyright (c) 2022 Adyen B.V.
  * @license https://opensource.org/licenses/MIT MIT license
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
@@ -79,9 +79,9 @@ class Vault
     private $paymentTokenRepository;
 
     /**
-     * @var Recurring
+     * @var Config
      */
-    private $recurringHelper;
+    private $config;
 
     public function __construct(
         Data $adyenHelper,
@@ -89,19 +89,34 @@ class Vault
         PaymentTokenManagement $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
-        Recurring $recurringHelper
+        Config $config
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
         $this->paymentTokenManagement = $paymentTokenManagement;
         $this->paymentTokenFactory = $paymentTokenFactory;
         $this->paymentTokenRepository = $paymentTokenRepository;
-        $this->recurringHelper = $recurringHelper;
+        $this->config = $config;
     }
 
+    /**
+     * Check if Magento Vault is enabled
+     *
+     * @param null $storeId
+     * @return bool
+     */
+    public function isCardVaultEnabled($storeId = null): bool
+    {
+        return $this->config->getCardRecurringMode($storeId) === Recurring::MODE_MAGENTO_VAULT;
+    }
+
+    /**
+     * @param $payment
+     * @param array $additionalData
+     */
     public function saveRecurringDetails($payment, array $additionalData)
     {
-        if (!$this->recurringHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId()) &&
+        if (!$this->isCardVaultEnabled($payment->getOrder()->getStoreId()) &&
             !$this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())) {
             return;
         }
