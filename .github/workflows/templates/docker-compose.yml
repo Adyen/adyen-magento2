@@ -40,7 +40,9 @@ services:
     volumes:
       - ../../../:/data/extensions/workdir
     networks:
-     - backend
+      backend:
+        aliases:
+          - magento2.test.com
   playwright:
     image: mcr.microsoft.com/playwright:v1.20.0-focal
     container_name: playwright
