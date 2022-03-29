@@ -162,15 +162,4 @@ class Recurring
             $order->save();
         }
     }
-
-    /**
-     * Check if Magento Vault is enabled
-     *
-     * @param null $storeId
-     * @return bool
-     */
-    public function isCreditCardVaultEnabled($storeId = null): bool
-    {
-        return $this->config->getCardRecurringMode($storeId) === self::MODE_MAGENTO_VAULT;
-    }
 }

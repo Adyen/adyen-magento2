@@ -25,6 +25,7 @@ namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Recurring;
+use Adyen\Payment\Helper\Vault;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class CheckoutPaymentsDetailsHandler implements HandlerInterface
@@ -35,12 +36,17 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
     /** @var Recurring */
     private $recurringHelper;
 
+    /** @var Vault */
+    private $vaultHelper;
+
     public function __construct(
         Data $adyenHelper,
-        Recurring $recurringHelper
+        Recurring $recurringHelper,
+        Vault $vaultHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->recurringHelper = $recurringHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -74,7 +80,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
         }
 
         if (!empty($response['additionalData']['recurring.recurringDetailReference']) &&
-            !$this->recurringHelper->isCreditCardVaultEnabled() &&
+            !$this->vaultHelper->isCardVaultEnabled() &&
             $payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE
         ) {
             $order = $payment->getOrder();

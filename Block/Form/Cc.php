@@ -28,6 +28,7 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Installments;
 use Adyen\Payment\Helper\Recurring;
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Backend\Model\Session\Quote;
 use Magento\Customer\Model\Session;
@@ -87,9 +88,9 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     private $customerSession;
 
     /**
-     * @var Recurring
+     * @var Vault
      */
-    private $recurringHelper;
+    private $vaultHelper;
 
     /**
      * Cc constructor.
@@ -98,6 +99,13 @@ class Cc extends \Magento\Payment\Block\Form\Cc
      * @param \Magento\Payment\Model\Config $paymentConfig
      * @param Data $adyenHelper
      * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param Quote $backendCheckoutSession
+     * @param Installments $installmentsHelper
+     * @param ChargedCurrency $chargedCurrency
+     * @param AdyenLogger $adyenLogger
+     * @param Config $configHelper
+     * @param Session $customerSession
+     * @param Vault $vaultHelper
      * @param array $data
      */
     public function __construct(
@@ -111,7 +119,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         AdyenLogger $adyenLogger,
         Config $configHelper,
         Session $customerSession,
-        Recurring $recurringHelper,
+        Vault $vaultHelper,
         array $data = []
     ) {
         parent::__construct($context, $paymentConfig);
@@ -124,7 +132,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         $this->adyenLogger = $adyenLogger;
         $this->configHelper = $configHelper;
         $this->customerSession = $customerSession;
-        $this->recurringHelper = $recurringHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -194,7 +202,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
      */
     public function isVaultEnabled(): bool
     {
-        return $this->recurringHelper->isCreditCardVaultEnabled();
+        return $this->vaultHelper->isCardVaultEnabled();
     }
 
     /**

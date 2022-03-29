@@ -219,9 +219,9 @@ class Webhook
     private $magentoInvoiceFactory;
 
     /**
-     * @var Recurring
+     * @var Vault
      */
-    private $recurringHelper;
+    private $vaultHelper;
 
     private $boletoOriginalAmount;
 
@@ -265,7 +265,7 @@ class Webhook
         PaymentFactory $adyenOrderPaymentFactory,
         AdyenLogger $logger,
         MagentoInvoiceFactory $magentoInvoiceFactory,
-        Recurring $recurringHelper
+        Vault $vaultHelper
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
@@ -298,7 +298,7 @@ class Webhook
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->logger = $logger;
         $this->magentoInvoiceFactory = $magentoInvoiceFactory;
-        $this->recurringHelper = $recurringHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -511,7 +511,7 @@ class Webhook
                 break;
             case Notification::RECURRING_CONTRACT:
                 // only store billing agreements if Vault is disabled
-                if (!$this->recurringHelper->isCreditCardVaultEnabled()) {
+                if (!$this->vaultHelper->isCardVaultEnabled()) {
                     // storedReferenceCode
                     $recurringDetailReference = $notification->getPspreference();
 

@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -28,7 +28,6 @@ use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Adyen\Util\Uuid;
 use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Framework\UrlInterface;
 
 class Requests extends AbstractHelper
 {
@@ -60,9 +59,9 @@ class Requests extends AbstractHelper
     private $paymentMethodsHelper;
 
     /**
-     * @var Recurring $recurringHelper
+     * @var Vault
      */
-    private $recurringHelper;
+    private $vaultHelper;
 
     private $shopperReference;
 
@@ -71,25 +70,25 @@ class Requests extends AbstractHelper
      *
      * @param Data $adyenHelper
      * @param Config $adyenConfig
-     * @param UrlInterface $urlBuilder
      * @param Address $addressHelper
+     * @param StateData $stateData
+     * @param PaymentMethods $paymentMethodsHelper
+     * @param Vault $vaultHelper
      */
     public function __construct(
         Data $adyenHelper,
         Config $adyenConfig,
-        UrlInterface $urlBuilder,
         Address $addressHelper,
         StateData $stateData,
         PaymentMethods $paymentMethodsHelper,
-        Recurring $recurringHelper
+        Vault $vaultHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
-        $this->urlBuilder = $urlBuilder;
         $this->addressHelper = $addressHelper;
         $this->stateData = $stateData;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->recurringHelper = $recurringHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -369,7 +368,7 @@ class Requests extends AbstractHelper
 
         //recurring
         if ($storedPaymentMethodsEnabled) {
-            if ($this->recurringHelper->isCreditCardVaultEnabled()) {
+            if ($this->vaultHelper->isCardVaultEnabled()) {
                 $request['recurringProcessingModel'] = 'Subscription';
             } else {
                 $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
