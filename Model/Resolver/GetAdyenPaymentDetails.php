@@ -39,11 +39,15 @@ use Magento\Framework\GraphQl\Query\Resolver\Value;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\QuoteGraphQl\Model\Cart\GetCartForUser;
 use Magento\Sales\Model\Order;
 
 class GetAdyenPaymentDetails implements ResolverInterface
 {
-
+    /**
+     * @var GetCartForUser
+     */
+    private $getCartForUser;
     /**
      * @var DataProvider\GetAdyenPaymentStatus
      */
@@ -56,36 +60,30 @@ class GetAdyenPaymentDetails implements ResolverInterface
      * @var Json
      */
     protected $jsonSerializer;
-
     /**
      * @var AdyenLogger
      */
     protected $adyenLogger;
 
     /**
-     * @var Quote
-     */
-    protected $quoteHelper;
-
-    /**
+     * @param GetCartForUser $getCartForUser
      * @param DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider
      * @param Order $order
      * @param Json $jsonSerializer
      * @param AdyenLogger $adyenLogger
-     * @param Quote $quoteHelper
      */
     public function __construct(
+        GetCartForUser $getCartForUser,
         DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider,
         Order $order,
         Json $jsonSerializer,
-        AdyenLogger $adyenLogger,
-        Quote $quoteHelper
+        AdyenLogger $adyenLogger
     ) {
+        $this->getCartForUser = $getCartForUser;
         $this->getAdyenPaymentStatusDataProvider = $getAdyenPaymentStatusDataProvider;
         $this->order = $order;
         $this->jsonSerializer = $jsonSerializer;
         $this->adyenLogger = $adyenLogger;
-        $this->quoteHelper = $quoteHelper;
     }
 
 
@@ -122,7 +120,7 @@ class GetAdyenPaymentDetails implements ResolverInterface
 
         try {
             $payload = $this->jsonSerializer->unserialize($args['payload']);
-            $cart = $this->quoteHelper->getInactiveQuoteForUser($maskedCartId, $currentUserId, $storeId);
+            $cart = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
             $order = $this->order->loadByIncrementId($payload['orderId']);
             $orderId = $order->getEntityId();
 
@@ -142,7 +140,7 @@ class GetAdyenPaymentDetails implements ResolverInterface
 
         try {
             $payload = $this->jsonSerializer->unserialize($args['payload']);
-            $cart = $this->quoteHelper->getInactiveQuoteForUser($maskedCartId, $currentUserId, $storeId);
+            $cart = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
             if (!array_key_exists('orderId', $payload)) {
                 throw new GraphQlInputException(__('Invalid payload provided'));
             }
