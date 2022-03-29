@@ -1,4 +1,5 @@
 <?php
+
 /**
  *                       ######
  *                       ######
@@ -15,27 +16,38 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Logger\Handler;
+namespace Adyen\Payment\Model\Config\Source;
 
-use Adyen\Payment\Logger\AdyenLogger;
-
-class AdyenWarning extends AdyenBase
+class MerchantAccounts implements \Magento\Framework\Data\OptionSourceInterface
 {
     /**
-     * @var string
+     * @var \Adyen\Payment\Helper\Data
      */
-    protected $fileName = '/var/log/adyen/warning.log';
+    protected $_adyenHelper;
 
     /**
-     * @var int
+     * MerchantAccounts constructor.
+     *
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
      */
-    protected $loggerType = AdyenLogger::WARNING;
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper
+    ) {
+        $this->_adyenHelper = $adyenHelper;
+    }
 
-    protected $level = AdyenLogger::WARNING;
+    /**
+     * @return array
+     */
+    public function toOptionArray()
+    {
+        $merchantAccount = $this->_adyenHelper->getAdyenMerchantAccount('adyen_cc');
+        return $merchantAccount ? [$merchantAccount] : [];
+    }
 }

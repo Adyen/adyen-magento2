@@ -21,21 +21,11 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Logger\Handler;
+namespace Adyen\Payment\Model\Config\Source\Status;
 
-use Adyen\Payment\Logger\AdyenLogger;
 
-class AdyenWarning extends AdyenBase
+class AdyenState
 {
-    /**
-     * @var string
-     */
-    protected $fileName = '/var/log/adyen/warning.log';
-
-    /**
-     * @var int
-     */
-    protected $loggerType = AdyenLogger::WARNING;
-
-    protected $level = AdyenLogger::WARNING;
+    const STATE_MAINTAIN = "maintain";
+    const STATE_MAINTAIN_STATUS = [self::STATE_MAINTAIN => "Maintain status"];
 }
