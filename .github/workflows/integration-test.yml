@@ -19,7 +19,7 @@ jobs:
       - name: Sleep for 120 seconds
         uses: jakejarvis/wait-action@master
         with:
-          time: '120s'
+          time: "120s"
 
       - name: Show install logs
         run: docker logs magento2-container
@@ -66,12 +66,7 @@ jobs:
 
       - name: Run unit tests
         run: docker exec magento2-container vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit
-      
-      - name: Run E2E tests
-        run: |
-          docker exec playwright git clone https://github.com/Adyen/adyen-integration-tools-tests.git
-          docker exec -w /var/www/html/adyen-integration-tools-tests -e PLAYWRIGHT_MAGENTO_BASE_URL=magento2.test.com playwright npx playwright test --project=chromium --config=./projects/magento/magento.config.cjs
-          
+
       - name: Run GraphQL tests
         run: |
           docker exec -w $MAGENTO_ROOT/dev/tests/api-functional magento2-container $MAGENTO_ROOT/vendor/bin/phpunit --configuration $MAGENTO_ROOT/$PHPUNIT_CONFIG $MAGENTO_ROOT/$TEST_SUITE
@@ -79,3 +74,9 @@ jobs:
           MAGENTO_ROOT: /var/www/html
           PHPUNIT_CONFIG: vendor/adyen/module-payment/Test/api-functional/phpunit_graphql.xml
           TEST_SUITE: vendor/adyen/module-payment/Test/api-functional/GraphQl
+
+      - name: Run E2E tests
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
+        env:
+          PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
+          PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
