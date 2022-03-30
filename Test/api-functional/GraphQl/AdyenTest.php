@@ -9,6 +9,7 @@ namespace Adyen\Payment\GraphQl;
 
 use Magento\Integration\Api\CustomerTokenServiceInterface;
 use Magento\TestFramework\Helper\Bootstrap;
+use Magento\TestFramework\TestCase\GraphQl\ResponseContainsErrorsException;
 use Magento\TestFramework\TestCase\GraphQlAbstract;
 use Magento\GraphQl\Quote\GetMaskedQuoteIdByReservedOrderId;
 
@@ -107,58 +108,19 @@ QUERY;
         self::assertArrayHasKey('action', $response['placeOrder']['order']['adyen_payment_status']);
     }
 
-    /**
-     * @magentoApiDataFixture Magento/GraphQl/Catalog/_files/simple_product.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/create_empty_cart.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/set_guest_email.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_shipping_address.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_billing_address.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_flatrate_shipping_method.php
-     */
-    public function disabledTstAdyenPaymentDetails()
+    public function testAdyenPaymentDetails()
     {
-        $methodCode = "adyen_hpp";
-        $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
-
-        $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
-
-        $adyenAdditionalData = '
-        ,
-        adyen_additional_data_hpp: {
-            brand_code: "ideal",
-            stateData: "' . $stateData . '"
-        }';
-
-        $query = $this->getPlaceOrderQuery($maskedQuoteId, $methodCode, $adyenAdditionalData);
-        $response = $this->graphQlMutation($query);
-
-        $resultRedirect = ''; /* ResultRedirect cannot be retrieved */
-
-        $payloadArray['order_id'] = $response['setPaymentMethodAndPlaceOrder']['order']['order_number'];
-        $payloadArray['redirectResult'] = $resultRedirect;
-
-        $payload = str_replace('"', '/"', json_encode($payloadArray));
-
-        $query =
-            <<<QUERY
+        $query = <<<QUERY
 {
-  adyenPaymentDetails(payload: "$payload") {
-    isFinal,
-    resultCode,
-    additionalData,
-    action
+  adyenPaymentDetails(payload: "{\"orderId\": \"nothing here\"}", cart_id: "not found") {
+    isFinal
   }
 }
 QUERY;
+        $this->expectException(ResponseContainsErrorsException::class);
+        $this->expectExceptionMessage('Could not find a cart with ID "not found"');
 
-        $response = $this->graphQlQuery(
-            $query,
-            [],
-            '',
-        );
-
-
+        $this->graphQlQuery($query);
     }
 
     /**

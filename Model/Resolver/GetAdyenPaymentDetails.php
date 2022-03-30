@@ -26,11 +26,8 @@ declare(strict_types=1);
 namespace Adyen\Payment\Model\Resolver;
 
 use Adyen\Payment\Exception\GraphQlAdyenException;
-use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
-use InvalidArgumentException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
@@ -86,7 +83,6 @@ class GetAdyenPaymentDetails implements ResolverInterface
         $this->adyenLogger = $adyenLogger;
     }
 
-
     /**
      * @inheritdoc
      *
@@ -109,55 +105,22 @@ class GetAdyenPaymentDetails implements ResolverInterface
     ) {
         if (empty($args['payload'])) {
             throw new GraphQlInputException(__('Required parameter "payload" is missing'));
-        } elseif (empty($args['cart_id'])) {
+        }
+        if (empty($args['cart_id'])) {
             throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
         }
-
-        $maskedCartId = $args['cart_id'];
-
-        $currentUserId = $context->getUserId();
-        $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
-
-        try {
-            $payload = $this->jsonSerializer->unserialize($args['payload']);
-            $cart = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
-            $order = $this->order->loadByIncrementId($payload['orderId']);
-            $orderId = $order->getEntityId();
-
-            if (is_null($orderId) || $order->getQuoteId() !== $cart->getEntityId()) {
-                throw new GraphQlNoSuchEntityException(__('Order does not exist'));
-            }
-        } catch (NoSuchEntityException $exception) {
-            if (isset($payload) && array_key_exists('orderId', $payload)) {
-                $this->adyenLogger->addWarning(sprintf('Attempted to get the payment details for order %s.', $payload['orderId']));
-            }
-
-            throw new GraphQlNoSuchEntityException(__('Order does not exist'));
+        $payload = $this->jsonSerializer->unserialize($args['payload']);
+        if (!array_key_exists('orderId', $payload)) {
+            throw new GraphQlInputException(__('Missing "orderId" from payload'));
         }
 
-        // Set the orderId in the payload to the entity id, instead of the incrementId
-        $payload['orderId'] = $order->getId();
-
-        try {
-            $payload = $this->jsonSerializer->unserialize($args['payload']);
-            $cart = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
-            if (!array_key_exists('orderId', $payload)) {
-                throw new GraphQlInputException(__('Invalid payload provided'));
-            }
-            $order = $this->order->loadByIncrementId($payload['orderId']);
-            $orderId = $order->getEntityId();
-
-            if (is_null($orderId) || $order->getQuoteId() !== $cart->getEntityId()) {
-                throw new GraphQlNoSuchEntityException(__('Order does not exist'));
-            }
-        } catch (NoSuchEntityException $exception) {
-            if (isset($payload) && array_key_exists('orderId', $payload)) {
-                $this->adyenLogger->addError(sprintf('Attempted to get the payment details for order: %s.', $payload['orderId']));
-            }
-
+        $order = $this->order->loadByIncrementId($payload['orderId']);
+        $maskedCartId = $args['cart_id'];
+        $currentUserId = $context->getUserId();
+        $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
+        $cart = $this->getCartForUser->execute($maskedCartId, $currentUserId, $storeId);
+        if (is_null($order->getEntityId()) || $order->getQuoteId() !== $cart->getEntityId()) {
             throw new GraphQlNoSuchEntityException(__('Order does not exist'));
-        } catch (InvalidArgumentException $exception) {
-            throw new GraphQlInputException(__('Invalid payload provided'));
         }
 
         // Set the orderId in the payload to the entity id, instead of the incrementId
@@ -166,7 +129,10 @@ class GetAdyenPaymentDetails implements ResolverInterface
         try {
             return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentDetails($this->jsonSerializer->serialize($payload));
         } catch (Exception $exception) {
-            $this->adyenLogger->addError(sprintf('GraphQl payment details call failed with error message: %s', $exception->getMessage()));
+            $this->adyenLogger->addError(sprintf(
+                'GraphQl payment details call failed with error message: %s',
+                $exception->getMessage()
+            ));
             // In the future, use the message and the code passed by the exception. Since currently the message and code are not
             // being passed, use this generic message.
             throw new GraphQlAdyenException(__('An unknown error has occurred'), null, 000);
