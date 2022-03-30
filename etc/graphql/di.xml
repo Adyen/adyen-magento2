@@ -20,4 +20,7 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Quote\Api\PaymentMethodManagementInterface">
+        <plugin name="enrichPaymentWithStateData" type="Adyen\Payment\Plugin\GraphQlEnrichPaymentWithStateData"/>
+    </type>
 </config>
