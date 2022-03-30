@@ -1,21 +1,36 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ *                       ######
+ *                       ######
+ * ############    ####( ######  #####. ######  ############   ############
+ * #############  #####( ######  #####. ######  #############  #############
+ *        ######  #####( ######  #####. ######  #####  ######  #####  ######
+ * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
+ * ###### ######  #####( ######  #####. ######  #####          #####  ######
+ * #############  #############  #############  #############  #####  ######
+ *  ############   ############  #############   ############  #####  ######
+ *                                      ######
+ *                               #############
+ *                               ############
+ *
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2022 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
  */
-declare(strict_types=1);
 
 namespace Adyen\Payment\GraphQl;
 
-use Magento\Integration\Api\CustomerTokenServiceInterface;
+use Magento\GraphQl\Quote\GetMaskedQuoteIdByReservedOrderId;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\TestCase\GraphQl\ResponseContainsErrorsException;
 use Magento\TestFramework\TestCase\GraphQlAbstract;
-use Magento\GraphQl\Quote\GetMaskedQuoteIdByReservedOrderId;
 
 class AdyenTest extends GraphQlAbstract
 {
-
     /**
      * @var GetMaskedQuoteIdByReservedOrderId
      */
@@ -30,18 +45,10 @@ class AdyenTest extends GraphQlAbstract
         $this->getMaskedQuoteIdByReservedOrderId = $objectManager->get(GetMaskedQuoteIdByReservedOrderId::class);
     }
 
-    /**
-     * @magentoApiDataFixture Magento/GraphQl/Catalog/_files/simple_product.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/create_empty_cart.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_shipping_address.php
-     */
     public function testAdyenPaymentMethods()
     {
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
-
-        $query =
-            <<<QUERY
+        $query = <<<QUERY
 {
   adyenPaymentMethods(cart_id: "$maskedQuoteId") {
     paymentMethodsResponse {
@@ -61,11 +68,7 @@ class AdyenTest extends GraphQlAbstract
 }
 QUERY;
 
-        $response = $this->graphQlQuery(
-            $query,
-            [],
-            '',
-        );
+        $response = $this->graphQlQuery($query);
 
         $this->assertArrayHasKey('adyenPaymentMethods', $response);
         $this->assertArrayHasKey('paymentMethodsResponse', $response['adyenPaymentMethods']);
@@ -85,17 +88,15 @@ QUERY;
     {
         $methodCode = "adyen_hpp";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
-
         $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
-
         $adyenAdditionalData = '
         ,
         adyen_additional_data_hpp: {
             brand_code: "ideal",
             stateData: "' . $stateData . '"
         }';
-
         $query = $this->getPlaceOrderQuery($maskedQuoteId, $methodCode, $adyenAdditionalData);
+
         $response = $this->graphQlMutation($query);
 
         self::assertArrayHasKey('placeOrder', $response);
@@ -133,17 +134,15 @@ QUERY;
     {
         $methodCode = "adyen_hpp";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
-
         $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
-
         $adyenAdditionalData = '
         ,
         adyen_additional_data_hpp: {
             brand_code: "ideal",
             stateData: "' . $stateData . '"
         }';
-
         $query = $this->getQuery($maskedQuoteId, $methodCode, $adyenAdditionalData);
+
         $response = $this->graphQlMutation($query);
 
         self::assertArrayHasKey('setPaymentMethodOnCart', $response);
@@ -155,14 +154,14 @@ QUERY;
     /**
      * @param string $maskedQuoteId
      * @param string $methodCode
+     * @param string $adyenAdditionalData
      * @return string
      */
     private function getQuery(
         string $maskedQuoteId,
         string $methodCode,
         string $adyenAdditionalData
-    ): string
-    {
+    ): string {
         return <<<QUERY
 mutation {
   setPaymentMethodOnCart(input: {
@@ -185,14 +184,14 @@ QUERY;
     /**
      * @param string $maskedQuoteId
      * @param string $methodCode
+     * @param string $adyenAdditionalData
      * @return string
      */
     private function getPlaceOrderQuery(
         string $maskedQuoteId,
         string $methodCode,
         string $adyenAdditionalData
-    ): string
-    {
+    ): string {
         return <<<QUERY
 mutation {
     setPaymentMethodOnCart(
