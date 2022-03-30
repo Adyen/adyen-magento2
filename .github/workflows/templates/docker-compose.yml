@@ -10,7 +10,7 @@ services:
       MARIADB_USER: magento
       MARIADB_PASSWORD: magento
     networks:
-     - backend
+      - backend
   elastic:
     image: elasticsearch:7.16.2
     container_name: elasticsearch
@@ -21,7 +21,7 @@ services:
       - "discovery.type=single-node"
       - ES_JAVA_OPTS=-Xms750m -Xmx750m
     networks:
-     - backend
+      - backend
   web:
     image: ataberkylmz/magento2:2.4.2
     container_name: magento2-container
@@ -45,8 +45,13 @@ services:
           - magento2.test.com
   playwright:
     image: mcr.microsoft.com/playwright:v1.20.0-focal
-    container_name: playwright
     networks:
-     - backend
+      - backend
+    environment:
+      - MAGENTO_BASE_URL=http://magento2.test.com
+      - PAYPAL_USERNAME
+      - PAYPAL_PASSWORD
+    volumes:
+      - ../../scripts/e2e.sh:/e2e.sh
 networks:
   backend:
