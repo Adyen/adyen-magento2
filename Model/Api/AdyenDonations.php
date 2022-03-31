@@ -57,6 +57,11 @@ class AdyenDonations implements AdyenDonationsInterface
      */
     private $jsonSerializer;
 
+    /**
+     * @var
+     */
+    private $donationTryCount;
+
     public function __construct(
         CommandPoolInterface $commandPool,
         OrderFactory $orderFactory,
@@ -80,15 +85,15 @@ class AdyenDonations implements AdyenDonationsInterface
         /** @var Order */
         $order = $this->orderFactory->create()->load($this->checkoutSession->getLastOrderId());
 
-        $this->incrementTryCount($order);
-
         $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
-        $donationTryCount = $order->getPayment()->getAdditionalInformation('donationTryCount');
+        $this->donationTryCount = $order->getPayment()->getAdditionalInformation('donationTryCount');
+
+        $this->incrementTryCount($order);
 
         if (!$donationToken) {
             throw new LocalizedException(__('Donation failed!'));
         }
-        if ($donationTryCount >= 5) {
+        if ($this->donationTryCount >= 5) {
             // Remove donation token after 5 try and throw a exception.
             $this->removeDonationToken($order);
 
@@ -117,17 +122,15 @@ class AdyenDonations implements AdyenDonationsInterface
 
     private function incrementTryCount($order)
     {
-        $donationTryCount = $order->getPayment()->getAdditionalInformation('donationTryCount');
-
-        if (!$donationTryCount) {
+        if (!$this->donationTryCount) {
             $order->getPayment()->setAdditionalInformation('donationTryCount', 1);
-            $order->save();
         }
         else {
-            $donationTryCount += 1;
-            $order->getPayment()->setAdditionalInformation('donationTryCount', $donationTryCount);
-            $order->save();
+            $this->donationTryCount += 1;
+            $order->getPayment()->setAdditionalInformation('donationTryCount', $this->donationTryCount);
         }
+
+        $order->save();
     }
 
     private function removeDonationToken($order)
