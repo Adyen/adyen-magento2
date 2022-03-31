@@ -80,10 +80,21 @@ class AdyenDonations implements AdyenDonationsInterface
         /** @var Order */
         $order = $this->orderFactory->create()->load($this->checkoutSession->getLastOrderId());
 
+        $this->incrementTryCount($order);
+
         $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
+        $donationTryCount = $order->getPayment()->getAdditionalInformation('donationTryCount');
+
         if (!$donationToken) {
-            throw new LocalizedException(__('Donation failed: Invalid donationToken'));
+            throw new LocalizedException(__('Donation failed!'));
         }
+        if ($donationTryCount >= 5) {
+            // Remove donation token after 5 try and throw a exception.
+            $this->removeDonationToken($order);
+
+            throw new LocalizedException(__('Donation failed!'));
+        }
+
         $payload['donationToken'] = $donationToken;
         $payload['donationOriginalPspReference'] = $order->getPayment()->getAdditionalInformation('pspReference');
 
@@ -96,12 +107,32 @@ class AdyenDonations implements AdyenDonationsInterface
         }
 
         $donationsCaptureCommand = $this->commandPool->get('capture');
-
         $donationResult = $donationsCaptureCommand->execute(['payment' => $payload]);
 
-        $order->getPayment()->unsAdditionalInformation('donationToken');
-        $order->save();
+        // Remove donation token after a successfull donation.
+        $this->removeDonationToken($order);
 
         return $donationResult;
+    }
+
+    private function incrementTryCount($order)
+    {
+        $donationTryCount = $order->getPayment()->getAdditionalInformation('donationTryCount');
+
+        if (!$donationTryCount) {
+            $order->getPayment()->setAdditionalInformation('donationTryCount', 1);
+            $order->save();
+        }
+        else {
+            $donationTryCount += 1;
+            $order->getPayment()->setAdditionalInformation('donationTryCount', $donationTryCount);
+            $order->save();
+        }
+    }
+
+    private function removeDonationToken($order)
+    {
+        $order->getPayment()->unsAdditionalInformation('donationToken');
+        $order->save();
     }
 }
