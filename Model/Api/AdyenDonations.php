@@ -96,6 +96,12 @@ class AdyenDonations implements AdyenDonationsInterface
         }
 
         $donationsCaptureCommand = $this->commandPool->get('capture');
-        return $donationsCaptureCommand->execute(['payment' => $payload]);
+
+        $donationResult = $donationsCaptureCommand->execute(['payment' => $payload]);
+
+        $order->getPayment()->unsAdditionalInformation('donationToken');
+        $order->save();
+
+        return $donationResult;
     }
 }
