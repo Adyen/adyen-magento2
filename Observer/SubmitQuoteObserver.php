@@ -16,7 +16,7 @@ class SubmitQuoteObserver implements ObserverInterface
         /** @var Quote $quote */
         $quote = $observer->getEvent()->getQuote();
         $method = $quote->getPayment()->getMethod();
-        if (in_array($method, ['adyen_hpp', 'adyen_cc'], true)) {
+        if (in_array($method, ['adyen_hpp', 'adyen_cc', 'adyen_oneclick'], true)) {
             $quote->setIsActive(true);
         }
     }
