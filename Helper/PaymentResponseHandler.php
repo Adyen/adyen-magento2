@@ -24,10 +24,9 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Logger\AdyenLogger;
+use Exception;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
-use Magento\Sales\Model\Order;
-use Adyen\Payment\Helper\Vault;
 
 class PaymentResponseHandler
 {
@@ -61,6 +60,10 @@ class PaymentResponseHandler
      * @var \Magento\Sales\Model\ResourceModel\Order
      */
     private $orderResourceModel;
+    /**
+     * @var Quote
+     */
+    private $quoteHelper;
 
     /**
      * @var Recurring
@@ -73,18 +76,23 @@ class PaymentResponseHandler
      * @param AdyenLogger $adyenLogger
      * @param Data $adyenHelper
      * @param \Adyen\Payment\Helper\Vault $vaultHelper
+     * @param \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
+     * @param Quote $quoteHelper
+     * @param Recurring $recurringHelper
      */
     public function __construct(
         AdyenLogger $adyenLogger,
         Data $adyenHelper,
         Vault $vaultHelper,
         \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
+        Quote $quoteHelper,
         Recurring $recurringHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
+        $this->quoteHelper = $quoteHelper;
         $this->recurringHelper = $recurringHelper;
     }
 
@@ -208,6 +216,13 @@ class PaymentResponseHandler
                     }
                 }
                 $this->orderResourceModel->save($order);
+                try {
+                    $this->quoteHelper->disableQuote($order->getQuoteId());
+                } catch (Exception $e) {
+                    $this->adyenLogger->error('Failed to disable quote: ' . $e->getMessage(), [
+                        'quoteId' => $order->getQuoteId()
+                    ]);
+                }
                 break;
             case self::REFUSED:
                 // Cancel order in case result is refused

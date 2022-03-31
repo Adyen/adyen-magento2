@@ -38,7 +38,6 @@
                 <group>adyen</group>
                 <notifications_can_cancel>1</notifications_can_cancel>
                 <charged_currency>display</charged_currency>
-                <clone_quote>0</clone_quote>
                 <house_number_street_line>0</house_number_street_line>
             </adyen_abstract>
             <adyen_cc>
