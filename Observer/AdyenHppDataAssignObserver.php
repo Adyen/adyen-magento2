@@ -28,7 +28,6 @@ use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
 use Adyen\Service\Validator\DataArrayValidator;
-use Magento\Checkout\Model\Session;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
@@ -65,10 +64,6 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
      * @var StateData
      */
     private $stateData;
-    /**
-     * @var Session
-     */
-    private $checkoutSession;
 
     /**
      * AdyenHppDataAssignObserver constructor.
@@ -81,13 +76,11 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         Collection $stateDataCollection,
-        StateData $stateData,
-        Session $checkoutSession
+        StateData $stateData
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataCollection = $stateDataCollection;
         $this->stateData = $stateData;
-        $this->checkoutSession = $checkoutSession;
     }
 
     /**
@@ -142,9 +135,6 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         if (!empty($additionalData[self::BRAND_CODE])) {
             $paymentInfo->setCcType($additionalData[self::BRAND_CODE]);
         }
-
-        // Customer is about to leave the shop
-        $this->checkoutSession->setPendingPayment(true);
     }
 
     /**
