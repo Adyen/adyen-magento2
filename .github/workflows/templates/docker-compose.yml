@@ -48,6 +48,7 @@ services:
     networks:
       - backend
     environment:
+      - MAGENTO_BASE_URL
       - PAYPAL_USERNAME
       - PAYPAL_PASSWORD
     volumes:
