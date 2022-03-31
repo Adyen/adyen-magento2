@@ -48,7 +48,6 @@ services:
     networks:
       - backend
     environment:
-      - MAGENTO_BASE_URL=http://magento2.test.com
       - PAYPAL_USERNAME
       - PAYPAL_PASSWORD
     volumes:
