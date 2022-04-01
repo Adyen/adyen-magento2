@@ -795,25 +795,24 @@ define(
                                 currency: configuration.amount.currency,
                                 value: configuration.amount.value
                             },
-                            returnUrl: location.href,
                             showChangePaymentDetailsButton: false
                         }).mount(containerId);
                         amazonPayComponent.submit();
                         result.component = amazonPayComponent;
-                    } else {
-                        const component = self.checkoutComponent.create(
-                            paymentMethod.methodIdentifier, configuration);
-                        if ('isAvailable' in component) {
-                            component.isAvailable().then(() => {
-                                component.mount(containerId);
-                            }).catch(e => {
-                                result.isAvailable(false);
-                            });
-                        } else {
-                            component.mount(containerId);
-                        }
-                        result.component = component;
                     }
+                    const component = self.checkoutComponent.create(
+                        paymentMethod.methodIdentifier, configuration);
+                    if ('isAvailable' in component) {
+                        component.isAvailable().then(() => {
+                            component.mount(containerId);
+                        }).catch(e => {
+                            result.isAvailable(false);
+                        });
+                    } else {
+                        component.mount(containerId);
+                    }
+                    result.component = component;
+
                 } catch (err) {
                     // The component does not exist yet
                     if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
