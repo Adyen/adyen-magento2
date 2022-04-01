@@ -118,7 +118,7 @@ QUERY;
     public function testAdyenPaymentDetails()
     {
         $query = <<<QUERY
-{
+mutation {
   adyenPaymentDetails(payload: "{\"orderId\": \"nothing here\"}", cart_id: "not found") {
     isFinal
   }
