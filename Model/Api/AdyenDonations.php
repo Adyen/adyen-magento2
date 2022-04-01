@@ -60,6 +60,11 @@ class AdyenDonations implements AdyenDonationsInterface
     /**
      * @var
      */
+    private $donationResult;
+
+    /**
+     * @var
+     */
     private $donationTryCount;
 
     public function __construct(
@@ -84,19 +89,9 @@ class AdyenDonations implements AdyenDonationsInterface
         $payload = $this->jsonSerializer->unserialize($payload);
         /** @var Order */
         $order = $this->orderFactory->create()->load($this->checkoutSession->getLastOrderId());
-
         $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
-        $this->donationTryCount = $order->getPayment()->getAdditionalInformation('donationTryCount');
-
-        $this->incrementTryCount($order);
 
         if (!$donationToken) {
-            throw new LocalizedException(__('Donation failed!'));
-        }
-        if ($this->donationTryCount >= 5) {
-            // Remove donation token after 5 try and throw a exception.
-            $this->removeDonationToken($order);
-
             throw new LocalizedException(__('Donation failed!'));
         }
 
@@ -111,15 +106,31 @@ class AdyenDonations implements AdyenDonationsInterface
             $payload['shopperReference'] = $guestCustomerId;
         }
 
-        $donationsCaptureCommand = $this->commandPool->get('capture');
-        $donationResult = $donationsCaptureCommand->execute(['payment' => $payload]);
+        try {
+            $donationsCaptureCommand = $this->commandPool->get('capture');
+            $this->donationResult = $donationsCaptureCommand->execute(['payment' => $payload]);
 
-        // Remove donation token after a successfull donation.
-        $this->removeDonationToken($order);
+            // Remove donation token after a successfull donation.
+            $this->removeDonationToken($order);
+        }
+        catch (LocalizedException $e) {
+            $this->donationTryCount = $order->getPayment()->getAdditionalInformation('donationTryCount');
 
-        return $donationResult;
+            if ($this->donationTryCount >= 5) {
+                // Remove donation token after 5 try and throw a exception.
+                $this->removeDonationToken($order);
+            }
+
+            $this->incrementTryCount($order);
+            throw new LocalizedException(__('Donation failed!'));
+        }
+
+        return $this->donationResult;
     }
 
+    /**
+     * @param $order
+     */
     private function incrementTryCount($order)
     {
         if (!$this->donationTryCount) {
@@ -133,6 +144,9 @@ class AdyenDonations implements AdyenDonationsInterface
         $order->save();
     }
 
+    /**
+     * @param $order
+     */
     private function removeDonationToken($order)
     {
         $order->getPayment()->unsAdditionalInformation('donationToken');
