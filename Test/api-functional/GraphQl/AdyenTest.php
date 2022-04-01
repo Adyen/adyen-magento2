@@ -127,7 +127,7 @@ QUERY;
         $this->expectException(ResponseContainsErrorsException::class);
         $this->expectExceptionMessage('Could not find a cart with ID "not found"');
 
-        $this->graphQlQuery($query);
+        $this->graphQlMutation($query);
     }
 
     /**
