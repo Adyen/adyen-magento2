@@ -24,22 +24,13 @@
 
 namespace Adyen\Payment\Helper;
 
-use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Quote\Api\Data\CartInterface;
-use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
-use Magento\Quote\Model\Quote\Address;
-use Magento\Quote\Model\QuoteRepository;
-use Magento\Framework\Exception\AlreadyExistsException;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\Quote as QuoteModel;
-use Magento\Quote\Model\Quote\AddressFactory as QuoteAddressFactory;
-use Magento\Quote\Model\ResourceModel\Quote\Address as QuoteAddressResource;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\QuoteRepository;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderRepository;
 
 class Quote
@@ -48,102 +39,35 @@ class Quote
      * @var QuoteRepository
      */
     private $quoteRepository;
-
     /**
      * @var CartRepositoryInterface
      */
     private $cartRepository;
-
-    /**
-     * @var QuoteAddressFactory
-     */
-    private $quoteAddressFactory;
-
-    /**
-     * @var QuoteAddressResource
-     */
-    private $quoteAddressResource;
-
     /**
      * @var SearchCriteriaBuilder
      */
     private $searchCriteriaBuilder;
-
     /**
      * @var OrderRepository
      */
     private $orderRepository;
-
-    /**
-     * @var MaskedQuoteIdToQuoteIdInterface
-     */
-    private $maskedQuoteIdToQuoteId;
-
     /**
      * @var FilterBuilder
      */
     private $filterBuilder;
 
-    /**
-     * @var AdyenLogger
-     */
-    private $adyenLogger;
-
     public function __construct(
         CartRepositoryInterface $cartRepository,
         QuoteRepository $quoteRepository,
         OrderRepository $orderRepository,
-        QuoteAddressFactory $quoteAddressFactory,
-        QuoteAddressResource $quoteAddressResource,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         FilterBuilder $filterBuilder
     ) {
         $this->cartRepository = $cartRepository;
         $this->quoteRepository = $quoteRepository;
         $this->orderRepository = $orderRepository;
-        $this->quoteAddressFactory = $quoteAddressFactory;
-        $this->quoteAddressResource = $quoteAddressResource;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->filterBuilder = $filterBuilder;
-    }
-
-    /**
-     * @param QuoteModel $newQuote
-     * @param Order $previousOrder
-     * @return false|QuoteModel
-     * @throws LocalizedException
-     */
-    public function cloneQuote(QuoteModel $newQuote, Order $previousOrder)
-    {
-        $oldQuote = $this->quoteRepository->get($previousOrder->getQuoteId());
-        $newQuote->merge($oldQuote)->collectTotals();
-        $newQuote->setShippingAddress($oldQuote->getShippingAddress());
-        $newQuote->setBillingAddress($oldQuote->getBillingAddress());
-        $this->cartRepository->save($newQuote);
-        $this->cloneQuoteAddresses($oldQuote, $newQuote);
-        return $newQuote;
-    }
-
-    /**
-     * @param QuoteModel $oldQuote
-     * @param QuoteModel $newQuote
-     * @return false|QuoteModel
-     * @throws AlreadyExistsException
-     */
-    protected function cloneQuoteAddresses(QuoteModel $oldQuote, QuoteModel $newQuote)
-    {
-        foreach ([Address::ADDRESS_TYPE_SHIPPING, Address::ADDRESS_TYPE_BILLING] as $type) {
-            $quoteAddress = $this->quoteAddressFactory->create();
-            if ($type == Address::ADDRESS_TYPE_SHIPPING) {
-                $this->quoteAddressResource->load($quoteAddress, $oldQuote->getShippingAddress()->getId());
-            } else {
-                $this->quoteAddressResource->load($quoteAddress, $oldQuote->getBillingAddress()->getId());
-            }
-            $quoteAddress->setQuoteId($newQuote->getId())->unsetData('address_id');
-            $this->quoteAddressResource->save($quoteAddress);
-        }
     }
 
     public function getIsQuoteMultiShippingWithMerchantReference(string $merchantReference)
@@ -162,59 +86,18 @@ class Quote
     }
 
     /**
-     * Get inactive quote for user. This function is very similar to GetCartForUser::execute.
-     *
-     * @param string $cartHash
-     * @param int|null $customerId
-     * @param int $storeId
-     * @return QuoteModel
+     * Try to disable a quote after successful payment
+     * @param $quoteId
      * @throws NoSuchEntityException
      */
-    public function getInactiveQuoteForUser(string $cartHash, ?int $customerId, int $storeId): QuoteModel
+    public function disableQuote($quoteId)
     {
-        try {
-            $cartId = $this->maskedQuoteIdToQuoteId->execute($cartHash);
-        } catch (NoSuchEntityException $exception) {
-            throw new NoSuchEntityException(
-                __('Could not find a cart with ID "%masked_cart_id"', ['masked_cart_id' => $cartHash])
-            );
+        $quote = $this->quoteRepository->get($quoteId);
+        if (!$quote || !$quote->getIsActive()) {
+            return;
         }
-
-        try {
-            /** @var QuoteModel $cart */
-            $cart = $this->cartRepository->get($cartId);
-        } catch (NoSuchEntityException $e) {
-            throw new NoSuchEntityException(
-                __('Could not find a cart with ID "%masked_cart_id"', ['masked_cart_id' => $cartHash])
-            );
-        }
-
-        if ($cart->getIsActive()) {
-            throw new NoSuchEntityException(__('The cart is active.'));
-        }
-
-        if ((int)$cart->getStoreId() !== $storeId) {
-            throw new NoSuchEntityException(__(
-                'Wrong store code specified for cart "%masked_cart_id"',
-                ['masked_cart_id' => $cartHash]
-            ));
-        }
-
-        $cartCustomerId = (int)$cart->getCustomerId();
-
-        /* Guest cart, allow operations */
-        if (0 === $cartCustomerId && (null === $customerId || 0 === $customerId)) {
-            return $cart;
-        }
-
-        if ($cartCustomerId !== $customerId) {
-            throw new NoSuchEntityException(__(
-                'The current user cannot perform operations on cart "%masked_cart_id"',
-                ['masked_cart_id' => $cartHash]
-            ));
-        }
-
-        return $cart;
+        $quote->setIsActive(false);
+        $this->cartRepository->save($quote);
     }
 
     /**
@@ -241,7 +124,7 @@ class Quote
         }
 
         $orders = $searchResult->getItems();
-        /** @var OrderInterface $order*/
+        /** @var OrderInterface $order */
         $order = reset($orders);
 
         return $this->cartRepository->get($order->getQuoteId());
