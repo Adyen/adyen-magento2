@@ -7,7 +7,9 @@ type Query {
     adyenPaymentMethods (
         cart_id: String! @doc(description: "Cart ID.")
     ) : AdyenPaymentMethods @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentMethods")
+}
 
+type Mutation {
     adyenPaymentDetails (
         payload: String! @doc(description: "Payload JSON String with orderId, details, paymentData and threeDSAuthenticationOnly.")
         cart_id: String! @doc(description: "Cart ID.")
