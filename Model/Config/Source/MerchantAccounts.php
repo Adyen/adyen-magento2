@@ -48,6 +48,8 @@ class MerchantAccounts implements \Magento\Framework\Data\OptionSourceInterface
     public function toOptionArray()
     {
         $merchantAccount = $this->_adyenHelper->getAdyenMerchantAccount('adyen_cc');
-        return $merchantAccount ? [$merchantAccount] : [];
+        return $merchantAccount ? array(
+            ['value' => $merchantAccount, 'label' => $merchantAccount]
+        ) : [];
     }
 }
