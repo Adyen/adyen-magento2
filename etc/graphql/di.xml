@@ -18,7 +18,7 @@
                 <item name="adyen_client_key_live" xsi:type="string">payment/adyen_abstract/client_key_live</item>
                 <item name="adyen_demo_mode" xsi:type="string">payment/adyen_abstract/demo_mode</item>
                 <item name="adyen_has_holder_name" xsi:type="string">payment/adyen_abstract/has_holder_name</item>
-                <item name="adyen_holder_name_required" xsi:type="string">payment/adyen_abstract/holder_name_required/item>
+                <item name="adyen_holder_name_required" xsi:type="string">payment/adyen_abstract/holder_name_required</item>
                 <item name="adyen_title_renderer" xsi:type="string">payment/adyen_abstract/title_renderer</item>
                 <item name="adyen_return_path_error" xsi:type="string">payment/adyen_abstract/return_path</item>
             </argument>
