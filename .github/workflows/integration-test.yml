@@ -75,8 +75,21 @@ jobs:
           PHPUNIT_CONFIG: vendor/adyen/module-payment/Test/api-functional/phpunit_graphql.xml
           TEST_SUITE: vendor/adyen/module-payment/Test/api-functional/GraphQl
 
+    - name: Sample data deploy
+        run: |
+          docker exec magento2-container composer config http-basic.repo.magento.com "${MAGENTO_USERNAME}" "${MAGENTO_PASSWORD}"
+          docker exec magento2-container composer config repositories.magento composer https://repo.magento.com/
+          docker exec magento2-container bash -c 'echo "memory_limit = -1" > /usr/local/etc/php/conf.d/memory.ini'
+          docker exec magento2-container bin/magento sampledata:deploy
+          docker exec magento2-container bin/magento setup:upgrade
+        env: 
+          COMPOSER_MEMORY_LIMIT: -1
+          MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
+          MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
+
       - name: Run E2E tests
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
         env:
+          MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
           PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
