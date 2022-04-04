@@ -11,8 +11,8 @@
     }
   ],
   "require": {
-    "adyen/php-api-library": "^11.0.0",
-    "adyen/php-webhook-module": "^0.5.0",
+    "adyen/php-api-library": "^12.0.0",
+    "adyen/php-webhook-module": "^0.6.0",
     "magento/framework": ">=101.0.8 <102 || >=102.0.1",
     "magento/module-vault": "101.*",
     "magento/module-paypal": ">=100.2.6",
