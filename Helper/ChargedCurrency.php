@@ -109,13 +109,15 @@ class ChargedCurrency
                 $item->getBasePriceInclTax()
             );
         }
+        $amount = $item->getRowTotal()/$item->getQty();
+        $amountIncludingTax = $item->getRowTotalInclTax()/$item->getQty();
         return new AdyenAmountCurrency(
-            $item->getPrice(),
+            $amount,
             $item->getQuote()->getQuoteCurrencyCode(),
             $item->getDiscountAmount(),
-            $item->getPriceInclTax() - $item->getPrice(),
+            $amountIncludingTax - $amount,
             null,
-            $item->getPriceInclTax()
+            $amountIncludingTax
         );
     }
 
