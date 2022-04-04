@@ -118,7 +118,7 @@ QUERY;
     public function testAdyenPaymentDetails()
     {
         $query = <<<QUERY
-{
+mutation {
   adyenPaymentDetails(payload: "{\"orderId\": \"nothing here\"}", cart_id: "not found") {
     isFinal
   }
@@ -127,7 +127,7 @@ QUERY;
         $this->expectException(ResponseContainsErrorsException::class);
         $this->expectExceptionMessage('Could not find a cart with ID "not found"');
 
-        $this->graphQlQuery($query);
+        $this->graphQlMutation($query);
     }
 
     /**
