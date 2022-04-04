@@ -75,7 +75,7 @@ jobs:
           PHPUNIT_CONFIG: vendor/adyen/module-payment/Test/api-functional/phpunit_graphql.xml
           TEST_SUITE: vendor/adyen/module-payment/Test/api-functional/GraphQl
 
-    - name: Sample data deploy
+      - name: Sample data deploy
         run: |
           docker exec magento2-container composer config http-basic.repo.magento.com "${MAGENTO_USERNAME}" "${MAGENTO_PASSWORD}"
           docker exec magento2-container composer config repositories.magento composer https://repo.magento.com/
