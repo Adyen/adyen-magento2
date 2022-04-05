@@ -91,7 +91,7 @@ jobs:
           MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
 
       - name: Run E2E tests
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
+        run: docker run -it -e INTEGRATION_TESTS_BRANCH --rm --shm-size=1gb --ipc=host --cap-add=SYS_ADMIN --network templates_backend -v `pwd`/.github/scripts/e2e.sh:/e2e.sh mcr.microsoft.com/playwright:v1.20.0-focal /e2e.sh
         env:
           INTEGRATION_TESTS_BRANCH: develop
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
