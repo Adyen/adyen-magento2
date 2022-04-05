@@ -48,6 +48,7 @@ services:
     networks:
       - backend
     environment:
+      - INTEGRATION_TESTS_BRANCH
       - MAGENTO_BASE_URL
       - PAYPAL_USERNAME
       - PAYPAL_PASSWORD
