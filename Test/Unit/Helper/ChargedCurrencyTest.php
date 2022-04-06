@@ -198,7 +198,8 @@ class ChargedCurrencyTest extends TestCase
                 'getDiscountAmount',
                 'getTaxAmount',
                 'getBasePriceInclTax',
-                'getPriceInclTax'
+                'getPriceInclTax',
+                'getRowTotalInclTax'
             ])
             ->getMock();
         $this->mockMethods($this->quoteItem,
@@ -213,7 +214,8 @@ class ChargedCurrencyTest extends TestCase
                 'getTaxAmount' => self::AMOUNT_CURRENCY['display']['taxAmount'],
                 'getQuote' => $this->quote,
                 'getBasePriceInclTax' => self::AMOUNT_CURRENCY['base']['amountIncludingTax'],
-                'getPriceInclTax' => self::AMOUNT_CURRENCY['display']['amountIncludingTax']
+                'getPriceInclTax' => self::AMOUNT_CURRENCY['display']['amountIncludingTax'],
+                'getRowTotalInclTax' => self::AMOUNT_CURRENCY['display']['amountIncludingTax']
             ]
         );
 
