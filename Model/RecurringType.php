@@ -23,6 +23,11 @@
 
 namespace Adyen\Payment\Model;
 
+/**
+ * Class RecurringType
+ * @package Adyen\Payment\Model
+ * @deprecated Use Helper\Recurring instead, for enums
+ */
 class RecurringType
 {
     const NONE = '';

@@ -23,13 +23,19 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
  */
 class PaymentMethods extends AbstractHelper
 {
+    const ADYEN_HPP = 'adyen_hpp';
+    const ADYEN_CC = 'adyen_cc';
+    const ADYEN_ONE_CLICK = 'adyen_oneclick';
 
     const METHODS_WITH_BRAND_LOGO = [
         "giftcard"
@@ -142,16 +148,15 @@ class PaymentMethods extends AbstractHelper
     /**
      * @param $quoteId
      * @param null $country
-     * @return array
-     * @throws \Adyen\AdyenException
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return string|array
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     * @throws AdyenException
      */
     public function getPaymentMethods($quoteId, $country = null)
     {
         // get quote from quoteId
         $quote = $this->quoteRepository->getActive($quoteId);
-
         // If quote cannot be found early return the empty paymentMethods array
         if (empty($quote)) {
             return [];
@@ -164,24 +169,23 @@ class PaymentMethods extends AbstractHelper
 
     /**
      * @param $country
-     * @return array
-     * @throws \Adyen\AdyenException
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return string
+     * @throws AdyenException
+     * @throws LocalizedException
+     * @throws \Exception
      */
-    protected function fetchPaymentMethods($country)
+    protected function fetchPaymentMethods($country): string
     {
         $quote = $this->getQuote();
         $store = $quote->getStore();
 
         $merchantAccount = $this->adyenHelper->getAdyenAbstractConfigData('merchant_account', $store->getId());
-
         if (!$merchantAccount) {
             return json_encode([]);
         }
 
         $paymentMethodRequest = $this->getPaymentMethodsRequest($merchantAccount, $store, $country, $quote);
         $responseData = $this->getPaymentMethodsResponse($paymentMethodRequest, $store);
-
         if (empty($responseData['paymentMethods'])) {
             return json_encode([]);
         }
@@ -272,7 +276,7 @@ class PaymentMethods extends AbstractHelper
      * @param $requestParams
      * @param $store
      * @return array
-     * @throws \Adyen\AdyenException
+     * @throws AdyenException
      */
     protected function getPaymentMethodsResponse($requestParams, $store)
     {
@@ -284,11 +288,17 @@ class PaymentMethods extends AbstractHelper
 
         try {
             $responseData = $service->paymentMethods($requestParams);
-        } catch (\Adyen\AdyenException $e) {
+        } catch (AdyenException $e) {
             $this->adyenLogger->error(
                 "The Payment methods response is empty check your Adyen configuration in Magento."
             );
             // return empty result
+            return [];
+        }
+        catch (\Adyen\ConnectionException $e) {
+            $this->adyenLogger->error(
+                "Connection to the endpoint failed. Check the Adyen Live endpoint prefix configuration."
+            );
             return [];
         }
 
@@ -374,7 +384,7 @@ class PaymentMethods extends AbstractHelper
      * @param $paymentMethods
      * @param array $paymentMethodsExtraDetails
      * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     protected function showLogosPaymentMethods($paymentMethods, array $paymentMethodsExtraDetails)
     {
@@ -483,5 +493,39 @@ class PaymentMethods extends AbstractHelper
             'alipay_hk'
         ];
         return in_array($notificationPaymentMethod, $walletPaymentMethods);
+    }
+
+    /**
+     * Check if the method of the passed payment is equal to the method passed in this function
+     *
+     * @param $payment
+     * @param string $method
+     * @return bool
+     */
+    public function checkPaymentMethod($payment, string $method): bool
+    {
+        return $payment->getMethod() === $method;
+    }
+
+    /**
+     * Check if the passed payment method supports recurring functionality.
+     *
+     * Currently only SEPA is allowed on our Magento plugin.
+     * Possible future payment methods:
+     *
+     * 'ach','amazonpay','applepay','directdebit_GB','bcmc','dana','dankort','eps','gcash','giropay','googlepay','paywithgoogle',
+     * 'gopay_wallet','ideal','kakaopay','klarna','klarna_account','klarna_b2b','klarna_paynow','momo_wallet','paymaya_wallet',
+     * 'paypal','trustly','twint','uatp','billdesk_upi','payu_IN_upi','vipps','yandex_money','zip'
+     *
+     * @param string $paymentMethod
+     * @return bool
+     */
+    public function paymentMethodSupportsRecurring(string $paymentMethod): bool
+    {
+        $paymentMethodRecurring = [
+            'sepadirectdebit',
+        ];
+
+        return in_array($paymentMethod, $paymentMethodRecurring);
     }
 }

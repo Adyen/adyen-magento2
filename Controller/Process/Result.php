@@ -23,10 +23,12 @@
 
 namespace Adyen\Payment\Controller\Process;
 
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\StateData;
-use \Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\Notification;
 use Adyen\Service\Validator\DataArrayValidator;
-use Magento\Framework\App\Request\Http as Http;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 
 class Result extends \Magento\Framework\App\Action\Action
@@ -77,11 +79,6 @@ class Result extends \Magento\Framework\App\Action\Action
     protected $_session;
 
     /**
-     * @var \Magento\Customer\Model\Session
-     */
-    private $customerSession;
-
-    /**
      * @var \Adyen\Payment\Logger\AdyenLogger
      */
     protected $_adyenLogger;
@@ -114,6 +111,21 @@ class Result extends \Magento\Framework\App\Action\Action
     private $stateDataHelper;
 
     /**
+     * @var Data
+     */
+    private $dataHelper;
+
+    /**
+     * @var OrderRepositoryInterface
+     */
+    private $orderRepository;
+
+    /**
+     * @var Recurring
+     */
+    private $recurringHelper;
+
+    /**
      * Result constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
@@ -124,6 +136,10 @@ class Result extends \Magento\Framework\App\Action\Action
      * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Adyen\Payment\Helper\Quote $quoteHelper
+     * @param \Adyen\Payment\Helper\Vault $vaultHelper
+     * @param \Magento\Sales\Model\ResourceModel\Order $orderResourceModel
+     * @param StateData $stateDataHelper
+     * @param \Adyen\Payment\Helper\Data $dataHelper
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -131,25 +147,29 @@ class Result extends \Magento\Framework\App\Action\Action
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Sales\Model\Order\Status\HistoryFactory $orderHistoryFactory,
         \Magento\Checkout\Model\Session $session,
-        \Magento\Customer\Model\Session $customerSession,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Adyen\Payment\Helper\Quote $quoteHelper,
         \Adyen\Payment\Helper\Vault $vaultHelper,
         \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
-        StateData $stateDataHelper
+        StateData $stateDataHelper,
+        Data $dataHelper,
+        OrderRepositoryInterface $orderRepository,
+        Recurring $recurringHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_orderFactory = $orderFactory;
         $this->_orderHistoryFactory = $orderHistoryFactory;
         $this->_session = $session;
-        $this->customerSession = $customerSession;
         $this->_adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
         $this->quoteHelper = $quoteHelper;
         $this->vaultHelper = $vaultHelper;
         $this->orderResourceModel = $orderResourceModel;
         $this->stateDataHelper = $stateDataHelper;
+        $this->dataHelper = $dataHelper;
+        $this->orderRepository = $orderRepository;
+        $this->recurringHelper = $recurringHelper;
         parent::__construct($context);
     }
 
@@ -160,14 +180,6 @@ class Result extends \Magento\Framework\App\Action\Action
     {
         // Receive all params as this could be a GET or POST request
         $response = $this->getRequest()->getParams();
-
-        // Check guest order ownership
-        if (!$this->customerSession->isLoggedIn()) {
-            $merchantReference = $this->getRequest()->getParam('merchantReference');
-            if (!$merchantReference || $merchantReference !== $this->_session->getLastRealOrderId()) {
-                return $this->_redirect($this->_adyenHelper->getAdyenAbstractConfigData('return_path'));
-            }
-        }
 
         if ($response) {
             $result = $this->validateResponse($response);
@@ -180,7 +192,7 @@ class Result extends \Magento\Framework\App\Action\Action
                 $successPath = $failPath = 'multishipping/checkout/success';
                 $setQuoteAsActive = true;
             } else {
-                $successPath = 'checkout/onepage/success';
+                $successPath = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path') ?? 'checkout/onepage/success';
                 $failPath = $this->_adyenHelper->getAdyenAbstractConfigData('return_path');
                 $setQuoteAsActive = false;
             }
@@ -191,7 +203,11 @@ class Result extends \Magento\Framework\App\Action\Action
         if ($result) {
             $session = $this->_session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
-            $this->_redirect($successPath, ['_query' => ['utm_nooverride' => '1']]);
+            // Add OrderIncrementId to redirect parameters for headless support.
+            $redirectParams = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
+                ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->_order->getIncrementId()]]
+                : ['_query' => ['utm_nooverride' => '1']];
+            $this->_redirect($successPath, $redirectParams);
         } else {
             $this->_adyenLogger->addAdyenResult(
                 sprintf(
@@ -210,25 +226,7 @@ class Result extends \Magento\Framework\App\Action\Action
      */
     protected function replaceCart($response)
     {
-        if ($this->_adyenHelper->getConfigData(
-            "clone_quote",
-            "adyen_abstract",
-            $this->_order->getStoreId(),
-            true
-        )) {
-            try {
-                $newQuote = $this->quoteHelper->cloneQuote($this->_session->getQuote(), $this->_order);
-                $this->_session->replaceQuote($newQuote);
-            } catch (\Magento\Framework\Exception\LocalizedException $e) {
-                $this->_session->restoreQuote();
-                $this->_adyenLogger->addAdyenResult(
-                    'Error when trying to create a new quote, ' .
-                    'the previous quote has been restored instead: ' . $e->getMessage()
-                );
-            }
-        } else {
-            $this->_session->restoreQuote();
-        }
+        $this->_session->restoreQuote();
 
         if (isset($response['authResult']) && $response['authResult'] == \Adyen\Payment\Model\Notification::CANCELLED) {
             $this->messageManager->addError(__('You have cancelled the order. Please try again'));
@@ -273,7 +271,7 @@ class Result extends \Magento\Framework\App\Action\Action
                 $this->vaultHelper->saveRecurringDetails($this->payment, $response['additionalData']);
             } else {
                 $order = $this->payment->getOrder();
-                $this->_adyenHelper->createAdyenBillingAgreement($order, $response['additionalData']);
+                $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $this->payment->getAdditionalInformation());
             }
             $this->orderResourceModel->save($order);
         }
@@ -379,6 +377,13 @@ class Result extends \Magento\Framework\App\Action\Action
                 success = false notification'
                 );
                 $result = false;
+
+                if (!$order->canCancel()) {
+                    $order->setState(\Magento\Sales\Model\Order::STATE_NEW);
+                    $this->orderRepository->save($order);
+                }
+                $this->dataHelper->cancelOrder($order);
+
                 break;
             default:
                 $this->_adyenLogger->addAdyenResult('This event is not supported: ' . $authResult);
@@ -493,19 +498,6 @@ class Result extends \Magento\Framework\App\Action\Action
                 __('Order cannot be loaded')
             );
         }
-        // Check logged-in order ownership
-        if ($this->customerSession->isLoggedIn()) {
-            if ($order->getCustomerId() !== $this->customerSession->getCustomerId()) {
-                $this->_adyenLogger->addError("Order belongs to another customer", [
-                    'order' => $order->getId(),
-                    'customer' => $this->customerSession->getCustomerId()
-                ]);
-
-                throw new \Magento\Framework\Exception\AuthorizationException(
-                    __('Order is unavailable at the moment')
-                );
-            }
-        }
 
         $this->payment = $order->getPayment();
 
@@ -525,20 +517,6 @@ class Result extends \Magento\Framework\App\Action\Action
         }
 
         $request["details"] = $details;
-
-        if (!empty($this->payment)) {
-            // for pending payment that redirect we store this under adyenPaymentData
-            // TODO: refactor the code in the plugin that all paymentData is stored in paymentData and not in adyenPaymentData
-            if (!empty($this->payment->getAdditionalInformation('adyenPaymentData'))) {
-                $request['paymentData'] = $this->payment->getAdditionalInformation("adyenPaymentData");
-
-                // remove paymentData from db
-                $this->payment->unsAdditionalInformation('adyenPaymentData');
-                $this->payment->save();
-            }
-        } else {
-            $this->_adyenLogger->addError("Payment object cannot be loaded from order");
-        }
 
         try {
             $response = $service->paymentsDetails($request);

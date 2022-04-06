@@ -1,0 +1,45 @@
+name: Functional Tests
+on: [workflow_dispatch, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - PHP_VERSION: 7.4
+            MAGENTO_VERSION: 2.4.2
+    runs-on: ubuntu-latest
+    env:
+      ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
+      ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Start services
+        run: docker-compose -f .github/docker-compose.yml up -d
+
+      # Temp solution to wait for install script to run
+      - name: Sleep for 120 seconds
+        run: sleep 120s
+        shell: bash
+  
+      - name: Show install logs
+        run: docker logs --tail 100 magento2-container
+
+      - name: Prevent cron from interfering with test execution
+        run: docker exec magento2-container /etc/init.d/cron stop
+
+      - name: Build MFTF project
+        run: docker exec magento2-container ./mftf.sh
+
+      - name: Check setup
+        run: docker exec magento2-container vendor/bin/mftf doctor
+
+      - name: Run MFTF tests
+        run: docker exec magento2-container vendor/bin/mftf run:group --remove AdyenMagentoSuite
+
+      - name: Retry once on failure
+        run: docker exec magento2-container vendor/bin/mftf run:failed
+
+      - name: Shutdown
+        run: docker-compose -f .github/docker-compose.yml down --volumes

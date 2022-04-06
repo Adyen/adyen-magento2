@@ -48,7 +48,7 @@ define([
                 brands: self.getAvailableCardTypeAltCodes(),
                 hasHolderName: adyenConfiguration.getHasHolderName(),
                 holderNameRequired: adyenConfiguration.getHasHolderName() &&
-                    adyenConfiguration.getHolderNameRequired(),
+                  adyenConfiguration.getHolderNameRequired(),
                 onChange: function (state) {
                     $('#stateData').val(state.isValid ? JSON.stringify(state.data) : '');
                     self.placeOrderAllowed(!!state.isValid);

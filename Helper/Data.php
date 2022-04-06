@@ -24,7 +24,6 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Billing\AgreementFactory;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingCollectionFactory;
@@ -44,6 +43,7 @@ use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
+use Magento\Sales\Model\Order;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
@@ -56,6 +56,8 @@ class Data extends AbstractHelper
     const MODULE_NAME = 'adyen-magento2';
     const TEST = 'test';
     const LIVE = 'live';
+    const LIVE_AU = 'live-au';
+    const LIVE_US = 'live-us';
     const PSP_REFERENCE_REGEX = '/(?P<pspReference>[0-9.A-Z]{16})(?P<suffix>[a-z\-]*)/';
     const AFTERPAY = 'afterpay';
     const AFTERPAY_TOUCH = 'afterpaytouch';
@@ -66,7 +68,7 @@ class Data extends AbstractHelper
     const CLEARPAY = 'clearpay';
     const ZIP = 'zip';
     const PAYBRIGHT = 'paybright';
-
+    const SEPA = 'sepadirectdebit';
 
     /**
      * @var EncryptorInterface
@@ -139,16 +141,6 @@ class Data extends AbstractHelper
     protected $cache;
 
     /**
-     * @var AgreementFactory
-     */
-    protected $billingAgreementFactory;
-
-    /**
-     * @var Agreement
-     */
-    private $agreementResourceModel;
-
-    /**
      * @var ResolverInterface
      */
     private $localeResolver;
@@ -174,6 +166,15 @@ class Data extends AbstractHelper
     private $localeHelper;
 
     /**
+     * @var \Magento\Sales\Model\Service\OrderService
+     */
+    private $orderManagement;
+    /**
+     * @var \Magento\Sales\Model\Order\Status\HistoryFactory
+     */
+    private $orderStatusHistoryFactory;
+
+    /**
      * Data constructor.
      *
      * @param Context $context
@@ -191,13 +192,12 @@ class Data extends AbstractHelper
      * @param AdyenLogger $adyenLogger
      * @param StoreManagerInterface $storeManager
      * @param CacheInterface $cache
-     * @param AgreementFactory $billingAgreementFactory
-     * @param Agreement $agreementResourceModel
      * @param ResolverInterface $localeResolver
      * @param ScopeConfigInterface $config
      * @param SerializerInterface $serializer
      * @param ComponentRegistrarInterface $componentRegistrar
      * @param Locale $localeHelper
+     *
      */
     public function __construct(
         Context $context,
@@ -215,13 +215,13 @@ class Data extends AbstractHelper
         AdyenLogger $adyenLogger,
         StoreManagerInterface $storeManager,
         CacheInterface $cache,
-        AgreementFactory $billingAgreementFactory,
-        Agreement $agreementResourceModel,
         ResolverInterface $localeResolver,
         ScopeConfigInterface $config,
         SerializerInterface $serializer,
         ComponentRegistrarInterface $componentRegistrar,
-        Locale $localeHelper
+        Locale $localeHelper,
+        \Magento\Sales\Api\OrderManagementInterface $orderManagement,
+        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -238,13 +238,13 @@ class Data extends AbstractHelper
         $this->adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
         $this->cache = $cache;
-        $this->billingAgreementFactory = $billingAgreementFactory;
-        $this->agreementResourceModel = $agreementResourceModel;
         $this->localeResolver = $localeResolver;
         $this->config = $config;
         $this->serializer = $serializer;
         $this->componentRegistrar = $componentRegistrar;
         $this->localeHelper = $localeHelper;
+        $this->orderManagement = $orderManagement;
+        $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
     }
 
     /**
@@ -262,7 +262,21 @@ class Data extends AbstractHelper
     }
 
     /**
-     * return recurring types for configuration setting
+     * return Checkout frontend regions for configuration setting
+     *
+     * @return array
+     */
+    public function getCheckoutFrontendRegions()
+    {
+        return [
+            'eu' => 'Default (EU - Europe)',
+            'au' => 'AU - Australasia',
+            'us' => 'US - United States'
+        ];
+    }
+
+    /**
+     * return modes for configuration setting
      *
      * @return array
      */
@@ -275,7 +289,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * return recurring types for configuration setting
+     * return capture modes for configuration setting
      *
      * @return array
      */
@@ -288,7 +302,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * return recurring types for configuration setting
+     * return payment routines for configuration setting
      *
      * @return array
      */
@@ -695,6 +709,18 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Retrieve the Checkout frontend region
+     *
+     * @param null|int|string $storeId
+     * @return string
+     */
+    public function getCheckoutFrontendRegion($storeId = null)
+    {
+        $prefix = trim($this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId));
+        return $prefix;
+    }
+
+    /**
      * Cancels the order
      *
      * @param $order
@@ -712,7 +738,26 @@ class Data extends AbstractHelper
                 break;
             default:
                 if ($order->canCancel()) {
-                    $order->cancel()->save();
+                    if ($this->orderManagement->cancel($order->getEntityId())) { //new canceling process
+                        try {
+                            $orderStatusHistory = $this->orderStatusHistoryFactory->create()
+                                ->setParentId($order->getEntityId())
+                                ->setEntityName('order')
+                                ->setStatus(Order::STATE_CANCELED)
+                                ->setComment(__('Order has been cancelled by "%1" payment response.', $order->getPayment()->getMethod()));
+                            $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
+                        } catch (\Exception $e) {
+                            $this->adyenLogger->addAdyenDebug(
+                                __('Order cancel history comment error: %1', $e->getMessage())
+                            );
+                        }
+                    } else { //previous canceling process
+                        $this->adyenLogger->addAdyenDebug('Unsuccessful order canceling attempt by orderManagement service, use legacy process');
+                        $order->cancel();
+                        $order->save();
+                    }
+                } else {
+                    $this->adyenLogger->addAdyenDebug('Order can not be canceled');
                 }
                 break;
         }
@@ -857,7 +902,7 @@ class Data extends AbstractHelper
 
             // check if contractType is supporting the selected contractType for OneClick payments
             $allowedContractTypes = $agreementData['contractTypes'];
-            if (in_array(RecurringType::ONECLICK , $allowedContractTypes)) {
+            if (in_array(RecurringType::ONECLICK , $allowedContractTypes) || in_array(Recurring::CARD_ON_FILE, $allowedContractTypes)) {
                 // check if AgreementLabel is set and if contract has an recurringType
                 if ($billingAgreement->getAgreementLabel()) {
                     // for Ideal use sepadirectdebit because it is
@@ -1564,7 +1609,14 @@ class Data extends AbstractHelper
             return self::TEST;
         }
 
-        return self::LIVE;
+        switch ($this->getCheckoutFrontendRegion($storeId)) {
+            case "au":
+                return self::LIVE_AU;
+            case "us":
+                return self::LIVE_US;
+            default:
+                return self::LIVE;
+        }
     }
 
     /**
@@ -1575,77 +1627,6 @@ class Data extends AbstractHelper
     private function createAdyenCheckoutUtilityService($client)
     {
         return new \Adyen\Service\CheckoutUtility($client);
-    }
-
-    /**
-     * @param $order
-     * @param $additionalData
-     */
-    public function createAdyenBillingAgreement($order, $additionalData)
-    {
-        if (!empty($additionalData['recurring.recurringDetailReference'])) {
-            $listRecurringContracts = null;
-            try {
-                // Get or create billing agreement
-                /** @var \Adyen\Payment\Model\Billing\Agreement $billingAgreement */
-                $billingAgreement = $this->billingAgreementFactory->create();
-                $billingAgreement->load($additionalData['recurring.recurringDetailReference'], 'reference_id');
-
-                // check if BA exists
-                if (!($billingAgreement && $billingAgreement->getAgreementId() > 0 && $billingAgreement->isValid())) {
-                    // create new BA
-                    $billingAgreement = $this->billingAgreementFactory->create();
-                    $billingAgreement->setStoreId($order->getStoreId());
-                    $billingAgreement->importOrderPaymentWithRecurringDetailReference(
-                        $order->getPayment(),
-                        $additionalData['recurring.recurringDetailReference']
-                    );
-
-                    $message = __(
-                        'Created billing agreement #%1.',
-                        $additionalData['recurring.recurringDetailReference']
-                    );
-                } else {
-                    $billingAgreement->setIsObjectChanged(true);
-                    $message = __(
-                        'Updated billing agreement #%1.',
-                        $additionalData['recurring.recurringDetailReference']
-                    );
-                }
-
-                // Populate billing agreement data
-                $storeOneClick = $order->getPayment()->getAdditionalInformation('store_cc');
-
-                $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick, $order->getStoreId());
-                $billingAgreementErrors = $billingAgreement->getErrors();
-
-                if ($billingAgreement->isValid() && empty($billingAgreementErrors)) {
-                    if (!$this->agreementResourceModel->getOrderRelation(
-                        $billingAgreement->getAgreementId(),
-                        $order->getId()
-                    )) {
-                        // save into billing_agreement_order
-                        $billingAgreement->addOrderRelation($order);
-                    }
-                    // add to order to save agreement
-                    $order->addRelatedObject($billingAgreement);
-                } else {
-                    $message = __('Failed to create billing agreement for this order. Reason(s): ') . join(
-                            ', ',
-                            $billingAgreementErrors
-                        );
-                    throw new \Exception($message);
-                }
-            } catch (\Exception $exception) {
-                $message = $exception->getMessage();
-                $this->adyenLogger->error("exception: " . $message);
-            }
-
-            $comment = $order->addStatusHistoryComment($message, $order->getStatus());
-
-            $order->addRelatedObject($comment);
-            $order->save();
-        }
     }
 
     /**

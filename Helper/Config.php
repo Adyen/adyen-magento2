@@ -43,6 +43,7 @@ class Config
     const XML_HAS_HOLDER_NAME = "has_holder_name";
     const XML_HOLDER_NAME_REQUIRED = "holder_name_required";
     const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
+    const XML_ADYEN_HPP = 'adyen_hpp';
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
     const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
     const XML_PAYMENT_RETURN_URL = 'payment_return_url';
@@ -193,6 +194,17 @@ class Config
     }
 
     /**
+     * Get how the alternative payment should be tokenized
+     *
+     * @param null|int|string $storeId
+     * @return mixed
+     */
+    public function getAlternativePaymentMethodTokenType($storeId = null)
+    {
+        return $this->getConfigData('token_type', self::XML_ADYEN_HPP, $storeId);
+    }
+
+    /**
      * Check if alternative payment methods vault is enabled
      *
      * @param null|int|string $storeId
@@ -200,7 +212,7 @@ class Config
      */
     public function isStoreAlternativePaymentMethodEnabled($storeId = null)
     {
-        return $this->getConfigData('active', self::XML_ADYEN_HPP_VAULT, $storeId);
+        return $this->getConfigData('active', self::XML_ADYEN_HPP_VAULT, $storeId, true);
     }
 
     /**
@@ -222,7 +234,7 @@ class Config
      */
     public function getHasHolderName($storeId = null)
     {
-        return $this->getConfigData(self::XML_HAS_HOLDER_NAME, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+        return $this->getConfigData(self::XML_HAS_HOLDER_NAME, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
     /**
@@ -244,7 +256,7 @@ class Config
      */
     public function getHolderNameRequired($storeId = null)
     {
-        return $this->getConfigData(self::XML_HOLDER_NAME_REQUIRED, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+        return $this->getConfigData(self::XML_HOLDER_NAME_REQUIRED, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
     /**
@@ -334,6 +346,21 @@ class Config
             Config::XML_ADYEN_ABSTRACT_PREFIX,
             $storeId
         );
+    }
+
+    /**
+     * Determine whether or not to send additional riskdata properties in /payments and /authorize requests
+     * @param $storeId
+     * @return bool
+     */
+    public function sendAdditionalRiskData($storeId): bool
+    {
+        return (bool)$this->getConfigData('send_additional_risk_data', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    public function sendLevel23AdditionalData($storeId): bool
+    {
+        return (bool)$this->getConfigData('send_level23_data', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
 
     /**

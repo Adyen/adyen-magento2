@@ -23,31 +23,42 @@
 
 namespace Adyen\Payment\Gateway\Validator;
 
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
+use Magento\Payment\Gateway\Validator\ResultInterface;
+use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 
 class CheckoutResponseValidator extends AbstractValidator
 {
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
+     * @var AdyenLogger
      */
     private $adyenLogger;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
 
     /**
+     * @var Array
+     */
+    const ALLOWED_ERROR_CODES = ['124'];
+
+    /**
      * CheckoutResponseValidator constructor.
      *
-     * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param ResultInterfaceFactory $resultFactory
+     * @param AdyenLogger $adyenLogger
+     * @param Data $adyenHelper
      */
     public function __construct(
-        \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        ResultInterfaceFactory $resultFactory,
+        AdyenLogger $adyenLogger,
+        Data $adyenHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
@@ -56,12 +67,12 @@ class CheckoutResponseValidator extends AbstractValidator
 
     /**
      * @param array $validationSubject
-     * @return \Magento\Payment\Gateway\Validator\ResultInterface
+     * @return ResultInterface
      */
     public function validate(array $validationSubject)
     {
-        $response = \Magento\Payment\Gateway\Helper\SubjectReader::readResponse($validationSubject);
-        $paymentDataObjectInterface = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($validationSubject);
+        $response = SubjectReader::readResponse($validationSubject);
+        $paymentDataObjectInterface = SubjectReader::readPayment($validationSubject);
         $payment = $paymentDataObjectInterface->getPayment();
 
         $payment->setAdditionalInformation('3dActive', false);
@@ -85,10 +96,6 @@ class CheckoutResponseValidator extends AbstractValidator
                 $payment->setAdditionalInformation('pspReference', $response['pspReference']);
             }
 
-            if (!empty($response['paymentData'])) {
-                $payment->setAdditionalInformation('adyenPaymentData', $response['paymentData']);
-            }
-
             if (!empty($response['details'])) {
                 $payment->setAdditionalInformation('details', $response['details']);
             }
@@ -100,16 +107,15 @@ class CheckoutResponseValidator extends AbstractValidator
             switch ($resultCode) {
                 case "Authorised":
                 case "Received":
-
-                // Save cc_type if available in the response
-                if (!empty($response['additionalData']['paymentMethod'])) {
-                    $ccType = $this->adyenHelper->getMagentoCreditCartType(
-                        $response['additionalData']['paymentMethod']
-                    );
-                    $payment->setAdditionalInformation('cc_type', $ccType);
-                    $payment->setCcType($ccType);
-                }
-                break;
+                    // Save cc_type if available in the response
+                    if (!empty($response['additionalData']['paymentMethod'])) {
+                        $ccType = $this->adyenHelper->getMagentoCreditCartType(
+                            $response['additionalData']['paymentMethod']
+                        );
+                        $payment->setAdditionalInformation('cc_type', $ccType);
+                        $payment->setCcType($ccType);
+                    }
+                    break;
                 case "IdentifyShopper":
                 case "ChallengeShopper":
                 case "PresentToShopper":
@@ -120,21 +126,23 @@ class CheckoutResponseValidator extends AbstractValidator
                 case "Refused":
                     $errorMsg = __('The payment is REFUSED.');
                     // this will result the specific error
-                    throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
-                    break;
+                    throw new LocalizedException($errorMsg);
                 default:
                     $errorMsg = __('Error with payment method please select different payment method.');
-                    throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
-                    break;
+                    throw new LocalizedException($errorMsg);
             }
         } else {
-            $errorMsg = __('Error with payment method please select different payment method.');
-
             if (!empty($response['error'])) {
                 $this->adyenLogger->error($response['error']);
             }
 
-            throw new \Magento\Framework\Exception\LocalizedException(__($errorMsg));
+            if (!empty($response['errorCode']) && !empty($response['error']) && in_array($response['errorCode'], self::ALLOWED_ERROR_CODES, true)) {
+                $errorMsg = __($response['error']);
+            } else {
+                $errorMsg = __('Error with payment method, please select a different payment method.');
+            }
+
+            throw new LocalizedException($errorMsg);
         }
 
         return $this->createResult($isValid, $errorMessages);

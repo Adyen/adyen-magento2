@@ -37,6 +37,7 @@ use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Phrase;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice as InvoiceModel;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
@@ -269,5 +270,28 @@ class Invoice extends AbstractHelper
         );
 
         return $invoiceAmountCents === $invoiceCapturedAmountCents;
+    }
+
+    /**
+     * Get the context variables of an invoice to be passed to a log message
+     *
+     * @param Order\Invoice $invoice
+     * @return array
+     */
+    public function getLogInvoiceContext(Order\Invoice $invoice): array
+    {
+        $stateName = $invoice->getStateName();
+
+        return [
+            'invoiceId' => $invoice->getEntityId(),
+            'invoiceIncrementId' => $invoice->getIncrementId(),
+            'invoiceState' => $invoice->getState(),
+            'invoiceStateName' => $stateName instanceof Phrase ? $stateName->getText() : $stateName,
+            'invoiceWasPayCalled' => $invoice->wasPayCalled(),
+            'invoiceCanCapture' => $invoice->canCapture(),
+            'invoiceCanCancel' => $invoice->canCancel(),
+            'invoiceCanVoid' => $invoice->canVoid(),
+            'invoiceCanRefund' => $invoice->canRefund()
+        ];
     }
 }

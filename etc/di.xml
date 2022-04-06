@@ -471,6 +471,7 @@
                 <item name="address" xsi:type="string">Adyen\Payment\Gateway\Request\AddressDataBuilder</item>
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="risk" xsi:type="string">Adyen\Payment\Gateway\Request\RiskDataBuilder</item>
+                <item name="level23" xsi:type="string">Adyen\Payment\Gateway\Request\AdditionalDataLevel23DataBuilder</item>
                 <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="shopperinteraction" xsi:type="string">Adyen\Payment\Gateway\Request\ShopperInteractionDataBuilder</item>
@@ -491,7 +492,6 @@
                 <item name="expirydate" xsi:type="string">Adyen\Payment\Gateway\Request\ExpiryDateDataBuilder</item>
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="shopperinteraction" xsi:type="string">Adyen\Payment\Gateway\Request\ShopperInteractionDataBuilder</item>
-              
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="description" xsi:type="string">Adyen\Payment\Gateway\Request\DescriptionDataBuilder</item>
                 <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CheckoutDataBuilder</item>
@@ -510,6 +510,7 @@
                 <item name="address" xsi:type="string">Adyen\Payment\Gateway\Request\AddressDataBuilder</item>
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="risk" xsi:type="string">Adyen\Payment\Gateway\Request\RiskDataBuilder</item>
+                <item name="level23" xsi:type="string">Adyen\Payment\Gateway\Request\AdditionalDataLevel23DataBuilder</item>
                 <item name="returnurl" xsi:type="string">Adyen\Payment\Gateway\Request\ReturnUrlDataBuilder</item>
                 <item name="channel" xsi:type="string">Adyen\Payment\Gateway\Request\ChannelDataBuilder</item>
                 <item name="origin" xsi:type="string">Adyen\Payment\Gateway\Request\OriginDataBuilder</item>
@@ -543,6 +544,7 @@
                 <item name="address" xsi:type="string">Adyen\Payment\Gateway\Request\AddressDataBuilder</item>
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="risk" xsi:type="string">Adyen\Payment\Gateway\Request\RiskDataBuilder</item>
+                <item name="level23" xsi:type="string">Adyen\Payment\Gateway\Request\AdditionalDataLevel23DataBuilder</item>
                 <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="shopperinteraction" xsi:type="string">Adyen\Payment\Gateway\Request\ShopperInteractionDataBuilder</item>
@@ -564,6 +566,7 @@
                 <item name="address" xsi:type="string">Adyen\Payment\Gateway\Request\AddressDataBuilder</item>
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
                 <item name="risk" xsi:type="string">Adyen\Payment\Gateway\Request\RiskDataBuilder</item>
+                <item name="level23" xsi:type="string">Adyen\Payment\Gateway\Request\AdditionalDataLevel23DataBuilder</item>
                 <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="shopperinteraction" xsi:type="string">Adyen\Payment\Gateway\Request\ShopperInteractionDataBuilder</item>
@@ -817,6 +820,11 @@
             <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
         </arguments>
     </type>
+    <type name="Adyen\Payment\Logger\Handler\AdyenWarning">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
     <type name="Adyen\Payment\Logger\Handler\AdyenError">
         <arguments>
             <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
@@ -832,6 +840,7 @@
                 <item name="adyenCronjob" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenCronjob</item>
                 <item name="adyenInfo" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenInfo</item>
                 <item name="adyenError" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenError</item>
+                <item name="adyenWarning" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenWarning</item>
                 <item name="system" xsi:type="object">Magento\Framework\Logger\Handler\System</item>
                 <item name="debug" xsi:type="object">Magento\Framework\Logger\Handler\Debug</item>
             </argument>
@@ -887,7 +896,7 @@
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Model\Cron">
+    <type name="Adyen\Payment\Helper\Webhook">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>
@@ -900,6 +909,14 @@
     <type name="Adyen\Payment\Model\Api\AdyenDonations">
         <arguments>
             <argument name="commandPool" xsi:type="object">AdyenPaymentDonationsCommandPool</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="adyen_webhookprocessorcommand" xsi:type="object">Adyen\Payment\Console\Command\WebhookProcessorCommand</item>
+            </argument>
         </arguments>
     </type>
 
@@ -940,6 +957,9 @@
         <plugin name="GuestAdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\GuestPaymentInformationResetOrderId"
                 sortOrder="10"/>
     </type>
+    <type name="Magento\QuoteGraphQl\Model\Resolver\PlaceOrder">
+        <plugin name="GraphQlPlaceOrderAddCartId" type="Adyen\Payment\Plugin\GraphQlPlaceOrderAddCartId" sortOrder="10"/>
+    </type>
 
     <virtualType name="AdyenCancelOrders" type="Adyen\Payment\Cron\CancelOrders">
         <arguments>
@@ -972,7 +992,6 @@
                 <item name="payment/adyen_abstract/debug" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/notifications_ip_check" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/notifications_hmac_check" xsi:type="string">1</item>
-                <item name="payment/adyen_abstract/clone_quote" xsi:type="string">1</item>
             </argument>
             <argument name="sensitive" xsi:type="array">
                 <item name="payment/adyen_abstract/merchant_account" xsi:type="string">1</item>
@@ -983,6 +1002,7 @@
                 <item name="payment/adyen_abstract/notification_username" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/notification_password" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/live_endpoint_url_prefix" xsi:type="string">1</item>
+                <item name="payment/adyen_abstract/checkout_frontend_region" xsi:type="string">1</item>
                 <item name="payment/adyen_pos_cloud/pos_merchant_account" xsi:type="string">1</item>
                 <item name="payment/adyen_pos_cloud/api_key_test" xsi:type="string">1</item>
                 <item name="payment/adyen_pos_cloud/api_key_live" xsi:type="string">1</item>
