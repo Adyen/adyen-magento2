@@ -1,3 +1,4 @@
+<?php
 /**
  *                       ######
  *                       ######
@@ -12,22 +13,23 @@
  *                               #############
  *                               ############
  *
- * Adyen Payment module (https://www.adyen.com/)
+ * Adyen Payment Module
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2022 Adyen B.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
  *
  * Author: Adyen <magento@adyen.com>
  */
+namespace Adyen\Payment\Exception;
 
-ul.adyen-list {
-    margin: 0 20px 10px;
-}
+use Magento\Framework\Exception\LocalizedException;
 
-.adyen-payments > .config > .comment {
-    padding-left: 250px;
-    background-image: url("images/logos/adyen_logo_large.png");
-    background-position: left;
-    background-repeat: no-repeat;
-    background-size: 220px;
+class AbstractAdyenException extends LocalizedException
+{
+    /**
+     * Error codes that are safe to display to the shopper.
+     * @see https://docs.adyen.com/development-resources/error-codes
+     */
+    const SAFE_ERROR_CODES = [000, 124];
 }

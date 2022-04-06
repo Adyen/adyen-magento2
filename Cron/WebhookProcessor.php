@@ -28,6 +28,7 @@ use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory;
+use Exception;
 
 class WebhookProcessor
 {
@@ -47,7 +48,6 @@ class WebhookProcessor
      * @var Webhook
      */
     private $webhookHelper;
-
 
     /**
      * Cron constructor.
@@ -70,20 +70,20 @@ class WebhookProcessor
      * Run the webhook processor
      *
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function execute()
     {
         try {
             $this->doProcessWebhook();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->adyenLogger->addAdyenNotificationCronjob($e->getMessage() . "\n" . $e->getTraceAsString());
             throw $e;
         }
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function doProcessWebhook()
     {
@@ -97,13 +97,12 @@ class WebhookProcessor
         foreach ($notifications as $notification) {
             // ignore duplicate notification
             if ($notification->isDuplicate(
-                    $notification->getPspreference(),
-                    $notification->getEventCode(),
-                    $notification->getSuccess(),
-                    $notification->getOriginalReference(),
-                    true
-                )
-            ) {
+                $notification->getPspreference(),
+                $notification->getEventCode(),
+                $notification->getSuccess(),
+                $notification->getOriginalReference(),
+                true
+            )) {
                 $this->adyenLogger->addAdyenNotificationCronjob(
                     "This is a duplicate notification and will be ignored",
                     $notification->toArray(['entity_id', 'pspreference', 'event_code', 'success', 'original_reference'])
@@ -116,7 +115,7 @@ class WebhookProcessor
                 continue;
             }
 
-            if($this->webhookHelper->processNotification($notification)) {
+            if ($this->webhookHelper->processNotification($notification)) {
                 $count++;
             }
         }

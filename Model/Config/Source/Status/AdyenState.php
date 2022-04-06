@@ -1,3 +1,4 @@
+<?php
 /**
  *                       ######
  *                       ######
@@ -14,20 +15,17 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-ul.adyen-list {
-    margin: 0 20px 10px;
-}
+namespace Adyen\Payment\Model\Config\Source\Status;
 
-.adyen-payments > .config > .comment {
-    padding-left: 250px;
-    background-image: url("images/logos/adyen_logo_large.png");
-    background-position: left;
-    background-repeat: no-repeat;
-    background-size: 220px;
+
+class AdyenState
+{
+    const STATE_MAINTAIN = "maintain";
+    const STATE_MAINTAIN_STATUS = [self::STATE_MAINTAIN => "Maintain status"];
 }

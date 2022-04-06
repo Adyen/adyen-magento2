@@ -114,9 +114,6 @@ class AdyenPaymentDetails implements AdyenPaymentDetailsInterface
             unset($payload['orderId']);
         }
 
-        // Got a payment response, clear the pending payment flag
-        $this->checkoutSession->unsPendingPayment();
-
         $payment = $order->getPayment();
         $apiPayload = DataArrayValidator::getArrayOnlyWithApprovedKeys($payload, self::PAYMENTS_DETAILS_KEYS);
         // cancellation request without `state.data`
