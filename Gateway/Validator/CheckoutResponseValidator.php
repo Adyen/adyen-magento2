@@ -148,10 +148,9 @@ class CheckoutResponseValidator extends AbstractValidator
                 $this->adyenLogger->error($response['error']);
             }
 
-            if (!empty($response['errorCode']) && !empty($response['error']) && in_array($response['errorCode'], self::ALLOWED_ERROR_CODES)) {
+            if (!empty($response['errorCode']) && !empty($response['error']) && in_array($response['errorCode'], self::ALLOWED_ERROR_CODES, true)) {
                 $errorMsg = __($response['error']);
-            }
-            else {
+            } else {
                 $errorMsg = __('Error with payment method please select different payment method.');
             }
 
