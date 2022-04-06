@@ -57,6 +57,16 @@ class AdyenDonations implements AdyenDonationsInterface
      */
     private $jsonSerializer;
 
+    /**
+     * @var
+     */
+    private $donationResult;
+
+    /**
+     * @var
+     */
+    private $donationTryCount;
+
     public function __construct(
         CommandPoolInterface $commandPool,
         OrderFactory $orderFactory,
@@ -79,11 +89,12 @@ class AdyenDonations implements AdyenDonationsInterface
         $payload = $this->jsonSerializer->unserialize($payload);
         /** @var Order */
         $order = $this->orderFactory->create()->load($this->checkoutSession->getLastOrderId());
-
         $donationToken = $order->getPayment()->getAdditionalInformation('donationToken');
+
         if (!$donationToken) {
-            throw new LocalizedException(__('Donation failed: Invalid donationToken'));
+            throw new LocalizedException(__('Donation failed!'));
         }
+
         $payload['donationToken'] = $donationToken;
         $payload['donationOriginalPspReference'] = $order->getPayment()->getAdditionalInformation('pspReference');
 
@@ -95,7 +106,50 @@ class AdyenDonations implements AdyenDonationsInterface
             $payload['shopperReference'] = $guestCustomerId;
         }
 
-        $donationsCaptureCommand = $this->commandPool->get('capture');
-        return $donationsCaptureCommand->execute(['payment' => $payload]);
+        try {
+            $donationsCaptureCommand = $this->commandPool->get('capture');
+            $this->donationResult = $donationsCaptureCommand->execute(['payment' => $payload]);
+
+            // Remove donation token after a successfull donation.
+            $this->removeDonationToken($order);
+        }
+        catch (LocalizedException $e) {
+            $this->donationTryCount = $order->getPayment()->getAdditionalInformation('donationTryCount');
+
+            if ($this->donationTryCount >= 5) {
+                // Remove donation token after 5 try and throw a exception.
+                $this->removeDonationToken($order);
+            }
+
+            $this->incrementTryCount($order);
+            throw new LocalizedException(__('Donation failed!'));
+        }
+
+        return $this->donationResult;
+    }
+
+    /**
+     * @param $order
+     */
+    private function incrementTryCount($order)
+    {
+        if (!$this->donationTryCount) {
+            $order->getPayment()->setAdditionalInformation('donationTryCount', 1);
+        }
+        else {
+            $this->donationTryCount += 1;
+            $order->getPayment()->setAdditionalInformation('donationTryCount', $this->donationTryCount);
+        }
+
+        $order->save();
+    }
+
+    /**
+     * @param $order
+     */
+    private function removeDonationToken($order)
+    {
+        $order->getPayment()->unsAdditionalInformation('donationToken');
+        $order->save();
     }
 }
