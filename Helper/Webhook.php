@@ -31,6 +31,7 @@ use Adyen\Payment\Helper\PaymentMethods as PaymentMethodsHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\PaymentRequest;
 use Adyen\Payment\Model\Billing\AgreementFactory;
+use Adyen\Payment\Model\Config\Source\Status\AdyenState;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
@@ -76,7 +77,15 @@ class Webhook
         Order::STATE_PAYMENT_REVIEW => PaymentStates::STATE_PENDING,
         Order::STATE_PROCESSING => PaymentStates::STATE_IN_PROGRESS,
         Order::STATE_COMPLETE => PaymentStates::STATE_PAID,
-        Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED,
+        Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED
+    ];
+
+    /**
+     * Indicative matrix for possible states to enter after given event
+     */
+    const STATE_TRANSITION_MATRIX = [
+        'payment_pre_authorized' => [Order::STATE_NEW, Order::STATE_PROCESSING],
+        'payment_authorized' => [Order::STATE_PROCESSING]
     ];
 
     /**
@@ -738,9 +747,10 @@ class Webhook
             $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($orderPaymentMethod);
 
             /*
-             * Return if payment method is cc like VI, MI
+             * Return true if payment method is cc like VI, MI or oneclick
              */
-            $isCCPaymentMethod = $this->order->getPayment()->getMethod() === 'adyen_cc';
+            $isCCPaymentMethod = $this->order->getPayment()->getMethod() === 'adyen_cc'
+                || $this->order->getPayment()->getMethod() === 'adyen_oneclick';
 
             /*
             * If the order was made with an Alternative payment method,
@@ -791,6 +801,7 @@ class Webhook
 
                 if ($this->order->canHold()) {
                     $this->order->hold();
+                    $this->order->addCommentToStatusHistory('Order held', $orderStatus);
                 } else {
                     $this->logger->addAdyenNotificationCronjob('Order can not hold or is already on Hold');
                 }
@@ -800,6 +811,7 @@ class Webhook
 
                 if ($this->order->canCancel()) {
                     $this->order->cancel();
+                    $this->order->addCommentToStatusHistory('Order cancelled', $orderStatus);
                 } else {
                     $this->logger->addAdyenNotificationCronjob('Order can not be canceled');
                 }
@@ -884,6 +896,7 @@ class Webhook
         if ($isFullAmountAuthorized) {
             $this->setPrePaymentAuthorized();
             $this->prepareInvoice($notification);
+
             // For Boleto confirmation mail is sent on order creation
             // Send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
             if ($notification->getPaymentMethod() != "adyen_boleto" && !$this->order->getEmailSent()) {
@@ -892,6 +905,11 @@ class Webhook
         } else {
             $this->addProcessedStatusHistoryComment($notification);
         }
+
+        // Set authorized amount in sales_order_payment
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($this->order, false);
+        $orderAmount = $orderAmountCurrency->getAmount();
+        $this->order->getPayment()->setAmountAuthorized($orderAmount);
 
         if ($notification->getPaymentMethod() == "c_cash" &&
             $this->configHelper->getConfigData('create_shipment', 'adyen_cash', $this->order->getStoreId())
@@ -1203,16 +1221,18 @@ class Webhook
      */
     private function setPrePaymentAuthorized()
     {
+        $eventLabel = "payment_pre_authorized";
         $status = $this->configHelper->getConfigData(
-            'payment_pre_authorized',
+            $eventLabel,
             'adyen_abstract',
             $this->order->getStoreId()
         );
+        $possibleStates = self::STATE_TRANSITION_MATRIX[$eventLabel];
 
         // only do this if status in configuration is set
         if (!empty($status)) {
             $this->order->setStatus($status);
-            $this->setState($status);
+            $this->setState($status, $possibleStates);
 
             $this->logger->addAdyenNotificationCronjob(
                 'Order status is changed to Pre-authorised status, status is ' . $status
@@ -1566,11 +1586,20 @@ class Webhook
             ->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
         $fullAmountFinalized = $this->adyenOrderPaymentHelper->isFullAmountFinalized($order);
 
+        $eventLabel = 'payment_authorized';
         $status = $this->configHelper->getConfigData(
-            'payment_authorized',
+            $eventLabel,
             'adyen_abstract',
             $order->getStoreId()
         );
+        $possibleStates = self::STATE_TRANSITION_MATRIX[$eventLabel];
+
+        // Set state back to previous state to prevent update if 'maintain status' was configured
+        $maintainingState = false;
+        if ($status === AdyenState::STATE_MAINTAIN) {
+            $maintainingState = true;
+            $status = $order->getStatus();
+        }
 
         // virtual order can have different status
         if ($order->getIsVirtual()) {
@@ -1623,11 +1652,19 @@ class Webhook
             $comment = "Adyen Payment Successfully completed";
             // If a status is set, add comment, set status and update the state based on the status
             // Else add comment
-            if (!empty($status)) {
+            if (!empty($status) && $maintainingState) {
                 $order->addStatusHistoryComment(__($comment), $status);
-                $this->setState($status);
                 $this->logger->addAdyenNotificationCronjob(
-                    'Order status was changed to authorised status: ' . $status
+                    'Maintaining current status: ' . $status,
+                    $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
+                );
+            } else if (!empty($status)) {
+                $order->addStatusHistoryComment(__($comment), $status);
+
+                $this->setState($status, $possibleStates);
+                $this->logger->addAdyenNotificationCronjob(
+                    'Order status was changed to authorised status: ' . $status,
+                    $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
                 );
             } else {
                 $order->addStatusHistoryComment(__($comment));
@@ -1641,15 +1678,25 @@ class Webhook
     /**
      * Set State from Status
      */
-    private function setState($status)
+    private function setState($status, $possibleStates)
     {
-        $statusObject = $this->orderStatusCollection->create()
-            ->addFieldToFilter('main_table.status', $status)
-            ->joinStates()
-            ->getFirstItem();
+        // Loop over possible states, select first available status that fits this state
+        foreach ($possibleStates as $state) {
+            $statusObject = $this->orderStatusCollection->create()
+                ->addFieldToFilter('main_table.status', $status)
+                ->joinStates()
+                ->addStateFilter($state)
+                ->getFirstItem();
 
-        $this->order->setState($statusObject->getState());
-        $this->logger->addAdyenNotificationCronjob('State is changed to  ' . $statusObject->getState());
+            if ($statusObject->getState() == $state) {
+                // Exit function if fitting state is found
+                $this->order->setState($statusObject->getState());
+                $this->logger->addAdyenNotificationCronjob('State is changed to  ' . $statusObject->getState());
+                return;
+            }
+        }
+
+        $this->logger->addAdyenNotificationCronjob('No new state assigned, status should be connected to one of the following states: ' . json_encode($possibleStates));
     }
 
     /**

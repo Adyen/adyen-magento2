@@ -15,14 +15,14 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
 /**
- * Field renderer for PayPal merchant country selector
+ * Field renderer for Adyen module version
  */
 
 namespace Adyen\Payment\Block\Adminhtml\System\Config\Field;

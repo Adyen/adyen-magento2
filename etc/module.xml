@@ -32,6 +32,7 @@
             <module name="Magento_Paypal"/>
             <module name="Magento_AdminNotification"/>
             <module name="Magento_Vault"/>
+            <module name="Magento_Multishipping"/>
         </sequence>
     </module>
 </config>

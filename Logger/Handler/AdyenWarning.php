@@ -35,7 +35,7 @@ class AdyenWarning extends AdyenBase
     /**
      * @var int
      */
-    protected $loggerType = AdyenLogger::ADYEN_WARNING;
+    protected $loggerType = AdyenLogger::WARNING;
 
-    protected $level = AdyenLogger::ADYEN_WARNING;
+    protected $level = AdyenLogger::WARNING;
 }
