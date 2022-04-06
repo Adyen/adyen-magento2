@@ -139,7 +139,7 @@ class CheckoutResponseValidator extends AbstractValidator
             if (!empty($response['errorCode']) && !empty($response['error']) && in_array($response['errorCode'], self::ALLOWED_ERROR_CODES, true)) {
                 $errorMsg = __($response['error']);
             } else {
-                $errorMsg = __('Error with payment method please select different payment method.');
+                $errorMsg = __('Error with payment method, please select a different payment method.');
             }
 
             throw new LocalizedException($errorMsg);
