@@ -44,6 +44,11 @@ class CheckoutResponseValidator extends AbstractValidator
     private $adyenHelper;
 
     /**
+     * @var Array
+     */
+    const ALLOWED_ERROR_CODES = ['124'];
+
+    /**
      * CheckoutResponseValidator constructor.
      *
      * @param ResultInterfaceFactory $resultFactory
@@ -131,7 +136,12 @@ class CheckoutResponseValidator extends AbstractValidator
                 $this->adyenLogger->error($response['error']);
             }
 
-            $errorMsg = __('Error with payment method please select different payment method.');
+            if (!empty($response['errorCode']) && !empty($response['error']) && in_array($response['errorCode'], self::ALLOWED_ERROR_CODES, true)) {
+                $errorMsg = __($response['error']);
+            } else {
+                $errorMsg = __('Error with payment method please select different payment method.');
+            }
+
             throw new LocalizedException($errorMsg);
         }
 
