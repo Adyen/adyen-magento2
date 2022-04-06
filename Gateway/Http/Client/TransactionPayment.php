@@ -101,6 +101,7 @@ class TransactionPayment implements ClientInterface
             $this->paymentResponseResourceModel->save($paymentResponse);
         } catch (\Adyen\AdyenException $e) {
             $response['error'] = $e->getMessage();
+            $response['errorCode'] = $e->getAdyenErrorCode();
         }
 
         return $response;
