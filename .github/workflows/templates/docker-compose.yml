@@ -34,6 +34,7 @@ services:
       VIRTUAL_HOST: magento2.test.com
       ADMIN_USERNAME: ${MAGENTO_USERNAME}
       ADMIN_PASSWORD: ${MAGENTO_PASSWORD}
+      DEPLOY_SAMPLEDATA: 1
     depends_on:
       - db
       - elastic
