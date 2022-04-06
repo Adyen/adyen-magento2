@@ -7,7 +7,9 @@ type Query {
     adyenPaymentMethods (
         cart_id: String! @doc(description: "Cart ID.")
     ) : AdyenPaymentMethods @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentMethods")
+}
 
+type Mutation {
     adyenPaymentDetails (
         payload: String! @doc(description: "Payload JSON String with orderId, details, paymentData and threeDSAuthenticationOnly.")
         cart_id: String! @doc(description: "Cart ID.")
@@ -130,4 +132,8 @@ type StoreConfig @doc(description: "The type contains information about a store 
     adyen_client_key_test : String @doc(description: "Adyen client key for TEST environment.")
     adyen_client_key_live : String @doc(description: "Adyen client key for LIVE environment.")
     adyen_demo_mode : Boolean @doc(description: "Adyen demo mode enabled (TEST).")
+    adyen_has_holder_name: Boolean @doc(description: "Adyen card holder's name is visible.")
+    adyen_holder_name_required: Boolean @doc(description: "Adyen card holder's name is required.")
+    adyen_title_renderer: String @doc(description: "Adyen Render Mode for Payment Method.")
+    adyen_return_path_error: String @doc(description: "Adyen Return path in case of error")
 }
