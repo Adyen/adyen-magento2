@@ -23,3 +23,11 @@
 ul.adyen-list {
     margin: 0 20px 10px;
 }
+
+.adyen-payments > .config > .comment {
+    padding-left: 250px;
+    background-image: url("images/logos/adyen_logo_large.png");
+    background-position: left;
+    background-repeat: no-repeat;
+    background-size: 220px;
+}
