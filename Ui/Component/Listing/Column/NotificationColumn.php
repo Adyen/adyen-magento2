@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen N.V. (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -102,6 +102,14 @@ class NotificationColumn extends \Magento\Ui\Component\Listing\Columns\Column
                         $item["live"]
                     ),
                     $item["pspreference"]
+                );
+            }
+
+            if (!$item["done"] && $item["processing"]) {
+                $item["actions"] = sprintf(
+                    '<a href="%s">%s</a>',
+                    $this->backendHelper->getUrl("adyen/notifications/webhookReprocess", ["entity_id" => $item["entity_id"]]),
+                    "Reprocess Webhook"
                 );
             }
         }

@@ -35,7 +35,8 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/adyen'
+        'Adyen_Payment/js/adyen',
+        'Adyen_Payment/js/model/adyen-payment-modal'
     ],
     function(
         $,
@@ -52,7 +53,8 @@ define(
         errorProcessor,
         adyenPaymentService,
         adyenConfiguration,
-        AdyenCheckout
+        AdyenCheckout,
+        AdyenPaymentModal
     ) {
         'use strict';
         return Component.extend({
@@ -66,6 +68,7 @@ define(
                 installment: '', // keep it until the component implements installments
                 orderId: 0, // TODO is this the best place to store it?
                 storeCc: false,
+                modalLabel: 'cc_actionModal'
             },
             /**
              * @returns {exports.initialize}
@@ -199,42 +202,21 @@ define(
 
                 try {
                     self.checkoutComponent.createFromAction(
-                        action).mount('#cc_actionContainer');
+                        action).mount('#' + this.modalLabel);
                 } catch (e) {
                     console.log(e);
                     self.closeModal(popupModal);
                 }
             },
             showModal: function() {
-                let popupModal = $('#cc_actionModal').modal({
-                    // disable user to hide popup
-                    clickableOverlay: false,
-                    responsive: true,
-                    innerScroll: false,
-                    // empty buttons, we don't need that
-                    buttons: [],
-                    modalClass: 'cc_actionModal',
-                });
-
-                popupModal.modal('openModal');
-
-                return popupModal;
+                return AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
             },
             /**
              * This method is a workaround to close the modal in the right way and reconstruct the threeDS2Modal.
              * This will solve issues when you cancel the 3DS2 challenge and retry the payment
              */
             closeModal: function(popupModal) {
-                popupModal.modal('closeModal');
-                $('.cc_actionModal').remove();
-                $('.modals-overlay').remove();
-                $('body').removeClass('_has-modal');
-
-                // reconstruct the threeDS2Modal container again otherwise component can not find the threeDS2Modal
-                $('#cc_actionModalWrapper').
-                    append('<div id="cc_actionModal">' +
-                        '<div id="cc_actionContainer"></div>' +
-                        '</div>');
+                AdyenPaymentModal.closeModal(popupModal, this.modalLabel)
             },
             /**
              * Get data for place order

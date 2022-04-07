@@ -136,5 +136,17 @@
                 </item>
             </argument>
         </column>
+
+        <column name="actions">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="label" xsi:type="string" translate="true">Actions</item>
+                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
+                </item>
+            </argument>
+            <settings>
+                <sortable>false</sortable>
+            </settings>
+        </column>
     </columns>
 </listing>
