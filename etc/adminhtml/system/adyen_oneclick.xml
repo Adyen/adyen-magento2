@@ -24,7 +24,7 @@
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_oneclick" translate="label" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label><![CDATA[Stored Payment Methods - Requires Adyen Credit Card]]></label>
+        <label><![CDATA[Card Tokenization]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment><![CDATA[During checkout shoppers can choose to have their payment details remembered and stored for trusted websites in Adyen’s highly secure platform. Adyen takes care of this process for its customers. Shoppers can then select the stored payment method in the checkout.]]></comment>
@@ -33,13 +33,13 @@
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_oneclick/active</config_path>
             <tooltip>
-                Test
+                This functionality requires Adyen Credit Card payments to be enabled
             </tooltip>
         </field>
         <field id="recurring_card_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Mode</label>
             <tooltip>
-                Test
+                Choose between using Magento Vault (one-click CVC-less payments) or the more secure Adyen Tokenization (one-click CVC required payments) functionality
             </tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\Recurring\RecurringMode</source_model>
             <config_path>payment/adyen_oneclick/mode</config_path>
@@ -50,7 +50,7 @@
         <field id="recurring_card_token_type" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Token Type</label>
             <tooltip>
-                Test
+                Choose between CardOnFile (one-click payments) or Subscription (fixed schedule payments)
             </tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\Recurring\RecurringType</source_model>
             <config_path>payment/adyen_oneclick/type</config_path>
@@ -78,7 +78,7 @@
             <label>Advanced Settings</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
             <field id="title" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Share billing agreements between stores</label>
+                <label>Share Adyen Tokens between stores</label>
                 <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 <config_path>payment/adyen_oneclick/share_billing_agreement</config_path>
             </field>
