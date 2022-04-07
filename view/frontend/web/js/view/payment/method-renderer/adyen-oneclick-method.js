@@ -182,8 +182,13 @@ define(
                     popupModal = self.showModal();
                 }
                 try {
+                    // Determine threeDS2 modal size, based on screen width
+                    const threeDSConfiguration = {
+                        challengeWindowSize: screen.width < 460 ? '01' : '02'
+                    }
+
                     this.checkoutComponent.createFromAction(
-                        action).mount('#' + this.modalLabel + 'Content');
+                        action, threeDSConfiguration).mount('#' + this.modalLabel + 'Content');
                 } catch (e) {
                     console.log(e);
                     self.closeModal(popupModal);
