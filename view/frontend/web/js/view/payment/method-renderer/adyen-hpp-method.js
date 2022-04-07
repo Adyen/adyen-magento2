@@ -35,7 +35,8 @@ define(
         'Magento_Ui/js/model/messages',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/adyen',
-        'Adyen_Payment/js/model/adyen-configuration'
+        'Adyen_Payment/js/model/adyen-configuration',
+        'Adyen_Payment/js/model/adyen-payment-modal'
     ],
     function(
         ko,
@@ -52,7 +53,8 @@ define(
         Messages,
         errorProcessor,
         AdyenCheckout,
-        adyenConfiguration
+        adyenConfiguration,
+        adyenPaymentModal
     ) {
         'use strict';
 
@@ -77,6 +79,7 @@ define(
                 orderId: 0,
                 paymentMethods: {},
                 handleActionPaymentMethods: ['paypal'],
+                modalLabel: 'hpp_actionModal'
             },
             showPayButtonPaymentMethods: [
                 'paypal',
@@ -388,15 +391,7 @@ define(
              * This will solve issues when you cancel the 3DS2 challenge and retry the payment
              */
             closeModal: function(popupModal) {
-                popupModal.modal('closeModal');
-                $('.ActionModal').remove();
-                $('.modals-overlay').remove();
-                $('body').removeClass('_has-modal');
-
-                // reconstruct the ActionModal container again otherwise component can not find the ActionModal
-                $('#ActionWrapper').append('<div id="ActionModal">' +
-                    '<div id="ActionContainer"></div>' +
-                    '</div>');
+                adyenPaymentModal.closeModal(popupModal, this.modalLabel)
             },
             getSelectedAlternativePaymentMethodType: ko.computed(function() {
 
@@ -432,18 +427,10 @@ define(
             },
             renderActionComponent: function(resultCode, action, component) {
                 var self = this;
-                var actionNode = document.getElementById('ActionContainer');
+                var actionNode = document.getElementById(this.modalLabel + 'Content');
                 fullScreenLoader.stopLoader();
 
-                self.popupModal = $('#ActionModal').modal({
-                    // disable user to hide popup
-                    clickableOverlay: false,
-                    responsive: true,
-                    innerScroll: false,
-                    // empty buttons, we don't need that
-                    buttons: [],
-                    modalClass: 'ActionModal',
-                });
+                self.popupModal = adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
 
                 // If this is a handleAction method then do it that way, otherwise createFrom action
                 if (self.handleActionPaymentMethods.includes(
