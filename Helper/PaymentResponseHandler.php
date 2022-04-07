@@ -24,10 +24,9 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Logger\AdyenLogger;
+use Exception;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
-use Magento\Sales\Model\Order;
-use Adyen\Payment\Helper\Vault;
 
 class PaymentResponseHandler
 {
@@ -71,6 +70,10 @@ class PaymentResponseHandler
      * @var Recurring
      */
     private $recurringHelper;
+    /**
+     * @var Quote
+     */
+    private $quoteHelper;
 
     /**
      * PaymentResponseHandler constructor.
@@ -85,7 +88,8 @@ class PaymentResponseHandler
         Vault $vaultHelper,
         \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
         Data $dataHelper,
-        Recurring $recurringHelper
+        Recurring $recurringHelper,
+        Quote $quoteHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
@@ -93,6 +97,7 @@ class PaymentResponseHandler
         $this->orderResourceModel = $orderResourceModel;
         $this->dataHelper = $dataHelper;
         $this->recurringHelper = $recurringHelper;
+        $this->quoteHelper = $quoteHelper;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
@@ -216,6 +221,13 @@ class PaymentResponseHandler
                 }
 
                 $this->orderResourceModel->save($order);
+                try {
+                    $this->quoteHelper->disableQuote($order->getQuoteId());
+                } catch (Exception $e) {
+                    $this->adyenLogger->error('Failed to disable quote: ' . $e->getMessage(), [
+                        'quoteId' => $order->getQuoteId()
+                    ]);
+                }
                 break;
             case self::REFUSED:
                 // Cancel order in case result is refused

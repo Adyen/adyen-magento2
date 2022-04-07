@@ -808,6 +808,7 @@ class Webhook
 
                 if ($this->order->canHold()) {
                     $this->order->hold();
+                    $this->order->addCommentToStatusHistory('Order held', $orderStatus);
                 } else {
                     $this->logger->addAdyenNotificationCronjob('Order can not hold or is already on Hold');
                 }
@@ -817,6 +818,7 @@ class Webhook
 
                 if ($this->order->canCancel()) {
                     $this->order->cancel();
+                    $this->order->addCommentToStatusHistory('Order cancelled', $orderStatus);
                 } else {
                     $this->logger->addAdyenNotificationCronjob('Order can not be canceled');
                 }
