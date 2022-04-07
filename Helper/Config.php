@@ -374,6 +374,15 @@ class Config
     }
 
     /**
+     * @param $storeId
+     * @return string|null
+     */
+    public function getCardRecurringType($storeId): ?string
+    {
+        return $this->getConfigData('type', self::XML_ADYEN_ONECLICK, $storeId);
+    }
+
+    /**
      * Retrieve information from payment configuration
      *
      * @param string $field

@@ -366,13 +366,12 @@ class Requests extends AbstractHelper
             $request['storePaymentMethod'] = (bool)($stateData['storePaymentMethod'] ?? $storedPaymentMethodsEnabled);
         }
 
-        //recurring
         if ($storedPaymentMethodsEnabled) {
             if ($this->vaultHelper->isCardVaultEnabled()) {
                 $request['recurringProcessingModel'] = 'Subscription';
             } else {
-                $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
-                $request['recurringProcessingModel'] = $enableOneclick ? 'CardOnFile' : 'Subscription';
+                $recurringType = $this->adyenConfig->getCardRecurringType($storeId);
+                $request['recurringProcessingModel'] = $recurringType;
             }
         }
 
