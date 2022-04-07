@@ -53,7 +53,7 @@
                 Test
             </tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\Recurring\RecurringType</source_model>
-            <config_path>payment/adyen_oneclick/recurring_card_token_type</config_path>
+            <config_path>payment/adyen_oneclick/type</config_path>
             <depends>
                 <field id="active">1</field>
                 <field id="recurring_card_mode">Adyen Tokenization</field>
