@@ -47,19 +47,17 @@
         </field>
         <field id="notification_username" translate="label" type="text" sortOrder="30" showInDefault="1"
                showInWebsite="1" showInStore="1">
-            <label>Notification User Name</label>
+            <label>Webhook Username</label>
             <config_path>payment/adyen_abstract/notification_username</config_path>
-            <tooltip>Set a user name of your choice here and copy it over to Adyen Customer Area => Developers =>
-                Webhooks => Standard Notification => User Name.
+            <tooltip>Set a user name of your choice here and copy it over to Adyen Customer Area => Developers => Webhooks => Standard Webhook => User Name.
             </tooltip>
         </field>
         <field id="notification_password" translate="label" type="obscure" sortOrder="40" showInDefault="1"
                showInWebsite="1" showInStore="1">
-            <label>Notification Password</label>
+            <label>Webhook Password</label>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/notification_password</config_path>
-            <tooltip>Set a password of your choice and copy it over to Adyen Customer Area => Developers => Webhooks =>
-                Standard Notification => Password.
+            <tooltip>Set a password of your choice and copy it over to Adyen Customer Area => Developers => Webhooks => Standard Webhook => Password.
             </tooltip>
         </field>
         <field id="api_key_test" translate="label" type="obscure" sortOrder="50" showInDefault="1" showInWebsite="1"

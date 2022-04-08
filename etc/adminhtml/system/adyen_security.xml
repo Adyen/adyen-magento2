@@ -34,24 +34,24 @@
             ]]>
         </comment>
         <field id="notifications_hmac_check" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Check notification's HMAC signature</label>
+            <label>Check webhook's HMAC signature</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/notifications_hmac_check</config_path>
             <comment>
                 <![CDATA[
-                If enabled notifications will be accepted only when the HMAC
+                If enabled webhooks will be accepted only when the HMAC
                 signature is verified. To learn more about these settings refer to
                 <a target="_blank" href="https://docs.adyen.com/plugins/magento-2/set-up-the-plugin-in-magento">Adyen documentation</a>.
                 ]]>
             </comment>
         </field>
         <field id="notifications_ip_check" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Check notification's IP address</label>
+            <label>Check webhook's IP address</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/notifications_ip_check</config_path>
             <comment>
                 <![CDATA[
-                If enabled notifications will be accepted only when the IP address matches Adyen's servers. To learn more about these settings refer to
+                If enabled webhooks will be accepted only when the IP address matches Adyen's servers. To learn more about these settings refer to
                 <a target="_blank" href="https://docs.adyen.com/plugins/magento-2/set-up-the-plugin-in-magento">Adyen documentation</a>.
                 ]]>
             </comment>
@@ -63,7 +63,7 @@
             <config_path>payment/adyen_abstract/notification_hmac_key_test</config_path>
             <tooltip>
                 <![CDATA[
-                Set HMAC key at first on Adyen so new notifications are sent with the key. To learn more about these settings refer to
+                Set HMAC key at first on Adyen so new webhooks are sent with the key. To learn more about these settings refer to
                 <a target="_blank" href="https://docs.adyen.com/development-resources/webhooks/verify-hmac-signatures">Adyen documentation</a>.
                 ]]>
             </tooltip>
@@ -75,7 +75,7 @@
             <config_path>payment/adyen_abstract/notification_hmac_key_live</config_path>
             <tooltip>
                 <![CDATA[
-                Set HMAC key at first on Adyen so new notifications are sent with the key. To learn more about these settings refer to
+                Set HMAC key at first on Adyen so new webhooks are sent with the key. To learn more about these settings refer to
                 <a target="_blank" href="https://docs.adyen.com/development-resources/webhooks/verify-hmac-signatures">Adyen documentation</a>.
                 ]]>
             </tooltip>
