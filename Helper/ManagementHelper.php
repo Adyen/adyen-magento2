@@ -108,7 +108,7 @@ class ManagementHelper
             'communicationFormat' => 'json',
             'active' => true,
         ];
-        $webhookId = $this->configHelper->getConfigData('webhook_id', Config::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+        $webhookId = $this->configHelper->getWebhookId($storeId);
         if ($webhookId) {
             $management->merchantWebhooks->update($merchantId, $webhookId, $params);
         } else {
@@ -121,8 +121,8 @@ class ManagementHelper
 
         // generate hmac key and save
         $response = $management->merchantWebhooks->generateHmac($merchantId, $webhookId);
-        $hmacKey = $response['hmacKey'];
+        $hmac = $response['hmacKey'];
         $mode = $demoMode ? 'test' : 'live';
-        $this->configHelper->setConfigData($hmacKey, 'notification_hmac_key_' . $mode, Config::XML_ADYEN_ABSTRACT_PREFIX);
+        $this->configHelper->setConfigData($hmac, 'notification_hmac_key_' . $mode, Config::XML_ADYEN_ABSTRACT_PREFIX);
     }
 }

@@ -67,7 +67,8 @@ class WebhookCredentials extends Value
         $url = $this->getFieldsetDataValue('webhook_url');
         $mode = (int) $this->getFieldsetDataValue('demo_mode') ? 'test' : 'live';
         $apiKey = $this->getFieldsetDataValue('api_key_' . $mode);
-        if (empty($apiKey) || preg_match('/^\*+$/', $apiKey)) {
+        if (preg_match('/^\*+$/', $apiKey)) {
+            // API key contains '******', set to the previously saved config value
             $apiKey = $this->configHelper->getApiKey($mode);
         }
         $merchantAccount = $this->getFieldsetDataValue('merchant_account');
@@ -75,7 +76,7 @@ class WebhookCredentials extends Value
         // (re)configure webhook credentials if any changes have been made
         $originalPassword = $this->configHelper->getNotificationsPassword();
         if (preg_match('/^\*+$/', $password)) {
-            // Password contains '******', set to the saved password for API request
+            // Password contains '******', set to the previously saved config value
             $password = $originalPassword;
         }
         $usernameChanged = $username !== $this->configHelper->getNotificationsUsername();
@@ -83,7 +84,8 @@ class WebhookCredentials extends Value
         $urlChanged = $this->getFieldsetDataValue('webhook_url') !== (string) $this->configHelper->getWebhookUrl();
 
         if ($usernameChanged || $passwordChanged || $urlChanged) {
-            $this->managementApiHelper->setupWebhookCredentials($apiKey, $merchantAccount, $username, $password, $url, 'test' === $mode);
+            $this->managementApiHelper
+                ->setupWebhookCredentials($apiKey, $merchantAccount, $username, $password, $url, 'test' === $mode);
         }
 
         return parent::beforeSave();

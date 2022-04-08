@@ -150,6 +150,11 @@ class Config
         );
     }
 
+    public function getWebhookId($storeId = null)
+    {
+        return $this->getConfigData('webhook_id', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
     /**
      * Retrieve flag for notifications_can_cancel
      *
