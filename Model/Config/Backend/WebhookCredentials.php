@@ -78,10 +78,11 @@ class WebhookCredentials extends Value
             // Password contains '******', set to the saved password for API request
             $password = $originalPassword;
         }
+        $usernameChanged = $username !== $this->configHelper->getNotificationsUsername();
         $passwordChanged = $password !== $originalPassword;
-        $urlChanged = $this->getFieldsetDataValue('webhook_url') !== $this->configHelper->getWebhookUrl();
+        $urlChanged = $this->getFieldsetDataValue('webhook_url') !== (string) $this->configHelper->getWebhookUrl();
 
-        if ($this->hasDataChanges() || $passwordChanged || $urlChanged) {
+        if ($usernameChanged || $passwordChanged || $urlChanged) {
             $this->managementApiHelper->setupWebhookCredentials($apiKey, $merchantAccount, $username, $password, $url, 'test' === $mode);
         }
 

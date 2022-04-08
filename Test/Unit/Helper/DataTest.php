@@ -64,6 +64,7 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $localeHelper = $this->getSimpleMock(\Adyen\Payment\Helper\Locale::class);
         $orderManagement = $this->getSimpleMock(\Magento\Sales\Api\OrderManagementInterface::class);
         $orderStatusHistoryFactory = $this->getSimpleMock(\Magento\Sales\Model\Order\Status\HistoryFactory::class);
+        $configHelper = $this->getSimpleMock(\Adyen\Payment\Helper\Config::class);
 
         $this->dataHelper = new \Adyen\Payment\Helper\Data(
             $context,
@@ -87,7 +88,8 @@ class DataTest extends \PHPUnit\Framework\TestCase
             $componentRegistrar,
             $localeHelper,
             $orderManagement,
-            $orderStatusHistoryFactory
+            $orderStatusHistoryFactory,
+            $configHelper
         );
     }
 
