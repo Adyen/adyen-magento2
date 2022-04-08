@@ -911,7 +911,11 @@
             <argument name="commandPool" xsi:type="object">AdyenPaymentDonationsCommandPool</argument>
         </arguments>
     </type>
-
+    <type name="Adyen\Payment\Console\Command\WebhookProcessorCommand">
+        <arguments>
+            <argument name="webhookProcessor" xsi:type="object">Adyen\Payment\Cron\WebhookProcessor\Proxy</argument>
+        </arguments>
+    </type>
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
