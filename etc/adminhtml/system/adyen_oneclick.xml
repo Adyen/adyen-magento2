@@ -33,7 +33,7 @@
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_oneclick/active</config_path>
             <tooltip>
-                This functionality requires Adyen Credit Card payments to be enabled
+                This functionality requires Adyen card payments to be enabled
             </tooltip>
         </field>
         <field id="recurring_card_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -74,14 +74,14 @@
                 <field id="active">1</field>
             </depends>
         </field>
-        <group id="adyen_oneclick_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="200">
-            <label>Advanced Settings</label>
-            <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-            <field id="title" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Share Adyen Tokens between stores</label>
-                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                <config_path>payment/adyen_oneclick/share_billing_agreement</config_path>
-            </field>
-        </group>
+        <field id="share_tokens" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>Share Adyen Tokens between stores</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_oneclick/share_billing_agreement</config_path>
+            <depends>
+                <field id="recurring_card_mode">Adyen Tokenization</field>
+            </depends>
+        </field>
     </group>
 </include>

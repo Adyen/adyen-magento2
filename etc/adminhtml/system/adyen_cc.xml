@@ -25,7 +25,7 @@
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_cc" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1"
            showInStore="1">
-        <label><![CDATA[CreditCard API integration]]></label>
+        <label><![CDATA[Card Payments]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <comment> <![CDATA[
                 <p>Process creditcard payments inside your checkout.
@@ -57,7 +57,7 @@
         </field>
         <group id="adyen_cc_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1"
                sortOrder="60">
-            <label>Advanced Settings</label>
+            <label>Installments Setup</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
             <field id="enable_installments" translate="label" type="select" sortOrder="10" showInDefault="1"
                    showInWebsite="1" showInStore="1">
