@@ -74,6 +74,10 @@ class UpgradeData implements UpgradeDataInterface
             $this->updateSchemaVersion800($setup);
         }
 
+        if (version_compare($context->getVersion(), '8.2.0'. '<')) {
+            $this->updateSchemaVersion820($setup);
+        }
+
         if (version_compare($context->getVersion(), '8.2.1'. '<')) {
             $this->updateSchemaVersion821($setup);
         }
@@ -208,33 +212,17 @@ class UpgradeData implements UpgradeDataInterface
      */
     public function updateSchemaVersion820(ModuleDataSetupInterface $setup)
     {
-        $configDataTable = $setup->getTable('core_config_data');
-        $pathStoreAlternativePaymentMethod = 'payment/adyen_hpp_vault/active';
-        $connection = $setup->getConnection();
+        $this->configHelper->updateConfigsValue($setup, 'payment/adyen_hpp_vault/active', '1', '0');
+    }
 
-        $select = $connection->select()
-            ->from($configDataTable)
-            ->where(
-                'path = ?',
-                $pathStoreAlternativePaymentMethod
-            );
-
-        $configsStoreAlternativePaymentMethods = $connection->fetchAll($select);
-
-        foreach ($configsStoreAlternativePaymentMethods as $config) {
-            $scope = $config['scope'];
-            $scopeId = $config['scope_id'];
-            if ($config['value'] === '1') {
-                $this->configWriter->save(
-                    $pathStoreAlternativePaymentMethod,
-                    '0',
-                    $scope,
-                    $scopeId
-                );
-            }
-        }
-
-        // re-initialize otherwise it will cause errors
-        $this->reinitableConfig->reinit();
+    /**
+     * If enable tokens is on, turn the config off.
+     * This will ensure that if this config is turned back on, the merchant will have to specify how to save their tokens (Magento Vault/Adyen Token)
+     *
+     * @param ModuleDataSetupInterface $setup
+     */
+    public function updateSchemaVersion821(ModuleDataSetupInterface $setup)
+    {
+        $this->configHelper->updateConfigsValue($setup, 'payment/adyen_oneclick/active', '1', '0');
     }
 }

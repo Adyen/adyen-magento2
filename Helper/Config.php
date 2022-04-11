@@ -23,8 +23,12 @@
 
 namespace Adyen\Payment\Helper;
 
+use Magento\Deploy\Model\ConfigWriter;
+use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Setup\ModuleDataSetupInterface;
 
 class Config
 {
@@ -62,17 +66,33 @@ class Config
     private $encryptor;
 
     /**
+     * @var WriterInterface
+     */
+    private $configWriter;
+
+    /**
+     * @var ReinitableConfigInterface
+     */
+    private $reinitableConfig;
+
+    /**
      * Config constructor.
      *
      * @param ScopeConfigInterface $scopeConfig
      * @param EncryptorInterface $encryptor
+     * @param WriterInterface $configWriter
+     * @param ReinitableConfigInterface $reinitableConfig
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        EncryptorInterface $encryptor
+        EncryptorInterface $encryptor,
+        WriterInterface $configWriter,
+        ReinitableConfigInterface $reinitableConfig
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
+        $this->configWriter = $configWriter;
+        $this->reinitableConfig = $reinitableConfig;
     }
 
     /**
@@ -400,5 +420,44 @@ class Config
         } else {
             return $this->scopeConfig->isSetFlag($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
         }
+    }
+
+    /**
+     * Update all configs which have a specific path and a specific value
+     *
+     * @param ModuleDataSetupInterface $setup
+     * @param string $path
+     * @param string $valueToUpdate
+     * @param string $updatedValue
+     */
+    public function updateConfigsValue(ModuleDataSetupInterface $setup, string $path, string $valueToUpdate, string $updatedValue): void
+    {
+        $configDataTable = $setup->getTable('core_config_data');
+        $connection = $setup->getConnection();
+
+        $select = $connection->select()
+            ->from($configDataTable)
+            ->where(
+                'path = ?',
+                $path
+            );
+
+        $matchingConfigs = $connection->fetchAll($select);
+
+        foreach ($matchingConfigs as $config) {
+            $scope = $config['scope'];
+            $scopeId = $config['scope_id'];
+            if ($config['value'] === $valueToUpdate) {
+                $this->configWriter->save(
+                    $path,
+                    $updatedValue,
+                    $scope,
+                    $scopeId
+                );
+            }
+        }
+
+        // re-initialize otherwise it will cause errors
+        $this->reinitableConfig->reinit();
     }
 }
