@@ -38,6 +38,7 @@ define(
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/adyen',
         'Adyen_Payment/js/model/adyen-configuration',
+        'Adyen_Payment/js/model/adyen-payment-modal'
     ],
     function (
         ko,
@@ -57,6 +58,7 @@ define(
         adyenPaymentService,
         AdyenCheckout,
         adyenConfiguration,
+        adyenPaymentModal
     ) {
 
         'use strict';
@@ -77,6 +79,7 @@ define(
                 recurringDetailReference: '',
                 variant: '',
                 numberOfInstallments: '',
+                modalLabel: 'oneclick_actionModal'
             },
             initObservable: function () {
                 this._super().observe([
@@ -171,19 +174,16 @@ define(
                 var self = this;
 
                 let popupModal;
-                let actionContainer;
 
                 fullScreenLoader.stopLoader();
 
                 if (action.type === 'threeDS2' || action.type === 'await') {
+                    this.modalLabel = 'cc_actionModal'
                     popupModal = self.showModal();
-                    actionContainer = '#cc_actionContainer';
-                } else {
-                    actionContainer = '#oneclick_actionContainer';
                 }
                 try {
                     this.checkoutComponent.createFromAction(
-                        action).mount(actionContainer);
+                        action).mount('#' + this.modalLabel + 'Content');
                 } catch (e) {
                     console.log(e);
                     self.closeModal(popupModal);
@@ -511,35 +511,12 @@ define(
             isShowLegend: function () {
                 return true;
             },
-            showModal: function () {
-                let popupModal = $('#cc_actionModal').modal({
-                    // disable user to hide popup
-                    clickableOverlay: false,
-                    responsive: true,
-                    innerScroll: false,
-                    // empty buttons, we don't need that
-                    buttons: [],
-                    modalClass: 'cc_actionModal',
-                });
-
-                popupModal.modal('openModal');
-
-                return popupModal;
-            }, closeModal: function (popupModal) {
-                popupModal.modal('closeModal');
-                $('.cc_actionModal').remove();
-                $('.oneclick_actionModal').remove();
-                $('.modals-overlay').remove();
-                $('body').removeClass('_has-modal');
-
-                // reconstruct the threeDS2Modal container again otherwise component can not find the threeDS2Modal
-                $('#cc_actionModalWrapper').append('<div id="cc_actionModal">' +
-                    '<div id="cc_actionContainer"></div>' +
-                    '</div>');
-                $('#oneclick_actionModalWrapper').append('<div id="oneclick_actionModal">' +
-                    '<div id="oneclick_actionContainer"></div>' +
-                    '</div>');
-            }
+            showModal: function() {
+                return adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
+            },
+            closeModal: function(popupModal) {
+                adyenPaymentModal.closeModal(popupModal, this.modalLabel)
+            },
         });
     },
 );
