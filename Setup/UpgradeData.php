@@ -206,7 +206,7 @@ class UpgradeData implements UpgradeDataInterface
      *
      * @param ModuleDataSetupInterface $setup
      */
-    public function updateSchemaVersion821(ModuleDataSetupInterface $setup)
+    public function updateSchemaVersion820(ModuleDataSetupInterface $setup)
     {
         $configDataTable = $setup->getTable('core_config_data');
         $pathStoreAlternativePaymentMethod = 'payment/adyen_hpp_vault/active';
