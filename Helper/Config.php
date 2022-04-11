@@ -370,7 +370,7 @@ class Config
      */
     public function getCardRecurringMode($storeId): ?string
     {
-        return $this->getConfigData('mode', self::XML_ADYEN_ONECLICK, $storeId);
+        return $this->getConfigData('card_mode', self::XML_ADYEN_ONECLICK, $storeId);
     }
 
     /**
@@ -379,7 +379,7 @@ class Config
      */
     public function getCardRecurringType($storeId): ?string
     {
-        return $this->getConfigData('type', self::XML_ADYEN_ONECLICK, $storeId);
+        return $this->getConfigData('card_type', self::XML_ADYEN_ONECLICK, $storeId);
     }
 
     /**
