@@ -407,21 +407,20 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * Build the recurring data to be sent in case of a tokenized payment.
+     * Build the recurring data to be sent in case of an Adyen Tokenized payment.
      * Model will be fetched according to the type (card/other pm) of the original payment
      *
      * @param int $storeId
      * @param $payment
      * @return array
      */
-    public function buildTokenizedPaymentRecurringData(int $storeId, $payment): array
+    public function buildAdyenTokenizedPaymentRecurringData(int $storeId, $payment): array
     {
         $request = [];
 
         if (in_array($payment->getAdditionalInformation('cc_type'), CcType::ALLOWED_TYPES)) {
-            //TODO: This should be revised in a future update
-            $enableOneclick = $this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick', $storeId);
-            $request['recurringProcessingModel'] = $enableOneclick ? 'CardOnFile' : 'Subscription';
+            $recurringType = $this->adyenConfig->getCardRecurringType($storeId);
+            $request['recurringProcessingModel'] = $recurringType;
         } else {
             $request['recurringProcessingModel'] = $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
         }
