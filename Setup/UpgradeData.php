@@ -212,7 +212,7 @@ class UpgradeData implements UpgradeDataInterface
      */
     public function updateSchemaVersion820(ModuleDataSetupInterface $setup)
     {
-        $this->configHelper->updateConfigsValue($setup, 'payment/adyen_hpp_vault/active', '1', '0');
+        $this->configHelper->updateConfigValue($setup, 'payment/adyen_hpp_vault/active', '1', '0');
     }
 
     /**
@@ -223,6 +223,6 @@ class UpgradeData implements UpgradeDataInterface
      */
     public function updateSchemaVersion821(ModuleDataSetupInterface $setup)
     {
-        $this->configHelper->updateConfigsValue($setup, 'payment/adyen_oneclick/active', '1', '0');
+        $this->configHelper->updateConfigValue($setup, 'payment/adyen_oneclick/active', '1', '0');
     }
 }

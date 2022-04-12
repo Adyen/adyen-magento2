@@ -430,8 +430,38 @@ class Config
      * @param string $valueToUpdate
      * @param string $updatedValue
      */
-    public function updateConfigsValue(ModuleDataSetupInterface $setup, string $path, string $valueToUpdate, string $updatedValue): void
+    public function updateConfigValue(ModuleDataSetupInterface $setup, string $path, string $valueToUpdate, string $updatedValue): void
     {
+        $config = $this->findConfig($setup, $path, $valueToUpdate);
+        if (isset($config)) {
+            $this->configWriter->save(
+                $path,
+                $updatedValue,
+                $config['scope'],
+                $config['scope_id']
+            );
+        }
+
+        // re-initialize otherwise it will cause errors
+        $this->reinitableConfig->reinit();
+    }
+
+    public function addConfig()
+    {
+
+    }
+
+    /**
+     * Return the config based on the passed path and value. If value is null, return the first item in array
+     *
+     * @param ModuleDataSetupInterface $setup
+     * @param string $path
+     * @param string|null $value
+     * @return array|null
+     */
+    public function findConfig(ModuleDataSetupInterface $setup, string $path, ?string $value): ?array
+    {
+        $config = null;
         $configDataTable = $setup->getTable('core_config_data');
         $connection = $setup->getConnection();
 
@@ -444,20 +474,16 @@ class Config
 
         $matchingConfigs = $connection->fetchAll($select);
 
-        foreach ($matchingConfigs as $config) {
-            $scope = $config['scope'];
-            $scopeId = $config['scope_id'];
-            if ($config['value'] === $valueToUpdate) {
-                $this->configWriter->save(
-                    $path,
-                    $updatedValue,
-                    $scope,
-                    $scopeId
-                );
+        if (!empty($matchingConfigs) && is_null($value)) {
+            $config = reset($matchingConfigs);
+        } else {
+            foreach ($matchingConfigs as $matchingConfig) {
+                if ($matchingConfig['value'] === $value) {
+                    $config = $matchingConfig;
+                }
             }
         }
 
-        // re-initialize otherwise it will cause errors
-        $this->reinitableConfig->reinit();
+        return $config;
     }
 }
