@@ -24,6 +24,8 @@
 namespace Adyen\Payment\Setup;
 
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Recurring;
+use Adyen\Payment\Model\Config\Source\Recurring\RecurringType;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
@@ -182,13 +184,41 @@ class UpgradeData implements UpgradeDataInterface
     }
 
     /**
-     * If enable tokens is on, turn the config off.
-     * This will ensure that if this config is turned back on, the merchant will have to specify how to save their tokens (Magento Vault/Adyen Token)
+     * If tokenization is not enabled, do nothing
+     * If vault is enabled, set the mode to vault
+     * Else if adyen tokenization is enabled, set mode to Adyen Token and set Type to CardOnFile
      *
      * @param ModuleDataSetupInterface $setup
      */
     public function updateSchemaVersion738(ModuleDataSetupInterface $setup)
     {
-        $this->configHelper->updateConfigValue($setup, 'payment/adyen_oneclick/active', '1', '0');
+        $tokenizationEnabled = $this->configHelper->findConfig($setup, 'payment/adyen_oneclick/active', '1');
+        $vaultEnabled = $this->configHelper->findConfig($setup, 'payment/adyen_cc_vault/active', '1');
+        $adyenOneClick = $this->configHelper->findConfig($setup, 'payment/adyen_abstract/enable_oneclick', '1');
+
+        if (isset($tokenizationEnabled)) {
+            if (isset($vaultEnabled)) {
+                $this->configHelper->saveConfig(
+                    'payment/adyen_oneclick/card_mode',
+                    Recurring::MODE_MAGENTO_VAULT,
+                    $vaultEnabled['scope'],
+                    $vaultEnabled['scope_id']
+                );
+            } elseif (isset($adyenOneClick)) {
+                $this->configHelper->saveConfig(
+                    'payment/adyen_oneclick/card_mode',
+                    Recurring::MODE_ADYEN_TOKENIZATION,
+                    $adyenOneClick['scope'],
+                    $adyenOneClick['scope_id']
+                );
+
+                $this->configHelper->saveConfig(
+                    'payment/adyen_oneclick/card_type',
+                    Recurring::CARD_ON_FILE,
+                    $adyenOneClick['scope'],
+                    $adyenOneClick['scope_id']
+                );
+            }
+        }
     }
 }

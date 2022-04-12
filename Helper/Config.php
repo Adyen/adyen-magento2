@@ -301,7 +301,7 @@ class Config
     }
 
     /**
-     * Update all configs which have a specific path and a specific value
+     * Update a config which has a specific path and a specific value
      *
      * @param ModuleDataSetupInterface $setup
      * @param string $path
@@ -324,9 +324,27 @@ class Config
         $this->reinitableConfig->reinit();
     }
 
-    public function addConfig()
-    {
+    /**
+     * @param string $path
+     * @param string $value
+     * @param string $scope
+     * @param int $scopeId
+     */
+    public function saveConfig(
+        string $path,
+        string $value,
+        string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+        int $scopeId = 0
+    ) {
+        $this->configWriter->save(
+            $path,
+            $value,
+            $scope,
+            $scopeId
+        );
 
+        // re-initialize otherwise it will cause errors
+        $this->reinitableConfig->reinit();
     }
 
     /**
