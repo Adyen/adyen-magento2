@@ -109,7 +109,7 @@ class ManagementHelper
             'active' => true,
         ];
         $webhookId = $this->configHelper->getWebhookId($storeId);
-        if ($webhookId) {
+        if (!empty($webhookId)) {
             $management->merchantWebhooks->update($merchantId, $webhookId, $params);
         } else {
             $params['type'] = 'standard';
