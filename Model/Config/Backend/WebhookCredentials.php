@@ -49,10 +49,10 @@ class WebhookCredentials extends Value
         Registry $registry,
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
         ManagementHelper $managementApiHelper,
         Config $configHelper,
+        AbstractResource $resource = null,
+        AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->managementApiHelper = $managementApiHelper;
