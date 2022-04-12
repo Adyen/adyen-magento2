@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,12 +23,8 @@
 
 namespace Adyen\Payment\Helper;
 
-use Magento\Deploy\Model\ConfigWriter;
-use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
-use Magento\Framework\Setup\ModuleDataSetupInterface;
 
 class Config
 {
@@ -62,33 +58,17 @@ class Config
     private $encryptor;
 
     /**
-     * @var WriterInterface
-     */
-    private $configWriter;
-
-    /**
-     * @var ReinitableConfigInterface
-     */
-    private $reinitableConfig;
-
-    /**
      * Config constructor.
      *
      * @param ScopeConfigInterface $scopeConfig
      * @param EncryptorInterface $encryptor
-     * @param WriterInterface $configWriter
-     * @param ReinitableConfigInterface $reinitableConfig
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        EncryptorInterface $encryptor,
-        WriterInterface $configWriter,
-        ReinitableConfigInterface $reinitableConfig
+        EncryptorInterface $encryptor
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
-        $this->configWriter = $configWriter;
-        $this->reinitableConfig = $reinitableConfig;
     }
 
     /**
@@ -298,88 +278,5 @@ class Config
         } else {
             return $this->scopeConfig->isSetFlag($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
         }
-    }
-
-    /**
-     * Update a config which has a specific path and a specific value
-     *
-     * @param ModuleDataSetupInterface $setup
-     * @param string $path
-     * @param string $valueToUpdate
-     * @param string $updatedValue
-     */
-    public function updateConfigValue(ModuleDataSetupInterface $setup, string $path, string $valueToUpdate, string $updatedValue): void
-    {
-        $config = $this->findConfig($setup, $path, $valueToUpdate);
-        if (isset($config)) {
-            $this->configWriter->save(
-                $path,
-                $updatedValue,
-                $config['scope'],
-                $config['scope_id']
-            );
-        }
-
-        // re-initialize otherwise it will cause errors
-        $this->reinitableConfig->reinit();
-    }
-
-    /**
-     * @param string $path
-     * @param string $value
-     * @param string $scope
-     * @param int $scopeId
-     */
-    public function saveConfig(
-        string $path,
-        string $value,
-        string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
-        int $scopeId = 0
-    ) {
-        $this->configWriter->save(
-            $path,
-            $value,
-            $scope,
-            $scopeId
-        );
-
-        // re-initialize otherwise it will cause errors
-        $this->reinitableConfig->reinit();
-    }
-
-    /**
-     * Return the config based on the passed path and value. If value is null, return the first item in array
-     *
-     * @param ModuleDataSetupInterface $setup
-     * @param string $path
-     * @param string|null $value
-     * @return array|null
-     */
-    public function findConfig(ModuleDataSetupInterface $setup, string $path, ?string $value): ?array
-    {
-        $config = null;
-        $configDataTable = $setup->getTable('core_config_data');
-        $connection = $setup->getConnection();
-
-        $select = $connection->select()
-            ->from($configDataTable)
-            ->where(
-                'path = ?',
-                $path
-            );
-
-        $matchingConfigs = $connection->fetchAll($select);
-
-        if (!empty($matchingConfigs) && is_null($value)) {
-            $config = reset($matchingConfigs);
-        } else {
-            foreach ($matchingConfigs as $matchingConfig) {
-                if ($matchingConfig['value'] === $value) {
-                    $config = $matchingConfig;
-                }
-            }
-        }
-
-        return $config;
     }
 }
