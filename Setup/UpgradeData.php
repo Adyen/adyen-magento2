@@ -23,13 +23,9 @@
 
 namespace Adyen\Payment\Setup;
 
-use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Recurring;
-use Adyen\Payment\Model\Config\Source\Recurring\RecurringType;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
-use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
@@ -46,19 +42,12 @@ class UpgradeData implements UpgradeDataInterface
      */
     private $reinitableConfig;
 
-    /**
-     * @var Config
-     */
-    private $configHelper;
-
     public function __construct(
         WriterInterface $configWriter,
-        ReinitableConfigInterface $reinitableConfig,
-        Config $configHelper
+        ReinitableConfigInterface $reinitableConfig
     ) {
         $this->configWriter = $configWriter;
         $this->reinitableConfig = $reinitableConfig;
-        $this->configHelper = $configHelper;
     }
 
     /**
@@ -75,10 +64,6 @@ class UpgradeData implements UpgradeDataInterface
 
         if (version_compare($context->getVersion(), '8.0.0'. '<')) {
             $this->updateSchemaVersion800($setup);
-        }
-
-        if (version_compare($context->getVersion(), '8.2.0'. '<')) {
-            $this->updateSchemaVersion820($setup);
         }
 
         if (version_compare($context->getVersion(), '8.2.1'. '<')) {
@@ -208,20 +193,14 @@ class UpgradeData implements UpgradeDataInterface
     }
 
     /**
-     * If Store alternative payment methods is on, turn the config off, since it was previously NOT operational.
-     * This will ensure that if this config is turned back on, the Token type will also be saved.
-     *
-     * @param ModuleDataSetupInterface $setup
-     */
-    public function updateSchemaVersion820(ModuleDataSetupInterface $setup)
-    {
-        $this->updateConfigValue($setup, 'payment/adyen_hpp_vault/active', '1', '0');
-    }
-
-    /**
+     * For card tokens:
      * If tokenization is not enabled, do nothing
      * If vault is enabled, set the mode to vault
      * Else if adyen tokenization is enabled, set mode to Adyen Token and set Type to CardOnFile
+     *
+     * For alternative payment method tokens:
+     * If Store alternative payment methods is on, turn the config off, since it was previously NOT operational.
+     * This will ensure that if this config is turned back on, the Token type will also be saved.
      *
      * @param ModuleDataSetupInterface $setup
      */
@@ -254,6 +233,8 @@ class UpgradeData implements UpgradeDataInterface
                     $adyenOneClick['scope_id']
                 );
             }
+
+            $this->updateConfigValue($setup, 'payment/adyen_hpp_vault/active', '1', '0');
 
             // re-initialize otherwise it will cause errors
             $this->reinitableConfig->reinit();
