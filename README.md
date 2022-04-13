@@ -17,6 +17,13 @@ This plugin supports Magento2 version
 * 2.3.7 and higher
 * 2.4 and higher
 
+# Releases
+
+1. **Major** releases are done ONLY when we absolutely need to. We try to not to introduce breaking changes and do major releases as rare as possible. Average now is **yearly**.
+2. After each bug fix is resolved, we aim to make a **patch** release. A minor or a patcn release is scheduled but not limited to **once every 2 weeks.**
+
+**Note: This can be subject to change based on the load and dependancies of the Integration tools team. **
+
 ## Support & Maintenance
 
 We provide three levels of support:
