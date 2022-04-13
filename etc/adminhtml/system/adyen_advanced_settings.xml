@@ -30,10 +30,9 @@
         <label><![CDATA[Advanced settings]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <include path="Adyen_Payment::system/adyen_order_processing.xml"/>
-        <include path="Adyen_Payment::system/adyen_notifications.xml"/>
         <include path="Adyen_Payment::system/adyen_checkout_experience.xml"/>
         <include path="Adyen_Payment::system/adyen_manual_review.xml"/>
-        <include path="Adyen_Payment::system/adyen_partial_payment.xml"/>
+        <include path="Adyen_Payment::system/adyen_refunds.xml"/>
         <include path="Adyen_Payment::system/adyen_security.xml"/>
         <include path="Adyen_Payment::system/adyen_pwa.xml"/>
         <include path="Adyen_Payment::system/adyen_additional_payment_settings.xml"/>
