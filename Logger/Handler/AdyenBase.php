@@ -32,7 +32,7 @@ class AdyenBase extends Base
      *
      * {@inheritdoc}
      */
-    public function isHandling(array $record)
+    public function isHandling(array $record): bool
     {
         return $record['level'] == $this->level;
     }
