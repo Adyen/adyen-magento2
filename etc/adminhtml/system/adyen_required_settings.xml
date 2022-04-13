@@ -35,7 +35,7 @@
             <tooltip>
                 <![CDATA[The merchant account identifier you want to process the (transaction) request with. Find this at the top of the screen in the Adyen Customer Area, where you will see [YourCompanyAccount] > [YourMerchantAccount] . Please note that the merchant account is different from the company account; a company account can have one or more merchant accounts.]]></tooltip>
             <comment>
-                <![CDATA[<a target="_blank" href="https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#step3configuretheplugininmagento">Click here for explanation.</a>]]></comment>
+                <![CDATA[<a target="_blank" href="https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#step3configuretheplugininmagento">More information</a>]]></comment>
         </field>
         <field id="demo_mode" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
                showInStore="1">
