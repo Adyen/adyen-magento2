@@ -113,7 +113,7 @@ class AdyenLogger extends Logger
      * @param array $context The log context
      * @return Boolean Whether the record has been processed
      */
-    public function addNotificationLog($message, array $context = [])
+    public function addNotificationLog($message, array $context = []): bool
     {
         return $this->addRecord(static::INFO, $message, $context);
     }
