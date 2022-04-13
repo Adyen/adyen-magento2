@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2020 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -39,6 +39,7 @@ class Config
     const XML_HAS_HOLDER_NAME = "has_holder_name";
     const XML_HOLDER_NAME_REQUIRED = "holder_name_required";
     const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
+    const XML_ADYEN_ONECLICK = 'adyen_oneclick';
     const XML_ADYEN_HPP = 'adyen_hpp';
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
     const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
@@ -239,6 +240,24 @@ class Config
             Config::XML_ADYEN_ABSTRACT_PREFIX,
             $storeId
         );
+    }
+
+    /**
+     * @param $storeId
+     * @return string|null
+     */
+    public function getCardRecurringMode($storeId): ?string
+    {
+        return $this->getConfigData('card_mode', self::XML_ADYEN_ONECLICK, $storeId);
+    }
+
+    /**
+     * @param $storeId
+     * @return string|null
+     */
+    public function getCardRecurringType($storeId): ?string
+    {
+        return $this->getConfigData('card_type', self::XML_ADYEN_ONECLICK, $storeId);
     }
 
     /**

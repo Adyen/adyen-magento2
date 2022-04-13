@@ -1686,17 +1686,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Check if CreditCard vault is enabled
-     *
-     * @param null|int|string $storeId
-     * @return mixed
-     */
-    public function isCreditCardVaultEnabled($storeId = null)
-    {
-        return $this->getAdyenCcVaultConfigDataFlag('active', $storeId);
-    }
-
-    /**
      * Check if HPP vault is enabled
      *
      * @param null|int|string $storeId

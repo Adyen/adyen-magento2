@@ -28,6 +28,7 @@ use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -342,6 +343,11 @@ class Cron
     private $adyenOrderPaymentFactory;
 
     /**
+     * @var Vault
+     */
+    private $vaultHelper;
+
+    /**
      * Cron constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -412,7 +418,8 @@ class Cron
         \Adyen\Payment\Helper\Invoice $invoiceHelper,
         CaseManagement $caseManagementHelper,
         PaymentFactory $adyenOrderPaymentFactory,
-        MagentoInvoiceFactory $magentoInvoiceFactory
+        MagentoInvoiceFactory $magentoInvoiceFactory,
+        Vault $vaultHelper
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_adyenLogger = $adyenLogger;
@@ -450,6 +457,7 @@ class Cron
         $this->caseManagementHelper = $caseManagementHelper;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->magentoInvoiceFactory = $magentoInvoiceFactory;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -1270,7 +1278,7 @@ class Cron
 
             case Notification::RECURRING_CONTRACT:
                 // only store billing agreements if Vault is disabled
-                if (!$this->_adyenHelper->isCreditCardVaultEnabled()) {
+                if (!$this->vaultHelper->isCardVaultEnabled()) {
                     // storedReferenceCode
                     $recurringDetailReference = $this->_pspReference;
 

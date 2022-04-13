@@ -15,25 +15,31 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Logger\Handler;
+namespace Adyen\Payment\Model\Config\Source\Recurring;
 
-use Magento\Framework\Logger\Handler\Base;
+use Adyen\Payment\Helper\Recurring;
+use Magento\Framework\Data\OptionSourceInterface;
 
-class AdyenBase extends Base
+class RecurringType implements OptionSourceInterface
 {
     /**
-     * overwrite core it needs to be the exact level otherwise use different handler
-     *
-     * {@inheritdoc}
+     * @return array
      */
-    public function isHandling(array $record): bool
+    public function toOptionArray(): array
     {
-        return $record['level'] == $this->level;
+        $options = [];
+        $recurringTypes = Recurring::getRecurringTypes();
+
+        foreach ($recurringTypes as $recurringType) {
+            $options[] = ['value' => $recurringType, 'label' => $recurringType];
+        }
+
+        return $options;
     }
 }
