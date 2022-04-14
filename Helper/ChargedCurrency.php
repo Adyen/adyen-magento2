@@ -140,7 +140,7 @@ class ChargedCurrency
             $item->getPrice(),
             $item->getInvoice()->getOrderCurrencyCode(),
             null,
-            $item->getTaxAmount() / $item->getQty()
+            ($item->getQty() > 0) ? $item->getTaxAmount() / $item->getQty() : 0
         );
     }
 

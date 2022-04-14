@@ -73,7 +73,7 @@ class GuestPaymentInformationResetOrderId
             $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
             $quoteId = $quoteIdMask->getQuoteId();
             $quote = $this->quoteRepository->get($quoteId);
-            if ($quote->getPayment()->getMethod() !== 'adyen_pos_cloud') {
+            if (preg_match('/^adyen_(?!pos_cloud$)/', $quote->getPayment()->getMethod()) {
                 $quote->setReservedOrderId(null);
             }
         } catch (\Exception $e) {

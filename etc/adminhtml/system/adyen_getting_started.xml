@@ -31,10 +31,10 @@
                                 <li><a target="_blank" href="https://docs.adyen.com/plugins/magento-2">Documentation for setting up the module</a>.</li>
                                 <li><a target="_blank" href="https://www.adyen.com/signup"><strong>Sign up</strong> for a test account</a>.</li>
                                 <li>The latest version of the Adyen Magento module is also available through <a target="_blank" href="https://github.com/adyen/adyen-magento2/releases">GitHub</a>.</li>
+                                <li>In the test environment you need to use test cards. Test cards can be found <a target="_blank" href="http://adyen.com/test-card-numbers">here</a>.</li>
+                                <li>The Adyen Customer Area can be found on <a target="_blank" href="https://ca-test.adyen.com">https://ca-test.adyen.com</a> for test or <a target="_blank" href="https://ca-live.adyen.com">https://ca-live.adyen.com</a> for live.</li>
                             </ul>
-                            <p> In the test environment you need to use test cards. Test cards can be found <a target="_blank" href="http://adyen.com/test-card-numbers">here</a>.</p>
-                            <p>The Adyen Customer Area can be found on <a target="_blank" href="https://ca-test.adyen.com">https://ca-test.adyen.com</a> for test or <a target="_blank" href="https://ca-live.adyen.com">https://ca-live.adyen.com</a> for live.</p>
-                            <p>If you have any further questions, please visit the <a target="_blank" href="http://www.adyen.com">Adyen.com</a> website or email <a href="mailto:magento@adyen.com">magento@adyen.com</a>.</p>
+                            <p>If you have any further questions, please visit the <a target="_blank" href="http://www.adyen.com">Adyen</a> website or email <a href="mailto:magento@adyen.com">magento@adyen.com</a>.</p>
                             ]]></comment>
         <field id="version" translate="label" type="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Extension version</label>

@@ -208,7 +208,7 @@ class PaymentResponseHandler
 
                 if (!empty($paymentsResponse['additionalData']['recurring.recurringDetailReference']) &&
                     $payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE) {
-                    if ($this->adyenHelper->isCreditCardVaultEnabled()) {
+                    if ($this->vaultHelper->isCardVaultEnabled()) {
                         $this->vaultHelper->saveRecurringDetails($payment, $paymentsResponse['additionalData']);
                     } else {
                         $order = $payment->getOrder();
