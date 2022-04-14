@@ -15,7 +15,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,7 +23,6 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
-use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Vault;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -37,20 +36,13 @@ class VaultDetailsHandler implements HandlerInterface
     private $vaultHelper;
 
     /**
-     * @var Data
-     */
-    private $adyenHelper;
-
-    /**
      * VaultDetailsHandler constructor.
      *
      * @param Vault $vaultHelper
-     * @param Data $adyenHelper
      */
-    public function __construct(Vault $vaultHelper, Data $adyenHelper)
+    public function __construct(Vault $vaultHelper)
     {
         $this->vaultHelper = $vaultHelper;
-        $this->adyenHelper = $adyenHelper;
     }
 
     /**
@@ -64,7 +56,7 @@ class VaultDetailsHandler implements HandlerInterface
         /** @var PaymentDataObject $orderPayment */
         $orderPayment = SubjectReader::readPayment($handlingSubject);
 
-        if ($this->adyenHelper->isCreditCardVaultEnabled()) {
+        if ($this->vaultHelper->isCardVaultEnabled()) {
             $this->vaultHelper->saveRecurringDetails($orderPayment->getPayment(), $response['additionalData']);
         }
     }
