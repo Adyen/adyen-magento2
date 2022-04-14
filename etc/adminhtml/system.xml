@@ -28,7 +28,7 @@
             <group id="adyen_group_all_in_one" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Adyen Payments</label>
                 <!-- Logo as css background -->
-                <comment><![CDATA[Our plugin for Magento gives you access to all the features of the Adyen payments platform in one integration. Accept all major global and local payment methods, store your shoppers' payment details for later payments, and use our risk management system. The plugin keeps the two platforms synchronized, so you can view transaction summaries in Magento, and switch to Adyen for more detailed reporting.]]></comment>
+                <comment><![CDATA[<b>Adyen Payments</b> <br />Utilize the features offered by the Adyen payments platform in one integration. <br /> <br />]]></comment>
                 <attribute type="expanded">1</attribute>
                 <fieldset_css>adyen-payments complex</fieldset_css>
                 <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Group</frontend_model>
