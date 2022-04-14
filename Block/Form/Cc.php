@@ -25,10 +25,15 @@ namespace Adyen\Payment\Block\Form;
 
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Installments;
+use Adyen\Payment\Helper\Recurring;
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Backend\Model\Session\Quote;
 use Magento\Customer\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\View\Element\Template\Context;
 
 class Cc extends \Magento\Payment\Block\Form\Cc
 {
@@ -38,7 +43,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     protected $_template = 'Adyen_Payment::form/cc.phtml';
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     protected $adyenHelper;
 
@@ -63,7 +68,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     private $chargedCurrency;
 
     /**
-     * @var \Magento\Backend\Model\Session\Quote
+     * @var Quote
      */
     private $backendCheckoutSession;
 
@@ -83,25 +88,38 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     private $customerSession;
 
     /**
+     * @var Vault
+     */
+    private $vaultHelper;
+
+    /**
      * Cc constructor.
      *
-     * @param \Magento\Framework\View\Element\Template\Context $context
+     * @param Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Data $adyenHelper
      * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param Quote $backendCheckoutSession
+     * @param Installments $installmentsHelper
+     * @param ChargedCurrency $chargedCurrency
+     * @param AdyenLogger $adyenLogger
+     * @param Config $configHelper
+     * @param Session $customerSession
+     * @param Vault $vaultHelper
      * @param array $data
      */
     public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
+        Context $context,
         \Magento\Payment\Model\Config $paymentConfig,
-        \Adyen\Payment\Helper\Data $adyenHelper,
+        Data $adyenHelper,
         \Magento\Checkout\Model\Session $checkoutSession,
-        \Magento\Backend\Model\Session\Quote $backendCheckoutSession,
+        Quote $backendCheckoutSession,
         Installments $installmentsHelper,
         ChargedCurrency $chargedCurrency,
         AdyenLogger $adyenLogger,
         Config $configHelper,
         Session $customerSession,
+        Vault $vaultHelper,
         array $data = []
     ) {
         parent::__construct($context, $paymentConfig);
@@ -114,6 +132,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         $this->adyenLogger = $adyenLogger;
         $this->configHelper = $configHelper;
         $this->customerSession = $customerSession;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -179,11 +198,11 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     }
 
     /**
-     * @return mixed
+     * @return bool
      */
-    public function isVaultEnabled()
+    public function isVaultEnabled(): bool
     {
-        return $this->adyenHelper->isCreditCardVaultEnabled();
+        return $this->vaultHelper->isCardVaultEnabled();
     }
 
     /**
@@ -227,10 +246,10 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     /**
      * @return bool
      */
-    public function getEnableStoreDetails()
+    public function getEnableStoreDetails(): bool
     {
         $enableOneclick = (bool)$this->adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
-        $enableVault = $this->adyenHelper->isCreditCardVaultEnabled();
+        $enableVault = $this->isVaultEnabled();
         $loggedIn = $this->customerSession->isLoggedIn();
         return ($enableOneclick || $enableVault) && $loggedIn;
     }

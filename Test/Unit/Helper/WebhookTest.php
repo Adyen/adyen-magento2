@@ -114,7 +114,8 @@ class WebhookTest extends TestCase
             $this->caseManagementHelper,
             $this->createGeneratedMock(PaymentFactory::class),
             $this->createMock(AdyenLogger::class),
-            $this->createGeneratedMock(MagentoInvoiceFactory::class)
+            $this->createGeneratedMock(MagentoInvoiceFactory::class),
+            $this->createMock(Vault::class)
         );
     }
 
