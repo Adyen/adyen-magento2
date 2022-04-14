@@ -22,6 +22,10 @@
  */
 
 namespace Adyen\Payment\Plugin;
+
+use Adyen\Payment\Logger\AdyenLogger;
+use Exception;
+use Magento\Checkout\Api\PaymentInformationManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 
 class PaymentInformationResetOrderId
@@ -29,43 +33,43 @@ class PaymentInformationResetOrderId
     /**
      * Quote repository.
      *
-     * @var \Magento\Quote\Api\CartRepositoryInterface
+     * @var CartRepositoryInterface
      */
     protected $quoteRepository;
 
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
+     * @var AdyenLogger
      */
     protected $adyenLogger;
 
     /**
      * PaymentInformationResetOrderId constructor.
      * @param CartRepositoryInterface $quoteRepository
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         CartRepositoryInterface $quoteRepository,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-    )
-    {
+        AdyenLogger $adyenLogger
+    ) {
         $this->quoteRepository = $quoteRepository;
         $this->adyenLogger = $adyenLogger;
     }
 
     /**
-     * @param \Magento\Checkout\Api\PaymentInformationManagementInterface $subject
+     * @param PaymentInformationManagementInterface $subject
      * @param $cartId
+     * @return null
      */
     public function beforeSavePaymentInformationAndPlaceOrder(
-        \Magento\Checkout\Api\PaymentInformationManagementInterface $subject,
+        PaymentInformationManagementInterface $subject,
         $cartId
     ) {
         try {
             $quote = $this->quoteRepository->get($cartId);
-            if (preg_match('/^adyen_(?!pos_cloud$)/', $quote->getPayment()->getMethod()) {
+            if (preg_match('/^adyen_(?!pos_cloud$)/', $quote->getPayment()->getMethod())) {
                 $quote->setReservedOrderId(null);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->adyenLogger->error("Failed to reset reservedOrderId " . $e->getMessage());
         }
         return null;

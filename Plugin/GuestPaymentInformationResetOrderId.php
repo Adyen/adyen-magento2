@@ -22,61 +22,65 @@
  */
 
 namespace Adyen\Payment\Plugin;
+
+use Adyen\Payment\Logger\AdyenLogger;
+use Exception;
+use Magento\Checkout\Api\GuestPaymentInformationManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\QuoteIdMaskFactory;
 
 class GuestPaymentInformationResetOrderId
 {
     /**
      * Quote repository.
      *
-     * @var \Magento\Quote\Api\CartRepositoryInterface
+     * @var CartRepositoryInterface
      */
     protected $quoteRepository;
 
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
+     * @var AdyenLogger
      */
     protected $adyenLogger;
 
     /**
-     * @var \Magento\Quote\Model\QuoteIdMaskFactory
+     * @var QuoteIdMaskFactory
      */
     protected $quoteIdMaskFactory;
 
     /**
      * GuestPaymentInformationResetOrderId constructor.
      * @param CartRepositoryInterface $quoteRepository
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Magento\Quote\Model\QuoteIdMaskFactory $quoteIdMaskFactory
+     * @param AdyenLogger $adyenLogger
+     * @param QuoteIdMaskFactory $quoteIdMaskFactory
      */
     public function __construct(
         CartRepositoryInterface $quoteRepository,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Magento\Quote\Model\QuoteIdMaskFactory $quoteIdMaskFactory
-    )
-    {
+        AdyenLogger $adyenLogger,
+        QuoteIdMaskFactory $quoteIdMaskFactory
+    ) {
         $this->quoteRepository = $quoteRepository;
         $this->adyenLogger = $adyenLogger;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
     }
 
     /**
-     * @param \Magento\Checkout\Api\GuestPaymentInformationManagementInterface $subject
+     * @param GuestPaymentInformationManagementInterface $subject
      * @param $cartId
      * @return null
      */
     public function beforeSavePaymentInformationAndPlaceOrder(
-        \Magento\Checkout\Api\GuestPaymentInformationManagementInterface $subject,
+        GuestPaymentInformationManagementInterface $subject,
         $cartId
     ) {
         try {
             $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
             $quoteId = $quoteIdMask->getQuoteId();
             $quote = $this->quoteRepository->get($quoteId);
-            if (preg_match('/^adyen_(?!pos_cloud$)/', $quote->getPayment()->getMethod()) {
+            if (preg_match('/^adyen_(?!pos_cloud$)/', $quote->getPayment()->getMethod())) {
                 $quote->setReservedOrderId(null);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->adyenLogger->error("Failed to reset reservedOrderId for guest shopper" . $e->getMessage());
         }
         return null;
