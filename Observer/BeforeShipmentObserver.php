@@ -138,6 +138,7 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
      */
     public function isPaymentMethodAdyen($order)
     {
+        // CAND: Check with payByLink BUG
         return strpos($order->getPayment()->getMethod(), 'adyen') !== false;
     }
 }
