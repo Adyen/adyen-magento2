@@ -38,6 +38,17 @@ jobs:
       - name: Enable developer mode
         run: docker exec magento2-container bin/magento deploy:mode:set developer
 
+      - name: Sample data deploy
+        run: |
+          docker exec magento2-container composer config http-basic.repo.magento.com "${MAGENTO_USERNAME}" "${MAGENTO_PASSWORD}"
+          docker exec magento2-container composer config repositories.magento composer https://repo.magento.com/
+          docker exec magento2-container bash -c 'echo "memory_limit = -1" > /usr/local/etc/php/conf.d/memory.ini'
+          docker exec magento2-container bin/magento sampledata:deploy
+        env: 
+          COMPOSER_MEMORY_LIMIT: -1
+          MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
+          MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
+
       - name: Register local repository
         run: |
           docker exec magento2-container composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
