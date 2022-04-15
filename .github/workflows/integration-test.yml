@@ -45,6 +45,10 @@ jobs:
       - name: Install local package
         run: docker exec magento2-container composer require "adyen/module-payment:*"
 
+      - name: Magento Code Sniffer
+        run: |
+          docker exec magento2-container vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 --ignore-annotations -n -p vendor/adyen/module-payment
+
       - name: Enable module
         run: docker exec magento2-container bin/magento module:enable Adyen_Payment
 
