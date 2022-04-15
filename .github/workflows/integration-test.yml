@@ -87,7 +87,7 @@ jobs:
         run: |
           docker run -e INTEGRATION_TESTS_BRANCH -e MAGENTO_BASE_URL -e PAYPAL_USERNAME -e PAYPAL_PASSWORD --rm --shm-size=1gb --ipc=host --cap-add=SYS_ADMIN --network templates_backend -v `pwd`/.github/scripts/e2e.sh:/e2e.sh mcr.microsoft.com/playwright:v1.20.0-focal /e2e.sh
         env:
-          INTEGRATION_TESTS_BRANCH: develop
+          INTEGRATION_TESTS_BRANCH: michaelpaul-patch-1
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
           PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
