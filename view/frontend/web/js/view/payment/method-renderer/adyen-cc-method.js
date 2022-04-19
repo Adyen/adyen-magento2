@@ -73,17 +73,19 @@ define(
             /**
              * @returns {exports.initialize}
              */
-            initialize: async function () {
+            initialize: function () {
                 this._super();
                 this.vaultEnabler = new VaultEnabler();
                 this.vaultEnabler.setPaymentCode(this.getVaultCode());
                 this.vaultEnabler.isActivePaymentTokenEnabler(false);
 
-                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
                 let self = this;
-                paymentMethodsObserver.subscribe(function(paymentMethodsResponse) {
-                    self.loadCheckoutComponent(paymentMethodsResponse)
-                });
+
+                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+                paymentMethodsObserver.subscribe(
+                    function (paymentMethodsResponse) {
+                        self.loadCheckoutComponent(paymentMethodsResponse)
+                    });
 
                 self.loadCheckoutComponent(paymentMethodsObserver());
                 return this;
@@ -98,6 +100,8 @@ define(
                             onAdditionalDetails: this.handleOnAdditionalDetails.bind(this)
                         }
                     );
+
+                    this.renderSecureFields()
                 }
 
                 if (!!paymentMethodsResponse.paymentMethodsExtraDetails && !!paymentMethodsResponse.paymentMethodsExtraDetails.card) {
@@ -131,8 +135,12 @@ define(
             renderSecureFields: function() {
                 var self = this;
 
-                if (!self.getClientKey) {
-                    return;
+                // Abort in case there is no cardContainer yet, retriggered by 'afterRender'
+                // OR if the checkoutComponent is not available yet, retriggered by 'paymentMethodsObserver'
+                if (!self.getClientKey
+                    || !document.getElementById("cardContainer")
+                    || !self.checkoutComponent) {
+                    return false;
                 }
 
                 self.installments(0);
@@ -223,7 +231,14 @@ define(
              * @returns {{method: *}}
              */
             getData: function() {
+                const self = this;
+
                 let stateData = JSON.stringify(this.cardComponent.data);
+                // let stateData;
+                // if('cardComponent' in self) {
+                //     stateData = JSON.stringify(this.cardComponent.data);
+                // }
+
                 window.sessionStorage.setItem('adyen.stateData', stateData);
                 return {
                     'method': this.item.method,

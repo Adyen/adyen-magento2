@@ -566,10 +566,6 @@ define(
              */
             getFormattedAddress: function (address) {
                 function getStreetAndHouseNumberFromAddress(address, houseNumberStreetLine, customerStreetLinesEnabled) {
-                    if (typeof address.street === 'undefined') {
-                        address.street = [''];
-                    }
-
                     let street = address.street.slice(0, customerStreetLinesEnabled);
                     let drawHouseNumberWithRegex = parseInt(houseNumberStreetLine) === 0 || // Config is disabled
                         houseNumberStreetLine > customerStreetLinesEnabled || // Not enough street lines enabled
