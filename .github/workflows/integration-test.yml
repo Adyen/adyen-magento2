@@ -35,6 +35,13 @@ jobs:
       - name: Check install
         run: docker exec magento2-container ./n98-magerun2.phar sys:check
 
+      - name: Setup permissions
+        run: |
+          docker exec magento2-container find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
+          docker exec magento2-container find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
+          docker exec magento2-container chown -R www-data:www-data .
+          docker exec magento2-container chmod +x bin/magento
+      
       - name: Enable developer mode
         run: docker exec magento2-container bin/magento deploy:mode:set developer
 
