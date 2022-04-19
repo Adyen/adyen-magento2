@@ -35,13 +35,6 @@ jobs:
       - name: Check install
         run: docker exec magento2-container ./n98-magerun2.phar sys:check
 
-      - name: Setup permissions
-        run: |
-          docker exec magento2-container find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
-          docker exec magento2-container find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
-          docker exec magento2-container chown -R www-data:www-data .
-          docker exec magento2-container chmod +x bin/magento
-      
       - name: Enable developer mode
         run: docker exec magento2-container bin/magento deploy:mode:set developer
 
@@ -104,6 +97,13 @@ jobs:
           MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
           MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
 
+      - name: Setup permissions
+        run: |
+          docker exec magento2-container find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
+          docker exec magento2-container find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
+          docker exec magento2-container chown -R www-data:www-data .
+          docker exec magento2-container chmod +x bin/magento
+      
       - name: Run E2E tests
         run: |
           docker run -e INTEGRATION_TESTS_BRANCH -e MAGENTO_BASE_URL -e PAYPAL_USERNAME -e PAYPAL_PASSWORD --rm --shm-size=1gb --ipc=host --cap-add=SYS_ADMIN --network templates_backend -v `pwd`/.github/scripts/e2e.sh:/e2e.sh mcr.microsoft.com/playwright:v1.20.0-focal /e2e.sh
