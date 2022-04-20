@@ -17,6 +17,13 @@ This plugin supports Magento2 version
 * 2.3.7 and higher
 * 2.4 and higher
 
+## Releases
+
+1. **Major** releases are done ONLY when absolutely required. We try to not to introduce breaking changes and do major releases as rare as possible. Current average is **yearly**.
+2. A minor or a patcn release is scheduled but not limited to **once every 2 weeks.**
+
+**Note: This can be subject to change based on the load and dependancies of the Integration tools team.**
+
 ## Support & Maintenance
 
 We provide three levels of support:
@@ -30,9 +37,9 @@ The schedule for the current maintained branches is:
 
 |  Plugin Major Version   |  Release Date  |  Level 1 Support ends   |  Level 2 Support ends   |  Level 3 Support ends  |
 |  :-----          |  :-----          |  :-----          |  :-----          |  :-----          |
-|  Version 6 |  March 2020  |  September 31 2021 |  March 31 2022 |  September 31 2022 |
-|  Version 7 |  April 2021 |  September 31 2022 |  March 31 2023 |  September 31 2023 |
-|  Version 8 |  Novemeber 2021 |  March 31 2023 |  September 2023 | March 2024 |
+|  Version 6 |  March 2020  |  September 30 2021 |  March 31 2022 |  December 31 2022 |
+|  Version 7 |  April 2021 |  September 30 2022 |  March 31 2023 |  September 30 2023 |
+|  Version 8 |  November 2021 |  March 31 2023 |  September 2023 | March 2024 |
 |  Version 9 |  - |  12 months after release |  18 months after release |  24 months after release |
 
 ## Contributing

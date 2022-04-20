@@ -15,48 +15,29 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Model\Config\Source;
+namespace Adyen\Payment\Model\Config\Source\Recurring;
 
-use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Recurring;
 use Magento\Framework\Data\OptionSourceInterface;
 
-class RecurringPaymentType implements OptionSourceInterface
+class RecurringMode implements OptionSourceInterface
 {
-    const UNDEFINED_OPTION_LABEL = 'NONE';
-
-    /**
-     * @var Data
-     */
-    protected $_adyenHelper;
-
-    /**
-     * RecurringPaymentType constructor.
-     *
-     * @param Data $adyenHelper
-     */
-    public function __construct(
-        Data $adyenHelper
-    ) {
-        $this->_adyenHelper = $adyenHelper;
-    }
-
     /**
      * @return array
      */
     public function toOptionArray(): array
     {
         $options = [];
-        $recurringTypes = Recurring::getRecurringTypes();
+        $recurringMethods = Recurring::getRecurringMethods();
 
-        foreach ($recurringTypes as $recurringType) {
-            $options[] = ['value' => $recurringType, 'label' => $recurringType];
+        foreach ($recurringMethods as $recurringMethod) {
+            $options[] = ['value' => $recurringMethod, 'label' => $recurringMethod];
         }
 
         return $options;

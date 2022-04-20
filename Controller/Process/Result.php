@@ -267,7 +267,7 @@ class Result extends \Magento\Framework\App\Action\Action
         // Save payment token if available in the response
         if (!empty($response['additionalData']['recurring.recurringDetailReference']) &&
             $this->payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE) {
-            if ($this->_adyenHelper->isCreditCardVaultEnabled()) {
+            if ($this->vaultHelper->isCardVaultEnabled()) {
                 $this->vaultHelper->saveRecurringDetails($this->payment, $response['additionalData']);
             } else {
                 $order = $this->payment->getOrder();

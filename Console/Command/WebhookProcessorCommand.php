@@ -2,7 +2,7 @@
 
 namespace Adyen\Payment\Console\Command;
 
-use Adyen\Payment\Cron\WebhookProcessor\Proxy as WebhookProcessor;
+use Adyen\Payment\Cron\WebhookProcessor;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
