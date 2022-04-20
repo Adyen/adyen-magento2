@@ -231,13 +231,7 @@ define(
              * @returns {{method: *}}
              */
             getData: function() {
-                const self = this;
-
                 let stateData = JSON.stringify(this.cardComponent.data);
-                // let stateData;
-                // if('cardComponent' in self) {
-                //     stateData = JSON.stringify(this.cardComponent.data);
-                // }
 
                 window.sessionStorage.setItem('adyen.stateData', stateData);
                 return {
