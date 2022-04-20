@@ -565,63 +565,63 @@ define(
              * @returns {{country: (string|*), firstName: (string|*), lastName: (string|*), city: (*|string), street: *, postalCode: (*|string), houseNumber: string, telephone: (string|*)}}
              */
             getFormattedAddress: function(address) {
-                function getStreetAndHouseNumberFromAddress(address, houseNumberStreetLine, customerStreetLinesEnabled) {
-                    let street = address.street.slice(0, customerStreetLinesEnabled);
-                    let drawHouseNumberWithRegex = parseInt(houseNumberStreetLine) === 0 || // Config is disabled
-                        houseNumberStreetLine > customerStreetLinesEnabled || // Not enough street lines enabled
-                        houseNumberStreetLine > street.length; // House number field is empty
+            function getStreetAndHouseNumberFromAddress(address, houseNumberStreetLine, customerStreetLinesEnabled) {
+                let street = address.street.slice(0, customerStreetLinesEnabled);
+                let drawHouseNumberWithRegex = parseInt(houseNumberStreetLine) === 0 || // Config is disabled
+                    houseNumberStreetLine > customerStreetLinesEnabled || // Not enough street lines enabled
+                    houseNumberStreetLine > street.length; // House number field is empty
 
-                    let addressArray;
-                    if (drawHouseNumberWithRegex) {
-                        addressArray = getStreetAndHouseNumberWithRegex(street.join(' ').trim());
-                    } else {
-                        let houseNumber = street.splice(houseNumberStreetLine - 1, 1);
-                        addressArray = {
-                            streetName: street.join(' ').trim(),
-                            houseNumber: houseNumber.join(' ').trim()
-                        }
+                let addressArray;
+                if (drawHouseNumberWithRegex) {
+                    addressArray = getStreetAndHouseNumberWithRegex(street.join(' ').trim());
+                } else {
+                    let houseNumber = street.splice(houseNumberStreetLine - 1, 1);
+                    addressArray = {
+                        streetName: street.join(' ').trim(),
+                        houseNumber: houseNumber.join(' ').trim()
                     }
-                    return addressArray;
                 }
+                return addressArray;
+            }
 
-                function getStreetAndHouseNumberWithRegex(addressString) {
-                    // Match addresses where the street name comes first, e.g. John-Paul's Ave. 1 B
-                    let streetFirstRegex = /(?<streetName>[a-zA-Z0-9.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/;
-                    // Match addresses where the house number comes first, e.g. 10 D John-Paul's Ave.
-                    let numberFirstRegex = /^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z0-9.'\- ]+)/;
+            function getStreetAndHouseNumberWithRegex(addressString) {
+                // Match addresses where the street name comes first, e.g. John-Paul's Ave. 1 B
+                let streetFirstRegex = /(?<streetName>[a-zA-Z0-9.'\- ]+)\s+(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)$/;
+                // Match addresses where the house number comes first, e.g. 10 D John-Paul's Ave.
+                let numberFirstRegex = /^(?<houseNumber>\d{1,10}((\s)?\w{1,3})?)\s+(?<streetName>[a-zA-Z0-9.'\- ]+)/;
 
-                    let streetFirstAddress = addressString.match(streetFirstRegex);
-                    let numberFirstAddress = addressString.match(numberFirstRegex);
+                let streetFirstAddress = addressString.match(streetFirstRegex);
+                let numberFirstAddress = addressString.match(numberFirstRegex);
 
-                    if (streetFirstAddress) {
-                        return streetFirstAddress.groups;
-                    } else if (numberFirstAddress) {
-                        return numberFirstAddress.groups;
-                    }
-
-                    return {
-                        streetName: addressString,
-                        houseNumber: 'N/A'
-                    };
+                if (streetFirstAddress) {
+                    return streetFirstAddress.groups;
+                } else if (numberFirstAddress) {
+                    return numberFirstAddress.groups;
                 }
-
-                let street = getStreetAndHouseNumberFromAddress(
-                    address,
-                    adyenConfiguration.getHouseNumberStreetLine(),
-                    adyenConfiguration.getCustomerStreetLinesEnabled()
-                );
 
                 return {
-                    city: address.city,
-                    country: address.countryId,
-                    postalCode: address.postcode,
-                    street: street.streetName,
-                    houseNumber: street.houseNumber,
-                    firstName: address.firstname,
-                    lastName: address.lastname,
-                    telephone: address.telephone
+                    streetName: addressString,
+                    houseNumber: 'N/A'
                 };
-            },
+            }
+
+            let street = getStreetAndHouseNumberFromAddress(
+                address,
+                adyenConfiguration.getHouseNumberStreetLine(),
+                adyenConfiguration.getCustomerStreetLinesEnabled()
+            );
+
+            return {
+                city: address.city,
+                country: address.countryId,
+                postalCode: address.postcode,
+                street: street.streetName,
+                houseNumber: street.houseNumber,
+                firstName: address.firstname,
+                lastName: address.lastname,
+                telephone: address.telephone
+            };
+        },
 
             buildComponentConfiguration: function(paymentMethod, paymentMethodsExtraInfo, result) {
                 var self = this;
