@@ -36,7 +36,7 @@ jobs:
         run: docker exec magento2-container ./n98-magerun2.phar sys:check
 
       - name: Enable developer mode
-        run: docker exec magento2-container bin/magento deploy:mode:set production
+        run: docker exec magento2-container bin/magento deploy:mode:set developer
 
       - name: Register local repository
         run: |
@@ -97,6 +97,9 @@ jobs:
           MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
           MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
 
+      - name: Switch to production mode
+        run: docker exec magento2-container bin/magento deploy:mode:set production
+
       - name: Setup permissions
         run: |
           docker exec magento2-container find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
@@ -108,7 +111,7 @@ jobs:
         run: |
           docker run -e INTEGRATION_TESTS_BRANCH -e MAGENTO_BASE_URL -e PAYPAL_USERNAME -e PAYPAL_PASSWORD --rm --shm-size=1gb --ipc=host --cap-add=SYS_ADMIN --network templates_backend -v `pwd`/.github/scripts/e2e.sh:/e2e.sh mcr.microsoft.com/playwright:v1.20.0-focal /e2e.sh
         env:
-          INTEGRATION_TESTS_BRANCH: michaelpaul-patch-1
+          INTEGRATION_TESTS_BRANCH: containerized-run
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
           PAYPAL_USERNAME: ${{secrets.PLAYWRIGHT_PAYPAL_USERNAME}}
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
