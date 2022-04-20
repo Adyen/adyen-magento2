@@ -11,4 +11,4 @@ npm ci;
 npx playwright install --with-deps;
 
 # Run tests
-npm run test:ci:magento
+npm run test:ci:magento projects/magento/tests/IDealPayment.spec.js
