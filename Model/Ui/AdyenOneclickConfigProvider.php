@@ -24,8 +24,16 @@
 namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Recurring;
+use Adyen\Payment\Helper\Vault;
 use Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Checkout\Model\Session;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Payment\Helper\Data as PaymentHelper;
+use Magento\Payment\Model\CcConfig;
+use Magento\Store\Model\StoreManagerInterface;
 
 class AdyenOneclickConfigProvider implements ConfigProviderInterface
 {
@@ -37,12 +45,12 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
     protected $config;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     protected $_adyenHelper;
 
     /**
-     * @var \Magento\Framework\App\RequestInterface
+     * @var RequestInterface
      */
     protected $_request;
 
@@ -52,22 +60,22 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
     protected $_customerSession;
 
     /**
-     * @var \Magento\Checkout\Model\Session
+     * @var Session
      */
     protected $_session;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var StoreManagerInterface
      */
     protected $_storeManager;
 
     /**
-     * @var \Magento\Framework\UrlInterface
+     * @var UrlInterface
      */
     protected $_urlBuilder;
 
     /**
-     * @var \Magento\Payment\Model\CcConfig
+     * @var CcConfig
      */
     private $ccConfig;
 
@@ -77,26 +85,33 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
     private $chargedCurrency;
 
     /**
+     * @var Vault
+     */
+    private $vaultHelper;
+
+    /**
      * AdyenOneclickConfigProvider constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Framework\App\RequestInterface $request
+     * @param Data $adyenHelper
+     * @param RequestInterface $request
      * @param \Magento\Customer\Model\Session $customerSession
-     * @param \Magento\Checkout\Model\Session $session
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Framework\UrlInterface $urlBuilder
-     * @param \Magento\Payment\Model\CcConfig $ccConfig
+     * @param Session $session
+     * @param StoreManagerInterface $storeManager
+     * @param UrlInterface $urlBuilder
+     * @param CcConfig $ccConfig
      * @param ChargedCurrency $chargedCurrency
+     * @param Vault $vaultHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\App\RequestInterface $request,
+        Data $adyenHelper,
+        RequestInterface $request,
         \Magento\Customer\Model\Session $customerSession,
-        \Magento\Checkout\Model\Session $session,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Payment\Model\CcConfig $ccConfig,
-        ChargedCurrency $chargedCurrency
+        Session $session,
+        StoreManagerInterface $storeManager,
+        UrlInterface $urlBuilder,
+        CcConfig $ccConfig,
+        ChargedCurrency $chargedCurrency,
+        Vault $vaultHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
@@ -106,6 +121,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         $this->_urlBuilder = $urlBuilder;
         $this->ccConfig = $ccConfig;
         $this->chargedCurrency = $chargedCurrency;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -129,7 +145,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         ];
 
         // don't show this payment method if vault is enabled
-        if ($this->_adyenHelper->isCreditCardVaultEnabled()) {
+        if ($this->vaultHelper->isCardVaultEnabled()) {
             $config['payment']['adyenOneclick']['methodCode'] = self::CODE;
             $config['payment'][self::CODE]['isActive'] = false;
             return $config;
@@ -263,7 +279,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
     /**
      * Retrieve request object
      *
-     * @return \Magento\Framework\App\RequestInterface
+     * @return RequestInterface
      */
     protected function _getRequest()
     {

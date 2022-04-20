@@ -9,6 +9,8 @@ use Magento\Sales\Model\Order;
 
 class SubmitQuoteObserver implements ObserverInterface
 {
+    const PAYMENT_COMPLETE = ['Authorised', 'Received', 'PresentToShopper'];
+
     public function execute(Observer $observer)
     {
         /** @var  Order $order */
@@ -18,7 +20,7 @@ class SubmitQuoteObserver implements ObserverInterface
 
         // No further shopper action required
         $resultCode = $payment->getAdditionalInformation('resultCode');
-        if (in_array($resultCode, ['Authorised', 'Received'], true)) {
+        if (in_array($resultCode, self::PAYMENT_COMPLETE, true)) {
             return;
         }
 

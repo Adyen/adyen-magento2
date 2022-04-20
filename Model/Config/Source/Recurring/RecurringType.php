@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  *                       ######
  *                       ######
@@ -16,23 +15,31 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
 
-    <module name="Adyen_Payment" setup_version="8.2.1">
-        <sequence>
-            <module name="Magento_Sales"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Checkout"/>
-            <module name="Magento_Paypal"/>
-            <module name="Magento_AdminNotification"/>
-            <module name="Magento_Vault"/>
-            <module name="Magento_Multishipping"/>
-        </sequence>
-    </module>
-</config>
+namespace Adyen\Payment\Model\Config\Source\Recurring;
+
+use Adyen\Payment\Helper\Recurring;
+use Magento\Framework\Data\OptionSourceInterface;
+
+class RecurringType implements OptionSourceInterface
+{
+    /**
+     * @return array
+     */
+    public function toOptionArray(): array
+    {
+        $options = [];
+        $recurringTypes = Recurring::getRecurringTypes();
+
+        foreach ($recurringTypes as $recurringType) {
+            $options[] = ['value' => $recurringType, 'label' => $recurringType];
+        }
+
+        return $options;
+    }
+}
