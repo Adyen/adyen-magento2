@@ -321,7 +321,7 @@ define(
                 $('.hpp-message').slideUp();
                 self.isPlaceOrderActionAllowed(false);
 
-               await $.when(
+                await $.when(
                     placeOrderAction(data,
                         self.currentMessageContainer),
                 ).fail(
@@ -335,11 +335,11 @@ define(
                         self.afterPlaceOrder();
                         adyenPaymentService.getOrderPaymentStatus(
                             orderId).
-                            done(function(responseJSON) {
-                                self.validateActionOrPlaceOrder(
-                                    responseJSON,
-                                    orderId, component);
-                            });
+                        done(function(responseJSON) {
+                            self.validateActionOrPlaceOrder(
+                                responseJSON,
+                                orderId, component);
+                        });
                     },
                 );
             },
@@ -528,18 +528,18 @@ define(
                 $(".error-message-hpp").show();
                 if (!!response['responseJSON'].parameters) {
                     $('#messages-' + selectedAlternativePaymentMethodType()).
-                        text((response['responseJSON'].message).replace('%1',
-                            response['responseJSON'].parameters[0])).
-                        slideDown();
+                    text((response['responseJSON'].message).replace('%1',
+                        response['responseJSON'].parameters[0])).
+                    slideDown();
                 } else {
                     $('#messages-' + selectedAlternativePaymentMethodType()).
-                        text(response['responseJSON'].message).
-                        slideDown();
+                    text(response['responseJSON'].message).
+                    slideDown();
                 }
 
                 setTimeout(function() {
                     $('#messages-' + selectedAlternativePaymentMethodType()).
-                        slideUp();
+                    slideUp();
                 }, 10000);
             },
             validate: function() {
@@ -564,7 +564,7 @@ define(
              * @param address
              * @returns {{country: (string|*), firstName: (string|*), lastName: (string|*), city: (*|string), street: *, postalCode: (*|string), houseNumber: string, telephone: (string|*)}}
              */
-            getFormattedAddress: function (address) {
+            getFormattedAddress: function(address) {
                 function getStreetAndHouseNumberFromAddress(address, houseNumberStreetLine, customerStreetLinesEnabled) {
                     let street = address.street.slice(0, customerStreetLinesEnabled);
                     let drawHouseNumberWithRegex = parseInt(houseNumberStreetLine) === 0 || // Config is disabled
@@ -739,7 +739,7 @@ define(
                     configuration.returnUrl = url.href;
                     configuration.onSubmit = async (state, amazonPayComponent) => {
                         try {
-                           await self.handleOnSubmit(state.data, amazonPayComponent);
+                            await self.handleOnSubmit(state.data, amazonPayComponent);
                         } catch (error) {
                             amazonPayComponent.handleDeclineFlow();
                         }
