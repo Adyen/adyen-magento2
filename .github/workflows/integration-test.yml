@@ -58,9 +58,6 @@ jobs:
       - name: Generate code
         run: docker exec magento2-container bin/magento setup:di:compile
 
-      - name: Clear cache
-        run: docker exec magento2-container bin/magento cache:flush
-
       - name: Configure the plugin
         run: |
           docker exec magento2-container bin/magento config:set payment/adyen_abstract/demo_mode 1
@@ -73,6 +70,9 @@ jobs:
           docker exec magento2-container bin/magento config:set payment/adyen_abstract/merchant_account "${{secrets.ADYEN_MERCHANT}}"
           docker exec magento2-container ./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${{secrets.ADYEN_API_KEY}}" > /dev/null
           docker exec magento2-container bin/magento config:set payment/adyen_abstract/client_key_test "${{secrets.ADYEN_CLIENT_KEY}}"
+
+      - name: Clear cache
+        run: docker exec magento2-container bin/magento cache:flush
 
       - name: Run unit tests
         run: docker exec magento2-container vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit
@@ -120,4 +120,4 @@ jobs:
       - name: Dump logs
         run: |
           docker exec magento2-container bash -c 'tail -n 50 var/log/*'
-          docker exec magento2-container bash -c 'cat var/log/adyen/*'
+          docker exec magento2-container bash -c 'cat var/log/adyen/*.log'
