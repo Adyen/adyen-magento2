@@ -36,7 +36,7 @@ jobs:
         run: docker exec magento2-container ./n98-magerun2.phar sys:check
 
       - name: Enable developer mode
-        run: docker exec magento2-container bin/magento deploy:mode:set developer
+        run: docker exec magento2-container bin/magento deploy:mode:set production
 
       - name: Register local repository
         run: |
