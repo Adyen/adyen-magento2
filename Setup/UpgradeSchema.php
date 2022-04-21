@@ -100,6 +100,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->updateSchemaVersion811($setup);
         }
 
+        if (version_compare($context->getVersion(), '8.2.1', '<')) {
+            $this->updateSchemaVersion822($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -605,7 +609,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
     }
 
     /**
-     * Upgrade to 8.0.1
+     * Upgrade to 8.1.1
      *
      * New total_captured column on the adyen_order_payment table to keep track on the amount that has been captured
      * New created_at column on the adyen_invoice table
@@ -735,7 +739,17 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'comment' => 'Link to Magento Invoice table'
             ]
         );
+    }
 
+    /**
+     * Upgrade to 8.2.2
+     *
+     * New adyen_creditmemo table
+     *
+     * @param SchemaSetupInterface $setup
+     * @return void
+     */
+    public function updateSchemaVersion822(SchemaSetupInterface $setup) {
         // - Create adyen_creditmemo table
         $adyenCreditmemoTable = $setup->getConnection()
             ->newTable($setup->getTable(self::ADYEN_CREDITMEMO))
