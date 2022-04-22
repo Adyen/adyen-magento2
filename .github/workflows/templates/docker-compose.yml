@@ -43,6 +43,7 @@ services:
       - elastic
     volumes:
       - ../../../:/data/extensions/workdir
+      - composer:/usr/local/bin
       - magento:/var/www/html
       - ../../Makefile:/var/www/html/Makefile
     networks:
@@ -69,3 +70,4 @@ networks:
   backend:
 volumes:
   magento:
+  composer:
