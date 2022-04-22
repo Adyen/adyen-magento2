@@ -24,53 +24,19 @@ jobs:
       - name: Start webserver 
         run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web 
 
-      - name: Stop cron
-        run: docker exec magento2-container /etc/init.d/cron stop
+      - run: docker exec magento2-container /etc/init.d/cron stop
 
-      - name: Install N98-Magerun
-        run: docker exec magento2-container make n98-magerun2.phar
-
+      - name: Setup permissions
+        run: docker exec magento2-container make fs
+      
       - name: Check install
-        run: docker exec magento2-container ./n98-magerun2.phar sys:check
+        run: docker exec magento2-container make sys-check
 
-      - name: Register local repository
-        run: |
-          docker exec magento2-container composer config --json repositories.local '{"type": "path", "url": "/data/extensions/workdir", "options": { "symlink": false } }'
-
-      - name: Install local package
-        run: docker exec magento2-container composer require "adyen/module-payment:*"
-
-      - name: Magento Code Sniffer
-        run: |
-          docker exec magento2-container vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 --ignore-annotations -n -p vendor/adyen/module-payment
-
-      - name: Enable module
-        run: docker exec magento2-container bin/magento module:enable Adyen_Payment
-
-      - name: Setup upgrade
-        run: docker exec magento2-container bin/magento setup:upgrade
-
-      - name: Generate code
-        run: docker exec magento2-container bin/magento setup:di:compile
-
-      - name: Configure the plugin
-        run: |
-          docker exec magento2-container bin/magento config:set payment/adyen_abstract/demo_mode 1
-          docker exec magento2-container bin/magento config:set payment/adyen_hpp/active 1
-          docker exec magento2-container bin/magento config:set payment/adyen_cc/active 1
-          docker exec magento2-container bin/magento config:set payment/adyen_oneclick/active 1
-          docker exec magento2-container bin/magento config:set payment/adyen_abstract/has_holder_name 1
-          docker exec magento2-container bin/magento config:set payment/adyen_boleto/active 1
-          docker exec magento2-container bin/magento config:set payment/adyen_boleto/boletotypes 'boletobancario_itau,boletobancario_santander,primeiropay_boleto'
-          docker exec magento2-container bin/magento config:set payment/adyen_abstract/merchant_account "${{secrets.ADYEN_MERCHANT}}"
-          docker exec magento2-container ./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${{secrets.ADYEN_API_KEY}}" > /dev/null
-          docker exec magento2-container bin/magento config:set payment/adyen_abstract/client_key_test "${{secrets.ADYEN_CLIENT_KEY}}"
-
-      - name: Clear cache
-        run: docker exec magento2-container bin/magento cache:flush
+      - name: Install plugin
+        run: docker exec -u www-data magento2-container make plugin
 
       - name: Run unit tests
-        run: docker exec magento2-container vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit
+        run: docker exec -u www-data magento2-container vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit
 
       - name: Run GraphQL tests
         run: |
@@ -81,26 +47,16 @@ jobs:
           TEST_SUITE: vendor/adyen/module-payment/Test/api-functional/GraphQl
 
       - name: Sample data deploy
-        run: |
-          docker exec magento2-container composer config http-basic.repo.magento.com "${MAGENTO_USERNAME}" "${MAGENTO_PASSWORD}"
-          docker exec magento2-container composer config repositories.magento composer https://repo.magento.com/
-          docker exec magento2-container bash -c 'echo "memory_limit = -1" > /usr/local/etc/php/conf.d/memory.ini'
-          docker exec magento2-container bin/magento sampledata:deploy
-          docker exec magento2-container bin/magento setup:upgrade
+        run: docker exec -u www-data -e MAGENTO_USERNAME -e MAGENTO_PASSWORD magento2-container make sampledata
         env: 
-          COMPOSER_MEMORY_LIMIT: -1
           MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
           MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
 
       - name: Switch to production mode
-        run: docker exec magento2-container bin/magento deploy:mode:set production
+        run: docker exec -u www-data magento2-container make production bundlejs
 
       - name: Setup permissions
-        run: |
-          docker exec magento2-container find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
-          docker exec magento2-container find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
-          docker exec magento2-container chown -R www-data:www-data .
-          docker exec magento2-container chmod +x bin/magento
+        run: docker exec magento2-container make fs
       
       - name: Run E2E tests
         continue-on-error: true
