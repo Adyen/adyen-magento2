@@ -1623,10 +1623,10 @@ class Webhook
                 // not the full amount is paid. Check if it is underpaid or overpaid
                 // strip the  BRL of the string
                 $originalAmount = str_replace("BRL", "", $originalAmount);
-                $originalAmount = floatval(trim($originalAmount ?? ''));
+                $originalAmount = floatval(trim($originalAmount));
 
                 $paidAmount = str_replace("BRL", "", $paidAmount);
-                $paidAmount = floatval(trim($paidAmount ?? ''));
+                $paidAmount = floatval(trim($paidAmount));
 
                 if ($paidAmount > $originalAmount) {
                     $overpaidStatus = $this->configHelper->getConfigData(

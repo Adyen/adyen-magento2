@@ -112,7 +112,11 @@ class Config
             self::XML_ADYEN_ABSTRACT_PREFIX,
             $storeId
         );
-        return $this->encryptor->decrypt(trim($key ?? ''));
+
+        if (is_null($key)) {
+            return false;
+        }
+        return $this->encryptor->decrypt(trim($key));
     }
 
     /**
@@ -186,7 +190,12 @@ class Config
                 false
             );
         }
-        return $this->encryptor->decrypt(trim($key ?? ''));
+
+        if (is_null($key)) {
+            return false;
+        }
+
+        return $this->encryptor->decrypt(trim($key));
     }
 
     public function isDemoMode($storeId = null)
