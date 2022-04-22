@@ -3,6 +3,9 @@ n98-magerun2.phar:
 	wget -q https://files.magerun.net/n98-magerun2.phar
 	chmod +x ./n98-magerun2.phar
 
+sys-check: n98-magerun2.phar
+	./n98-magerun2.phar sys:check
+
 magento:
 	sed '/exec /d' /tmp/install_magento.sh | bash
 
@@ -20,6 +23,9 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_hpp/active 1
 	bin/magento config:set payment/adyen_cc/active 1
 	bin/magento config:set payment/adyen_oneclick/active 1
+	bin/magento config:set payment/adyen_abstract/has_holder_name 1
+	bin/magento config:set payment/adyen_boleto/active 1
+	bin/magento config:set payment/adyen_boleto/boletotypes 'boletobancario_itau,boletobancario_santander,primeiropay_boleto'
 	bin/magento config:set payment/adyen_abstract/merchant_account "${ADYEN_MERCHANT}"
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
 	bin/magento config:set payment/adyen_abstract/client_key_test "${ADYEN_CLIENT_KEY}"
@@ -28,17 +34,28 @@ configure: n98-magerun2.phar
 flush:
 	bin/magento cache:flush
 
+plugin: install configure flush
+
 # Setup permissions
 fs:
-	find var generated vendor pub/static pub/media app/etc /var/www/sample-data -type f -exec chmod g+w {} +
-	find var generated vendor pub/static pub/media app/etc /var/www/sample-data -type d -exec chmod g+ws {} +
-	chown -R www-data:www-data . /var/www/sample-data
+	find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
+	find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
+	chown -R www-data:www-data .
 	chmod u+x bin/magento
+	echo "memory_limit = -1" > /usr/local/etc/php/conf.d/memory.ini
+
+sampledata:
+	composer config http-basic.repo.magento.com "${MAGENTO_USERNAME}" "${MAGENTO_PASSWORD}"
+	composer config repositories.magento composer https://repo.magento.com/
+	bin/magento sampledata:deploy
+	bin/magento setup:upgrade
 
 # Production mode
 production:
 	bin/magento deploy:mode:set production
-	# JavaScript bundling
+
+# JavaScript bundling
+bundlejs:
 	bin/magento config:set dev/js/enable_js_bundling 1
 	bin/magento config:set dev/js/minify_files 1
 	bin/magento config:set dev/static/sign 1
