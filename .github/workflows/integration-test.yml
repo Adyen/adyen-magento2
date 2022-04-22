@@ -60,8 +60,7 @@ jobs:
       
       - name: Run E2E tests
         continue-on-error: true
-        run: |
-          docker run -e INTEGRATION_TESTS_BRANCH -e MAGENTO_BASE_URL -e PAYPAL_USERNAME -e PAYPAL_PASSWORD --rm --shm-size=1gb --ipc=host --cap-add=SYS_ADMIN --network templates_backend -v `pwd`/.github/scripts/e2e.sh:/e2e.sh -v `pwd`/test-report:/tmp/test-report mcr.microsoft.com/playwright:v1.20.0-focal /e2e.sh
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
         env:
           INTEGRATION_TESTS_BRANCH: containerized-run
           MAGENTO_BASE_URL: ${{secrets.MAGENTO_BASE_URL}}
