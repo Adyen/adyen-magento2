@@ -34,11 +34,16 @@ services:
       VIRTUAL_HOST: magento2.test.com
       ADMIN_USERNAME: ${MAGENTO_USERNAME}
       ADMIN_PASSWORD: ${MAGENTO_PASSWORD}
+      ADYEN_MERCHANT:
+      ADYEN_API_KEY:
+      ADYEN_CLIENT_KEY:
     depends_on:
       - db
       - elastic
     volumes:
       - ../../../:/data/extensions/workdir
+      - magento:/var/www/html
+      - ../../Makefile:/var/www/html/Makefile
     networks:
       backend:
         aliases:
@@ -56,3 +61,5 @@ services:
       - ../../scripts/e2e.sh:/e2e.sh
 networks:
   backend:
+volumes:
+  magento:
