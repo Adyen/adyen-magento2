@@ -62,3 +62,14 @@ bundlejs:
 	bin/magento config:set dev/js/merge_files 0
 	bin/magento setup:static-content:deploy
 	bin/magento cache:clean config
+
+MAGENTO_ROOT=/var/www/html
+PHPUNIT_CONFIG=vendor/adyen/module-payment/Test/api-functional/phpunit_graphql.xml
+TEST_SUITE=vendor/adyen/module-payment/Test/api-functional/GraphQl
+
+graphql:
+	cd ${MAGENTO_ROOT}/dev/tests/api-functional; 
+	${MAGENTO_ROOT}/vendor/bin/phpunit --configuration ${MAGENTO_ROOT}/${PHPUNIT_CONFIG} ${MAGENTO_ROOT}/${TEST_SUITE}
+
+unit:
+	vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit
