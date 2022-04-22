@@ -24,17 +24,17 @@ jobs:
       - name: Start webserver 
         run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web 
 
-      - run: docker exec magento2-container /etc/init.d/cron stop
-
       - name: Setup permissions
         run: docker exec magento2-container make fs
-      
+        
       - name: Check install
         run: docker exec magento2-container make sys-check
 
       - name: Install plugin
         run: docker exec -u www-data magento2-container make plugin
 
+      - run: docker exec magento2-container /etc/init.d/cron stop
+      
       - name: Run unit tests
         run: docker exec -u www-data magento2-container vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit
 
