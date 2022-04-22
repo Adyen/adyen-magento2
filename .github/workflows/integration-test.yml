@@ -12,31 +12,26 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Create docker image
-        run: MAGENTO_USERNAME=${{ secrets.MAGENTO_USERNAME }} MAGENTO_PASSWORD=${{ secrets.MAGENTO_PASSWORD }} docker-compose -f .github/workflows/templates/docker-compose.yml up -d
+      - name: Install Magento
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
+        env:
+          MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
+          MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
+          ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
+          ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
+          ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
+      
+      - name: Start webserver 
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web 
 
-      # Temp solution to wait for install script to run
-      - name: Sleep for 120 seconds
-        uses: jakejarvis/wait-action@master
-        with:
-          time: "120s"
-
-      - name: Show install logs
-        run: docker logs magento2-container
-
-      - name: Prevent cron from interfering with test execution
+      - name: Stop cron
         run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Install N98-Magerun
-        run: |
-          docker exec magento2-container wget -q https://files.magerun.net/n98-magerun2.phar
-          docker exec magento2-container chmod +x ./n98-magerun2.phar
+        run: docker exec magento2-container make n98-magerun2.phar
 
       - name: Check install
         run: docker exec magento2-container ./n98-magerun2.phar sys:check
-
-      - name: Enable developer mode
-        run: docker exec magento2-container bin/magento deploy:mode:set developer
 
       - name: Register local repository
         run: |
