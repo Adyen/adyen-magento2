@@ -613,10 +613,10 @@ class Data extends AbstractHelper
     {
         switch ($this->isDemoMode($storeId)) {
             case true:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_test', $storeId)));
+                $secretWord = $this->_encryptor->decrypt(trim((string) $this->getAdyenHppConfigData('hmac_test', $storeId)));
                 break;
             default:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_live', $storeId)));
+                $secretWord = $this->_encryptor->decrypt(trim((string) $this->getAdyenHppConfigData('hmac_live', $storeId)));
                 break;
         }
         return $secretWord;
@@ -645,6 +645,7 @@ class Data extends AbstractHelper
         if ($this->isDemoMode($storeId)) {
             $apiKey = $this->_encryptor->decrypt(
                 trim(
+                    (string)
                     $this->getAdyenAbstractConfigData(
                         'api_key_test',
                         $storeId
@@ -654,6 +655,7 @@ class Data extends AbstractHelper
         } else {
             $apiKey = $this->_encryptor->decrypt(
                 trim(
+                    (string)
                     $this->getAdyenAbstractConfigData(
                         'api_key_live',
                         $storeId
@@ -673,6 +675,7 @@ class Data extends AbstractHelper
     public function getClientKey($storeId = null)
     {
         return trim(
+            (string)
             $this->getAdyenAbstractConfigData(
                 $this->isDemoMode($storeId) ? 'client_key_test' : 'client_key_live',
                 $storeId
@@ -689,9 +692,9 @@ class Data extends AbstractHelper
     public function getWsUsername($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_test', $storeId));
+            $wsUsername = trim((string) $this->getAdyenAbstractConfigData('ws_username_test', $storeId));
         } else {
-            $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_live', $storeId));
+            $wsUsername = trim((string) $this->getAdyenAbstractConfigData('ws_username_live', $storeId));
         }
         return $wsUsername;
     }
@@ -704,7 +707,7 @@ class Data extends AbstractHelper
      */
     public function getLiveEndpointPrefix($storeId = null)
     {
-        $prefix = trim($this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId));
+        $prefix = trim((string) $this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId));
         return $prefix;
     }
 
@@ -716,7 +719,7 @@ class Data extends AbstractHelper
      */
     public function getCheckoutFrontendRegion($storeId = null)
     {
-        $prefix = trim($this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId));
+        $prefix = trim((string) $this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId));
         return $prefix;
     }
 
@@ -982,6 +985,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
     {
+        $paymentMethod = (string) $paymentMethod;
         if (strpos($paymentMethod, self::AFTERPAY) !== false ||
             strpos($paymentMethod, self::KLARNA) !== false ||
             strpos($paymentMethod, self::RATEPAY) !== false ||
@@ -1005,6 +1009,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethodValidForAutoCapture($paymentMethod)
     {
+        $paymentMethod = (string) $paymentMethod;
         if (strpos($paymentMethod, self::AFTERPAY_TOUCH) !== false ||
             strpos($paymentMethod, self::KLARNA) !== false ||
             strpos($paymentMethod, self::RATEPAY) !== false ||
@@ -1025,6 +1030,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodRatepayMethod($paymentMethod)
     {
+        $paymentMethod = (string) $paymentMethod;
         if (strpos($paymentMethod, self::RATEPAY) !== false) {
             return true;
         }
@@ -1038,6 +1044,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodAfterpayTouchMethod($paymentMethod)
     {
+        $paymentMethod = (string) $paymentMethod;
         if (strpos($paymentMethod, self::AFTERPAY_TOUCH) !== false) {
             return true;
         }
@@ -1051,6 +1058,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodMolpayMethod($paymentMethod)
     {
+        $paymentMethod = (string) $paymentMethod;
         if (strpos($paymentMethod, 'molpay_') !== false) {
             return true;
         }
@@ -1064,6 +1072,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOneyMethod($paymentMethod)
     {
+        $paymentMethod = (string) $paymentMethod;
         if (strpos($paymentMethod, self::FACILYPAY) !== false) {
             return true;
         }
@@ -1190,7 +1199,7 @@ class Data extends AbstractHelper
         $payment,
         $itemId = null
     ) {
-        $description = str_replace("\n", '', trim($name));
+        $description = str_replace("\n", '', trim((string) $name));
         $itemAmount = $this->formatAmount($price, $currency);
 
         $itemVatAmount = $this->getItemVatAmount(
@@ -1388,9 +1397,9 @@ class Data extends AbstractHelper
     public function getPosApiKey($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_test', $storeId)));
+            $apiKey = $this->_encryptor->decrypt(trim((string) $this->getAdyenPosCloudConfigData('api_key_test', $storeId)));
         } else {
-            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_live', $storeId)));
+            $apiKey = $this->_encryptor->decrypt(trim((string) $this->getAdyenPosCloudConfigData('api_key_live', $storeId)));
         }
         return $apiKey;
     }

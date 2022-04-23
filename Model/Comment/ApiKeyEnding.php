@@ -30,7 +30,7 @@ class ApiKeyEnding implements CommentInterface
      */
     public function getCommentText($elementValue)
     {
-        $apiKeyEnding = substr($this->encryptor->decrypt(trim($elementValue)), -4);
+        $apiKeyEnding = substr($this->encryptor->decrypt(trim((string) $elementValue)), -4);
         if (!$apiKeyEnding) {
             return '';
         }
