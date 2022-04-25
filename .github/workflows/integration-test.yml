@@ -14,15 +14,13 @@ jobs:
 
       - name: Install Magento
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
+
+      - name: Start web server in background
+        run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web
         env:
-          MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
-          MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
           ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
           ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
-
-      - name: Start webserver
-        run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web
 
       - name: Setup permissions
         run: docker exec magento2-container make fs

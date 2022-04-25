@@ -68,8 +68,8 @@ PHPUNIT_CONFIG=vendor/adyen/module-payment/Test/api-functional/phpunit_graphql.x
 TEST_SUITE=vendor/adyen/module-payment/Test/api-functional/GraphQl
 
 graphql:
-	cd ${MAGENTO_ROOT}/dev/tests/api-functional; 
-	${MAGENTO_ROOT}/vendor/bin/phpunit --configuration ${MAGENTO_ROOT}/${PHPUNIT_CONFIG} ${MAGENTO_ROOT}/${TEST_SUITE}
+	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
+		${MAGENTO_ROOT}/vendor/bin/phpunit --configuration ${MAGENTO_ROOT}/${PHPUNIT_CONFIG} ${MAGENTO_ROOT}/${TEST_SUITE}
 
 unit:
 	vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit
