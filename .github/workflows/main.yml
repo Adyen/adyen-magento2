@@ -25,5 +25,7 @@ jobs:
         CI: true
         MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
         MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
+    - name: Code Sniffer
+      run: vendor/bin/phpcs --extensions=php,phtml --error-severity=10 --ignore-annotations
     - name: Run PHPUnit
       run: vendor/bin/phpunit Test/Unit

@@ -181,12 +181,15 @@ class CaptureDataBuilder implements BuilderInterface
 
         /* @var \Magento\Sales\Model\Order\Invoice\Item $invoiceItem */
         foreach ($latestInvoice->getItems() as $invoiceItem) {
-            if ($invoiceItem->getOrderItem()->getParentItem()) {
+            $numberOfItems = (int)$invoiceItem->getQty();
+
+            if ($invoiceItem->getOrderItem()->getParentItem() || $numberOfItems <= 0) {
                 continue;
             }
+
             ++$count;
             $itemAmountCurrency = $this->chargedCurrency->getInvoiceItemAmountCurrency($invoiceItem);
-            $numberOfItems = (int)$invoiceItem->getQty();
+
             $formFields = $this->adyenHelper->createOpenInvoiceLineItem(
                 $formFields,
                 $count,
