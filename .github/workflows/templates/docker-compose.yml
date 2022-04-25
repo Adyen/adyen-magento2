@@ -32,9 +32,9 @@ services:
       ELASTICSEARCH_SERVER: elasticsearch
       MAGENTO_HOST: magento2.test.com
       VIRTUAL_HOST: magento2.test.com
-      ADMIN_USERNAME: ${MAGENTO_USERNAME}
-      ADMIN_PASSWORD: ${MAGENTO_PASSWORD}
       COMPOSER_MEMORY_LIMIT: -1
+      ADMIN_USERNAME:
+      ADMIN_PASSWORD:
       ADYEN_MERCHANT:
       ADYEN_API_KEY:
       ADYEN_CLIENT_KEY:
