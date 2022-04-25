@@ -96,8 +96,7 @@ ci:
 	docker exec magento2-container /etc/init.d/cron stop
 	docker exec -u www-data magento2-container make unit
 	docker exec magento2-container make graphql
-	docker exec -u www-data -e MAGENTO_USERNAME -e MAGENTO_PASSWORD magento2-container make sampledata
-	docker exec -u www-data magento2-container make production bundlejs
+	docker exec -u www-data magento2-container make production
 	docker exec magento2-container make fs
 
 	docker-compose -f workflows/templates/docker-compose.yml run --rm playwright /e2e.sh

@@ -43,14 +43,8 @@ jobs:
         continue-on-error: true
         run: docker exec magento2-container make graphql
 
-      - name: Sample data deploy
-        run: docker exec -u www-data -e MAGENTO_USERNAME -e MAGENTO_PASSWORD magento2-container make sampledata
-        env:
-          MAGENTO_USERNAME: ${{ secrets.MAGENTO_USERNAME }}
-          MAGENTO_PASSWORD: ${{ secrets.MAGENTO_PASSWORD }}
-
       - name: Switch to production mode
-        run: docker exec -u www-data magento2-container make production bundlejs
+        run: docker exec -u www-data magento2-container make production
 
       - name: Setup permissions
         run: docker exec magento2-container make fs
