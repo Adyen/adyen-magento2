@@ -259,6 +259,12 @@ define(
                     placeOrder: function() {
                         var innerSelf = this;
 
+                        innerSelf.component.showValidation();
+
+                        if (innerSelf.component.state.isValid === false) {
+                            return false;
+                        }
+
                         if (innerSelf.validate()) {
                             var data = {};
                             data.method = innerSelf.method;
