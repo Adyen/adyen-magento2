@@ -49,7 +49,7 @@ class AdyenSalesOrderChargedCurrencyObserver implements ObserverInterface
         $paymentMethod = $order->getPayment()->getMethod();
 
         if (is_null($paymentMethod)) {
-            return false;
+            return;
         }
 
         if (strpos($paymentMethod, 'adyen_') !== false) {

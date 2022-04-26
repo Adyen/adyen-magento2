@@ -47,7 +47,6 @@ use Magento\Sales\Model\Order;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
-use function PHPUnit\Framework\isNull;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
