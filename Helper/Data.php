@@ -25,9 +25,9 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\RecurringType;
-use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
+use Adyen\Payment\Helper\Config as ConfigHelper;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -43,7 +43,10 @@ use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
+use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Status\HistoryFactory;
+use Magento\Sales\Model\Service\OrderService;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
@@ -166,13 +169,19 @@ class Data extends AbstractHelper
     private $localeHelper;
 
     /**
-     * @var \Magento\Sales\Model\Service\OrderService
+     * @var OrderService
      */
     private $orderManagement;
+
     /**
-     * @var \Magento\Sales\Model\Order\Status\HistoryFactory
+     * @var HistoryFactory
      */
     private $orderStatusHistoryFactory;
+
+    /**
+     * @var ConfigHelper
+     */
+    private $configHelper;
 
     /**
      * Data constructor.
@@ -197,7 +206,9 @@ class Data extends AbstractHelper
      * @param SerializerInterface $serializer
      * @param ComponentRegistrarInterface $componentRegistrar
      * @param Locale $localeHelper
-     *
+     * @param OrderManagementInterface $orderManagement
+     * @param HistoryFactory $orderStatusHistoryFactory
+     * @param ConfigHelper $configHelper
      */
     public function __construct(
         Context $context,
@@ -220,8 +231,9 @@ class Data extends AbstractHelper
         SerializerInterface $serializer,
         ComponentRegistrarInterface $componentRegistrar,
         Locale $localeHelper,
-        \Magento\Sales\Api\OrderManagementInterface $orderManagement,
-        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory
+        OrderManagementInterface $orderManagement,
+        HistoryFactory $orderStatusHistoryFactory,
+        ConfigHelper $configHelper
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -245,6 +257,7 @@ class Data extends AbstractHelper
         $this->localeHelper = $localeHelper;
         $this->orderManagement = $orderManagement;
         $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -636,6 +649,7 @@ class Data extends AbstractHelper
 
     /**
      * Retrieve the API key
+     * @deprecated Use Adyen\Payment\Helper\Config::getApiKey instead
      *
      * @param null|int|string $storeId
      * @return string
@@ -1469,18 +1483,22 @@ class Data extends AbstractHelper
      *
      * @param null|int|string $storeId
      * @param string|null $apiKey
+     * @param bool|null $demoMode
      * @return \Adyen\Client
      * @throws \Adyen\AdyenException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function initializeAdyenClient($storeId = null, $apiKey = null)
+    public function initializeAdyenClient($storeId = null, $apiKey = null, ?bool $demoMode = null)
     {
         // initialize client
         if ($storeId === null) {
             $storeId = $this->storeManager->getStore()->getId();
         }
 
+        $isDemo = is_null($demoMode) ? $this->configHelper->isDemoMode($storeId) : $demoMode;
+        $mode = $isDemo ? 'test' : 'live';
         if (empty($apiKey)) {
-            $apiKey = $this->getAPIKey($storeId);
+            $apiKey = $this->configHelper->getAPIKey($mode, $storeId);
         }
 
         $client = $this->createAdyenClient();
@@ -1490,7 +1508,7 @@ class Data extends AbstractHelper
 
         $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
-        if ($this->isDemoMode($storeId)) {
+        if ($isDemo) {
             $client->setEnvironment(\Adyen\Environment::TEST);
         } else {
             $client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));

@@ -26,9 +26,9 @@ namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\ManagementHelper;
-use Magento\Framework\App\Action\Action;
+use Magento\Backend\App\Action;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Framework\App\Action\Context;
+use Magento\Backend\App\Action\Context;
 
 class MerchantAccounts extends Action
 {
@@ -80,7 +80,7 @@ class MerchantAccounts extends Action
             if (!empty($xapikey) && preg_match('/^\*+$/', $xapikey)) {
                 $xapikey = '';
             }
-            $response = $this->managementHelper->getMerchantAccountWithClientkey($xapikey);
+            $response = $this->managementHelper->getMerchantAccountWithApikey($xapikey);
             $currentMerchantAccount = $this->_adyenHelper->getAdyenMerchantAccount('adyen_cc');
             $resultJson = $this->resultJsonFactory->create();
             $resultJson->setData(
