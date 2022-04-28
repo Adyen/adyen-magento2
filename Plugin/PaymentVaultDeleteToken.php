@@ -56,7 +56,7 @@ class PaymentVaultDeleteToken
     ) {
         $paymentMethodCode = $paymentToken->getPaymentMethodCode();
 
-        if (!is_null($paymentMethodCode) && strpos($paymentMethodCode, 'adyen_') !== 0) {
+        if (is_null($paymentMethodCode) || strpos($paymentMethodCode, 'adyen_') !== 0) {
             return [$paymentToken];
         }
         try {
