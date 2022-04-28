@@ -615,7 +615,7 @@ class Data extends AbstractHelper
             case true:
                 $hmacTest = $this->getAdyenHppConfigData('hmac_test', $storeId);
                 if (is_null($hmacTest)) {
-                    return false;
+                    return null;
                 }
                 $secretWord = $this->_encryptor->decrypt(trim($hmacTest));
                 break;
