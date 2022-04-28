@@ -738,7 +738,7 @@ class Data extends AbstractHelper
         $checkoutFrontendRegion = $this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId);
 
         if (is_null($checkoutFrontendRegion)) {
-            return false;
+            return null;
         }
 
         return trim($checkoutFrontendRegion);
