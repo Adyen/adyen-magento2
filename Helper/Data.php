@@ -622,7 +622,7 @@ class Data extends AbstractHelper
             default:
                 $hmacLive = $this->getAdyenHppConfigData('hmac_live', $storeId);
                 if (is_null($hmacLive)) {
-                    return false;
+                    return null;
                 }
                 $secretWord = $this->_encryptor->decrypt(trim($hmacLive));
                 break;
