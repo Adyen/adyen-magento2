@@ -697,7 +697,7 @@ class Data extends AbstractHelper
         if ($this->isDemoMode($storeId)) {
             $wsUsernameTest = $this->getAdyenAbstractConfigData('ws_username_test', $storeId);
             if (is_null($wsUsernameTest)) {
-                return false;
+                return null;
             }
             $wsUsername = trim($wsUsernameTest);
         } else {
