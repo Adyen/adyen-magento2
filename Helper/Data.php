@@ -721,7 +721,7 @@ class Data extends AbstractHelper
         $prefix = $this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId);
 
         if (is_null($prefix)) {
-            return false;
+            return null;
         }
 
         return trim($prefix);
