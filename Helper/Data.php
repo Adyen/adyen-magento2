@@ -680,7 +680,7 @@ class Data extends AbstractHelper
         );
 
         if (is_null($clientKey)) {
-            return false;
+            return null;
         }
 
         return trim($clientKey);
