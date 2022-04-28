@@ -1430,7 +1430,7 @@ class Data extends AbstractHelper
         } else {
             $encryptedApiKeyLive = $this->getAdyenPosCloudConfigData('api_key_live', $storeId);
             if (is_null($encryptedApiKeyLive)) {
-                return false;
+                return null;
             }
 
             $apiKey = $this->_encryptor->decrypt(trim($encryptedApiKeyLive));
