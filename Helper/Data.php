@@ -703,7 +703,7 @@ class Data extends AbstractHelper
         } else {
             $wsUsernameLive = $this->getAdyenAbstractConfigData('ws_username_live', $storeId);
             if (is_null($wsUsernameLive)) {
-                return false;
+                return null;
             }
             $wsUsername = trim($wsUsernameLive);
         }
