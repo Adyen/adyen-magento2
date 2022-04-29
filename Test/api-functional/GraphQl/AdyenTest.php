@@ -24,7 +24,9 @@
 
 namespace Adyen\Payment\GraphQl;
 
+use Magento\Framework\Exception\AuthenticationException;
 use Magento\GraphQl\Quote\GetMaskedQuoteIdByReservedOrderId;
+use Magento\Integration\Api\CustomerTokenServiceInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\TestCase\GraphQl\ResponseContainsErrorsException;
 use Magento\TestFramework\TestCase\GraphQlAbstract;
@@ -35,6 +37,10 @@ class AdyenTest extends GraphQlAbstract
      * @var GetMaskedQuoteIdByReservedOrderId
      */
     private $getMaskedQuoteIdByReservedOrderId;
+    /**
+     * @var CustomerTokenServiceInterface
+     */
+    private $customerTokenService;
 
     /**
      * @inheritdoc
@@ -43,6 +49,7 @@ class AdyenTest extends GraphQlAbstract
     {
         $objectManager = Bootstrap::getObjectManager();
         $this->getMaskedQuoteIdByReservedOrderId = $objectManager->get(GetMaskedQuoteIdByReservedOrderId::class);
+        $this->customerTokenService = $objectManager->get(CustomerTokenServiceInterface::class);
     }
 
     /**
@@ -213,6 +220,42 @@ JSON;
     }
 
     /**
+     * @magentoApiDataFixture Magento/Customer/_files/customer.php
+     * @magentoApiDataFixture Magento/GraphQl/Catalog/_files/simple_product.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/customer/create_empty_cart.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_shipping_address.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_billing_address.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_flatrate_shipping_method.php
+     */
+    public function testCreditCardCustomer()
+    {
+        $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
+        $stateData = <<<'JSON'
+{
+    "paymentMethod": {
+        "type": "scheme",
+        "holderName": "Foo Bar",
+        "encryptedCardNumber": "test_4111111111111111",
+        "encryptedExpiryMonth": "test_03",
+        "encryptedExpiryYear": "test_2030",
+        "encryptedSecurityCode": "test_737"
+    }
+}
+JSON;
+        $adyenAdditionalData = '
+        adyen_additional_data_cc: {
+            cc_type: "VI",
+            stateData: ' . json_encode($stateData) . '
+        }';
+        $query = $this->getPlaceOrderQuery($maskedQuoteId, "adyen_cc", $adyenAdditionalData);
+
+        $response = $this->graphQlMutation($query, [], '', $this->getHeaderMap());
+
+        self::assertEquals('Authorised', $response['placeOrder']['order']['adyen_payment_status']['resultCode']);
+    }
+
+    /**
      * @param string $maskedQuoteId
      * @param string $methodCode
      * @param string $adyenAdditionalData
@@ -290,5 +333,21 @@ mutation {
     }
 }
 QUERY;
+    }
+
+    /**
+     * Create a header with customer token
+     *
+     * @param string $username
+     * @param string $password
+     * @return array
+     * @throws AuthenticationException
+     * @see \Magento\GraphQl\Quote\Customer\GetCustomerCartTest::getHeaderMap
+     */
+    private function getHeaderMap(string $username = 'customer@example.com', string $password = 'password'): array
+    {
+        $customerToken = $this->customerTokenService->createCustomerAccessToken($username, $password);
+        $headerMap = ['Authorization' => 'Bearer ' . $customerToken];
+        return $headerMap;
     }
 }
