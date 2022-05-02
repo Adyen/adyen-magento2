@@ -92,13 +92,26 @@
             </tooltip>
             <config_path>payment/adyen_abstract/client_key_live</config_path>
         </field>
+        <field id="allowed_origin" translate="label" sortOrder="75" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Allowed Origin</label>
+            <config_path>payment/adyen_abstract/allowed_origin</config_path>
+            <frontend_model>Adyen\Payment\Model\Config\Adminhtml\AllowedOrigin</frontend_model>
+            <tooltip>Save the storefront URL to Allowed Origins. Defaults to PWA origin if set</tooltip>
+            <comment>
+                <![CDATA[
+                The Allowed Origin is white-listed by Adyen to allow client side requests.
+                See <a target="_blank" href="https://docs.adyen.com/development-resources/client-side-authentication#allowed-origins">documentation</a>
+                for more information.
+                ]]>
+            </comment>
+        </field>
         <field id="notification_username" translate="label" type="text" sortOrder="80" showInDefault="1"
                showInWebsite="1" showInStore="1">
             <label>Notification Username</label>
             <config_path>payment/adyen_abstract/notification_username</config_path>
             <frontend_model>Adyen\Payment\Model\Config\Adminhtml\WebhookCredentials</frontend_model>
             <backend_model>Adyen\Payment\Model\Config\Backend\WebhookCredentials</backend_model>
-            <tooltip>Set a user name of your choice. </tooltip>
+            <tooltip>Set a username of your choice. </tooltip>
         </field>
         <field id="notification_password" translate="label" type="obscure" sortOrder="90" showInDefault="1"
                showInWebsite="1" showInStore="1">

@@ -62,13 +62,13 @@ class BaseUrlHelper
      * @param null|int|string $storeId
      * @return string
      */
-    public function getStoreBaseUrl($storeId)
+    public function getStoreBaseUrl($storeId, $ignoreAdmin = false)
     {
         if ($paymentOriginUrl = $this->config->getPWAOriginUrl($storeId)) {
             return $paymentOriginUrl;
         }
         
-        if ('adminhtml' === $this->state->getAreaCode()) {
+        if ('adminhtml' === $this->state->getAreaCode() && !$ignoreAdmin) {
             return $this->backendHelper->getHomePageUrl();
         }
         
