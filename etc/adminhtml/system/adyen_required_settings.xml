@@ -95,7 +95,9 @@
         <field id="allowed_origin" translate="label" sortOrder="75" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Allowed Origin</label>
             <config_path>payment/adyen_abstract/allowed_origin</config_path>
-            <frontend_model>Adyen\Payment\Model\Config\Adminhtml\AllowedOrigin</frontend_model>
+            <frontend_model>Adyen\Payment\Model\Config\Adminhtml\AllowedOriginField</frontend_model>
+            <backend_model>Adyen\Payment\Model\Config\Backend\AllowedOriginValue</backend_model>
+            <validate>validate-url</validate>
             <tooltip>Save the storefront URL to Allowed Origins. Defaults to PWA origin if set</tooltip>
             <comment>
                 <![CDATA[

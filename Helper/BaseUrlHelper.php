@@ -74,4 +74,20 @@ class BaseUrlHelper
         
         return $this->url->getBaseUrl();
     }
+
+    public function getDomainFromUrl(string $url)
+    {
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            throw new \Exception('Invalid URL');
+        }
+
+        $urlParts = parse_url($url);
+
+        $domain = $urlParts['scheme'] . '://' . $urlParts['host'];
+        if (isset($urlParts['port'])) {
+            $domain .= ':' . $urlParts['port'];
+        }
+
+        return $domain;
+    }
 }

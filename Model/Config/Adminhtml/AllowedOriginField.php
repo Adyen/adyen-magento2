@@ -22,44 +22,41 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Controller\Adminhtml\Configuration;
+namespace Adyen\Payment\Model\Config\Adminhtml;
 
-use Adyen\Payment\Helper\BaseUrlHelper;
-use Magento\Backend\App\Action;
-use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\ResponseInterface;
-use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Config\Block\System\Config\Form\Field;
+use Magento\Framework\Data\Form\Element\AbstractElement;
 
-class AllowedOrigin extends Action
+class AllowedOriginField extends Field
 {
-    /**
-     * @var JsonFactory
-     */
-    private $jsonFactory;
-    /**
-     * @var BaseUrlHelper
-     */
-    private $baseUrlHelper;
+    protected $_template = 'Adyen_Payment::config/allowed_origin.phtml';
 
-    public function __construct(Context $context, JsonFactory $jsonFactory, BaseUrlHelper $baseUrlHelper)
+    protected function _getElementHtml(AbstractElement $element)
     {
-        parent::__construct($context);
-        $this->jsonFactory = $jsonFactory;
-        $this->baseUrlHelper = $baseUrlHelper;
+        return $this->toHtml() . parent::_getElementHtml($element);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function execute()
+    public function getButtonHtml()
     {
-        $result = $this->jsonFactory->create();
-        $storeId = $this->getRequest()->getParam('storeId');
+        $button = $this->getLayout()->createBlock(
+            'Magento\Backend\Block\Widget\Button'
+        )->setData(
+            [
+                'id' => 'adyen_configure_allowed_origin',
+                'label' => __('Configure Allowed Origin'),
+            ]
+        );
 
-        $origin = $this->baseUrlHelper->getStoreBaseUrl($storeId, true);
+        return $button->toHtml();
+    }
 
-        $result->setData(['originUrl' => $origin]);
+    public function getAjaxUrl()
+    {
+        return $this->getUrl('adyen/configuration/allowedoriginprefillaction');
+    }
 
-        return $result;
+    public function getStoreId()
+    {
+        return $this->_storeManager->getStore()->getId();
     }
 }

@@ -125,4 +125,41 @@ class ManagementHelper
         $mode = $demoMode ? 'test' : 'live';
         $this->configHelper->setConfigData($hmac, 'notification_hmac_key_' . $mode, Config::XML_ADYEN_ABSTRACT_PREFIX);
     }
+
+    /**
+     * @throws AdyenException|NoSuchEntityException
+     */
+    public function getAllowedOrigins($apiKey, $demoMode)
+    {
+        $management = $this->getManagementApiService($apiKey, $demoMode);
+
+        $response = $management->allowedOrigins->list();
+
+        return array_column($response['data'], 'domain');
+    }
+
+    /**
+     * @throws AdyenException|NoSuchEntityException
+     */
+    public function saveAllowedOrigin($apiKey, $demoMode, $domain)
+    {
+        $management = $this->getManagementApiService($apiKey, $demoMode);
+
+        $management->allowedOrigins->create(['domain' => $domain]);
+    }
+
+    /**
+     * @throws AdyenException|NoSuchEntityException
+     */
+    private function getManagementApiService($apiKey, $demoMode): Management
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        if (preg_match('/^\*+$/', $apiKey)) {
+            // API key contains '******', set to the previously saved config value
+            $apiKey = $this->configHelper->getApiKey($demoMode);
+        }
+        $client = $this->adyenHelper->initializeAdyenClient($storeId, $apiKey, $demoMode);
+
+        return new Management($client);
+    }
 }
