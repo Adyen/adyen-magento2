@@ -29,6 +29,8 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
+use Magento\Quote\Model\Quote as QuoteModel;
 use Magento\Quote\Model\QuoteRepository;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\OrderRepository;
@@ -55,16 +57,22 @@ class Quote
      * @var FilterBuilder
      */
     private $filterBuilder;
+    /**
+     * @var MaskedQuoteIdToQuoteIdInterface
+     */
+    private $maskedQuoteIdToQuoteId;
 
     public function __construct(
         CartRepositoryInterface $cartRepository,
         QuoteRepository $quoteRepository,
+        MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         OrderRepository $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         FilterBuilder $filterBuilder
     ) {
         $this->cartRepository = $cartRepository;
         $this->quoteRepository = $quoteRepository;
+        $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->filterBuilder = $filterBuilder;
@@ -98,6 +106,59 @@ class Quote
         }
         $quote->setIsActive(false);
         $this->cartRepository->save($quote);
+    }
+
+    /**
+     * Get (active/inactive) quote for user
+     *
+     * @param string $cartHash
+     * @param int|null $customerId
+     * @param int $storeId
+     * @return QuoteModel
+     * @throws NoSuchEntityException
+     * @see \Magento\QuoteGraphQl\Model\Cart\GetCartForUser::execute
+     */
+    public function getCartForUser(string $cartHash, ?int $customerId, int $storeId): QuoteModel
+    {
+        try {
+            $cartId = $this->maskedQuoteIdToQuoteId->execute($cartHash);
+        } catch (NoSuchEntityException $exception) {
+            throw new NoSuchEntityException(
+                __('Could not find a cart with ID "%masked_cart_id"', ['masked_cart_id' => $cartHash])
+            );
+        }
+
+        try {
+            /** @var QuoteModel $cart */
+            $cart = $this->cartRepository->get($cartId);
+        } catch (NoSuchEntityException $e) {
+            throw new NoSuchEntityException(
+                __('Could not find a cart with ID "%masked_cart_id"', ['masked_cart_id' => $cartHash])
+            );
+        }
+
+        if ((int)$cart->getStoreId() !== $storeId) {
+            throw new NoSuchEntityException(__(
+                'Wrong store code specified for cart "%masked_cart_id"',
+                ['masked_cart_id' => $cartHash]
+            ));
+        }
+
+        $cartCustomerId = (int)$cart->getCustomerId();
+
+        /* Guest cart, allow operations */
+        if (0 === $cartCustomerId && (null === $customerId || 0 === $customerId)) {
+            return $cart;
+        }
+
+        if ($cartCustomerId !== $customerId) {
+            throw new NoSuchEntityException(__(
+                'The current user cannot perform operations on cart "%masked_cart_id"',
+                ['masked_cart_id' => $cartHash]
+            ));
+        }
+
+        return $cart;
     }
 
     /**
