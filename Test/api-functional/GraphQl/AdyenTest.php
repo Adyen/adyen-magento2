@@ -347,7 +347,6 @@ QUERY;
     private function getHeaderMap(string $username = 'customer@example.com', string $password = 'password'): array
     {
         $customerToken = $this->customerTokenService->createCustomerAccessToken($username, $password);
-        $headerMap = ['Authorization' => 'Bearer ' . $customerToken];
-        return $headerMap;
+        return ['Authorization' => 'Bearer ' . $customerToken];
     }
 }
