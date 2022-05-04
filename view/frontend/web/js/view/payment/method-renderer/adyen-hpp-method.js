@@ -259,10 +259,12 @@ define(
                     placeOrder: function() {
                         var innerSelf = this;
 
-                        innerSelf.component.showValidation();
-
-                        if (innerSelf.component.state.isValid === false) {
-                            return false;
+                        // Skip in case of pms without a component (giftcards)
+                        if (innerSelf.component !== undefined) {
+                            innerSelf.component.showValidation();
+                            if (innerSelf.component.state.isValid === false) {
+                                return false;
+                            }
                         }
 
                         if (innerSelf.validate()) {
