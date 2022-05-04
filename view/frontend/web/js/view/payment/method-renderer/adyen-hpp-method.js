@@ -34,9 +34,9 @@ define(
         'uiLayout',
         'Magento_Ui/js/model/messages',
         'Magento_Checkout/js/model/error-processor',
-        'Adyen_Payment/js/adyen',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/model/adyen-payment-modal'
+        'Adyen_Payment/js/model/adyen-payment-modal',
+        'Adyen_Payment/js/model/adyen-checkout'
     ],
     function(
         ko,
@@ -52,9 +52,9 @@ define(
         layout,
         Messages,
         errorProcessor,
-        AdyenCheckout,
         adyenConfiguration,
-        adyenPaymentModal
+        adyenPaymentModal,
+        adyenCheckout
     ) {
         'use strict';
 
@@ -115,19 +115,15 @@ define(
             loadAdyenPaymentMethods: async function (paymentMethodsResponse) {
                 var self = this;
 
+                this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
+                    paymentMethodsResponse,
+                    this.handleOnAdditionalDetails.bind(this),
+                    this.handleOnCancel.bind(this),
+                    this.handleOnSubmit.bind(this)
+                )
+
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
                     var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
-                    this.checkoutComponent = await AdyenCheckout({
-                            locale: adyenConfiguration.getLocale(),
-                            clientKey: adyenConfiguration.getClientKey(),
-                            environment: adyenConfiguration.getCheckoutEnvironment(),
-                            paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
-                            onAdditionalDetails: this.handleOnAdditionalDetails.bind(
-                                this),
-                            onCancel: this.handleOnCancel.bind(this),
-                            onSubmit: this.handleOnSubmit.bind(this),
-                        },
-                    );
 
                     // Needed until the new ratepay component is released
                     if (JSON.stringify(paymentMethods).indexOf('ratepay') >

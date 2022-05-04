@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Model\Resolver;
 
+use Adyen\Payment\Helper\Quote;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
@@ -40,10 +41,6 @@ use Magento\Sales\Model\Order;
 class GetAdyenPaymentStatus implements ResolverInterface
 {
     /**
-     * @var GetCartForUser
-     */
-    private $getCartForUser;
-    /**
      * @var DataProvider\GetAdyenPaymentStatus
      */
     protected $getAdyenPaymentStatusDataProvider;
@@ -55,23 +52,26 @@ class GetAdyenPaymentStatus implements ResolverInterface
      * @var AdyenLogger
      */
     protected $adyenLogger;
+    /**
+     * @var Quote
+     */
+    private $quoteHelper;
 
     /**
-     * @param GetCartForUser $getCartForUser
      * @param DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider
      * @param Order $order
      * @param AdyenLogger $adyenLogger
      */
     public function __construct(
-        GetCartForUser $getCartForUser,
+        Quote $quoteHelper,
         DataProvider\GetAdyenPaymentStatus $getAdyenPaymentStatusDataProvider,
         Order $order,
         AdyenLogger $adyenLogger
     ) {
-        $this->getCartForUser = $getCartForUser;
         $this->getAdyenPaymentStatusDataProvider = $getAdyenPaymentStatusDataProvider;
         $this->order = $order;
         $this->adyenLogger = $adyenLogger;
+        $this->quoteHelper = $quoteHelper;
     }
 
     /**
@@ -105,7 +105,7 @@ class GetAdyenPaymentStatus implements ResolverInterface
 
         $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
         try {
-            $cart = $this->getCartForUser->execute($maskedCartId, $context->getUserId(), $storeId);
+            $cart = $this->quoteHelper->getCartForUser($maskedCartId, $context->getUserId(), $storeId);
             $order = $this->order->loadByIncrementId($orderIncrementId);
             $orderId = $order->getId();
             if (!$orderId || $order->getQuoteId() !== $cart->getEntityId()) {
