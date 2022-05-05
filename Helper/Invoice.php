@@ -38,10 +38,10 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Phrase;
+use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice as InvoiceModel;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
-use Magento\Sales\Model\ResourceModel\Order\Invoice as InvoiceResourceModel;
 
 /**
  * Helper class for anything related to the invoice entity
@@ -61,9 +61,9 @@ class Invoice extends AbstractHelper
     protected $adyenDataHelper;
 
     /**
-     * @var InvoiceResourceModel
+     * @var InvoiceRepositoryInterface
      */
-    protected $invoiceResourceModel;
+    protected $invoiceRepository;
 
     /**
      * @var \Magento\Sales\Model\ResourceModel\Order
@@ -106,7 +106,7 @@ class Invoice extends AbstractHelper
      * @param Context $context
      * @param AdyenLogger $adyenLogger
      * @param Data $adyenDataHelper
-     * @param InvoiceResourceModel $invoiceResourceModel
+     * @param InvoiceRepositoryInterface $invoiceRepository
      * @param InvoiceFactory $adyenInvoiceFactory
      * @param AdyenInvoiceResourceModel $adyenInvoiceResourceModel
      * @param OrderPaymentResourceModel $orderPaymentResourceModel
@@ -119,7 +119,7 @@ class Invoice extends AbstractHelper
         Context $context,
         AdyenLogger $adyenLogger,
         Data $adyenDataHelper,
-        InvoiceResourceModel $invoiceResourceModel,
+        InvoiceRepositoryInterface $invoiceRepository,
         InvoiceFactory $adyenInvoiceFactory,
         AdyenInvoiceResourceModel $adyenInvoiceResourceModel,
         OrderPaymentResourceModel $orderPaymentResourceModel,
@@ -131,7 +131,7 @@ class Invoice extends AbstractHelper
         parent::__construct($context);
         $this->adyenLogger = $adyenLogger;
         $this->adyenDataHelper = $adyenDataHelper;
-        $this->invoiceResourceModel = $invoiceResourceModel;
+        $this->invoiceRepository = $invoiceRepository;
         $this->adyenInvoiceFactory = $adyenInvoiceFactory;
         $this->adyenInvoiceResourceModel = $adyenInvoiceResourceModel;
         $this->orderPaymentResourceModel = $orderPaymentResourceModel;
@@ -206,7 +206,7 @@ class Invoice extends AbstractHelper
 
         if ($this->isFullInvoiceAmountManuallyCaptured($magentoInvoice)) {
             $magentoInvoice->pay();
-            $this->invoiceResourceModel->save($magentoInvoice);
+            $this->invoiceRepository->save($magentoInvoice);
             $this->magentoOrderResourceModel->save($magentoInvoice->getOrder());
         }
 
