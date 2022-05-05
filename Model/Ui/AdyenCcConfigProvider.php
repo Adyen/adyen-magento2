@@ -23,6 +23,8 @@
 
 namespace Adyen\Payment\Model\Ui;
 
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Recurring;
 use Magento\Checkout\Model\ConfigProviderInterface;
 
 class AdyenCcConfigProvider implements ConfigProviderInterface
@@ -72,6 +74,9 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
      */
     private $serializer;
 
+    /** @var Config $configHelper */
+    private $configHelper;
+
     /**
      * AdyenCcConfigProvider constructor.
      *
@@ -92,7 +97,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         \Magento\Framework\View\Asset\Source $assetSource,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Payment\Model\CcConfig $ccConfig,
-        \Magento\Framework\Serialize\SerializerInterface $serializer
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
+        Config $configHelper
     ) {
         $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
@@ -102,6 +108,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $this->ccConfig = $ccConfig;
         $this->storeManager = $storeManager;
         $this->serializer = $serializer;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -141,15 +148,12 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
             ]
         );
 
-        $enableOneclick = $this->_adyenHelper->getAdyenAbstractConfigData('enable_oneclick');
+        $storeId = $this->storeManager->getStore()->getId();
+        $recurringEnabled = $this->configHelper->getConfigData('active', Config::XML_ADYEN_ONECLICK, $storeId, true);
 
         $config['payment']['adyenCc']['methodCode'] = self::CODE;
-
-        $config['payment']['adyenCc']['locale'] = $this->_adyenHelper->getStoreLocale(
-            $this->storeManager->getStore()->getId()
-        );
-
-        $config['payment']['adyenCc']['isOneClickEnabled'] = $enableOneclick;
+        $config['payment']['adyenCc']['locale'] = $this->_adyenHelper->getStoreLocale($storeId);
+        $config['payment']['adyenCc']['isOneClickEnabled'] = $recurringEnabled;
         $config['payment']['adyenCc']['icons'] = $this->getIcons();
 
 

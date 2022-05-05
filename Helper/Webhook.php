@@ -218,6 +218,11 @@ class Webhook
      */
     private $magentoInvoiceFactory;
 
+    /**
+     * @var Vault
+     */
+    private $vaultHelper;
+
     private $boletoOriginalAmount;
 
     private $boletoPaidAmount;
@@ -259,7 +264,8 @@ class Webhook
         CaseManagement $caseManagementHelper,
         PaymentFactory $adyenOrderPaymentFactory,
         AdyenLogger $logger,
-        MagentoInvoiceFactory $magentoInvoiceFactory
+        MagentoInvoiceFactory $magentoInvoiceFactory,
+        Vault $vaultHelper
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
@@ -292,6 +298,7 @@ class Webhook
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->logger = $logger;
         $this->magentoInvoiceFactory = $magentoInvoiceFactory;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -504,7 +511,7 @@ class Webhook
                 break;
             case Notification::RECURRING_CONTRACT:
                 // only store billing agreements if Vault is disabled
-                if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
+                if (!$this->vaultHelper->isCardVaultEnabled()) {
                     // storedReferenceCode
                     $recurringDetailReference = $notification->getPspreference();
 
@@ -801,6 +808,7 @@ class Webhook
 
                 if ($this->order->canHold()) {
                     $this->order->hold();
+                    $this->order->addCommentToStatusHistory('Order held', $orderStatus);
                 } else {
                     $this->logger->addAdyenNotificationCronjob('Order can not hold or is already on Hold');
                 }
@@ -810,6 +818,7 @@ class Webhook
 
                 if ($this->order->canCancel()) {
                     $this->order->cancel();
+                    $this->order->addCommentToStatusHistory('Order cancelled', $orderStatus);
                 } else {
                     $this->logger->addAdyenNotificationCronjob('Order can not be canceled');
                 }

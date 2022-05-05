@@ -25,7 +25,6 @@ namespace Adyen\Payment\Gateway\Validator;
 
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Logger\AdyenLogger;
-use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
@@ -38,14 +37,16 @@ class CheckoutResponseValidator extends AbstractValidator
      * @var AdyenLogger
      */
     private $adyenLogger;
+
     /**
      * @var Data
      */
     private $adyenHelper;
+
     /**
-     * @var Session
+     * @var Array
      */
-    private $checkoutSession;
+    const ALLOWED_ERROR_CODES = ['124'];
 
     /**
      * CheckoutResponseValidator constructor.
@@ -53,24 +54,20 @@ class CheckoutResponseValidator extends AbstractValidator
      * @param ResultInterfaceFactory $resultFactory
      * @param AdyenLogger $adyenLogger
      * @param Data $adyenHelper
-     * @param Session $checkoutSession
      */
     public function __construct(
         ResultInterfaceFactory $resultFactory,
         AdyenLogger $adyenLogger,
-        Data $adyenHelper,
-        Session $checkoutSession
+        Data $adyenHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
-        $this->checkoutSession = $checkoutSession;
         parent::__construct($resultFactory);
     }
 
     /**
      * @param array $validationSubject
      * @return ResultInterface
-     * @throws LocalizedException
      */
     public function validate(array $validationSubject)
     {
@@ -89,9 +86,6 @@ class CheckoutResponseValidator extends AbstractValidator
 
             if (!empty($response['action'])) {
                 $payment->setAdditionalInformation('action', $response['action']);
-            } else {
-                // No further action needed, so payment result is conclusive
-                $this->checkoutSession->unsPendingPayment();
             }
 
             if (!empty($response['additionalData'])) {
@@ -142,7 +136,12 @@ class CheckoutResponseValidator extends AbstractValidator
                 $this->adyenLogger->error($response['error']);
             }
 
-            $errorMsg = __('Error with payment method please select different payment method.');
+            if (!empty($response['errorCode']) && !empty($response['error']) && in_array($response['errorCode'], self::ALLOWED_ERROR_CODES, true)) {
+                $errorMsg = __($response['error']);
+            } else {
+                $errorMsg = __('Error with payment method, please select a different payment method.');
+            }
+
             throw new LocalizedException($errorMsg);
         }
 
