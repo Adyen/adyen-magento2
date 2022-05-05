@@ -35,8 +35,8 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/model/adyen-payment-modal',
-        'Adyen_Payment/js/model/adyen-checkout'
+        'Adyen_Payment/js/adyen',
+        'Adyen_Payment/js/model/adyen-payment-modal'
     ],
     function(
         $,
@@ -53,8 +53,8 @@ define(
         errorProcessor,
         adyenPaymentService,
         adyenConfiguration,
-        AdyenPaymentModal,
-        adyenCheckout
+        AdyenCheckout,
+        AdyenPaymentModal
     ) {
         'use strict';
         return Component.extend({
@@ -91,13 +91,18 @@ define(
                 return this;
             },
             loadCheckoutComponent: async function (paymentMethodsResponse) {
-                this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
-                    paymentMethodsResponse,
-                    this.handleOnAdditionalDetails.bind(this)
-                )
+                if (!!paymentMethodsResponse.paymentMethodsResponse) {
+                    this.checkoutComponent = await AdyenCheckout({
+                            locale: adyenConfiguration.getLocale(),
+                            clientKey: adyenConfiguration.getClientKey(),
+                            environment: adyenConfiguration.getCheckoutEnvironment(),
+                            paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
+                            onAdditionalDetails: this.handleOnAdditionalDetails.bind(this)
+                        }
+                    );
 
-                // this.renderSecureFields() -> if checkout component is loaded
-
+                    this.renderSecureFields()
+                }
 
                 if (!!paymentMethodsResponse.paymentMethodsExtraDetails && !!paymentMethodsResponse.paymentMethodsExtraDetails.card) {
                     this.icon = paymentMethodsResponse.paymentMethodsExtraDetails.card.icon;

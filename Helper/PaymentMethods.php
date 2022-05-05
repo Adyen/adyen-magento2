@@ -372,10 +372,11 @@ class PaymentMethods extends AbstractHelper
 
         $billingAddress = $quote->getBillingAddress();
 
-        if (!empty($billingAddress) && !is_null($billingAddress->getTelephone())) {
-            $paymentMethodRequest['telephoneNumber'] = trim($billingAddress->getTelephone());
+        if (!empty($billingAddress)) {
+            if ($customerTelephone = trim($billingAddress->getTelephone())) {
+                $paymentMethodRequest['telephoneNumber'] = $customerTelephone;
+            }
         }
-
         return $paymentMethodRequest;
     }
 

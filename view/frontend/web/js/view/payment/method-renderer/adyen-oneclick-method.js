@@ -36,9 +36,9 @@ define(
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
+        'Adyen_Payment/js/adyen',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/model/adyen-payment-modal',
-        'Adyen_Payment/js/model/adyen-checkout'
+        'Adyen_Payment/js/model/adyen-payment-modal'
     ],
     function (
         ko,
@@ -56,9 +56,9 @@ define(
         placeOrderAction,
         errorProcessor,
         adyenPaymentService,
+        AdyenCheckout,
         adyenConfiguration,
-        adyenPaymentModal,
-        adyenCheckout
+        adyenPaymentModal
     ) {
 
         'use strict';
@@ -121,10 +121,17 @@ define(
                 let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
                 let paymentMethodsResponse = paymentMethodsObserver();
 
-                this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
-                    paymentMethodsResponse,
-                    this.handleOnAdditionalDetails.bind(this)
-                )
+                if (!!paymentMethodsResponse) {
+
+                    this.checkoutComponent = await AdyenCheckout({
+                            locale: adyenConfiguration.getLocale(),
+                            clientKey: adyenConfiguration.getClientKey(),
+                            environment: adyenConfiguration.getCheckoutEnvironment(),
+                            paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
+                            onAdditionalDetails: this.handleOnAdditionalDetails.bind(this),
+                        },
+                    );
+                }
             },
             handleOnAdditionalDetails: function (result) {
                 var self = this;

@@ -54,9 +54,7 @@ class PaymentVaultDeleteToken
         \Magento\Vault\Api\PaymentTokenRepositoryInterface $subject,
         PaymentTokenInterface $paymentToken
     ) {
-        $paymentMethodCode = $paymentToken->getPaymentMethodCode();
-
-        if (is_null($paymentMethodCode) || strpos($paymentMethodCode, 'adyen_') !== 0) {
+        if (strpos($paymentToken->getPaymentMethodCode(), 'adyen_') !== 0) {
             return [$paymentToken];
         }
         try {

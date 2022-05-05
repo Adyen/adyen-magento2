@@ -112,10 +112,6 @@ class Config
             self::XML_ADYEN_ABSTRACT_PREFIX,
             $storeId
         );
-
-        if (is_null($key)) {
-            return null;
-        }
         return $this->encryptor->decrypt(trim($key));
     }
 
@@ -190,11 +186,6 @@ class Config
                 false
             );
         }
-
-        if (is_null($key)) {
-            return null;
-        }
-
         return $this->encryptor->decrypt(trim($key));
     }
 
