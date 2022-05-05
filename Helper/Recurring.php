@@ -30,6 +30,9 @@ use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 
 class Recurring
 {
+    const MODE_MAGENTO_VAULT = 'Magento Vault';
+    const MODE_ADYEN_TOKENIZATION = 'Adyen Tokenization';
+
     const CARD_ON_FILE = 'CardOnFile';
     const SUBSCRIPTION = 'Subscription';
 
@@ -39,10 +42,11 @@ class Recurring
     /** @var AgreementFactory */
     private $billingAgreementFactory;
 
-    /**
-     * @var Agreement
-     */
+    /** @var Agreement  */
     private $billingAgreementResourceModel;
+
+    /** @var Config */
+    private $config;
 
     /**
      * Recurring constructor.
@@ -50,12 +54,14 @@ class Recurring
     public function __construct(
         AdyenLogger $adyenLogger,
         AgreementFactory $agreementFactory,
-        Agreement $billingAgreementResourceModel
+        Agreement $billingAgreementResourceModel,
+        Config $config
     )
     {
         $this->adyenLogger = $adyenLogger;
         $this->billingAgreementFactory = $agreementFactory;
         $this->billingAgreementResourceModel = $billingAgreementResourceModel;
+        $this->config = $config;
     }
 
     /**
@@ -66,6 +72,17 @@ class Recurring
         return [
             self::CARD_ON_FILE,
             self::SUBSCRIPTION
+        ];
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function getRecurringMethods(): array
+    {
+        return [
+            self::MODE_MAGENTO_VAULT,
+            self::MODE_ADYEN_TOKENIZATION
         ];
     }
 
