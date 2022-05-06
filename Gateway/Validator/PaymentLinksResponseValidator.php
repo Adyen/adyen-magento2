@@ -67,8 +67,6 @@ class PaymentLinksResponseValidator extends AbstractValidator
     public function validate(array $validationSubject)
     {
         $response = SubjectReader::readResponse($validationSubject);
-        $paymentDataObjectInterface = SubjectReader::readPayment($validationSubject);
-        $payment = $paymentDataObjectInterface->getPayment();
 
         $isValid = true;
         $errorMessages = [];
