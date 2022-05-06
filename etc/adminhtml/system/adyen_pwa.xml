@@ -24,12 +24,12 @@
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_pwa" translate="label" type="text" sortOrder="95" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label><![CDATA[PWA]]></label>
+        <label><![CDATA[Headless Integration]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <comment>
             <![CDATA[
                 <p>
-                These settings are specific for PWA integrations
+                These settings are only for required if a headless integration is being used.
                 </p>
             ]]>
         </comment>
