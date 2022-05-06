@@ -30,11 +30,24 @@ type AdyenPaymentMethods {
 
 type AdyenPaymentMethodsResponse {
     paymentMethods: [AdyenPaymentMethodsArray]
+    storedPaymentMethods: [AdyenStoredPaymentMethodsArray]
 }
 
 type Order {
     cart_id: String! @doc(description: "Cart ID.")
     adyen_payment_status: AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentStatus")
+}
+
+type AdyenStoredPaymentMethodsArray {
+    brand: String! @doc(description: "visa, mc, or amex.")
+    expiryMonth: String! @doc(description: "The expiry month of the network token")
+    expiryYear: String ! @doc(description: "The expiry year of the network token")
+    holderName:String @doc(description: " The name of the cardholder associated with the network token.")
+    lastFour:String @doc(description: "The network token you get from the card networks.")
+    name: String @doc(description: "The supported types of shopper interaction.")
+    networkTxReference: String @doc(description: "The network token reference")
+    supportedShopperInteractions: [String] @doc(description: "The supported types of shopper interaction.")
+    type: String @doc(description: "The unique payment method code.")
 }
 
 type AdyenPaymentMethodsArray {
@@ -136,4 +149,5 @@ type StoreConfig @doc(description: "The type contains information about a store 
     adyen_holder_name_required: Boolean @doc(description: "Adyen card holder's name is required.")
     adyen_title_renderer: String @doc(description: "Adyen Render Mode for Payment Method.")
     adyen_return_path_error: String @doc(description: "Adyen Return path in case of error")
+
 }
