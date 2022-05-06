@@ -46,7 +46,18 @@ define(
                         paymentMethodComponent = checkoutComponent.create(
                             paymentMethodType,
                             configuration
-                        ).mount(elementLabel)
+                        )
+
+                        if ('isAvailable' in paymentMethodComponent) {
+                            paymentMethodComponent.isAvailable().then(() => {
+                                paymentMethodComponent.mount(elementLabel);
+                            }).catch(e => {
+                                result.isAvailable(false);
+                            });
+                        } else {
+                            paymentMethodComponent.mount(elementLabel);
+                        }
+
                     } catch (err) {
                         console.log(err);
                     }

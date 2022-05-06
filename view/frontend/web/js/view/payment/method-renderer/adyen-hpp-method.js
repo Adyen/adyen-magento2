@@ -790,23 +790,12 @@ define(
                         result.component = amazonPayComponent;
                     }
 
-                    const component = adyenCheckout.mountPaymentMethodComponent(
+                    result.component = adyenCheckout.mountPaymentMethodComponent(
                         self.checkoutComponent,
                         paymentMethod.methodIdentifier,
-                        configuration
-                    )
-                    self.checkoutComponent.create(
-                        paymentMethod.methodIdentifier, configuration);
-                    if ('isAvailable' in component) {
-                        component.isAvailable().then(() => {
-                            component.mount(containerId);
-                        }).catch(e => {
-                            result.isAvailable(false);
-                        });
-                    } else {
-                        component.mount(containerId);
-                    }
-                    result.component = component;
+                        configuration,
+                        containerId
+                    );
 
                 } catch (err) {
                     // The component does not exist yet

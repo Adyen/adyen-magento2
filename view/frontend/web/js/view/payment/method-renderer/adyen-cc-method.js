@@ -111,6 +111,7 @@ define(
                 )
 
                 if (!!this.checkoutComponent) {
+                    // Setting the adyenCCMethod will load the html and trigger the renderPaymentMethod on afterRender
                     self.adyenCCMethod({
                             icon: !!paymentMethodsResponse.paymentMethodsExtraDetails.card.icon
                                 ? paymentMethodsResponse.paymentMethodsExtraDetails.card.icon
@@ -134,17 +135,9 @@ define(
              */
             renderPaymentMethod: function() {
                 var self = this;
-                if (!this.checkoutComponent) {
+                if (!self.getClientKey) {
                     return false
                 }
-
-                // Abort in case there is no cardContainer yet, retriggered by 'afterRender'
-                // OR if the checkoutComponent is not available yet, retriggered by 'paymentMethodsObserver'
-                // if (!self.getClientKey
-                //     || !document.getElementById("cardContainer")
-                //     || !self.checkoutComponent) {
-                //     return false;
-                // }
 
                 self.installments(0);
 

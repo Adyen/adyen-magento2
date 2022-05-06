@@ -132,9 +132,6 @@ define(
                     paymentMethodsResponse,
                     this.handleOnAdditionalDetails.bind(this)
                 )
-
-                // Create a card from this component and mount to element
-                this.renderPaymentMethod()
             },
             handleOnAdditionalDetails: function (result) {
                 var self = this;
@@ -334,7 +331,7 @@ define(
                              * sets up the callbacks for card components
                              */
                             renderPaymentMethod: function () {
-                                if (!this.getClientKey() || !this.checkoutComponent) {
+                                if (!this.getClientKey()) {
                                     return false
                                 }
 
