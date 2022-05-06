@@ -120,7 +120,7 @@ define(
              */
             getEnableStoreDetails: function () {
                 // TODO refactor the configuration for this
-                return this.isOneClickEnabled() === "1" || this.isVaultEnabled();
+                return this.isOneClickEnabled() || this.isVaultEnabled();
             },
             /**
              * Renders the secure fields,
