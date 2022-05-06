@@ -362,6 +362,7 @@ define(
                                     componentConfig,
                                     '#cvcContainer-' + this.value
                                 )
+                                this.component = self.component
 
                                 return true
                             },
