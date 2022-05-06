@@ -70,6 +70,18 @@ define(
                 storeCc: false,
                 modalLabel: 'cc_actionModal'
             },
+            initObservable: function() {
+                this._super().observe([
+                    'creditCardType',
+                    'installment',
+                    'installments',
+                    'placeOrderAllowed',
+                    'adyenCCMethod',
+                    'logo'
+                ]);
+
+                return this;
+            },
             /**
              * @returns {exports.initialize}
              */
@@ -91,27 +103,20 @@ define(
                 return this;
             },
             loadCheckoutComponent: async function (paymentMethodsResponse) {
+                let self = this;
+
                 this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
                     paymentMethodsResponse,
                     this.handleOnAdditionalDetails.bind(this)
                 )
 
-                // Create a card from this component and mount to element
-                this.renderPaymentMethod()
-
-                if (!!paymentMethodsResponse.paymentMethodsExtraDetails && !!paymentMethodsResponse.paymentMethodsExtraDetails.card) {
-                    this.icon = paymentMethodsResponse.paymentMethodsExtraDetails.card.icon;
+                if (!!this.checkoutComponent) {
+                    self.adyenCCMethod({
+                            icon: !!paymentMethodsResponse.paymentMethodsExtraDetails.card.icon
+                                ? paymentMethodsResponse.paymentMethodsExtraDetails.card.icon
+                                : {}
+                        })
                 }
-            },
-            initObservable: function() {
-                this._super().observe([
-                    'creditCardType',
-                    'installment',
-                    'installments',
-                    'placeOrderAllowed',
-                ]);
-
-                return this;
             },
             /**
              * Returns true if card details can be stored
