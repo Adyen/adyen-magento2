@@ -36,9 +36,9 @@ define(
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
-        'Adyen_Payment/js/adyen',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/model/adyen-payment-modal'
+        'Adyen_Payment/js/model/adyen-payment-modal',
+        'Adyen_Payment/js/model/adyen-checkout'
     ],
     function (
         ko,
@@ -56,9 +56,9 @@ define(
         placeOrderAction,
         errorProcessor,
         adyenPaymentService,
-        AdyenCheckout,
         adyenConfiguration,
-        adyenPaymentModal
+        adyenPaymentModal,
+        adyenCheckout
     ) {
 
         'use strict';
@@ -89,7 +89,7 @@ define(
                 ]);
                 return this;
             },
-            initialize: async function () {
+            initialize: function () {
                 let self = this;
                 this._super();
 
@@ -119,19 +119,22 @@ define(
                 this.messageComponents = messageComponents;
 
                 let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
-                let paymentMethodsResponse = paymentMethodsObserver();
+                paymentMethodsObserver.subscribe(
+                    function (paymentMethodsResponse) {
+                        self.loadCheckoutComponent(paymentMethodsResponse)
+                    });
+                self.loadCheckoutComponent(paymentMethodsObserver());
 
-                if (!!paymentMethodsResponse) {
+                return this;
+            },
+            loadCheckoutComponent: async function(paymentMethodsResponse) {
+                this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
+                    paymentMethodsResponse,
+                    this.handleOnAdditionalDetails.bind(this)
+                )
 
-                    this.checkoutComponent = await AdyenCheckout({
-                            locale: adyenConfiguration.getLocale(),
-                            clientKey: adyenConfiguration.getClientKey(),
-                            environment: adyenConfiguration.getCheckoutEnvironment(),
-                            paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
-                            onAdditionalDetails: this.handleOnAdditionalDetails.bind(this),
-                        },
-                    );
-                }
+                // Create a card from this component and mount to element
+                this.renderPaymentMethod()
             },
             handleOnAdditionalDetails: function (result) {
                 var self = this;
@@ -330,9 +333,9 @@ define(
                              * creates the card component,
                              * sets up the callbacks for card components
                              */
-                            renderSecureCVC: function () {
-                                if (!this.getClientKey()) {
-                                    return;
+                            renderPaymentMethod: function () {
+                                if (!this.getClientKey() || !this.checkoutComponent) {
+                                    return false
                                 }
 
                                 var hideCVC = false;
@@ -341,22 +344,24 @@ define(
                                     hideCVC = true;
                                 }
 
-                                try {
-                                    this.component = self.checkoutComponent.create(
-                                        'card', {
-                                            hideCVC: hideCVC,
-                                            brand: this.agreement_data.variant,
-                                            storedPaymentMethodId: this.value,
-                                            expiryMonth: this.agreement_data.card.expiryMonth,
-                                            expiryYear: this.agreement_data.card.expiryYear,
-                                            holderName: this.agreement_data.card.holderName,
-                                            onChange: this.handleOnChange.bind(this)
-                                        }).mount('#cvcContainer-' + this.value);
-                                } catch (err) {
-                                    console.log(err);
-                                    // The component does not exist yet
+                                let componentConfig = {
+                                    hideCVC: hideCVC,
+                                    brand: this.agreement_data.variant,
+                                    storedPaymentMethodId: this.value,
+                                    expiryMonth: this.agreement_data.card.expiryMonth,
+                                    expiryYear: this.agreement_data.card.expiryYear,
+                                    holderName: this.agreement_data.card.holderName,
+                                    onChange: this.handleOnChange.bind(this)
                                 }
 
+                                adyenCheckout.mountPaymentMethodComponent(
+                                    this.checkoutComponent,
+                                    'card',
+                                    componentConfig,
+                                    '#cvcContainer-' + this.value
+                                )
+
+                                return true
                             },
                             handleOnChange: function (state, component) {
                                 this.placeOrderAllowed(

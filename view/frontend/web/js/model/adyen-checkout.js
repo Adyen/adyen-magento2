@@ -38,6 +38,24 @@ define(
                 } else {
                     return false
                 }
+            },
+            mountPaymentMethodComponent(checkoutComponent, paymentMethodType, configuration, elementLabel) {
+                if($(elementLabel).length) {
+                    let paymentMethodComponent;
+                    try {
+                        paymentMethodComponent = checkoutComponent.create(
+                            paymentMethodType,
+                            configuration
+                        ).mount(elementLabel)
+                    } catch (err) {
+                        console.log(err);
+                    }
+
+                    return paymentMethodComponent;
+                } else {
+                    return  false
+                }
+
             }
         };
     }

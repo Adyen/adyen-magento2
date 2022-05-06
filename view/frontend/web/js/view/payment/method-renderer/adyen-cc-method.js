@@ -35,8 +35,8 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/adyen',
-        'Adyen_Payment/js/model/adyen-payment-modal'
+        'Adyen_Payment/js/model/adyen-payment-modal',
+        'Adyen_Payment/js/model/adyen-checkout'
     ],
     function(
         $,
@@ -53,8 +53,8 @@ define(
         errorProcessor,
         adyenPaymentService,
         adyenConfiguration,
-        AdyenCheckout,
-        AdyenPaymentModal
+        AdyenPaymentModal,
+        adyenCheckout
     ) {
         'use strict';
         return Component.extend({
@@ -91,18 +91,13 @@ define(
                 return this;
             },
             loadCheckoutComponent: async function (paymentMethodsResponse) {
-                if (!!paymentMethodsResponse.paymentMethodsResponse) {
-                    this.checkoutComponent = await AdyenCheckout({
-                            locale: adyenConfiguration.getLocale(),
-                            clientKey: adyenConfiguration.getClientKey(),
-                            environment: adyenConfiguration.getCheckoutEnvironment(),
-                            paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
-                            onAdditionalDetails: this.handleOnAdditionalDetails.bind(this)
-                        }
-                    );
+                this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
+                    paymentMethodsResponse,
+                    this.handleOnAdditionalDetails.bind(this)
+                )
 
-                    this.renderSecureFields()
-                }
+                // Create a card from this component and mount to element
+                this.renderPaymentMethod()
 
                 if (!!paymentMethodsResponse.paymentMethodsExtraDetails && !!paymentMethodsResponse.paymentMethodsExtraDetails.card) {
                     this.icon = paymentMethodsResponse.paymentMethodsExtraDetails.card.icon;
@@ -132,22 +127,26 @@ define(
              * sets up the callbacks for card components and
              * set up the installments
              */
-            renderSecureFields: function() {
+            renderPaymentMethod: function() {
                 var self = this;
+                if (!this.checkoutComponent) {
+                    return false
+                }
 
                 // Abort in case there is no cardContainer yet, retriggered by 'afterRender'
                 // OR if the checkoutComponent is not available yet, retriggered by 'paymentMethodsObserver'
-                if (!self.getClientKey
-                    || !document.getElementById("cardContainer")
-                    || !self.checkoutComponent) {
-                    return false;
-                }
+                // if (!self.getClientKey
+                //     || !document.getElementById("cardContainer")
+                //     || !self.checkoutComponent) {
+                //     return false;
+                // }
 
                 self.installments(0);
 
                 // installments
-                var allInstallments = self.getAllInstallments();
-                self.cardComponent = self.checkoutComponent.create('card', {
+                let allInstallments = self.getAllInstallments();
+
+                let componentConfig = {
                     enableStoreDetails: self.getEnableStoreDetails(),
                     brands: self.getAvailableCardTypeAltCodes(),
                     hasHolderName: adyenConfiguration.getHasHolderName(),
@@ -195,7 +194,16 @@ define(
                             self.installments(0);
                         }
                     }
-                }).mount('#cardContainer');
+                }
+
+                self.cardComponent = adyenCheckout.mountPaymentMethodComponent(
+                    this.checkoutComponent,
+                    'card',
+                    componentConfig,
+                    '#cardContainer'
+                )
+
+                return true
             },
 
             handleAction: function(action, orderId) {
