@@ -45,6 +45,11 @@ class MerchantAccounts extends \Magento\Config\Block\System\Config\Form\Field
         return $this->getUrl('adyen/configuration/merchantaccounts');
     }
 
+    public function getStoreId()
+    {
+        return $this->_storeManager->getStore()->getId();
+    }
+
     public function getButtonHtml()
     {
         $button = $this->getLayout()->createBlock(
@@ -52,22 +57,7 @@ class MerchantAccounts extends \Magento\Config\Block\System\Config\Form\Field
         )->setData(
             [
                 'id' => 'adyen_configure_merchants',
-                'label' => __('Get available merchant accounts from Adyen'),
-            ]
-        );
-
-        return $button->toHtml();
-    }
-
-    public function getDisabledButtonHtml()
-    {
-        $button = $this->getLayout()->createBlock(
-            'Magento\Backend\Block\Widget\Button'
-        )->setData(
-            [
-                'id' => 'adyen_configure_merchants',
-                'label' => __('Configure'),
-                'disabled' => true
+                'label' => __('Prefill below settings'),
             ]
         );
 

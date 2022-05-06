@@ -25,8 +25,10 @@
 namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Helper\BaseUrlHelper;
 use Adyen\Payment\Helper\ManagementHelper;
 use Magento\Backend\App\Action;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Backend\App\Action\Context;
 
@@ -45,26 +47,33 @@ class MerchantAccounts extends Action
      */
     protected $resultJsonFactory;
 
-    /** @var \Magento\Framework\App\Request\Http */
+    /** @var Http */
     protected $request;
 
     /**
      * @var \Adyen\Payment\Helper\Data
      */
-    protected $_adyenHelper;
+    protected $adyenHelper;
+
+    /**
+     * @var BaseUrlHelper
+     */
+    private $baseUrlHelper;
 
     public function __construct(
         Context $context,
         ManagementHelper $managementHelper,
         JsonFactory $resultJsonFactory,
-        \Magento\Framework\App\Request\Http $request,
+        Http $request,
+        BaseUrlHelper $baseUrlHelper,
         \Adyen\Payment\Helper\Data $adyenHelper
     ) {
         parent::__construct($context);
         $this->resultJsonFactory = $resultJsonFactory;
         $this->managementHelper = $managementHelper;
         $this->request = $request;
-        $this->_adyenHelper = $adyenHelper;
+        $this->adyenHelper = $adyenHelper;
+        $this->baseUrlHelper = $baseUrlHelper;
     }
 
     /**
@@ -81,13 +90,19 @@ class MerchantAccounts extends Action
                 $xapikey = '';
             }
             $response = $this->managementHelper->getMerchantAccountWithApikey($xapikey);
-            $currentMerchantAccount = $this->_adyenHelper->getAdyenMerchantAccount('adyen_cc');
+            $currentMerchantAccount = $this->adyenHelper->getAdyenMerchantAccount('adyen_cc');
+
+            $storeId = $this->getRequest()->getParam('storeId');
+            $origin = $this->baseUrlHelper->getStoreBaseUrl($storeId, true);
+            $origin = $this->baseUrlHelper->getDomainFromUrl($origin);
+
             $resultJson = $this->resultJsonFactory->create();
             $resultJson->setData(
                 [
                     'messages' => $response,
                     'mode' => $this->getDemoMode($demoMode),
-                    'currentMerchantAccount' => $currentMerchantAccount
+                    'currentMerchantAccount' => $currentMerchantAccount,
+                    'originUrl' => $origin
                 ]
             );
             return $resultJson;

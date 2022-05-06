@@ -92,13 +92,12 @@
             </tooltip>
             <config_path>payment/adyen_abstract/client_key_live</config_path>
         </field>
-        <field id="allowed_origin" translate="label" sortOrder="75" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="allowed_origin" translate="label" type="text" sortOrder="75" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Allowed Origin</label>
             <config_path>payment/adyen_abstract/allowed_origin</config_path>
-            <frontend_model>Adyen\Payment\Model\Config\Adminhtml\AllowedOriginField</frontend_model>
             <backend_model>Adyen\Payment\Model\Config\Backend\AllowedOriginValue</backend_model>
             <validate>validate-url</validate>
-            <tooltip>Save the storefront URL to Allowed Origins. Defaults to PWA origin if set</tooltip>
+            <tooltip>Save the storefront URL to Allowed Origins.</tooltip>
             <comment>
                 <![CDATA[
                 The Allowed Origin is white-listed by Adyen to allow client side requests.
