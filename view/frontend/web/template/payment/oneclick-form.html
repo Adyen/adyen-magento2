@@ -21,7 +21,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
-<!-- ko foreach: getAdyenBillingAgreements() -->
+<!-- ko foreach: adyenOneclickPaymentMethods -->
 <div class="payment-method" data-bind="css: {'_active': (value == $parent.isBillingAgreementChecked())}">
     <div class="payment-method-title field choice">
         <input type="radio"
@@ -87,7 +87,7 @@
                     </div>
                 </div>
 
-                <div class="checkout-component-dock" afterRender="renderPaymentMethod()" data-bind="attr: { id: 'cvcContainer-' + value}"></div>
+                <div class="checkout-component-dock" afterRender="renderOneclickPaymentMethod()" data-bind="attr: { id: 'cvcContainer-' + value}"></div>
                 <!--/ko-->
 
                 <!-- ko if: agreement_data.bank -->

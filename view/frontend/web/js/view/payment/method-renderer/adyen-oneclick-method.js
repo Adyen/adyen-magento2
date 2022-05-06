@@ -86,6 +86,7 @@ define(
                     'recurringDetailReference',
                     'variant',
                     'numberOfInstallments',
+                    'adyenOneclickPaymentMethods'
                 ]);
                 return this;
             },
@@ -132,6 +133,10 @@ define(
                     paymentMethodsResponse,
                     this.handleOnAdditionalDetails.bind(this)
                 )
+
+                if (!!this.checkoutComponent) {
+                    this.adyenOneclickPaymentMethods(this.getAdyenBillingAgreements())
+                }
             },
             handleOnAdditionalDetails: function (result) {
                 var self = this;
@@ -202,12 +207,10 @@ define(
              */
             getAdyenBillingAgreements: function () {
                 var self = this;
-
                 // convert to list so you can iterate
                 var paymentList = _.map(
                     window.checkoutConfig.payment.adyenOneclick.billingAgreements,
                     function (billingAgreement) {
-
                         var creditCardExpMonth, creditCardExpYear = false;
 
                         if (billingAgreement.agreement_data.card) {
@@ -330,7 +333,7 @@ define(
                              * creates the card component,
                              * sets up the callbacks for card components
                              */
-                            renderPaymentMethod: function () {
+                            renderOneclickPaymentMethod: function () {
                                 if (!this.getClientKey()) {
                                     return false
                                 }
@@ -351,8 +354,10 @@ define(
                                     onChange: this.handleOnChange.bind(this)
                                 }
 
-                                adyenCheckout.mountPaymentMethodComponent(
-                                    this.checkoutComponent,
+                                console.log(componentConfig)
+
+                                self.component = adyenCheckout.mountPaymentMethodComponent(
+                                    self.checkoutComponent,
                                     'card',
                                     componentConfig,
                                     '#cvcContainer-' + this.value

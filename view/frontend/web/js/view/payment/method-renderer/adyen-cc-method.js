@@ -133,7 +133,7 @@ define(
              * sets up the callbacks for card components and
              * set up the installments
              */
-            renderPaymentMethod: function() {
+            renderCCPaymentMethod: function() {
                 var self = this;
                 if (!self.getClientKey) {
                     return false
