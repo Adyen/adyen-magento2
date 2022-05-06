@@ -353,9 +353,7 @@ define(
                                     holderName: this.agreement_data.card.holderName,
                                     onChange: this.handleOnChange.bind(this)
                                 }
-
-                                console.log(componentConfig)
-
+                                
                                 self.component = adyenCheckout.mountPaymentMethodComponent(
                                     self.checkoutComponent,
                                     'card',
