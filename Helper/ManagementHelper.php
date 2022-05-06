@@ -116,9 +116,9 @@ class ManagementHelper
     /**
      * @throws AdyenException|NoSuchEntityException
      */
-    public function getAllowedOrigins($apiKey, $demoMode)
+    public function getAllowedOrigins($apiKey, $mode)
     {
-        $management = $this->getManagementApiService($apiKey, $demoMode);
+        $management = $this->getManagementApiService($apiKey, $mode);
 
         $response = $management->allowedOrigins->list();
 
@@ -128,9 +128,9 @@ class ManagementHelper
     /**
      * @throws AdyenException|NoSuchEntityException
      */
-    public function saveAllowedOrigin($apiKey, $demoMode, $domain)
+    public function saveAllowedOrigin($apiKey, $mode, $domain)
     {
-        $management = $this->getManagementApiService($apiKey, $demoMode);
+        $management = $this->getManagementApiService($apiKey, $mode);
 
         $management->allowedOrigins->create(['domain' => $domain]);
     }
@@ -138,14 +138,14 @@ class ManagementHelper
     /**
      * @throws AdyenException|NoSuchEntityException
      */
-    private function getManagementApiService($apiKey, $demoMode): Management
+    private function getManagementApiService($apiKey, $mode): Management
     {
         $storeId = $this->storeManager->getStore()->getId();
         if (preg_match('/^\*+$/', $apiKey)) {
             // API key contains '******', set to the previously saved config value
-            $apiKey = $this->configHelper->getApiKey($demoMode);
+            $apiKey = $this->configHelper->getApiKey($mode);
         }
-        $client = $this->adyenHelper->initializeAdyenClient($storeId, $apiKey, $demoMode);
+        $client = $this->adyenHelper->initializeAdyenClient($storeId, $apiKey, $mode === 'test');
 
         return new Management($client);
     }
