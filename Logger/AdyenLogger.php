@@ -98,7 +98,7 @@ class AdyenLogger extends Logger
      * @param array $context The log context
      * @return Boolean Whether the record has been processed
      */
-    public function addRecord($level, $message, array $context = [])
+    public function addRecord($level, $message, array $context = []): bool
     {
         $context['is_exception'] = $message instanceof \Exception;
         return parent::addRecord($level, $message, $context);
@@ -113,7 +113,7 @@ class AdyenLogger extends Logger
      * @param array $context The log context
      * @return Boolean Whether the record has been processed
      */
-    public function addNotificationLog($message, array $context = [])
+    public function addNotificationLog($message, array $context = []): bool
     {
         return $this->addRecord(static::INFO, $message, $context);
     }
