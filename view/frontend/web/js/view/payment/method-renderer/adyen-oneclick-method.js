@@ -121,8 +121,6 @@ define(
                 let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
                 let paymentMethodsResponse = paymentMethodsObserver();
 
-                debugger;
-
                 if (!!paymentMethodsResponse) {
 
                     this.checkoutComponent = await AdyenCheckout({
