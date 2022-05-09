@@ -57,7 +57,9 @@ define(
 
                         return paymentMethodComponent
                     } catch (err) {
-                        console.log(err);
+                        if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
+                            console.log(err);
+                        }
                     }
                 }
 
