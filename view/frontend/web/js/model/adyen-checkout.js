@@ -59,7 +59,9 @@ define(
                         }
 
                     } catch (err) {
-                        console.log(err);
+                        if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
+                            console.log(err);
+                        }
                     }
 
                     return paymentMethodComponent;
