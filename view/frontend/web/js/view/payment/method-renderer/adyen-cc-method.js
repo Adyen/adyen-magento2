@@ -136,7 +136,7 @@ define(
             renderCCPaymentMethod: function() {
                 var self = this;
                 if (!self.getClientKey) {
-                    return false
+                    return false;
                 }
 
                 self.installments(0);
