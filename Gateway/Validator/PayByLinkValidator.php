@@ -22,11 +22,11 @@ class PayByLinkValidator extends AbstractValidator
     public function validate(array $validationSubject)
     {
         $payment = $validationSubject['payment'];
-        $expiryDate = date_create_from_format(
-            AdyenPayByLinkConfigProvider::DATE_FORMAT,
-            $payment->getAdyenPblExpiresAt()
-        );
-        if ($expiryDate) {
+        $expiresAt = $payment->getAdyenPblExpiresAt();
+        if (!is_null($expiresAt) && $expiryDate = date_create_from_format(
+                AdyenPayByLinkConfigProvider::DATE_FORMAT,
+                $expiresAt
+            )) {
             $daysToExpire = (new \DateTime())->diff($expiryDate)->format("%r%a");
             if (
                 $daysToExpire <= AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS ||
