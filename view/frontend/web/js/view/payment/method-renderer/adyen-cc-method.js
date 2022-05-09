@@ -113,9 +113,7 @@ define(
                 if (!!this.checkoutComponent) {
                     // Setting the adyenCCMethod will load the html and trigger the renderPaymentMethod on afterRender
                     self.adyenCCMethod({
-                            icon: !!paymentMethodsResponse.paymentMethodsExtraDetails.card.icon
-                                ? paymentMethodsResponse.paymentMethodsExtraDetails.card.icon
-                                : {}
+                            icon: paymentMethodsResponse.paymentMethodsExtraDetails.card.icon || {}
                         })
                 }
             },
