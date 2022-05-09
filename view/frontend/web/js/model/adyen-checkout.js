@@ -23,9 +23,9 @@ define(
     ) {
         'use strict';
         return {
-            buildCheckoutComponent: async function(paymentMethodsResponse, handleOnAdditionalDetails, handleOnCancel = undefined, handleOnSubmit = undefined) {
+            buildCheckoutComponent: function(paymentMethodsResponse, handleOnAdditionalDetails, handleOnCancel = undefined, handleOnSubmit = undefined) {
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
-                    return await AdyenCheckout({
+                    return AdyenCheckout({
                             locale: adyenConfiguration.getLocale(),
                             clientKey: adyenConfiguration.getClientKey(),
                             environment: adyenConfiguration.getCheckoutEnvironment(),
