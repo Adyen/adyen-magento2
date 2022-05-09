@@ -792,7 +792,8 @@ define(
                             self.checkoutComponent,
                             'amazonpay',
                             componentConfig,
-                            containerId
+                            containerId,
+                            result
                         )
                         amazonPayComponent.submit();
                         result.component = amazonPayComponent;

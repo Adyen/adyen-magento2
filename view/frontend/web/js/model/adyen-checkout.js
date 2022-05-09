@@ -8,16 +8,12 @@
  */
 define(
     [
-        'ko',
         'jquery',
-        'underscore',
         'Adyen_Payment/js/model/adyen-configuration',
         'Adyen_Payment/js/adyen'
     ],
     function(
-        ko,
         $,
-        _,
         adyenConfiguration,
         AdyenCheckout,
     ) {
@@ -39,11 +35,10 @@ define(
                     return false
                 }
             },
-            mountPaymentMethodComponent(checkoutComponent, paymentMethodType, configuration, elementLabel) {
+            mountPaymentMethodComponent(checkoutComponent, paymentMethodType, configuration, elementLabel, result = undefined) {
                 if($(elementLabel).length) {
-                    let paymentMethodComponent;
                     try {
-                        paymentMethodComponent = checkoutComponent.create(
+                        const paymentMethodComponent = checkoutComponent.create(
                             paymentMethodType,
                             configuration
                         )
@@ -52,21 +47,21 @@ define(
                             paymentMethodComponent.isAvailable().then(() => {
                                 paymentMethodComponent.mount(elementLabel);
                             }).catch(e => {
-                                result.isAvailable(false);
+                                if (!!result) {
+                                    result.isAvailable(false); // Set observable to false, to match component availability
+                                }
                             });
                         } else {
                             paymentMethodComponent.mount(elementLabel);
                         }
 
+                        return paymentMethodComponent
                     } catch (err) {
                         console.log(err);
                     }
-
-                    return paymentMethodComponent;
-                } else {
-                    return  false
                 }
 
+                return false;
             }
         };
     }
