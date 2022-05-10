@@ -57,7 +57,7 @@ class MerchantAccounts extends \Magento\Config\Block\System\Config\Form\Field
         )->setData(
             [
                 'id' => 'adyen_configure_merchants',
-                'label' => __('Prefill below settings'),
+                'label' => __('Configure'),
             ]
         );
 

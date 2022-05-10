@@ -87,7 +87,6 @@ echo $block->getButtonHtml() ?>
 
         });
 </script>
-
 <span class="adyen-required-settings-config-admin" id="progress">
     <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
     <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
@@ -98,5 +97,6 @@ echo $block->getButtonHtml() ?>
 </span>
 <!--if we want to add a note under the button-->
 <p class="note">
-    <span><?php echo __('Retrieves the associated merchant accounts, client key and prefills the allowed origin'); ?></span>
+    <span><?php echo __('Retrieves the associated merchant accounts, client key and the allowed origin.'); ?></span>
 </p>
+<hr>

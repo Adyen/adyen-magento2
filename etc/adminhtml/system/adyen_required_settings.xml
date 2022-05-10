@@ -97,7 +97,6 @@
             <config_path>payment/adyen_abstract/allowed_origin</config_path>
             <backend_model>Adyen\Payment\Model\Config\Backend\AllowedOriginValue</backend_model>
             <validate>validate-url</validate>
-            <tooltip>Save the storefront URL to Allowed Origins.</tooltip>
             <comment>
                 <![CDATA[
                 The Allowed Origin is white-listed by Adyen to allow client side requests.
