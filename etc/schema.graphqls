@@ -39,16 +39,19 @@ type Order {
 }
 
 type AdyenStoredPaymentMethodsArray {
-    id: String ! @doc(description: "visa, mc, or amex.")
-    brand: String! @doc(description: "visa, mc, or amex.")
-    expiryMonth: String! @doc(description: "The expiry month of the network token")
-    expiryYear: String ! @doc(description: "The expiry year of the network token")
-    holderName:String @doc(description: " The name of the cardholder associated with the network token.")
-    lastFour:String @doc(description: "The network token you get from the card networks.")
-    name: String @doc(description: "The supported types of shopper interaction.")
-    networkTxReference: String @doc(description: "The network token reference")
-    supportedShopperInteractions: [String] @doc(description: "The supported types of shopper interaction.")
-    type: String @doc(description: "The unique payment method code.")
+    id: String @doc(description: "A unique identifier of this stored payment method.")
+    brand: String @doc(description: "The brand of the card.")
+    expiryMonth: String @doc(description: "The month the card expires.")
+    expiryYear: String @doc(description: "The year the card expires.")
+    holderName:String @doc(description: "The unique payment method code.")
+    lastFour:String @doc(description: "The last four digits of the PAN.")
+    name: String @doc(description: "The display name of the stored payment method.")
+    iban: String  @doc(description: "The IBAN of the bank account.")
+    ownerName: String @doc(description: "The name of the bank account holder.")
+    shopperEmail: String @doc(description: "The shopper’s email address.")
+    networkTxReference: String @doc(description: "Returned in the response if you are not tokenizing with Adyen and are using the Merchant-initiated transactions (MIT) framework from Mastercard or Visa. This contains either the Mastercard Trace ID or the Visa Transaction ID.")
+    supportedShopperInteractions: [String] @doc(description: "The supported shopper interactions for this stored payment method.")
+    type: String @doc(description: "The type of payment method.")
 }
 
 type AdyenPaymentMethodsArray {
