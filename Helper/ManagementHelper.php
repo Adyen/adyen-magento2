@@ -76,16 +76,19 @@ class ManagementHelper
         $responseMe = $management->me->retrieve();
         $associatedMerchantAccounts = [];
         $page = 1;
-        $pageSize = 100;
+        $pageSize = 2;
         //get the associated merchant accounts using get /merchants.
         $responseMerchants = $management->merchantAccount->list(["pageSize" => $pageSize]);
-        foreach ($responseMerchants['data'] as $value) {
-            array_push($associatedMerchantAccounts, $value['id']);
-        }
-        while (isset($responseMerchants['_links']['next'])) {
-            $responseMerchants = $management->merchantAccount->list(["pageSize" => $pageSize, "pageNumber" => ++$page]);
-            foreach ($responseMerchants['data'] as $value) {
-                array_push($associatedMerchantAccounts, $value['id']);
+        while (count($associatedMerchantAccounts) < $responseMerchants['itemsTotal']) {
+            $associatedMerchantAccounts = array_merge(
+                $associatedMerchantAccounts,
+                array_column($responseMerchants['data'], 'id')
+            );
+            ++$page;
+            if (isset($responseMerchants['_links']['next'])) {
+                $responseMerchants = $management->merchantAccount->list(
+                    ["pageSize" => $pageSize, "pageNumber" => $page]
+                );
             }
         }
         return [
