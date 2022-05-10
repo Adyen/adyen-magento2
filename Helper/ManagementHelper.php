@@ -90,7 +90,7 @@ class ManagementHelper
         }
         return [
             'clientKey' => $responseMe['clientKey'],
-            'associatedMerchantAccounts' => $associatedMerchantAccounts,
+            'associatedMerchantAccounts' => $associatedMerchantAccounts
         ];
     }
 
