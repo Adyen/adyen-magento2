@@ -76,7 +76,7 @@ class ManagementHelper
         $responseMe = $management->me->retrieve();
         $associatedMerchantAccounts = [];
         $page = 1;
-        $pageSize = 2;
+        $pageSize = 100;
         //get the associated merchant accounts using get /merchants.
         $responseMerchants = $management->merchantAccount->list(["pageSize" => $pageSize]);
         while (count($associatedMerchantAccounts) < $responseMerchants['itemsTotal']) {
