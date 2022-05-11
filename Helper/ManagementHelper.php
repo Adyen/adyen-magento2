@@ -63,19 +63,37 @@ class ManagementHelper
 
     /**
      * @param string $xapikey
+     * @param bool|null $demoMode
      * @return array
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
-    public function getMerchantAccountWithApikey(string $xapikey, ?bool $demoMode = null): array
+    public function getMerchantAccountAndClientKey(string $xapikey, ?bool $demoMode = null): array
     {
         $storeId = $this->storeManager->getStore()->getId();
         $client = $this->adyenHelper->initializeAdyenClient($storeId, $xapikey, $demoMode);
         $management = new Management($client);
-        $response = $management->me->retrieve();
+        $responseMe = $management->me->retrieve();
+        $associatedMerchantAccounts = [];
+        $page = 1;
+        $pageSize = 100;
+        //get the associated merchant accounts using get /merchants.
+        $responseMerchants = $management->merchantAccount->list(["pageSize" => $pageSize]);
+        while (count($associatedMerchantAccounts) < $responseMerchants['itemsTotal']) {
+            $associatedMerchantAccounts = array_merge(
+                $associatedMerchantAccounts,
+                array_column($responseMerchants['data'], 'id')
+            );
+            ++$page;
+            if (isset($responseMerchants['_links']['next'])) {
+                $responseMerchants = $management->merchantAccount->list(
+                    ["pageSize" => $pageSize, "pageNumber" => $page]
+                );
+            }
+        }
         return [
-            'clientKey' => $response['clientKey'],
-            'associatedMerchantAccounts' => $response['associatedMerchantAccounts'],
+            'clientKey' => $responseMe['clientKey'],
+            'associatedMerchantAccounts' => $associatedMerchantAccounts
         ];
     }
 
