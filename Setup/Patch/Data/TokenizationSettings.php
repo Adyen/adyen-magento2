@@ -1,56 +1,58 @@
 <?php
 /**
- *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
  */
+declare(strict_types=1);
 
-namespace Adyen\Payment\Setup;
+namespace Adyen\Payment\Setup\Patch\Data;
 
 use Adyen\Payment\Helper\Recurring;
-use Magento\Framework\Setup\ModuleContextInterface;
-use Magento\Framework\Setup\ModuleDataSetupInterface;
-use Magento\Framework\Setup\UpgradeDataInterface;
-use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
+use Magento\Framework\App\Config\Storage\WriterInterface;
+use Magento\Framework\Setup\ModuleDataSetupInterface;
+use Magento\Framework\Setup\Patch\DataPatchInterface;
+use Magento\Framework\Setup\Patch\PatchVersionInterface;
 
-class UpgradeData implements UpgradeDataInterface
+class TokenizationSettings implements DataPatchInterface, PatchVersionInterface
 {
+    /**
+     * @var ModuleDataSetupInterface $moduleDataSetup
+     */
+    private $moduleDataSetup;
     /**
      * @var WriterInterface
      */
     private $configWriter;
-
     /**
      * @var ReinitableConfigInterface
      */
     private $reinitableConfig;
 
     public function __construct(
+        ModuleDataSetupInterface $moduleDataSetup,
         WriterInterface $configWriter,
         ReinitableConfigInterface $reinitableConfig
     ) {
+        $this->moduleDataSetup = $moduleDataSetup;
         $this->configWriter = $configWriter;
         $this->reinitableConfig = $reinitableConfig;
     }
 
     /**
-     * @param ModuleDataSetupInterface $setup
-     * @param ModuleContextInterface $context
+     * Do Upgrade
+     *
+     * @return void
      */
-    public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
+    public function apply()
     {
-        $setup->startSetup();
-
-        if (version_compare($context->getVersion(), '8.2.1'. '<')) {
-            $this->updateSchemaVersion821($setup);
-        }
-
-        $setup->endSetup();
+        $this->moduleDataSetup->getConnection()->startSetup();
+        $this->updateSchemaVersion821($this->moduleDataSetup);
+        $this->moduleDataSetup->getConnection()->endSetup();
     }
 
     /**
@@ -110,8 +112,12 @@ class UpgradeData implements UpgradeDataInterface
      * @param string $valueToUpdate
      * @param string $updatedValue
      */
-    private function updateConfigValue(ModuleDataSetupInterface $setup, string $path, string $valueToUpdate, string $updatedValue): void
-    {
+    private function updateConfigValue(
+        ModuleDataSetupInterface $setup,
+        string $path,
+        string $valueToUpdate,
+        string $updatedValue
+    ): void {
         $config = $this->findConfig($setup, $path, $valueToUpdate);
         if (isset($config)) {
             $this->configWriter->save(
@@ -121,7 +127,6 @@ class UpgradeData implements UpgradeDataInterface
                 $config['scope_id']
             );
         }
-
         // re-initialize otherwise it will cause errors
         $this->reinitableConfig->reinit();
     }
@@ -160,5 +165,26 @@ class UpgradeData implements UpgradeDataInterface
         }
 
         return $config;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getAliases()
+    {
+        return [];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function getDependencies()
+    {
+        return [];
+    }
+
+    public static function getVersion()
+    {
+        return '8.2.1';
     }
 }
