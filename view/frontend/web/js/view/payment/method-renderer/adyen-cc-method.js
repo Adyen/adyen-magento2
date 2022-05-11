@@ -23,8 +23,8 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/adyen',
-        'Adyen_Payment/js/model/adyen-payment-modal'
+        'Adyen_Payment/js/model/adyen-payment-modal',
+        'Adyen_Payment/js/model/adyen-checkout'
     ],
     function(
         $,
@@ -41,8 +41,8 @@ define(
         errorProcessor,
         adyenPaymentService,
         adyenConfiguration,
-        AdyenCheckout,
-        AdyenPaymentModal
+        AdyenPaymentModal,
+        adyenCheckout
     ) {
         'use strict';
         return Component.extend({
@@ -58,49 +58,52 @@ define(
                 storeCc: false,
                 modalLabel: 'cc_actionModal'
             },
-            /**
-             * @returns {exports.initialize}
-             */
-            initialize: async function () {
-                this._super();
-                this.vaultEnabler = new VaultEnabler();
-                this.vaultEnabler.setPaymentCode(this.getVaultCode());
-                this.vaultEnabler.isActivePaymentTokenEnabler(false);
-
-                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
-                let self = this;
-                paymentMethodsObserver.subscribe(function(paymentMethodsResponse) {
-                    self.loadCheckoutComponent(paymentMethodsResponse)
-                });
-
-                self.loadCheckoutComponent(paymentMethodsObserver());
-                return this;
-            },
-            loadCheckoutComponent: async function (paymentMethodsResponse) {
-                if (!!paymentMethodsResponse.paymentMethodsResponse) {
-                    this.checkoutComponent = await AdyenCheckout({
-                            locale: adyenConfiguration.getLocale(),
-                            clientKey: adyenConfiguration.getClientKey(),
-                            environment: adyenConfiguration.getCheckoutEnvironment(),
-                            paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
-                            onAdditionalDetails: this.handleOnAdditionalDetails.bind(this)
-                        }
-                    );
-                }
-
-                if (!!paymentMethodsResponse.paymentMethodsExtraDetails && !!paymentMethodsResponse.paymentMethodsExtraDetails.card) {
-                    this.icon = paymentMethodsResponse.paymentMethodsExtraDetails.card.icon;
-                }
-            },
             initObservable: function() {
                 this._super().observe([
                     'creditCardType',
                     'installment',
                     'installments',
                     'placeOrderAllowed',
+                    'adyenCCMethod',
+                    'logo'
                 ]);
 
                 return this;
+            },
+            /**
+             * @returns {exports.initialize}
+             */
+            initialize: function () {
+                this._super();
+                this.vaultEnabler = new VaultEnabler();
+                this.vaultEnabler.setPaymentCode(this.getVaultCode());
+                this.vaultEnabler.isActivePaymentTokenEnabler(false);
+
+                let self = this;
+
+                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+                paymentMethodsObserver.subscribe(
+                    function (paymentMethodsResponse) {
+                        self.loadCheckoutComponent(paymentMethodsResponse)
+                    });
+
+                self.loadCheckoutComponent(paymentMethodsObserver());
+                return this;
+            },
+            loadCheckoutComponent: async function (paymentMethodsResponse) {
+                let self = this;
+
+                this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
+                    paymentMethodsResponse,
+                    this.handleOnAdditionalDetails.bind(this)
+                )
+
+                if (!!this.checkoutComponent) {
+                    // Setting the adyenCCMethod will load the html and trigger the renderPaymentMethod on afterRender
+                    self.adyenCCMethod({
+                            icon: paymentMethodsResponse.paymentMethodsExtraDetails.card.icon || {}
+                        })
+                }
             },
             /**
              * Returns true if card details can be stored
@@ -116,18 +119,18 @@ define(
              * sets up the callbacks for card components and
              * set up the installments
              */
-            renderSecureFields: function() {
+            renderCCPaymentMethod: function() {
                 var self = this;
-
                 if (!self.getClientKey) {
-                    return;
+                    return false;
                 }
 
                 self.installments(0);
 
                 // installments
-                var allInstallments = self.getAllInstallments();
-                self.cardComponent = self.checkoutComponent.create('card', {
+                let allInstallments = self.getAllInstallments();
+
+                let componentConfig = {
                     enableStoreDetails: self.getEnableStoreDetails(),
                     brands: self.getAvailableCardTypeAltCodes(),
                     hasHolderName: adyenConfiguration.getHasHolderName(),
@@ -175,7 +178,16 @@ define(
                             self.installments(0);
                         }
                     }
-                }).mount('#cardContainer');
+                }
+
+                self.cardComponent = adyenCheckout.mountPaymentMethodComponent(
+                    this.checkoutComponent,
+                    'card',
+                    componentConfig,
+                    '#cardContainer'
+                )
+
+                return true
             },
 
             handleAction: function(action, orderId) {
@@ -212,6 +224,7 @@ define(
              */
             getData: function() {
                 let stateData = JSON.stringify(this.cardComponent.data);
+
                 window.sessionStorage.setItem('adyen.stateData', stateData);
                 return {
                     'method': this.item.method,
