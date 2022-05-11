@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -284,23 +272,30 @@ class Json extends Action
      */
     private function loadNotificationFromRequest(Notification $notification, array $requestItem)
     {
-        $fields = [
-            'pspReference',
-            'originalReference',
-            'merchantReference',
-            'eventCode',
-            'success',
-            'paymentMethod',
-            'reason',
-            'done',
-        ];
-        foreach ($fields as $field) {
-            if (isset($requestItem[$field])) {
-                $setter = 'set' . ucfirst($field);
-                call_user_func([$notification, $setter], $requestItem[$field]);
-            }
+        if (isset($requestItem['pspReference'])) {
+            $notification->setPspreference($requestItem['pspReference']);
         }
-
+        if (isset($requestItem['originalReference'])) {
+            $notification->setOriginalReference($requestItem['originalReference']);
+        }
+        if (isset($requestItem['merchantReference'])) {
+            $notification->setMerchantReference($requestItem['merchantReference']);
+        }
+        if (isset($requestItem['eventCode'])) {
+            $notification->setEventCode($requestItem['eventCode']);
+        }
+        if (isset($requestItem['success'])) {
+            $notification->setSuccess($requestItem['success']);
+        }
+        if (isset($requestItem['paymentMethod'])) {
+            $notification->setPaymentMethod($requestItem['paymentMethod']);
+        }
+        if (isset($requestItem['reason'])) {
+            $notification->setReason($requestItem['reason']);
+        }
+        if (isset($requestItem['done'])) {
+            $notification->setDone($requestItem['done']);
+        }
         if (isset($requestItem['amount'])) {
             $notification->setAmountValue($requestItem['amount']['value']);
             $notification->setAmountCurrency($requestItem['amount']['currency']);
