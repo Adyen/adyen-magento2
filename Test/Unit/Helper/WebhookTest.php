@@ -32,7 +32,6 @@ use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
-use Magento\Sales\Model\ResourceModel\Order\Invoice as InvoiceResourceModel;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
@@ -108,7 +107,7 @@ class WebhookTest extends TestCase
             $this->createMock(EncryptorInterface::class),
             new ChargedCurrency($this->configHelper),
             $this->createMock(PaymentMethodsHelper::class),
-            $this->createMock(InvoiceResourceModel::class),
+            $this->createMock(Order\InvoiceRepository::class),
             $this->adyenOrderPaymentHelper,
             $this->createMock(InvoiceHelper::class),
             $this->caseManagementHelper,

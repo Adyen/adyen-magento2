@@ -22,9 +22,9 @@ define(
         'uiLayout',
         'Magento_Ui/js/model/messages',
         'Magento_Checkout/js/model/error-processor',
-        'Adyen_Payment/js/adyen',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/model/adyen-payment-modal'
+        'Adyen_Payment/js/model/adyen-payment-modal',
+        'Adyen_Payment/js/model/adyen-checkout'
     ],
     function(
         ko,
@@ -40,9 +40,9 @@ define(
         layout,
         Messages,
         errorProcessor,
-        AdyenCheckout,
         adyenConfiguration,
-        adyenPaymentModal
+        adyenPaymentModal,
+        adyenCheckout
     ) {
         'use strict';
 
@@ -103,19 +103,15 @@ define(
             loadAdyenPaymentMethods: async function (paymentMethodsResponse) {
                 var self = this;
 
+                this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
+                    paymentMethodsResponse,
+                    this.handleOnAdditionalDetails.bind(this),
+                    this.handleOnCancel.bind(this),
+                    this.handleOnSubmit.bind(this)
+                )
+
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
                     var paymentMethods = paymentMethodsResponse.paymentMethodsResponse.paymentMethods;
-                    this.checkoutComponent = await AdyenCheckout({
-                            locale: adyenConfiguration.getLocale(),
-                            clientKey: adyenConfiguration.getClientKey(),
-                            environment: adyenConfiguration.getCheckoutEnvironment(),
-                            paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
-                            onAdditionalDetails: this.handleOnAdditionalDetails.bind(
-                                this),
-                            onCancel: this.handleOnCancel.bind(this),
-                            onSubmit: this.handleOnSubmit.bind(this),
-                        },
-                    );
 
                     // Needed until the new ratepay component is released
                     if (JSON.stringify(paymentMethods).indexOf('ratepay') >
@@ -138,8 +134,7 @@ define(
                         document.body.appendChild(ratepayScriptTag);
                     }
 
-                    self.adyenPaymentMethods(
-                        self.getAdyenHppPaymentMethods(paymentMethodsResponse));
+                    self.adyenPaymentMethods(self.getAdyenHppPaymentMethods(paymentMethodsResponse));
                 }
                 fullScreenLoader.stopLoader();
             },
@@ -317,7 +312,7 @@ define(
                 $('.hpp-message').slideUp();
                 self.isPlaceOrderActionAllowed(false);
 
-               await $.when(
+                await $.when(
                     placeOrderAction(data,
                         self.currentMessageContainer),
                 ).fail(
@@ -331,11 +326,11 @@ define(
                         self.afterPlaceOrder();
                         adyenPaymentService.getOrderPaymentStatus(
                             orderId).
-                            done(function(responseJSON) {
-                                self.validateActionOrPlaceOrder(
-                                    responseJSON,
-                                    orderId, component);
-                            });
+                        done(function(responseJSON) {
+                            self.validateActionOrPlaceOrder(
+                                responseJSON,
+                                orderId, component);
+                        });
                     },
                 );
             },
@@ -524,18 +519,18 @@ define(
                 $(".error-message-hpp").show();
                 if (!!response['responseJSON'].parameters) {
                     $('#messages-' + selectedAlternativePaymentMethodType()).
-                        text((response['responseJSON'].message).replace('%1',
-                            response['responseJSON'].parameters[0])).
-                        slideDown();
+                    text((response['responseJSON'].message).replace('%1',
+                        response['responseJSON'].parameters[0])).
+                    slideDown();
                 } else {
                     $('#messages-' + selectedAlternativePaymentMethodType()).
-                        text(response['responseJSON'].message).
-                        slideDown();
+                    text(response['responseJSON'].message).
+                    slideDown();
                 }
 
                 setTimeout(function() {
                     $('#messages-' + selectedAlternativePaymentMethodType()).
-                        slideUp();
+                    slideUp();
                 }, 10000);
             },
             validate: function() {
@@ -735,7 +730,7 @@ define(
                     configuration.returnUrl = url.href;
                     configuration.onSubmit = async (state, amazonPayComponent) => {
                         try {
-                           await self.handleOnSubmit(state.data, amazonPayComponent);
+                            await self.handleOnSubmit(state.data, amazonPayComponent);
                         } catch (error) {
                             amazonPayComponent.handleDeclineFlow();
                         }
@@ -771,7 +766,7 @@ define(
                         paymentMethod.methodIdentifier === 'amazonpay'
                         && url.searchParams.has(amazonSessionKey)
                     ) {
-                        const amazonPayComponent = self.checkoutComponent.create('amazonpay', {
+                        let componentConfig = {
                             amazonCheckoutSessionId: url.searchParams.get(amazonSessionKey),
                             showOrderButton: false,
                             amount: {
@@ -779,22 +774,25 @@ define(
                                 value: configuration.amount.value
                             },
                             showChangePaymentDetailsButton: false
-                        }).mount(containerId);
+                        }
+
+                        const amazonPayComponent = adyenCheckout.mountPaymentMethodComponent(
+                            self.checkoutComponent,
+                            'amazonpay',
+                            componentConfig,
+                            containerId,
+                            result
+                        )
                         amazonPayComponent.submit();
                         result.component = amazonPayComponent;
                     }
-                    const component = self.checkoutComponent.create(
-                        paymentMethod.methodIdentifier, configuration);
-                    if ('isAvailable' in component) {
-                        component.isAvailable().then(() => {
-                            component.mount(containerId);
-                        }).catch(e => {
-                            result.isAvailable(false);
-                        });
-                    } else {
-                        component.mount(containerId);
-                    }
-                    result.component = component;
+
+                    result.component = adyenCheckout.mountPaymentMethodComponent(
+                        self.checkoutComponent,
+                        paymentMethod.methodIdentifier,
+                        configuration,
+                        containerId
+                    );
 
                 } catch (err) {
                     // The component does not exist yet
