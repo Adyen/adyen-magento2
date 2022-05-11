@@ -89,7 +89,8 @@ class MerchantAccounts extends Action
             if (!empty($xapikey) && preg_match('/^\*+$/', $xapikey)) {
                 $xapikey = '';
             }
-            $response = $this->managementHelper->getMerchantAccountWithApikey($xapikey);
+
+            $response = $this->managementHelper->getMerchantAccountAndClientKey($xapikey);
             $currentMerchantAccount = $this->adyenHelper->getAdyenMerchantAccount('adyen_cc');
 
             $storeId = $this->getRequest()->getParam('storeId');
