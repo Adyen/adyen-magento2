@@ -75,15 +75,8 @@ class BaseUrlHelper
         return $this->url->getBaseUrl();
     }
 
-    /**
-     * @throws \Exception
-     */
     public function getDomainFromUrl(string $url): string
     {
-        if (!filter_var($url, FILTER_VALIDATE_URL)) {
-            throw new \Exception('Invalid URL');
-        }
-
         $urlParts = parse_url($url);
 
         $domain = $urlParts['scheme'] . '://' . $urlParts['host'];
