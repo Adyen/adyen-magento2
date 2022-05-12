@@ -1,18 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
- *
  * Adyen Payment module (https://www.adyen.com/)
  *
  * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
@@ -142,5 +129,42 @@ class ManagementHelper
         $hmac = $response['hmacKey'];
         $mode = $demoMode ? 'test' : 'live';
         $this->configHelper->setConfigData($hmac, 'notification_hmac_key_' . $mode, Config::XML_ADYEN_ABSTRACT_PREFIX);
+    }
+
+    /**
+     * @throws AdyenException|NoSuchEntityException
+     */
+    public function getAllowedOrigins($apiKey, $mode)
+    {
+        $management = $this->getManagementApiService($apiKey, $mode);
+
+        $response = $management->allowedOrigins->list();
+
+        return array_column($response['data'], 'domain');
+    }
+
+    /**
+     * @throws AdyenException|NoSuchEntityException
+     */
+    public function saveAllowedOrigin($apiKey, $mode, $domain)
+    {
+        $management = $this->getManagementApiService($apiKey, $mode);
+
+        $management->allowedOrigins->create(['domain' => $domain]);
+    }
+
+    /**
+     * @throws AdyenException|NoSuchEntityException
+     */
+    private function getManagementApiService($apiKey, $mode): Management
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        if (preg_match('/^\*+$/', $apiKey)) {
+            // API key contains '******', set to the previously saved config value
+            $apiKey = $this->configHelper->getApiKey($mode);
+        }
+        $client = $this->adyenHelper->initializeAdyenClient($storeId, $apiKey, $mode === 'test');
+
+        return new Management($client);
     }
 }
