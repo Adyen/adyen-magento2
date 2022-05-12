@@ -26,25 +26,16 @@
     <column xsi:type="decimal" name="total_captured" scale="4" precision="12" unsigned="true" nullable="true" comment="Field to determine the amount that has been captured."/>
     <constraint xsi:type="primary" referenceId="PRIMARY">
       <column name="entity_id"/>
-      <column name="entity_id"/>
     </constraint>
     <constraint xsi:type="foreign" referenceId="ADYEN_ORDER_PAYMENT_PAYMENT_ID_SALES_ORDER_PAYMENT_ENTITY_ID" table="adyen_order_payment" column="payment_id" referenceTable="sales_order_payment" referenceColumn="entity_id" onDelete="CASCADE"/>
     <constraint xsi:type="unique" referenceId="ADYEN_ORDER_PAYMENT_PSPREFERENCE">
       <column name="pspreference"/>
-      <column name="pspreference"/>
     </constraint>
   </table>
   <table name="adyen_notification" resource="default" engine="innodb" comment="Adyen Notifications">
-    <column xsi:type="varchar" name="original_reference" nullable="true" length="255" comment="Original Reference"/>
-    <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Adyen Notification Entity ID" onCreate="migrateDataFrom(entity_id)"/>
-    <column xsi:type="boolean" name="processing" nullable="true" comment="Adyen Notification Cron Processing"/>
-    <column xsi:type="boolean" name="error_count" nullable="true" comment="Adyen Notification Process Error Count"/>
-    <column xsi:type="text" name="error_message" nullable="true" comment="Adyen Notification Process Error Message"/>
-    <constraint xsi:type="primary" referenceId="STAGING_PRIMARY">
-      <column name="entity_id"/>
-      <column name="entity_id"/>
-    </constraint>
+    <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Adyen Notification Entity ID"/>
     <column xsi:type="varchar" name="pspreference" nullable="true" length="255" comment="Pspreference"/>
+    <column xsi:type="varchar" name="original_reference" nullable="true" length="255" comment="Original Reference"/>
     <column xsi:type="varchar" name="merchant_reference" nullable="true" length="255" comment="Merchant Reference"/>
     <column xsi:type="varchar" name="event_code" nullable="true" length="255" comment="Event Code"/>
     <column xsi:type="varchar" name="success" nullable="true" length="255" comment="Success"/>
@@ -54,7 +45,10 @@
     <column xsi:type="varchar" name="reason" nullable="true" length="255" comment="reason"/>
     <column xsi:type="varchar" name="live" nullable="true" length="255" comment="Send from Live platform of adyen?"/>
     <column xsi:type="text" name="additional_data" nullable="true" comment="AdditionalData"/>
-    <column xsi:type="boolean" name="done" nullable="false" comment="done"/>
+    <column xsi:type="boolean" name="done" nullable="false" comment="done" default="0"/>
+    <column xsi:type="boolean" name="processing" nullable="true" comment="Adyen Notification Cron Processing" default="0"/>
+    <column xsi:type="int" name="error_count" nullable="true" comment="Adyen Notification Process Error Count" default="0"/>
+    <column xsi:type="text" name="error_message" nullable="true" comment="Adyen Notification Process Error Message"/>
     <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
     <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
     <constraint xsi:type="primary" referenceId="PRIMARY">
@@ -88,7 +82,6 @@
     <column xsi:type="int" name="adyen_order_payment_id" padding="10" unsigned="true" nullable="true" identity="false" comment="Field to link this row to the an adyen_order_payment row."/>
     <constraint xsi:type="primary" referenceId="PRIMARY">
       <column name="entity_id"/>
-      <column name="entity_id"/>
     </constraint>
     <constraint xsi:type="foreign" referenceId="ADYEN_INVOICE_INVOICE_ID_SALES_INVOICE_ENTITY_ID" table="adyen_invoice" column="invoice_id" referenceTable="sales_invoice" referenceColumn="entity_id" onDelete="CASCADE"/>
     <constraint xsi:type="foreign" referenceId="ADYEN_INVOICE_ADYEN_ORDER_PAYMENT_ID_ADYEN_ORDER_PAYMENT_ENTT_ID" table="adyen_invoice" column="adyen_order_payment_id" referenceTable="adyen_order_payment" referenceColumn="entity_id" onDelete="CASCADE"/>
@@ -110,7 +103,6 @@
     <column xsi:type="text" name="result_code" nullable="true" comment="Payment Response Result Code"/>
     <column xsi:type="text" name="response" nullable="true" comment="Payment Response"/>
     <constraint xsi:type="primary" referenceId="PRIMARY">
-      <column name="entity_id"/>
       <column name="entity_id"/>
     </constraint>
   </table>
