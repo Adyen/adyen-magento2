@@ -47,7 +47,8 @@ class WebhookTest extends Action
     /**
      * @return \Magento\Framework\Controller\Result\Json
      */
-    public function execute(){
+    public function execute()
+    {
         $response = $this->managementApiHelper->webhookTest();
     }
 }

@@ -32,6 +32,7 @@ use Adyen\AdyenException;
 use Adyen\Service\Management;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManager;
+use mysql_xdevapi\Exception;
 
 class ManagementHelper
 {
@@ -146,8 +147,16 @@ class ManagementHelper
 
     public function webhookTest(): string
     {
+        $params = ['types' => ['AUTHORISATION']];
         $storeId = $this->storeManager->getStore()->getId();
         $webhookId = $this->configHelper->getWebhookId($storeId);
-        return $webhookId;
+        try {
+            $client = $this->adyenHelper->initializeAdyenClient();
+            $management = new Management($client);
+            return $management->merchantWebhooks->test("dotnetalexandros", $webhookId, $params);
+        } catch (AdyenException $e)
+        {
+            return $e->getMessage();
+        }
     }
 }
