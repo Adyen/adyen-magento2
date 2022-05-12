@@ -143,4 +143,11 @@ class ManagementHelper
         $mode = $demoMode ? 'test' : 'live';
         $this->configHelper->setConfigData($hmac, 'notification_hmac_key_' . $mode, Config::XML_ADYEN_ABSTRACT_PREFIX);
     }
+
+    public function webhookTest(): string
+    {
+        $storeId = $this->storeManager->getStore()->getId();
+        $webhookId = $this->configHelper->getWebhookId($storeId);
+        return $webhookId;
+    }
 }

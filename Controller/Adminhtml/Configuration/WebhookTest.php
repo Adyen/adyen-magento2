@@ -24,25 +24,30 @@
 
 namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
-use Adyen\AdyenException;
 use Adyen\Payment\Helper\ManagementHelper;
 use Magento\Backend\App\Action;
-use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Backend\App\Action\Context;
 
 class WebhookTest extends Action
 {
+    /**
+     * @var ManagementHelper
+     */
+    private $managementApiHelper;
+
     public function __construct(
-        Context $context
+        Context $context,
+        ManagementHelper $managementApiHelper
 
     ) {
         parent::__construct($context);
-
+        $this->managementApiHelper = $managementApiHelper;
     }
+
     /**
      * @return \Magento\Framework\Controller\Result\Json
      */
     public function execute(){
-        $xapikey = "";
+        $response = $this->managementApiHelper->webhookTest();
     }
 }
