@@ -326,6 +326,8 @@ class Webhook
             // update order details
             $this->updateAdyenAttributes($notification);
 
+            $this->order->getPayment()->setAdditionalInformation('payment_method', $notification->getPaymentMethod());
+
             // Get transition state
             $currentState = $this->getCurrentState($this->order->getState());
             if (!$currentState) {
