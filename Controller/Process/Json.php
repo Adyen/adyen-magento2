@@ -137,7 +137,7 @@ class Json extends Action
         }
 
         // Read JSON encoded notification body
-        $notificationItems = json_decode(file_get_contents('php://input'), true);
+        $notificationItems = json_decode($this->getRequest()->getContent(), true);
 
         // Check notification mode
         if (!isset($notificationItems['live'])) {
