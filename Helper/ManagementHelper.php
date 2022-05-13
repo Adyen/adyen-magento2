@@ -145,17 +145,22 @@ class ManagementHelper
         $this->configHelper->setConfigData($hmac, 'notification_hmac_key_' . $mode, Config::XML_ADYEN_ABSTRACT_PREFIX);
     }
 
-    public function webhookTest(): string
+    /**
+     * @param string $merchantId
+     * @return mixed|string
+     * @throws NoSuchEntityException
+     */
+    public function webhookTest(string $merchantId)
     {
+        //this is what we send from the BO too
         $params = ['types' => ['AUTHORISATION']];
         $storeId = $this->storeManager->getStore()->getId();
         $webhookId = $this->configHelper->getWebhookId($storeId);
         try {
             $client = $this->adyenHelper->initializeAdyenClient();
             $management = new Management($client);
-            return $management->merchantWebhooks->test("dotnetalexandros", $webhookId, $params);
-        } catch (AdyenException $e)
-        {
+            return $management->merchantWebhooks->test($merchantId, $webhookId, $params);
+        } catch (AdyenException $e) {
             return $e->getMessage();
         }
     }

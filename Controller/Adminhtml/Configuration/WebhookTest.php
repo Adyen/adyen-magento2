@@ -27,6 +27,7 @@ namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 use Adyen\Payment\Helper\ManagementHelper;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\Controller\Result\JsonFactory;
 
 class WebhookTest extends Action
 {
@@ -35,20 +36,59 @@ class WebhookTest extends Action
      */
     private $managementApiHelper;
 
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    protected $adyenHelper;
+
+    /**
+     * @var JsonFactory
+     */
+    protected $resultJsonFactory;
+
     public function __construct(
         Context $context,
-        ManagementHelper $managementApiHelper
-
+        ManagementHelper $managementApiHelper,
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        JsonFactory $resultJsonFactory
     ) {
         parent::__construct($context);
         $this->managementApiHelper = $managementApiHelper;
+        $this->adyenHelper =$adyenHelper;
+        $this->resultJsonFactory = $resultJsonFactory;
     }
 
     /**
-     * @return \Magento\Framework\Controller\Result\Json
+     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|mixed|string
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function execute()
     {
-        $response = $this->managementApiHelper->webhookTest();
+        $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount('adyen_cc');
+        $response = $this->managementApiHelper->webhookTest($merchantAccount);
+        $resultJson = $this->resultJsonFactory->create();
+        if (isset($response['data']) && in_array(
+                'success',
+                array_column(
+                    $response['data'],
+                    'status'
+                ),
+                true
+            )) {
+            $resultJson->setData(
+                [
+                    'messages' => $response,
+                    'statusCode' => 'Success'
+                ]
+            );
+        } else {
+            $resultJson->setData(
+                [
+                    'messages' => $response,
+                    'statusCode' => 'Failed'
+                ]
+            );
+        }
+        return $resultJson;
     }
 }

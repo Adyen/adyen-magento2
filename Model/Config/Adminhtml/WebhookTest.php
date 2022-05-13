@@ -66,7 +66,7 @@ class WebhookTest extends \Magento\Config\Block\System\Config\Form\Field
         )->setData(
             [
                 'id' => 'adyen_webhook_test',
-                'label' => __('Configure'),
+                'label' => __('Test'),
                 'disabled' => true
             ]
         );
