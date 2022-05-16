@@ -62,16 +62,28 @@ class BaseUrlHelper
      * @param null|int|string $storeId
      * @return string
      */
-    public function getStoreBaseUrl($storeId)
+    public function getStoreBaseUrl($storeId, $ignoreAdmin = false)
     {
         if ($paymentOriginUrl = $this->config->getPWAOriginUrl($storeId)) {
             return $paymentOriginUrl;
         }
         
-        if ('adminhtml' === $this->state->getAreaCode()) {
+        if ('adminhtml' === $this->state->getAreaCode() && !$ignoreAdmin) {
             return $this->backendHelper->getHomePageUrl();
         }
         
         return $this->url->getBaseUrl();
+    }
+
+    public function getDomainFromUrl(string $url): string
+    {
+        $urlParts = parse_url($url);
+
+        $domain = $urlParts['scheme'] . '://' . $urlParts['host'];
+        if (isset($urlParts['port'])) {
+            $domain .= ':' . $urlParts['port'];
+        }
+
+        return $domain;
     }
 }
