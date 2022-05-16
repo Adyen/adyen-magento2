@@ -84,13 +84,7 @@ class WebhookProcessor
         /** @var Notification[] $notifications */
         foreach ($notifications as $notification) {
             // ignore duplicate notification
-            if ($notification->isDuplicate(
-                $notification->getPspreference(),
-                $notification->getEventCode(),
-                $notification->getSuccess(),
-                $notification->getOriginalReference(),
-                true
-            )) {
+            if ($notification->isDuplicate(true)) {
                 $this->adyenLogger->addAdyenNotificationCronjob(
                     "This is a duplicate notification and will be ignored",
                     $notification->toArray(['entity_id', 'pspreference', 'event_code', 'success', 'original_reference'])
@@ -99,7 +93,15 @@ class WebhookProcessor
             }
 
             // Skip notifications that should be delayed
-            if ($this->webhookHelper->shouldSkipProcessingNotification($notification)) {
+            if ($notification->shouldSkipProcessing()) {
+                $this->adyenLogger->addAdyenNotificationCronjob(
+                    sprintf(
+                        '%s notification (entity_id: %s) for merchant_reference: %s is skipped! Wait 10 minute before processing.',
+                        $notification->getEventCode(),
+                        $notification->getEntityId(),
+                        $notification->getMerchantReference()
+                    )
+                );
                 continue;
             }
 
