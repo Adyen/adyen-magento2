@@ -129,6 +129,9 @@
             <validate>validate-url</validate>
             <tooltip>Set the webhook URL. </tooltip>
         </field>
+        <field id="adyen_webhook_test" translate="label comment" type="button" sortOrder="105" showInDefault="1" showInWebsite="1" showInStore="1">
+            <frontend_model>Adyen\Payment\Model\Config\Adminhtml\WebhookTest</frontend_model>
+        </field>
         <field id="notifications_hmac_check" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Check notification's HMAC signature</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
