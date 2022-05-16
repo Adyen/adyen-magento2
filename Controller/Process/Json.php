@@ -137,7 +137,7 @@ class Json extends Action
         }
 
         // Read JSON encoded notification body
-        $notificationItems = json_decode(file_get_contents('php://input'), true);
+        $notificationItems = json_decode($this->getRequest()->getContent(), true);
 
         // Check notification mode
         if (!isset($notificationItems['live'])) {
@@ -333,15 +333,17 @@ class Json extends Action
      */
     private function isDuplicate(array $response)
     {
-        $pspReference = trim($response['pspReference']);
-        $eventCode = trim($response['eventCode']);
-        $success = trim($response['success']);
         $originalReference = null;
         if (isset($response['originalReference'])) {
             $originalReference = trim($response['originalReference']);
         }
         $notification = $this->notificationFactory->create();
-        return $notification->isDuplicate($pspReference, $eventCode, $success, $originalReference);
+        $notification->setPspreference(trim($response['pspReference']));
+        $notification->setEventCode(trim($response['eventCode']));
+        $notification->setSuccess(trim($response['success']));
+        $notification->setOriginalReference($originalReference);
+
+        return $notification->isDuplicate();
     }
 
     /**
