@@ -340,7 +340,7 @@ class CheckoutDataBuilder implements BuilderInterface
                 'taxAmount' => $formattedTaxAmount,
                 'description' => $order->getShippingDescription(),
                 'quantity' => 1,
-                'taxPercentage' => ($formattedTaxAmount / $formattedPriceExcludingTax) * 100 * 100
+                'taxPercentage' => (int) ($formattedTaxAmount / $formattedPriceExcludingTax) * 100 * 100
             ];
         }
 
