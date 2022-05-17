@@ -66,29 +66,13 @@ class WebhookTest extends Action
     {
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount('adyen_cc');
         $response = $this->managementApiHelper->webhookTest($merchantAccount);
+        $success = isset($response['data']) && 
+            in_array('success', array_column($response['data'], 'status'), true);
         $resultJson = $this->resultJsonFactory->create();
-        if (isset($response['data']) && in_array(
-                'success',
-                array_column(
-                    $response['data'],
-                    'status'
-                ),
-                true
-            )) {
-            $resultJson->setData(
-                [
-                    'messages' => $response,
-                    'statusCode' => 'Success'
-                ]
-            );
-        } else {
-            $resultJson->setData(
-                [
-                    'messages' => $response,
-                    'statusCode' => 'Failed'
-                ]
-            );
-        }
+        $resultJson->setData([
+            'messages' => $response,
+            'statusCode' => $success ? 'Success' : 'Failed'
+        ]);
         return $resultJson;
     }
 }
