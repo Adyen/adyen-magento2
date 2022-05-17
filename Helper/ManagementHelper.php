@@ -19,6 +19,7 @@ use Adyen\AdyenException;
 use Adyen\Service\Management;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManager;
+use Adyen\Payment\Logger\AdyenLogger;
 
 class ManagementHelper
 {
@@ -36,16 +37,28 @@ class ManagementHelper
     private $configHelper;
 
     /**
+     * Logging instance
+     *
+     * @var AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
      * ManagementHelper constructor.
      * @param StoreManager $storeManager
      * @param Data $adyenHelper
      * @param Config $configHelper
      */
-    public function __construct(StoreManager $storeManager, Data $adyenHelper, Config $configHelper)
-    {
+    public function __construct(
+        StoreManager $storeManager,
+        Data $adyenHelper,
+        Config $configHelper,
+        AdyenLogger $adyenLogger
+    ) {
         $this->adyenHelper = $adyenHelper;
         $this->storeManager = $storeManager;
         $this->configHelper = $configHelper;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -166,5 +179,31 @@ class ManagementHelper
         $client = $this->adyenHelper->initializeAdyenClient($storeId, $apiKey, $mode === 'test');
 
         return new Management($client);
+    }
+
+    /**
+     * @param string $merchantId
+     * @return mixed|string
+     * @throws NoSuchEntityException
+     */
+    public function webhookTest(string $merchantId)
+    {
+        //this is what we send from the customer area too
+        $params = ['types' => ['AUTHORISATION']];
+        $storeId = $this->storeManager->getStore()->getId();
+        $webhookId = $this->configHelper->getWebhookId($storeId);
+        try {
+            $client = $this->adyenHelper->initializeAdyenClient();
+            $management = new Management($client);
+            $response = $management->merchantWebhooks->test($merchantId, $webhookId, $params);
+            $this->adyenLogger->addInfo(
+                sprintf( 'response from webhook test %s',
+                json_encode($response))
+            );
+            return $response;
+        } catch (AdyenException $exception) {
+            $this->adyenLogger->addError($exception->getMessage());
+            return $exception->getMessage();
+        }
     }
 }
