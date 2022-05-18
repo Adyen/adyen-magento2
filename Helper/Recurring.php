@@ -37,19 +37,26 @@ class Recurring
     private $config;
 
     /**
+     * @var Vault
+     */
+    private $vaultHelper;
+
+    /**
      * Recurring constructor.
      */
     public function __construct(
         AdyenLogger $adyenLogger,
         AgreementFactory $agreementFactory,
         Agreement $billingAgreementResourceModel,
-        Config $config
+        Config $config,
+        Vault $vaultHelper
     )
     {
         $this->adyenLogger = $adyenLogger;
         $this->billingAgreementFactory = $agreementFactory;
         $this->billingAgreementResourceModel = $billingAgreementResourceModel;
         $this->config = $config;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -149,5 +156,37 @@ class Recurring
             $order->addRelatedObject($comment);
             $order->save();
         }
+    }
+
+
+    /**
+     * Get the recurring type to be assigned to a token based on the admin settings
+     *
+     * @param null|int|string $storeId
+     * @return null|string
+     */
+    public function getRecurringTypeFromSetting($storeId = null): ?string
+    {
+        $vaultEnabled = $this->vaultHelper->isCardVaultEnabled($storeId);
+        $adyenTokensEnabled = $this->areAdyenTokensEnabled($storeId);
+
+        if ($vaultEnabled) {
+            return self::SUBSCRIPTION;
+        } elseif ($adyenTokensEnabled) {
+            return $this->config->getCardRecurringType($storeId);
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if Adyen tokens are enabled
+     *
+     * @param null $storeId
+     * @return bool
+     */
+    public function areAdyenTokensEnabled($storeId = null): bool
+    {
+        return $this->config->getCardRecurringMode($storeId) === self::MODE_ADYEN_TOKENIZATION;
     }
 }
