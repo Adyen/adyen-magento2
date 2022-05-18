@@ -1647,28 +1647,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * For backwards compatibility get the recurringType used for HPP + current billing agreements
-     *
-     * @param null|int|string $storeId
-     * @return null|string
-     */
-    public function getRecurringTypeFromOneclickRecurringSetting($storeId = null)
-    {
-        $enableOneclick = $this->getAdyenAbstractConfigDataFlag('enable_oneclick', $storeId);
-        $adyenCCVaultActive = $this->getAdyenCcVaultConfigDataFlag('active', $storeId);
-
-        if ($enableOneclick && $adyenCCVaultActive) {
-            return RecurringType::ONECLICK_RECURRING;
-        } elseif ($enableOneclick && !$adyenCCVaultActive) {
-            return RecurringType::ONECLICK;
-        } elseif (!$enableOneclick && $adyenCCVaultActive) {
-            return RecurringType::ONECLICK_RECURRING;
-        } else {
-            return RecurringType::NONE;
-        }
-    }
-
-    /**
      * Get icon from variant
      *
      * @param $variant
