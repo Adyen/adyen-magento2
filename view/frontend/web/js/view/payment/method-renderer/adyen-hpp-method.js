@@ -421,15 +421,13 @@ define(
                 var actionNode = document.getElementById(this.modalLabel + 'Content');
                 fullScreenLoader.stopLoader();
 
-                self.popupModal = adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
-
                 // If this is a handleAction method then do it that way, otherwise createFrom action
                 if (self.handleActionPaymentMethods.includes(
                     selectedAlternativePaymentMethodType())) {
                     self.actionComponent = component.handleAction(action);
                 } else {
                     if (resultCode !== 'RedirectShopper') {
-                        self.popupModal.modal('openModal');
+                        self.popupModal = adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
                     }
                     self.actionComponent = self.checkoutComponent.createFromAction(action).
                     mount(actionNode);
@@ -748,6 +746,20 @@ define(
                             postalCode: formattedShippingAddress.postalCode,
                             countryCode: formattedShippingAddress.country,
                             phoneNumber: formattedShippingAddress.telephone
+                        };
+                    }
+                    else if (formattedBillingAddress &&
+                        formattedBillingAddress.telephone) {
+                        configuration.addressDetails = {
+                            name: formattedBillingAddress.firstName +
+                                ' ' +
+                                formattedBillingAddress.lastName,
+                            addressLine1: formattedBillingAddress.street,
+                            addressLine2: formattedBillingAddress.houseNumber,
+                            city: formattedBillingAddress.city,
+                            postalCode: formattedBillingAddress.postalCode,
+                            countryCode: formattedBillingAddress.country,
+                            phoneNumber: formattedBillingAddress.telephone
                         };
                     }
                 }

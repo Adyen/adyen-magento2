@@ -326,6 +326,8 @@ class Webhook
             // update order details
             $this->updateAdyenAttributes($notification);
 
+            $this->order->getPayment()->setAdditionalInformation('payment_method', $notification->getPaymentMethod());
+
             // Get transition state
             $currentState = $this->getCurrentState($this->order->getState());
             if (!$currentState) {
@@ -372,36 +374,6 @@ class Webhook
 
             return false;
         }
-    }
-
-    /**
-     * Remove OFFER_CLOSED and AUTHORISATION success=false notifications for some time from the processing list
-     * to ensure they won't close any order which has an AUTHORISED notification arrived a bit later than the
-     * OFFER_CLOSED or the AUTHORISATION success=false one.
-     * @param Notification $notification
-     * @return bool
-     */
-    public function shouldSkipProcessingNotification(Notification $notification): bool
-    {
-        if ((
-                Notification::OFFER_CLOSED === $notification->getEventCode() ||
-                (Notification::AUTHORISATION === $notification->getEventCode() && !$notification->isSuccessful())
-            ) &&
-            $notification->isLessThan10MinutesOld()
-        ) {
-            $this->logger->addAdyenNotificationCronjob(
-                sprintf(
-                    '%s notification (entity_id: %s) for merchant_reference: %s is skipped! Wait 10 minute before processing.',
-                    $notification->getEventCode(),
-                    $notification->getEntityId(),
-                    $notification->getMerchantReference()
-                )
-            );
-
-            return true;
-        }
-
-        return false;
     }
 
     private function getCurrentState($orderState)

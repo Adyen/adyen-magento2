@@ -28,6 +28,9 @@ $paymentInfo = $block->getInfo();
            href="<?= $escaper->escapeHtml($paymentInfo->getAdditionalInformation('payByLinkUrl')); ?>">
             <?= $escaper->escapeHtml(__('Payment Link')) ?>
         </a>
+        <?php if ($paymentMethod = $paymentInfo->getAdditionalInformation('payment_method')): ?>
+            <div><?= $block->escapeHtml(__('Payment Method: %1', $paymentMethod)); ?></div>
+        <?php endif; ?>
     </div>
 <?php endif; ?>
 <?= $escaper->escapeHtml($block->getChildHtml()); ?>
