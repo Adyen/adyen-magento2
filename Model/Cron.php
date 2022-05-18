@@ -2085,7 +2085,7 @@ class Cron
      * @param $storeId
      * @return mixed
      */
-    protected function _getConfigData($field, $paymentMethodCode = 'adyen_cc', $storeId)
+    protected function _getConfigData($field, $paymentMethodCode = 'adyen_cc', $storeId = null)
     {
         $path = 'payment/' . $paymentMethodCode . '/' . $field;
         return $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
