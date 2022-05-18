@@ -29,6 +29,8 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_abstract/has_holder_name 1
 	bin/magento config:set payment/adyen_boleto/active 1
 	bin/magento config:set payment/adyen_boleto/boletotypes 'boletobancario_santander'
+	bin/magento config:set payment/adyen_pay_by_link/active 1
+	bin/magento config:set payment/adyen_pay_by_link/days_to_expire 5
 	bin/magento config:set payment/adyen_abstract/merchant_account "${ADYEN_MERCHANT}"
 	./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${ADYEN_API_KEY}" > /dev/null
 	bin/magento config:set payment/adyen_abstract/client_key_test "${ADYEN_CLIENT_KEY}"
