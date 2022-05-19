@@ -64,7 +64,7 @@ class VaultConfigObserver implements ObserverInterface
     {
         $storeId = $observer->getData('store');
 
-        if (empty($store)) {
+        if (empty($storeId)) {
             $storeId = null;
         }
 
