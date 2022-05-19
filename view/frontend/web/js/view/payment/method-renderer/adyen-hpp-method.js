@@ -772,6 +772,20 @@ define(
                             phoneNumber: formattedShippingAddress.telephone
                         };
                     }
+                    else if (formattedBillingAddress &&
+                        formattedBillingAddress.telephone) {
+                        configuration.addressDetails = {
+                            name: formattedBillingAddress.firstName +
+                                ' ' +
+                                formattedBillingAddress.lastName,
+                            addressLine1: formattedBillingAddress.street,
+                            addressLine2: formattedBillingAddress.houseNumber,
+                            city: formattedBillingAddress.city,
+                            postalCode: formattedBillingAddress.postalCode,
+                            countryCode: formattedBillingAddress.country,
+                            phoneNumber: formattedBillingAddress.telephone
+                        };
+                    }
                 }
 
                 return configuration;
