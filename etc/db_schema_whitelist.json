@@ -1,0 +1,113 @@
+{
+    "sales_order": {
+        "column": {
+            "adyen_notification_event_code_success": true,
+            "adyen_charged_currency": true,
+            "adyen_resulturl_event_code": true,
+            "adyen_notification_event_code": true
+        }
+    },
+    "sales_order_payment": {
+        "column": {
+            "adyen_psp_reference": true
+        }
+    },
+    "paypal_billing_agreement": {
+        "column": {
+            "agreement_data": true
+        }
+    },
+    "adyen_order_payment": {
+        "column": {
+            "entity_id": true,
+            "pspreference": true,
+            "merchant_reference": true,
+            "payment_id": true,
+            "payment_method": true,
+            "amount": true,
+            "total_refunded": true,
+            "created_at": true,
+            "updated_at": true,
+            "capture_status": true,
+            "total_captured": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ADYEN_ORDER_PAYMENT_PAYMENT_ID_SALES_ORDER_PAYMENT_ENTITY_ID": true,
+            "ADYEN_ORDER_PAYMENT_PSPREFERENCE": true
+        }
+    },
+    "adyen_notification": {
+        "column": {
+            "original_reference": true,
+            "entity_id": true,
+            "processing": true,
+            "error_count": true,
+            "error_message": true,
+            "pspreference": true,
+            "merchant_reference": true,
+            "event_code": true,
+            "success": true,
+            "payment_method": true,
+            "amount_value": true,
+            "amount_currency": true,
+            "reason": true,
+            "live": true,
+            "additional_data": true,
+            "done": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "ADYEN_NOTIFICATION_PSPREFERENCE": true,
+            "ADYEN_NOTIFICATION_EVENT_CODE": true,
+            "ADYEN_NOTIFICATION_PSPREFERENCE_EVENT_CODE": true,
+            "ADYEN_NOTIFICATION_MERCHANT_REFERENCE_EVENT_CODE": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "adyen_invoice": {
+        "column": {
+            "entity_id": true,
+            "pspreference": true,
+            "original_reference": true,
+            "acquirer_reference": true,
+            "invoice_id": true,
+            "created_at": true,
+            "updated_at": true,
+            "amount": true,
+            "status": true,
+            "adyen_order_payment_id": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ADYEN_INVOICE_INVOICE_ID_SALES_INVOICE_ENTITY_ID": true,
+            "ADYEN_INVOICE_ADYEN_ORDER_PAYMENT_ID_ADYEN_ORDER_PAYMENT_ENTT_ID": true
+        }
+    },
+    "adyen_state_data": {
+        "column": {
+            "entity_id": true,
+            "quote_id": true,
+            "state_data": true,
+            "updated_at": true,
+            "created_at": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "adyen_payment_response": {
+        "column": {
+            "entity_id": true,
+            "merchant_reference": true,
+            "result_code": true,
+            "response": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    }
+}
