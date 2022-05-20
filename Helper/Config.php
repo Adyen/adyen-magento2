@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -46,6 +34,7 @@ class Config
     const XML_ADYEN_ONECLICK = 'adyen_oneclick';
     const XML_ADYEN_HPP = 'adyen_hpp';
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
+    const XML_ADYEN_CC_VAULT = 'adyen_cc_vault';
     const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
     const XML_PAYMENT_RETURN_URL = 'payment_return_url';
     const XML_STATUS_FRAUD_MANUAL_REVIEW = 'fraud_manual_review_status';
@@ -371,6 +360,15 @@ class Config
     public function sendLevel23AdditionalData($storeId): bool
     {
         return $this->getConfigData('send_level23_data', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
+    }
+
+    /**
+     * @param $storeId
+     * @return string|null
+     */
+    public function getCardRecurringActive($storeId): ?string
+    {
+        return $this->getConfigData('active', self::XML_ADYEN_ONECLICK, $storeId, true);
     }
 
     /**

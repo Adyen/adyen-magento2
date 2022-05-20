@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment Module
  *
@@ -55,6 +43,7 @@ use Magento\Framework\Notification\NotifierInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
+use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Container\InvoiceIdentity;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
@@ -62,7 +51,6 @@ use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
-use Magento\Sales\Model\ResourceModel\Order\Invoice as InvoiceResourceModel;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
@@ -193,9 +181,9 @@ class Webhook
      */
     private $paymentMethodsHelper;
     /**
-     * @var InvoiceResourceModel
+     * @var InvoiceRepositoryInterface
      */
-    private $invoiceResourceModel;
+    private $invoiceRepository;
     /**
      * @var AdyenOrderPayment
      */
@@ -258,7 +246,7 @@ class Webhook
         EncryptorInterface $encryptor,
         ChargedCurrency $chargedCurrency,
         PaymentMethodsHelper $paymentMethodsHelper,
-        InvoiceResourceModel $invoiceResourceModel,
+        InvoiceRepositoryInterface $invoiceRepository,
         AdyenOrderPayment $adyenOrderPaymentHelper,
         InvoiceHelper $invoiceHelper,
         CaseManagement $caseManagementHelper,
@@ -291,7 +279,7 @@ class Webhook
         $this->encryptor = $encryptor;
         $this->chargedCurrency = $chargedCurrency;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->invoiceResourceModel = $invoiceResourceModel;
+        $this->invoiceRepository = $invoiceRepository;
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->invoiceHelper = $invoiceHelper;
         $this->caseManagementHelper = $caseManagementHelper;
@@ -337,6 +325,8 @@ class Webhook
 
             // update order details
             $this->updateAdyenAttributes($notification);
+
+            $this->order->getPayment()->setAdditionalInformation('payment_method', $notification->getPaymentMethod());
 
             // Get transition state
             $currentState = $this->getCurrentState($this->order->getState());
@@ -384,36 +374,6 @@ class Webhook
 
             return false;
         }
-    }
-
-    /**
-     * Remove OFFER_CLOSED and AUTHORISATION success=false notifications for some time from the processing list
-     * to ensure they won't close any order which has an AUTHORISED notification arrived a bit later than the
-     * OFFER_CLOSED or the AUTHORISATION success=false one.
-     * @param Notification $notification
-     * @return bool
-     */
-    public function shouldSkipProcessingNotification(Notification $notification): bool
-    {
-        if ((
-                Notification::OFFER_CLOSED === $notification->getEventCode() ||
-                (Notification::AUTHORISATION === $notification->getEventCode() && !$notification->isSuccessful())
-            ) &&
-            $notification->isLessThan10MinutesOld()
-        ) {
-            $this->logger->addAdyenNotificationCronjob(
-                sprintf(
-                    '%s notification (entity_id: %s) for merchant_reference: %s is skipped! Wait 10 minute before processing.',
-                    $notification->getEventCode(),
-                    $notification->getEntityId(),
-                    $notification->getMerchantReference()
-                )
-            );
-
-            return true;
-        }
-
-        return false;
     }
 
     private function getCurrentState($orderState)
@@ -1548,7 +1508,7 @@ class Webhook
                     $invoice->register()->pay();
                 }
 
-                $this->invoiceResourceModel->save($invoice);
+                $this->invoiceRepository->save($invoice);
                 $this->logger->addAdyenNotificationCronjob(
                     sprintf('Notification %s created an invoice.', $notification->getEntityId()),
                     $this->invoiceHelper->getLogInvoiceContext($invoice)

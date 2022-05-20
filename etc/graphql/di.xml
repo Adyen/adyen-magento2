@@ -21,6 +21,7 @@
                 <item name="adyen_holder_name_required" xsi:type="string">payment/adyen_abstract/holder_name_required</item>
                 <item name="adyen_title_renderer" xsi:type="string">payment/adyen_abstract/title_renderer</item>
                 <item name="adyen_return_path_error" xsi:type="string">payment/adyen_abstract/return_path</item>
+                <item name="adyen_oneclick_card_mode" xsi:type="string">payment/adyen_oneclick/card_mode</item>
             </argument>
         </arguments>
     </type>
