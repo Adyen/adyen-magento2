@@ -12,14 +12,14 @@ define(
         'Adyen_Payment/js/model/adyen-configuration',
         'Adyen_Payment/js/adyen'
     ],
-    function(
+    function (
         $,
         adyenConfiguration,
         AdyenCheckout,
     ) {
         'use strict';
         return {
-            buildCheckoutComponent: function(paymentMethodsResponse, handleOnAdditionalDetails, handleOnCancel = undefined, handleOnSubmit = undefined) {
+            buildCheckoutComponent: function (paymentMethodsResponse, handleOnAdditionalDetails, handleOnCancel = undefined, handleOnSubmit = undefined) {
                 if (!!paymentMethodsResponse.paymentMethodsResponse) {
                     return AdyenCheckout({
                             locale: adyenConfiguration.getLocale(),
@@ -36,8 +36,13 @@ define(
                 }
             },
             mountPaymentMethodComponent(checkoutComponent, paymentMethodType, configuration, elementLabel, result = undefined) {
-                if($(elementLabel).length) {
+                if ($(elementLabel).length) {
                     try {
+                        // Gift cards do not have a Web Component (they fallback to HPP)
+                        if ('giftcard' === configuration.type) {
+                            return false;
+                        }
+
                         const paymentMethodComponent = checkoutComponent.create(
                             paymentMethodType,
                             configuration
@@ -55,7 +60,7 @@ define(
                             paymentMethodComponent.mount(elementLabel);
                         }
 
-                        return paymentMethodComponent
+                        return paymentMethodComponent;
                     } catch (err) {
                         if ('test' === adyenConfiguration.getCheckoutEnvironment()) {
                             console.log(err);
