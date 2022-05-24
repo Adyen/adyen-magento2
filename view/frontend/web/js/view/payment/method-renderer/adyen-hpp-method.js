@@ -243,7 +243,7 @@ define(
                         var innerSelf = this;
 
                         // Skip in case of pms without a component (giftcards)
-                        if (innerSelf.component !== undefined) {
+                        if (innerSelf.component) {
                             innerSelf.component.showValidation();
                             if (innerSelf.component.state.isValid === false) {
                                 return false;
@@ -258,7 +258,7 @@ define(
                             additionalData.brand_code = selectedAlternativePaymentMethodType();
 
                             let stateData;
-                            if ('component' in innerSelf) {
+                            if (innerSelf.component) {
                                 stateData = innerSelf.component.data;
                             } else {
                                 if (paymentMethod.methodGroup === paymentMethod.methodIdentifier){
