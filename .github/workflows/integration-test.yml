@@ -17,8 +17,8 @@ jobs:
       - name: Install Magento
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
         env:
-          php-version: ${{ matrix.php-version }}
-          magento-version: ${{ matrix.magento-version }}
+          PHP_VERSION: ${{ matrix.php-version }}
+          MAGENTO_VERSION: ${{ matrix.magento-version }}
 
       - name: Start web server in background
         run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web
