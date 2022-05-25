@@ -62,6 +62,8 @@ services:
     environment:
       - INTEGRATION_TESTS_BRANCH
       - MAGENTO_BASE_URL
+      - MAGENTO_ADMIN_USERNAME
+      - MAGENTO_ADMIN_PASSWORD
       - PAYPAL_USERNAME
       - PAYPAL_PASSWORD
     volumes:
