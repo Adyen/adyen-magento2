@@ -6,8 +6,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - PHP_VERSION: 7.4
-            MAGENTO_VERSION: 2.4.2
+          PHP_VERSION: ['7.4', '8.1']
+          MAGENTO_VERSION: ['2.3.7', '2.4.2']
     runs-on: ubuntu-latest
     env:
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
@@ -17,6 +17,9 @@ jobs:
 
       - name: Install Magento
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm web make magento
+        env:
+          PHP_VERSION: ${{ matrix.PHP_VERSION }}
+          MAGENTO_VERSION: ${{ matrix.MAGENTO_VERSION }}
 
       - name: Start web server in background
         run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web
@@ -40,18 +43,10 @@ jobs:
         run: docker exec -u www-data magento2-container make unit
 
       - name: Run GraphQL tests
-        continue-on-error: true
         run: docker exec magento2-container make graphql
 
       - name: Switch to production mode
         run: docker exec -u www-data magento2-container make production
-      - name: Configure the plugin
-        run: |
-          docker exec magento2-container bin/magento config:set payment/adyen_abstract/demo_mode 1
-          docker exec magento2-container bin/magento config:set payment/adyen_hpp/active 1
-          docker exec magento2-container bin/magento config:set payment/adyen_cc/active 1
-          docker exec magento2-container bin/magento config:set payment/adyen_abstract/merchant_account "${{secrets.ADYEN_MERCHANT}}"
-          docker exec magento2-container ./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${{secrets.ADYEN_API_KEY}}" > /dev/null
 
       - name: Setup permissions
         run: docker exec magento2-container make fs

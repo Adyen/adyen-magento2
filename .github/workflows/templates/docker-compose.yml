@@ -23,7 +23,7 @@ services:
     networks:
       - backend
   web:
-    image: ataberkylmz/magento2:2.4.2
+    image: "ataberkylmz/magento2:${MAGENTO_VERSION}"
     container_name: magento2-container
     extra_hosts:
       - "magento2.test.com:127.0.0.1"
