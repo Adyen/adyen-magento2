@@ -16,6 +16,7 @@ use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Invoice as InvoiceHelper;
 use Adyen\Payment\Helper\PaymentMethods as PaymentMethodsHelper;
+use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\PaymentRequest;
 use Adyen\Payment\Model\Billing\AgreementFactory;
@@ -206,6 +207,9 @@ class Webhook
      */
     private $magentoInvoiceFactory;
 
+    /** @var WebhookHandlerFactory */
+    private static $webhookHandlerFactory;
+
     /**
      * @var Vault
      */
@@ -253,7 +257,8 @@ class Webhook
         PaymentFactory $adyenOrderPaymentFactory,
         AdyenLogger $logger,
         MagentoInvoiceFactory $magentoInvoiceFactory,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        WebhookHandlerFactory $webhookHandlerFactory
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
@@ -287,6 +292,7 @@ class Webhook
         $this->logger = $logger;
         $this->magentoInvoiceFactory = $magentoInvoiceFactory;
         $this->vaultHelper = $vaultHelper;
+        self::$webhookHandlerFactory = $webhookHandlerFactory;
     }
 
     /**
@@ -422,7 +428,9 @@ class Webhook
                     // Webhook module returns PAID for failed refunds, trigger admin notice
                     $this->addRefundFailedNotice($notification);
                 } else {
-                    $this->authorizePayment($notification);
+                    //$this->authorizePayment($notification);
+                    $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
+                    $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
                 }
                 break;
             case PaymentStates::STATE_FAILED:
