@@ -1,0 +1,142 @@
+<style>
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 37px;
+        height: 22px;
+        vertical-align: middle;
+
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+        vertical-align: middle;
+
+    }
+    .sliderOne {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+        vertical-align: middle;
+
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: -7.75px;
+        bottom: 0px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+        vertical-align: middle;
+
+    }
+    .sliderOne:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: .5px;
+        bottom: 0px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+        vertical-align: middle;
+
+    }
+
+    input:checked + .slider {
+        background-color: #79a22e;
+    }
+
+    input:focus + .slider {
+        box-shadow: 0 0 0px #2196F3;
+
+    }
+
+    input:checked + .sliderOne {
+        background-color: #79a22e;
+    }
+
+    input:focus + .sliderOne {
+        box-shadow: 0 0 0px #2196F3;
+
+    }
+
+    input:checked + .slider:before {
+        -webkit-transform: translateX(22px);
+        -ms-transform: translateX(22px);
+        transform: translateX(22px);
+
+    }
+    input:checked + .sliderOne:before {
+        -webkit-transform: translateX(22px);
+        -ms-transform: translateX(22px);
+        transform: translateX(22px);
+
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+        border-radius: 35px;
+
+    }
+
+    .slider.round:before {
+        border-radius: 100%;
+        display: inline-block;
+
+    }
+
+    .sliderOne.round {
+        border-radius: 35px;
+
+    }
+
+    .sliderOne.round:before {
+        border-radius: 100%;
+        display: inline-block;
+
+    }
+
+</style>
+<script>
+    function myFunction() {
+
+        if(document.getElementById('spa').classList.contains("slider")) {
+            document.getElementsByClassName("slider")[0].setAttribute("class","sliderOne round");
+            document.getElementById('toggle').innerHTML = "  &nbsp; No";
+        }else{
+            document.getElementsByClassName("sliderOne")[0].setAttribute("class","slider round");
+            document.getElementById('toggle').innerHTML = "  &nbsp; Yes";
+        }
+    }
+</script>
+<label class="switch">
+    <input type="checkbox" onclick="myFunction()" checked>
+    <span class="slider round" id="spa"></span>
+</label>
+<span id="toggle"></span>
