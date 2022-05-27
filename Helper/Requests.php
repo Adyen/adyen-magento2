@@ -353,7 +353,7 @@ class Requests extends AbstractHelper
         if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
             $request['storePaymentMethodMode'] = 'askForConsent';
         } elseif (array_key_exists('storePaymentMethod', $stateData)) {
-            $storePaymentMethod = (bool)($stateData['storePaymentMethod']);
+            $storePaymentMethod = $stateData['storePaymentMethod'];
             $request['storePaymentMethod'] = $storePaymentMethod;
         }
 
