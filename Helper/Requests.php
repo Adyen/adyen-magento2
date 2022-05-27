@@ -377,7 +377,7 @@ class Requests extends AbstractHelper
      * @param $payment
      * @return array
      */
-    public function buildCardRecurringData(int $storeId, $payment)
+    public function buildCardRecurringData(int $storeId, $payment): array
     {
         $request = [];
         $storePaymentMethod = false;
