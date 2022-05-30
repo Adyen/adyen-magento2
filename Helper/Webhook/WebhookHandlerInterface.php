@@ -17,5 +17,5 @@ use Magento\Sales\Model\Order;
 
 interface WebhookHandlerInterface
 {
-    public function handleWebhook(Order $order, Notification $notification, string $transitionState);
+    public function handleWebhook(Order $order, Notification $notification, string $transitionState): Order;
 }

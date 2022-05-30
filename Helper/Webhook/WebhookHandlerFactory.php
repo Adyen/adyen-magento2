@@ -19,6 +19,7 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Notification;
 use Magento\Framework\Serialize\SerializerInterface;
 
 class WebhookHandlerFactory
@@ -70,15 +71,20 @@ class WebhookHandlerFactory
 
     public static function create(string $eventCode): WebhookHandlerInterface
     {
-        return new AuthorisationWebhookHandler(
-            self::$webhookService,
-            self::$adyenOrderPayment,
-            self::$orderHelper,
-            self::$caseManagementHelper,
-            self::$serializer,
-            self::$adyenLogger,
-            self::$chargedCurrency,
-            self::$configHelper
-        );
+        switch ($eventCode) {
+            case Notification::AUTHORISATION:
+                return new AuthorisationWebhookHandler(
+                    self::$webhookService,
+                    self::$adyenOrderPayment,
+                    self::$orderHelper,
+                    self::$caseManagementHelper,
+                    self::$serializer,
+                    self::$adyenLogger,
+                    self::$chargedCurrency,
+                    self::$configHelper
+                );
+            case Notification::CAPTURE:
+                return new CaptureWebhookHandler();
+        }
     }
 }

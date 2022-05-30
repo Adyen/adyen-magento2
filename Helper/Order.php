@@ -94,7 +94,7 @@ class Order extends AbstractHelper
     public function updatePaymentDetails(MagentoOrder $order, Notification $notification): ?TransactionInterface
     {
         //Set order state to new because with order state payment_review it is not possible to create an invoice
-        if (strcmp($order->getState(), \Magento\Sales\Model\Order::STATE_PAYMENT_REVIEW) == 0) {
+        if (strcmp($order->getState(), MagentoOrder::STATE_PAYMENT_REVIEW) == 0) {
             $order->setState(MagentoOrder::STATE_NEW);
         }
 
