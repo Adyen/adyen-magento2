@@ -18,11 +18,13 @@ use Exception;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\TransactionFactory;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
+use Magento\TestFramework\Event\Magento;
 
 /**
  * Helper class for anything related to the invoice entity
@@ -335,6 +337,60 @@ class Order extends AbstractHelper
             );
         } else {
             $this->adyenLogger->addAdyenNotificationCronjob('No pre-authorised status is used so ignore');
+        }
+
+        return $order;
+    }
+
+    /**
+     * @param MagentoOrder $order
+     * @param $ignoreHasInvoice
+     * @return MagentoOrder
+     * @throws LocalizedException
+     */
+    public function holdCancelOrder(MagentoOrder $order, $ignoreHasInvoice): MagentoOrder
+    {
+        if (!$this->configHelper->getNotificationsCanCancel($order->getStoreId())) {
+            $this->adyenLogger->addAdyenNotificationCronjob(
+                'Order cannot be canceled based on the plugin configuration'
+            );
+            return $order;
+        }
+
+        $orderStatus = $this->configHelper->getConfigData(
+            'payment_cancelled',
+            'adyen_abstract',
+            $order->getStoreId()
+        );
+
+        // check if order has in invoice only cancel/hold if this is not the case
+        if ($ignoreHasInvoice || !$order->hasInvoices()) {
+            if ($orderStatus == MagentoOrder::STATE_HOLDED) {
+                // Allow magento to hold order
+                $order->setActionFlag(MagentoOrder::ACTION_FLAG_HOLD, true);
+
+                if ($order->canHold()) {
+                    $order->hold();
+                    $order->addCommentToStatusHistory('Order held', $orderStatus);
+                } else {
+                    $this->adyenLogger->addAdyenNotificationCronjob('Order can not hold or is already on Hold');
+                }
+            } else {
+                $this->adyenLogger->addAdyenNotificationCronjob('Test cancelled stat: ' . $orderStatus);
+                // Allow magento to cancel order
+                $order->setActionFlag(MagentoOrder::ACTION_FLAG_CANCEL, true);
+
+                if ($order->canCancel()) {
+                    $order->cancel();
+                    $order->addCommentToStatusHistory('Order cancelled', $orderStatus ?? false);
+                } else {
+                    $this->adyenLogger->addAdyenNotificationCronjob('Order can not be canceled');
+                }
+            }
+        } else {
+            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+                    'Order %s already has an invoice linked so it cannot be canceled', $order->getIncrementId()
+            ));
         }
 
         return $order;

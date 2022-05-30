@@ -414,6 +414,7 @@ class Webhook
     private function handleOrderTransition(Notification $notification, $transitionState): void
     {
         $previousAdyenEventCode = $this->order->getData('adyen_notification_event_code');
+        $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
         switch ($transitionState) {
             case PaymentStates::STATE_PAID:
                 if (Notification::CAPTURE == $notification->getEventCode()) {
@@ -429,13 +430,12 @@ class Webhook
                     $this->addRefundFailedNotice($notification);
                 } else {
                     //$this->authorizePayment($notification);
-                    $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
                     $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
                 }
                 break;
             case PaymentStates::STATE_FAILED:
             case PaymentStates::STATE_CANCELLED:
-                $this->cancelPayment($notification, $previousAdyenEventCode);
+                $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
                 break;
             case PaymentStates::STATE_REFUNDED:
                 $this->refundPayment($notification);

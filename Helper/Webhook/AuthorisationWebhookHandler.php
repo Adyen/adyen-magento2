@@ -20,6 +20,7 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Model\Order;
@@ -71,15 +72,32 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         $this->configHelper = $configHelper;
     }
 
+
     /**
      * @param Order $order
      * @param Notification $notification
      * @param string $transitionState
      * @return Order
      * @throws LocalizedException
-     * @throws \Exception
      */
     public function handleWebhook(Order $order, Notification $notification, string $transitionState): Order
+    {
+        if ($transitionState === PaymentStates::STATE_PAID) {
+            $order = $this->handleSuccessfulAuthorisation($order, $notification);
+        } elseif ($transitionState === PaymentStates::STATE_FAILED) {
+            $order = $this->handleFailedAuthorisation($order, $notification);
+        }
+
+        return $order;
+    }
+
+    /**
+     * @param Order $order
+     * @param Notification $notification
+     * @return Order
+     * @throws LocalizedException
+     */
+    private function handleSuccessfulAuthorisation(Order $order, Notification $notification): Order
     {
         $isAutoCapture = $this->webhookService->isAutoCapture($order, $notification->getPaymentMethod());
 
@@ -125,6 +143,64 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         }
 
         return $order;
+    }
+
+    /**
+     * @param Order $order
+     * @param Notification $notification
+     * @return Order
+     * @throws LocalizedException
+     */
+    private function handleFailedAuthorisation(Order $order, Notification $notification): Order
+    {
+        $previousAdyenEventCode = $order->getData('adyen_notification_event_code');
+        $ignoreHasInvoice = true;
+
+        // if payment is API, check if API result pspreference is the same as reference
+        if ($notification->getEventCode() == Notification::AUTHORISATION) {
+            if ('api' === $order->getPayment()->getPaymentMethodType()) {
+                // don't cancel the order because order was successful through api
+                $this->adyenLogger->addAdyenNotificationCronjob(
+                    'order is not cancelled because api result was successful'
+                );
+
+                return $order;
+            }
+            $ignoreHasInvoice = false;
+        }
+
+        /*
+         * Don't cancel the order if part of the payment has been captured.
+         * Partial payments can fail, if the second payment has failed then the first payment is
+         * refund/cancelled as well. So if it is a partial payment that failed cancel the order as well
+         * TODO: Refactor this
+         */
+        $paymentPreviouslyCaptured = $order->getData('adyen_notification_payment_captured');
+
+        if ($previousAdyenEventCode == "AUTHORISATION : TRUE" || !empty($paymentPreviouslyCaptured)) {
+            $this->adyenLogger->addAdyenNotificationCronjob(
+                'Order is not cancelled because previous notification
+                                    was an authorisation that succeeded and payment was captured'
+            );
+
+            return $order;
+        }
+
+        // Order is already Cancelled
+        if ($order->isCanceled() || $order->getState() === Order::STATE_HOLDED) {
+            $this->adyenLogger->addAdyenNotificationCronjob(
+                "Order is already cancelled or holded, do nothing"
+            );
+
+            return $order;
+        }
+
+        // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
+        if (!$order->canCancel() && $this->configHelper->getNotificationsCanCancel($order->getStoreId())) {
+            $order->setState(Order::STATE_NEW);
+        }
+
+        return $this->orderHelper->holdCancelOrder($order, $ignoreHasInvoice);
     }
 
     /**
