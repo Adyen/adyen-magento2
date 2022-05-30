@@ -119,8 +119,8 @@
         </field>
         <field id="status" type="checkbox" translate="label" sortOrder="114" showInDefault="1" showInWebsite="0" showInStore="0">
             <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Advanced</frontend_model>
-            <attribute type="shared">1</attribute>
-            <label>Enable debug logging 2 </label>
+
+            <label>Test label toggle</label>
         </field>
     </group>
 </include>
