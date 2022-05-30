@@ -15,6 +15,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\Status\AdyenState;
 use Adyen\Payment\Model\Notification;
 use Exception;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\TransactionFactory;
@@ -23,7 +24,9 @@ use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
+use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
+use Magento\Search\Model\Search;
 use Magento\TestFramework\Event\Magento;
 
 /**
@@ -60,6 +63,14 @@ class Order extends AbstractHelper
     /** @var OrderStatusCollectionFactory */
     private $orderStatusCollectionFactory;
 
+    /** @var SearchCriteriaBuilder */
+    private $searchCriteriaBuilder;
+
+    /**
+     * @var OrderRepository
+     */
+    private $orderRepository;
+
     public function __construct(
         Context $context,
         Builder $transactionBuilder,
@@ -70,7 +81,9 @@ class Order extends AbstractHelper
         ChargedCurrency $chargedCurrency,
         AdyenOrderPayment $adyenOrderPaymentHelper,
         Config $configHelper,
-        OrderStatusCollectionFactory $orderStatusCollectionFactory
+        OrderStatusCollectionFactory $orderStatusCollectionFactory,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        OrderRepository $orderRepository
     )
     {
         parent::__construct($context);
@@ -83,6 +96,8 @@ class Order extends AbstractHelper
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->configHelper = $configHelper;
         $this->orderStatusCollectionFactory = $orderStatusCollectionFactory;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->orderRepository = $orderRepository;
     }
 
     /**
@@ -426,5 +441,25 @@ class Order extends AbstractHelper
         $this->adyenLogger->addAdyenNotificationCronjob('No new state assigned, status should be connected to one of the following states: ' . json_encode($possibleStates));
 
         return $order;
+    }
+
+    /**
+     * Set the order data member by fetching the entity from the database.
+     * This should be moved out of this file in the future.
+     * @param Notification $notification
+     * @return false|\Magento\Sales\Api\Data\OrderInterface
+     */
+    public function fetchOrderByIncrementId(Notification $notification)
+    {
+        $incrementId = $notification->getMerchantReference();
+
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter('increment_id', $incrementId, 'eq')
+            ->create();
+
+        $orderList = $this->orderRepository->getList($searchCriteria)->getItems();
+
+        /** @var MagentoOrder $order */
+        return reset($orderList);
     }
 }

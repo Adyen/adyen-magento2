@@ -16,11 +16,13 @@ namespace Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\Invoice;
+use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Exception;
-use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order as MagentoOrder;
+use Magento\Sales\Model\Order\Invoice as MagentoInvoice;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 
 class CaptureWebhookHandler implements WebhookHandlerInterface
@@ -43,13 +45,17 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
     /** @var MagentoInvoiceFactory */
     private $magentoInvoiceFactory;
 
+    /** @var Order */
+    private $orderHelper;
+
     public function __construct(
         WebhookService $webhookService,
         Invoice $invoiceHelper,
         PaymentFactory $adyenOrderPaymentFactory,
         AdyenOrderPayment $adyenOrderPaymentHelper,
         AdyenLogger $adyenLogger,
-        MagentoInvoiceFactory $magentoInvoiceFactory
+        MagentoInvoiceFactory $magentoInvoiceFactory,
+        Order $orderHelper
     )
     {
         $this->webhookService = $webhookService;
@@ -58,9 +64,16 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->adyenLogger = $adyenLogger;
         $this->magentoInvoiceFactory = $magentoInvoiceFactory;
+        $this->orderHelper = $orderHelper;
     }
 
-    public function handleWebhook(Order $order, Notification $notification, string $transitionState): Order
+    /**
+     * @param MagentoOrder $order
+     * @param Notification $notification
+     * @param string $transitionState
+     * @return MagentoOrder
+     */
+    public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
         $isAutoCapture = $this->webhookService->isAutoCapture($order, $notification->getPaymentMethod());
 
@@ -72,7 +85,7 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
             // TODO Get functionality out of the invoiceHelper function, so we don't have to fetch the order from the db
             $adyenInvoice = $this->invoiceHelper->handleCaptureWebhook($order, $notification);
             // Refresh the order by fetching it from the db
-            //$this->setOrderByIncrementId($notification);
+            $order = $this->orderHelper->fetchOrderByIncrementId($notification);
             $adyenOrderPayment = $this->adyenOrderPaymentFactory->create()->load($adyenInvoice->getAdyenPaymentOrderId(), OrderPaymentInterface::ENTITY_ID);
             $this->adyenOrderPaymentHelper->refreshPaymentCaptureStatus($adyenOrderPayment, $notification->getAmountCurrency());
             $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
@@ -82,7 +95,7 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
                 $adyenInvoice->getAdyenPaymentOrderId()
             ));
 
-            $magentoInvoice = $this->magentoInvoiceFactory->create()->load($adyenInvoice->getInvoiceId(), Order\Invoice::ENTITY_ID);
+            $magentoInvoice = $this->magentoInvoiceFactory->create()->load($adyenInvoice->getInvoiceId(), MagentoInvoice::ENTITY_ID);
             $this->adyenLogger->addAdyenNotificationCronjob(
                 sprintf('Notification %s updated invoice %s.', $notification->getEntityId(), $magentoInvoice->getEntityid()),
                 $this->invoiceHelper->getLogInvoiceContext($magentoInvoice)
@@ -91,6 +104,6 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
             $this->adyenLogger->addAdyenNotificationCronjob($e->getMessage());
         }
 
-        return $order;
+        return $this->orderHelper->finalizeOrder($order, $notification);
     }
 }

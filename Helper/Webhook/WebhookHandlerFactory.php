@@ -17,10 +17,13 @@ use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\Order\PaymentFactory;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 
 class WebhookHandlerFactory
 {
@@ -48,6 +51,15 @@ class WebhookHandlerFactory
     /** @var Config */
     private static $configHelper;
 
+    /** @var Invoice */
+    private static $invoiceHelper;
+
+    /** @var PaymentFactory */
+    private static $adyenOrderPaymentFactory;
+
+    /** @var MagentoInvoiceFactory */
+    private static $magentoInvoiceFactory;
+
     public function __construct(
         WebhookService $webhookService,
         AdyenOrderPayment $adyenOrderPayment,
@@ -56,7 +68,10 @@ class WebhookHandlerFactory
         SerializerInterface $serializer,
         AdyenLogger $adyenLogger,
         ChargedCurrency $chargedCurrency,
-        Config $configHelper
+        Config $configHelper,
+        Invoice $invoiceHelper,
+        PaymentFactory $adyenOrderPaymentFactory,
+        MagentoInvoiceFactory $magentoInvoiceFactory
     )
     {
         self::$webhookService = $webhookService;
@@ -67,6 +82,9 @@ class WebhookHandlerFactory
         self::$adyenLogger = $adyenLogger;
         self::$chargedCurrency = $chargedCurrency;
         self::$configHelper = $configHelper;
+        self::$invoiceHelper = $invoiceHelper;
+        self::$adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
+        self::$magentoInvoiceFactory = $magentoInvoiceFactory;
     }
 
     public static function create(string $eventCode): WebhookHandlerInterface
@@ -84,7 +102,15 @@ class WebhookHandlerFactory
                     self::$configHelper
                 );
             case Notification::CAPTURE:
-                return new CaptureWebhookHandler();
+                return new CaptureWebhookHandler(
+                    self::$webhookService,
+                    self::$invoiceHelper,
+                    self::$adyenOrderPaymentFactory,
+                    self::$adyenOrderPayment,
+                    self::$adyenLogger,
+                    self::$magentoInvoiceFactory,
+                    self::$orderHelper
+                );
         }
     }
 }

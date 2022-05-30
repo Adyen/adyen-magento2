@@ -418,13 +418,7 @@ class Webhook
         switch ($transitionState) {
             case PaymentStates::STATE_PAID:
                 if (Notification::CAPTURE == $notification->getEventCode()) {
-                    /*
-                     * ignore capture if you are on auto capture
-                     * this could be called if manual review is enabled and you have a capture delay
-                     */
-                    if (!$this->isAutoCapture($notification->getPaymentMethod())) {
-                        $this->handleManualCapture($notification);
-                    }
+                    $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
                 } elseif (in_array($notification->getEventCode(), [Notification::REFUND, Notification::REFUND_FAILED])) {
                     // Webhook module returns PAID for failed refunds, trigger admin notice
                     $this->addRefundFailedNotice($notification);
