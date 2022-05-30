@@ -20,6 +20,7 @@ use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
+use Adyen\Webhook\PaymentStates;
 use Exception;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Invoice as MagentoInvoice;
@@ -77,7 +78,14 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
     {
         $isAutoCapture = $this->webhookService->isAutoCapture($order, $notification->getPaymentMethod());
 
-        if ($isAutoCapture) {
+        if ($isAutoCapture || $transitionState !== PaymentStates::STATE_PAID) {
+            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+                'Capture webhook for order %s was not handled due to AutoCapture %s, OR TransitionState %s',
+                $order->getIncrementId(),
+                $isAutoCapture,
+                $transitionState
+            ));
+
             return $order;
         }
 
