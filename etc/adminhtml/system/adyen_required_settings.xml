@@ -119,7 +119,6 @@
         </field>
         <field id="status" type="checkbox" translate="label" sortOrder="114" showInDefault="1" showInWebsite="0" showInStore="0">
             <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Advanced</frontend_model>
-
             <label>Test label toggle</label>
         </field>
     </group>

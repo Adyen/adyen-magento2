@@ -124,7 +124,7 @@
 
 </style>
 <script>
-    function myFunction() {
+    function toggleFunction() {
 
         if(document.getElementById('spa').classList.contains("slider")) {
             document.getElementsByClassName("slider")[0].setAttribute("class","sliderOne round");
@@ -136,7 +136,7 @@
     }
 </script>
 <label class="switch">
-    <input type="checkbox" onclick="myFunction()" checked>
+    <input type="checkbox" onclick="toggleFunction()" checked>
     <span class="slider round" id="spa"></span>
 </label>
 <span id="toggle"></span>
