@@ -430,7 +430,7 @@ class Webhook
                 } else {
                     //$this->authorizePayment($notification);
                     $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
-                    $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
+                    $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
                 }
                 break;
             case PaymentStates::STATE_FAILED:

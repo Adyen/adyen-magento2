@@ -15,7 +15,10 @@ namespace Adyen\Payment\Helper\Webhook;
 
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
+use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Order;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Serialize\SerializerInterface;
 
 class WebhookHandlerFactory
@@ -35,12 +38,24 @@ class WebhookHandlerFactory
     /** @var SerializerInterface */
     private static $serializer;
 
+    /** @var AdyenLogger $adyenLogger */
+    private static $adyenLogger;
+
+    /** @var ChargedCurrency */
+    private static $chargedCurrency;
+
+    /** @var Config */
+    private static $configHelper;
+
     public function __construct(
         WebhookService $webhookService,
         AdyenOrderPayment $adyenOrderPayment,
         Order $orderHelper,
         CaseManagement $caseManagementHelper,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        AdyenLogger $adyenLogger,
+        ChargedCurrency $chargedCurrency,
+        Config $configHelper
     )
     {
         self::$webhookService = $webhookService;
@@ -48,6 +63,9 @@ class WebhookHandlerFactory
         self::$orderHelper = $orderHelper;
         self::$caseManagementHelper = $caseManagementHelper;
         self::$serializer = $serializer;
+        self::$adyenLogger = $adyenLogger;
+        self::$chargedCurrency = $chargedCurrency;
+        self::$configHelper = $configHelper;
     }
 
     public static function create(string $eventCode): WebhookHandlerInterface
@@ -57,7 +75,10 @@ class WebhookHandlerFactory
             self::$adyenOrderPayment,
             self::$orderHelper,
             self::$caseManagementHelper,
-            self::$serializer
+            self::$serializer,
+            self::$adyenLogger,
+            self::$chargedCurrency,
+            self::$configHelper
         );
     }
 }

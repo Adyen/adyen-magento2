@@ -21,7 +21,6 @@ use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Invoice as InvoiceHelper;
 use Adyen\Payment\Helper\Webhook;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Config\Source\Status\AdyenState;
 use Adyen\Payment\Model\Notification;
 use Exception;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -248,37 +247,6 @@ class WebhookService
     }
 
     /**
-     * Set status on authorisation
-     *
-     * @param Order $order
-     * @return Order
-     */
-    public function setPrePaymentAuthorized(Order $order): Order
-    {
-        $eventLabel = "payment_pre_authorized";
-        $status = $this->configHelper->getConfigData(
-            $eventLabel,
-            'adyen_abstract',
-            $order->getStoreId()
-        );
-        $possibleStates = Webhook::STATE_TRANSITION_MATRIX[$eventLabel];
-
-        // only do this if status in configuration is set
-        if (!empty($status)) {
-            $order->setStatus($status);
-            $order = $this->setState($order, $status, $possibleStates);
-
-            $this->logger->addAdyenNotificationCronjob(
-                'Order status is changed to Pre-authorised status, status is ' . $status
-            );
-        } else {
-            $this->logger->addAdyenNotificationCronjob('No pre-authorised status is used so ignore');
-        }
-
-        return $order;
-    }
-
-    /**
      * @param Order $order
      * @param Notification $notification
      * @param bool $isAutoCapture
@@ -350,38 +318,6 @@ class WebhookService
                 ])
             );
         }
-    }
-
-    /**
-     * Set order state, based on the passed status
-     *
-     * @param Order $order
-     * @param $status
-     * @param $possibleStates
-     * @return Order
-     */
-    private function setState(Order $order, $status, $possibleStates): Order
-    {
-        // Loop over possible states, select first available status that fits this state
-        foreach ($possibleStates as $state) {
-            $statusObject = $this->orderStatusCollectionFactory->create()
-                ->addFieldToFilter('main_table.status', $status)
-                ->joinStates()
-                ->addStateFilter($state)
-                ->getFirstItem();
-
-            if ($statusObject->getState() == $state) {
-                // Exit function if fitting state is found
-                $order->setState($statusObject->getState());
-                $this->logger->addAdyenNotificationCronjob('State is changed to  ' . $statusObject->getState());
-
-                return $order;
-            }
-        }
-
-        $this->logger->addAdyenNotificationCronjob('No new state assigned, status should be connected to one of the following states: ' . json_encode($possibleStates));
-
-        return $order;
     }
 
     /**
@@ -465,112 +401,5 @@ class WebhookService
         )), false);
 
         return $order;
-    }
-
-    /**
-     * Finalize order by setting it to captured if manual capture is enabled, or authorized if auto capture is used
-     * Full order will only NOT be finalized if the full amount has not been captured/authorized.
-     */
-    public function finalizeOrder(Order $order, Notification $notification)
-    {
-        $this->logger->addAdyenNotificationCronjob('Set order to authorised');
-        $amount = $notification->getAmountValue();
-        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
-        $formattedOrderAmount = $this->dataHelper->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
-        $fullAmountFinalized = $this->adyenOrderPaymentHelper->isFullAmountFinalized($order);
-
-        $eventLabel = 'payment_authorized';
-        $status = $this->configHelper->getConfigData(
-            $eventLabel,
-            'adyen_abstract',
-            $order->getStoreId()
-        );
-        $possibleStates = Webhook::STATE_TRANSITION_MATRIX[$eventLabel];
-
-        // Set state back to previous state to prevent update if 'maintain status' was configured
-        $maintainingState = false;
-        if ($status === AdyenState::STATE_MAINTAIN) {
-            $maintainingState = true;
-            $status = $order->getStatus();
-        }
-
-        /*
-         * @TODO check for virtual orders
-        // virtual order can have different status
-        if ($order->getIsVirtual()) {
-            $status = $this->getVirtualStatus($status);
-        }
-        */
-
-        /*
-         * @TODO Check for boleto specific stuff
-        // check for boleto if payment is totally paid
-        if ($order->getPayment()->getMethod() == "adyen_boleto") {
-            // check if paid amount is the same as orginal amount
-            $originalAmount = $this->boletoOriginalAmount;
-            $paidAmount = $this->boletoPaidAmount;
-
-            if ($originalAmount != $paidAmount) {
-                // not the full amount is paid. Check if it is underpaid or overpaid
-                // strip the  BRL of the string
-                $originalAmount = str_replace("BRL", "", $originalAmount);
-                $originalAmount = floatval(trim($originalAmount));
-
-                $paidAmount = str_replace("BRL", "", $paidAmount);
-                $paidAmount = floatval(trim($paidAmount));
-
-                if ($paidAmount > $originalAmount) {
-                    $overpaidStatus = $this->configHelper->getConfigData(
-                        'order_overpaid_status',
-                        'adyen_boleto',
-                        $order->getStoreId()
-                    );
-                    // check if there is selected a status if not fall back to the default
-                    $status = (!empty($overpaidStatus)) ? $overpaidStatus : $status;
-                } else {
-                    $underpaidStatus = $this->configHelper->getConfigData(
-                        'order_underpaid_status',
-                        'adyen_boleto',
-                        $order->getStoreId()
-                    );
-                    // check if there is selected a status if not fall back to the default
-                    $status = (!empty($underpaidStatus)) ? $underpaidStatus : $status;
-                }
-            }
-        }*/
-
-        $order = $this->addProcessedStatusHistoryComment($order, $notification);
-        if ($fullAmountFinalized) {
-            $this->logger->addAdyenNotificationCronjob(sprintf(
-                'Notification w/amount %s has completed the capturing of order %s w/amount %s',
-                $amount,
-                $order->getIncrementId(),
-                $formattedOrderAmount
-            ));
-            $comment = "Adyen Payment Successfully completed";
-            // If a status is set, add comment, set status and update the state based on the status
-            // Else add comment
-            if (!empty($status) && $maintainingState) {
-                $order->addStatusHistoryComment(__($comment), $status);
-                $this->logger->addAdyenNotificationCronjob(
-                    'Maintaining current status: ' . $status,
-                    $this->adyenOrderPaymentHelper->getLogOrderContext($order)
-                );
-            } else if (!empty($status)) {
-                $order->addStatusHistoryComment(__($comment), $status);
-
-                $this->setState($order, $status, $possibleStates);
-                $this->logger->addAdyenNotificationCronjob(
-                    'Order status was changed to authorised status: ' . $status,
-                    $this->adyenOrderPaymentHelper->getLogOrderContext($order)
-                );
-            } else {
-                $order->addStatusHistoryComment(__($comment));
-                $this->logger->addAdyenNotificationCronjob(sprintf(
-                    'Order %s was finalized. Authorised status not set',
-                    $order->getIncrementId()
-                ));
-            }
-        }
     }
 }
