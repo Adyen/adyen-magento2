@@ -416,10 +416,12 @@ class Order extends AbstractHelper
     }
 
     /**
+     * Trigger admin notice for REFUND_FAILED notifications
+     *
      * @param Notification $notification
      * @return Notification
      */
-    public function addRefundFailedNotice(Notification $notification)
+    public function addRefundFailedNotice(Notification $notification): Notification
     {
         $this->notifierPool->addNotice(
             __("Adyen: Refund for order #%1 has failed", $notification->getMerchantReference()),

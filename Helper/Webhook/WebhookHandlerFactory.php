@@ -16,11 +16,13 @@ use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
@@ -61,6 +63,12 @@ class WebhookHandlerFactory
     /** @var PaymentMethods */
     private static $paymentMethodsHelper;
 
+    /** @var OrderPaymentCollectionFactory */
+    private static $adyenOrderPaymentCollectionFactory;
+
+    /** @var Data */
+    private static $adyenDataHelper;
+
     public function __construct(
         AdyenOrderPayment $adyenOrderPayment,
         Order $orderHelper,
@@ -72,7 +80,9 @@ class WebhookHandlerFactory
         Invoice $invoiceHelper,
         PaymentFactory $adyenOrderPaymentFactory,
         MagentoInvoiceFactory $magentoInvoiceFactory,
-        PaymentMethods $paymentMethodsHelper
+        PaymentMethods $paymentMethodsHelper,
+        OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
+        Data $adyenDataHelper
     )
     {
         self::$adyenOrderPayment = $adyenOrderPayment;
@@ -86,6 +96,8 @@ class WebhookHandlerFactory
         self::$adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         self::$magentoInvoiceFactory = $magentoInvoiceFactory;
         self::$paymentMethodsHelper = $paymentMethodsHelper;
+        self::$adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
+        self::$adyenDataHelper = $adyenDataHelper;
     }
 
     public static function create(string $eventCode): WebhookHandlerInterface
@@ -119,6 +131,19 @@ class WebhookHandlerFactory
                     self::$paymentMethodsHelper,
                     self::$adyenLogger,
                     self::$configHelper,
+                    self::$orderHelper
+                );
+            case Notification::REFUND:
+                return new RefundWebhookHandler(
+                    self::$orderHelper,
+                    self::$configHelper,
+                    self::$adyenLogger,
+                    self::$adyenOrderPaymentCollectionFactory,
+                    self::$adyenDataHelper,
+                    self::$adyenOrderPayment
+                );
+            case Notification::REFUND_FAILED:
+                return new RefundFailedWebhookHandler(
                     self::$orderHelper
                 );
         }

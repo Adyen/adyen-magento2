@@ -433,7 +433,9 @@ class Webhook
                 $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
                 break;
             case PaymentStates::STATE_REFUNDED:
-                $this->refundPayment($notification);
+                $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
+
+                //$this->refundPayment($notification);
                 break;
             default:
                 break;
