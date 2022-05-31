@@ -421,6 +421,7 @@ class Webhook
                     $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
                 } elseif (in_array($notification->getEventCode(), [Notification::REFUND, Notification::REFUND_FAILED])) {
                     // Webhook module returns PAID for failed refunds, trigger admin notice
+                    $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
                     $this->addRefundFailedNotice($notification);
                 } else {
                     //$this->authorizePayment($notification);

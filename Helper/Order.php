@@ -20,6 +20,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Notification\NotifierPool;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
@@ -66,10 +67,11 @@ class Order extends AbstractHelper
     /** @var SearchCriteriaBuilder */
     private $searchCriteriaBuilder;
 
-    /**
-     * @var OrderRepository
-     */
+    /** @var OrderRepository  */
     private $orderRepository;
+
+    /** @var NotifierPool */
+    private $notifierPool;
 
     public function __construct(
         Context $context,
@@ -83,7 +85,8 @@ class Order extends AbstractHelper
         Config $configHelper,
         OrderStatusCollectionFactory $orderStatusCollectionFactory,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        OrderRepository $orderRepository
+        OrderRepository $orderRepository,
+        NotifierPool $notifierPool
     )
     {
         parent::__construct($context);
@@ -98,6 +101,7 @@ class Order extends AbstractHelper
         $this->orderStatusCollectionFactory = $orderStatusCollectionFactory;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->orderRepository = $orderRepository;
+        $this->notifierPool = $notifierPool;
     }
 
     /**
@@ -409,6 +413,26 @@ class Order extends AbstractHelper
         }
 
         return $order;
+    }
+
+    /**
+     * @param Notification $notification
+     * @return Notification
+     */
+    public function addRefundFailedNotice(Notification $notification)
+    {
+        $this->notifierPool->addNotice(
+            __("Adyen: Refund for order #%1 has failed", $notification->getMerchantReference()),
+            __(
+                "Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area
+                and trigger this refund manually or contact our support.",
+                $notification->getReason(),
+                $notification->getPspreference()
+            ),
+            $this->dataHelper->getPspReferenceSearchUrl($notification->getPspreference(), $notification->getLive())
+        );
+
+        return $notification;
     }
 
     /**
