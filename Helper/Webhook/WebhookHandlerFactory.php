@@ -12,13 +12,13 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
-
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
@@ -27,8 +27,6 @@ use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 
 class WebhookHandlerFactory
 {
-    /** @var WebhookService */
-    private static $webhookService;
 
     /** @var AdyenOrderPayment */
     private static $adyenOrderPayment;
@@ -60,8 +58,10 @@ class WebhookHandlerFactory
     /** @var MagentoInvoiceFactory */
     private static $magentoInvoiceFactory;
 
+    /** @var PaymentMethods */
+    private static $paymentMethodsHelper;
+
     public function __construct(
-        WebhookService $webhookService,
         AdyenOrderPayment $adyenOrderPayment,
         Order $orderHelper,
         CaseManagement $caseManagementHelper,
@@ -71,10 +71,10 @@ class WebhookHandlerFactory
         Config $configHelper,
         Invoice $invoiceHelper,
         PaymentFactory $adyenOrderPaymentFactory,
-        MagentoInvoiceFactory $magentoInvoiceFactory
+        MagentoInvoiceFactory $magentoInvoiceFactory,
+        PaymentMethods $paymentMethodsHelper
     )
     {
-        self::$webhookService = $webhookService;
         self::$adyenOrderPayment = $adyenOrderPayment;
         self::$orderHelper = $orderHelper;
         self::$caseManagementHelper = $caseManagementHelper;
@@ -85,30 +85,40 @@ class WebhookHandlerFactory
         self::$invoiceHelper = $invoiceHelper;
         self::$adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         self::$magentoInvoiceFactory = $magentoInvoiceFactory;
+        self::$paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     public static function create(string $eventCode): WebhookHandlerInterface
     {
         switch ($eventCode) {
+            case Notification::HANDLED_EXTERNALLY:
             case Notification::AUTHORISATION:
                 return new AuthorisationWebhookHandler(
-                    self::$webhookService,
                     self::$adyenOrderPayment,
                     self::$orderHelper,
                     self::$caseManagementHelper,
                     self::$serializer,
                     self::$adyenLogger,
                     self::$chargedCurrency,
-                    self::$configHelper
+                    self::$configHelper,
+                    self::$invoiceHelper,
+                    self::$paymentMethodsHelper
                 );
             case Notification::CAPTURE:
                 return new CaptureWebhookHandler(
-                    self::$webhookService,
                     self::$invoiceHelper,
                     self::$adyenOrderPaymentFactory,
                     self::$adyenOrderPayment,
                     self::$adyenLogger,
                     self::$magentoInvoiceFactory,
+                    self::$orderHelper,
+                    self::$paymentMethodsHelper
+                );
+            case Notification::OFFER_CLOSED:
+                return new OfferClosedWebhookHandler(
+                    self::$paymentMethodsHelper,
+                    self::$adyenLogger,
+                    self::$configHelper,
                     self::$orderHelper
                 );
         }

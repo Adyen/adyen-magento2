@@ -17,7 +17,9 @@ use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order as OrderHelper;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Webhook\PaymentStates;
@@ -27,9 +29,6 @@ use Magento\Sales\Model\Order;
 
 class AuthorisationWebhookHandler implements WebhookHandlerInterface
 {
-    /** @var WebhookService */
-    private $webhookService;
-
     /** @var AdyenOrderPayment */
     private $adyenOrderPaymentHelper;
 
@@ -51,18 +50,24 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
     /** @var Config */
     private $configHelper;
 
+    /** @var Invoice */
+    private $invoiceHelper;
+
+    /** @var PaymentMethods */
+    private $paymentMethodsHelper;
+
     public function __construct(
-        WebhookService $webhookService,
         AdyenOrderPayment $adyenOrderPayment,
         OrderHelper $orderHelper,
         CaseManagement $caseManagementHelper,
         SerializerInterface $serializer,
         AdyenLogger $adyenLogger,
         ChargedCurrency $chargedCurrency,
-        Config $configHelper
+        Config $configHelper,
+        Invoice $invoiceHelper,
+        PaymentMethods $paymentMethodsHelper
     )
     {
-        $this->webhookService = $webhookService;
         $this->adyenOrderPaymentHelper = $adyenOrderPayment;
         $this->orderHelper = $orderHelper;
         $this->caseManagementHelper = $caseManagementHelper;
@@ -70,8 +75,9 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         $this->adyenLogger = $adyenLogger;
         $this->chargedCurrency = $chargedCurrency;
         $this->configHelper = $configHelper;
+        $this->invoiceHelper = $invoiceHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
-
 
     /**
      * @param Order $order
@@ -99,7 +105,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      */
     private function handleSuccessfulAuthorisation(Order $order, Notification $notification): Order
     {
-        $isAutoCapture = $this->webhookService->isAutoCapture($order, $notification->getPaymentMethod());
+        $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod());
 
         // Set adyen_notification_payment_captured to true so that we ignore a possible OFFER_CLOSED
         if ($notification->isSuccessful() && $isAutoCapture) {
@@ -212,7 +218,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      */
     private function handleAutoCapture(Order $order, Notification $notification, bool $requireFraudManualReview): Order
     {
-        $this->webhookService->createInvoice($order, $notification, true);
+        $this->invoiceHelper->createInvoice($order, $notification, true);
         if ($requireFraudManualReview) {
              $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), true);
         } else {

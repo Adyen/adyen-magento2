@@ -17,6 +17,7 @@ use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
@@ -28,9 +29,6 @@ use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 
 class CaptureWebhookHandler implements WebhookHandlerInterface
 {
-    /** @var WebhookService */
-    private $webhookService;
-
     /** @var Invoice */
     private $invoiceHelper;
 
@@ -49,23 +47,26 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
     /** @var Order */
     private $orderHelper;
 
+    /** @var PaymentMethods */
+    private $paymentMethodsHelper;
+
     public function __construct(
-        WebhookService $webhookService,
         Invoice $invoiceHelper,
         PaymentFactory $adyenOrderPaymentFactory,
         AdyenOrderPayment $adyenOrderPaymentHelper,
         AdyenLogger $adyenLogger,
         MagentoInvoiceFactory $magentoInvoiceFactory,
-        Order $orderHelper
+        Order $orderHelper,
+        PaymentMethods $paymentMethodsHelper
     )
     {
-        $this->webhookService = $webhookService;
         $this->invoiceHelper = $invoiceHelper;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->adyenLogger = $adyenLogger;
         $this->magentoInvoiceFactory = $magentoInvoiceFactory;
         $this->orderHelper = $orderHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -76,7 +77,7 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
      */
     public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
-        $isAutoCapture = $this->webhookService->isAutoCapture($order, $notification->getPaymentMethod());
+        $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod());
 
         if ($isAutoCapture || $transitionState !== PaymentStates::STATE_PAID) {
             $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
