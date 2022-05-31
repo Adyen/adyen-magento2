@@ -13,6 +13,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Notification;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -719,5 +720,30 @@ class PaymentMethods extends AbstractHelper
         }
 
         return $manualCaptureAllowed;
+    }
+
+    /**
+     * Compare the payment methods linked to the magento order and the adyen notification
+     *
+     * @param Order $order
+     * @param Notification $notification
+     * @return bool
+     */
+    public function compareOrderAndWebhookPaymentMethods(Order $order, Notification $notification): bool
+    {
+        // For cards, it can be 'VI', 'MI',... For alternatives, it can be 'ideal', 'directEbanking',...
+        $orderPaymentMethod = $order->getPayment()->getCcType();
+        $notificationPaymentMethod = $notification->getPaymentMethod();
+
+        // Returns if the payment method is wallet like wechatpayWeb, amazonpay, applepay, paywithgoogle
+        $isWalletPaymentMethod = $this->isWalletPaymentMethod($orderPaymentMethod);
+        $isCardPaymentMethod = $order->getPayment()->getMethod() === 'adyen_cc' || $order->getPayment()->getMethod() === 'adyen_oneclick';
+
+        // If it is a wallet method OR a card OR the methods match exactly, return true
+        if ($isWalletPaymentMethod || $isCardPaymentMethod || strcmp($notificationPaymentMethod, $orderPaymentMethod) === 0) {
+            return true;
+        }
+
+        return false;
     }
 }

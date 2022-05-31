@@ -179,7 +179,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
          * Don't cancel the order if part of the payment has been captured.
          * Partial payments can fail, if the second payment has failed then the first payment is
          * refund/cancelled as well. So if it is a partial payment that failed cancel the order as well
-         * TODO: Refactor this
+         * TODO: Refactor this by using the adyenOrderPayment Table
          */
         $paymentPreviouslyCaptured = $order->getData('adyen_notification_payment_captured');
 

@@ -74,7 +74,7 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
          * Don't cancel the order if part of the payment has been captured.
          * Partial payments can fail, if the second payment has failed then the first payment is
          * refund/cancelled as well. So if it is a partial payment that failed cancel the order as well
-         * TODO: Refactor this
+         * TODO: Refactor this by using the adyenOrderPayment Table
          */
         $paymentPreviouslyCaptured = $order->getData('adyen_notification_payment_captured');
 
@@ -87,34 +87,21 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
             return $order;
         }
 
-        $notificationPaymentMethod = $notification->getPaymentMethod();
+        $identicalPaymentMethods = $this->paymentMethodsHelper->compareOrderAndWebhookPaymentMethods($order, $notification);
 
-        /*
-        * For cards, it can be 'VI', 'MI',...
-        * For alternatives, it can be 'ideal', 'directEbanking',...
-        */
-        $orderPaymentMethod = $order->getPayment()->getCcType();
+        if (!$identicalPaymentMethods) {
+            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+                'Payment method of notification %s (%s) does not match the payment method (%s) of order %s',
+                $notification->getId(),
+                $notification->getPaymentMethod(),
+                $order->getIncrementId(),
+                $order->getPayment()->getCcType()
+            ));
 
-        /*
-         * Returns if the payment method is wallet like wechatpayWeb, amazonpay, applepay, paywithgoogle
-         */
-        $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($orderPaymentMethod);
-        $isCCPaymentMethod = $order->getPayment()->getMethod() === 'adyen_cc' || $order->getPayment()->getMethod() === 'adyen_oneclick';
-
-        /*
-        * If the order was made with an Alternative payment method,
-        *  continue with the cancellation only if the payment method of
-        * the notification matches the payment method of the order.
-        */
-        if (!$isWalletPaymentMethod && !$isCCPaymentMethod && strcmp($notificationPaymentMethod, $orderPaymentMethod) !== 0) {
-            $this->adyenLogger->addAdyenNotificationCronjob(
-                "The notification does not match the payment method of the order,
-                    skipping OFFER_CLOSED"
-            );
             return $order;
         }
 
-        // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
+        // Move the order from PAYMENT_REVIEW to NEW, so that it can be cancelled
         if (!$order->canCancel() && $this->configHelper->getNotificationsCanCancel($order->getStoreId())) {
             $order->setState(MagentoOrder::STATE_NEW);
         }
