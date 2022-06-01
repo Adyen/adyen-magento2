@@ -105,7 +105,7 @@ class PayByLinkValidatorTest extends TestCase
                     AdyenPayByLinkConfigProvider::DATE_FORMAT,
                     strtotime($today . ' + ' . (AdyenPayByLinkConfigProvider::MIN_EXPIRY_DAYS) . ' days')
                 ),
-                false
+                true
             ],
         ];
     }
