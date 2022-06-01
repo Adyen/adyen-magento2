@@ -99,9 +99,11 @@ define(
                 )
 
                 if (!!this.checkoutComponent) {
-                    // Setting the adyenCCMethod will load the html and trigger the renderPaymentMethod on afterRender
+                    // Setting the icon as an accessible field if it is available
                     self.adyenCCMethod({
-                            icon: paymentMethodsResponse.paymentMethodsExtraDetails.card.icon || {}
+                            icon: !!paymentMethodsResponse.paymentMethodsExtraDetails.card
+                                ? paymentMethodsResponse.paymentMethodsExtraDetails.card.icon
+                                : undefined
                         })
                 }
             },
