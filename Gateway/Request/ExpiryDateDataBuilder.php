@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -53,8 +41,8 @@ class ExpiryDateDataBuilder implements BuilderInterface
     {
         $paymentFormFields = $this->request->getParam('payment');
         $expiryDate = date_create_from_format(
-            AdyenPayByLinkConfigProvider::DATE_FORMAT,
-            $paymentFormFields["adyen_pbl_expires_at"]
+            AdyenPayByLinkConfigProvider::DATE_TIME_FORMAT,
+            $paymentFormFields["adyen_pbl_expires_at"] . ' 23:59:59'
         );
 
         $request['body']['expiresAt'] = $expiryDate->format(DATE_ATOM);

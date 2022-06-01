@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -134,11 +122,11 @@ class InvoiceObserver implements ObserverInterface
         );
 
         if (empty($status)) {
-            $status = $this->statusResolver->getOrderStatusByState($order, Order::STATE_PROCESSING);
+            $status = $this->statusResolver->getOrderStatusByState($order, Order::STATE_PENDING_PAYMENT);
         }
 
         // Set order to PROCESSING to allow further invoices to be generated
-        $order->setState(Order::STATE_PROCESSING);
+        $order->setState(Order::STATE_PENDING_PAYMENT);
         $order->setStatus($status);
 
         $this->logger->addAdyenDebug(

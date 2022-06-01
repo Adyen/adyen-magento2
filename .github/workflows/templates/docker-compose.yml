@@ -9,6 +9,8 @@ services:
       MARIADB_DATABASE: magento
       MARIADB_USER: magento
       MARIADB_PASSWORD: magento
+    networks:
+      - backend
   elastic:
     image: elasticsearch:7.16.2
     container_name: elasticsearch
@@ -18,6 +20,8 @@ services:
     environment:
       - "discovery.type=single-node"
       - ES_JAVA_OPTS=-Xms750m -Xmx750m
+    networks:
+      - backend
   web:
     image: ataberkylmz/magento2:2.4.2
     container_name: magento2-container
@@ -28,10 +32,45 @@ services:
       ELASTICSEARCH_SERVER: elasticsearch
       MAGENTO_HOST: magento2.test.com
       VIRTUAL_HOST: magento2.test.com
-      ADMIN_USERNAME: ${MAGENTO_USERNAME}
-      ADMIN_PASSWORD: ${MAGENTO_PASSWORD}
+      COMPOSER_MEMORY_LIMIT: -1
+      DEPLOY_SAMPLEDATA: 1
+      ADMIN_USERNAME:
+      ADMIN_PASSWORD:
+      ADYEN_MERCHANT:
+      ADYEN_API_KEY:
+      ADYEN_CLIENT_KEY:
     depends_on:
       - db
       - elastic
     volumes:
       - ../../../:/data/extensions/workdir
+      - composer:/usr/local/bin
+      - magento:/var/www/html
+      - ../../Makefile:/var/www/html/Makefile
+    networks:
+      backend:
+        aliases:
+          - magento2.test.com
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.20.0-focal
+    shm_size: 1gb
+    ipc: host
+    cap_add:
+      - SYS_ADMIN
+    networks:
+      - backend
+    environment:
+      - INTEGRATION_TESTS_BRANCH
+      - MAGENTO_BASE_URL
+      - MAGENTO_ADMIN_USERNAME
+      - MAGENTO_ADMIN_PASSWORD
+      - PAYPAL_USERNAME
+      - PAYPAL_PASSWORD
+    volumes:
+      - ../../scripts/e2e.sh:/e2e.sh
+      - ../../../test-report:/tmp/test-report
+networks:
+  backend:
+volumes:
+  magento:
+  composer:

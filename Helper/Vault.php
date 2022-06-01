@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment Module
  *
@@ -100,14 +88,15 @@ class Vault
     }
 
     /**
-     * Check if Magento Vault is enabled
+     * Check if one click is enabled AND Magento Vault is set
+     * intval() is required since "" is returned if config doesn't exist
      *
      * @param null $storeId
      * @return bool
      */
     public function isCardVaultEnabled($storeId = null): bool
     {
-        return $this->config->getCardRecurringMode($storeId) === Recurring::MODE_MAGENTO_VAULT;
+        return intval($this->config->getCardRecurringActive($storeId)) && ($this->config->getCardRecurringMode($storeId) === Recurring::MODE_MAGENTO_VAULT);
     }
 
     /**

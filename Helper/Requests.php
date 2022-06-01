@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -141,9 +129,9 @@ class Requests extends AbstractHelper
             // /paymentLinks is not accepting "telephoneNumber" - FOC-47179
             if (
                 $payment->getMethodInstance()->getCode() != AdyenPayByLinkConfigProvider::CODE &&
-                $customerTelephone = trim($billingAddress->getTelephone())
+                !is_null($billingAddress->getTelephone())
             ) {
-                $request['telephoneNumber'] = $customerTelephone;
+                $request['telephoneNumber'] = trim($billingAddress->getTelephone());
             }
 
             if ($firstName = $billingAddress->getFirstname()) {
@@ -353,20 +341,23 @@ class Requests extends AbstractHelper
     public function buildCardRecurringData(int $storeId, $payment): array
     {
         $request = [];
+        $storePaymentMethod = false;
 
-        $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
         // Initialize the request body with the current state data
         // Multishipping checkout uses the cc_number field for state data
         $stateData = $this->stateData->getStateData($payment->getOrder()->getQuoteId()) ?:
             (json_decode($payment->getCcNumber(), true) ?: []);
 
+        // If PayByLink
+        // Else, if option to store token exists, get the value from the checkbox
         if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
             $request['storePaymentMethodMode'] = 'askForConsent';
-        } else {
-            $request['storePaymentMethod'] = (bool)($stateData['storePaymentMethod'] ?? $storedPaymentMethodsEnabled);
+        } elseif (array_key_exists('storePaymentMethod', $stateData)) {
+            $storePaymentMethod = $stateData['storePaymentMethod'];
+            $request['storePaymentMethod'] = $storePaymentMethod;
         }
 
-        if ($storedPaymentMethodsEnabled) {
+        if ($storePaymentMethod) {
             if ($this->vaultHelper->isCardVaultEnabled()) {
                 $request['recurringProcessingModel'] = 'Subscription';
             } else {
