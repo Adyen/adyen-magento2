@@ -66,7 +66,8 @@ class Webhook
         Order::STATE_PAYMENT_REVIEW => PaymentStates::STATE_PENDING,
         Order::STATE_PROCESSING => PaymentStates::STATE_IN_PROGRESS,
         Order::STATE_COMPLETE => PaymentStates::STATE_PAID,
-        Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED
+        Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED,
+        Order::STATE_CLOSED => PaymentStates::STATE_CANCELLED
     ];
 
     /**
@@ -348,7 +349,7 @@ class Webhook
             if ($transitionState !== $currentState) {
                 $this->handleOrderTransition($notification, $transitionState);
             } else {
-                $this->handleUnchangedStates($this->order, $notification);
+                $this->handleUnchangedStates($this->order, $notification, $currentState);
             }
 
             try {
@@ -415,6 +416,7 @@ class Webhook
     {
         $previousAdyenEventCode = $this->order->getData('adyen_notification_event_code');
         $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
+        $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
         switch ($transitionState) {
             case PaymentStates::STATE_PAID:
                 if (Notification::CAPTURE == $notification->getEventCode()) {
@@ -442,8 +444,10 @@ class Webhook
         }
     }
 
-    private function handleUnchangedStates(Order $order, Notification $notification): void
+    private function handleUnchangedStates(Order $order, Notification $notification, string $currentState): void
     {
+        $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
+        $this->order = $webhookHandler->handleWebhook($this->order, $notification, $currentState);
         switch ($notification->getEventCode()) {
             case Notification::PENDING:
                 $sendEmailSepaOnPending = $this->configHelper->getConfigData(
