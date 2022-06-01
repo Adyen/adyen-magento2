@@ -1,6 +1,5 @@
 <?php
 /**
- *
  * Adyen Payment module (https://www.adyen.com/)
  *
  * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
@@ -11,10 +10,35 @@
 
 namespace Adyen\Payment\Tests\Helper;
 
-class DataTest extends \PHPUnit\Framework\TestCase
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Locale;
+use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingAgreementCollectionFactory;
+use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
+use Magento\Directory\Model\Config\Source\Country;
+use Magento\Framework\App\CacheInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ProductMetadata;
+use Magento\Framework\Component\ComponentRegistrarInterface;
+use Magento\Framework\Config\DataInterface;
+use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Locale\ResolverInterface;
+use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\View\Asset\Repository;
+use Magento\Framework\View\Asset\Source;
+use Magento\Sales\Api\OrderManagementInterface;
+use Magento\Sales\Model\Order\Status\HistoryFactory;
+use Magento\Store\Model\StoreManager;
+use Magento\Tax\Model\Calculation;
+use Magento\Tax\Model\Config;
+use PHPUnit\Framework\TestCase;
+
+class DataTest extends TestCase
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $dataHelper;
 
@@ -27,33 +51,30 @@ class DataTest extends \PHPUnit\Framework\TestCase
 
     public function setUp(): void
     {
-        $context = $this->getSimpleMock(\Magento\Framework\App\Helper\Context::class);
-        $encryptor = $this->getSimpleMock(\Magento\Framework\Encryption\EncryptorInterface::class);
-        $dataStorage = $this->getSimpleMock(\Magento\Framework\Config\DataInterface::class);
-        $country = $this->getSimpleMock(\Magento\Directory\Model\Config\Source\Country::class);
-        $moduleList = $this->getSimpleMock(\Magento\Framework\Module\ModuleListInterface::class);
-        $billingAgreementCollectionFactory = $this->getSimpleMock(\Adyen\Payment\Model\ResourceModel
-                                                                  \Billing\Agreement\CollectionFactory::class);
-        $assetRepo = $this->getSimpleMock(\Magento\Framework\View\Asset\Repository::class);
-        $assetSource = $this->getSimpleMock(\Magento\Framework\View\Asset\Source::class);
-        $notificationFactory = $this->getSimpleMock(\Adyen\Payment\Model\ResourceModel
-                                                    \Notification\CollectionFactory::class);
-        $taxConfig = $this->getSimpleMock(\Magento\Tax\Model\Config::class);
-        $taxCalculation = $this->getSimpleMock(\Magento\Tax\Model\Calculation::class);
-        $productMetadata = $this->getSimpleMock(\Magento\Framework\App\ProductMetadata::class);
-        $adyenLogger = $this->getSimpleMock(\Adyen\Payment\Logger\AdyenLogger::class);
-        $storeManager = $this->getSimpleMock(\Magento\Store\Model\StoreManager::class);
-        $cache = $this->getSimpleMock(\Magento\Framework\App\CacheInterface::class);
-        $localeResolver = $this->getSimpleMock(\Magento\Framework\Locale\ResolverInterface::class);
-        $config = $this->getSimpleMock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
-        $serializer = $this->getSimpleMock(\Magento\Framework\Serialize\SerializerInterface::class);
-        $componentRegistrar = $this->getSimpleMock(\Magento\Framework
-                                                   \Component\ComponentRegistrarInterface::class);
-        $localeHelper = $this->getSimpleMock(\Adyen\Payment\Helper\Locale::class);
-        $orderManagement = $this->getSimpleMock(\Magento\Sales\Api\OrderManagementInterface::class);
-        $orderStatusHistoryFactory = $this->getSimpleMock(\Magento\Sales\Model\Order\Status\HistoryFactory::class);
+        $context = $this->getSimpleMock(Context::class);
+        $encryptor = $this->getSimpleMock(EncryptorInterface::class);
+        $dataStorage = $this->getSimpleMock(DataInterface::class);
+        $country = $this->getSimpleMock(Country::class);
+        $moduleList = $this->getSimpleMock(ModuleListInterface::class);
+        $billingAgreementCollectionFactory = $this->getSimpleMock(BillingAgreementCollectionFactory::class);
+        $assetRepo = $this->getSimpleMock(Repository::class);
+        $assetSource = $this->getSimpleMock(Source::class);
+        $notificationFactory = $this->getSimpleMock(NotificationCollectionFactory::class);
+        $taxConfig = $this->getSimpleMock(Config::class);
+        $taxCalculation = $this->getSimpleMock(Calculation::class);
+        $productMetadata = $this->getSimpleMock(ProductMetadata::class);
+        $adyenLogger = $this->getSimpleMock(AdyenLogger::class);
+        $storeManager = $this->getSimpleMock(StoreManager::class);
+        $cache = $this->getSimpleMock(CacheInterface::class);
+        $localeResolver = $this->getSimpleMock(ResolverInterface::class);
+        $config = $this->getSimpleMock(ScopeConfigInterface::class);
+        $serializer = $this->getSimpleMock(SerializerInterface::class);
+        $componentRegistrar = $this->getSimpleMock(ComponentRegistrarInterface::class);
+        $localeHelper = $this->getSimpleMock(Locale::class);
+        $orderManagement = $this->getSimpleMock(OrderManagementInterface::class);
+        $orderStatusHistoryFactory = $this->getSimpleMock(HistoryFactory::class);
 
-        $this->dataHelper = new \Adyen\Payment\Helper\Data(
+        $this->dataHelper = new Data(
             $context,
             $encryptor,
             $dataStorage,
@@ -110,7 +131,8 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expectedResult, $pspSearchUrl);
     }
 
-    public function testGetPspReferenceWithNoAdditions(){
+    public function testGetPspReferenceWithNoAdditions()
+    {
         $this->assertEquals(
             ['pspReference' => '852621234567890A', 'suffix' => ''],
             $this->dataHelper->parseTransactionId('852621234567890A')
