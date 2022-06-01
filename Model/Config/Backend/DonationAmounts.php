@@ -28,8 +28,6 @@ use Magento\Store\Model\StoreManagerInterface;
  */
 class DonationAmounts extends Value
 {
-    const MIN_DONATION_IN_EUR = 1;
-
     /**
      * @var Data
      */
@@ -62,9 +60,7 @@ class DonationAmounts extends Value
         ) {
             throw new \Magento\Framework\Validator\Exception(
                 new Phrase(
-                    'The Adyen Giving donation amounts are not valid, ' .
-                    'please enter amounts higher than ' . self::MIN_DONATION_IN_EUR . 'EUR separated by commas. ' .
-                    'Also, make sure that there is a currency rate for EUR in your Magento system.'
+                    'The Adyen Giving donation amounts are not valid, please enter amounts higher than zero separated by commas.'
                 )
             );
         }
@@ -73,17 +69,14 @@ class DonationAmounts extends Value
 
     public function validateDonationAmounts($amounts = array())
     {
-
-        $baseCurrencyRate = $this->storeManager->getStore()->getBaseCurrency()->getRate('EUR');
-
-        // Fail if the field is empty, the array is associative, or if there isn't a currency rate for EUR
-        if (empty($amounts) || array_values($amounts) !== $amounts || !$baseCurrencyRate) {
+        // Fail if the field is empty, the array is associative
+        if (empty($amounts) || array_values($amounts) !== $amounts) {
             return false;
         }
 
         foreach ($amounts as $amount) {
-            // Fail if one of the amounts is empty, not numeric, or less than the minimum donation amount
-            if ($amount === '' || !is_numeric($amount) || $amount * $baseCurrencyRate < self::MIN_DONATION_IN_EUR) {
+            // Fail if one of the amounts is empty, not numeric, or less than zero
+            if ($amount === '' || !is_numeric($amount) || $amount <= 0) {
                 return false;
             }
         }
