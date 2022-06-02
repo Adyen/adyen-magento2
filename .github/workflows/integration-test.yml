@@ -6,14 +6,19 @@ jobs:
     strategy:
       matrix:
         php-version: ['7.4']
-        magento-version: ['2.3.7', '2.4.2']
+        magento-version: ['2.4.2']
+        use-elasticsearch: 1
         include:
+          - php-version: '7.4'
+            magento-version: '2.3.7'
+            use-elasticsearch: 0
           - php-version: '8.1'
             magento-version: '2.4.4'
     runs-on: ubuntu-latest
     env:
       PHP_VERSION: ${{ matrix.php-version }}
       MAGENTO_VERSION: ${{ matrix.magento-version }}
+      USE_ELASTICSEARCH: ${{ matrix.use-elasticsearh }}
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
     steps:

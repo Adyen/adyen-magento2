@@ -43,6 +43,9 @@ services:
       ADYEN_MERCHANT:
       ADYEN_API_KEY:
       ADYEN_CLIENT_KEY:
+      PHP_VERSION:
+      MAGENTO_VERSION:
+      USE_ELASTICSEARCH:
     depends_on:
       - db
       - elastic
