@@ -108,8 +108,8 @@
   </table>
   <table name="adyen_creditmemo" resource="default" engine="innodb" comment="Adyen Creditmemo">
     <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Adyen Creditmemo Entity ID"/>
-    <column xsi:type="text" name="pspreference" unsigned="true" nullable="false" comment="Adyen pspreference of the refund"/>
-    <column xsi:type="text" name="original_reference" unsigned="true" nullable="true" comment="Adyen original reference of the refund"/>
+    <column xsi:type="text" name="pspreference" nullable="false" comment="Adyen pspreference of the refund"/>
+    <column xsi:type="text" name="original_reference" nullable="true" comment="Adyen original reference of the refund"/>
     <column xsi:type="int" name="creditmemo_id" padding="10" unsigned="true" nullable="true" comment="Creditmemo ID, link to magento creditmemo entity"/>
     <column xsi:type="decimal" name="amount" scale="4" precision="12" unsigned="true" nullable="false" comment="Amount Refunded"/>
     <column xsi:type="int" name="adyen_order_payment_id" padding="10" unsigned="true" nullable="false" comment="ID of corresponding payment"/>
