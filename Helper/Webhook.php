@@ -65,7 +65,8 @@ class Webhook
         Order::STATE_PAYMENT_REVIEW => PaymentStates::STATE_PENDING,
         Order::STATE_PROCESSING => PaymentStates::STATE_IN_PROGRESS,
         Order::STATE_COMPLETE => PaymentStates::STATE_PAID,
-        Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED
+        Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED,
+        Order::STATE_CLOSED => PaymentStates::STATE_CANCELLED
     ];
 
     /**
@@ -440,6 +441,8 @@ class Webhook
     private function handleUnchangedStates(Order $order, Notification $notification): void
     {
         switch ($notification->getEventCode()) {
+            case Notification::REFUND:
+                $this->refundPayment($notification);
             case Notification::PENDING:
                 $sendEmailSepaOnPending = $this->configHelper->getConfigData(
                     'send_email_bank_sepa_on_pending',
