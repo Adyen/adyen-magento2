@@ -113,7 +113,7 @@ class BeforeShipmentObserver extends AbstractDataAssignObserver
             $pspReference = $order->getPayment()->getAdyenPspReference();
             $invoice->setTransactionId($pspReference);
             $invoice->setRequestedCaptureCase(Invoice::CAPTURE_ONLINE);
-            $invoice->register()->pay();
+            $invoice->register();
             $this->invoiceRepository->save($invoice);
         } catch (Throwable $e) {
             $this->logger->error($e);
