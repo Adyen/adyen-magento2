@@ -20,6 +20,11 @@ else
 	exit 1
 fi
 
+USE_ELASTICSEARCH='1'
+if [[ "$MAGENTO_VERSION" =~ ^2\.3 ]]; then
+	USE_ELASTICSEARCH='0'
+fi
+
 if [ "$USE_ELASTICSEARCH" == '1' ] && [ "$ELASTICSEARCH_SERVER" != "<will be defined>" ]; then
 	MAGENTO_INSTALL_ARGS=$(echo \
 		--elasticsearch-host="$ELASTICSEARCH_SERVER" \

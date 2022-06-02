@@ -45,7 +45,6 @@ services:
       ADYEN_CLIENT_KEY:
       PHP_VERSION:
       MAGENTO_VERSION:
-      USE_ELASTICSEARCH:
     depends_on:
       - db
       - elastic
