@@ -788,7 +788,8 @@ define(
                         self.checkoutComponent,
                         paymentMethod.methodIdentifier,
                         configuration,
-                        containerId
+                        containerId,
+                        result
                     );
 
                 } catch (err) {
