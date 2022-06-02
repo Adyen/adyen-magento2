@@ -26,6 +26,7 @@
     <php>
         <includePath>./testsuite</includePath>
         <const name="TESTS_INSTALL_CONFIG_FILE" value="config/install-config-mysql.php"/>
+        <const name="TESTS_POST_INSTALL_SETUP_COMMAND_CONFIG_FILE" value="config/post-install-setup-command-config.php"/>
         <const name="TESTS_GLOBAL_CONFIG_FILE" value="config/config-global.php"/>
         <!-- Webserver URL -->
         <const name="TESTS_BASE_URL" value="http://magento2.test.com"/>
@@ -54,7 +55,7 @@
     <!-- Test listeners -->
     <listeners>
         <listener class="Magento\TestFramework\Event\PhpUnit"/>
-        <listener class="Yandex\Allure\Adapter\AllureAdapter">
+        <listener class="Yandex\Allure\PhpUnit\AllurePhpUnit">
             <arguments>
                 <string>var/allure-results</string> <!-- XML files output folder -->
                 <boolean>true</boolean> <!-- Whether to delete previous results on rerun -->
