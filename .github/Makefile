@@ -91,9 +91,13 @@ unit:
 
 # Destroy services
 clean:
-	docker-compose -f workflows/templates/docker-compose.yml down --volumes
+	docker-compose -f workflows/templates/docker-compose.yml down --volumes --rmi local
 
-# Full CI build
+# Docker image build
+image:
+	docker-compose -f workflows/templates/docker-compose.yml build
+
+# Simulate a full CI build
 ci:
 	docker-compose -f workflows/templates/docker-compose.yml run --rm web make magento
 	docker-compose -f workflows/templates/docker-compose.yml up -d web
