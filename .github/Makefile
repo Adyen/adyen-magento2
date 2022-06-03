@@ -77,13 +77,14 @@ bundlejs:
 	bin/magento cache:clean config
 
 MAGENTO_ROOT=/var/www/html
-PHPUNIT_CONFIG=vendor/adyen/module-payment/Test/api-functional/phpunit_graphql.xml
-TEST_SUITE=vendor/adyen/module-payment/Test/api-functional/GraphQl
+GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml.dist
+GRAPHQL_PHP=/data/extensions/workdir/Test/phpunit_graphql.php
+GRAPHQL_SUITE=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/GraphQl
 
 # GraphQL tests
 graphql:
 	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
-		${MAGENTO_ROOT}/vendor/bin/phpunit --configuration ${MAGENTO_ROOT}/${PHPUNIT_CONFIG} ${MAGENTO_ROOT}/${TEST_SUITE}
+		${MAGENTO_ROOT}/vendor/bin/phpunit --prepend ${GRAPHQL_PHP} --configuration ${GRAPHQL_XML} ${GRAPHQL_SUITE}
 
 # Unit tests
 unit:
