@@ -53,7 +53,7 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
-        if: github.event.pull_request.base.ref == 'develop'
+        if: github.event.pull_request.base.ref == 'main'
         continue-on-error: true
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
         env:
