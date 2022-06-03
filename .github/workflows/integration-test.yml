@@ -47,9 +47,11 @@ jobs:
         run: docker exec magento2-container make graphql
 
       - name: Switch to production mode
+        if: github.event.pull_request.base.ref == 'main'
         run: docker exec -u www-data magento2-container make production
 
       - name: Setup permissions
+        if: github.event.pull_request.base.ref == 'main'
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
@@ -65,6 +67,7 @@ jobs:
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
 
       - name: Archive test result artifacts
+        if: github.event.pull_request.base.ref == 'main'
         uses: actions/upload-artifact@v3
         with:
           name: html-report
