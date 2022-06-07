@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2022 Adyen NV (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="adyen_moto_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="100">
+        <label>Moto payments setup</label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <field id="enable_moto" translate="label" type="select" sortOrder="10" showInDefault="1"
+               showInWebsite="1" showInStore="1">
+            <label>Enable moto settings</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/adyen_cc/enable_moto</config_path>
+        </field>
+        <field id="installments" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>Moto</label>
+            <depends>
+                <field id="enable_moto">1</field>
+            </depends>
+            <tooltip>Configure moto</tooltip>
+            <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Moto</frontend_model>
+            <backend_model>Adyen\Payment\Model\Config\Backend\Moto</backend_model>
+            <config_path>payment/adyen_cc/moto</config_path>
+        </field>
+    </group>
+</include>
