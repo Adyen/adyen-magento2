@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -11,6 +11,9 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\Vault;
+use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class RecurringVaultDataBuilder implements BuilderInterface
@@ -22,15 +25,19 @@ class RecurringVaultDataBuilder implements BuilderInterface
     public function build(array $buildSubject)
     {
         $requestBody = [];
-        $recurring = ['contract' => \Adyen\Payment\Model\RecurringType::RECURRING];
-        $requestBody['recurring'] = $recurring;
-        /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        /** @var PaymentDataObject $paymentDataObject */
+        $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         $extensionAttributes = $payment->getExtensionAttributes();
         $paymentToken = $extensionAttributes->getVaultPaymentToken();
 
-        $requestBody['selectedRecurringDetailReference'] = $paymentToken->getGatewayToken();
+        // Add paymentMethod object in array, since currently checkout component is not loaded for vault payment methods
+        $requestBody['paymentMethod'] = [
+            'storedPaymentMethodId' => $paymentToken->getGatewayToken()
+        ];
+
+        // TODO: How are we going to decide what model to send when processing payment on the already existing token
+        $requestBody['recurringProcessingModel'] = 'Subscription';
 
         $request['body'] = $requestBody;
 
