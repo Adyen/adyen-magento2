@@ -70,7 +70,7 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
         try {
             $order = $this->orderRepository->get($orderId);
         } catch (NoSuchEntityException $exception) {
-            $this->adyenLogger->addError('Order not found.');
+            $this->adyenLogger->error('Order not found.');
             return json_encode(
                 $this->paymentResponseHandler->formatPaymentResponse(PaymentResponseHandler::ERROR)
             );
