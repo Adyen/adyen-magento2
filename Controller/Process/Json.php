@@ -16,6 +16,7 @@ use Adyen\Exception\MerchantAccountCodeException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\IpAddress;
+use Adyen\Payment\Helper\RateLimiter;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
@@ -68,6 +69,11 @@ class Json extends Action
     private $ipAddressHelper;
 
     /**
+     * @var RateLimiter
+     */
+    private $rateLimiterHelper;
+
+    /**
      * @var HmacSignature
      */
     private $hmacSignature;
@@ -86,6 +92,7 @@ class Json extends Action
      * @param SerializerInterface $serializer
      * @param Config $configHelper
      * @param IpAddress $ipAddressHelper
+     * @param RateLimiter $rateLimiterHelper
      * @param HmacSignature $hmacSignature
      * @param NotificationReceiver $notificationReceiver
      */
@@ -97,6 +104,7 @@ class Json extends Action
         SerializerInterface $serializer,
         Config $configHelper,
         IpAddress $ipAddressHelper,
+        RateLimiter $rateLimiterHelper,
         HmacSignature $hmacSignature,
         NotificationReceiver $notificationReceiver
     ) {
@@ -107,6 +115,7 @@ class Json extends Action
         $this->serializer = $serializer;
         $this->configHelper = $configHelper;
         $this->ipAddressHelper = $ipAddressHelper;
+        $this->rateLimiterHelper = $rateLimiterHelper;
         $this->hmacSignature = $hmacSignature;
         $this->notificationReceiver = $notificationReceiver;
 
@@ -203,12 +212,26 @@ class Json extends Action
     {
         // Add CGI support
         $this->fixCgiHttpAuthentication();
-        return $this->notificationReceiver->isAuthenticated(
+
+        if($this->rateLimiterHelper->checkExistenceOfNotificationUsernameInCache()) {
+            // increase the attempt count - cache value
+            $this->rateLimiterHelper->saveNotificationUsernamesToCache();
+            return false;
+        }
+
+        $authResult = $this->notificationReceiver->isAuthenticated(
             $response,
             $this->configHelper->getMerchantAccount(),
             $this->configHelper->getNotificationsUsername(),
             $this->configHelper->getNotificationsPassword()
         );
+
+        if(!$authResult) {
+            $this->rateLimiterHelper->saveNotificationUsernamesToCache();
+            return false;
+        }
+
+        return $authResult;
     }
 
     /**
