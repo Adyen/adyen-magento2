@@ -946,6 +946,8 @@
                 type="Adyen\Payment\Model\Api\Internal\InternalAdyenDonations"/>
     <preference for="Adyen\Payment\Api\AdyenDonationsInterface"
                 type="Adyen\Payment\Model\Api\AdyenDonations"/>
+    <preference for="Adyen\Payment\Api\Data\AdyenPaymentMethodRepositoryInterface"
+                type="Adyen\Payment\Model\PaymentMethod\AdyenPaymentMethodRepository"/>
     <type name="Magento\Vault\Api\PaymentTokenRepositoryInterface">
         <plugin name="AdyenPaymentVaultDeleteToken" type="Adyen\Payment\Plugin\PaymentVaultDeleteToken" sortOrder="10"/>
     </type>
