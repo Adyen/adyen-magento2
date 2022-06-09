@@ -13,12 +13,15 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Api\Data\AdyenPaymentMethodRepositoryInterface;
+use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
+use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Exception;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
@@ -79,6 +82,9 @@ class Vault
     /** @var AdyenPaymentMethodRepositoryInterface */
     private $adyenPaymentMethodRepo;
 
+    /** @var PaymentMethodFactory */
+    private $paymentMethodFactory;
+
     public function __construct(
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
@@ -87,7 +93,8 @@ class Vault
         PaymentTokenRepositoryInterface $paymentTokenRepository,
         Config $config,
         PaymentMethods $paymentMethodsHelper,
-        AdyenPaymentMethodRepositoryInterface $adyenPaymentMethodRepo
+        AdyenPaymentMethodRepositoryInterface $adyenPaymentMethodRepo,
+        PaymentMethodFactory $paymentMethodFactory
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
@@ -97,6 +104,7 @@ class Vault
         $this->config = $config;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->adyenPaymentMethodRepo = $adyenPaymentMethodRepo;
+        $this->paymentMethodFactory = $paymentMethodFactory;
     }
 
     /**
@@ -147,7 +155,7 @@ class Vault
     }
 
     /**
-     * Build the recurring data when payment is done trough an alternative payment method
+     * Build the recurring data when payment is done trough a payment method (not card)
      *
      * @param int $storeId
      * @param $payment
@@ -156,11 +164,21 @@ class Vault
     public function buildPaymentMethodRecurringData(int $storeId, $payment): array
     {
         $request = [];
-
         $brand = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
-        $pmRecurringEnabled = $this->isPaymentMethodRecurringEnabled($brand);
-        if (!$this->config->isStoreAlternativePaymentMethodEnabled() || !$pmRecurringEnabled) {
 
+        if (!$this->config->isStoreAlternativePaymentMethodEnabled()) {
+            return $request;
+        }
+
+        $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
+        try {
+            $allowRecurring = $this->allowRecurringOnPaymentMethod($adyenPaymentMethod);
+        } catch (NoSuchEntityException $exception) {
+            $this->adyenLogger->warning(sprintf('Unable to create object with tx variant %s', $brand));
+            return $request;
+        }
+
+        if (!$allowRecurring) {
             return $request;
         }
 
@@ -174,16 +192,19 @@ class Vault
     }
 
     /**
-     * TODO: In this function also check if the payment method class (PayPalPaymentMethod) supports recurring
+     * Check if recurring should be allowed for payment method by checking if the payment method supports recurring
+     * AND if the admin has enabled recurring for this payment method
      *
-     * @param string $paymentMethod
+     * @param PaymentMethodInterface $adyenPaymentMethod
      * @return bool
+     * @throws NoSuchEntityException
      */
-    public function isPaymentMethodRecurringEnabled(string $paymentMethod)
+    public function allowRecurringOnPaymentMethod(PaymentMethodInterface $adyenPaymentMethod): bool
     {
-        $paymentMethod = $this->adyenPaymentMethodRepo->getByPaymentMethodName($paymentMethod);
+        $methodSupportsRecurring = $adyenPaymentMethod->supportsRecurring();
+        $paymentMethodModel = $this->adyenPaymentMethodRepo->getByPaymentMethodName($adyenPaymentMethod->getTxVariant());
 
-        return true;
+        return $methodSupportsRecurring && $paymentMethodModel->getEnableRecurring();
     }
 
     /**
