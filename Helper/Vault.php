@@ -15,6 +15,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Api\Data\AdyenPaymentMethodRepositoryInterface;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
+use Adyen\Payment\Helper\PaymentMethods\PayPalPaymentMethod;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use DateInterval;
@@ -155,6 +156,41 @@ class Vault
     }
 
     /**
+     * Save recurring details related to the payment method.
+     * Before doing this, validate the additionalData sent by Adyen, based on the params required by the payment method
+     *
+     * @param $payment
+     * @param array $additionalData
+     * @param PaymentMethodInterface $adyenPaymentMethod
+     */
+    public function saveRecurringPaymentDetails($payment, array $additionalData, PaymentMethodInterface $adyenPaymentMethod)
+    {
+        $requiredAdditionalData = $adyenPaymentMethod->getRequiredAdditionalData();
+        if (!$this->validatePaymentMethodAdditionalData($additionalData, $requiredAdditionalData)) {
+            return;
+        }
+
+        try {
+            $paymentToken = $this->getVaultPaymentMethodToken($payment, $additionalData, $requiredAdditionalData);
+        } catch (Exception $exception) {
+            $this->adyenLogger->error(json_encode($exception));
+            return;
+        }
+
+        if (null !== $paymentToken) {
+            $extensionAttributes = $this->getExtensionAttributes($payment);
+            $extensionAttributes->setVaultPaymentToken($paymentToken);
+        } else {
+            $this->adyenLogger->error(
+                sprintf(
+                    'Failure trying to save credit card token in vault for order %s',
+                    $payment->getOrder()->getIncrementId()
+                )
+            );
+        }
+    }
+
+    /**
      * Build the recurring data when payment is done trough a payment method (not card)
      *
      * @param int $storeId
@@ -210,6 +246,50 @@ class Vault
     /**
      * @param $payment
      * @param array $additionalData
+     * @param array $requiredAdditionalData
+     * @return PaymentTokenInterface|null
+     * @throws Exception
+     */
+    private function getVaultPaymentMethodToken($payment, array $additionalData, array $requiredAdditionalData): PaymentTokenInterface
+    {
+        $details = [];
+        // Check if paymentToken exists already
+        $paymentToken = $this->paymentTokenManagement->getByGatewayToken(
+            $additionalData[self::RECURRING_DETAIL_REFERENCE],
+            $payment->getMethodInstance()->getCode(),
+            $payment->getOrder()->getCustomerId()
+        );
+
+        $paymentTokenSaveRequired = false;
+
+        // In case the payment token does not exist, create it based on the additionalData
+        if ($paymentToken === null) {
+            $paymentToken = $this->paymentTokenFactory->create(PayPalPaymentMethod::TX_VARIANT);
+            $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
+        } else {
+            $paymentTokenSaveRequired = true;
+        }
+
+        if (array_key_exists(self::EXPIRY_DATE, $additionalData)) {
+            $paymentToken->setExpiresAt($this->getExpirationDate($additionalData[self::EXPIRY_DATE]));
+        }
+
+        foreach ($requiredAdditionalData as $key) {
+            $details[$key] = $additionalData[$key];
+        }
+
+        $paymentToken->setTokenDetails(json_encode($details, JSON_FORCE_OBJECT));
+
+        // If the token is updated, it needs to be saved to keep the changes
+        if ($paymentTokenSaveRequired) {
+            $this->paymentTokenRepository->save($paymentToken);
+        }
+        return $paymentToken;
+    }
+
+    /**
+     * @param $payment
+     * @param array $additionalData
      * @return PaymentTokenInterface|null
      * @throws Exception
      */
@@ -253,6 +333,28 @@ class Vault
             $this->paymentTokenRepository->save($paymentToken);
         }
         return $paymentToken;
+    }
+
+    /**
+     * @param array $additionalData
+     * @param array $keys
+     * @return bool
+     */
+    private function validatePaymentMethodAdditionalData(array $additionalData, array $keys): bool
+    {
+        // If additionalData is empty, but some keys are required
+        if (empty($additionalData) && !empty($keys)) {
+            return false;
+        }
+
+        foreach ($keys as $key) {
+            if (empty($additionalData[$key])) {
+                $this->adyenLogger->error(sprintf('%s not found in additionalData', $key));
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

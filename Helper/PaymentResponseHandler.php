@@ -11,10 +11,12 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Exception;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Magento\Sales\Model\ResourceModel\Order;
 
 class PaymentResponseHandler
 {
@@ -45,7 +47,7 @@ class PaymentResponseHandler
     private $vaultHelper;
 
     /**
-     * @var \Magento\Sales\Model\ResourceModel\Order
+     * @var Order
      */
     private $orderResourceModel;
 
@@ -64,6 +66,16 @@ class PaymentResponseHandler
     private $quoteHelper;
 
     /**
+     * @var Config
+     */
+    private $configHelper;
+
+    /**
+     * @var PaymentMethodFactory
+     */
+    private $paymentMethodFactory;
+
+    /**
      * PaymentResponseHandler constructor.
      *
      * @param AdyenLogger $adyenLogger
@@ -74,10 +86,12 @@ class PaymentResponseHandler
         AdyenLogger $adyenLogger,
         Data $adyenHelper,
         Vault $vaultHelper,
-        \Magento\Sales\Model\ResourceModel\Order $orderResourceModel,
+        Order $orderResourceModel,
         Data $dataHelper,
         Recurring $recurringHelper,
-        Quote $quoteHelper
+        Quote $quoteHelper,
+        Config $configHelper,
+        PaymentMethodFactory $paymentMethodFactory
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
@@ -86,6 +100,8 @@ class PaymentResponseHandler
         $this->dataHelper = $dataHelper;
         $this->recurringHelper = $recurringHelper;
         $this->quoteHelper = $quoteHelper;
+        $this->configHelper = $configHelper;
+        $this->paymentMethodFactory = $paymentMethodFactory;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
@@ -196,7 +212,11 @@ class PaymentResponseHandler
 
                 if (!empty($paymentsResponse['additionalData']['recurring.recurringDetailReference']) &&
                     $payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE) {
-                    if ($this->vaultHelper->isCardVaultEnabled()) {
+
+                    if ($this->configHelper->isStoreAlternativePaymentMethodEnabled($payment->getMethodInstance()->getStore())) {
+                        $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($payment->getCcType());
+                        $this->vaultHelper->saveRecurringPaymentDetails($payment, $paymentsResponse['additionalData'], $adyenPaymentMethod);
+                    } else if ($this->vaultHelper->isCardVaultEnabled()) {
                         $this->vaultHelper->saveRecurringDetails($payment, $paymentsResponse['additionalData']);
                     } else {
                         $order = $payment->getOrder();

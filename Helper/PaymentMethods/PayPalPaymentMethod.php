@@ -13,14 +13,17 @@ namespace Adyen\Payment\Helper\PaymentMethods;
 
 class PayPalPaymentMethod implements PaymentMethodInterface
 {
+    const TX_VARIANT = 'paypal';
+    const NAME = 'PayPal';
+
     public function getTxVariant(): string
     {
-        return 'paypal';
+        return self::TX_VARIANT;
     }
 
     public function getPaymentMethodName(): string
     {
-        return 'PayPal';
+        return self::NAME;
     }
 
     public function supportsRecurring(): bool
@@ -41,5 +44,10 @@ class PayPalPaymentMethod implements PaymentMethodInterface
     public function getLabel(): string
     {
         return 'xyz';
+    }
+
+    public function getRequiredAdditionalData(): array
+    {
+        return [];
     }
 }
