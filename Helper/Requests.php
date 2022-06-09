@@ -370,34 +370,6 @@ class Requests extends AbstractHelper
     }
 
     /**
-     * Build the recurring data when payment is done trough an alternative payment method
-     *
-     * @param int $storeId
-     * @param $payment
-     * @return array
-     */
-    public function buildAlternativePaymentRecurringData(int $storeId, $payment): array
-    {
-        $request = [];
-
-        $brand = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
-        if (!$this->adyenConfig->isStoreAlternativePaymentMethodEnabled() ||
-            !$this->paymentMethodsHelper->paymentMethodSupportsRecurring($brand)) {
-
-            return $request;
-        }
-
-
-        $recurringModel = $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
-        if (isset($recurringModel)) {
-            $request['storePaymentMethod'] = true;
-            $request['recurringProcessingModel'] = $recurringModel;
-        }
-
-        return $request;
-    }
-
-    /**
      * Build the recurring data to be sent in case of an Adyen Tokenized payment.
      * Model will be fetched according to the type (card/other pm) of the original payment
      *

@@ -12,7 +12,9 @@
 namespace Adyen\Payment\Api\Data;
 
 
+use Adyen\Payment\Model\PaymentMethod\AdyenPaymentMethod;
+
 interface AdyenPaymentMethodRepositoryInterface
 {
-    public function save(AdyenPaymentMethodInterface $adyenPaymentMethod);
+    public function getByPaymentMethodName(string $paymentMethod): AdyenPaymentMethod;
 }

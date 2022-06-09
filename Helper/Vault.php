@@ -12,7 +12,9 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Api\Data\AdyenPaymentMethodRepositoryInterface;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
@@ -71,13 +73,21 @@ class Vault
      */
     private $config;
 
+    /** @var PaymentMethods */
+    private $paymentMethodsHelper;
+
+    /** @var AdyenPaymentMethodRepositoryInterface */
+    private $adyenPaymentMethodRepo;
+
     public function __construct(
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
         PaymentTokenManagement $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
-        Config $config
+        Config $config,
+        PaymentMethods $paymentMethodsHelper,
+        AdyenPaymentMethodRepositoryInterface $adyenPaymentMethodRepo
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
@@ -85,6 +95,8 @@ class Vault
         $this->paymentTokenFactory = $paymentTokenFactory;
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->config = $config;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->adyenPaymentMethodRepo = $adyenPaymentMethodRepo;
     }
 
     /**
@@ -132,6 +144,46 @@ class Vault
                 )
             );
         }
+    }
+
+    /**
+     * Build the recurring data when payment is done trough an alternative payment method
+     *
+     * @param int $storeId
+     * @param $payment
+     * @return array
+     */
+    public function buildPaymentMethodRecurringData(int $storeId, $payment): array
+    {
+        $request = [];
+
+        $brand = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+        $pmRecurringEnabled = $this->isPaymentMethodRecurringEnabled($brand);
+        if (!$this->config->isStoreAlternativePaymentMethodEnabled() || !$pmRecurringEnabled) {
+
+            return $request;
+        }
+
+        $recurringModel = $this->config->getAlternativePaymentMethodTokenType($storeId);
+        if (isset($recurringModel)) {
+            $request['storePaymentMethod'] = true;
+            $request['recurringProcessingModel'] = $recurringModel;
+        }
+
+        return $request;
+    }
+
+    /**
+     * TODO: In this function also check if the payment method class (PayPalPaymentMethod) supports recurring
+     *
+     * @param string $paymentMethod
+     * @return bool
+     */
+    public function isPaymentMethodRecurringEnabled(string $paymentMethod)
+    {
+        $paymentMethod = $this->adyenPaymentMethodRepo->getByPaymentMethodName($paymentMethod);
+
+        return true;
     }
 
     /**

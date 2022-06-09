@@ -12,26 +12,63 @@
 
 namespace Adyen\Payment\Model\PaymentMethod;
 
-use Adyen\Payment\Api\Data\AdyenPaymentMethodInterface;
 use Adyen\Payment\Api\Data\AdyenPaymentMethodRepositoryInterface;
-use Magento\Framework\Exception\AlreadyExistsException;
-use Magento\Sales\Model\ResourceModel\Metadata;
+use Adyen\Payment\Model\PaymentMethod\AdyenPaymentMethod as AdyenPaymentMethodModel;
+use Adyen\Payment\Model\ResourceModel\AdyenPaymentMethod;
+use Adyen\Payment\Model\ResourceModel\AdyenPaymentMethod\CollectionFactory;
+use Magento\Framework\Exception\NoSuchEntityException;
+
 
 class AdyenPaymentMethodRepository implements AdyenPaymentMethodRepositoryInterface
 {
-    /** @var Metadata  */
-    private $metaData;
+    /** @var AdyenPaymentMethodFactory */
+    private $adyenPaymentMethodFactory;
 
-    public function __construct(Metadata $metaData)
-    {
-        $this->metaData = $metaData;
+    /** @var AdyenPaymentMethod */
+    private $adyenPaymentMethodResource;
+
+    /** @var CollectionFactory */
+    private $adyenPaymentMethodCollectionFactory;
+
+    public function __construct(
+        AdyenPaymentMethodFactory $adyenPaymentMethodFactory,
+        AdyenPaymentMethod  $adyenPaymentMethodResource,
+        CollectionFactory $adyenPaymentMethodCollectionFactory
+    ) {
+        $this->adyenPaymentMethodFactory = $adyenPaymentMethodFactory;
+        $this->adyenPaymentMethodResource = $adyenPaymentMethodResource;
+        $this->adyenPaymentMethodCollectionFactory = $adyenPaymentMethodCollectionFactory;
     }
 
     /**
-     * @throws AlreadyExistsException
+     * @param int $id
+     * @return AdyenPaymentMethodModel
+     * @throws NoSuchEntityException
      */
-    public function save(AdyenPaymentMethodInterface $adyenPaymentMethod)
+    public function getById(int $id): AdyenPaymentMethodModel
     {
-        $this->metaData->getMapper()->save($adyenPaymentMethod);
+        /** @var AdyenPaymentMethodModel $adyenPaymentMethod */
+        $adyenPaymentMethod = $this->adyenPaymentMethodFactory->create();
+        $this->adyenPaymentMethodResource->load($adyenPaymentMethod, $id);
+        if (!$adyenPaymentMethod->getEntityId()) {
+            throw new NoSuchEntityException(__('Unable to find AdyenPaymentMethod with ID "%1"', $id));
+        }
+
+        return $adyenPaymentMethod;
+    }
+
+    /**
+     * @throws NoSuchEntityException
+     */
+    public function getByPaymentMethodName(string $paymentMethod): AdyenPaymentMethodModel
+    {
+        /** @var AdyenPaymentMethodModel $adyenPaymentMethod */
+        $adyenPaymentMethod = $this->adyenPaymentMethodFactory->create();
+        $this->adyenPaymentMethodResource->load($adyenPaymentMethod, $paymentMethod, AdyenPaymentMethodModel::PAYMENT_METHOD);
+        if (!$adyenPaymentMethod->getEntityId()) {
+            throw new NoSuchEntityException(__('Unable to find AdyenPaymentMethod with payment method "%1"', $paymentMethod));
+        }
+
+        return $adyenPaymentMethod;
     }
 }
