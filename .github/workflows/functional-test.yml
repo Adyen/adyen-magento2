@@ -41,10 +41,7 @@ jobs:
         run: docker exec magento2-container vendor/bin/mftf doctor
 
       - name: Run MFTF tests
-        run: docker exec magento2-container vendor/bin/mftf run:group --remove AdyenMagentoSuite
-
-      - name: Retry once on failure
-        run: docker exec magento2-container vendor/bin/mftf run:failed
+        run: docker exec magento2-container make mftf
 
       - name: Shutdown
         run: docker-compose -f .github/docker-compose.yml down --volumes

@@ -106,9 +106,9 @@ prepare-mftf:
 	docker exec magento2-container ./mftf.sh
 	docker exec magento2-container vendor/bin/mftf doctor
 
+# Magento Functional Testing Framework
 mftf:
-	docker exec magento2-container vendor/bin/mftf run:group --remove -- AdyenMagentoSuite || \
-		docker exec magento2-container vendor/bin/mftf run:failed
+	vendor/bin/mftf run:group --remove -- AdyenMagentoSuite || vendor/bin/mftf run:failed
 
 # Simulate a full CI build
 ci:
