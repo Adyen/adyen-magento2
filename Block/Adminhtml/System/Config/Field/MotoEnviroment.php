@@ -31,8 +31,8 @@ class MotoEnviroment extends \Magento\Framework\View\Element\Html\Select
      * @var array
      */
     protected $_options = [
-        '0' => 'Test',
-        '1' => 'Live'
+        '0' => 'Live',
+        '1' => 'Test'
     ];
 
     /**
