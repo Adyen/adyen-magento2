@@ -110,8 +110,7 @@ class Moto extends \Magento\Framework\App\Config\Value
             $resultId = $this->mathRandom->getUniqueHash('_');
             $result[$resultId] = [
                 'merchant_account' => $merchantAccount,
-                'client_key' => $items['clientkey']
-                ,
+                'client_key' => $items['clientkey'],
                 'api_key' => $items['apikey'],
                 'demo_mode' => $items['demo_mode']
             ];
