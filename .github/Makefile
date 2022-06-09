@@ -98,6 +98,18 @@ clean:
 image:
 	docker-compose -f workflows/templates/docker-compose.yml build
 
+prepare-mftf:
+	docker-compose up -d
+	sleep 120s
+	docker logs --tail 100 magento2-container
+	docker exec magento2-container /etc/init.d/cron stop
+	docker exec magento2-container ./mftf.sh
+	docker exec magento2-container vendor/bin/mftf doctor
+
+mftf:
+	docker exec magento2-container vendor/bin/mftf run:group --remove -- AdyenMagentoSuite || \
+		docker exec magento2-container vendor/bin/mftf run:failed
+
 # Simulate a full CI build
 ci:
 	docker-compose -f workflows/templates/docker-compose.yml run --rm web make magento

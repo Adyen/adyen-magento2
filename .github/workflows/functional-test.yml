@@ -2,17 +2,19 @@ name: Functional Tests
 on:
   workflow_dispatch:
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   build:
     strategy:
       matrix:
         include:
-          - PHP_VERSION: 7.4
-            MAGENTO_VERSION: 2.4.2
+          - php-version: '8.1'
+            magento-version: '2.4.4'
     runs-on: ubuntu-latest
     env:
+      PHP_VERSION: ${{ matrix.php-version }}
+      MAGENTO_VERSION: ${{ matrix.magento-version }}
       ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
       ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
     steps:
