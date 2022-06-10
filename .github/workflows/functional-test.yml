@@ -47,6 +47,3 @@ jobs:
 
       - name: Run MFTF tests
         run: docker exec magento2-container make mftf
-
-      - name: Shutdown
-        run: docker-compose -f .github/docker-compose.yml down --volumes
