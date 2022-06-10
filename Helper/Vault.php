@@ -245,7 +245,7 @@ class Vault
     {
         $requiredAdditionalData = $adyenPaymentMethod->getRequiredAdditionalData();
         $details = [];
-        if (true) {
+        if (!$this->validatePaymentMethodAdditionalData($additionalData, $requiredAdditionalData)) {
             throw new InvalidAdditionalDataException(__('Unable to validate additionalData received for order ' . $payment->getOrder()->getIncrementId()));
         }
 
