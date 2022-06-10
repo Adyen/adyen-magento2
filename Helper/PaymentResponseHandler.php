@@ -212,7 +212,7 @@ class PaymentResponseHandler
                     $payment->setTransactionId($paymentsResponse['pspReference']);
                 }
 
-                if (!empty($paymentsResponse['additionalData']['recurring.recurringDetailReference']) &&
+                if ($this->vaultHelper->hasRecurringDetailReference($paymentsResponse) &&
                     $payment->getMethodInstance()->getCode() !== AdyenOneclickConfigProvider::CODE) {
                     $storeId = $payment->getMethodInstance()->getStore();
 

@@ -122,6 +122,19 @@ class Vault
     }
 
     /**
+     * @param array $response
+     * @return bool
+     */
+    public function hasRecurringDetailReference(array $response): bool
+    {
+        if (array_key_exists('additionalData', $response) && array_key_exists(self::RECURRING_DETAIL_REFERENCE, $response['additionalData'])) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param $payment
      * @param array $additionalData
      */

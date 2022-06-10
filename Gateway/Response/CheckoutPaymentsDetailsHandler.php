@@ -14,9 +14,9 @@ namespace Adyen\Payment\Gateway\Response;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
-use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Magento\Payment\Gateway\Response\HandlerInterface;
@@ -69,7 +69,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
 
         // Email sending is set at CheckoutDataBuilder for Boleto
         // Otherwise, we don't want to send a confirmation email
-        if ($payment->getMethod() != \Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider::CODE) {
+        if ($payment->getMethod() != AdyenBoletoConfigProvider::CODE) {
             $payment->getOrder()->setCanSendNewEmailFlag(false);
         }
 
@@ -82,8 +82,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             $payment->setTransactionId($response['pspReference']);
         }
 
-        if (!empty($response['additionalData'][Vault::RECURRING_DETAIL_REFERENCE] &&
-            $payment->getMethodInstance()->getCode() !== AdyenOneclickConfigProvider::CODE)) {
+        if ($this->vaultHelper->hasRecurringDetailReference($response) && $payment->getMethodInstance()->getCode() !== AdyenOneclickConfigProvider::CODE) {
             $storeId = $payment->getMethodInstance()->getStore();
             // If store alternative payment method is enabled and this is an alternative payment method
             // Else create entry in paypal_billing_agreement
