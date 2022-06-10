@@ -23,6 +23,7 @@ jobs:
       - name: Start services
         run: docker-compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
         env:
+          DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
           ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
           ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
@@ -39,7 +40,7 @@ jobs:
         run: docker exec magento2-container /etc/init.d/cron stop
 
       - name: Install plugin
-        run: docker exec -u www-data magento2-container make plugin
+        run: docker exec -u www-data magento2-container make install
 
       - name: Build MFTF project
         run: docker exec magento2-container make setup-mftf

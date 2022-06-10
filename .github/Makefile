@@ -22,15 +22,6 @@ install:
 
 # Configuration
 configure: n98-magerun2.phar
-	bin/magento config:set currency/options/allow USD,EUR
-	bin/magento config:set currency/options/default USD
-	bin/magento config:set currency/options/base USD
-
-	bin/magento config:set cms/wysiwyg/enabled disabled
-	bin/magento config:set admin/security/admin_account_sharing 1
-	bin/magento config:set admin/security/use_form_key 0
-	bin/magento cache:clean config full_page
-
 	bin/magento config:set payment/adyen_abstract/demo_mode 1
 	bin/magento config:set payment/adyen_hpp/active 1
 	bin/magento config:set payment/adyen_cc/active 1
@@ -43,7 +34,7 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_giving/active 1
 	bin/magento config:set payment/adyen_giving/charity_description 'test'
 	bin/magento config:set payment/adyen_giving/charity_website 'https://adyen.com'
-	bin/magento config:set payment/adyen_giving/charity_merchant_account 'AdyenGivingDemo'
+	bin/magento config:set payment/adyen_giving/charity_merchant_account "${DONATION_ACCOUNT}"
 	bin/magento config:set payment/adyen_giving/donation_amounts '1,5,10'
 	bin/magento config:set payment/adyen_giving/background_image ''
 	bin/magento config:set payment/adyen_abstract/merchant_account "${ADYEN_MERCHANT}"
@@ -109,8 +100,17 @@ image:
 	docker-compose -f workflows/templates/docker-compose.yml -f docker-compose.e2e.yml build
 	docker-compose -f docker-compose.yml -f docker-compose.mftf.yml build
 
-# Setup environment to run functional tests
+# Setup environment to run functional tests (https://devdocs.magento.com/mftf/docs/getting-started.html)
 setup-mftf:
+	bin/magento config:set currency/options/allow USD,EUR
+	bin/magento config:set currency/options/default USD
+	bin/magento config:set currency/options/base USD
+
+	bin/magento config:set cms/wysiwyg/enabled disabled
+	bin/magento config:set admin/security/admin_account_sharing 1
+	bin/magento config:set admin/security/use_form_key 0
+	bin/magento cache:clean config full_page
+
 	vendor/bin/mftf build:project
 
 	rm -f dev/tests/acceptance/.env;

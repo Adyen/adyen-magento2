@@ -39,6 +39,7 @@ services:
       - MAGENTO_HOST=magento2.test.com
       - VIRTUAL_HOST=magento2.test.com
       - ADMIN_URLEXT=admin
+      - DONATION_ACCOUNT
       - ADMIN_USERNAME
       - ADMIN_PASSWORD
       - ADYEN_MERCHANT
