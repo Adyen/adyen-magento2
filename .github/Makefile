@@ -22,6 +22,15 @@ install:
 
 # Configuration
 configure: n98-magerun2.phar
+	bin/magento config:set currency/options/allow USD,EUR
+	bin/magento config:set currency/options/default USD
+	bin/magento config:set currency/options/base USD
+
+	bin/magento config:set cms/wysiwyg/enabled disabled
+	bin/magento config:set admin/security/admin_account_sharing 1
+	bin/magento config:set admin/security/use_form_key 0
+	bin/magento cache:clean config full_page
+
 	bin/magento config:set payment/adyen_abstract/demo_mode 1
 	bin/magento config:set payment/adyen_hpp/active 1
 	bin/magento config:set payment/adyen_cc/active 1
@@ -93,18 +102,30 @@ unit:
 # Destroy services
 clean:
 	docker-compose -f workflows/templates/docker-compose.yml down --volumes --rmi local
+	docker-compose -f docker-compose.yml -f docker-compose.mftf.yml down --volumes --rmi local
 
 # Docker image build
 image:
-	docker-compose -f workflows/templates/docker-compose.yml build
+	docker-compose -f workflows/templates/docker-compose.yml -f docker-compose.e2e.yml build
+	docker-compose -f docker-compose.yml -f docker-compose.mftf.yml build
 
-prepare-mftf:
-	docker-compose up -d
-	sleep 120s
-	docker logs --tail 100 magento2-container
-	docker exec magento2-container /etc/init.d/cron stop
-	docker exec magento2-container ./mftf.sh
-	docker exec magento2-container vendor/bin/mftf doctor
+# Setup environment to run functional tests
+setup-mftf:
+	vendor/bin/mftf build:project
+
+	rm -f dev/tests/acceptance/.env;
+	vendor/bin/mftf setup:env \
+		--MAGENTO_BASE_URL "http://${MAGENTO_HOST}/" \
+		--MAGENTO_BACKEND_NAME "${ADMIN_URLEXT}" \
+		--MAGENTO_ADMIN_USERNAME "${ADMIN_USERNAME}" \
+		--MAGENTO_ADMIN_PASSWORD "${ADMIN_PASSWORD}" \
+		--BROWSER chrome \
+		--ELASTICSEARCH_VERSION 7;
+	echo 'SELENIUM_HOST=selenium' >> dev/tests/acceptance/.env;
+
+	cp dev/tests/acceptance/.htaccess.sample dev/tests/acceptance/.htaccess
+
+	vendor/bin/mftf doctor
 
 # Magento Functional Testing Framework
 mftf:

@@ -21,7 +21,11 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Start services
-        run: docker-compose -f .github/docker-compose.yml up -d
+        run: docker-compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
+        env:
+          ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
+          ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
+          ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
 
       # Temp solution to wait for install script to run
       - name: Sleep for 120 seconds
@@ -34,11 +38,11 @@ jobs:
       - name: Prevent cron from interfering with test execution
         run: docker exec magento2-container /etc/init.d/cron stop
 
-      - name: Build MFTF project
-        run: docker exec magento2-container ./mftf.sh
+      - name: Install plugin
+        run: docker exec -u www-data magento2-container make plugin
 
-      - name: Check setup
-        run: docker exec magento2-container vendor/bin/mftf doctor
+      - name: Build MFTF project
+        run: docker exec magento2-container make setup-mftf
 
       - name: Run MFTF tests
         run: docker exec magento2-container make mftf
