@@ -11,6 +11,8 @@
 
 namespace Adyen\Payment\Model\Config\Backend;
 
+use Magento\Framework\Encryption\EncryptorInterface;
+
 /**
  * Class Moto
  * @package Adyen\Payment\Model\Config\Backend
@@ -21,6 +23,11 @@ class Moto extends \Magento\Framework\App\Config\Value
      * @var \Magento\Framework\Serialize\SerializerInterface
      */
     private $serializer;
+
+    /**
+     * @var \Magento\Framework\Encryption\EncryptorInterface
+     */
+    private $encryptor;
 
     /**
      * @var \Magento\Framework\Math\Random
@@ -48,8 +55,10 @@ class Moto extends \Magento\Framework\App\Config\Value
         \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         array $data = []
     ) {
+        $this->encryptor = $encryptor;
         $this->mathRandom = $mathRandom;
         $this->serializer = $serializer;
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
@@ -74,11 +83,13 @@ class Moto extends \Magento\Framework\App\Config\Value
             }
             $merchantAccount = $data['merchant_account'];
             $clientKey = $data['client_key'];
+            //encrypt the api here before saving
             $apiKey = $data['api_key'];
+            $apiKeyEncrypted = $this->encryptor->encrypt(trim($apiKey));
             $enviroment = $data['demo_mode'];
             $result[$merchantAccount] = array(
                 "clientkey" => $clientKey,
-                "apikey" => $apiKey,
+                "apikey" => $apiKeyEncrypted,
                 "demo_mode" => $enviroment
             );
         }
@@ -111,7 +122,7 @@ class Moto extends \Magento\Framework\App\Config\Value
             $result[$resultId] = [
                 'merchant_account' => $merchantAccount,
                 'client_key' => $items['clientkey'],
-                'api_key' => $items['apikey'],
+                'api_key' => substr($this->encryptor->decrypt(trim($items['apikey'])), -4),
                 'demo_mode' => $items['demo_mode']
             ];
         }

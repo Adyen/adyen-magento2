@@ -24,6 +24,8 @@ class Moto extends \Magento\Config\Block\System\Config\Form\Field\FieldArray\Abs
      */
     protected $enviromentModeRenderer = null;
 
+    protected $apiKeyRenderer = null;
+
     /**
      * Prepare to render
      *
@@ -44,7 +46,8 @@ class Moto extends \Magento\Config\Block\System\Config\Form\Field\FieldArray\Abs
             [
                 'label' => __('API Key'),
                 'class' => 'required-entry',
-                'style' => 'width:130px'
+                'style' => 'width:130px',
+                //'render' => $this->getApiKeyRenderer()
             ]
         );
         $this->addColumn(
@@ -74,6 +77,19 @@ class Moto extends \Magento\Config\Block\System\Config\Form\Field\FieldArray\Abs
             );
         }
         return $this->enviromentModeRenderer;
+    }
+
+
+    private function getApiKeyRenderer()
+    {
+        if (!$this->apiKeyRenderer) {
+            $this->apiKeyRenderer = $this->getLayout()->createBlock(
+                \Adyen\Payment\Block\Adminhtml\System\Config\Field\ApiKey::class,
+                '',
+                ['data' => ['is_render_to_js_template' => true]]
+            );
+        }
+        return $this->apiKeyRenderer;
     }
 
     /**

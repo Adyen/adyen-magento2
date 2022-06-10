@@ -22,7 +22,6 @@
         </field>
         <field id="installments" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1"
                showInStore="1">
-            <label>Moto</label>
             <depends>
                 <field id="enable_moto">1</field>
             </depends>
