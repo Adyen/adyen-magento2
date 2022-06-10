@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Api\Data\AdyenPaymentMethodRepositoryInterface;
+use Adyen\Payment\Exception\InvalidAdditionalDataException;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
 use Adyen\Payment\Helper\PaymentMethods\PayPalPaymentMethod;
@@ -162,32 +163,22 @@ class Vault
      * @param $payment
      * @param array $additionalData
      * @param PaymentMethodInterface $adyenPaymentMethod
+     * @return PaymentTokenInterface|void|null
      */
     public function saveRecurringPaymentDetails($payment, array $additionalData, PaymentMethodInterface $adyenPaymentMethod)
     {
-        $requiredAdditionalData = $adyenPaymentMethod->getRequiredAdditionalData();
-        if (!$this->validatePaymentMethodAdditionalData($additionalData, $requiredAdditionalData)) {
-            return;
-        }
-
         try {
-            $paymentToken = $this->getVaultPaymentMethodToken($payment, $additionalData, $requiredAdditionalData);
+            $paymentToken = $this->getVaultPaymentMethodToken($payment, $additionalData, $adyenPaymentMethod);
         } catch (Exception $exception) {
-            $this->adyenLogger->error(json_encode($exception));
+            $this->adyenLogger->error($exception->getMessage());
+
             return;
         }
 
-        if (null !== $paymentToken) {
-            $extensionAttributes = $this->getExtensionAttributes($payment);
-            $extensionAttributes->setVaultPaymentToken($paymentToken);
-        } else {
-            $this->adyenLogger->error(
-                sprintf(
-                    'Failure trying to save credit card token in vault for order %s',
-                    $payment->getOrder()->getIncrementId()
-                )
-            );
-        }
+        $extensionAttributes = $this->getExtensionAttributes($payment);
+        $extensionAttributes->setVaultPaymentToken($paymentToken);
+
+        return $paymentToken;
     }
 
     /**
@@ -246,13 +237,18 @@ class Vault
     /**
      * @param $payment
      * @param array $additionalData
-     * @param array $requiredAdditionalData
+     * @param PaymentMethodInterface $adyenPaymentMethod
      * @return PaymentTokenInterface|null
-     * @throws Exception
+     * @throws InvalidAdditionalDataException
      */
-    private function getVaultPaymentMethodToken($payment, array $additionalData, array $requiredAdditionalData): PaymentTokenInterface
+    private function getVaultPaymentMethodToken($payment, array $additionalData, PaymentMethodInterface $adyenPaymentMethod): PaymentTokenInterface
     {
+        $requiredAdditionalData = $adyenPaymentMethod->getRequiredAdditionalData();
         $details = [];
+        if (true) {
+            throw new InvalidAdditionalDataException(__('Unable to validate additionalData received for order ' . $payment->getOrder()->getIncrementId()));
+        }
+
         // Check if paymentToken exists already
         $paymentToken = $this->paymentTokenManagement->getByGatewayToken(
             $additionalData[self::RECURRING_DETAIL_REFERENCE],

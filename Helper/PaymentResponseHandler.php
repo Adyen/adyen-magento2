@@ -13,6 +13,8 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Exception;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
@@ -211,9 +213,14 @@ class PaymentResponseHandler
                 }
 
                 if (!empty($paymentsResponse['additionalData']['recurring.recurringDetailReference']) &&
-                    $payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE) {
+                    $payment->getMethodInstance()->getCode() !== AdyenOneclickConfigProvider::CODE) {
+                    $storeId = $payment->getMethodInstance()->getStore();
 
-                    if ($this->configHelper->isStoreAlternativePaymentMethodEnabled($payment->getMethodInstance()->getStore())) {
+                    // If store alternative payment method is enabled and this is an alternative payment method
+                    // Else if card vault is enabled
+                    // Else create entry in paypal_billing_agreement
+                    if ($this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId) &&
+                        $payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE) {
                         $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($payment->getCcType());
                         $this->vaultHelper->saveRecurringPaymentDetails($payment, $paymentsResponse['additionalData'], $adyenPaymentMethod);
                     } else if ($this->vaultHelper->isCardVaultEnabled()) {
