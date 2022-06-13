@@ -43,7 +43,7 @@ $_isDemoMode = $block->isDemoMode();
 
 <?php if ($block->getCcTypeName() != ""): ?>
     <div>
-        <?= $block->escapeHtml(__('Credit Card Type: %1', $block->getCcTypeName())); ?><br/>
+        <?= $block->escapeHtml(__('Payment Method: %1', $block->getCcTypeName())); ?><br/>
     </div>
 <?php endif; ?>
 <?php if ($_info->getCcLast4() != ""): ?>
