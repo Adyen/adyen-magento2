@@ -102,8 +102,6 @@ class Moto extends \Magento\Config\Block\System\Config\Form\Field\FieldArray\Abs
         $options = [];
         if ($moto) {
             $options['option_' . $this->getEnviromentModeRenderer()->calcOptionHash($moto)] = 'selected="selected"';
-            //$this->getApiKeyRenderer()->toHtml();
-
         }
         $row->setData('option_extra_attrs', $options);
     }
