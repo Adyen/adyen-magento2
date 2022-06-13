@@ -83,7 +83,6 @@ class Moto extends \Magento\Framework\App\Config\Value
             }
             $merchantAccount = $data['merchant_account'];
             $clientKey = $data['client_key'];
-            //encrypt the api here before saving
             $apiKey = $data['api_key'];
             $apiKeyEncrypted = $this->encryptor->encrypt(trim($apiKey));
             $enviroment = $data['demo_mode'];
