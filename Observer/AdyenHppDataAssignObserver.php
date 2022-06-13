@@ -12,13 +12,16 @@
 namespace Adyen\Payment\Observer;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
+use Magento\Vault\Model\Ui\VaultConfigProvider;
 
 class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
 {
@@ -53,6 +56,12 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
      */
     private $stateData;
 
+    /** @var PaymentMethodFactory */
+    private $paymentMethodFactory;
+
+    /** @var Vault  */
+    private $vaultHelper;
+
     /**
      * AdyenHppDataAssignObserver constructor.
      *
@@ -60,15 +69,20 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
      * @param Collection $stateDataCollection
      * @param StateData $stateData
      * @param Session $checkoutSession
+     * @param PaymentMethodFactory
      */
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         Collection $stateDataCollection,
-        StateData $stateData
+        StateData $stateData,
+        PaymentMethodFactory $paymentMethodFactory,
+        Vault $vaultHelper
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataCollection = $stateDataCollection;
         $this->stateData = $stateData;
+        $this->paymentMethodFactory = $paymentMethodFactory;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -119,9 +133,13 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
             $paymentInfo->setAdditionalInformation($key, $data);
         }
 
-        // set ccType
+        // Set ccType. If payment method is tokenizable, update additional information
         if (!empty($additionalData[self::BRAND_CODE])) {
             $paymentInfo->setCcType($additionalData[self::BRAND_CODE]);
+            $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($additionalData[self::BRAND_CODE]);
+            if ($this->vaultHelper->allowRecurringOnPaymentMethod($adyenPaymentMethod)) {
+                $paymentInfo->setAdditionalInformation(VaultConfigProvider::IS_ACTIVE_CODE, true);
+            }
         }
     }
 
