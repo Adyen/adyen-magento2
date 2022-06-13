@@ -53,9 +53,9 @@ class Moto extends \Magento\Framework\App\Config\Value
         \Magento\Framework\App\Cache\TypeListInterface $cacheTypeList,
         \Magento\Framework\Math\Random $mathRandom,
         \Magento\Framework\Serialize\SerializerInterface $serializer,
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         array $data = []
     ) {
         $this->encryptor = $encryptor;
@@ -114,9 +114,6 @@ class Moto extends \Magento\Framework\App\Config\Value
     protected function encodeArrayFieldValue(array $value)
     {
         $result = [];
-
-        // first combine the ccTypes together
-        $list = [];
         foreach ($value as $merchantAccount => $items) {
             $resultId = $this->mathRandom->getUniqueHash('_');
             $result[$resultId] = [
