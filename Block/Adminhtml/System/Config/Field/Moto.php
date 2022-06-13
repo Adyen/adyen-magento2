@@ -83,8 +83,7 @@ class Moto extends \Magento\Config\Block\System\Config\Form\Field\FieldArray\Abs
     {
         if (!$this->apiKeyRenderer) {
             $this->apiKeyRenderer = $this->getLayout()->createBlock(
-                '\Adyen\Payment\Block\Adminhtml\System\Config\Field\ApiKey',
-                ''
+                '\Adyen\Payment\Block\Adminhtml\System\Config\Field\ApiKey'
             );
         }
         return $this->apiKeyRenderer;
@@ -98,10 +97,10 @@ class Moto extends \Magento\Config\Block\System\Config\Form\Field\FieldArray\Abs
      */
     protected function _prepareArrayRow(\Magento\Framework\DataObject $row)
     {
-        $moto = $row->getData('demo_mode');
+        $demoMode = $row->getData('demo_mode');
         $options = [];
-        if ($moto) {
-            $options['option_' . $this->getEnviromentModeRenderer()->calcOptionHash($moto)] = 'selected="selected"';
+        if ($demoMode) {
+            $options['option_' . $this->getEnviromentModeRenderer()->calcOptionHash($demoMode)] = 'selected="selected"';
         }
         $row->setData('option_extra_attrs', $options);
     }
