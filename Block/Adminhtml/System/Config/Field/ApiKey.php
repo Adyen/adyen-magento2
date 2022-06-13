@@ -12,7 +12,20 @@
 
 namespace Adyen\Payment\Block\Adminhtml\System\Config\Field;
 
-class ApiKey extends \Magento\Framework\Data\Form\Element\Obscure
+class ApiKey extends \Magento\Framework\View\Element\Template
 {
+    /**
+     * @return string
+     */
+    public function _toHtml()
+    {
+        $inputName = $this->getInputName();
+        $columnName = $this->getColumnName();
+        $column = $this->getColumn();
 
+        return '<input type="password" id="' . $this->getInputId().'" name="' . $inputName . '" ' .
+            ($column['size'] ? 'size="' . $column['size'] . '"' : '') . ' class="' .
+            (isset($column['class']) ? $column['class'] : 'input-text') . '"'.
+            (isset($column['style']) ? ' style="'.$column['style'] . '"' : '') . '></input>';
+    }
 }

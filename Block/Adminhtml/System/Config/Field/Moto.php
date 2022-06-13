@@ -47,7 +47,7 @@ class Moto extends \Magento\Config\Block\System\Config\Form\Field\FieldArray\Abs
                 'label' => __('API Key'),
                 'class' => 'required-entry',
                 'style' => 'width:130px',
-                //'render' => $this->getApiKeyRenderer()
+                'renderer' => $this->getApiKeyRenderer()
             ]
         );
         $this->addColumn(
@@ -79,14 +79,12 @@ class Moto extends \Magento\Config\Block\System\Config\Form\Field\FieldArray\Abs
         return $this->enviromentModeRenderer;
     }
 
-
     private function getApiKeyRenderer()
     {
         if (!$this->apiKeyRenderer) {
             $this->apiKeyRenderer = $this->getLayout()->createBlock(
-                \Adyen\Payment\Block\Adminhtml\System\Config\Field\ApiKey::class,
-                '',
-                ['data' => ['is_render_to_js_template' => true]]
+                '\Adyen\Payment\Block\Adminhtml\System\Config\Field\ApiKey',
+                ''
             );
         }
         return $this->apiKeyRenderer;
@@ -104,6 +102,8 @@ class Moto extends \Magento\Config\Block\System\Config\Form\Field\FieldArray\Abs
         $options = [];
         if ($moto) {
             $options['option_' . $this->getEnviromentModeRenderer()->calcOptionHash($moto)] = 'selected="selected"';
+            //$this->getApiKeyRenderer()->toHtml();
+
         }
         $row->setData('option_extra_attrs', $options);
     }
