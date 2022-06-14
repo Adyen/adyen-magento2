@@ -215,8 +215,10 @@ class Json extends Action
 
         if($this->rateLimiterHelper->checkExistenceOfNotificationUsernameInCache()) {
             // increase the attempt count - cache value
-            $this->rateLimiterHelper->saveNotificationUsernamesToCache();
-            return false;
+            if($this->rateLimiterHelper->numberOfAttempts() > 10) {
+                $this->rateLimiterHelper->saveNotificationUsernamesToCache();
+                return false;
+            }
         }
 
         $authResult = $this->notificationReceiver->isAuthenticated(

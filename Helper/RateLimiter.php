@@ -12,8 +12,8 @@
 namespace Adyen\Payment\Helper;
 
 use Magento\Framework\App\CacheInterface;
-use Adyen\Payment\Helper\Config;
 use Magento\Framework\Serialize\SerializerInterface;
+use Adyen\Util\IpAddress as IpAddressUtil;
 
 /**
  * Class IpAddress
@@ -37,79 +37,88 @@ class RateLimiter
     private $configHelper;
 
     /**
-     * IpAddress constructor.
-     *
-     * @param CacheInterface $cache
+     * @var IpAddressUtil
      */
+    private $ipAddressUtil;
 
     /**
-     * Json constructor.
+     * RateLimiter constructor.
      *
-     * @param Config $configHelper
+     * @param CacheInterface $cache
      * @param SerializerInterface $serializer
+     * @param Config $configHelper
+     * @param IpAddressUtil $ipAddressUtil
      */
+
     public function __construct(
         CacheInterface $cache,
+        SerializerInterface $serializer,
         Config $configHelper,
-        SerializerInterface $serializer
+        IpAddressUtil $ipAddressUtil
     ) {
         $this->cache = $cache;
-        $this->configHelper = $configHelper;
         $this->serializer = $serializer;
+        $this->configHelper = $configHelper;
+        $this->ipAddressUtil = $ipAddressUtil;
     }
 
     // update cache key containing webhook username with newly resolved records + update cache value with new expiry time
 
-    // save array of notification usernames in in cache key
+    // save array of notification usernames in cache key
 
-    public function saveNotificationUsernamesToCache()
+    public function saveNotificationUsernamesToCache(): void
     {
         if($this->checkExistenceOfNotificationUsernameInCache()) {
-            $cacheValue = $this->cache->load("adyen-logins-" . $this->configHelper->getNotificationsUsername());
+            $cacheValue = $this->cache->load("adyen-logins-" . $this->configHelper->getNotificationsUsername() . $this->ipAddressUtil->getAdyenIpAddresses());
 
             // increase the value in cache
             $this->cache->save(
                 $this->serializer->serialize($cacheValue + 1),
-                "adyen-logins-" . $this->configHelper->getNotificationsUsername(),
+                "adyen-logins-" . $this->configHelper->getNotificationsUsername() . $this->ipAddressUtil->getAdyenIpAddresses(),
                 [],
                 $this->notificationCacheLifetime($cacheValue + 1)
             );
-            // save new value to cache with the same cache ID
         } else {
             // create a new value and save it to cache
-            $blabla = $this->cache->save(
+            $this->cache->save(
                 $this->serializer->serialize(1),
-                "adyen-logins-" . $this->configHelper->getNotificationsUsername(),
+                "adyen-logins-" . $this->configHelper->getNotificationsUsername() . $this->ipAddressUtil->getAdyenIpAddresses(),
                 [],
-                $this->notificationCacheLifetime(1)
+                $this->notificationCacheLifetime($this->numberOfAttempts())
             );
         }
     }
     
 
     // load values of notification usernames cache key
-    public function checkExistenceOfNotificationUsernameInCache()
+    public function checkExistenceOfNotificationUsernameInCache(): bool
     {
         // check if there is any cache key with that cache ID
-        $notificationUsernames = $this->cache->load("adyen-logins-" . $this->configHelper->getNotificationsUsername());
+        $notificationUsername = $this->cache->load("adyen-logins-" . $this->configHelper->getNotificationsUsername() . $this->ipAddressUtil->getAdyenIpAddresses());
 
-        if(!empty($notificationUsernames)) {
+        if(!empty($notificationUsername)) {
             return true;
         }
 
         return false;
     }
 
+    public function numberOfAttempts(): int
+    {
+       $count = 1;
+       ++$count;
+       return $count;
+    } // that won't work
+
     private function notificationCacheLifetime($numberOfAttempts)
     {
-        // min(ONE_MONTH, pow(2, $numberOfAttempts))
+        $initialValue = 360;
+        return min($initialValue, pow(2, $numberOfAttempts) * 60);
 
-        // ONE_MONTH = 86400 * 30
-        return 86400;
-        // investigate on how to delete the custom cache (first look into the capabilities of the bin/magento c:c)
-        // https://store.magenest.com/blog/how-to-clean-and-flush-cache/
-        // change the names of the methods to the more appropriate ones
+
         // test this with debugger with the correct notification pwd, make sure you are not blocking the usernames with the correct pwd
+
+        // create new cache for specifically adyen => https://devdocs.magento.com/guides/v2.4/extension-dev-guide/cache/partial-caching/create-cache-type.html
     }
 
 }
