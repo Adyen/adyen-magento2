@@ -35,7 +35,7 @@ class Moto extends \Magento\Config\Block\System\Config\Form\Field\FieldArray\Abs
     {
         $this->addColumn(
             'merchant_account',
-            ['label' => __('Merchant Account'), 'class' => 'required-entry', 'style' => 'width:130px']
+            ['label' => __('MOTO merchant account'), 'class' => 'required-entry', 'style' => 'width:130px']
         );
         $this->addColumn(
             'client_key',
