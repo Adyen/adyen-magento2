@@ -108,7 +108,7 @@ class RateLimiter
        $count = 1;
        ++$count;
        return $count;
-    } // that won't work
+    }
 
     private function notificationCacheLifetime($numberOfAttempts)
     {
