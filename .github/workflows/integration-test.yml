@@ -25,6 +25,7 @@ jobs:
       - name: Start web server in background
         run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web
         env:
+          DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
           ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
           ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
