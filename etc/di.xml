@@ -42,6 +42,25 @@
         </arguments>
     </virtualType>
 
+    <virtualType name="AdyenPaymentHppFacade" type="Adyen\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Cc</argument>
+            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Cc</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentGenericValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">AdyenPaymentHppCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentHppVaultFacade" type="Magento\Vault\Model\Method\Vault">
+        <arguments>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::HPP_VAULT_CODE
+            </argument>
+            <argument name="config" xsi:type="object">AdyenPaymentHppVaultConfig</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentCcVaultPaymentValueHandlerPool</argument>
+            <argument name="vaultProvider" xsi:type="object">AdyenPaymentHppFacade</argument>
+        </arguments>
+    </virtualType>
+
     <virtualType name="AdyenPaymentOneclickFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE</argument>
@@ -213,6 +232,12 @@
     <virtualType name="AdyenPaymentCcVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenCcConfigProvider::CC_VAULT_CODE
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentHppVaultConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::HPP_VAULT_CODE
             </argument>
         </arguments>
     </virtualType>

@@ -108,6 +108,11 @@
                 <can_capture_vault>1</can_capture_vault>
                 <group>adyen</group>
             </adyen_hpp>
+            <adyen_hpp_vault>
+                <model>AdyenPaymentHppVaultFacade</model>
+                <title>Stored Payment Methods (Adyen)</title>
+                <!--TODO: Add instant purchase stuff here-->
+            </adyen_hpp_vault>
             <adyen_pos_cloud>
                 <active>0</active>
                 <model>AdyenPaymentPosCloudFacade</model>
