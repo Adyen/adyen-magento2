@@ -11,7 +11,7 @@
  */
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
-    <group id="adyen_moto_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="100">
+    <group id="adyen_moto_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="600">
         <label>MOTO settings</label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <field id="enable_moto" translate="label" type="select" sortOrder="10" showInDefault="1"
