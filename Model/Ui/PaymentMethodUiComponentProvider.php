@@ -47,7 +47,7 @@ class PaymentMethodUiComponentProvider implements TokenUiComponentProviderInterf
      * @param PaymentTokenInterface $paymentToken
      * @return TokenUiComponentInterface
      */
-    public function getComponentForToken(PaymentTokenInterface $paymentToken)
+    public function getComponentForToken(PaymentTokenInterface $paymentToken): TokenUiComponentInterface
     {
         $type = $paymentToken->getType();
         $details['icon'] = $this->adyenHelper->getVariantIcon($type);
