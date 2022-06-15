@@ -12,12 +12,12 @@
 namespace Adyen\Payment\Helper;
 
 use Magento\Framework\App\CacheInterface;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Serialize\SerializerInterface;
-use Adyen\Util\IpAddress as IpAddressUtil;
+use Magento\Framework\App\Action\Context;
 
 /**
- * Class IpAddress
- * @package Adyen\Payment\Helper
+ * Class RateLimiter
  */
 class RateLimiter
 {
@@ -37,88 +37,73 @@ class RateLimiter
     private $configHelper;
 
     /**
-     * @var IpAddressUtil
+     * @var Context
      */
-    private $ipAddressUtil;
+    private $context;
+
+    /**
+     * @var RemoteAddress
+     */
+    private $remoteAddress;
 
     /**
      * RateLimiter constructor.
      *
+     * @param Context $context
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
      * @param Config $configHelper
-     * @param IpAddressUtil $ipAddressUtil
+     * @param RemoteAddress $remoteAddress
      */
 
     public function __construct(
+        Context $context,
         CacheInterface $cache,
         SerializerInterface $serializer,
         Config $configHelper,
-        IpAddressUtil $ipAddressUtil
+        RemoteAddress $remoteAddress
     ) {
+        $this->context = $context;
         $this->cache = $cache;
         $this->serializer = $serializer;
         $this->configHelper = $configHelper;
-        $this->ipAddressUtil = $ipAddressUtil;
+        $this->remoteAddress = $remoteAddress;
     }
 
-    // update cache key containing webhook username with newly resolved records + update cache value with new expiry time
 
-    // save array of notification usernames in cache key
-
-    public function saveNotificationUsernamesToCache(): void
+    private function getCacheId()
     {
-        if($this->checkExistenceOfNotificationUsernameInCache()) {
-            $cacheValue = $this->cache->load("adyen-logins-" . $this->configHelper->getNotificationsUsername() . $this->ipAddressUtil->getAdyenIpAddresses());
+        return "adyen-logins-" . $this->configHelper->getNotificationsUsername() . "-" . $this->remoteAddress->getRemoteAddress();
+    }
 
-            // increase the value in cache
-            $this->cache->save(
-                $this->serializer->serialize($cacheValue + 1),
-                "adyen-logins-" . $this->configHelper->getNotificationsUsername() . $this->ipAddressUtil->getAdyenIpAddresses(),
-                [],
-                $this->notificationCacheLifetime($cacheValue + 1)
-            );
+    public function saveNotificationUsernameToCache()
+    {
+        $cacheValue = $this->getNumberOfAttempts();
+        // increase the value in cache
+        $this->cache->save(
+            $this->serializer->serialize($cacheValue + 1), // refine after our first tests
+            $this->getCacheId(),
+            [],
+            $this->calculateNotificationCacheLifetime($cacheValue + 1)
+        );
+    }
+
+    public function getNumberOfAttempts()
+    {
+        $numberOfAttempts = $this->cache->load($this->getCacheId());
+
+        if($numberOfAttempts === false) {
+            return 0;
         } else {
-            // create a new value and save it to cache
-            $this->cache->save(
-                $this->serializer->serialize(1),
-                "adyen-logins-" . $this->configHelper->getNotificationsUsername() . $this->ipAddressUtil->getAdyenIpAddresses(),
-                [],
-                $this->notificationCacheLifetime($this->numberOfAttempts())
-            );
+            return $numberOfAttempts;
         }
     }
-    
 
-    // load values of notification usernames cache key
-    public function checkExistenceOfNotificationUsernameInCache(): bool
+    private function calculateNotificationCacheLifetime($numberOfAttempts)
     {
-        // check if there is any cache key with that cache ID
-        $notificationUsername = $this->cache->load("adyen-logins-" . $this->configHelper->getNotificationsUsername() . $this->ipAddressUtil->getAdyenIpAddresses());
-
-        if(!empty($notificationUsername)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public function numberOfAttempts(): int
-    {
-       $count = 1;
-       ++$count;
-       return $count;
-    }
-
-    private function notificationCacheLifetime($numberOfAttempts)
-    {
-        $initialValue = 360;
-        return min($initialValue, pow(2, $numberOfAttempts) * 60);
-
-
-        // test this with debugger with the correct notification pwd, make sure you are not blocking the usernames with the correct pwd
-
-        // create new cache for specifically adyen => https://devdocs.magento.com/guides/v2.4/extension-dev-guide/cache/partial-caching/create-cache-type.html
+        return min(300, pow(2, $numberOfAttempts));
     }
 
 }
+
+// create new cache for specifically adyen => https://devdocs.magento.com/guides/v2.4/extension-dev-guide/cache/partial-caching/create-cache-type.html
