@@ -23,7 +23,7 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
-class DemoMode implements \Magento\Framework\Option\ArrayInterface
+class ConfigurationModes implements \Magento\Framework\Option\ArrayInterface
 {
     /**
      * @return array
@@ -38,16 +38,11 @@ class DemoMode implements \Magento\Framework\Option\ArrayInterface
         return $options;
     }
 
-    /**
-     * return modes for configuration setting
-     *
-     * @return array
-     */
     private function getModes()
     {
         return [
-            '1' => 'Test',
-            '0' => 'Live'
+            'manual' => 'Manual',
+            'auto' => 'Automated'
         ];
     }
 }

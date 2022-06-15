@@ -58,4 +58,9 @@ class WebhookCredentials extends Field
 
         return parent::render($element);
     }
+
+    protected function _getElementHtml(\Magento\Framework\Data\Form\Element\AbstractElement $element)
+    {
+        return parent::_getElementHtml($element) . $this->_toHtml();
+    }
 }
