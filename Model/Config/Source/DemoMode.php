@@ -14,31 +14,28 @@ namespace Adyen\Payment\Model\Config\Source;
 class DemoMode implements \Magento\Framework\Option\ArrayInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $_adyenHelper;
-
-    /**
-     * DemoMode constructor.
-     *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     */
-    public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
-    ) {
-        $this->_adyenHelper = $adyenHelper;
-    }
-
-    /**
      * @return array
      */
     public function toOptionArray()
     {
-        $recurringTypes = $this->_adyenHelper->getModes();
+        $modes = $this->getModes();
 
-        foreach ($recurringTypes as $code => $label) {
+        foreach ($modes as $code => $label) {
             $options[] = ['value' => $code, 'label' => $label];
         }
         return $options;
+    }
+
+    /**
+     * return modes for configuration setting
+     *
+     * @return array
+     */
+    private function getModes()
+    {
+        return [
+            '1' => 'Test',
+            '0' => 'Live'
+        ];
     }
 }

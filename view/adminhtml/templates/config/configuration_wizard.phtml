@@ -1,0 +1,87 @@
+<?php /** @var \Adyen\Payment\Model\Config\Adminhtml\ConfigurationMode $block */ ?>
+<script>
+    require(['jquery'], function ($) {
+        let configMode = $("select[name*='configuration_mode']");
+
+        function checkConfigMode() {
+            const autoConfigured = <?=$block->configured()?'true;':'false;';?>
+
+            if ('auto' === configMode.val()) {
+                if (!autoConfigured) {
+                    fetchMerchants()
+                } else {
+                    // show auto-configured fields
+                }
+            }
+        }
+
+        configMode.change(checkConfigMode);
+
+        function fetchMerchants() {
+            let progressSpan = $('#progress');
+            progressSpan.show();
+            progressSpan.find('.configured').hide();
+            progressSpan.find('#adyen_payments_configuration_errors').hide();
+            progressSpan.find('.processing').show();
+            $('#adyen_payments_configured_message').text('');
+            let demoMode = $("div.adyen_required_config_settings select[name*='demo_mode']").val();
+            let xapikey = demoMode
+                ? $("div.adyen_required_config_settings input[name*='api_key_test']").val()
+                : $("div.adyen_required_config_settings input[name*='api_key_live']").val();
+            const storeId = '<?=$block->getStoreId()?>';
+            return $.ajax('<?php echo $block->getMerchantAccountsUrl() ?>', {
+                data: {xapikey, demoMode, storeId},
+                method: "POST"
+            }).done(function (response) {
+                //add html response
+                progressSpan.find('.processing').hide();
+                let merchantAccountSelect = document.querySelector(
+                    "div.adyen_required_config_settings select[name*='merchant_account']");
+                //remove previous accounts
+                for (let i = merchantAccountSelect.options.length - 1; i >= 0; i--) {
+                    merchantAccountSelect.remove(i);
+                }
+                //add the merchant accounts to the html element
+                let accounts = response.messages.associatedMerchantAccounts;
+                for (i = 0; i < accounts.length; i++) {
+                    merchantAccountSelect.add(new Option(accounts[i], accounts[i]));
+                }
+                merchantAccountSelect.value = response.currentMerchantAccount;
+                //add the clientkey
+                let clientkey = response.messages.clientKey;
+                if (response.mode == 'test') {
+                    let clientKeyIdTest = $("div.adyen_required_config_settings input[name*='client_key_test']");
+                    clientKeyIdTest.value = clientkey;
+                } else if (response.mode == 'production') {
+                    let clientKeyIdLive = $("div.adyen_required_config_settings input[name*='client_key_live']");
+                    clientKeyIdLive.value = clientkey;
+                }
+                const allowedOriginInput = $("div.adyen_required_config_settings input[name*='allowed_origin']");
+                allowedOriginInput.value = response.originUrl;
+                progressSpan.find('.configured').show();
+
+                $('#adyen_payments_configured_message').text('Completed');
+
+                showConfigField($("select[name*='merchant_account']"));
+                showConfigField($("input[name*='client_key_test']"));
+                showConfigField($("input[name*='allowed_origin']"));
+            }).fail(function(response) {
+                progressSpan.find('.processing').hide();
+                $('#adyen_payments_configured_message').text("Failed").show();
+            });
+        }
+
+        function showConfigField(field) {
+            field.parents('tr').show();
+            field.show().prop('disabled', false);
+        }
+    });
+</script>
+<span class="adyen-required-settings-config-admin" id="progress" style="display: none">
+    <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
+    <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
+    <span id="adyen_payments_configured_message"></span>
+    <div id="adyen_payments_configuration_errors" class="message-system-inner">
+        <div class="message message-warning"></div>
+    </div>
+</span>

@@ -277,19 +277,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * return modes for configuration setting
-     *
-     * @return array
-     */
-    public function getModes()
-    {
-        return [
-            '1' => 'Test Mode',
-            '0' => 'Production Mode'
-        ];
-    }
-
-    /**
      * return capture modes for configuration setting
      *
      * @return array
