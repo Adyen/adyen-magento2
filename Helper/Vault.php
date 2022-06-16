@@ -17,9 +17,7 @@ use Adyen\Payment\Exception\InvalidAdditionalDataException;
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
-use Adyen\Payment\Helper\PaymentMethods\PayPalPaymentMethod;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
@@ -38,6 +36,7 @@ class Vault
     const CARD_SUMMARY = 'cardSummary';
     const EXPIRY_DATE = 'expiryDate';
     const PAYMENT_METHOD = 'paymentMethod';
+    const TOKEN_TYPE = 'tokenType';
     const ADDITIONAL_DATA_ERRORS = [
         self::RECURRING_DETAIL_REFERENCE => 'Missing Token in Result please enable in ' .
             'Settings -> API URLs and Response menu in the Adyen Customer Area Recurring details setting',
@@ -251,6 +250,23 @@ class Vault
     }
 
     /**
+     * Return the Adyen token type (CardOnFile/Subscription)
+     * If it does not exist (token was created in an older version) return null
+     *
+     * @param PaymentTokenInterface $paymentToken
+     * @return string|null
+     */
+    public function getAdyenTokenType(PaymentTokenInterface $paymentToken): ?string
+    {
+        $details = json_decode($paymentToken->getTokenDetails() ?: '{}', true);
+        if (array_key_exists(self::TOKEN_TYPE, $details)) {
+            return $details[self::TOKEN_TYPE];
+        }
+
+        return null;
+    }
+
+    /**
      * Create an entry in the vault table w/type=Account (for pms such as PayPal)
      * If the token has already been created, do nothing
      * Before doing this, validate the additionalData sent by Adyen, based on the params required by the payment method
@@ -273,12 +289,17 @@ class Vault
 
         // In case the payment token does not exist, create it based on the additionalData
         if (is_null($paymentToken)) {
+            $storeId = $payment->getOrder()->getStoreId();
+            $recurringModel = $this->config->getAlternativePaymentMethodTokenType($storeId);
             $paymentToken = $this->paymentTokenFactory->create(PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT);
             $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
             $expiryDate = new DateTime();
             $expiryDate->add(new DateInterval('P1Y'));
             $paymentToken->setExpiresAt($expiryDate);
-            $details = ['type' => $payment->getCcType()];
+            $details = [
+                'type' => $payment->getCcType(),
+                self::TOKEN_TYPE => $recurringModel
+            ];
 
             //TODO: Check if this is needed
             /*foreach ($requiredAdditionalData as $key) {
