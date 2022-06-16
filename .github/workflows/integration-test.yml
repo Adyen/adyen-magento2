@@ -5,11 +5,15 @@ jobs:
   build:
     strategy:
       matrix:
+        php-version: ['7.4']
+        magento-version: ['2.3.7', '2.4.2']
         include:
-          - PHP_VERSION: 7.4
-            MAGENTO_VERSION: 2.4.2
+          - php-version: '8.1'
+            magento-version: '2.4.4'
     runs-on: ubuntu-latest
     env:
+      PHP_VERSION: ${{ matrix.php-version }}
+      MAGENTO_VERSION: ${{ matrix.magento-version }}
       ADMIN_USERNAME: ${{secrets.MAGENTO_ADMIN_USERNAME}}
       ADMIN_PASSWORD: ${{secrets.MAGENTO_ADMIN_PASSWORD}}
     steps:
@@ -21,6 +25,7 @@ jobs:
       - name: Start web server in background
         run: docker-compose -f .github/workflows/templates/docker-compose.yml up -d web
         env:
+          DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
           ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
           ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
           ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
@@ -40,23 +45,18 @@ jobs:
         run: docker exec -u www-data magento2-container make unit
 
       - name: Run GraphQL tests
-        continue-on-error: true
         run: docker exec magento2-container make graphql
 
       - name: Switch to production mode
+        if: github.event.pull_request.base.ref == 'main'
         run: docker exec -u www-data magento2-container make production
-      - name: Configure the plugin
-        run: |
-          docker exec magento2-container bin/magento config:set payment/adyen_abstract/demo_mode 1
-          docker exec magento2-container bin/magento config:set payment/adyen_hpp/active 1
-          docker exec magento2-container bin/magento config:set payment/adyen_cc/active 1
-          docker exec magento2-container bin/magento config:set payment/adyen_abstract/merchant_account "${{secrets.ADYEN_MERCHANT}}"
-          docker exec magento2-container ./n98-magerun2.phar config:store:set --encrypt payment/adyen_abstract/api_key_test "${{secrets.ADYEN_API_KEY}}" > /dev/null
 
       - name: Setup permissions
+        if: github.event.pull_request.base.ref == 'main'
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
+        if: github.event.pull_request.base.ref == 'main'
         continue-on-error: true
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
         env:
@@ -68,6 +68,7 @@ jobs:
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
 
       - name: Archive test result artifacts
+        if: github.event.pull_request.base.ref == 'main'
         uses: actions/upload-artifact@v3
         with:
           name: html-report
