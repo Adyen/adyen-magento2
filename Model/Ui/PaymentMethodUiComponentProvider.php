@@ -12,6 +12,8 @@
 namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Recurring;
+use Adyen\Payment\Helper\Vault;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentProviderInterface;
@@ -19,26 +21,28 @@ use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
 
 class PaymentMethodUiComponentProvider implements TokenUiComponentProviderInterface
 {
-    /**
-     * @var TokenUiComponentInterfaceFactory
-     */
+    /** @var TokenUiComponentInterfaceFactory  */
     private $componentFactory;
 
-    /**
-     * @var Data
-     */
+    /** @var Data  */
     private $adyenHelper;
+
+    /** @var Vault */
+    private $vaultHelper;
 
     /**
      * @param TokenUiComponentInterfaceFactory $componentFactory
      * @param Data $adyenHelper
+     * @param Vault $vaultHelper
      */
     public function __construct(
         TokenUiComponentInterfaceFactory $componentFactory,
-        Data $adyenHelper
+        Data $adyenHelper,
+        Vault $vaultHelper
     ) {
         $this->componentFactory = $componentFactory;
         $this->adyenHelper = $adyenHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -49,9 +53,11 @@ class PaymentMethodUiComponentProvider implements TokenUiComponentProviderInterf
      */
     public function getComponentForToken(PaymentTokenInterface $paymentToken): TokenUiComponentInterface
     {
+        $tokenType = $this->vaultHelper->getAdyenTokenType($paymentToken);
         $details = json_decode($paymentToken->getTokenDetails() ?: '{}', true);
         $details['icon'] = $this->adyenHelper->getVariantIcon($details['type']);
         $details['created'] = $paymentToken->getCreatedAt();
+        $details['displayToken'] = $tokenType === Recurring::CARD_ON_FILE;
 
         $component = $this->componentFactory->create(
             [

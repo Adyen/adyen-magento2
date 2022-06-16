@@ -20,6 +20,13 @@ define([
             template: 'Adyen_Payment/payment/payment-method-vault-form'
         },
         /**
+         * Check if token should be displayed
+         * @returns {boolean}
+         */
+        displayToken: function() {
+            return this.details.displayToken;
+        },
+        /**
          * Get card type
          * @returns {String}
          */
