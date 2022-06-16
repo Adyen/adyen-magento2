@@ -213,8 +213,8 @@ class Json extends Action
         // Add CGI support
         $this->fixCgiHttpAuthentication();
 
-        if($this->rateLimiterHelper->getNumberOfAttempts() > 6) {
-            $this->rateLimiterHelper->saveNotificationUsernameToCache();
+        if($this->rateLimiterHelper->getNumberOfAttempts() >= 6) {
+            $this->rateLimiterHelper->saveNotificationUsernameIpAddressToCache();
             return false;
         }
 
@@ -226,7 +226,7 @@ class Json extends Action
         );
 
         if(!$authResult) {
-            $this->rateLimiterHelper->saveNotificationUsernameToCache();
+            $this->rateLimiterHelper->saveNotificationUsernameIpAddressToCache();
             return false;
         }
 
