@@ -31,8 +31,10 @@ class PaymentMethodFactory
     public static function createAdyenPaymentMethod(string $txVariant): PaymentMethodInterface
     {
         switch ($txVariant) {
-            case 'paypal':
+            case PayPalPaymentMethod::TX_VARIANT:
                 return new PayPalPaymentMethod();
+            case SepaPaymentMethod::TX_VARIANT:
+                return new SepaPaymentMethod();
             default:
                 $message = __('%s: %s', __('Unknown txVariant', $txVariant));
                 self::$adyenLogger->error($message);

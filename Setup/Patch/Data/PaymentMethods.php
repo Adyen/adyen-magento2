@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Setup\Patch\Data;
 
+use Adyen\Payment\Helper\PaymentMethods\PayPalPaymentMethod;
+use Adyen\Payment\Helper\PaymentMethods\SepaPaymentMethod;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\Patch\PatchVersionInterface;
@@ -42,7 +44,8 @@ class PaymentMethods implements DataPatchInterface, PatchVersionInterface
     public function apply()
     {
         $this->moduleDataSetup->getConnection()->startSetup();
-        $this->addPaymentMethod('PayPal', true, true);
+        $this->addPaymentMethod(PayPalPaymentMethod::TX_VARIANT, true, true);
+        $this->addPaymentMethod(SepaPaymentMethod::TX_VARIANT, true, true);
         $this->moduleDataSetup->getConnection()->endSetup();
     }
 

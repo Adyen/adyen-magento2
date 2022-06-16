@@ -27,11 +27,19 @@ define([
             return this.details.displayToken;
         },
         /**
-         * Get card type
+         * Get tx_variant
          * @returns {String}
          */
         getPaymentMethodType: function () {
             return this.details.type;
+        },
+
+        /**
+         * Get payment method name
+         * @returns {String}
+         */
+        getLabel: function () {
+            return this.details.label;
         },
 
         /**
