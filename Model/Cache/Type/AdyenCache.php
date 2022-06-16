@@ -30,7 +30,7 @@ class AdyenCache extends TagScope
 
     /**
      * Adyen cache constructor.
-     *:q
+     *
      * @param FrontendPool
      */
     public $cacheFrontendPool;
