@@ -12,37 +12,37 @@
 namespace Adyen\Payment\Block\Customer;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
+use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Block\AbstractTokenRenderer;
 
-/** TODO: Check why this is not being called */
 class PaymentMethodRenderer extends AbstractTokenRenderer
 {
     /** @var Data */
     private $dataHelper;
 
-    public function __construct(Context $context, Data $dataHelper, array $data = [])
-    {
+    /** @var PaymentMethodFactory */
+    private $paymentMethodFactory;
+
+
+    public function __construct(
+        Context $context,
+        Data $dataHelper,
+        PaymentMethodFactory $paymentMethodFactory,
+        array $data = []
+    ) {
         parent::__construct($context, $data);
         $this->dataHelper = $dataHelper;
+        $this->paymentMethodFactory = $paymentMethodFactory;
     }
 
-    /**
-     * @return string
-     */
-    public function getNumberLast4Digits()
+    public function getText()
     {
-        return '1234';
-    }
-
-    /**
-     * @return string
-     */
-    public function getExpDate()
-    {
-        return 'MONDAY';
+        $paymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($this->getTokenDetails()['type']);
+        return $paymentMethod->getLabel();
     }
 
     /**
@@ -50,7 +50,7 @@ class PaymentMethodRenderer extends AbstractTokenRenderer
      */
     public function getIconUrl()
     {
-        return 'https://emspay.nl/sites/emspay.nl/files/images/Paypal_logo.jpg';
+        return $this->dataHelper->getVariantIcon($this->getTokenDetails()['type'])['url'];
     }
 
     /**
@@ -58,7 +58,7 @@ class PaymentMethodRenderer extends AbstractTokenRenderer
      */
     public function getIconHeight()
     {
-        return 20;
+        return $this->dataHelper->getVariantIcon($this->getTokenDetails()['type'])['height'];
     }
 
     /**
@@ -66,7 +66,7 @@ class PaymentMethodRenderer extends AbstractTokenRenderer
      */
     public function getIconWidth()
     {
-        return 10;
+        return $this->dataHelper->getVariantIcon($this->getTokenDetails()['type'])['width'];
     }
 
     public function canRender(PaymentTokenInterface $token)

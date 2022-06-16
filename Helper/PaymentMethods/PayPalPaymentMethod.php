@@ -43,7 +43,7 @@ class PayPalPaymentMethod implements PaymentMethodInterface
 
     public function getLabel(): string
     {
-        return 'xyz';
+        return '';
     }
 
     public function getRequiredAdditionalData(): array
