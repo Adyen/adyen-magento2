@@ -13,6 +13,7 @@ namespace Adyen\Payment\Block\Customer;
 
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
+use Magento\Framework\View\Element\Template\Context;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Block\AbstractTokenRenderer;
 
@@ -22,8 +23,9 @@ class PaymentMethodRenderer extends AbstractTokenRenderer
     /** @var Data */
     private $dataHelper;
 
-    public function __construct(Data $dataHelper)
+    public function __construct(Context $context, Data $dataHelper, array $data = [])
     {
+        parent::__construct($context, $data);
         $this->dataHelper = $dataHelper;
     }
 

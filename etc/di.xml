@@ -1090,14 +1090,4 @@
             </argument>
         </arguments>
     </type>
-
-    <type name="Magento\Vault\Model\PaymentTokenFactory">
-        <arguments>
-            <argument name="tokenTypes" xsi:type="array">
-                <item name="account" xsi:type="const">Magento\Vault\Api\Data\PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT</item>
-                <item name="credit_card" xsi:type="const">Magento\Vault\Api\Data\PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD</item>
-                <item name="paypal" xsi:type="const">Adyen\Payment\Helper\PaymentMethods\PayPalPaymentMethod::TX_VARIANT</item>
-            </argument>
-        </arguments>
-    </type>
 </config>

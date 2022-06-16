@@ -181,7 +181,7 @@ class Vault
     public function saveRecurringPaymentDetails($payment, array $additionalData, PaymentMethodInterface $adyenPaymentMethod)
     {
         try {
-            $paymentToken = $this->getVaultPaymentMethodToken($payment, $additionalData, $adyenPaymentMethod);
+            $paymentToken = $this->createVaultAccountToken($payment, $additionalData, $adyenPaymentMethod);
         } catch (Exception $exception) {
             $this->adyenLogger->error($exception->getMessage());
 
@@ -204,7 +204,7 @@ class Vault
     public function buildPaymentMethodRecurringData(int $storeId, $payment): array
     {
         $request = [];
-        $brand = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+        $brand = $payment->getCcType();
 
         if (!$this->config->isStoreAlternativePaymentMethodEnabled()) {
             return $request;
@@ -248,16 +248,18 @@ class Vault
     }
 
     /**
+     * Create an entry in the vault table w/type=Account (for pms such as PayPal)
+     * If the token has already been created, do nothing
+     *
      * @param $payment
      * @param array $additionalData
      * @param PaymentMethodInterface $adyenPaymentMethod
      * @return PaymentTokenInterface|null
      * @throws InvalidAdditionalDataException
      */
-    private function getVaultPaymentMethodToken($payment, array $additionalData, PaymentMethodInterface $adyenPaymentMethod): PaymentTokenInterface
+    private function createVaultAccountToken($payment, array $additionalData, PaymentMethodInterface $adyenPaymentMethod): PaymentTokenInterface
     {
         $requiredAdditionalData = $adyenPaymentMethod->getRequiredAdditionalData();
-        $details = [];
         if (!$this->validatePaymentMethodAdditionalData($additionalData, $requiredAdditionalData)) {
             throw new InvalidAdditionalDataException(__('Unable to validate additionalData received for order ' . $payment->getOrder()->getIncrementId()));
         }
@@ -269,30 +271,23 @@ class Vault
             $payment->getOrder()->getCustomerId()
         );
 
-        $paymentTokenSaveRequired = false;
-
         // In case the payment token does not exist, create it based on the additionalData
-        if ($paymentToken === null) {
-            $paymentToken = $this->paymentTokenFactory->create(PayPalPaymentMethod::TX_VARIANT);
+        if (is_null($paymentToken)) {
+            $paymentToken = $this->paymentTokenFactory->create(PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT);
             $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
-        } else {
-            $paymentTokenSaveRequired = true;
+            $expiryDate = new DateTime();
+            $expiryDate->add(new DateInterval('P1Y'));
+            $paymentToken->setExpiresAt($expiryDate);
+            $details = ['type' => $payment->getCcType()];
+
+            //TODO: Check if this is needed
+            /*foreach ($requiredAdditionalData as $key) {
+                $details[$key] = $additionalData[$key];
+            }*/
+
+            $paymentToken->setTokenDetails(json_encode($details, JSON_FORCE_OBJECT));
         }
 
-        if (array_key_exists(self::EXPIRY_DATE, $additionalData)) {
-            $paymentToken->setExpiresAt($this->getExpirationDate($additionalData[self::EXPIRY_DATE]));
-        }
-
-        foreach ($requiredAdditionalData as $key) {
-            $details[$key] = $additionalData[$key];
-        }
-
-        $paymentToken->setTokenDetails(json_encode($details, JSON_FORCE_OBJECT));
-
-        // If the token is updated, it needs to be saved to keep the changes
-        if ($paymentTokenSaveRequired) {
-            $this->paymentTokenRepository->save($paymentToken);
-        }
         return $paymentToken;
     }
 

@@ -15,10 +15,10 @@
     <body>
         <referenceContainer name="content">
             <referenceBlock name="vault.cards.list">
-                <block class="Adyen\Payment\Block\Customer\CardRenderer" name="adyen.card.renderer"
-                       template="Magento_Vault::customer_account/credit_card.phtml" cacheable="false"/>
-                <block class="Adyen\Payment\Block\Customer\PaymentMethodRenderer" name="adyen.payment_method.renderer"
-                       template="Adyen_Payment::customer_account/payment_method.phtml" cacheable="false"/>
+                <block class="Adyen\Payment\Block\Customer\CardRenderer" name="adyen.card.renderer" template="Magento_Vault::customer_account/credit_card.phtml" cacheable="false"/>
+            </referenceBlock>
+            <referenceBlock name="vault.token.list">
+                <block class="Adyen\Payment\Block\Customer\PaymentMethodRenderer" name="adyen.token.renderer" template="Adyen_Payment::customer_account/payment_method.phtml" cacheable="false"/>
             </referenceBlock>
         </referenceContainer>
     </body>
