@@ -111,7 +111,10 @@
             <adyen_hpp_vault>
                 <model>AdyenPaymentHppVaultFacade</model>
                 <title>Stored Payment Methods (Adyen)</title>
-                <!--TODO: Add instant purchase stuff here-->
+                <instant_purchase>
+                    <available>Adyen\Payment\Model\InstantPurchase\PaymentMethods\AvailabilityChecker</available>
+                    <tokenFormat>Adyen\Payment\Model\InstantPurchase\PaymentMethods\TokenFormatter</tokenFormat>
+                </instant_purchase>
             </adyen_hpp_vault>
             <adyen_pos_cloud>
                 <active>0</active>
