@@ -11,11 +11,13 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
@@ -38,18 +40,23 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
     /** @var PaymentMethodFactory */
     private $paymentMethodFactory;
 
+    /** @var AdyenLogger */
+    private $adyenLogger;
+
     public function __construct(
         Data $adyenHelper,
         Recurring $recurringHelper,
         Vault $vaultHelper,
         Config $configHelper,
-        PaymentMethodFactory $paymentMethodFactory
+        PaymentMethodFactory $paymentMethodFactory,
+        AdyenLogger $adyenLogger
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->recurringHelper = $recurringHelper;
         $this->vaultHelper = $vaultHelper;
         $this->configHelper = $configHelper;
         $this->paymentMethodFactory = $paymentMethodFactory;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -88,8 +95,12 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             // Else create entry in paypal_billing_agreement
             if ($this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId) &&
                 $payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE) {
-                $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($payment->getCcType());
-                $this->vaultHelper->saveRecurringPaymentDetails($payment, $response['additionalData'], $adyenPaymentMethod);
+                try {
+                    $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($payment->getCcType());
+                    $this->vaultHelper->saveRecurringPaymentDetails($payment, $response['additionalData'], $adyenPaymentMethod);
+                } catch (PaymentMethodException $e) {
+                    $this->adyenLogger->error(sprintf('Unable to create token for order %s', $payment->getOrder()->getEntityId()));
+                }
             } else {
                 $order = $payment->getOrder();
                 $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $payment->getAdditionalInformation());

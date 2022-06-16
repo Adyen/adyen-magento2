@@ -12,7 +12,7 @@
 
 namespace Adyen\Payment\Exception;
 
-class InvalidAdditionalDataException extends AbstractAdyenException
+class PaymentMethodException extends AbstractAdyenException
 {
 
 }

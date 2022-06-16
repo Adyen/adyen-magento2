@@ -14,6 +14,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Api\Data\AdyenPaymentMethodRepositoryInterface;
 use Adyen\Payment\Exception\InvalidAdditionalDataException;
+use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
 use Adyen\Payment\Helper\PaymentMethods\PayPalPaymentMethod;
@@ -171,7 +172,6 @@ class Vault
 
     /**
      * Save recurring details related to the payment method.
-     * Before doing this, validate the additionalData sent by Adyen, based on the params required by the payment method
      *
      * @param $payment
      * @param array $additionalData
@@ -210,11 +210,14 @@ class Vault
             return $request;
         }
 
-        $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
         try {
+            $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
             $allowRecurring = $this->allowRecurringOnPaymentMethod($adyenPaymentMethod);
+        } catch (PaymentMethodException $exception) {
+            $this->adyenLogger->error(sprintf('Unable to create payment method with tx variant %s', $brand));
+            return $request;
         } catch (NoSuchEntityException $exception) {
-            $this->adyenLogger->warning(sprintf('Unable to create object with tx variant %s', $brand));
+            $this->adyenLogger->error(sprintf('Unable to find payment method with tx variant %s', $brand));
             return $request;
         }
 
@@ -250,11 +253,8 @@ class Vault
     /**
      * Create an entry in the vault table w/type=Account (for pms such as PayPal)
      * If the token has already been created, do nothing
+     * Before doing this, validate the additionalData sent by Adyen, based on the params required by the payment method
      *
-     * @param $payment
-     * @param array $additionalData
-     * @param PaymentMethodInterface $adyenPaymentMethod
-     * @return PaymentTokenInterface|null
      * @throws InvalidAdditionalDataException
      */
     private function createVaultAccountToken($payment, array $additionalData, PaymentMethodInterface $adyenPaymentMethod): PaymentTokenInterface

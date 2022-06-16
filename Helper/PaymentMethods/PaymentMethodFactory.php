@@ -13,13 +13,30 @@
 namespace Adyen\Payment\Helper\PaymentMethods;
 
 
+use Adyen\Payment\Exception\PaymentMethodException;
+use Adyen\Payment\Logger\AdyenLogger;
+
 class PaymentMethodFactory
 {
+    private static $adyenLogger;
+
+    public function __construct(AdyenLogger $adyenLogger)
+    {
+        self::$adyenLogger = $adyenLogger;
+    }
+
+    /**
+     * @throws PaymentMethodException
+     */
     public static function createAdyenPaymentMethod(string $txVariant): PaymentMethodInterface
     {
         switch ($txVariant) {
             case 'paypal':
                 return new PayPalPaymentMethod();
+            default:
+                $message = __('%s: %s', __('Unknown txVariant', $txVariant));
+                self::$adyenLogger->error($message);
+                throw new PaymentMethodException($message);
         }
     }
 }

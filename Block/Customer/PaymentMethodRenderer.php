@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Block\Customer;
 
+use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
@@ -39,37 +40,34 @@ class PaymentMethodRenderer extends AbstractTokenRenderer
         $this->paymentMethodFactory = $paymentMethodFactory;
     }
 
-    public function getText()
+    public function getText(): string
     {
-        $paymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($this->getTokenDetails()['type']);
-        return $paymentMethod->getLabel();
+        try {
+            $paymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($this->getTokenDetails()['type']);
+            $text = $paymentMethod->getLabel();
+        } catch (PaymentMethodException $exception) {
+            $text = '';
+        }
+
+        return $text;
     }
 
-    /**
-     * @return string
-     */
-    public function getIconUrl()
+    public function getIconUrl(): string
     {
         return $this->dataHelper->getVariantIcon($this->getTokenDetails()['type'])['url'];
     }
 
-    /**
-     * @return int
-     */
-    public function getIconHeight()
+    public function getIconHeight(): int
     {
         return $this->dataHelper->getVariantIcon($this->getTokenDetails()['type'])['height'];
     }
 
-    /**
-     * @return int
-     */
-    public function getIconWidth()
+    public function getIconWidth(): int
     {
         return $this->dataHelper->getVariantIcon($this->getTokenDetails()['type'])['width'];
     }
 
-    public function canRender(PaymentTokenInterface $token)
+    public function canRender(PaymentTokenInterface $token): bool
     {
         return $token->getPaymentMethodCode() === AdyenHppConfigProvider::CODE;
     }
