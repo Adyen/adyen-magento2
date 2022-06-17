@@ -58,6 +58,7 @@ class PaymentMethodUiComponentProvider implements TokenUiComponentProviderInterf
      * @param PaymentTokenInterface $paymentToken
      * @return TokenUiComponentInterface
      * @throws PaymentMethodException
+     * @throws \Exception
      */
     public function getComponentForToken(PaymentTokenInterface $paymentToken): TokenUiComponentInterface
     {
@@ -65,7 +66,8 @@ class PaymentMethodUiComponentProvider implements TokenUiComponentProviderInterf
         $details = json_decode($paymentToken->getTokenDetails() ?: '{}', true);
         $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($details['type']);
         $details['icon'] = $this->adyenHelper->getVariantIcon($details['type']);
-        $details['created'] = $paymentToken->getCreatedAt();
+        $createdAt = new \DateTime($paymentToken->getCreatedAt());
+        $details['created'] = $createdAt->format('Y-m-d');
         $details['displayToken'] = $tokenType === Recurring::CARD_ON_FILE;
         $details['label'] = $adyenPaymentMethod->getLabel();
 

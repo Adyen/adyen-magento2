@@ -304,11 +304,6 @@ class Vault
                 self::TOKEN_TYPE => $recurringModel
             ];
 
-            //TODO: Check if this is needed
-            /*foreach ($requiredAdditionalData as $key) {
-                $details[$key] = $additionalData[$key];
-            }*/
-
             $paymentToken->setTokenDetails(json_encode($details, JSON_FORCE_OBJECT));
         }
 
