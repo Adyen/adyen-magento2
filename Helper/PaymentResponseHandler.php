@@ -222,14 +222,9 @@ class PaymentResponseHandler
                     // Else create entry in paypal_billing_agreement
                     if ($this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId) &&
                         $payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE) {
-                        try {
-                            $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($payment->getCcType());
-                            $this->vaultHelper->saveRecurringPaymentDetails($payment, $paymentsResponse['additionalData'], $adyenPaymentMethod);
-                        } catch (PaymentMethodException $e) {
-                            $this->adyenLogger->error(sprintf('Unable to create token for order %s', $payment->getOrder()->getEntityId()));
-                        }
+                        $this->vaultHelper->saveRecurringPaymentMethodDetails($payment, $paymentsResponse['additionalData']);
                     } else if ($this->vaultHelper->isCardVaultEnabled()) {
-                        $this->vaultHelper->saveRecurringDetails($payment, $paymentsResponse['additionalData']);
+                        $this->vaultHelper->saveRecurringCardDetails($payment, $paymentsResponse['additionalData']);
                     } else {
                         $order = $payment->getOrder();
                         $this->recurringHelper->createAdyenBillingAgreement($order, $paymentsResponse['additionalData']);

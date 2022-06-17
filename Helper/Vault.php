@@ -138,7 +138,7 @@ class Vault
      * @param $payment
      * @param array $additionalData
      */
-    public function saveRecurringDetails($payment, array $additionalData)
+    public function saveRecurringCardDetails($payment, array $additionalData)
     {
         if (!$this->isCardVaultEnabled($payment->getOrder()->getStoreId()) &&
             !$this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())) {
@@ -174,21 +174,24 @@ class Vault
      *
      * @param $payment
      * @param array $additionalData
-     * @param PaymentMethodInterface $adyenPaymentMethod
-     * @return PaymentTokenInterface|void|null
+     * @return PaymentTokenInterface|null
      */
-    public function saveRecurringPaymentDetails($payment, array $additionalData, PaymentMethodInterface $adyenPaymentMethod)
+    public function saveRecurringPaymentMethodDetails($payment, array $additionalData): ?PaymentTokenInterface
     {
         try {
+            $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($payment->getCcType());
             $paymentToken = $this->createVaultAccountToken($payment, $additionalData, $adyenPaymentMethod);
+            $extensionAttributes = $this->getExtensionAttributes($payment);
+            $extensionAttributes->setVaultPaymentToken($paymentToken);
+        } catch (PaymentMethodException $e) {
+            $this->adyenLogger->error(sprintf('Unable to create token for order %s', $payment->getOrder()->getEntityId()));
+
+            return null;
         } catch (Exception $exception) {
             $this->adyenLogger->error($exception->getMessage());
 
-            return;
+            return null;
         }
-
-        $extensionAttributes = $this->getExtensionAttributes($payment);
-        $extensionAttributes->setVaultPaymentToken($paymentToken);
 
         return $paymentToken;
     }

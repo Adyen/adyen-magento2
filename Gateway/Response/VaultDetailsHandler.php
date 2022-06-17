@@ -45,7 +45,7 @@ class VaultDetailsHandler implements HandlerInterface
         $orderPayment = SubjectReader::readPayment($handlingSubject);
 
         if ($this->vaultHelper->isCardVaultEnabled()) {
-            $this->vaultHelper->saveRecurringDetails($orderPayment->getPayment(), $response['additionalData']);
+            $this->vaultHelper->saveRecurringCardDetails($orderPayment->getPayment(), $response['additionalData']);
         }
     }
 }

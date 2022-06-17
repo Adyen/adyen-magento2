@@ -95,12 +95,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             // Else create entry in paypal_billing_agreement
             if ($this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId) &&
                 $payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE) {
-                try {
-                    $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($payment->getCcType());
-                    $this->vaultHelper->saveRecurringPaymentDetails($payment, $response['additionalData'], $adyenPaymentMethod);
-                } catch (PaymentMethodException $e) {
-                    $this->adyenLogger->error(sprintf('Unable to create token for order %s', $payment->getOrder()->getEntityId()));
-                }
+                $this->vaultHelper->saveRecurringPaymentMethodDetails($payment, $response['additionalData']);
             } else {
                 $order = $payment->getOrder();
                 $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $payment->getAdditionalInformation());
