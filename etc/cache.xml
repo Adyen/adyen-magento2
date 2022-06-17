@@ -13,6 +13,6 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Cache/etc/cache.xsd">
     <type name="adyen" translate="label, description" instance="Adyen\Payment\Model\Cache\Type\AdyenCache">
         <label>Adyen</label>
-        <description>Webhook cache</description>
+        <description>Adyen payment module cache</description>
     </type>
 </config>

@@ -84,6 +84,11 @@ class Json extends Action
     private $notificationReceiver;
 
     /**
+     * Number of allowed notification requests
+     */
+    const NUMBER_OF_ATTEMPTS = 6;
+
+    /**
      * Json constructor.
      *
      * @param Context $context
@@ -213,11 +218,6 @@ class Json extends Action
         // Add CGI support
         $this->fixCgiHttpAuthentication();
 
-        if($this->rateLimiterHelper->getNumberOfAttempts() >= 6) {
-            $this->rateLimiterHelper->saveNotificationUsernameIpAddressToCache();
-            return false;
-        }
-
         $authResult = $this->notificationReceiver->isAuthenticated(
             $response,
             $this->configHelper->getMerchantAccount(),
@@ -225,6 +225,13 @@ class Json extends Action
             $this->configHelper->getNotificationsPassword()
         );
 
+        // if the number of wrongful attempts is higher than 6, save it in cache
+        if($this->rateLimiterHelper->getNumberOfAttempts() >= self::NUMBER_OF_ATTEMPTS) {
+            $this->rateLimiterHelper->saveNotificationUsernameIpAddressToCache();
+            return false;
+        }
+
+        // if there is no auth result, save it in cache
         if(!$authResult) {
             $this->rateLimiterHelper->saveNotificationUsernameIpAddressToCache();
             return false;

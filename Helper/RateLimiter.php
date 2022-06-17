@@ -15,6 +15,7 @@ use Adyen\Payment\Model\Cache\Type\AdyenCache;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\Session\SessionManagerInterface;
 
 /**
  * Class RateLimiter
@@ -32,40 +33,51 @@ class RateLimiter
     private $serializer;
 
     /**
-     * @var Config
-     */
-    private $configHelper;
-
-    /**
      * @var RemoteAddress
      */
     private $remoteAddress;
+
+    /**
+     * @var SessionManagerInterface
+     */
+    private $sessionManager;
+
+    /**
+     * Initial cache lifetime
+     */
+    const INITIAL_COOLDOWN_PERIOD = 300;
+
+    /**
+     * Power base value
+     */
+    const POWER = 2;
+
 
     /**
      * RateLimiter constructor.
      *
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
-     * @param Config $configHelper
      * @param RemoteAddress $remoteAddress
+     * @param SessionManagerInterface $sessionManager
      */
 
     public function __construct(
         CacheInterface $cache,
         SerializerInterface $serializer,
-        Config $configHelper,
-        RemoteAddress $remoteAddress
+        RemoteAddress $remoteAddress,
+        SessionManagerInterface $sessionManager
     ) {
         $this->cache = $cache;
         $this->serializer = $serializer;
-        $this->configHelper = $configHelper;
         $this->remoteAddress = $remoteAddress;
+        $this->sessionManager = $sessionManager;;
     }
 
 
     private function getCacheId()
     {
-        return "adyen-logins-" . $this->configHelper->getNotificationsUsername() . "-" . $this->remoteAddress->getRemoteAddress();
+        return "adyen-logins-" . $this->sessionManager->getSessionId() . "-" . $this->remoteAddress->getRemoteAddress();
     }
 
     public function saveNotificationUsernameIpAddressToCache()
@@ -93,6 +105,7 @@ class RateLimiter
 
     private function calculateNotificationCacheLifetime($numberOfAttempts)
     {
-        return max(300, pow(2, $numberOfAttempts));
+
+        return max(self::INITIAL_COOLDOWN_PERIOD, pow(self::POWER, $numberOfAttempts));;
     }
 }
