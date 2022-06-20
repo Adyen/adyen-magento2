@@ -63,6 +63,6 @@ class PaymentMethods implements DataPatchInterface, PatchVersionInterface
 
     public static function getVersion()
     {
-        return '8.2.5';
+        return '8.3.0';
     }
 }
