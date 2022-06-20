@@ -71,7 +71,7 @@ class RateLimiter
         $this->cache = $cache;
         $this->serializer = $serializer;
         $this->remoteAddress = $remoteAddress;
-        $this->sessionManager = $sessionManager;;
+        $this->sessionManager = $sessionManager;
     }
 
 
@@ -106,6 +106,6 @@ class RateLimiter
     private function calculateNotificationCacheLifetime($numberOfAttempts)
     {
 
-        return max(self::INITIAL_COOLDOWN_PERIOD, pow(self::POWER, $numberOfAttempts));;
+        return max(self::INITIAL_COOLDOWN_PERIOD, pow(self::POWER, $numberOfAttempts));
     }
 }
