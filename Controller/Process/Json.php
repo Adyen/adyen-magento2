@@ -227,7 +227,7 @@ class Json extends Action
 
         // if the number of wrongful attempts is higher than 6, save it in cache
         if($this->rateLimiterHelper->getNumberOfAttempts() >= self::NUMBER_OF_ATTEMPTS) {
-            $this->rateLimiterHelper->saveNotificationUsernameIpAddressToCache();
+            $this->rateLimiterHelper->saveSessionIdIpAddressToCache();
             return false;
         }
 

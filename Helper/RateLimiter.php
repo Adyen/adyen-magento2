@@ -80,7 +80,7 @@ class RateLimiter
         return "adyen-logins-" . $this->sessionManager->getSessionId() . "-" . $this->remoteAddress->getRemoteAddress();
     }
 
-    public function saveNotificationUsernameIpAddressToCache()
+    public function saveSessionIdIpAddressToCache()
     {
         $cacheValue = $this->getNumberOfAttempts();
 
