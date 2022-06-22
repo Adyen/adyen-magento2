@@ -102,17 +102,11 @@ class InvoiceObserver implements ObserverInterface
         $payment = $order->getPayment();
         $method = $payment->getMethod();
 
-        // If invoice has already been paid or full amount is finalized, exit observer
-         // $this->paymentMethodsHelper->isAdyenPayment($method) !== true ||
-//            if ($this->paymentMethodsHelper->isAdyenPayment($method) || $invoice->wasPayCalled() || $this->adyenOrderPaymentHelper->isFullAmountFinalized($order)) {
-//                return;
-//            }
+        // If payment is not originating from Adyen or invoice has already been paid or full amount is finalized, exit observer
+        if (!$this->paymentMethodsHelper->isAdyenPayment($method) || $invoice->wasPayCalled() || $this->adyenOrderPaymentHelper->isFullAmountFinalized($order)) {
+            return;
+        }
 
-            if($this->paymentMethodsHelper->isAdyenPayment($method)) {
-                $this->logger->addAdyenNotificationCronjob(
-                    sprintf('Please work', $invoice->getEntityId())
-                );
-            }
 
         $this->logger->addAdyenDebug(
             sprintf('Event sales_order_invoice_save_after for invoice %s will be handled', $invoice->getEntityId()),
