@@ -11,14 +11,16 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Requests;
-use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Service\Recurring;
 use Magento\Customer\Model\Session;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Api\PaymentTokenManagementInterface;
 
@@ -36,24 +38,27 @@ class VaultDeleteTokenObserver implements ObserverInterface
     /** @var Requests */
     private $requestsHelper;
 
+    /** @var AdyenLogger */
+    private $adyenLogger;
+
     public function __construct(
         PaymentTokenManagementInterface $paymentTokenManagement,
         Session $customerSession,
         Data $dataHelper,
-        Requests $requestsHelper
+        Requests $requestsHelper,
+        AdyenLogger $adyenLogger
     ) {
         $this->paymentTokenManagement = $paymentTokenManagement;
         $this->customerSession = $customerSession;
         $this->dataHelper = $dataHelper;
         $this->requestsHelper = $requestsHelper;
+        $this->adyenLogger = $adyenLogger;
     }
 
     public function execute(Observer $observer)
     {
         $customerId = $this->customerSession->getCustomerId();
         $paymentToken = $this->getPaymentToken($observer->getData('request'), $customerId);
-        $client = $this->dataHelper->initializeAdyenClient();
-        $recurringService = new Recurring($client);
 
         $request = [
             Requests::MERCHANT_ACCOUNT => $this->dataHelper->getAdyenMerchantAccount($paymentToken->getPaymentMethodCode()),
@@ -61,15 +66,31 @@ class VaultDeleteTokenObserver implements ObserverInterface
             Requests::RECURRING_DETAIL_REFERENCE => $paymentToken->getGatewayToken()
         ];
 
-        $recurringService->disable($request);
+        try {
+            $client = $this->dataHelper->initializeAdyenClient();
+            $recurringService = new Recurring($client);
+            $recurringService->disable($request);
+        } catch (AdyenException $e) {
+            $this->adyenLogger->error(sprintf(
+                'Error while attempting to disable token with id %s: %s',
+                $paymentToken->getEntityId(),
+                $e->getMessage())
+            );
+        } catch (NoSuchEntityException $e) {
+            $this->adyenLogger->error(sprintf(
+                    'No such entity while attempting to disable token with id %s: %s',
+                    $paymentToken->getEntityId(),
+                    $e->getMessage())
+            );
+        }
     }
 
     /**
      * @param Http $request
-     * @param $customerId
+     * @param string $customerId
      * @return PaymentTokenInterface|null
      */
-    private function getPaymentToken(Http $request, $customerId): ?PaymentTokenInterface
+    private function getPaymentToken(Http $request, string $customerId): ?PaymentTokenInterface
     {
         $publicHash = $request->getPostValue(PaymentTokenInterface::PUBLIC_HASH);
 
