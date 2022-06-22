@@ -19,7 +19,9 @@ use Magento\Framework\App\Helper\AbstractHelper;
 
 class Requests extends AbstractHelper
 {
-    CONST MERCHANT_ACCOUNT = 'merchantAccount';
+    const MERCHANT_ACCOUNT = 'merchantAccount';
+    const SHOPPER_REFERENCE = 'shopperReference';
+    const RECURRING_DETAIL_REFERENCE = 'recurringDetailReference';
 
     /**
      * @var Data
