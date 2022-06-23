@@ -163,7 +163,7 @@ class PaymentRequest extends DataObject
                 }
             } catch (\Exception $exception) {
                 // log exception
-                $this->_adyenLogger->addError($exception);
+                $this->_adyenLogger->error($exception);
                 throw($exception);
             }
         }
