@@ -38,6 +38,7 @@ services:
       VIRTUAL_HOST: magento2.test.com
       COMPOSER_MEMORY_LIMIT: -1
       DEPLOY_SAMPLEDATA: 1
+      DONATION_ACCOUNT:
       ADMIN_USERNAME:
       ADMIN_PASSWORD:
       ADYEN_MERCHANT:
