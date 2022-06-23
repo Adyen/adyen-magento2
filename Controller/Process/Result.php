@@ -298,7 +298,7 @@ class Result extends \Magento\Framework\App\Action\Action
             $authResult = $response['resultCode'];
         } else {
             // In case the result is unknown we log the request and don't update the history
-            $this->_adyenLogger->addError("Unexpected result query parameter. Response: " . json_encode($response));
+            $this->_adyenLogger->error("Unexpected result query parameter. Response: " . json_encode($response));
 
             return $result;
         }
@@ -391,7 +391,7 @@ class Result extends \Magento\Framework\App\Action\Action
         try {
             $this->stateDataHelper->CleanQuoteStateData($order->getQuoteId(), $authResult);
         } catch (\Exception $exception) {
-            $this->_adyenLogger->addError(__('Error cleaning the payment state data: %s', $exception->getMessage()));
+            $this->_adyenLogger->error(__('Error cleaning the payment state data: %s', $exception->getMessage()));
         }
 
 
@@ -515,11 +515,11 @@ class Result extends \Magento\Framework\App\Action\Action
                 if ($order->getIncrementId() === $merchantReference) {
                     $this->_order = $order;
                 } else {
-                    $this->_adyenLogger->addError("Wrong merchantReference was set in the query or in the session");
+                    $this->_adyenLogger->error("Wrong merchantReference was set in the query or in the session");
                     $response['error'] = 'merchantReference mismatch';
                 }
             } else {
-                $this->_adyenLogger->addError("No merchantReference in the response");
+                $this->_adyenLogger->error("No merchantReference in the response");
                 $response['error'] = 'merchantReference is missing from the response';
             }
         } catch (\Adyen\AdyenException $e) {
