@@ -64,7 +64,7 @@ class GraphQlPlaceOrderAddCartId
             $maskedId = $this->quoteIdToMaskedQuoteId->execute($cart->getId());
             $result['order']['cart_id'] = $maskedId;
         } catch (NoSuchEntityException $exception) {
-            $this->adyenLogger->addError($exception->getMessage());
+            $this->adyenLogger->error($exception->getMessage());
         }
 
         return $result;

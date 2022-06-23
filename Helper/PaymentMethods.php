@@ -156,6 +156,27 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
+     * @return array
+     */
+    public function getAdyenPaymentCodes(): array
+    {
+        return [self::ADYEN_HPP, self::ADYEN_CC, self::ADYEN_ONE_CLICK];
+    }
+
+    /**
+     * @param string $methodCode
+     * @return bool
+     */
+    public function isAdyenPayment(string $methodCode): bool
+    {
+        if(in_array($methodCode, $this->getAdyenPaymentCodes())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * @param $country
      * @return string
      * @throws AdyenException
