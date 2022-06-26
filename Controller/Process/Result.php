@@ -191,6 +191,13 @@ class Result extends \Magento\Framework\App\Action\Action
         if ($result) {
             $session = $this->_session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
+
+            // Prevent action component to redirect page with the payment method Dotpay Bank transfer / postal
+            if ("dotpay" == $this->_order->getPayment()->getAdditionalInformation('brand_code')) {
+                $this->payment->unsAdditionalInformation('action');
+                $this->_order->save();
+            }
+
             // Add OrderIncrementId to redirect parameters for headless support.
             $redirectParams = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
                 ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->_order->getIncrementId()]]
