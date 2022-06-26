@@ -193,7 +193,10 @@ class Result extends \Magento\Framework\App\Action\Action
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
 
             // Prevent action component to redirect page with the payment method Dotpay Bank transfer / postal
-            if ("dotpay" == $this->_order->getPayment()->getAdditionalInformation('brand_code')) {
+            if (
+                $this->_order->getPayment()->getAdditionalInformation('brand_code') == 'dotpay' &&
+                $this->_order->getPayment()->getAdditionalInformation('resultCode') == 'Received'
+            ) {
                 $this->payment->unsAdditionalInformation('action');
                 $this->_order->save();
             }
