@@ -14,6 +14,7 @@ namespace Adyen\Payment\Gateway\Request;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Requests;
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Model\Context;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -47,6 +48,11 @@ class RecurringDataBuilder implements BuilderInterface
     private $adyenOrderPayment;
 
     /**
+     * @var Vault
+     */
+    private $vaultHelper;
+
+    /**
      * RecurringDataBuilder constructor.
      *
      * @param Context $context
@@ -59,13 +65,15 @@ class RecurringDataBuilder implements BuilderInterface
         Requests $adyenRequestsHelper,
         PaymentMethods $paymentMethodsHelper,
         AdyenLogger $adyenLogger,
-        AdyenOrderPayment $adyenOrderPayment
+        AdyenOrderPayment $adyenOrderPayment,
+        Vault $vaultHelper
     ) {
         $this->appState = $context->getAppState();
         $this->adyenRequestsHelper = $adyenRequestsHelper;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->adyenLogger = $adyenLogger;
         $this->adyenOrderPayment = $adyenOrderPayment;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -85,7 +93,7 @@ class RecurringDataBuilder implements BuilderInterface
         if ($method === PaymentMethods::ADYEN_CC) {
             $body = $this->adyenRequestsHelper->buildCardRecurringData($storeId, $payment);
         } elseif ($method === PaymentMethods::ADYEN_HPP) {
-            $body = $this->adyenRequestsHelper->buildAlternativePaymentRecurringData($storeId, $payment);
+            $body = $this->vaultHelper->buildPaymentMethodRecurringData($storeId, $payment);
         } elseif ($method === PaymentMethods::ADYEN_ONE_CLICK) {
             $body = $this->adyenRequestsHelper->buildAdyenTokenizedPaymentRecurringData($storeId, $payment);
         } else {

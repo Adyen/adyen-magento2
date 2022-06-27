@@ -11,9 +11,16 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Adyen\Payment\Exception\PaymentMethodException;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class CheckoutPaymentsDetailsHandler implements HandlerInterface
@@ -27,14 +34,29 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
     /** @var Vault */
     private $vaultHelper;
 
+    /** @var Config */
+    private $configHelper;
+
+    /** @var PaymentMethodFactory */
+    private $paymentMethodFactory;
+
+    /** @var AdyenLogger */
+    private $adyenLogger;
+
     public function __construct(
         Data $adyenHelper,
         Recurring $recurringHelper,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        Config $configHelper,
+        PaymentMethodFactory $paymentMethodFactory,
+        AdyenLogger $adyenLogger
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->recurringHelper = $recurringHelper;
         $this->vaultHelper = $vaultHelper;
+        $this->configHelper = $configHelper;
+        $this->paymentMethodFactory = $paymentMethodFactory;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -54,7 +76,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
 
         // Email sending is set at CheckoutDataBuilder for Boleto
         // Otherwise, we don't want to send a confirmation email
-        if ($payment->getMethod() != \Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider::CODE) {
+        if ($payment->getMethod() != AdyenBoletoConfigProvider::CODE) {
             $payment->getOrder()->setCanSendNewEmailFlag(false);
         }
 
@@ -67,12 +89,17 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             $payment->setTransactionId($response['pspReference']);
         }
 
-        if (!empty($response['additionalData']['recurring.recurringDetailReference']) &&
-            !$this->vaultHelper->isCardVaultEnabled() &&
-            $payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE
-        ) {
-            $order = $payment->getOrder();
-            $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $payment->getAdditionalInformation());
+        if ($this->vaultHelper->hasRecurringDetailReference($response) && $payment->getMethodInstance()->getCode() !== AdyenOneclickConfigProvider::CODE) {
+            $storeId = $payment->getMethodInstance()->getStore();
+            // If store alternative payment method is enabled and this is an alternative payment method
+            // Else create entry in paypal_billing_agreement
+            if ($this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId) &&
+                $payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE) {
+                $this->vaultHelper->saveRecurringPaymentMethodDetails($payment, $response['additionalData']);
+            } else {
+                $order = $payment->getOrder();
+                $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $payment->getAdditionalInformation());
+            }
         }
 
         // do not close transaction so you can do a cancel() and void

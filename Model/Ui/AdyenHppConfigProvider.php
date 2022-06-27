@@ -18,6 +18,7 @@ use Magento\Directory\Helper\Data;
 class AdyenHppConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'adyen_hpp';
+    const HPP_VAULT_CODE = 'adyen_hpp_vault';
 
     /**
      * @var PaymentHelper
@@ -103,6 +104,7 @@ class AdyenHppConfigProvider implements ConfigProviderInterface
         $config = [
             'payment' => [
                 self::CODE => [
+                    'vaultCode' => self::HPP_VAULT_CODE,
                     'isActive' => true,
                     'successPage' => $this->urlBuilder->getUrl(
                         'checkout/onepage/success',

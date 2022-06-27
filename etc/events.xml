@@ -41,4 +41,7 @@
     <event name="admin_system_config_changed_section_payment">
         <observer name="adyen_admin_vault_config_change" instance="Adyen\Payment\Observer\VaultConfigObserver"/>
     </event>
+    <event name="controller_action_postdispatch_vault_cards_deleteAction">
+        <observer name="adyen_vault_delete" instance="Adyen\Payment\Observer\VaultDeleteTokenObserver"/>
+    </event>
 </config>

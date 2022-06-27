@@ -19,7 +19,9 @@ use Magento\Framework\App\Helper\AbstractHelper;
 
 class Requests extends AbstractHelper
 {
-    CONST MERCHANT_ACCOUNT = 'merchantAccount';
+    const MERCHANT_ACCOUNT = 'merchantAccount';
+    const SHOPPER_REFERENCE = 'shopperReference';
+    const RECURRING_DETAIL_REFERENCE = 'recurringDetailReference';
 
     /**
      * @var Data
@@ -364,34 +366,6 @@ class Requests extends AbstractHelper
                 $recurringType = $this->adyenConfig->getCardRecurringType($storeId);
                 $request['recurringProcessingModel'] = $recurringType;
             }
-        }
-
-        return $request;
-    }
-
-    /**
-     * Build the recurring data when payment is done trough an alternative payment method
-     *
-     * @param int $storeId
-     * @param $payment
-     * @return array
-     */
-    public function buildAlternativePaymentRecurringData(int $storeId, $payment): array
-    {
-        $request = [];
-
-        $brand = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
-        if (!$this->adyenConfig->isStoreAlternativePaymentMethodEnabled() ||
-            !$this->paymentMethodsHelper->paymentMethodSupportsRecurring($brand)) {
-
-            return $request;
-        }
-
-
-        $recurringModel = $this->adyenConfig->getAlternativePaymentMethodTokenType($storeId);
-        if (isset($recurringModel)) {
-            $request['storePaymentMethod'] = true;
-            $request['recurringProcessingModel'] = $recurringModel;
         }
 
         return $request;

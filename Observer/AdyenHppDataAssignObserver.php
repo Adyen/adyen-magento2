@@ -11,14 +11,20 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 use Adyen\Service\Validator\CheckoutStateDataValidator;
 use Adyen\Service\Validator\DataArrayValidator;
 use Magento\Framework\Event\Observer;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
+use Magento\Vault\Model\Ui\VaultConfigProvider;
 
 class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
 {
@@ -53,22 +59,39 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
      */
     private $stateData;
 
+    /** @var PaymentMethodFactory */
+    private $paymentMethodFactory;
+
+    /** @var Vault  */
+    private $vaultHelper;
+
+    /** @var AdyenLogger */
+    private $adyenLogger;
+
     /**
      * AdyenHppDataAssignObserver constructor.
      *
      * @param CheckoutStateDataValidator $checkoutStateDataValidator
      * @param Collection $stateDataCollection
      * @param StateData $stateData
-     * @param Session $checkoutSession
+     * @param PaymentMethodFactory $paymentMethodFactory
+     * @param Vault $vaultHelper
+     * @param AdyenLogger $adyenLogger
      */
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,
         Collection $stateDataCollection,
-        StateData $stateData
+        StateData $stateData,
+        PaymentMethodFactory $paymentMethodFactory,
+        Vault $vaultHelper,
+        AdyenLogger $adyenLogger
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataCollection = $stateDataCollection;
         $this->stateData = $stateData;
+        $this->paymentMethodFactory = $paymentMethodFactory;
+        $this->vaultHelper = $vaultHelper;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -119,9 +142,21 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
             $paymentInfo->setAdditionalInformation($key, $data);
         }
 
-        // set ccType
+        // Set ccType. If payment method is tokenizable, update additional information
         if (!empty($additionalData[self::BRAND_CODE])) {
-            $paymentInfo->setCcType($additionalData[self::BRAND_CODE]);
+            $brand = $additionalData[self::BRAND_CODE];
+            $paymentInfo->setCcType($brand);
+
+            try {
+                $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
+                if ($this->vaultHelper->allowRecurringOnPaymentMethod($adyenPaymentMethod)) {
+                    $paymentInfo->setAdditionalInformation(VaultConfigProvider::IS_ACTIVE_CODE, true);
+                }
+            } catch (PaymentMethodException $exception) {
+                $this->adyenLogger->error(sprintf('Unable to create payment method with tx variant %s in observer', $brand));
+            } catch (NoSuchEntityException $exception) {
+                $this->adyenLogger->error(sprintf('Unable to find payment method with tx variant %s in observer', $brand));
+            }
         }
     }
 
