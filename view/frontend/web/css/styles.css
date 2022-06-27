@@ -9,5 +9,5 @@
  */
 
 .adyen-checkout__dropdown__button {
-    width: auto !important;
+    width: auto;
 }
