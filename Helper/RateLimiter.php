@@ -95,12 +95,7 @@ class RateLimiter
     public function getNumberOfAttempts()
     {
         $numberOfAttempts = $this->cache->load($this->getCacheId());
-
-        if($numberOfAttempts === false) {
-            return 0;
-        } else {
-            return $numberOfAttempts;
-        }
+        return (int)$numberOfAttempts;
     }
 
     private function calculateNotificationCacheLifetime($numberOfAttempts)
