@@ -22,6 +22,8 @@ use Magento\Sales\Model\Order;
 class Result extends \Magento\Framework\App\Action\Action
 {
 
+    const BRAND_CODE_DOTPAY = 'dotpay';
+    const RESULT_CODE_RECEIVED = 'Received';
     const DETAILS_ALLOWED_PARAM_KEYS = [
         'MD',
         'PaReq',
@@ -194,8 +196,8 @@ class Result extends \Magento\Framework\App\Action\Action
 
             // Prevent action component to redirect page with the payment method Dotpay Bank transfer / postal
             if (
-                $this->_order->getPayment()->getAdditionalInformation('brand_code') == 'dotpay' &&
-                $this->_order->getPayment()->getAdditionalInformation('resultCode') == 'Received'
+                $this->_order->getPayment()->getAdditionalInformation('brand_code') == self::BRAND_CODE_DOTPAY &&
+                $this->_order->getPayment()->getAdditionalInformation('resultCode') == self::RESULT_CODE_RECEIVED
             ) {
                 $this->payment->unsAdditionalInformation('action');
                 $this->_order->save();
