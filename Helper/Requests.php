@@ -53,8 +53,6 @@ class Requests extends AbstractHelper
      */
     private $vaultHelper;
 
-    private $shopperReference;
-
     /**
      * Requests constructor.
      *
@@ -416,16 +414,14 @@ class Requests extends AbstractHelper
      */
     public function getShopperReference($customerId, $orderIncrementId): string
     {
-        if (!$this->shopperReference) {
-            if ($customerId) {
-                $this->shopperReference = str_pad($customerId, 3, '0', STR_PAD_LEFT);
-            } else {
-                $uuid = Uuid::generateV4();
-                $guestCustomerId = $orderIncrementId . $uuid;
-                $this->shopperReference = $guestCustomerId;
-            }
+        if ($customerId) {
+            $shopperReference = str_pad($customerId, 3, '0', STR_PAD_LEFT);
+        } else {
+            $uuid = Uuid::generateV4();
+            $guestCustomerId = $orderIncrementId . $uuid;
+            $shopperReference = $guestCustomerId;
         }
 
-        return $this->shopperReference;
+        return $shopperReference;
     }
 }
