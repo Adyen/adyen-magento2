@@ -233,7 +233,7 @@ class Json extends Action
 
         // if there is no auth result, save it in cache
         if(!$authResult) {
-            $this->rateLimiterHelper->saveNotificationUsernameIpAddressToCache();
+            $this->rateLimiterHelper->saveSessionIdIpAddressToCache();
             return false;
         }
 
