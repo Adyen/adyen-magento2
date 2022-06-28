@@ -50,4 +50,14 @@ class SepaPaymentMethod implements PaymentMethodInterface
     {
         return [];
     }
+
+    public function supportsCardOnFile(): bool
+    {
+        return false;
+    }
+
+    public function supportsSubscription(): bool
+    {
+        return true;
+    }
 }

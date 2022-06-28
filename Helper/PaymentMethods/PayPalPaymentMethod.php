@@ -26,11 +26,6 @@ class PayPalPaymentMethod implements PaymentMethodInterface
         return self::NAME;
     }
 
-    public function supportsRecurring(): bool
-    {
-        return true;
-    }
-
     public function supportsManualCapture(): bool
     {
         return true;
@@ -49,5 +44,15 @@ class PayPalPaymentMethod implements PaymentMethodInterface
     public function getRequiredAdditionalData(): array
     {
         return [];
+    }
+
+    public function supportsCardOnFile(): bool
+    {
+        return false;
+    }
+
+    public function supportsSubscription(): bool
+    {
+        return true;
     }
 }
