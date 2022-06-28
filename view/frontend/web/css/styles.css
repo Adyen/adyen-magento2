@@ -11,3 +11,7 @@
 .adyen-checkout__dropdown__button {
     width: auto;
 }
+
+.payment-method:nth-of-type(3) {
+    border-bottom: 1px solid #ccc;
+}
