@@ -27,8 +27,8 @@
 <!--            <config_path>payment/adyen_cc/active</config_path>-->
 <!--        </field>-->
         <field id="active" type="checkbox" translate="label" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
-            <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Advanced</frontend_model>
             <label>Enabled</label>
+            <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Advanced</frontend_model>
             <config_path>payment/adyen_cc/active</config_path>
         </field>
         <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1"

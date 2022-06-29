@@ -26,7 +26,7 @@ class Advanced extends \Magento\Config\Block\System\Config\Form\Field
      * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
      * @return string
      */
-    public function render(\Magento\Framework\Data\Form\Element\AbstractElement $element)
+    public function render(\Magento\Framework\Data\Form\Element\AbstractElement $element): string
     {
         return $this->_decorateRowHtml($element, "<td class='label'>".$element->getLabelHtml() .'</td><td>'. $this->toHtml() . '</td>');
     }

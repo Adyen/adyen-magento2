@@ -56,7 +56,7 @@
         content: "";
         height: 22px;
         width: 22px;
-        left: .5px;
+        left: .3px;
         bottom: 0px;
         background-color: white;
         -webkit-transition: .4s;
@@ -118,10 +118,11 @@
 
         if(document.getElementById('spa').classList.contains("slider")) {
             document.getElementsByClassName("slider")[0].setAttribute("class","sliderOne round");
-            document.getElementById('toggle').innerHTML = "  &nbsp; No";
+            //document.getElementsByClassName("slider")[0].setAttribute("class","sliderOne round");
+            // document.getElementById('toggle').innerHTML = "  &nbsp; No";
         }else{
             document.getElementsByClassName("sliderOne")[0].setAttribute("class","slider round");
-            document.getElementById('toggle').innerHTML = "  &nbsp; Yes";
+            // document.getElementById('toggle').innerHTML = "  &nbsp; Yes";
         }
     }
 </script>
