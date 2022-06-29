@@ -37,16 +37,6 @@ class GooglePayPaymentMethod implements PaymentMethodInterface
         return true;
     }
 
-    public function getLabel(): string
-    {
-        return self::NAME;
-    }
-
-    public function getRequiredAdditionalData(): array
-    {
-        return [];
-    }
-
     public function supportsCardOnFile(): bool
     {
         return true;

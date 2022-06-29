@@ -44,7 +44,7 @@ class PaymentMethodRenderer extends AbstractTokenRenderer
     {
         try {
             $paymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($this->getTokenDetails()['type']);
-            $text = $paymentMethod->getLabel();
+            $text = $paymentMethod->getPaymentMethodName();
         } catch (PaymentMethodException $exception) {
             $text = '';
         }

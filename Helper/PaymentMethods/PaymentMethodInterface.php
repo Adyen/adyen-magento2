@@ -24,8 +24,4 @@ interface PaymentMethodInterface
     public function supportsManualCapture(): bool;
 
     public function supportsAutoCapture(): bool;
-
-    public function getLabel(): string;
-
-    public function getRequiredAdditionalData(): array;
 }

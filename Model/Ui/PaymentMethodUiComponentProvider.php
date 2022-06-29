@@ -69,7 +69,7 @@ class PaymentMethodUiComponentProvider extends AdyenUiComponentProvider implemen
         $createdAt = new \DateTime($paymentToken->getCreatedAt());
         $details['created'] = $createdAt->format('Y-m-d');
         $details['displayToken'] = $tokenType === Recurring::CARD_ON_FILE;
-        $details['label'] = $adyenPaymentMethod->getLabel();
+        $details['label'] = $adyenPaymentMethod->getPaymentMethodName();
 
         return $this->componentFactory->create(
             [

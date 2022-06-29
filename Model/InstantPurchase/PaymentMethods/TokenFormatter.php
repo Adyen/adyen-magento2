@@ -39,6 +39,6 @@ class TokenFormatter implements PaymentTokenFormatterInterface
             return 'Unknown Payment Method';
         }
 
-        return $adyenPaymentMethod->getLabel();
+        return $adyenPaymentMethod->getPaymentMethodName();
     }
 }
