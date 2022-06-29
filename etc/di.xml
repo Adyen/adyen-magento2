@@ -1,18 +1,6 @@
 <?xml version="1.0"?>
 <!--
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -366,6 +354,7 @@
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentPayByLinkInitializeRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPaymentLinks</argument>
+            <argument name="validator" xsi:type="object">PaymentLinksResponseValidator</argument>
             <argument name="handler" xsi:type="object">Adyen\Payment\Gateway\Response\PayByLinkResponseHandler</argument>
         </arguments>
     </virtualType>
@@ -786,6 +775,13 @@
         </arguments>
     </virtualType>
 
+    <!--Payment Links Response Validator-->
+    <virtualType name="PaymentLinksResponseValidator" type="Adyen\Payment\Gateway\Validator\PaymentLinksResponseValidator">
+        <arguments>
+            <argument name="loggerInterface" xsi:type="object">Adyen\Payment\Logger\AdyenLogger</argument>
+        </arguments>
+    </virtualType>
+
     <virtualType name="PosCloudResponseValidator" type="Adyen\Payment\Gateway\Validator\PosCloudResponseValidator">
         <arguments>
             <argument name="loggerInterface" xsi:type="object">Adyen\Payment\Logger\AdyenLogger</argument>
@@ -911,7 +907,11 @@
             <argument name="commandPool" xsi:type="object">AdyenPaymentDonationsCommandPool</argument>
         </arguments>
     </type>
-
+    <type name="Adyen\Payment\Console\Command\WebhookProcessorCommand">
+        <arguments>
+            <argument name="webhookProcessor" xsi:type="object">Adyen\Payment\Cron\WebhookProcessor\Proxy</argument>
+        </arguments>
+    </type>
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
@@ -957,6 +957,9 @@
         <plugin name="GuestAdyenPaymentInformationResetOrderId" type="Adyen\Payment\Plugin\GuestPaymentInformationResetOrderId"
                 sortOrder="10"/>
     </type>
+    <type name="Magento\QuoteGraphQl\Model\Resolver\PlaceOrder">
+        <plugin name="GraphQlPlaceOrderAddCartId" type="Adyen\Payment\Plugin\GraphQlPlaceOrderAddCartId" sortOrder="10"/>
+    </type>
 
     <virtualType name="AdyenCancelOrders" type="Adyen\Payment\Cron\CancelOrders">
         <arguments>
@@ -989,7 +992,6 @@
                 <item name="payment/adyen_abstract/debug" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/notifications_ip_check" xsi:type="string">1</item>
                 <item name="payment/adyen_abstract/notifications_hmac_check" xsi:type="string">1</item>
-                <item name="payment/adyen_abstract/clone_quote" xsi:type="string">1</item>
             </argument>
             <argument name="sensitive" xsi:type="array">
                 <item name="payment/adyen_abstract/merchant_account" xsi:type="string">1</item>

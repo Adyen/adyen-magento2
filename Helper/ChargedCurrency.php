@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -109,13 +97,15 @@ class ChargedCurrency
                 $item->getBasePriceInclTax()
             );
         }
+        $amount = $item->getRowTotal()/$item->getQty();
+        $amountIncludingTax = $item->getRowTotalInclTax()/$item->getQty();
         return new AdyenAmountCurrency(
-            $item->getPrice(),
+            $amount,
             $item->getQuote()->getQuoteCurrencyCode(),
             $item->getDiscountAmount(),
-            $item->getPriceInclTax() - $item->getPrice(),
+            $amountIncludingTax - $amount,
             null,
-            $item->getPriceInclTax()
+            $amountIncludingTax
         );
     }
 
@@ -138,7 +128,7 @@ class ChargedCurrency
             $item->getPrice(),
             $item->getInvoice()->getOrderCurrencyCode(),
             null,
-            $item->getTaxAmount() / $item->getQty()
+            ($item->getQty() > 0) ? $item->getTaxAmount() / $item->getQty() : 0
         );
     }
 

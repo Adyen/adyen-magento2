@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -23,7 +11,10 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -145,10 +136,10 @@ class PaymentMethods extends AbstractHelper
     /**
      * @param $quoteId
      * @param null $country
-     * @return array
-     * @throws \Adyen\AdyenException
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return string|array
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     * @throws AdyenException
      */
     public function getPaymentMethods($quoteId, $country = null)
     {
@@ -165,12 +156,34 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
-     * @param $country
      * @return array
-     * @throws \Adyen\AdyenException
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function fetchPaymentMethods($country)
+    public function getAdyenPaymentCodes(): array
+    {
+        return [self::ADYEN_HPP, self::ADYEN_CC, self::ADYEN_ONE_CLICK];
+    }
+
+    /**
+     * @param string $methodCode
+     * @return bool
+     */
+    public function isAdyenPayment(string $methodCode): bool
+    {
+        if(in_array($methodCode, $this->getAdyenPaymentCodes())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param $country
+     * @return string
+     * @throws AdyenException
+     * @throws LocalizedException
+     * @throws \Exception
+     */
+    protected function fetchPaymentMethods($country): string
     {
         $quote = $this->getQuote();
         $store = $quote->getStore();
@@ -272,7 +285,7 @@ class PaymentMethods extends AbstractHelper
      * @param $requestParams
      * @param $store
      * @return array
-     * @throws \Adyen\AdyenException
+     * @throws AdyenException
      */
     protected function getPaymentMethodsResponse($requestParams, $store)
     {
@@ -284,7 +297,7 @@ class PaymentMethods extends AbstractHelper
 
         try {
             $responseData = $service->paymentMethods($requestParams);
-        } catch (\Adyen\AdyenException $e) {
+        } catch (AdyenException $e) {
             $this->adyenLogger->error(
                 "The Payment methods response is empty check your Adyen configuration in Magento."
             );
@@ -368,11 +381,10 @@ class PaymentMethods extends AbstractHelper
 
         $billingAddress = $quote->getBillingAddress();
 
-        if (!empty($billingAddress)) {
-            if ($customerTelephone = trim($billingAddress->getTelephone())) {
-                $paymentMethodRequest['telephoneNumber'] = $customerTelephone;
-            }
+        if (!empty($billingAddress) && !is_null($billingAddress->getTelephone())) {
+            $paymentMethodRequest['telephoneNumber'] = trim($billingAddress->getTelephone());
         }
+
         return $paymentMethodRequest;
     }
 
@@ -380,7 +392,7 @@ class PaymentMethods extends AbstractHelper
      * @param $paymentMethods
      * @param array $paymentMethodsExtraDetails
      * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     protected function showLogosPaymentMethods($paymentMethods, array $paymentMethodsExtraDetails)
     {

@@ -1,16 +1,4 @@
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -35,7 +23,8 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
         'Adyen_Payment/js/model/adyen-configuration',
-        'Adyen_Payment/js/adyen'
+        'Adyen_Payment/js/model/adyen-payment-modal',
+        'Adyen_Payment/js/model/adyen-checkout'
     ],
     function(
         $,
@@ -52,7 +41,8 @@ define(
         errorProcessor,
         adyenPaymentService,
         adyenConfiguration,
-        AdyenCheckout
+        AdyenPaymentModal,
+        adyenCheckout
     ) {
         'use strict';
         return Component.extend({
@@ -66,40 +56,7 @@ define(
                 installment: '', // keep it until the component implements installments
                 orderId: 0, // TODO is this the best place to store it?
                 storeCc: false,
-            },
-            /**
-             * @returns {exports.initialize}
-             */
-            initialize: async function () {
-                this._super();
-                this.vaultEnabler = new VaultEnabler();
-                this.vaultEnabler.setPaymentCode(this.getVaultCode());
-                this.vaultEnabler.isActivePaymentTokenEnabler(false);
-
-                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
-                let self = this;
-                paymentMethodsObserver.subscribe(function(paymentMethodsResponse) {
-                    self.loadCheckoutComponent(paymentMethodsResponse)
-                });
-
-                self.loadCheckoutComponent(paymentMethodsObserver());
-                return this;
-            },
-            loadCheckoutComponent: async function (paymentMethodsResponse) {
-                if (!!paymentMethodsResponse.paymentMethodsResponse) {
-                    this.checkoutComponent = await AdyenCheckout({
-                            locale: adyenConfiguration.getLocale(),
-                            clientKey: adyenConfiguration.getClientKey(),
-                            environment: adyenConfiguration.getCheckoutEnvironment(),
-                            paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
-                            onAdditionalDetails: this.handleOnAdditionalDetails.bind(this)
-                        }
-                    );
-                }
-
-                if (!!paymentMethodsResponse.paymentMethodsExtraDetails && !!paymentMethodsResponse.paymentMethodsExtraDetails.card) {
-                    this.icon = paymentMethodsResponse.paymentMethodsExtraDetails.card.icon;
-                }
+                modalLabel: 'cc_actionModal'
             },
             initObservable: function() {
                 this._super().observe([
@@ -107,9 +64,48 @@ define(
                     'installment',
                     'installments',
                     'placeOrderAllowed',
+                    'adyenCCMethod',
+                    'logo'
                 ]);
 
                 return this;
+            },
+            /**
+             * @returns {exports.initialize}
+             */
+            initialize: function () {
+                this._super();
+                this.vaultEnabler = new VaultEnabler();
+                this.vaultEnabler.setPaymentCode(this.getVaultCode());
+                this.vaultEnabler.isActivePaymentTokenEnabler(false);
+
+                let self = this;
+
+                let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
+                paymentMethodsObserver.subscribe(
+                    function (paymentMethodsResponse) {
+                        self.loadCheckoutComponent(paymentMethodsResponse)
+                    });
+
+                self.loadCheckoutComponent(paymentMethodsObserver());
+                return this;
+            },
+            loadCheckoutComponent: async function (paymentMethodsResponse) {
+                let self = this;
+
+                this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
+                    paymentMethodsResponse,
+                    this.handleOnAdditionalDetails.bind(this)
+                )
+
+                if (!!this.checkoutComponent) {
+                    // Setting the icon as an accessible field if it is available
+                    self.adyenCCMethod({
+                            icon: !!paymentMethodsResponse.paymentMethodsExtraDetails.card
+                                ? paymentMethodsResponse.paymentMethodsExtraDetails.card.icon
+                                : undefined
+                        })
+                }
             },
             /**
              * Returns true if card details can be stored
@@ -117,7 +113,7 @@ define(
              */
             getEnableStoreDetails: function () {
                 // TODO refactor the configuration for this
-                return this.isOneClickEnabled() === "1" || this.isVaultEnabled();
+                return this.isOneClickEnabled() || this.isVaultEnabled();
             },
             /**
              * Renders the secure fields,
@@ -125,18 +121,18 @@ define(
              * sets up the callbacks for card components and
              * set up the installments
              */
-            renderSecureFields: function() {
+            renderCCPaymentMethod: function() {
                 var self = this;
-
                 if (!self.getClientKey) {
-                    return;
+                    return false;
                 }
 
                 self.installments(0);
 
                 // installments
-                var allInstallments = self.getAllInstallments();
-                self.cardComponent = self.checkoutComponent.create('card', {
+                let allInstallments = self.getAllInstallments();
+
+                let componentConfig = {
                     enableStoreDetails: self.getEnableStoreDetails(),
                     brands: self.getAvailableCardTypeAltCodes(),
                     hasHolderName: adyenConfiguration.getHasHolderName(),
@@ -184,7 +180,16 @@ define(
                             self.installments(0);
                         }
                     }
-                }).mount('#cardContainer');
+                }
+
+                self.cardComponent = adyenCheckout.mountPaymentMethodComponent(
+                    this.checkoutComponent,
+                    'card',
+                    componentConfig,
+                    '#cardContainer'
+                )
+
+                return true
             },
 
             handleAction: function(action, orderId) {
@@ -199,42 +204,21 @@ define(
 
                 try {
                     self.checkoutComponent.createFromAction(
-                        action).mount('#cc_actionContainer');
+                        action).mount('#' + this.modalLabel);
                 } catch (e) {
                     console.log(e);
                     self.closeModal(popupModal);
                 }
             },
             showModal: function() {
-                let popupModal = $('#cc_actionModal').modal({
-                    // disable user to hide popup
-                    clickableOverlay: false,
-                    responsive: true,
-                    innerScroll: false,
-                    // empty buttons, we don't need that
-                    buttons: [],
-                    modalClass: 'cc_actionModal',
-                });
-
-                popupModal.modal('openModal');
-
-                return popupModal;
+                return AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
             },
             /**
              * This method is a workaround to close the modal in the right way and reconstruct the threeDS2Modal.
              * This will solve issues when you cancel the 3DS2 challenge and retry the payment
              */
             closeModal: function(popupModal) {
-                popupModal.modal('closeModal');
-                $('.cc_actionModal').remove();
-                $('.modals-overlay').remove();
-                $('body').removeClass('_has-modal');
-
-                // reconstruct the threeDS2Modal container again otherwise component can not find the threeDS2Modal
-                $('#cc_actionModalWrapper').
-                    append('<div id="cc_actionModal">' +
-                        '<div id="cc_actionContainer"></div>' +
-                        '</div>');
+                AdyenPaymentModal.closeModal(popupModal, this.modalLabel)
             },
             /**
              * Get data for place order
@@ -242,6 +226,7 @@ define(
              */
             getData: function() {
                 let stateData = JSON.stringify(this.cardComponent.data);
+
                 window.sessionStorage.setItem('adyen.stateData', stateData);
                 return {
                     'method': this.item.method,

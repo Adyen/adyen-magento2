@@ -1,22 +1,32 @@
 name: Functional Tests
-on: [workflow_dispatch, pull_request]
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     strategy:
       matrix:
         include:
-          - PHP_VERSION: 7.4
-            MAGENTO_VERSION: 2.4.2
+          - php-version: '8.1'
+            magento-version: '2.4.4'
     runs-on: ubuntu-latest
     env:
+      PHP_VERSION: ${{ matrix.php-version }}
+      MAGENTO_VERSION: ${{ matrix.magento-version }}
       ADMIN_USERNAME: ${{ secrets.MAGENTO_ADMIN_USERNAME }}
       ADMIN_PASSWORD: ${{ secrets.MAGENTO_ADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v2
 
       - name: Start services
-        run: docker-compose -f .github/docker-compose.yml up -d
+        run: docker-compose -f .github/docker-compose.yml -f .github/docker-compose.mftf.yml up -d
+        env:
+          DONATION_ACCOUNT: ${{secrets.DONATION_ACCOUNT}}
+          ADYEN_MERCHANT: ${{secrets.ADYEN_MERCHANT}}
+          ADYEN_API_KEY: ${{secrets.ADYEN_API_KEY}}
+          ADYEN_CLIENT_KEY: ${{secrets.ADYEN_CLIENT_KEY}}
 
       # Temp solution to wait for install script to run
       - name: Sleep for 120 seconds
@@ -29,17 +39,11 @@ jobs:
       - name: Prevent cron from interfering with test execution
         run: docker exec magento2-container /etc/init.d/cron stop
 
-      - name: Build MFTF project
-        run: docker exec magento2-container ./mftf.sh
+      - name: Install plugin
+        run: docker exec -u www-data magento2-container make install
 
-      - name: Check setup
-        run: docker exec magento2-container vendor/bin/mftf doctor
+      - name: Build MFTF project
+        run: docker exec magento2-container make setup-mftf
 
       - name: Run MFTF tests
-        run: docker exec magento2-container vendor/bin/mftf run:group --remove AdyenMagentoSuite
-
-      - name: Retry once on failure
-        run: docker exec magento2-container vendor/bin/mftf run:failed
-
-      - name: Shutdown
-        run: docker-compose -f .github/docker-compose.yml down --volumes
+        run: docker exec magento2-container make mftf

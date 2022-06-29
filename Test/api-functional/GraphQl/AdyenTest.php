@@ -1,24 +1,34 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ *
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2022 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
  */
-declare(strict_types=1);
 
 namespace Adyen\Payment\GraphQl;
 
+use Magento\Framework\Exception\AuthenticationException;
+use Magento\GraphQl\Quote\GetMaskedQuoteIdByReservedOrderId;
 use Magento\Integration\Api\CustomerTokenServiceInterface;
 use Magento\TestFramework\Helper\Bootstrap;
+use Magento\TestFramework\TestCase\GraphQl\ResponseContainsErrorsException;
 use Magento\TestFramework\TestCase\GraphQlAbstract;
-use Magento\GraphQl\Quote\GetMaskedQuoteIdByReservedOrderId;
 
 class AdyenTest extends GraphQlAbstract
 {
-
     /**
      * @var GetMaskedQuoteIdByReservedOrderId
      */
     private $getMaskedQuoteIdByReservedOrderId;
+    /**
+     * @var CustomerTokenServiceInterface
+     */
+    private $customerTokenService;
 
     /**
      * @inheritdoc
@@ -27,6 +37,7 @@ class AdyenTest extends GraphQlAbstract
     {
         $objectManager = Bootstrap::getObjectManager();
         $this->getMaskedQuoteIdByReservedOrderId = $objectManager->get(GetMaskedQuoteIdByReservedOrderId::class);
+        $this->customerTokenService = $objectManager->get(CustomerTokenServiceInterface::class);
     }
 
     /**
@@ -38,9 +49,7 @@ class AdyenTest extends GraphQlAbstract
     public function testAdyenPaymentMethods()
     {
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
-
-        $query =
-            <<<QUERY
+        $query = <<<QUERY
 {
   adyenPaymentMethods(cart_id: "$maskedQuoteId") {
     paymentMethodsResponse {
@@ -60,11 +69,7 @@ class AdyenTest extends GraphQlAbstract
 }
 QUERY;
 
-        $response = $this->graphQlQuery(
-            $query,
-            [],
-            '',
-        );
+        $response = $this->graphQlQuery($query);
 
         $this->assertArrayHasKey('adyenPaymentMethods', $response);
         $this->assertArrayHasKey('paymentMethodsResponse', $response['adyenPaymentMethods']);
@@ -84,80 +89,40 @@ QUERY;
     {
         $methodCode = "adyen_hpp";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
-
         $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
-
         $adyenAdditionalData = '
         ,
         adyen_additional_data_hpp: {
             brand_code: "ideal",
             stateData: "' . $stateData . '"
         }';
-
         $query = $this->getPlaceOrderQuery($maskedQuoteId, $methodCode, $adyenAdditionalData);
+
         $response = $this->graphQlMutation($query);
 
-        self::assertArrayHasKey('setPaymentMethodAndPlaceOrder', $response);
-        self::assertArrayHasKey('order', $response['setPaymentMethodAndPlaceOrder']);
-        self::assertArrayHasKey('order_number', $response['setPaymentMethodAndPlaceOrder']['order']);
-        self::assertArrayHasKey('adyen_payment_status', $response['setPaymentMethodAndPlaceOrder']['order']);
-        self::assertArrayHasKey('isFinal', $response['setPaymentMethodAndPlaceOrder']['order']['adyen_payment_status']);
-        self::assertArrayHasKey('resultCode', $response['setPaymentMethodAndPlaceOrder']['order']['adyen_payment_status']);
-        self::assertArrayHasKey('action', $response['setPaymentMethodAndPlaceOrder']['order']['adyen_payment_status']);
+        self::assertArrayHasKey('placeOrder', $response);
+        self::assertArrayHasKey('order', $response['placeOrder']);
+        self::assertArrayHasKey('order_number', $response['placeOrder']['order']);
+        self::assertArrayHasKey('cart_id', $response['placeOrder']['order']);
+        self::assertArrayHasKey('adyen_payment_status', $response['placeOrder']['order']);
+        self::assertArrayHasKey('isFinal', $response['placeOrder']['order']['adyen_payment_status']);
+        self::assertArrayHasKey('resultCode', $response['placeOrder']['order']['adyen_payment_status']);
+        self::assertArrayHasKey('action', $response['placeOrder']['order']['adyen_payment_status']);
     }
 
-    /**
-     * @magentoApiDataFixture Magento/GraphQl/Catalog/_files/simple_product.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/create_empty_cart.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/set_guest_email.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_shipping_address.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_billing_address.php
-     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_flatrate_shipping_method.php
-     */
-    public function disabledTstAdyenPaymentDetails()
+    public function testAdyenPaymentDetails()
     {
-        $methodCode = "adyen_hpp";
-        $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
-
-        $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
-
-        $adyenAdditionalData = '
-        ,
-        adyen_additional_data_hpp: {
-            brand_code: "ideal",
-            stateData: "' . $stateData . '"
-        }';
-
-        $query = $this->getPlaceOrderQuery($maskedQuoteId, $methodCode, $adyenAdditionalData);
-        $response = $this->graphQlMutation($query);
-
-        $resultRedirect = ''; /* ResultRedirect cannot be retrieved */
-
-        $payloadArray['order_id'] = $response['setPaymentMethodAndPlaceOrder']['order']['order_number'];
-        $payloadArray['redirectResult'] = $resultRedirect;
-
-        $payload = str_replace('"', '/"', json_encode($payloadArray));
-
-        $query =
-            <<<QUERY
-{
-  adyenPaymentDetails(payload: "$payload") {
-    isFinal,
-    resultCode,
-    additionalData,
-    action
+        $query = <<<QUERY
+mutation {
+  adyenPaymentDetails(payload: "{\"orderId\": \"nothing here\"}", cart_id: "not found") {
+    isFinal
   }
 }
 QUERY;
+        $this->expectException(ResponseContainsErrorsException::class);
+        $this->expectExceptionMessage('Could not find a cart with ID "not found"');
 
-        $response = $this->graphQlQuery(
-            $query,
-            [],
-            '',
-        );
-
-
+        $this->graphQlMutation($query);
     }
 
     /**
@@ -170,17 +135,15 @@ QUERY;
     {
         $methodCode = "adyen_hpp";
         $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
-
         $stateData = '{\"paymentMethod\":{\"type\":\"ideal\",\"issuer\":\"1154\"}}';
-
         $adyenAdditionalData = '
         ,
         adyen_additional_data_hpp: {
             brand_code: "ideal",
             stateData: "' . $stateData . '"
         }';
-
         $query = $this->getQuery($maskedQuoteId, $methodCode, $adyenAdditionalData);
+
         $response = $this->graphQlMutation($query);
 
         self::assertArrayHasKey('setPaymentMethodOnCart', $response);
@@ -190,16 +153,107 @@ QUERY;
     }
 
     /**
+     * @magentoApiDataFixture Magento/GraphQl/Catalog/_files/simple_product.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/create_empty_cart.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/guest/set_guest_email.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_shipping_address.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_billing_address.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_flatrate_shipping_method.php
+     */
+    public function testCreditCardGuest()
+    {
+        $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
+        $stateData = <<<'JSON'
+{
+    "paymentMethod": {
+        "type": "scheme",
+        "holderName": "Foo Bar",
+        "encryptedCardNumber": "test_4111111111111111",
+        "encryptedExpiryMonth": "test_03",
+        "encryptedExpiryYear": "test_2030",
+        "encryptedSecurityCode": "test_737"
+    },
+    "browserInfo": {
+        "acceptHeader": "*/*",
+        "colorDepth": 24,
+        "language": "en-US",
+        "javaEnabled": false,
+        "screenHeight": 1080,
+        "screenWidth": 1920,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36",
+        "timeZoneOffset": -120
+    },
+    "origin": "http://localhost",
+    "clientStateDataIndicator": true
+}
+JSON;
+        $adyenAdditionalData = '
+        adyen_additional_data_cc: {
+            cc_type: "VI",
+            stateData: ' . json_encode($stateData) . '
+        }';
+        $query = $this->getPlaceOrderQuery($maskedQuoteId, "adyen_cc", $adyenAdditionalData);
+
+        $response = $this->graphQlMutation($query);
+
+        self::assertArrayHasKey('placeOrder', $response);
+        self::assertArrayHasKey('order', $response['placeOrder']);
+        $order = $response['placeOrder']['order'];
+        self::assertArrayHasKey('order_number', $order);
+        self::assertArrayHasKey('cart_id', $order);
+        self::assertArrayHasKey('adyen_payment_status', $order);
+        self::assertTrue($order['adyen_payment_status']['isFinal']);
+        self::assertEquals('Authorised', $order['adyen_payment_status']['resultCode']);
+    }
+
+    /**
+     * @magentoApiDataFixture Magento/Customer/_files/customer.php
+     * @magentoApiDataFixture Magento/GraphQl/Catalog/_files/simple_product.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/customer/create_empty_cart.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/add_simple_product.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_shipping_address.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_new_billing_address.php
+     * @magentoApiDataFixture Magento/GraphQl/Quote/_files/set_flatrate_shipping_method.php
+     */
+    public function testCreditCardCustomer()
+    {
+        $maskedQuoteId = $this->getMaskedQuoteIdByReservedOrderId->execute('test_quote');
+        $stateData = <<<'JSON'
+{
+    "paymentMethod": {
+        "type": "scheme",
+        "holderName": "Foo Bar",
+        "encryptedCardNumber": "test_4111111111111111",
+        "encryptedExpiryMonth": "test_03",
+        "encryptedExpiryYear": "test_2030",
+        "encryptedSecurityCode": "test_737"
+    }
+}
+JSON;
+        $adyenAdditionalData = '
+        adyen_additional_data_cc: {
+            cc_type: "VI",
+            stateData: ' . json_encode($stateData) . '
+        }';
+        $query = $this->getPlaceOrderQuery($maskedQuoteId, "adyen_cc", $adyenAdditionalData);
+
+        $response = $this->graphQlMutation($query, [], '', $this->getHeaderMap());
+
+        self::assertEquals('Authorised', $response['placeOrder']['order']['adyen_payment_status']['resultCode']);
+    }
+
+    /**
      * @param string $maskedQuoteId
      * @param string $methodCode
+     * @param string $adyenAdditionalData
      * @return string
      */
     private function getQuery(
         string $maskedQuoteId,
         string $methodCode,
         string $adyenAdditionalData
-    ): string
-    {
+    ): string {
         return <<<QUERY
 mutation {
   setPaymentMethodOnCart(input: {
@@ -222,36 +276,65 @@ QUERY;
     /**
      * @param string $maskedQuoteId
      * @param string $methodCode
+     * @param string $adyenAdditionalData
      * @return string
      */
     private function getPlaceOrderQuery(
         string $maskedQuoteId,
         string $methodCode,
         string $adyenAdditionalData
-    ): string
-    {
+    ): string {
         return <<<QUERY
 mutation {
-  setPaymentMethodAndPlaceOrder(input: {
-      cart_id: "$maskedQuoteId"
-      payment_method: {
-          code: "$methodCode",
-          {$adyenAdditionalData}
-      }
-  }) {
-    order {
-      order_number,
-      adyen_payment_status {
-        isFinal,
-        resultCode,
-        additionalData,
-        action
+    setPaymentMethodOnCart(
+        input: {
+            cart_id: "$maskedQuoteId"
+            payment_method: {
+              code: "$methodCode",
+              {$adyenAdditionalData}
+            }
+        }
+    ) {
+        cart {
+            selected_payment_method {
+                code
+                title
+            }
         }
     }
-  }
+
+    placeOrder(
+        input: {
+            cart_id: "$maskedQuoteId"
+        }
+    ) {
+        order {
+            order_number
+            cart_id
+            adyen_payment_status {
+                isFinal
+                resultCode
+                additionalData
+                action
+            }
+        }
+    }
 }
 QUERY;
     }
 
-
+    /**
+     * Create a header with customer token
+     *
+     * @param string $username
+     * @param string $password
+     * @return array
+     * @throws AuthenticationException
+     * @see \Magento\GraphQl\Quote\Customer\GetCustomerCartTest::getHeaderMap
+     */
+    private function getHeaderMap(string $username = 'customer@example.com', string $password = 'password'): array
+    {
+        $customerToken = $this->customerTokenService->createCustomerAccessToken($username, $password);
+        return ['Authorization' => 'Bearer ' . $customerToken];
+    }
 }

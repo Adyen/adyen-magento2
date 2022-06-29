@@ -1,16 +1,4 @@
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -36,8 +24,9 @@ define(
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/model/error-processor',
         'Adyen_Payment/js/model/adyen-payment-service',
-        'Adyen_Payment/js/adyen',
         'Adyen_Payment/js/model/adyen-configuration',
+        'Adyen_Payment/js/model/adyen-payment-modal',
+        'Adyen_Payment/js/model/adyen-checkout'
     ],
     function (
         ko,
@@ -55,8 +44,9 @@ define(
         placeOrderAction,
         errorProcessor,
         adyenPaymentService,
-        AdyenCheckout,
         adyenConfiguration,
+        adyenPaymentModal,
+        adyenCheckout
     ) {
 
         'use strict';
@@ -77,16 +67,18 @@ define(
                 recurringDetailReference: '',
                 variant: '',
                 numberOfInstallments: '',
+                modalLabel: 'oneclick_actionModal'
             },
             initObservable: function () {
                 this._super().observe([
                     'recurringDetailReference',
                     'variant',
                     'numberOfInstallments',
+                    'adyenOneclickPaymentMethods'
                 ]);
                 return this;
             },
-            initialize: async function () {
+            initialize: function () {
                 let self = this;
                 this._super();
 
@@ -116,18 +108,22 @@ define(
                 this.messageComponents = messageComponents;
 
                 let paymentMethodsObserver = adyenPaymentService.getPaymentMethods();
-                let paymentMethodsResponse = paymentMethodsObserver();
+                paymentMethodsObserver.subscribe(
+                    function (paymentMethodsResponse) {
+                        self.loadCheckoutComponent(paymentMethodsResponse)
+                    });
+                self.loadCheckoutComponent(paymentMethodsObserver());
 
-                if (!!paymentMethodsResponse) {
+                return this;
+            },
+            loadCheckoutComponent: async function(paymentMethodsResponse) {
+                this.checkoutComponent = await adyenCheckout.buildCheckoutComponent(
+                    paymentMethodsResponse,
+                    this.handleOnAdditionalDetails.bind(this)
+                )
 
-                    this.checkoutComponent = await AdyenCheckout({
-                            locale: adyenConfiguration.getLocale(),
-                            clientKey: adyenConfiguration.getClientKey(),
-                            environment: adyenConfiguration.getCheckoutEnvironment(),
-                            paymentMethodsResponse: paymentMethodsResponse.paymentMethodsResponse,
-                            onAdditionalDetails: this.handleOnAdditionalDetails.bind(this),
-                        },
-                    );
+                if (!!this.checkoutComponent) {
+                    this.adyenOneclickPaymentMethods(this.getAdyenBillingAgreements())
                 }
             },
             handleOnAdditionalDetails: function (result) {
@@ -171,19 +167,21 @@ define(
                 var self = this;
 
                 let popupModal;
-                let actionContainer;
 
                 fullScreenLoader.stopLoader();
 
                 if (action.type === 'threeDS2' || action.type === 'await') {
+                    this.modalLabel = 'cc_actionModal'
                     popupModal = self.showModal();
-                    actionContainer = '#cc_actionContainer';
-                } else {
-                    actionContainer = '#oneclick_actionContainer';
                 }
                 try {
+                    // Determine threeDS2 modal size, based on screen width
+                    const threeDSConfiguration = {
+                        challengeWindowSize: screen.width < 460 ? '01' : '02'
+                    }
+
                     this.checkoutComponent.createFromAction(
-                        action).mount(actionContainer);
+                        action, threeDSConfiguration).mount('#' + this.modalLabel + 'Content');
                 } catch (e) {
                     console.log(e);
                     self.closeModal(popupModal);
@@ -197,12 +195,10 @@ define(
              */
             getAdyenBillingAgreements: function () {
                 var self = this;
-
                 // convert to list so you can iterate
                 var paymentList = _.map(
                     window.checkoutConfig.payment.adyenOneclick.billingAgreements,
                     function (billingAgreement) {
-
                         var creditCardExpMonth, creditCardExpYear = false;
 
                         if (billingAgreement.agreement_data.card) {
@@ -325,9 +321,9 @@ define(
                              * creates the card component,
                              * sets up the callbacks for card components
                              */
-                            renderSecureCVC: function () {
+                            renderOneclickPaymentMethod: function () {
                                 if (!this.getClientKey()) {
-                                    return;
+                                    return false
                                 }
 
                                 var hideCVC = false;
@@ -336,22 +332,25 @@ define(
                                     hideCVC = true;
                                 }
 
-                                try {
-                                    this.component = self.checkoutComponent.create(
-                                        'card', {
-                                            hideCVC: hideCVC,
-                                            brand: this.agreement_data.variant,
-                                            storedPaymentMethodId: this.value,
-                                            expiryMonth: this.agreement_data.card.expiryMonth,
-                                            expiryYear: this.agreement_data.card.expiryYear,
-                                            holderName: this.agreement_data.card.holderName,
-                                            onChange: this.handleOnChange.bind(this)
-                                        }).mount('#cvcContainer-' + this.value);
-                                } catch (err) {
-                                    console.log(err);
-                                    // The component does not exist yet
+                                let componentConfig = {
+                                    hideCVC: hideCVC,
+                                    brand: this.agreement_data.variant,
+                                    storedPaymentMethodId: this.value,
+                                    expiryMonth: this.agreement_data.card.expiryMonth,
+                                    expiryYear: this.agreement_data.card.expiryYear,
+                                    holderName: this.agreement_data.card.holderName,
+                                    onChange: this.handleOnChange.bind(this)
                                 }
+                                
+                                self.component = adyenCheckout.mountPaymentMethodComponent(
+                                    self.checkoutComponent,
+                                    'card',
+                                    componentConfig,
+                                    '#cvcContainer-' + this.value
+                                )
+                                this.component = self.component
 
+                                return true
                             },
                             handleOnChange: function (state, component) {
                                 this.placeOrderAllowed(
@@ -511,35 +510,12 @@ define(
             isShowLegend: function () {
                 return true;
             },
-            showModal: function () {
-                let popupModal = $('#cc_actionModal').modal({
-                    // disable user to hide popup
-                    clickableOverlay: false,
-                    responsive: true,
-                    innerScroll: false,
-                    // empty buttons, we don't need that
-                    buttons: [],
-                    modalClass: 'cc_actionModal',
-                });
-
-                popupModal.modal('openModal');
-
-                return popupModal;
-            }, closeModal: function (popupModal) {
-                popupModal.modal('closeModal');
-                $('.cc_actionModal').remove();
-                $('.oneclick_actionModal').remove();
-                $('.modals-overlay').remove();
-                $('body').removeClass('_has-modal');
-
-                // reconstruct the threeDS2Modal container again otherwise component can not find the threeDS2Modal
-                $('#cc_actionModalWrapper').append('<div id="cc_actionModal">' +
-                    '<div id="cc_actionContainer"></div>' +
-                    '</div>');
-                $('#oneclick_actionModalWrapper').append('<div id="oneclick_actionModal">' +
-                    '<div id="oneclick_actionContainer"></div>' +
-                    '</div>');
-            }
+            showModal: function() {
+                return adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
+            },
+            closeModal: function(popupModal) {
+                adyenPaymentModal.closeModal(popupModal, this.modalLabel)
+            },
         });
     },
 );

@@ -1,14 +1,18 @@
 type Query {
     adyenPaymentStatus (
-        orderId: String @doc(description: "Magento Increment Order ID.")
+        orderNumber: String @doc(description: "Magento Increment Order ID.")
+        cartId: String @doc(description: "Cart ID.")
     ) : AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentStatus")
 
     adyenPaymentMethods (
         cart_id: String! @doc(description: "Cart ID.")
     ) : AdyenPaymentMethods @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentMethods")
+}
 
+type Mutation {
     adyenPaymentDetails (
         payload: String! @doc(description: "Payload JSON String with orderId, details, paymentData and threeDSAuthenticationOnly.")
+        cart_id: String! @doc(description: "Cart ID.")
     ) : AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentDetails")
 }
 
@@ -26,6 +30,28 @@ type AdyenPaymentMethods {
 
 type AdyenPaymentMethodsResponse {
     paymentMethods: [AdyenPaymentMethodsArray]
+    storedPaymentMethods: [AdyenStoredPaymentMethodsArray]
+}
+
+type Order {
+    cart_id: String! @doc(description: "Cart ID.")
+    adyen_payment_status: AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentStatus")
+}
+
+type AdyenStoredPaymentMethodsArray {
+    id: String @doc(description: "A unique identifier of this stored payment method.")
+    brand: String @doc(description: "The brand of the card.")
+    expiryMonth: String @doc(description: "The month the card expires.")
+    expiryYear: String @doc(description: "The year the card expires.")
+    holderName:String @doc(description: "The unique payment method code.")
+    lastFour:String @doc(description: "The last four digits of the PAN.")
+    name: String @doc(description: "The display name of the stored payment method.")
+    iban: String  @doc(description: "The IBAN of the bank account.")
+    ownerName: String @doc(description: "The name of the bank account holder.")
+    shopperEmail: String @doc(description: "The shopper’s email address.")
+    networkTxReference: String @doc(description: "Returned in the response if you are not tokenizing with Adyen and are using the Merchant-initiated transactions (MIT) framework from Mastercard or Visa. This contains either the Mastercard Trace ID or the Visa Transaction ID.")
+    supportedShopperInteractions: [String] @doc(description: "The supported shopper interactions for this stored payment method.")
+    type: String @doc(description: "The type of payment method.")
 }
 
 type AdyenPaymentMethodsArray {
@@ -33,7 +59,7 @@ type AdyenPaymentMethodsArray {
     type: String @doc(description: "The unique payment method code.")
     brand: String @doc(description: "Brand for the selected gift card. For example: plastix, hmclub.")
     brands: [String] @doc(description: "List of possible brands. For example: visa, mc.")
-    configuration: [AdyenPaymentMethodsConfiguration] @doc(description: "The configuration of the payment method.")
+    configuration: AdyenPaymentMethodsConfiguration @doc(description: "The configuration of the payment method.")
     details: [AdyenPaymentMethodsDetails] @doc(description: "All input details to be provided to complete the payment with this payment method.")
     issuers: [AdyenPaymentMethodsIssuers] @doc(description: "Payment method issuer list.")
 }
@@ -77,10 +103,6 @@ type AdyenPaymentMethodIcon {
 type AdyenPaymentMethodsExtraDetailsConfiguration {
     amount: Money @doc(description: "Current order amount in minor units.")
     currency: String @doc(description: "Current order currency.")
-}
-
-type Order {
-    adyen_payment_status: AdyenPaymentStatus @resolver(class: "Adyen\\Payment\\Model\\Resolver\\GetAdyenPaymentStatus")
 }
 
 input PaymentMethodInput {
@@ -127,4 +149,9 @@ type StoreConfig @doc(description: "The type contains information about a store 
     adyen_client_key_test : String @doc(description: "Adyen client key for TEST environment.")
     adyen_client_key_live : String @doc(description: "Adyen client key for LIVE environment.")
     adyen_demo_mode : Boolean @doc(description: "Adyen demo mode enabled (TEST).")
+    adyen_has_holder_name: Boolean @doc(description: "Adyen card holder's name is visible.")
+    adyen_holder_name_required: Boolean @doc(description: "Adyen card holder's name is required.")
+    adyen_title_renderer: String @doc(description: "Adyen Render Mode for Payment Method.")
+    adyen_return_path_error: String @doc(description: "Adyen Return path in case of error")
+    adyen_oneclick_card_mode: String @doc(description: "Use Magento Vault (one-click CVC-less payments) or the more secure Adyen Tokens (one-click CVC required payments) functionality")
 }

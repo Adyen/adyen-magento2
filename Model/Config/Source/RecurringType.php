@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -26,7 +14,7 @@ namespace Adyen\Payment\Model\Config\Source;
 /**
  * Class RecurringType
  * @package Adyen\Payment\Model\Config\Source
- * @deprecated Use RecurringPaymentType instead
+ * @deprecated Use Model/Config/Source/Recurring/RecurringType instead
  */
 class RecurringType implements \Magento\Framework\Option\ArrayInterface
 {

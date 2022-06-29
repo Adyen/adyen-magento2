@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -26,6 +14,7 @@ namespace Adyen\Payment\Model\Billing;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\Recurring;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
@@ -43,6 +32,9 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 
     /** @var Config */
     private $configHelper;
+
+    /** @var Recurring */
+    private $recurringHelper;
 
     /**
      * Agreement constructor.
@@ -65,6 +57,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         CollectionFactory $billingAgreementFactory,
         DateTimeFactory $dateFactory,
         Config $configHelper,
+        Recurring $recurringHelper,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
@@ -82,6 +75,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 
         $this->adyenHelper = $adyenHelper;
         $this->configHelper = $configHelper;
+        $this->recurringHelper = $recurringHelper;
     }
 
     /**
@@ -239,21 +233,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
         if (!empty($contractDetail['pos_payment'])) {
             $recurringType = $this->adyenHelper->getAdyenPosCloudConfigData('recurring_type', $storeId);
         } else {
-            $recurringType = $this->adyenHelper->getRecurringTypeFromOneclickRecurringSetting($storeId);
-
-            // for bcmc and maestro recurring is not allowed so don't set this
-            if ($recurringType === \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING &&
-                ($contractDetail['paymentMethod'] === "bcmc" || $contractDetail['paymentMethod'] === "maestro")
-            ) {
-                $recurringType = \Adyen\Payment\Model\RecurringType::ONECLICK;
-            }
-
-            // if shopper decides to not store the card don't save it as oneclick
-            if (!$storeOneClick &&
-                $recurringType === \Adyen\Payment\Model\RecurringType::ONECLICK_RECURRING
-            ) {
-                $recurringType = \Adyen\Payment\Model\RecurringType::RECURRING;
-            }
+            $recurringType = $this->recurringHelper->getRecurringTypeFromSetting($storeId);
         }
 
         $agreementData = [
@@ -264,6 +244,8 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
                 'expiryYear' => $expiryDate[1]
             ],
             'variant' => $variant,
+            // contractTypes should be changed from an array to a single value in the future. It has not been done yet
+            // to ensure past tokens are still operational.
             'contractTypes' => explode(',', $recurringType)
         ];
 

@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -25,6 +13,16 @@
  * @var \Adyen\Payment\Block\Checkout\Success $block
  */
 ?>
+<script type="text/javascript">
+    // Refresh cart status
+    require(['Magento_Customer/js/customer-data'], function (customerData) {
+        'use strict';
+
+        customerData.getInitCustomerData().done(function () {
+            customerData.reload(['cart'], true);
+        });
+    });
+</script>
 <?php if ($block->renderAction()): ?>
     <script type="text/javascript">
         require([

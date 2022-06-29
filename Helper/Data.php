@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -613,10 +601,18 @@ class Data extends AbstractHelper
     {
         switch ($this->isDemoMode($storeId)) {
             case true:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_test', $storeId)));
+                $hmacTest = $this->getAdyenHppConfigData('hmac_test', $storeId);
+                if (is_null($hmacTest)) {
+                    return null;
+                }
+                $secretWord = $this->_encryptor->decrypt(trim($hmacTest));
                 break;
             default:
-                $secretWord = $this->_encryptor->decrypt(trim($this->getAdyenHppConfigData('hmac_live', $storeId)));
+                $hmacLive = $this->getAdyenHppConfigData('hmac_live', $storeId);
+                if (is_null($hmacLive)) {
+                    return null;
+                }
+                $secretWord = $this->_encryptor->decrypt(trim($hmacLive));
                 break;
         }
         return $secretWord;
@@ -643,23 +639,17 @@ class Data extends AbstractHelper
     public function getAPIKey($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $apiKey = $this->_encryptor->decrypt(
-                trim(
-                    $this->getAdyenAbstractConfigData(
-                        'api_key_test',
-                        $storeId
-                    )
-                )
-            );
+            $encryptedApiKeyTest = $this->getAdyenAbstractConfigData('api_key_test', $storeId);
+            if (is_null($encryptedApiKeyTest)) {
+                return null;
+            }
+            $apiKey = $this->_encryptor->decrypt(trim($encryptedApiKeyTest));
         } else {
-            $apiKey = $this->_encryptor->decrypt(
-                trim(
-                    $this->getAdyenAbstractConfigData(
-                        'api_key_live',
-                        $storeId
-                    )
-                )
-            );
+            $encryptedApiKeyLive = $this->getAdyenAbstractConfigData('api_key_live', $storeId);
+            if (is_null($encryptedApiKeyLive)) {
+                return null;
+            }
+            $apiKey = $this->_encryptor->decrypt(trim($encryptedApiKeyLive));
         }
         return $apiKey;
     }
@@ -672,12 +662,16 @@ class Data extends AbstractHelper
      */
     public function getClientKey($storeId = null)
     {
-        return trim(
-            $this->getAdyenAbstractConfigData(
-                $this->isDemoMode($storeId) ? 'client_key_test' : 'client_key_live',
-                $storeId
-            )
+        $clientKey = $this->getAdyenAbstractConfigData(
+            $this->isDemoMode($storeId) ? 'client_key_test' : 'client_key_live',
+            $storeId
         );
+
+        if (is_null($clientKey)) {
+            return null;
+        }
+
+        return trim($clientKey);
     }
 
     /**
@@ -689,9 +683,17 @@ class Data extends AbstractHelper
     public function getWsUsername($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_test', $storeId));
+            $wsUsernameTest = $this->getAdyenAbstractConfigData('ws_username_test', $storeId);
+            if (is_null($wsUsernameTest)) {
+                return null;
+            }
+            $wsUsername = trim($wsUsernameTest);
         } else {
-            $wsUsername = trim($this->getAdyenAbstractConfigData('ws_username_live', $storeId));
+            $wsUsernameLive = $this->getAdyenAbstractConfigData('ws_username_live', $storeId);
+            if (is_null($wsUsernameLive)) {
+                return null;
+            }
+            $wsUsername = trim($wsUsernameLive);
         }
         return $wsUsername;
     }
@@ -704,8 +706,13 @@ class Data extends AbstractHelper
      */
     public function getLiveEndpointPrefix($storeId = null)
     {
-        $prefix = trim($this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId));
-        return $prefix;
+        $prefix = $this->getAdyenAbstractConfigData('live_endpoint_url_prefix', $storeId);
+
+        if (is_null($prefix)) {
+            return null;
+        }
+
+        return trim($prefix);
     }
 
     /**
@@ -716,8 +723,13 @@ class Data extends AbstractHelper
      */
     public function getCheckoutFrontendRegion($storeId = null)
     {
-        $prefix = trim($this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId));
-        return $prefix;
+        $checkoutFrontendRegion = $this->getAdyenAbstractConfigData('checkout_frontend_region', $storeId);
+
+        if (is_null($checkoutFrontendRegion)) {
+            return null;
+        }
+
+        return trim($checkoutFrontendRegion);
     }
 
     /**
@@ -902,7 +914,8 @@ class Data extends AbstractHelper
 
             // check if contractType is supporting the selected contractType for OneClick payments
             $allowedContractTypes = $agreementData['contractTypes'];
-            if (in_array(RecurringType::ONECLICK , $allowedContractTypes) || in_array(Recurring::CARD_ON_FILE, $allowedContractTypes)) {
+            // RecurringType::ONECLICK is kept in the if block to still display tokens that were created before changes
+            if (in_array(RecurringType::ONECLICK, $allowedContractTypes) || in_array(Recurring::CARD_ON_FILE, $allowedContractTypes)) {
                 // check if AgreementLabel is set and if contract has an recurringType
                 if ($billingAgreement->getAgreementLabel()) {
                     // for Ideal use sepadirectdebit because it is
@@ -982,6 +995,10 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOpenInvoiceMethod($paymentMethod)
     {
+        if (is_null($paymentMethod)) {
+            return false;
+        }
+
         if (strpos($paymentMethod, self::AFTERPAY) !== false ||
             strpos($paymentMethod, self::KLARNA) !== false ||
             strpos($paymentMethod, self::RATEPAY) !== false ||
@@ -998,34 +1015,12 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Excludes AfterPay (NL/BE) from the open invoice list.
-     * AfterPay variants should be excluded (not afterpaytouch)as an option for auto capture.
-     * @param $paymentMethod
-     * @return bool
-     */
-    public function isPaymentMethodOpenInvoiceMethodValidForAutoCapture($paymentMethod)
-    {
-        if (strpos($paymentMethod, self::AFTERPAY_TOUCH) !== false ||
-            strpos($paymentMethod, self::KLARNA) !== false ||
-            strpos($paymentMethod, self::RATEPAY) !== false ||
-            strpos($paymentMethod, self::FACILYPAY) !== false ||
-            strpos($paymentMethod, self::AFFIRM) !== false ||
-            strpos($paymentMethod, self::CLEARPAY) !== false ||
-            strpos($paymentMethod, self::ZIP) !== false ||
-            strpos($paymentMethod, self::PAYBRIGHT) !== false
-        ) {
-            return true;
-        }
-
-        return false;
-    }
-    /**
      * @param $paymentMethod
      * @return bool
      */
     public function isPaymentMethodRatepayMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, self::RATEPAY) !== false) {
+        if (!is_null($paymentMethod) && strpos($paymentMethod, self::RATEPAY) !== false) {
             return true;
         }
 
@@ -1038,7 +1033,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodAfterpayTouchMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, self::AFTERPAY_TOUCH) !== false) {
+        if (!is_null($paymentMethod) && strpos($paymentMethod, self::AFTERPAY_TOUCH) !== false) {
             return true;
         }
 
@@ -1046,12 +1041,12 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param $paymentMethod
+     * @param string $paymentMethod
      * @return bool
      */
     public function isPaymentMethodMolpayMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, 'molpay_') !== false) {
+        if (!is_null($paymentMethod) && strpos($paymentMethod, 'molpay_') !== false) {
             return true;
         }
 
@@ -1064,7 +1059,7 @@ class Data extends AbstractHelper
      */
     public function isPaymentMethodOneyMethod($paymentMethod)
     {
-        if (strpos($paymentMethod, self::FACILYPAY) !== false) {
+        if (!is_null($paymentMethod) && strpos($paymentMethod, self::FACILYPAY) !== false) {
             return true;
         }
 
@@ -1072,7 +1067,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param $paymentMethod
+     * @param string $paymentMethod
      * @return bool
      */
     public function doesPaymentMethodSkipDetails($paymentMethod)
@@ -1388,9 +1383,19 @@ class Data extends AbstractHelper
     public function getPosApiKey($storeId = null)
     {
         if ($this->isDemoMode($storeId)) {
-            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_test', $storeId)));
+            $encryptedApiKeyTest = $this->getAdyenPosCloudConfigData('api_key_test', $storeId);
+            if (is_null($encryptedApiKeyTest)) {
+                return null;
+            }
+
+            $apiKey = $this->_encryptor->decrypt(trim($encryptedApiKeyTest));
         } else {
-            $apiKey = $this->_encryptor->decrypt(trim($this->getAdyenPosCloudConfigData('api_key_live', $storeId)));
+            $encryptedApiKeyLive = $this->getAdyenPosCloudConfigData('api_key_live', $storeId);
+            if (is_null($encryptedApiKeyLive)) {
+                return null;
+            }
+
+            $apiKey = $this->_encryptor->decrypt(trim($encryptedApiKeyLive));
         }
         return $apiKey;
     }
@@ -1641,28 +1646,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * For backwards compatibility get the recurringType used for HPP + current billing agreements
-     *
-     * @param null|int|string $storeId
-     * @return null|string
-     */
-    public function getRecurringTypeFromOneclickRecurringSetting($storeId = null)
-    {
-        $enableOneclick = $this->getAdyenAbstractConfigDataFlag('enable_oneclick', $storeId);
-        $adyenCCVaultActive = $this->getAdyenCcVaultConfigDataFlag('active', $storeId);
-
-        if ($enableOneclick && $adyenCCVaultActive) {
-            return RecurringType::ONECLICK_RECURRING;
-        } elseif ($enableOneclick && !$adyenCCVaultActive) {
-            return RecurringType::ONECLICK;
-        } elseif (!$enableOneclick && $adyenCCVaultActive) {
-            return RecurringType::ONECLICK_RECURRING;
-        } else {
-            return RecurringType::NONE;
-        }
-    }
-
-    /**
      * Get icon from variant
      *
      * @param $variant
@@ -1678,17 +1661,6 @@ class Data extends AbstractHelper
             'height' => $height
         ];
         return $icon;
-    }
-
-    /**
-     * Check if CreditCard vault is enabled
-     *
-     * @param null|int|string $storeId
-     * @return mixed
-     */
-    public function isCreditCardVaultEnabled($storeId = null)
-    {
-        return $this->getAdyenCcVaultConfigDataFlag('active', $storeId);
     }
 
     /**

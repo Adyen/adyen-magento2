@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -82,17 +70,40 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Check if the Adyen Notification is already stored in the system
      *
-     * @param $pspReference
-     * @param $eventCode
-     * @param $success
-     * @param $originalReference
      * @param null $done
      * @return bool
      */
-    public function isDuplicate($pspReference, $eventCode, $success, $originalReference, $done = null)
+    public function isDuplicate($done = null): bool
     {
-        $result = $this->getResource()->getNotification($pspReference, $eventCode, $success, $originalReference, $done);
-        return (empty($result)) ? false : true;
+        $result = $this->getResource()->getNotification(
+            $this->getPspreference(),
+            $this->getEventCode(),
+            $this->getSuccess(),
+            $this->getOriginalReference(),
+            $done
+        );
+
+        return !empty($result);
+    }
+
+    /**
+     * Remove OFFER_CLOSED and AUTHORISATION success=false notifications for some time from the processing list
+     * to ensure they won't close any order which has an AUTHORISED notification arrived a bit later than the
+     * OFFER_CLOSED or the AUTHORISATION success=false one.
+     * @return bool
+     */
+    public function shouldSkipProcessing(): bool
+    {
+        if ((
+                self::OFFER_CLOSED === $this->getEventCode() ||
+                (self::AUTHORISATION === $this->getEventCode() && !$this->isSuccessful())
+            ) &&
+            $this->isLessThan10MinutesOld()
+        ) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

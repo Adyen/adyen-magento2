@@ -7,6 +7,7 @@ The plugin integrates card component (Secured Fields) using Adyen Checkout for a
 ### Support Vault and Instant Purchase ###
 Inside Adyen toggle the following settings on inside the API and Responses section (Settings -> API and Responses):
 * Recurring details
+* Card bin
 * Card summary
 * Expiry date
 * Variant
@@ -15,6 +16,13 @@ Inside Adyen toggle the following settings on inside the API and Responses secti
 This plugin supports Magento2 version
 * 2.3.7 and higher
 * 2.4 and higher
+
+## Releases
+
+1. **Major** releases are done ONLY when absolutely required. We try to not to introduce breaking changes and do major releases as rare as possible. Current average is **yearly**.
+2. A minor or a patcn release is scheduled but not limited to **once every 2 weeks.**
+
+**Note: This can be subject to change based on the load and dependancies of the Integration tools team.**
 
 ## Support & Maintenance
 
@@ -29,10 +37,30 @@ The schedule for the current maintained branches is:
 
 |  Plugin Major Version   |  Release Date  |  Level 1 Support ends   |  Level 2 Support ends   |  Level 3 Support ends  |
 |  :-----          |  :-----          |  :-----          |  :-----          |  :-----          |
-|  Version 6 |  March 2020  |  September 31 2021 |  March 31 2022 |  September 31 2022 |
-|  Version 7 |  April 2021 |  September 31 2022 |  March 31 2023 |  September 31 2023 |
-|  Version 8 |  Novemeber 2021 |  March 31 2023 |  September 2023 | March 2024 |
+|  Version 6 |  March 2020  |  September 30 2021 |  March 31 2022 |  January 31 2023 |
+|  Version 7 |  April 2021 |  September 30 2022 |  March 31 2023 |  September 30 2023 |
+|  Version 8 |  November 2021 |  March 31 2023 |  September 2023 | March 2024 |
 |  Version 9 |  - |  12 months after release |  18 months after release |  24 months after release |
+
+Or, visualised as a calendar:
+
+```mermaid
+gantt
+    title Currently Supported Versions
+    dateFormat  YYYY-MM-DD   
+    section Version 6
+    Level 1   :l61, 2020-03-31, 2021-09-30
+    Level 2   :l62, after l61, 2022-03-31     
+    Level 3   :l63, after l62, 2023-01-31
+    section Version 7
+    Level 1   :l71, 2021-04-09, 2022-09-30
+    Level 2   :l72, after l71, 2023-03-31
+    Level 3   :l73, after l72, 2023-09-30
+    section Version 8
+    Level 1   :l81, 2021-11-22, 2023-03-31
+    Level 2   :l82, after l81, 2023-09-30
+    Level 3   :l83, after l82, 2024-03-31
+```
 
 ## Contributing
 We strongly encourage you to join us in contributing to this repository so everyone can benefit from:

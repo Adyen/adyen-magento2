@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment Module
  *
@@ -82,7 +70,7 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
         try {
             $order = $this->orderRepository->get($orderId);
         } catch (NoSuchEntityException $exception) {
-            $this->adyenLogger->addError('Order not found.');
+            $this->adyenLogger->error('Order not found.');
             return json_encode(
                 $this->paymentResponseHandler->formatPaymentResponse(PaymentResponseHandler::ERROR)
             );
@@ -92,7 +80,7 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
         $additionalInformation = $payment->getAdditionalInformation();
 
         if (empty($additionalInformation['resultCode'])) {
-            $this->adyenLogger->addInfo('resultCode is empty in the payment\'s additional information');
+            $this->adyenLogger->info('resultCode is empty in the payment\'s additional information');
             return json_encode(
                 $this->paymentResponseHandler->formatPaymentResponse(PaymentResponseHandler::ERROR)
             );

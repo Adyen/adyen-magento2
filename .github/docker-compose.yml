@@ -4,7 +4,7 @@ services:
   db:
     image: mariadb:10.4
     container_name: mariadb
-    networks: 
+    networks:
       - backend
     environment:
       MARIADB_ROOT_PASSWORD: root_password
@@ -14,7 +14,7 @@ services:
   elastic:
     image: elasticsearch:7.16.2
     container_name: elasticsearch
-    networks: 
+    networks:
       - backend
     ports:
       - 9200:9200
@@ -23,7 +23,11 @@ services:
       - "discovery.type=single-node"
       - "ES_JAVA_OPTS=-Xms750m -Xmx750m"
   web:
-    image: ataberkylmz/magento2:2.4.2
+    build:
+      context: .
+      args:
+        - PHP_VERSION=${PHP_VERSION}
+        - MAGENTO_VERSION=${MAGENTO_VERSION}
     container_name: magento2-container
     networks:
       backend:
@@ -35,22 +39,19 @@ services:
       - MAGENTO_HOST=magento2.test.com
       - VIRTUAL_HOST=magento2.test.com
       - ADMIN_URLEXT=admin
+      - DONATION_ACCOUNT
       - ADMIN_USERNAME
       - ADMIN_PASSWORD
-
+      - ADYEN_MERCHANT
+      - ADYEN_API_KEY
+      - ADYEN_CLIENT_KEY
+      - PHP_VERSION
+      - MAGENTO_VERSION
     depends_on:
       - db
       - elastic
     volumes:
       - ../:/data/extensions/workdir
-      - ./scripts/mftf.sh:/var/www/html/mftf.sh
-
-  ## Selenium for MFTF tests
-  selenium:
-   image: selenium/standalone-chrome-debug:3.8.1
-   ports:
-     - "5900:5900"
-   networks: 
-    - backend
+      - ./Makefile:/var/www/html/Makefile
 networks:
   backend:

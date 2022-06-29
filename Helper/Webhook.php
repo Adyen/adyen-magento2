@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment Module
  *
@@ -31,6 +19,7 @@ use Adyen\Payment\Helper\PaymentMethods as PaymentMethodsHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Api\PaymentRequest;
 use Adyen\Payment\Model\Billing\AgreementFactory;
+use Adyen\Payment\Model\Config\Source\Status\AdyenState;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
@@ -54,6 +43,7 @@ use Magento\Framework\Notification\NotifierInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
+use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Container\InvoiceIdentity;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
@@ -61,7 +51,6 @@ use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
-use Magento\Sales\Model\ResourceModel\Order\Invoice as InvoiceResourceModel;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
@@ -77,6 +66,15 @@ class Webhook
         Order::STATE_PROCESSING => PaymentStates::STATE_IN_PROGRESS,
         Order::STATE_COMPLETE => PaymentStates::STATE_PAID,
         Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED,
+        Order::STATE_CLOSED => PaymentStates::STATE_CANCELLED
+    ];
+
+    /**
+     * Indicative matrix for possible states to enter after given event
+     */
+    const STATE_TRANSITION_MATRIX = [
+        'payment_pre_authorized' => [Order::STATE_NEW, Order::STATE_PENDING_PAYMENT],
+        'payment_authorized' => [Order::STATE_PROCESSING]
     ];
 
     /**
@@ -184,9 +182,9 @@ class Webhook
      */
     private $paymentMethodsHelper;
     /**
-     * @var InvoiceResourceModel
+     * @var InvoiceRepositoryInterface
      */
-    private $invoiceResourceModel;
+    private $invoiceRepository;
     /**
      * @var AdyenOrderPayment
      */
@@ -208,6 +206,11 @@ class Webhook
      * @var MagentoInvoiceFactory
      */
     private $magentoInvoiceFactory;
+
+    /**
+     * @var Vault
+     */
+    private $vaultHelper;
 
     private $boletoOriginalAmount;
 
@@ -244,13 +247,14 @@ class Webhook
         EncryptorInterface $encryptor,
         ChargedCurrency $chargedCurrency,
         PaymentMethodsHelper $paymentMethodsHelper,
-        InvoiceResourceModel $invoiceResourceModel,
+        InvoiceRepositoryInterface $invoiceRepository,
         AdyenOrderPayment $adyenOrderPaymentHelper,
         InvoiceHelper $invoiceHelper,
         CaseManagement $caseManagementHelper,
         PaymentFactory $adyenOrderPaymentFactory,
         AdyenLogger $logger,
-        MagentoInvoiceFactory $magentoInvoiceFactory
+        MagentoInvoiceFactory $magentoInvoiceFactory,
+        Vault $vaultHelper
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
@@ -276,13 +280,14 @@ class Webhook
         $this->encryptor = $encryptor;
         $this->chargedCurrency = $chargedCurrency;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->invoiceResourceModel = $invoiceResourceModel;
+        $this->invoiceRepository = $invoiceRepository;
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->invoiceHelper = $invoiceHelper;
         $this->caseManagementHelper = $caseManagementHelper;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
         $this->logger = $logger;
         $this->magentoInvoiceFactory = $magentoInvoiceFactory;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -321,6 +326,8 @@ class Webhook
 
             // update order details
             $this->updateAdyenAttributes($notification);
+
+            $this->order->getPayment()->setAdditionalInformation('payment_method', $notification->getPaymentMethod());
 
             // Get transition state
             $currentState = $this->getCurrentState($this->order->getState());
@@ -368,36 +375,6 @@ class Webhook
 
             return false;
         }
-    }
-
-    /**
-     * Remove OFFER_CLOSED and AUTHORISATION success=false notifications for some time from the processing list
-     * to ensure they won't close any order which has an AUTHORISED notification arrived a bit later than the
-     * OFFER_CLOSED or the AUTHORISATION success=false one.
-     * @param Notification $notification
-     * @return bool
-     */
-    public function shouldSkipProcessingNotification(Notification $notification): bool
-    {
-        if ((
-                Notification::OFFER_CLOSED === $notification->getEventCode() ||
-                (Notification::AUTHORISATION === $notification->getEventCode() && !$notification->isSuccessful())
-            ) &&
-            $notification->isLessThan10MinutesOld()
-        ) {
-            $this->logger->addAdyenNotificationCronjob(
-                sprintf(
-                    '%s notification (entity_id: %s) for merchant_reference: %s is skipped! Wait 10 minute before processing.',
-                    $notification->getEventCode(),
-                    $notification->getEntityId(),
-                    $notification->getMerchantReference()
-                )
-            );
-
-            return true;
-        }
-
-        return false;
     }
 
     private function getCurrentState($orderState)
@@ -464,6 +441,8 @@ class Webhook
     private function handleUnchangedStates(Order $order, Notification $notification): void
     {
         switch ($notification->getEventCode()) {
+            case Notification::REFUND:
+                $this->refundPayment($notification);
             case Notification::PENDING:
                 $sendEmailSepaOnPending = $this->configHelper->getConfigData(
                     'send_email_bank_sepa_on_pending',
@@ -495,7 +474,7 @@ class Webhook
                 break;
             case Notification::RECURRING_CONTRACT:
                 // only store billing agreements if Vault is disabled
-                if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
+                if (!$this->vaultHelper->isCardVaultEnabled()) {
                     // storedReferenceCode
                     $recurringDetailReference = $notification->getPspreference();
 
@@ -738,9 +717,10 @@ class Webhook
             $isWalletPaymentMethod = $this->paymentMethodsHelper->isWalletPaymentMethod($orderPaymentMethod);
 
             /*
-             * Return if payment method is cc like VI, MI
+             * Return true if payment method is cc like VI, MI or oneclick
              */
-            $isCCPaymentMethod = $this->order->getPayment()->getMethod() === 'adyen_cc';
+            $isCCPaymentMethod = $this->order->getPayment()->getMethod() === 'adyen_cc'
+                || $this->order->getPayment()->getMethod() === 'adyen_oneclick';
 
             /*
             * If the order was made with an Alternative payment method,
@@ -791,6 +771,7 @@ class Webhook
 
                 if ($this->order->canHold()) {
                     $this->order->hold();
+                    $this->order->addCommentToStatusHistory('Order held', $orderStatus);
                 } else {
                     $this->logger->addAdyenNotificationCronjob('Order can not hold or is already on Hold');
                 }
@@ -800,6 +781,7 @@ class Webhook
 
                 if ($this->order->canCancel()) {
                     $this->order->cancel();
+                    $this->order->addCommentToStatusHistory('Order cancelled', $orderStatus);
                 } else {
                     $this->logger->addAdyenNotificationCronjob('Order can not be canceled');
                 }
@@ -884,6 +866,7 @@ class Webhook
         if ($isFullAmountAuthorized) {
             $this->setPrePaymentAuthorized();
             $this->prepareInvoice($notification);
+
             // For Boleto confirmation mail is sent on order creation
             // Send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
             if ($notification->getPaymentMethod() != "adyen_boleto" && !$this->order->getEmailSent()) {
@@ -892,6 +875,11 @@ class Webhook
         } else {
             $this->addProcessedStatusHistoryComment($notification);
         }
+
+        // Set authorized amount in sales_order_payment
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($this->order, false);
+        $orderAmount = $orderAmountCurrency->getAmount();
+        $this->order->getPayment()->setAmountAuthorized($orderAmount);
 
         if ($notification->getPaymentMethod() == "c_cash" &&
             $this->configHelper->getConfigData('create_shipment', 'adyen_cash', $this->order->getStoreId())
@@ -944,7 +932,7 @@ class Webhook
             $notification->getAdditionalData()
         ) : "";
 
-        if ($additionalData && is_array($additionalData)) {
+        if (is_array($additionalData)) {
             // boleto data
             if ($order->getPayment()->getMethod() == "adyen_boleto") {
                 $boletobancario = $additionalData['boletobancario'] ?? null;
@@ -1092,24 +1080,46 @@ class Webhook
      */
     private function updateOrderPaymentWithAdyenAttributes(Notification $notification, $additionalData)
     {
-        if ($additionalData && is_array($additionalData)) {
-            $avsResult = (isset($additionalData['avsResult'])) ? $additionalData['avsResult'] : "";
-            $cvcResult = (isset($additionalData['cvcResult'])) ? $additionalData['cvcResult'] : "";
-            $totalFraudScore = (isset($additionalData['totalFraudScore'])) ? $additionalData['totalFraudScore'] : "";
-            $ccLast4 = (isset($additionalData['cardSummary'])) ? $additionalData['cardSummary'] : "";
-            $refusalReasonRaw = (isset($additionalData['refusalReasonRaw'])) ? $additionalData['refusalReasonRaw'] : "";
-            $acquirerReference = (isset($additionalData['acquirerReference'])) ?
-                $additionalData['acquirerReference'] : "";
-            $authCode = (isset($additionalData['authCode'])) ? $additionalData['authCode'] : "";
-            $cardBin = (isset($additionalData['cardBin'])) ? $additionalData['cardBin'] : "";
-            $expiryDate = (isset($additionalData['expiryDate'])) ? $additionalData['expiryDate'] : "";
+        if (!is_array($additionalData)) {
+            return;
         }
-
+        if (isset($additionalData['avsResult'])) {
+            $this->order->getPayment()->setAdditionalInformation('adyen_avs_result', $additionalData['avsResult']);
+        }
+        if ((isset($additionalData['cvcResult']))) {
+            $this->order->getPayment()->setAdditionalInformation('adyen_cvc_result', $additionalData['cvcResult']);
+        }
+        if (isset($additionalData['totalFraudScore'])) {
+            $this->order->getPayment()
+                ->setAdditionalInformation('adyen_total_fraud_score', $additionalData['totalFraudScore']);
+        }
         // if there is no server communication setup try to get last4 digits from reason field
-        if (!isset($ccLast4) || $ccLast4 == "") {
-            $ccLast4 = $this->retrieveLast4DigitsFromReason($notification->getReason());
+        if (isset($additionalData['cardSummary'])) {
+            $this->order->getPayment()->setccLast4($additionalData['cardSummary']);
+        } else {
+            $this->order->getPayment()->setccLast4($this->retrieveLast4DigitsFromReason($notification->getReason()));
         }
-
+        if (isset($additionalData['refusalReasonRaw'])) {
+            $this->order->getPayment()
+                ->setAdditionalInformation('adyen_refusal_reason_raw', $additionalData['refusalReasonRaw']);
+        }
+        if (isset($additionalData['acquirerReference'])) {
+            $this->order->getPayment()
+                ->setAdditionalInformation('adyen_acquirer_reference', $additionalData['acquirerReference']);
+        }
+        if (isset($additionalData['authCode'])) {
+            $this->order->getPayment()->setAdditionalInformation('adyen_auth_code', $additionalData['authCode']);
+        }
+        if (isset($additionalData['cardBin'])) {
+            $this->order->getPayment()->setAdditionalInformation('adyen_card_bin', $additionalData['cardBin']);
+        }
+        if (isset($additionalData['expiryDate'])) {
+            $this->order->getPayment()->setAdditionalInformation('adyen_expiry_date', $additionalData['expiryDate']);
+        }
+        if (isset($additionalData['issuerCountry'])) {
+            $this->order->getPayment()
+                ->setAdditionalInformation('adyen_issuer_country', $additionalData['issuerCountry']);
+        }
         $this->order->getPayment()->setAdyenPspReference($notification->getPspreference());
         $this->order->getPayment()->setAdditionalInformation('pspReference', $notification->getPspreference());
 
@@ -1119,36 +1129,8 @@ class Webhook
                 $this->klarnaReservationNumber
             );
         }
-        if (isset($ccLast4) && $ccLast4 != "") {
-            // this field is column in db by core
-            $this->order->getPayment()->setccLast4($ccLast4);
-        }
-        if (isset($avsResult) && $avsResult != "") {
-            $this->order->getPayment()->setAdditionalInformation('adyen_avs_result', $avsResult);
-        }
-        if (isset($cvcResult) && $cvcResult != "") {
-            $this->order->getPayment()->setAdditionalInformation('adyen_cvc_result', $cvcResult);
-        }
         if ($this->boletoPaidAmount != "") {
             $this->order->getPayment()->setAdditionalInformation('adyen_boleto_paid_amount', $this->boletoPaidAmount);
-        }
-        if (isset($totalFraudScore) && $totalFraudScore != "") {
-            $this->order->getPayment()->setAdditionalInformation('adyen_total_fraud_score', $totalFraudScore);
-        }
-        if (isset($refusalReasonRaw) && $refusalReasonRaw != "") {
-            $this->order->getPayment()->setAdditionalInformation('adyen_refusal_reason_raw', $refusalReasonRaw);
-        }
-        if (isset($acquirerReference) && $acquirerReference != "") {
-            $this->order->getPayment()->setAdditionalInformation('adyen_acquirer_reference', $acquirerReference);
-        }
-        if (isset($authCode) && $authCode != "") {
-            $this->order->getPayment()->setAdditionalInformation('adyen_auth_code', $authCode);
-        }
-        if (!empty($cardBin)) {
-            $this->order->getPayment()->setAdditionalInformation('adyen_card_bin', $cardBin);
-        }
-        if (!empty($expiryDate)) {
-            $this->order->getPayment()->setAdditionalInformation('adyen_expiry_date', $expiryDate);
         }
         if ($this->ratepayDescriptor !== "") {
             $this->order->getPayment()->setAdditionalInformation(
@@ -1203,16 +1185,18 @@ class Webhook
      */
     private function setPrePaymentAuthorized()
     {
+        $eventLabel = "payment_pre_authorized";
         $status = $this->configHelper->getConfigData(
-            'payment_pre_authorized',
+            $eventLabel,
             'adyen_abstract',
             $this->order->getStoreId()
         );
+        $possibleStates = self::STATE_TRANSITION_MATRIX[$eventLabel];
 
         // only do this if status in configuration is set
         if (!empty($status)) {
             $this->order->setStatus($status);
-            $this->setState($status);
+            $this->setState($status, $possibleStates);
 
             $this->logger->addAdyenNotificationCronjob(
                 'Order status is changed to Pre-authorised status, status is ' . $status
@@ -1361,7 +1345,7 @@ class Webhook
 
             // if auto capture mode for openinvoice is turned on then use auto capture
             if ($captureModeOpenInvoice &&
-                $this->adyenHelper->isPaymentMethodOpenInvoiceMethodValidForAutoCapture($notificationPaymentMethod)
+                $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)
             ) {
                 $this->logger->addAdyenNotificationCronjob(
                     'This payment method is configured to be working as auto capture '
@@ -1521,7 +1505,7 @@ class Webhook
                     $invoice->register()->pay();
                 }
 
-                $this->invoiceResourceModel->save($invoice);
+                $this->invoiceRepository->save($invoice);
                 $this->logger->addAdyenNotificationCronjob(
                     sprintf('Notification %s created an invoice.', $notification->getEntityId()),
                     $this->invoiceHelper->getLogInvoiceContext($invoice)
@@ -1566,11 +1550,20 @@ class Webhook
             ->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
         $fullAmountFinalized = $this->adyenOrderPaymentHelper->isFullAmountFinalized($order);
 
+        $eventLabel = 'payment_authorized';
         $status = $this->configHelper->getConfigData(
-            'payment_authorized',
+            $eventLabel,
             'adyen_abstract',
             $order->getStoreId()
         );
+        $possibleStates = self::STATE_TRANSITION_MATRIX[$eventLabel];
+
+        // Set state back to previous state to prevent update if 'maintain status' was configured
+        $maintainingState = false;
+        if ($status === AdyenState::STATE_MAINTAIN) {
+            $maintainingState = true;
+            $status = $order->getStatus();
+        }
 
         // virtual order can have different status
         if ($order->getIsVirtual()) {
@@ -1623,11 +1616,19 @@ class Webhook
             $comment = "Adyen Payment Successfully completed";
             // If a status is set, add comment, set status and update the state based on the status
             // Else add comment
-            if (!empty($status)) {
+            if (!empty($status) && $maintainingState) {
                 $order->addStatusHistoryComment(__($comment), $status);
-                $this->setState($status);
                 $this->logger->addAdyenNotificationCronjob(
-                    'Order status was changed to authorised status: ' . $status
+                    'Maintaining current status: ' . $status,
+                    $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
+                );
+            } else if (!empty($status)) {
+                $order->addStatusHistoryComment(__($comment), $status);
+
+                $this->setState($status, $possibleStates);
+                $this->logger->addAdyenNotificationCronjob(
+                    'Order status was changed to authorised status: ' . $status,
+                    $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
                 );
             } else {
                 $order->addStatusHistoryComment(__($comment));
@@ -1641,15 +1642,25 @@ class Webhook
     /**
      * Set State from Status
      */
-    private function setState($status)
+    private function setState($status, $possibleStates)
     {
-        $statusObject = $this->orderStatusCollection->create()
-            ->addFieldToFilter('main_table.status', $status)
-            ->joinStates()
-            ->getFirstItem();
+        // Loop over possible states, select first available status that fits this state
+        foreach ($possibleStates as $state) {
+            $statusObject = $this->orderStatusCollection->create()
+                ->addFieldToFilter('main_table.status', $status)
+                ->joinStates()
+                ->addStateFilter($state)
+                ->getFirstItem();
 
-        $this->order->setState($statusObject->getState());
-        $this->logger->addAdyenNotificationCronjob('State is changed to  ' . $statusObject->getState());
+            if ($statusObject->getState() == $state) {
+                // Exit function if fitting state is found
+                $this->order->setState($statusObject->getState());
+                $this->logger->addAdyenNotificationCronjob('State is changed to  ' . $statusObject->getState());
+                return;
+            }
+        }
+
+        $this->logger->addAdyenNotificationCronjob('No new state assigned, status should be connected to one of the following states: ' . json_encode($possibleStates));
     }
 
     /**
