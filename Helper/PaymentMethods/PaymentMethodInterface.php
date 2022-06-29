@@ -17,7 +17,9 @@ interface PaymentMethodInterface
 
     public function getPaymentMethodName(): string;
 
-    public function supportsRecurring(): bool;
+    public function supportsCardOnFile(): bool;
+
+    public function supportsSubscription(): bool;
 
     public function supportsManualCapture(): bool;
 

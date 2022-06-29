@@ -12,6 +12,9 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -516,24 +519,17 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
-     * Check if the passed payment method supports recurring functionality.
+     * Check if the passed payment method provider is a recurring one or not
      *
-     * Currently only SEPA is allowed on our Magento plugin.
-     * Possible future payment methods:
-     *
-     * 'ach','amazonpay','applepay','directdebit_GB','bcmc','dana','dankort','eps','gcash','giropay','googlepay','paywithgoogle',
-     * 'gopay_wallet','ideal','kakaopay','klarna','klarna_account','klarna_b2b','klarna_paynow','momo_wallet','paymaya_wallet',
-     * 'paypal','trustly','twint','uatp','billdesk_upi','payu_IN_upi','vipps','yandex_money','zip'
-     *
-     * @param string $paymentMethod
+     * @param string $provider
      * @return bool
      */
-    public function paymentMethodSupportsRecurring(string $paymentMethod): bool
+    public function isRecurringProvider(string $provider): bool
     {
-        $paymentMethodRecurring = [
-            'sepadirectdebit',
-        ];
-
-        return in_array($paymentMethod, $paymentMethodRecurring);
+        return in_array($provider, [
+            AdyenCcConfigProvider::CC_VAULT_CODE,
+            AdyenHppConfigProvider::HPP_VAULT_CODE,
+            AdyenOneclickConfigProvider::CODE
+        ]);
     }
 }
