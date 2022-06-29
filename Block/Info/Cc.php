@@ -27,7 +27,7 @@ class Cc extends AbstractInfo
     public function getCcTypeName()
     {
         $types = $this->_adyenHelper->getAdyenCcTypes();
-        $ccType = $this->getInfo()->getCcType();
+        $ccType = strtoupper($this->getInfo()->getCcType());
 
         if (isset($types[$ccType])) {
             return $types[$ccType]['name'];
