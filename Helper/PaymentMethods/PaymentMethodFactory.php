@@ -31,6 +31,8 @@ class PaymentMethodFactory
     public static function createAdyenPaymentMethod(string $txVariant): PaymentMethodInterface
     {
         switch ($txVariant) {
+            case GooglePayPaymentMethod::TX_VARIANT:
+                return new GooglePayPaymentMethod();
             case PayPalPaymentMethod::TX_VARIANT:
                 return new PayPalPaymentMethod();
             case SepaPaymentMethod::TX_VARIANT:
