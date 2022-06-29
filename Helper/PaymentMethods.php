@@ -18,6 +18,7 @@ use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Sales\Model\Order\Payment;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -575,5 +576,18 @@ class PaymentMethods extends AbstractHelper
         }
 
         return $types;
+    }
+
+    /**
+     * @param Payment $payment
+     * @return bool
+     */
+    public function isCcTypeACardType(Payment $payment): bool
+    {
+        if (array_key_exists($payment->getCcType(), $this->getCcAvailableTypes())) {
+            return true;
+        }
+
+        return false;
     }
 }

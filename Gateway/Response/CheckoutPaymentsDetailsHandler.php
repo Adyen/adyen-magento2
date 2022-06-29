@@ -14,6 +14,7 @@ namespace Adyen\Payment\Gateway\Response;
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
@@ -43,13 +44,17 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
     /** @var AdyenLogger */
     private $adyenLogger;
 
+    /** @var PaymentMethods */
+    private $paymentMethodsHelper;
+
     public function __construct(
         Data $adyenHelper,
         Recurring $recurringHelper,
         Vault $vaultHelper,
         Config $configHelper,
         PaymentMethodFactory $paymentMethodFactory,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        PaymentMethods $paymentMethodsHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->recurringHelper = $recurringHelper;
@@ -57,6 +62,7 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
         $this->configHelper = $configHelper;
         $this->paymentMethodFactory = $paymentMethodFactory;
         $this->adyenLogger = $adyenLogger;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -90,12 +96,16 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
         }
 
         if ($this->vaultHelper->hasRecurringDetailReference($response) && $payment->getMethodInstance()->getCode() !== AdyenOneclickConfigProvider::CODE) {
+            $isCard = $this->paymentMethodsHelper->isCcTypeACardType($payment);
             $storeId = $payment->getMethodInstance()->getStore();
-            // If store alternative payment method is enabled and this is an alternative payment method
+            $storePaymentMethods = $this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId);
+            // If store alternative payment method is enabled and this is an alternative payment method AND ccType is NOT a card type
+            // ElseIf store alternative payment method is enabled and this is an alternative payment method AND ccType is a card type
             // Else create entry in paypal_billing_agreement
-            if ($this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId) &&
-                $payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE) {
+            if ($storePaymentMethods && $payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE && !$isCard) {
                 $this->vaultHelper->saveRecurringPaymentMethodDetails($payment, $response['additionalData']);
+            } elseif ($storePaymentMethods && $payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE && $isCard) {
+                $this->vaultHelper->saveRecurringCardDetails($payment, $response['additionalData']);
             } else {
                 $order = $payment->getOrder();
                 $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $payment->getAdditionalInformation());
