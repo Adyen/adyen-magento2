@@ -11,9 +11,10 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
-use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
+use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\Context;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -21,20 +22,24 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class ShopperInteractionDataBuilder implements BuilderInterface
 {
-    /**
-     * @var \Magento\Framework\App\State
-     */
+    /** @var State  */
     private $appState;
+
+    /** @var PaymentMethods */
+    private $paymentMethodsHelper;
 
     /**
      * RecurringDataBuilder constructor.
      *
      * @param Context $context
+     * @param PaymentMethods $paymentMethodsHelper
      */
     public function __construct(
-        Context $context
+        Context $context,
+        PaymentMethods $paymentMethodsHelper
     ) {
         $this->appState = $context->getAppState();
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -61,9 +66,7 @@ class ShopperInteractionDataBuilder implements BuilderInterface
             $this->appState->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML) {
             // Backend CC orders are MOTO
             $shopperInteraction = "Moto";
-        } elseif ($paymentMethod == AdyenOneclickConfigProvider::CODE
-            || $paymentMethod == AdyenCcConfigProvider::CC_VAULT_CODE) {
-            // OneClick and Vault are ContAuth
+        } elseif ($this->paymentMethodsHelper->isRecurringProvider($paymentMethod)) {
             $shopperInteraction = 'ContAuth';
         }
 

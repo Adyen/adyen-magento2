@@ -214,7 +214,7 @@ class Vault
 
         try {
             $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
-            $allowRecurring = $this->allowRecurringOnPaymentMethod($adyenPaymentMethod);
+            $allowRecurring = $this->allowRecurringOnPaymentMethod($adyenPaymentMethod, $storeId);
         } catch (PaymentMethodException $exception) {
             $this->adyenLogger->error(sprintf('Unable to create payment method with tx variant %s', $brand));
             return $request;
@@ -237,16 +237,24 @@ class Vault
     }
 
     /**
-     * Check if recurring should be allowed for payment method by checking if the payment method supports recurring
+     * Check if recurring should be allowed for payment method by checking:
+     * What type of recurring is currently enabled AND if the payment method supports that specific type recurring
      * AND if the admin has enabled recurring for this payment method
      *
      * @param PaymentMethodInterface $adyenPaymentMethod
+     * @param int|null $storeId
      * @return bool
      * @throws NoSuchEntityException
      */
-    public function allowRecurringOnPaymentMethod(PaymentMethodInterface $adyenPaymentMethod): bool
+    public function allowRecurringOnPaymentMethod(PaymentMethodInterface $adyenPaymentMethod, ?int $storeId): bool
     {
-        $methodSupportsRecurring = $adyenPaymentMethod->supportsRecurring();
+        $currentRecurringTokenSetting = $this->config->getAlternativePaymentMethodTokenType($storeId);
+        if ($currentRecurringTokenSetting === Recurring::CARD_ON_FILE) {
+            $methodSupportsRecurring = $adyenPaymentMethod->supportsCardOnFile();
+        } else {
+            $methodSupportsRecurring = $adyenPaymentMethod->supportsSubscription();
+        }
+
         $paymentMethodModel = $this->adyenPaymentMethodRepo->getByPaymentMethodName($adyenPaymentMethod->getTxVariant());
 
         return $methodSupportsRecurring && $paymentMethodModel->getEnableRecurring();

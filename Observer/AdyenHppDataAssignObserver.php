@@ -24,6 +24,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Vault\Model\Ui\VaultConfigProvider;
 
 class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
@@ -68,6 +69,9 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
     /** @var AdyenLogger */
     private $adyenLogger;
 
+    /** @var StoreManagerInterface */
+    private $storeManager;
+
     /**
      * AdyenHppDataAssignObserver constructor.
      *
@@ -84,7 +88,8 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         StateData $stateData,
         PaymentMethodFactory $paymentMethodFactory,
         Vault $vaultHelper,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        StoreManagerInterface $storeManager
     ) {
         $this->checkoutStateDataValidator = $checkoutStateDataValidator;
         $this->stateDataCollection = $stateDataCollection;
@@ -92,6 +97,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
         $this->paymentMethodFactory = $paymentMethodFactory;
         $this->vaultHelper = $vaultHelper;
         $this->adyenLogger = $adyenLogger;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -101,6 +107,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
     public function execute(Observer $observer)
     {
         $additionalDataToSave = [];
+        $storeId = $this->storeManager->getStore()->getStoreId();
         // Get request fields
         $data = $this->readDataArgument($observer);
         $paymentInfo = $this->readPaymentModelArgument($observer);
@@ -149,7 +156,7 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
 
             try {
                 $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
-                if ($this->vaultHelper->allowRecurringOnPaymentMethod($adyenPaymentMethod)) {
+                if ($this->vaultHelper->allowRecurringOnPaymentMethod($adyenPaymentMethod, $storeId)) {
                     $paymentInfo->setAdditionalInformation(VaultConfigProvider::IS_ACTIVE_CODE, true);
                 }
             } catch (PaymentMethodException $exception) {
