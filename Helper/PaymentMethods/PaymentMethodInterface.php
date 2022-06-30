@@ -24,4 +24,6 @@ interface PaymentMethodInterface
     public function supportsManualCapture(): bool;
 
     public function supportsAutoCapture(): bool;
+
+    public function isWalletPaymentMethod(): bool;
 }

@@ -577,17 +577,4 @@ class PaymentMethods extends AbstractHelper
 
         return $types;
     }
-
-    /**
-     * @param Payment $payment
-     * @return bool
-     */
-    public function isCcTypeACardType(Payment $payment): bool
-    {
-        if (array_key_exists($payment->getCcType(), $this->getCcAvailableTypes())) {
-            return true;
-        }
-
-        return false;
-    }
 }

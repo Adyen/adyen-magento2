@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Setup\Patch\Data;
 
+use Adyen\Payment\Helper\PaymentMethods\GooglePayPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PayPalPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\SepaPaymentMethod;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
@@ -46,6 +47,7 @@ class PaymentMethods implements DataPatchInterface, PatchVersionInterface
         $this->moduleDataSetup->getConnection()->startSetup();
         $this->addPaymentMethod(PayPalPaymentMethod::TX_VARIANT, true, true);
         $this->addPaymentMethod(SepaPaymentMethod::TX_VARIANT, true, true);
+        $this->addPaymentMethod(GooglePayPaymentMethod::TX_VARIANT, true, true);
         $this->moduleDataSetup->getConnection()->endSetup();
     }
 
@@ -63,6 +65,6 @@ class PaymentMethods implements DataPatchInterface, PatchVersionInterface
 
     public static function getVersion()
     {
-        return '8.3.0';
+        return '8.4.0';
     }
 }

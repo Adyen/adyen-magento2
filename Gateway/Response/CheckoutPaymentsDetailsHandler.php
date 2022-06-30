@@ -22,7 +22,9 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
+use Adyen\Payment\Observer\AdyenHppDataAssignObserver;
 use Magento\Payment\Gateway\Response\HandlerInterface;
+use Magento\Sales\Model\Order\Payment;
 
 class CheckoutPaymentsDetailsHandler implements HandlerInterface
 {
@@ -70,12 +72,15 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
      *
      * @param array $handlingSubject
      * @param array $response
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function handle(array $handlingSubject, array $response)
     {
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($handlingSubject);
 
+        /** @var Payment $payment */
         $payment = $paymentDataObject->getPayment();
+        $paymentMethodInstance = $payment->getMethodInstance();
 
         // set transaction not to processing by default wait for notification
         $payment->setIsTransactionPending(true);
@@ -95,17 +100,23 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
             $payment->setTransactionId($response['pspReference']);
         }
 
-        if ($this->vaultHelper->hasRecurringDetailReference($response) && $payment->getMethodInstance()->getCode() !== AdyenOneclickConfigProvider::CODE) {
-            $isCard = $this->paymentMethodsHelper->isCcTypeACardType($payment);
-            $storeId = $payment->getMethodInstance()->getStore();
+        if ($this->vaultHelper->hasRecurringDetailReference($response) && $paymentMethodInstance->getCode() !== AdyenOneclickConfigProvider::CODE) {
+            $storeId = $paymentMethodInstance->getStore();
+            $paymentInstanceCode = $paymentMethodInstance->getCode();
             $storePaymentMethods = $this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId);
-            // If store alternative payment method is enabled and this is an alternative payment method AND ccType is NOT a card type
-            // ElseIf store alternative payment method is enabled and this is an alternative payment method AND ccType is a card type
-            // Else create entry in paypal_billing_agreement
-            if ($storePaymentMethods && $payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE && !$isCard) {
-                $this->vaultHelper->saveRecurringPaymentMethodDetails($payment, $response['additionalData']);
-            } elseif ($storePaymentMethods && $payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE && $isCard) {
-                $this->vaultHelper->saveRecurringCardDetails($payment, $response['additionalData']);
+
+            if ($storePaymentMethods && $paymentInstanceCode === AdyenHppConfigProvider::CODE) {
+                $brand = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
+                try {
+                    $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
+                    if ($adyenPaymentMethod->isWalletPaymentMethod()) {
+                        $this->vaultHelper->saveRecurringCardDetails($payment, $response['additionalData']);
+                    } else {
+                        $this->vaultHelper->saveRecurringPaymentMethodDetails($payment, $response['additionalData']);
+                    }
+                } catch (PaymentMethodException $e) {
+                    $this->adyenLogger->error(sprintf('Unable to create payment method with tx variant %s in details handler', $brand));
+                }
             } else {
                 $order = $payment->getOrder();
                 $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $payment->getAdditionalInformation());

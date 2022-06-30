@@ -45,4 +45,9 @@ class PayPalPaymentMethod implements PaymentMethodInterface
     {
         return true;
     }
+
+    public function isWalletPaymentMethod(): bool
+    {
+        return false;
+    }
 }

@@ -38,9 +38,9 @@ class PaymentMethodFactory
             case SepaPaymentMethod::TX_VARIANT:
                 return new SepaPaymentMethod();
             default:
-                $message = __('%s: %s', __('Unknown txVariant', $txVariant));
+                $message = sprintf('Unknown txVariant: %s', $txVariant);
                 self::$adyenLogger->error($message);
-                throw new PaymentMethodException($message);
+                throw new PaymentMethodException(__($message));
         }
     }
 }
