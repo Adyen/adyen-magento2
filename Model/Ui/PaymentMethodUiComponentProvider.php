@@ -58,7 +58,7 @@ class PaymentMethodUiComponentProvider extends AdyenUiComponentProvider implemen
         $tokenType = $this->vaultHelper->getAdyenTokenType($paymentToken);
         $details = json_decode($paymentToken->getTokenDetails() ?: '{}', true);
         // If payment method cannot be created based on the type, this implies that a card token was created using
-        // an hpp method (googlepay/applepay etc.). Hence, return the card component for this token.
+        // a wallet method (googlepay/applepay etc.). Hence, return the card component for this token.
         try {
             $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($details['type']);
         } catch (PaymentMethodException $exception) {
