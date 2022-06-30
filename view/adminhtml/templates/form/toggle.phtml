@@ -1,3 +1,25 @@
+<?php $randomId = rand(); ?>
+<?php $groupName = $this->getGroupName(); ?>
+<?php $fieldName = $this->getFieldName(); ?>
+<?php $inputFieldName = "groups[".$groupName."][fields][".$fieldName."][value]"; ?>
+
+<script>
+    function toggleFunction(randomId) {
+        if(document.getElementById(randomId).classList.contains("slider")) {
+            document.getElementById(randomId).setAttribute("class","sliderOne round");
+            document.getElementById(randomId).checked = true;
+        }else{
+            document.getElementById(randomId).setAttribute("class","slider round");
+            document.getElementById(randomId).checked = false;
+        }
+    }
+</script>
+
+<label class="switch" >
+    <input type="checkbox" onclick="toggleFunction('<?php echo "spa-" . $randomId ?>')" name="<?php echo $inputFieldName; ?>" >
+    <span class="slider round" id="<?php echo 'spa-' . $randomId; ?>" ></span>
+</label>
+
 <style>
     .switch {
         position: relative;
@@ -41,10 +63,10 @@
     .slider:before {
         position: absolute;
         content: "";
-        height: 22px;
-        width: 22px;
+        height: 20px;
+        width: 20px;
         left: -5px;
-        bottom: 0px;
+        bottom: -1px;
         background-color: white;
         -webkit-transition: .4s;
         transition: .4s;
@@ -54,10 +76,10 @@
     .sliderOne:before {
         position: absolute;
         content: "";
-        height: 22px;
-        width: 22px;
-        left: .3px;
-        bottom: 0px;
+        height: 20px;
+        width: 20px;
+        left: 0px;
+        bottom: -1px;
         background-color: white;
         -webkit-transition: .4s;
         transition: .4s;
@@ -81,53 +103,37 @@
     }
 
     input:checked + .slider:before {
-        -webkit-transform: translateX(22px);
-        -ms-transform: translateX(22px);
-        transform: translateX(22px);
+        -webkit-transform: translateX(20px);
+        -ms-transform: translateX(20px);
+        transform: translateX(20px);
     }
     input:checked + .sliderOne:before {
-        -webkit-transform: translateX(22px);
-        -ms-transform: translateX(22px);
-        transform: translateX(22px);
+        -webkit-transform: translateX(20px);
+        -ms-transform: translateX(20px);
+        transform: translateX(20px);
     }
 
     /* Rounded sliders */
     .slider.round {
         border-radius: 35px;
+        border: 1px solid #ccc;
     }
 
     .slider.round:before {
         border-radius: 100%;
         display: inline-block;
         border: 1px solid #ccc;
-        height: 90%;
     }
 
     .sliderOne.round {
         border-radius: 35px;
+        border: 1px solid #ccc;
     }
 
     .sliderOne.round:before {
         border-radius: 100%;
         display: inline-block;
+        border: 1px solid #ccc;
     }
 
 </style>
-<script>
-    function toggleFunction() {
-
-        if(document.getElementById('spa').classList.contains("slider")) {
-            document.getElementsByClassName("slider")[0].setAttribute("class","sliderOne round");
-            //document.getElementsByClassName("slider")[0].setAttribute("class","sliderOne round");
-            // document.getElementById('toggle').innerHTML = "  &nbsp; No";
-        }else{
-            document.getElementsByClassName("sliderOne")[0].setAttribute("class","slider round");
-            // document.getElementById('toggle').innerHTML = "  &nbsp; Yes";
-        }
-    }
-</script>
-<label class="switch">
-    <input type="checkbox" onclick="toggleFunction()" checked>
-    <span class="slider round" id="spa"></span>
-</label>
-<span id="toggle"></span>

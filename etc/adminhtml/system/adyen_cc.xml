@@ -52,10 +52,16 @@
                sortOrder="60">
             <label>Installments Setup</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-            <field id="enable_installments" translate="label" type="select" sortOrder="10" showInDefault="1"
-                   showInWebsite="1" showInStore="1">
+<!--            <field id="enable_installments" translate="label" type="select" sortOrder="10" showInDefault="1"-->
+<!--                   showInWebsite="1" showInStore="1">-->
+<!--                <label>Enable Installments</label>-->
+<!--                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
+<!--                <tooltip>Enable installments for each credit card type.</tooltip>-->
+<!--                <config_path>payment/adyen_cc/enable_installments</config_path>-->
+<!--            </field>-->
+            <field id="enable_installments" type="checkbox" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Enable Installments</label>
-                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Advanced</frontend_model>
                 <tooltip>Enable installments for each credit card type.</tooltip>
                 <config_path>payment/adyen_cc/enable_installments</config_path>
             </field>

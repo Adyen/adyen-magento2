@@ -21,6 +21,27 @@ class Advanced extends \Magento\Config\Block\System\Config\Form\Field
     protected $_template = 'Adyen_Payment::form/toggle.phtml';
 
     /**
+     * [Template path]
+     *
+     * @var string
+     */
+    protected $_groupName = 'toggleme';
+
+    /**
+     * [Template path]
+     *
+     * @var string
+     */
+    protected $_fieldName = 'status';
+
+    /**
+     * [Template path]
+     *
+     * @var string
+     */
+    protected $_configPath = 'Adyen_Payment::';
+
+    /**
      * Render fieldset html
      *
      * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
@@ -28,6 +49,18 @@ class Advanced extends \Magento\Config\Block\System\Config\Form\Field
      */
     public function render(\Magento\Framework\Data\Form\Element\AbstractElement $element): string
     {
-        return $this->_decorateRowHtml($element, "<td class='label'>".$element->getLabelHtml() .'</td><td>'. $this->toHtml() . '</td>');
+        return $this->_decorateRowHtml($element, "<td class='label'>" . $element->getLabel() .'</td><td>'. $this->toHtml() . '</td>');
+    }
+
+    public function getGroupName() {
+        return $this->_groupName;
+    }
+
+    public function getFieldName() {
+        return $this->_fieldName;
+    }
+
+    public function getConfigPath() {
+        return $this->_configPath;
     }
 }

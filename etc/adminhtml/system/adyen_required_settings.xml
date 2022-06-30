@@ -111,10 +111,15 @@
             <source_model>Adyen\Payment\Model\Config\Source\ChargedCurrency</source_model>
             <config_path>payment/adyen_abstract/charged_currency</config_path>
         </field>
-        <field id="debug" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1"
-               showInStore="0">
+<!--        <field id="debug" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1"-->
+<!--               showInStore="0">-->
+<!--            <label>Enable debug logging</label>-->
+<!--            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
+<!--            <config_path>payment/adyen_abstract/debug</config_path>-->
+<!--        </field>-->
+        <field id="debug" type="checkbox" translate="label" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0">
             <label>Enable debug logging</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Advanced</frontend_model>
             <config_path>payment/adyen_abstract/debug</config_path>
         </field>
     </group>
