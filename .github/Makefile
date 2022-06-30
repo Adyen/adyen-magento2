@@ -34,7 +34,7 @@ configure: n98-magerun2.phar
 	bin/magento config:set payment/adyen_giving/active 1
 	bin/magento config:set payment/adyen_giving/charity_description 'test'
 	bin/magento config:set payment/adyen_giving/charity_website 'https://adyen.com'
-	bin/magento config:set payment/adyen_giving/charity_merchant_account 'AdyenGivingDemo'
+	bin/magento config:set payment/adyen_giving/charity_merchant_account "${DONATION_ACCOUNT}"
 	bin/magento config:set payment/adyen_giving/donation_amounts '1,5,10'
 	bin/magento config:set payment/adyen_giving/background_image ''
 	bin/magento config:set payment/adyen_abstract/merchant_account "${ADYEN_MERCHANT}"
@@ -77,13 +77,14 @@ bundlejs:
 	bin/magento cache:clean config
 
 MAGENTO_ROOT=/var/www/html
-PHPUNIT_CONFIG=vendor/adyen/module-payment/Test/api-functional/phpunit_graphql.xml
-TEST_SUITE=vendor/adyen/module-payment/Test/api-functional/GraphQl
+GRAPHQL_XML=${MAGENTO_ROOT}/dev/tests/api-functional/phpunit_graphql.xml.dist
+GRAPHQL_PHP=/data/extensions/workdir/Test/phpunit_graphql.php
+GRAPHQL_SUITE=${MAGENTO_ROOT}/vendor/adyen/module-payment/Test/api-functional/GraphQl
 
 # GraphQL tests
 graphql:
 	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
-		${MAGENTO_ROOT}/vendor/bin/phpunit --configuration ${MAGENTO_ROOT}/${PHPUNIT_CONFIG} ${MAGENTO_ROOT}/${TEST_SUITE}
+		${MAGENTO_ROOT}/vendor/bin/phpunit --prepend ${GRAPHQL_PHP} --configuration ${GRAPHQL_XML} ${GRAPHQL_SUITE}
 
 # Unit tests
 unit:
@@ -91,9 +92,46 @@ unit:
 
 # Destroy services
 clean:
-	docker-compose -f workflows/templates/docker-compose.yml down --volumes
+	docker-compose -f workflows/templates/docker-compose.yml down --volumes --rmi local
+	docker-compose -f docker-compose.yml -f docker-compose.mftf.yml down --volumes --rmi local
 
-# Full CI build
+# Docker image build
+image:
+	docker-compose -f workflows/templates/docker-compose.yml -f docker-compose.e2e.yml build
+	docker-compose -f docker-compose.yml -f docker-compose.mftf.yml build
+
+# Setup environment to run functional tests (https://devdocs.magento.com/mftf/docs/getting-started.html)
+setup-mftf:
+	bin/magento config:set currency/options/allow USD,EUR
+	bin/magento config:set currency/options/default USD
+	bin/magento config:set currency/options/base USD
+
+	bin/magento config:set cms/wysiwyg/enabled disabled
+	bin/magento config:set admin/security/admin_account_sharing 1
+	bin/magento config:set admin/security/use_form_key 0
+	bin/magento cache:clean config full_page
+
+	vendor/bin/mftf build:project
+
+	rm -f dev/tests/acceptance/.env;
+	vendor/bin/mftf setup:env \
+		--MAGENTO_BASE_URL "http://${MAGENTO_HOST}/" \
+		--MAGENTO_BACKEND_NAME "${ADMIN_URLEXT}" \
+		--MAGENTO_ADMIN_USERNAME "${ADMIN_USERNAME}" \
+		--MAGENTO_ADMIN_PASSWORD "${ADMIN_PASSWORD}" \
+		--BROWSER chrome \
+		--ELASTICSEARCH_VERSION 7;
+	echo 'SELENIUM_HOST=selenium' >> dev/tests/acceptance/.env;
+
+	cp dev/tests/acceptance/.htaccess.sample dev/tests/acceptance/.htaccess
+
+	vendor/bin/mftf doctor
+
+# Magento Functional Testing Framework
+mftf:
+	vendor/bin/mftf run:group --remove -- AdyenMagentoSuite || vendor/bin/mftf run:failed
+
+# Simulate a full CI build
 ci:
 	docker-compose -f workflows/templates/docker-compose.yml run --rm web make magento
 	docker-compose -f workflows/templates/docker-compose.yml up -d web

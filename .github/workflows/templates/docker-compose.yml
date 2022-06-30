@@ -23,7 +23,11 @@ services:
     networks:
       - backend
   web:
-    image: ataberkylmz/magento2:2.4.2
+    build: 
+      context: ../../
+      args:
+        - PHP_VERSION=${PHP_VERSION}
+        - MAGENTO_VERSION=${MAGENTO_VERSION}
     container_name: magento2-container
     extra_hosts:
       - "magento2.test.com:127.0.0.1"
@@ -34,11 +38,14 @@ services:
       VIRTUAL_HOST: magento2.test.com
       COMPOSER_MEMORY_LIMIT: -1
       DEPLOY_SAMPLEDATA: 1
+      DONATION_ACCOUNT:
       ADMIN_USERNAME:
       ADMIN_PASSWORD:
       ADYEN_MERCHANT:
       ADYEN_API_KEY:
       ADYEN_CLIENT_KEY:
+      PHP_VERSION:
+      MAGENTO_VERSION:
     depends_on:
       - db
       - elastic
