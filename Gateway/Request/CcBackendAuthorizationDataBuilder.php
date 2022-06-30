@@ -13,6 +13,7 @@ namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Observer\AdyenCcDataAssignObserver;
+use Magento\Backend\Model\Session\Quote;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
@@ -23,10 +24,17 @@ class CcBackendAuthorizationDataBuilder implements BuilderInterface
      * @var StateData
      */
     private $stateData;
+    /**
+     * @var Quote
+     */
+    private $quote;
 
-    public function __construct(StateData $stateData)
-    {
+    public function __construct(
+        StateData $stateData,
+        Quote $quote
+    ) {
         $this->stateData = $stateData;
+        $this->quote = $quote;
     }
 
     /**
@@ -38,8 +46,7 @@ class CcBackendAuthorizationDataBuilder implements BuilderInterface
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
-        $order = $paymentDataObject->getOrder();
-        $requestBody = $this->stateData->getStateData($order->getQuoteId());
+        $requestBody = $this->stateData->getStateData($this->quote->getQuoteId());
 
         // if installments is set add it into the request
         $installments = $payment->getAdditionalInformation(AdyenCcDataAssignObserver::NUMBER_OF_INSTALLMENTS) ?: 0;
