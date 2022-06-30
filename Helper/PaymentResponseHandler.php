@@ -80,8 +80,6 @@ class PaymentResponseHandler
      */
     private $paymentMethodFactory;
 
-    private PaymentMethods $paymentMethodsHelper;
-
     /**
      * PaymentResponseHandler constructor.
      *
@@ -98,8 +96,7 @@ class PaymentResponseHandler
         Recurring $recurringHelper,
         Quote $quoteHelper,
         Config $configHelper,
-        PaymentMethodFactory $paymentMethodFactory,
-        PaymentMethods $paymentMethodsHelper
+        PaymentMethodFactory $paymentMethodFactory
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
@@ -110,7 +107,6 @@ class PaymentResponseHandler
         $this->quoteHelper = $quoteHelper;
         $this->configHelper = $configHelper;
         $this->paymentMethodFactory = $paymentMethodFactory;
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     public function formatPaymentResponse($resultCode, $action = null, $additionalData = null)
