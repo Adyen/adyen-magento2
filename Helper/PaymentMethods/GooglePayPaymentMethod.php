@@ -14,7 +14,7 @@ namespace Adyen\Payment\Helper\PaymentMethods;
 class GooglePayPaymentMethod implements PaymentMethodInterface
 {
     const TX_VARIANT = 'googlepay';
-    const NAME = 'GooglePay';
+    const NAME = 'Google Pay';
 
     public function getTxVariant(): string
     {

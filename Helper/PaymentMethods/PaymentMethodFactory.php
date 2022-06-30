@@ -12,13 +12,12 @@
 
 namespace Adyen\Payment\Helper\PaymentMethods;
 
-
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Logger\AdyenLogger;
 
 class PaymentMethodFactory
 {
-    private static $adyenLogger;
+    private static AdyenLogger $adyenLogger;
 
     public function __construct(AdyenLogger $adyenLogger)
     {
@@ -31,6 +30,8 @@ class PaymentMethodFactory
     public static function createAdyenPaymentMethod(string $txVariant): PaymentMethodInterface
     {
         switch ($txVariant) {
+            case ApplePayPaymentMethod::TX_VARIANT:
+                return new ApplePayPaymentMethod();
             case GooglePayPaymentMethod::TX_VARIANT:
                 return new GooglePayPaymentMethod();
             case PayPalPaymentMethod::TX_VARIANT:

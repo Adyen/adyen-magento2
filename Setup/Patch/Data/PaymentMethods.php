@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Adyen\Payment\Setup\Patch\Data;
 
+use Adyen\Payment\Helper\PaymentMethods\ApplePayPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\GooglePayPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PayPalPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\SepaPaymentMethod;
@@ -48,6 +49,7 @@ class PaymentMethods implements DataPatchInterface, PatchVersionInterface
         $this->addPaymentMethod(PayPalPaymentMethod::TX_VARIANT, true, true);
         $this->addPaymentMethod(SepaPaymentMethod::TX_VARIANT, true, true);
         $this->addPaymentMethod(GooglePayPaymentMethod::TX_VARIANT, true, true);
+        $this->addPaymentMethod(ApplePayPaymentMethod::TX_VARIANT, true, true);
         $this->moduleDataSetup->getConnection()->endSetup();
     }
 
