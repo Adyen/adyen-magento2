@@ -22,6 +22,8 @@ use Magento\Sales\Model\Order;
 class Result extends \Magento\Framework\App\Action\Action
 {
 
+    const BRAND_CODE_DOTPAY = 'dotpay';
+    const RESULT_CODE_RECEIVED = 'Received';
     const DETAILS_ALLOWED_PARAM_KEYS = [
         'MD',
         'PaReq',
@@ -191,6 +193,16 @@ class Result extends \Magento\Framework\App\Action\Action
         if ($result) {
             $session = $this->_session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
+
+            // Prevent action component to redirect page with the payment method Dotpay Bank transfer / postal
+            if (
+                $this->_order->getPayment()->getAdditionalInformation('brand_code') == self::BRAND_CODE_DOTPAY &&
+                $this->_order->getPayment()->getAdditionalInformation('resultCode') == self::RESULT_CODE_RECEIVED
+            ) {
+                $this->payment->unsAdditionalInformation('action');
+                $this->_order->save();
+            }
+
             // Add OrderIncrementId to redirect parameters for headless support.
             $redirectParams = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
                 ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->_order->getIncrementId()]]
