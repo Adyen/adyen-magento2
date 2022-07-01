@@ -25,7 +25,5 @@ interface PaymentMethodInterface
 
     public function supportsAutoCapture(): bool;
 
-    public function getLabel(): string;
-
-    public function getRequiredAdditionalData(): array;
+    public function isWalletPaymentMethod(): bool;
 }

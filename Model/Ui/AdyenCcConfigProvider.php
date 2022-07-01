@@ -12,8 +12,16 @@
 namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Recurring;
 use Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\UrlInterface;
+use Magento\Framework\View\Asset\Source;
+use Magento\Payment\Model\CcConfig;
+use Magento\Store\Model\StoreManagerInterface;
 
 class AdyenCcConfigProvider implements ConfigProviderInterface
 {
@@ -21,12 +29,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     const CC_VAULT_CODE = 'adyen_cc_vault';
 
     /**
-     * @var PaymentHelper
-     */
-    protected $_paymentHelper;
-
-    /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     protected $_adyenHelper;
 
@@ -38,57 +41,59 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     /**
      * Request object
      *
-     * @var \Magento\Framework\App\RequestInterface
+     * @var RequestInterface
      */
     protected $_request;
 
     /**
-     * @var \Magento\Framework\UrlInterface
+     * @var UrlInterface
      */
     protected $_urlBuilder;
 
     /**
-     * @var \Magento\Payment\Model\CcConfig
+     * @var CcConfig
      */
     private $ccConfig;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var StoreManagerInterface
      */
     private $storeManager;
 
     /**
-     * @var \Magento\Framework\Serialize\SerializerInterface
+     * @var SerializerInterface
      */
     private $serializer;
 
     /** @var Config $configHelper */
     private $configHelper;
 
+    /** @var PaymentMethods */
+    private $paymentMethodsHelper;
+
     /**
      * AdyenCcConfigProvider constructor.
      *
-     * @param \Magento\Payment\Helper\Data $paymentHelper
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Framework\App\RequestInterface $request
-     * @param \Magento\Framework\UrlInterface $urlBuilder
-     * @param \Magento\Framework\View\Asset\Source $assetSource
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Payment\Model\CcConfig $ccConfig
-     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     * @param Data $adyenHelper
+     * @param RequestInterface $request
+     * @param UrlInterface $urlBuilder
+     * @param Source $assetSource
+     * @param StoreManagerInterface $storeManager
+     * @param CcConfig $ccConfig
+     * @param SerializerInterface $serializer
+     * @param Config $configHelper
      */
     public function __construct(
-        \Magento\Payment\Helper\Data $paymentHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Framework\View\Asset\Source $assetSource,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Payment\Model\CcConfig $ccConfig,
-        \Magento\Framework\Serialize\SerializerInterface $serializer,
-        Config $configHelper
+        Data $adyenHelper,
+        RequestInterface $request,
+        UrlInterface $urlBuilder,
+        Source $assetSource,
+        StoreManagerInterface $storeManager,
+        CcConfig $ccConfig,
+        SerializerInterface $serializer,
+        Config $configHelper,
+        PaymentMethods $paymentMethodsHelper
     ) {
-        $this->_paymentHelper = $paymentHelper;
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
         $this->_urlBuilder = $urlBuilder;
@@ -97,6 +102,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         $this->storeManager = $storeManager;
         $this->serializer = $serializer;
         $this->configHelper = $configHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -125,8 +131,8 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
             [
                 'payment' => [
                     'ccform' => [
-                        'availableTypes' => [$methodCode => $this->getCcAvailableTypes()],
-                        'availableTypesByAlt' => [$methodCode => $this->getCcAvailableTypesByAlt()],
+                        'availableTypes' => [$methodCode => $this->paymentMethodsHelper->getCcAvailableTypes()],
+                        'availableTypesByAlt' => [$methodCode => $this->paymentMethodsHelper->getCcAvailableTypesByAlt()],
                         'months' => [$methodCode => $this->getCcMonths()],
                         'years' => [$methodCode => $this->getCcYears()],
                         'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
@@ -160,50 +166,6 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
         }
 
         return $config;
-    }
-
-    /**
-     * Retrieve available credit card types
-     *
-     * @return array
-     */
-    protected function getCcAvailableTypes()
-    {
-        $types = [];
-        $ccTypes = $this->_adyenHelper->getAdyenCcTypes();
-        $availableTypes = $this->_adyenHelper->getAdyenCcConfigData('cctypes');
-        if ($availableTypes) {
-            $availableTypes = explode(',', $availableTypes);
-            foreach (array_keys($ccTypes) as $code) {
-                if (in_array($code, $availableTypes)) {
-                    $types[$code] = $ccTypes[$code]['name'];
-                }
-            }
-        }
-
-        return $types;
-    }
-
-    /**
-     * Retrieve available credit card type codes by alt code
-     *
-     * @return array
-     */
-    protected function getCcAvailableTypesByAlt()
-    {
-        $types = [];
-        $ccTypes = $this->_adyenHelper->getAdyenCcTypes();
-        $availableTypes = $this->_adyenHelper->getAdyenCcConfigData('cctypes');
-        if ($availableTypes) {
-            $availableTypes = explode(',', $availableTypes);
-            foreach (array_keys($ccTypes) as $code) {
-                if (in_array($code, $availableTypes)) {
-                    $types[$ccTypes[$code]['code_alt']] = $code;
-                }
-            }
-        }
-
-        return $types;
     }
 
     /**
@@ -275,7 +237,7 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
     /**
      * Retrieve request object
      *
-     * @return \Magento\Framework\App\RequestInterface
+     * @return RequestInterface
      */
     protected function _getRequest()
     {

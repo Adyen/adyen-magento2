@@ -18,6 +18,7 @@ use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use DateInterval;
 use DateTime;
 use DateTimeZone;
@@ -179,8 +180,7 @@ class Vault
     public function saveRecurringPaymentMethodDetails($payment, array $additionalData): ?PaymentTokenInterface
     {
         try {
-            $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($payment->getCcType());
-            $paymentToken = $this->createVaultAccountToken($payment, $additionalData, $adyenPaymentMethod);
+            $paymentToken = $this->createVaultAccountToken($payment, $additionalData);
             $extensionAttributes = $this->getExtensionAttributes($payment);
             $extensionAttributes->setVaultPaymentToken($paymentToken);
         } catch (PaymentMethodException $e) {
@@ -284,13 +284,8 @@ class Vault
      *
      * @throws InvalidAdditionalDataException
      */
-    private function createVaultAccountToken($payment, array $additionalData, PaymentMethodInterface $adyenPaymentMethod): PaymentTokenInterface
+    private function createVaultAccountToken($payment, array $additionalData): PaymentTokenInterface
     {
-        $requiredAdditionalData = $adyenPaymentMethod->getRequiredAdditionalData();
-        if (!$this->validatePaymentMethodAdditionalData($additionalData, $requiredAdditionalData)) {
-            throw new InvalidAdditionalDataException(__('Unable to validate additionalData received for order ' . $payment->getOrder()->getIncrementId()));
-        }
-
         // Check if paymentToken exists already
         $paymentToken = $this->paymentTokenManagement->getByGatewayToken(
             $additionalData[self::RECURRING_DETAIL_REFERENCE],
@@ -355,6 +350,14 @@ class Vault
 
         if (!empty($additionalData[self::EXPIRY_DATE])) {
             $details['expirationDate'] =  $additionalData[self::EXPIRY_DATE];
+        }
+
+        // Set token type (alternative payment methods) for card tokens created using googlepay, applepay.
+        // This will be done for all card tokens once all vault changes are implemented
+        if ($payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE) {
+            $storeId = $payment->getOrder()->getStoreId();
+            $recurringModel = $this->config->getAlternativePaymentMethodTokenType($storeId);
+            $details[self::TOKEN_TYPE] = $recurringModel;
         }
 
         $paymentToken->setTokenDetails(json_encode($details));

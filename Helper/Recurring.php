@@ -123,8 +123,6 @@ class Recurring
 
                 if ($payment->getMethod() === PaymentMethods::ADYEN_CC) {
                     $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick, $order->getStoreId());
-                } elseif ($payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE) === Data::SEPA) {
-                    $billingAgreement->setSepaBillingAgreement($additionalData, $order->getStoreId(), $savedPaymentData);
                 }
 
                 $billingAgreementErrors = $billingAgreement->getErrors();

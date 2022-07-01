@@ -11,10 +11,10 @@
  */
 namespace Adyen\Payment\Helper\PaymentMethods;
 
-class SepaPaymentMethod implements PaymentMethodInterface
+class GooglePayPaymentMethod implements PaymentMethodInterface
 {
-    const TX_VARIANT = 'sepadirectdebit';
-    const NAME = 'SEPA Direct Debit';
+    const TX_VARIANT = 'googlepay';
+    const NAME = 'Google Pay';
 
     public function getTxVariant(): string
     {
@@ -24,11 +24,6 @@ class SepaPaymentMethod implements PaymentMethodInterface
     public function getPaymentMethodName(): string
     {
         return self::NAME;
-    }
-
-    public function supportsRecurring(): bool
-    {
-        return true;
     }
 
     public function supportsManualCapture(): bool
@@ -43,7 +38,7 @@ class SepaPaymentMethod implements PaymentMethodInterface
 
     public function supportsCardOnFile(): bool
     {
-        return false;
+        return true;
     }
 
     public function supportsSubscription(): bool
@@ -53,6 +48,6 @@ class SepaPaymentMethod implements PaymentMethodInterface
 
     public function isWalletPaymentMethod(): bool
     {
-        return false;
+        return true;
     }
 }

@@ -36,16 +36,6 @@ class PayPalPaymentMethod implements PaymentMethodInterface
         return true;
     }
 
-    public function getLabel(): string
-    {
-        return self::NAME;
-    }
-
-    public function getRequiredAdditionalData(): array
-    {
-        return [];
-    }
-
     public function supportsCardOnFile(): bool
     {
         return false;
@@ -54,5 +44,10 @@ class PayPalPaymentMethod implements PaymentMethodInterface
     public function supportsSubscription(): bool
     {
         return true;
+    }
+
+    public function isWalletPaymentMethod(): bool
+    {
+        return false;
     }
 }

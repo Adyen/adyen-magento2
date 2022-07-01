@@ -18,6 +18,7 @@ use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Sales\Model\Order\Payment;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -531,5 +532,49 @@ class PaymentMethods extends AbstractHelper
             AdyenHppConfigProvider::HPP_VAULT_CODE,
             AdyenOneclickConfigProvider::CODE
         ]);
+    }
+
+    /**
+     * Retrieve available credit card types
+     *
+     * @return array
+     */
+    public function getCcAvailableTypes(): array
+    {
+        $types = [];
+        $ccTypes = $this->adyenHelper->getAdyenCcTypes();
+        $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
+        if ($availableTypes) {
+            $availableTypes = explode(',', $availableTypes);
+            foreach (array_keys($ccTypes) as $code) {
+                if (in_array($code, $availableTypes)) {
+                    $types[$code] = $ccTypes[$code]['name'];
+                }
+            }
+        }
+
+        return $types;
+    }
+
+    /**
+     * Retrieve available credit card type codes by alt code
+     *
+     * @return array
+     */
+    public function getCcAvailableTypesByAlt(): array
+    {
+        $types = [];
+        $ccTypes = $this->adyenHelper->getAdyenCcTypes();
+        $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
+        if ($availableTypes) {
+            $availableTypes = explode(',', $availableTypes);
+            foreach (array_keys($ccTypes) as $code) {
+                if (in_array($code, $availableTypes)) {
+                    $types[$ccTypes[$code]['code_alt']] = $code;
+                }
+            }
+        }
+
+        return $types;
     }
 }
