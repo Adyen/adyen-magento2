@@ -30,7 +30,7 @@
 
         <label><![CDATA[Required Settings]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-        <field id="api_key_test" translate="label" type="obscure" sortOrder="10" showInDefault="1" showInWebsite="1"
+        <field id="api_key_test" translate="label" type="obscure" sortOrder="5" showInDefault="1" showInWebsite="1"
                showInStore="0">
             <label>API key for Test</label>
             <tooltip>If you don't know your Api-Key, log in to your Test Customer Area. Navigate to Developers => API
@@ -40,7 +40,7 @@
             <config_path>payment/adyen_abstract/api_key_test</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding"/>
         </field>
-        <field id="api_key_live" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1"
+        <field id="api_key_live" translate="label" type="obscure" sortOrder="10" showInDefault="1" showInWebsite="1"
                showInStore="0">
             <label>API key for Live</label>
             <tooltip>If you don't know your Api-Key, you can find it in your Live Customer Area. Navigate to Developers
@@ -50,13 +50,20 @@
             <config_path>payment/adyen_abstract/api_key_live</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding"/>
         </field>
-        <field id="demo_mode" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+        <field id="demo_mode" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Test/Production Mode</label>
             <source_model>Adyen\Payment\Model\Config\Source\DemoMode</source_model>
             <config_path>payment/adyen_abstract/demo_mode</config_path>
             <tooltip>
                 <![CDATA[ In the test mode you must use test cards. See section Documentation & Support for the link to the test cards]]></tooltip>
+        </field>
+        <field id="configuration_mode" translate="label" type="select" sortOrder="30" showInDefault="1"
+               showInWebsite="1"
+               showInStore="1">
+            <label>Configuration Mode</label>
+            <source_model>Adyen\Payment\Model\Config\Source\ConfigurationMode</source_model>
+            <config_path>payment/adyen_abstract/configuration_mode</config_path>
         </field>
         <field id="adyen_get_merchant_accounts" translate="label comment" type="button" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <frontend_model>Adyen\Payment\Model\Config\Adminhtml\MerchantAccounts</frontend_model>
@@ -120,14 +127,6 @@
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/notification_password</config_path>
             <tooltip>Set a password of your choice. </tooltip>
-        </field>
-        <field id="webhook_url" translate="label" type="text" sortOrder="100" showInDefault="1"
-               showInWebsite="1" showInStore="1">
-            <label>Webhook URL</label>
-            <frontend_model>Adyen\Payment\Model\Config\Adminhtml\WebhookCredentials</frontend_model>
-            <config_path>payment/adyen_abstract/webhook_url</config_path>
-            <validate>validate-url</validate>
-            <tooltip>Set the webhook URL. </tooltip>
         </field>
         <field id="adyen_webhook_test" translate="label comment" type="button" sortOrder="105" showInDefault="1" showInWebsite="1" showInStore="1">
             <frontend_model>Adyen\Payment\Model\Config\Adminhtml\WebhookTest</frontend_model>
