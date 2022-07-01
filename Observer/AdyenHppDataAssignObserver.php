@@ -137,10 +137,6 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
             $this->stateData->setStateData($stateData, $paymentInfo->getData('quote_id'));
         }
 
-        if (array_key_exists(self::BRAND_CODE, $additionalData) && $additionalData[self::BRAND_CODE] === Data::SEPA) {
-            $additionalDataToSave = $this->getSepaAdditionalDataToSave($stateData);
-        }
-
 
         unset($additionalData[self::STATE_DATA]);
 
@@ -165,25 +161,5 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
                 $this->adyenLogger->error(sprintf('Unable to find payment method with tx variant %s in observer', $brand));
             }
         }
-    }
-
-    /**
-     * Get the additional data to save. This data will be required if the payment is to be tokenized
-     *
-     * @param array $stateData
-     * @return array
-     */
-    private function getSepaAdditionalDataToSave(array $stateData): array
-    {
-        $additionalData = [];
-        if (array_key_exists('iban', $stateData['paymentMethod'])) {
-            $additionalData['iban'] = $stateData['paymentMethod']['iban'];
-        }
-
-        if (array_key_exists('ownerName', $stateData['paymentMethod'])) {
-            $additionalData['ownerName'] = $stateData['paymentMethod']['ownerName'];
-        }
-
-        return $additionalData;
     }
 }
