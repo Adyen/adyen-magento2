@@ -27,10 +27,14 @@ class Cc extends AbstractInfo
     public function getCcTypeName()
     {
         $types = $this->_adyenHelper->getAdyenCcTypes();
-        $ccType = strtoupper($this->getInfo()->getCcType());
+        $ccType = $this->getInfo()->getCcType();
 
-        if (isset($types[$ccType])) {
-            return $types[$ccType]['name'];
+        $types = array_filter($types, function ($type) use ($ccType) {
+            return $type['code_alt'] === $ccType;
+        });
+
+        if (!empty($types)) {
+            return reset($types)['name'];
         }
         // TODO::Refactor this block after tokenization of the alternative payment methods.
         // This elseif block should be removed after the tokenization of the alternative payment methods (In progress: PW-6764). More general approach is required.
