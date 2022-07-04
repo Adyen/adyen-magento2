@@ -11,7 +11,7 @@
 
 namespace Adyen\Payment\Block\Adminhtml\System\Config\Field;
 
-class Advanced extends \Magento\Config\Block\System\Config\Form\Field
+class Toggle extends \Magento\Config\Block\System\Config\Form\Field
 {
     /**
      * [Template path]
@@ -42,14 +42,23 @@ class Advanced extends \Magento\Config\Block\System\Config\Form\Field
     protected $_configPath = 'Adyen_Payment::';
 
     /**
+     * [Template path]
+     *
+     * @var string
+     */
+    protected $_myStatus = false;
+
+    /**
      * Render fieldset html
      *
      * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
      * @return string
      */
+
     public function render(\Magento\Framework\Data\Form\Element\AbstractElement $element): string
     {
         return $this->_decorateRowHtml($element, "<td class='label'>" . $element->getLabel() .'</td><td>'. $this->toHtml() . '</td>');
+
     }
 
     public function getGroupName() {
@@ -62,5 +71,9 @@ class Advanced extends \Magento\Config\Block\System\Config\Form\Field
 
     public function getConfigPath() {
         return $this->_configPath;
+    }
+
+    public function getMyStatus() {
+        return $this->_myStatus;
     }
 }

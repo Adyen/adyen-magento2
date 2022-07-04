@@ -1,25 +1,3 @@
-<?php $randomId = rand(); ?>
-<?php $groupName = $this->getGroupName(); ?>
-<?php $fieldName = $this->getFieldName(); ?>
-<?php $inputFieldName = "groups[".$groupName."][fields][".$fieldName."][value]"; ?>
-
-<script>
-    function toggleFunction(randomId) {
-        if(document.getElementById(randomId).classList.contains("slider")) {
-            document.getElementById(randomId).setAttribute("class","sliderOne round");
-            document.getElementById(randomId).checked = true;
-        }else{
-            document.getElementById(randomId).setAttribute("class","slider round");
-            document.getElementById(randomId).checked = false;
-        }
-    }
-</script>
-
-<label class="switch" >
-    <input type="checkbox" onclick="toggleFunction('<?php echo "spa-" . $randomId ?>')" name="<?php echo $inputFieldName; ?>" >
-    <span class="slider round" id="<?php echo 'spa-' . $randomId; ?>" ></span>
-</label>
-
 <style>
     .switch {
         position: relative;
@@ -135,5 +113,34 @@
         display: inline-block;
         border: 1px solid #ccc;
     }
-
 </style>
+
+<?php $randomId = rand(); ?>
+<?php $groupName = $this->getGroupName(); ?>
+<?php $fieldName = $this->getFieldName(); ?>
+<?php $__inputFieldName = "groups[".$groupName."][fields][".$fieldName."][value]"; ?>
+<?php $inputFieldName = "groups[adyen_group_all_in_one][groups][adyen_configure_payment_methods][groups][adyen_cc][fields][active][value]"; ?>
+<?php $realData = $this->getMyStatus(); ?>
+
+<script>
+    function toggleFunction(randomId) {
+        if(document.getElementById(randomId).checked) {
+            document.getElementById(randomId).nextElementSibling.setAttribute("class","sliderOne round");
+            document.getElementById(randomId).setAttribute('checked', 'checked');
+        }else{
+            document.getElementById(randomId).nextElementSibling.setAttribute("class","slider round");
+            document.getElementById(randomId).removeAttribute('checked')
+        }
+    }
+
+
+</script>
+
+<label class="switch" >
+    <input value="RPOPOV" type="checkbox" id="<?php echo 'input-' . $randomId; ?>" name="<?php echo $inputFieldName; ?>" onclick="toggleFunction('<?php echo "input-" . $randomId ?>')" <?= ($realData) ? 'checked="checked"' : '' ?>>
+    <span class="<?= ($realData) ? 'sliderOne' : 'slider' ?> round" id="<?php echo 'span-' . $randomId; ?>" ></span>
+</label>
+
+<!--- dynamically change the class of the span element if the input is checked or not-->
+<!--- get the information if the input is checked or not from the core_config_data db table --->
+<!--- send the value of the input element (checked or not) to the database-->

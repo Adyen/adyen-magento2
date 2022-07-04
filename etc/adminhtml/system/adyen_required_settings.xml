@@ -119,7 +119,7 @@
 <!--        </field>-->
         <field id="debug" type="checkbox" translate="label" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0">
             <label>Enable debug logging</label>
-            <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Advanced</frontend_model>
+            <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Toggle</frontend_model>
             <config_path>payment/adyen_abstract/debug</config_path>
         </field>
     </group>
