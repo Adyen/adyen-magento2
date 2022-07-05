@@ -33,6 +33,9 @@ class Config
     const XML_HOUSE_NUMBER_STREET_LINE = "house_number_street_line";
     const XML_ADYEN_ONECLICK = 'adyen_oneclick';
     const XML_ADYEN_HPP = 'adyen_hpp';
+    const XML_ADYEN_CC = 'adyen_cc';
+    const XML_ADYEN_BOLETO = 'adyen_boleto';
+    const XML_ADYEN_PAY_BY_LINK = 'adyen_pay_by_link';
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
     const XML_ADYEN_CC_VAULT = 'adyen_cc_vault';
     const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
