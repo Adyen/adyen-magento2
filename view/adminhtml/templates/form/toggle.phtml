@@ -118,29 +118,22 @@
 <?php $randomId = rand(); ?>
 <?php $groupName = $this->getGroupName(); ?>
 <?php $fieldName = $this->getFieldName(); ?>
-<?php $__inputFieldName = "groups[".$groupName."][fields][".$fieldName."][value]"; ?>
-<?php $inputFieldName = "groups[adyen_group_all_in_one][groups][adyen_configure_payment_methods][groups][adyen_cc][fields][active][value]"; ?>
-<?php $realData = $this->getMyStatus(); ?>
+<?php $realData = (int)$this->getMyStatus(); ?>
 
 <script>
     function toggleFunction(randomId) {
         if(document.getElementById(randomId).checked) {
             document.getElementById(randomId).nextElementSibling.setAttribute("class","sliderOne round");
-            document.getElementById(randomId).setAttribute('checked', 'checked');
+            document.getElementById(randomId).value = '1'
         }else{
             document.getElementById(randomId).nextElementSibling.setAttribute("class","slider round");
-            document.getElementById(randomId).removeAttribute('checked')
+            document.getElementById(randomId).value = '0'
         }
     }
-
-
 </script>
 
 <label class="switch" >
-    <input value="RPOPOV" type="checkbox" id="<?php echo 'input-' . $randomId; ?>" name="<?php echo $inputFieldName; ?>" onclick="toggleFunction('<?php echo "input-" . $randomId ?>')" <?= ($realData) ? 'checked="checked"' : '' ?>>
-    <span class="<?= ($realData) ? 'sliderOne' : 'slider' ?> round" id="<?php echo 'span-' . $randomId; ?>" ></span>
+    <input value="0" type="hidden" name="<?php echo $groupName; ?>" >
+    <input value="1" type="checkbox" id="<?php echo 'input-' . $randomId; ?>" name="<?php echo $groupName; ?>" onclick="toggleFunction('<?php echo "input-" . $randomId ?>')" <?= $realData ? 'checked' : '' ?>>
+    <span class="<?= $realData ? 'sliderOne' : 'slider' ?> round" id="<?php echo 'span-' . $randomId; ?>" ></span>
 </label>
-
-<!--- dynamically change the class of the span element if the input is checked or not-->
-<!--- get the information if the input is checked or not from the core_config_data db table --->
-<!--- send the value of the input element (checked or not) to the database-->

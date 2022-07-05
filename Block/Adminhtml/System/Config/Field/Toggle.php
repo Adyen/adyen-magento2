@@ -25,28 +25,15 @@ class Toggle extends \Magento\Config\Block\System\Config\Form\Field
      *
      * @var string
      */
-    protected $_groupName = 'toggleme';
+    protected $groupName;
 
     /**
      * [Template path]
      *
      * @var string
      */
-    protected $_fieldName = 'status';
+    protected $myStatus;
 
-    /**
-     * [Template path]
-     *
-     * @var string
-     */
-    protected $_configPath = 'Adyen_Payment::';
-
-    /**
-     * [Template path]
-     *
-     * @var string
-     */
-    protected $_myStatus = false;
 
     /**
      * Render fieldset html
@@ -57,23 +44,18 @@ class Toggle extends \Magento\Config\Block\System\Config\Form\Field
 
     public function render(\Magento\Framework\Data\Form\Element\AbstractElement $element): string
     {
+        $this->groupName = $element->getName();
+        $this->myStatus = $element->getData()['value'];
+
         return $this->_decorateRowHtml($element, "<td class='label'>" . $element->getLabel() .'</td><td>'. $this->toHtml() . '</td>');
 
     }
 
     public function getGroupName() {
-        return $this->_groupName;
-    }
-
-    public function getFieldName() {
-        return $this->_fieldName;
-    }
-
-    public function getConfigPath() {
-        return $this->_configPath;
+        return $this->groupName;
     }
 
     public function getMyStatus() {
-        return $this->_myStatus;
+        return $this->myStatus;
     }
 }

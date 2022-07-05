@@ -16,9 +16,18 @@
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment><![CDATA[During checkout, shoppers can choose to have their payment details stored in Adyen’s highly secure platform. Adyen handles this process for its customers. Shoppers can then select the stored payment method during checkout.]]></comment>
-        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+<!--        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">-->
+<!--            <label>Enabled</label>-->
+<!--            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
+<!--            <config_path>payment/adyen_oneclick/active</config_path>-->
+<!--            <tooltip>-->
+<!--                This functionality requires Adyen card payments to be enabled-->
+<!--            </tooltip>-->
+<!--        </field>-->
+        <field id="active" translate="label" type="checkbox" sortOrder="10" showInDefault="1" showInWebsite="1"
+               showInStore="1">
             <label>Enabled</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Toggle</frontend_model>
             <config_path>payment/adyen_oneclick/active</config_path>
             <tooltip>
                 This functionality requires Adyen card payments to be enabled
