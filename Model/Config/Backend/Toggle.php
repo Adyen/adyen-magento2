@@ -14,16 +14,6 @@ namespace Adyen\Payment\Model\Config\Backend;
 class Toggle extends \Magento\Framework\App\Config\Value
 {
     /**
-     * @var \Magento\Framework\Math\Random
-     */
-    protected $mathRandom;
-
-    /**
-     * @var \Magento\Framework\Serialize\SerializerInterface
-     */
-    private $serializer;
-
-    /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
@@ -38,118 +28,51 @@ class Toggle extends \Magento\Framework\App\Config\Value
         \Magento\Framework\Registry $registry,
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Magento\Framework\App\Cache\TypeListInterface $cacheTypeList,
-        \Magento\Framework\Math\Random $mathRandom,
-        \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
-        $this->mathRandom = $mathRandom;
-        $this->serializer = $serializer;
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
+//    Angel suggested to me using the backend model for sending the value of the checkbox to the DB as it is a cleaner
+//    solution than using two input fields in the toggle.phtml file - one with type hidden and one with type checkbox
+
+//    However, the problem with the checkbox is that if it is not checked, it doesn't send anything to the DB,
+//    so we can't save the value that we assign to the un-checked checkbox to the DB
+
 
     /**
      * Prepare data before save
      *
-     * @return $this
+     * @return int
      */
+
+    // putting a breakpoint in line 53, we can see that if the checkbox is unchecked in the admin panel, the debugger isn't stopping at this breakpoint
+    // it is stopping at this breakpoint if we send the value to the DB (using the Save Config button) with the checked checkbox
+
     public function beforeSave()
+
+        // I tried to use beforeSave to set the value of 0 to the checkbox that is unchecked so we can actually send the
+        // value of 0 to the DB, but it doesn't work. This block is fully skipped if the checkbox isn't checked.
+
     {
         $value = $this->getValue();
-
-
-
-
-
-        if (!is_array($value)) {
-            return $this;
-        }
-        $result = [];
-        foreach ($value as $data) {
-            if (!$data) {
-                continue;
-            }
-            if (!is_array($data)) {
-                continue;
-            }
-            if (count($data) < 2) {
-                continue;
-            }
-
-            $amount = $data['amount'];
-            $installments = $data['installments'];
-            $ccTypes = $data['cc_types'];
-
-            foreach ($ccTypes as $ccType) {
-                $result[$ccType][$amount] = $installments;
-            }
+        if(empty($value)) {
+            return "0";
+        }else{
+         return "1";
         }
 
-        // sort on installments
-        $finalResult = [];
-        foreach ($result as $key => $installments) {
-            asort($installments);
-            $finalResult[$key] = $installments;
-        }
-
-        $this->setValue($this->serializer->serialize($finalResult));
-        return $this;
     }
 
-    /**
-     * Process data after load
-     *
-     * @return $this
-     */
+
     protected function _afterLoad()
     {
         $value = $this->getValue();
         if (empty($value)) {
-            return $this;
+            return "0";
+        }else{
+            return "1";
         }
-
-        $value = $this->serializer->unserialize($value);
-        $value = $this->encodeArrayFieldValue($value);
-        $this->setValue($value);
-        return $this;
-    }
-
-    /**
-     * Encode value to be used in \Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray
-     *
-     * @param array $value
-     * @return array
-     */
-    protected function encodeArrayFieldValue(array $value)
-    {
-        $result = [];
-
-        // first combine the ccTypes together
-        $list = [];
-        foreach ($value as $ccType => $items) {
-            // sort on amount
-            ksort($items);
-
-            foreach ($items as $amount => $installment) {
-                if (!isset($list[$installment][$amount])) {
-                    $list[$installment][$amount] = [$ccType];
-                } else {
-                    $ccTypes = $list[$installment][$amount];
-                    $ccTypes[] = $ccType;
-                    $list[$installment][$amount] = $ccTypes;
-                }
-            }
-        }
-
-        // loop through combined ccTypes configuration and pre fill the items
-        foreach ($list as $installment => $amounts) {
-            foreach ($amounts as $amount => $ccTypes) {
-                $resultId = $this->mathRandom->getUniqueHash('_');
-                $result[$resultId] = ['amount' => $amount, 'cc_types' => $ccTypes, 'installments' => $installment];
-            }
-        }
-
-        return $result;
     }
 }

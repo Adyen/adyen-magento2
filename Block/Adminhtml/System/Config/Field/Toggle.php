@@ -47,8 +47,9 @@ class Toggle extends \Magento\Config\Block\System\Config\Form\Field
         $this->groupName = $element->getName();
         $this->myStatus = $element->getData()['value'];
 
-        return $this->_decorateRowHtml($element, "<td class='label'>" . $element->getLabel() .'</td><td>'. $this->toHtml() . '</td>');
 
+
+        return $this->_decorateRowHtml($element, "<td class='label'>" . $element->getLabel() .'</td><td>'. $this->toHtml() . '</td>');
     }
 
     public function getGroupName() {
