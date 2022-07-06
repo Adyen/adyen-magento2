@@ -21,9 +21,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
  */
 class PaymentMethods extends AbstractHelper
 {
-    const ADYEN_HPP = 'adyen_hpp';
-    const ADYEN_CC = 'adyen_cc';
-    const ADYEN_ONE_CLICK = 'adyen_oneclick';
+    const ADYEN_PREFIX = 'adyen_';
 
     const METHODS_WITH_BRAND_LOGO = [
         "giftcard"
@@ -47,6 +45,11 @@ class PaymentMethods extends AbstractHelper
      * @var \Adyen\Payment\Helper\Data
      */
     protected $adyenHelper;
+
+    /**
+     * @var \Magento\Payment\Helper\Data
+     */
+    private $dataHelper;
 
     /**
      * @var \Magento\Framework\Locale\ResolverInterface
@@ -93,9 +96,8 @@ class PaymentMethods extends AbstractHelper
      */
     private $chargedCurrency;
 
+
     /**
-     * PaymentMethods constructor.
-     *
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param Data $adyenHelper
@@ -106,6 +108,8 @@ class PaymentMethods extends AbstractHelper
      * @param \Magento\Framework\View\Asset\Source $assetSource
      * @param \Magento\Framework\View\DesignInterface $design
      * @param \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider
+     * @param ChargedCurrency $chargedCurrency
+     * @param \Magento\Payment\Helper\Data $dataHelper
      */
     public function __construct(
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
@@ -118,7 +122,8 @@ class PaymentMethods extends AbstractHelper
         \Magento\Framework\View\Asset\Source $assetSource,
         \Magento\Framework\View\DesignInterface $design,
         \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider,
-        ChargedCurrency $chargedCurrency
+        ChargedCurrency $chargedCurrency,
+        \Magento\Payment\Helper\Data $dataHelper
     ) {
         $this->quoteRepository = $quoteRepository;
         $this->config = $config;
@@ -131,6 +136,7 @@ class PaymentMethods extends AbstractHelper
         $this->design = $design;
         $this->themeProvider = $themeProvider;
         $this->chargedCurrency = $chargedCurrency;
+        $this->dataHelper = $dataHelper;
     }
 
     /**
@@ -156,24 +162,36 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
-     * @return array
-     */
-    public function getAdyenPaymentCodes(): array
-    {
-        return [self::ADYEN_HPP, self::ADYEN_CC, self::ADYEN_ONE_CLICK];
-    }
-
-    /**
      * @param string $methodCode
      * @return bool
      */
     public function isAdyenPayment(string $methodCode): bool
     {
-        if(in_array($methodCode, $this->getAdyenPaymentCodes())) {
+        if(in_array($methodCode, $this->getAdyenPaymentMethods())) {
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * Returns an array of Adyen payment method codes
+     *
+     * @return string[]
+     */
+    public function getAdyenPaymentMethods() : array
+    {
+        $paymentMethods = $this->dataHelper->getPaymentMethodList();
+
+        $filtered = array_filter(
+            $paymentMethods,
+            function ($key) {
+                return str_starts_with($key, self::ADYEN_PREFIX);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
+
+        return array_keys($filtered);
     }
 
     /**

@@ -11,23 +11,20 @@
 
 namespace Adyen\Payment\Model\Config\Backend;
 
-use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\PaymentMethods;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 
 class OrderStatus extends \Magento\Framework\App\Config\Value
 {
     /**
+     * @var PaymentMethods
+     */
+    protected $paymentMethodsHelper;
+
+    /**
      * @var WriterInterface
      */
     private $configWriter;
-
-    private const PAYMENT_METHODS = [
-        Config::XML_ADYEN_CC,
-        Config::XML_ADYEN_HPP,
-        Config::XML_ADYEN_ONECLICK,
-        Config::XML_ADYEN_BOLETO,
-        Config::XML_ADYEN_PAY_BY_LINK
-    ];
 
     /**
      * @param \Magento\Framework\Model\Context $context
@@ -47,12 +44,14 @@ class OrderStatus extends \Magento\Framework\App\Config\Value
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         WriterInterface $configWriter,
+        PaymentMethods $paymentMethodsHelper,
         array $data = []
     ) {
         $this->configWriter = $configWriter;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
+
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
-
 
     /**
      * @return $this|OrderStatus
@@ -60,10 +59,11 @@ class OrderStatus extends \Magento\Framework\App\Config\Value
     public function afterSave()
     {
         $value = $this->getValue();
+        $adyenPaymentMethods = $this->paymentMethodsHelper->getAdyenPaymentMethods();
 
-        foreach (self::PAYMENT_METHODS as $payment_method) {
+        foreach ($adyenPaymentMethods as $adyenPaymentMethod) {
             $this->configWriter->save(
-                'payment/' . $payment_method . '/order_status',
+                'payment/' . $adyenPaymentMethod . '/order_status',
                 $value,
             );
         }
