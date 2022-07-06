@@ -15,7 +15,6 @@ use Adyen\Payment\Model\Cache\Type\AdyenCache;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Framework\Session\SessionManagerInterface;
 
 /**
  * Class RateLimiter
@@ -38,11 +37,6 @@ class RateLimiter
     private $remoteAddress;
 
     /**
-     * @var SessionManagerInterface
-     */
-    private $sessionManager;
-
-    /**
      * Initial cache lifetime
      */
     const INITIAL_COOLDOWN_PERIOD = 300;
@@ -59,25 +53,22 @@ class RateLimiter
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
      * @param RemoteAddress $remoteAddress
-     * @param SessionManagerInterface $sessionManager
      */
 
     public function __construct(
         CacheInterface $cache,
         SerializerInterface $serializer,
-        RemoteAddress $remoteAddress,
-        SessionManagerInterface $sessionManager
+        RemoteAddress $remoteAddress
     ) {
         $this->cache = $cache;
         $this->serializer = $serializer;
         $this->remoteAddress = $remoteAddress;
-        $this->sessionManager = $sessionManager;
     }
 
 
     private function getCacheId()
     {
-        return "adyen-logins-" . $this->sessionManager->getSessionId() . "-" . $this->remoteAddress->getRemoteAddress();
+        return "adyen-logins-" . $this->remoteAddress->getRemoteAddress();
     }
 
     public function saveSessionIdIpAddressToCache()
