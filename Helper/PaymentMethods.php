@@ -21,6 +21,10 @@ use Magento\Framework\Exception\NoSuchEntityException;
  */
 class PaymentMethods extends AbstractHelper
 {
+    const ADYEN_HPP = 'adyen_hpp';
+    const ADYEN_CC = 'adyen_cc';
+    const ADYEN_ONE_CLICK = 'adyen_oneclick';
+
     const ADYEN_PREFIX = 'adyen_';
 
     const METHODS_WITH_BRAND_LOGO = [
