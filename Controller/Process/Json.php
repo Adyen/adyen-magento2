@@ -228,7 +228,7 @@ class Json extends Action
         // if the number of wrongful attempts is not less than 6, save it in cache
         if($this->rateLimiterHelper->getNumberOfAttempts() >= self::NUMBER_OF_ATTEMPTS) {
             $this->rateLimiterHelper->saveSessionIdIpAddressToCache();
-            $this->adyenLogger->addAdyenNotification(
+            $this->adyenLogger->addAdyenDebug(
                 "Notification has been rejected because the allowed number of attempts is exceeded."
             );
             return false;
