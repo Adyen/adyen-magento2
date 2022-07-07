@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2018 Adyen B.V.
+ * Copyright (c) 2022 Adyen B.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class PosCloudBuilder implements BuilderInterface
@@ -22,14 +23,11 @@ class PosCloudBuilder implements BuilderInterface
      */
     public function build(array $buildSubject)
     {
-        $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
+        $paymentDataObject = SubjectReader::readPayment($buildSubject);
 
         $payment = $paymentDataObject->getPayment();
 
         $request['body'] = [
-            "response" => $payment->getAdditionalInformation("terminalResponse"),
-            "serviceID" => $payment->getAdditionalInformation("serviceID"),
-            "initiateDate" => $payment->getAdditionalInformation("initiateDate"),
             "terminalID" => $payment->getAdditionalInformation("terminal_id")
         ];
 
