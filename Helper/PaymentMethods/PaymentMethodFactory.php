@@ -17,7 +17,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 
 class PaymentMethodFactory
 {
-    private static AdyenLogger $adyenLogger;
+    private static $adyenLogger;
 
     public function __construct(AdyenLogger $adyenLogger)
     {

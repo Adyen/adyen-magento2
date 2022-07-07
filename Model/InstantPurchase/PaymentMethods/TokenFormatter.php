@@ -24,7 +24,7 @@ use Magento\Vault\Api\Data\PaymentTokenInterface;
 class TokenFormatter extends AbstractAdyenTokenFormatter implements PaymentTokenFormatterInterface
 {
     /** @var PaymentMethodFactory */
-    private PaymentMethodFactory $paymentMethodFactory;
+    private $paymentMethodFactory;
 
     public function __construct(PaymentMethodFactory $paymentMethodFactory)
     {

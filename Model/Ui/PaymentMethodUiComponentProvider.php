@@ -25,8 +25,8 @@ use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
 class PaymentMethodUiComponentProvider extends AdyenUiComponentProvider implements TokenUiComponentProviderInterface
 {
 
-    private Vault $vaultHelper;
-    private PaymentMethodFactory $paymentMethodFactory;
+    private $vaultHelper;
+    private $paymentMethodFactory;
 
     /**
      * @param TokenUiComponentInterfaceFactory $componentFactory
