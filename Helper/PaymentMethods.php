@@ -169,11 +169,7 @@ class PaymentMethods extends AbstractHelper
      */
     public function isAdyenPayment(string $methodCode): bool
     {
-        if(in_array($methodCode, $this->getAdyenPaymentCodes())) {
-            return true;
-        }
-
-        return false;
+        return in_array($methodCode, $this->getAdyenPaymentCodes());
     }
 
     /**
