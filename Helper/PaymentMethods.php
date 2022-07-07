@@ -171,11 +171,7 @@ class PaymentMethods extends AbstractHelper
      */
     public function isAdyenPayment(string $methodCode): bool
     {
-        if(in_array($methodCode, $this->getAdyenPaymentMethods())) {
-            return false;
-        }
-
-        return true;
+        return in_array($methodCode, $this->getAdyenPaymentMethods(), true);
     }
 
     /**
@@ -190,7 +186,7 @@ class PaymentMethods extends AbstractHelper
         $filtered = array_filter(
             $paymentMethods,
             function ($key) {
-                return str_starts_with($key, self::ADYEN_PREFIX);
+                return strpos($key, self::ADYEN_PREFIX) === 0;
             },
             ARRAY_FILTER_USE_KEY
         );
