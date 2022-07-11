@@ -15,6 +15,7 @@ use Adyen\Payment\Model\Cache\Type\AdyenCache;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Serialize\SerializerInterface;
+use Adyen\Payment\Logger\AdyenLogger;
 
 /**
  * Class RateLimiter
@@ -37,6 +38,11 @@ class RateLimiter
     private $remoteAddress;
 
     /**
+     * @var AdyenLogger
+     */
+    private $adyenLogger;
+
+    /**
      * Initial cache lifetime
      */
     const INITIAL_COOLDOWN_PERIOD = 300;
@@ -46,6 +52,11 @@ class RateLimiter
      */
     const POWER = 2;
 
+    /**
+     * Number of allowed notification requests
+     */
+    const NUMBER_OF_ATTEMPTS = 6;
+
 
     /**
      * RateLimiter constructor.
@@ -53,16 +64,19 @@ class RateLimiter
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
      * @param RemoteAddress $remoteAddress
+     * @param AdyenLogger $adyenLogger
      */
 
     public function __construct(
         CacheInterface $cache,
         SerializerInterface $serializer,
-        RemoteAddress $remoteAddress
+        RemoteAddress $remoteAddress,
+        AdyenLogger $adyenLogger
     ) {
         $this->cache = $cache;
         $this->serializer = $serializer;
         $this->remoteAddress = $remoteAddress;
+        $this->adyenLogger = $adyenLogger;
     }
 
 
@@ -74,6 +88,12 @@ class RateLimiter
     public function saveSessionIdIpAddressToCache()
     {
         $cacheValue = $this->getNumberOfAttempts();
+
+        if($cacheValue === self::NUMBER_OF_ATTEMPTS) {
+            $this->adyenLogger->addAdyenDebug(
+                "Notification has been rejected because the allowed number of attempts is exceeded."
+            );
+        }
 
         $this->cache->save(
             $this->serializer->serialize($cacheValue + 1),
