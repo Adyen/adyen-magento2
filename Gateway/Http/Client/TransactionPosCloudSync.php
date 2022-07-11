@@ -22,6 +22,9 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Checkout\Model\Session;
+use Magento\Payment\Gateway\Http\TransferInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Store\Model\StoreManagerInterface;
 
 class TransactionPosCloudSync implements ClientInterface
@@ -89,35 +92,30 @@ class TransactionPosCloudSync implements ClientInterface
     /**
      * Places request to gateway. Returns result as ENV array
      *
-     * @param \Magento\Payment\Gateway\Http\TransferInterface $transferObject
+     * @param TransferInterface $transferObject
      * @return array
-     * @throws LocalizedException
+     * @throws LocalizedException|AdyenException
      */
-    public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
+    public function placeRequest(TransferInterface $transferObject): array
     {
         $request = $transferObject->getBody();
-        /*if (!empty($request['response']['SaleToPOIResponse']['PaymentResponse'])) {
-            $paymentResponse = $request['response']['SaleToPOIResponse']['PaymentResponse'];
-            //Initiate has already a response
-            return $paymentResponse;
-        }*/
         //always do status call and return the response of the status call
         $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
 
         $terminalId = $request['terminalID'];
         $quote = $this->initiatePosPayment($terminalId);
+        $quoteInfoInstance = $quote->getPayment()->getMethodInstance()->getInfoInstance();
         $newServiceID = date("dHis");
 
         $statusDate = date("U");
-        //$timeDiff = (int)$statusDate - (int)$request['initiateDate'];
+        $timeDiff = (int)$statusDate - (int)$quoteInfoInstance->getAdditionalInformation('initiateDate');
 
         $totalTimeout = $this->adyenHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
-        //TODO: Check if this check is necessary
-        /*if ($timeDiff > $totalTimeout) {
+        if ($timeDiff > $totalTimeout) {
             throw new LocalizedException(__("POS connection timed out."));
-        }*/
-        //Provide receipt to the shopper
+        }
 
+        //Provide receipt to the shopper
         $request = [
             'SaleToPOIRequest' => [
                 'MessageHeader' => [
@@ -133,7 +131,7 @@ class TransactionPosCloudSync implements ClientInterface
                     'MessageReference' => [
                         'MessageCategory' => 'Payment',
                         'SaleID' => 'Magento2Cloud',
-                        'ServiceID' => $quote->getPayment()->getMethodInstance()->getInfoInstance()->getAdditionalInformation('serviceID')
+                        'ServiceID' => $quoteInfoInstance->getAdditionalInformation('serviceID')
                     ],
                     'DocumentQualifier' => [
                         "CashierReceipt",
@@ -171,18 +169,16 @@ class TransactionPosCloudSync implements ClientInterface
     }
 
     /**
-     * THIS IS THE NEW METHOD
+     * Initiate a POS payment by sending a /sync call to Adyen
      *
-     *
-     *
-     *
-     * @param string $payload
-     * @return mixed
+     * @param string $terminalId
+     * @return CartInterface
      * @throws AdyenException
      * @throws LocalizedException
      * @throws NoSuchEntityException
+     * @throws \Exception
      */
-    public function initiatePosPayment(string $terminalId)
+    public function initiatePosPayment(string $terminalId): CartInterface
     {
 
         // Validate JSON that has just been parsed if it was in a valid format
@@ -194,6 +190,7 @@ class TransactionPosCloudSync implements ClientInterface
 
         $poiId = $terminalId;
 
+        /** @var CartInterface $quote */
         $quote = $this->session->getQuote();
         $payment = $quote->getPayment();
         $adyenAmountCurrency = $this->chargedCurrency->getQuoteAmountCurrency($quote);

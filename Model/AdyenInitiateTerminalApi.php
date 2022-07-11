@@ -17,7 +17,7 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Quote\Model\Quote;
 
-/** @deprecated Identical functionality is in Helper\PointofSale and TransactionPosCloudSync */
+/** @deprecated v9: Identical functionality is in Helper\PointofSale and TransactionPosCloudSync */
 class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
 {
     /**
