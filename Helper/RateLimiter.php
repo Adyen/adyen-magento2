@@ -91,7 +91,7 @@ class RateLimiter
 
         if($cacheValue === self::NUMBER_OF_ATTEMPTS) {
             $this->adyenLogger->addAdyenDebug(
-                "Notification has been rejected because the allowed number of attempts is exceeded."
+                "Webhook has been rejected because the allowed number of authentication attempts has been exceeded."
             );
         }
 
