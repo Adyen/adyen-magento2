@@ -20,8 +20,8 @@ use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
 class AdyenUiComponentProvider
 {
 
-    protected TokenUiComponentInterfaceFactory $componentFactory;
-    protected Data $dataHelper;
+    protected $componentFactory;
+    protected $dataHelper;
 
     /**
      * @param TokenUiComponentInterfaceFactory $componentFactory

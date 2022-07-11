@@ -12,7 +12,6 @@
 
 namespace Adyen\Payment\Helper;
 
-use Adyen\Payment\Api\Data\AdyenPaymentMethodRepositoryInterface;
 use Adyen\Payment\Exception\InvalidAdditionalDataException;
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
@@ -82,9 +81,6 @@ class Vault
     /** @var PaymentMethods */
     private $paymentMethodsHelper;
 
-    /** @var AdyenPaymentMethodRepositoryInterface */
-    private $adyenPaymentMethodRepo;
-
     /** @var PaymentMethodFactory */
     private $paymentMethodFactory;
 
@@ -96,7 +92,6 @@ class Vault
         PaymentTokenRepositoryInterface $paymentTokenRepository,
         Config $config,
         PaymentMethods $paymentMethodsHelper,
-        AdyenPaymentMethodRepositoryInterface $adyenPaymentMethodRepo,
         PaymentMethodFactory $paymentMethodFactory
     ) {
         $this->adyenHelper = $adyenHelper;
@@ -106,7 +101,6 @@ class Vault
         $this->paymentTokenRepository = $paymentTokenRepository;
         $this->config = $config;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->adyenPaymentMethodRepo = $adyenPaymentMethodRepo;
         $this->paymentMethodFactory = $paymentMethodFactory;
     }
 
@@ -255,9 +249,13 @@ class Vault
             $methodSupportsRecurring = $adyenPaymentMethod->supportsSubscription();
         }
 
-        $paymentMethodModel = $this->adyenPaymentMethodRepo->getByPaymentMethodName($adyenPaymentMethod->getTxVariant());
+        $tokenizedPaymentMethods = array_map(
+            'trim',
+            explode(',', $this->config->getTokenizedPaymentMethods($storeId))
+        );
+        $shouldTokenize = in_array($adyenPaymentMethod->getTxVariant(), $tokenizedPaymentMethods);
 
-        return $methodSupportsRecurring && $paymentMethodModel->getEnableRecurring();
+        return $methodSupportsRecurring && $shouldTokenize;
     }
 
     /**
