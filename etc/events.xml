@@ -1,18 +1,6 @@
 <?xml version="1.0"?>
 <!--
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -49,5 +37,8 @@
     </event>
     <event name="sales_order_invoice_save_after">
         <observer name="adyen_invoice_save_after" instance="Adyen\Payment\Observer\InvoiceObserver" />
+    </event>
+    <event name="admin_system_config_changed_section_payment">
+        <observer name="adyen_admin_vault_config_change" instance="Adyen\Payment\Observer\VaultConfigObserver"/>
     </event>
 </config>

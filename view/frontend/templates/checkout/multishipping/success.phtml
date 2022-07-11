@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment Module
  *
@@ -99,9 +87,7 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
 <?php if ($block->renderAction()):
     $checkoutConfig = /* @noEscape */
         $block->getSerializedCheckoutConfig();
-    $scriptString = <<<script
-    window.checkoutConfig = {$checkoutConfig};
-script;
+    $scriptString = __('window.checkoutConfig = %1;', $checkoutConfig);
     ?>
     <script type="text/javascript">
         <?=$scriptString?>

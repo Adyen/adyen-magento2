@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -940,7 +928,8 @@ class Data extends AbstractHelper
 
             // check if contractType is supporting the selected contractType for OneClick payments
             $allowedContractTypes = $agreementData['contractTypes'];
-            if (in_array(RecurringType::ONECLICK , $allowedContractTypes) || in_array(Recurring::CARD_ON_FILE, $allowedContractTypes)) {
+            // RecurringType::ONECLICK is kept in the if block to still display tokens that were created before changes
+            if (in_array(RecurringType::ONECLICK, $allowedContractTypes) || in_array(Recurring::CARD_ON_FILE, $allowedContractTypes)) {
                 // check if AgreementLabel is set and if contract has an recurringType
                 if ($billingAgreement->getAgreementLabel()) {
                     // for Ideal use sepadirectdebit because it is
@@ -1025,33 +1014,6 @@ class Data extends AbstractHelper
         }
 
         if (strpos($paymentMethod, self::AFTERPAY) !== false ||
-            strpos($paymentMethod, self::KLARNA) !== false ||
-            strpos($paymentMethod, self::RATEPAY) !== false ||
-            strpos($paymentMethod, self::FACILYPAY) !== false ||
-            strpos($paymentMethod, self::AFFIRM) !== false ||
-            strpos($paymentMethod, self::CLEARPAY) !== false ||
-            strpos($paymentMethod, self::ZIP) !== false ||
-            strpos($paymentMethod, self::PAYBRIGHT) !== false
-        ) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Excludes AfterPay (NL/BE) from the open invoice list.
-     * AfterPay variants should be excluded (not afterpaytouch)as an option for auto capture.
-     * @param $paymentMethod
-     * @return bool
-     */
-    public function isPaymentMethodOpenInvoiceMethodValidForAutoCapture($paymentMethod)
-    {
-        if (is_null($paymentMethod)) {
-            return false;
-        }
-
-        if (strpos($paymentMethod, self::AFTERPAY_TOUCH) !== false ||
             strpos($paymentMethod, self::KLARNA) !== false ||
             strpos($paymentMethod, self::RATEPAY) !== false ||
             strpos($paymentMethod, self::FACILYPAY) !== false ||
@@ -1699,28 +1661,6 @@ class Data extends AbstractHelper
     public function getCustomerId(\Magento\Sales\Model\Order $order)
     {
         return $order->getCustomerId();
-    }
-
-    /**
-     * For backwards compatibility get the recurringType used for HPP + current billing agreements
-     *
-     * @param null|int|string $storeId
-     * @return null|string
-     */
-    public function getRecurringTypeFromOneclickRecurringSetting($storeId = null)
-    {
-        $enableOneclick = $this->getAdyenAbstractConfigDataFlag('enable_oneclick', $storeId);
-        $adyenCCVaultActive = $this->getAdyenCcVaultConfigDataFlag('active', $storeId);
-
-        if ($enableOneclick && $adyenCCVaultActive) {
-            return RecurringType::ONECLICK_RECURRING;
-        } elseif ($enableOneclick && !$adyenCCVaultActive) {
-            return RecurringType::ONECLICK;
-        } elseif (!$enableOneclick && $adyenCCVaultActive) {
-            return RecurringType::ONECLICK_RECURRING;
-        } else {
-            return RecurringType::NONE;
-        }
     }
 
     /**

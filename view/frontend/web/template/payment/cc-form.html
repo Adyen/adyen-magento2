@@ -1,17 +1,5 @@
 <!--
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -21,6 +9,8 @@
  * Author: Adyen <magento@adyen.com>
  */
 -->
+
+<!-- ko if: adyenCCMethod -->
 <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
     <div class="payment-method-title field choice">
         <input type="radio"
@@ -29,12 +19,13 @@
                data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
         <label data-bind="attr: {'for': getCode()}" class="label">
 
-            <!-- ko if: icon -->
+            <!-- ko if: adyenCCMethod().icon -->
             <img data-bind="attr: {
-                'src': icon.url,
+                'src': adyenCCMethod().icon.url,
                 'alt': getTitle() + ' logo'
                 }">
             <!--/ko-->
+
 
             <span data-bind="text: getTitle()"></span>
         </label>
@@ -95,7 +86,7 @@
                 <!-- /ko -->
 
                 <div class="field number cardContainerField">
-                    <div class="checkout-component-dock" afterRender="renderSecureFields()" data-bind="attr: { id: 'cardContainer'}"></div>
+                    <div class="checkout-component-dock" afterRender="renderCCPaymentMethod()" data-bind="attr: { id: 'cardContainer'}"></div>
                 </div>
 
                 <div id="cc_actionModalWrapper">
@@ -154,4 +145,5 @@
         </form>
     </div>
 </div>
+<!--/ko-->
 
