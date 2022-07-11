@@ -245,6 +245,8 @@ class Vault
         $currentRecurringTokenSetting = $this->config->getAlternativePaymentMethodTokenType($storeId);
         if ($currentRecurringTokenSetting === Recurring::CARD_ON_FILE) {
             $methodSupportsRecurring = $adyenPaymentMethod->supportsCardOnFile();
+        } elseif ($currentRecurringTokenSetting === Recurring::UNSCHEDULED_CARD_ON_FILE) {
+            $methodSupportsRecurring = $adyenPaymentMethod->supportsUnscheduledCardOnFile();
         } else {
             $methodSupportsRecurring = $adyenPaymentMethod->supportsSubscription();
         }

@@ -55,4 +55,9 @@ class SepaPaymentMethod implements PaymentMethodInterface
     {
         return false;
     }
+
+    public function supportsUnscheduledCardOnFile(): bool
+    {
+        return true;
+    }
 }

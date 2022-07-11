@@ -50,4 +50,9 @@ class GooglePayPaymentMethod implements PaymentMethodInterface
     {
         return true;
     }
+
+    public function supportsUnscheduledCardOnFile(): bool
+    {
+        return true;
+    }
 }

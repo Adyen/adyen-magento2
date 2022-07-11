@@ -23,6 +23,7 @@ class Recurring
 
     const CARD_ON_FILE = 'CardOnFile';
     const SUBSCRIPTION = 'Subscription';
+    const UNSCHEDULED_CARD_ON_FILE = 'UnscheduledCardOnFile';
 
     /** @var AdyenLogger */
     private $adyenLogger;
@@ -66,7 +67,8 @@ class Recurring
     {
         return [
             self::CARD_ON_FILE,
-            self::SUBSCRIPTION
+            self::SUBSCRIPTION,
+            self::UNSCHEDULED_CARD_ON_FILE
         ];
     }
 
