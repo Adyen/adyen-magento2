@@ -18,6 +18,9 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 class PosCloudBuilder implements BuilderInterface
 {
     /**
+     * In case of older implementation (using AdyenInitiateTerminalApi::initiate) initiate call was already done so we pass its result.
+     * Otherwise, we will do the initiate call here, using initiatePosPayment() so we pass parameters required for the initiate call
+     *
      * @param array $buildSubject
      * @return array
      */
@@ -26,10 +29,24 @@ class PosCloudBuilder implements BuilderInterface
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
 
         $payment = $paymentDataObject->getPayment();
+        $chainCalls = $payment->getAdditionalInformation('chain_calls');
 
-        $request['body'] = [
-            "terminalID" => $payment->getAdditionalInformation("terminal_id")
-        ];
+        if ($chainCalls) {
+            $body = [
+                'terminalID' => $payment->getAdditionalInformation('terminal_id'),
+                'numberOfInstallments' => $payment->getAdditionalInformation('number_of_installments'),
+                'chainCalls' => $payment->getAdditionalInformation('chain_calls')
+            ];
+        } else {
+            $body = [
+                "response" => $payment->getAdditionalInformation("terminalResponse"),
+                "serviceID" => $payment->getAdditionalInformation("serviceID"),
+                "initiateDate" => $payment->getAdditionalInformation("initiateDate"),
+                "terminalID" => $payment->getAdditionalInformation("terminal_id")
+            ];
+        }
+
+        $request['body'] = $body;
 
         return $request;
     }

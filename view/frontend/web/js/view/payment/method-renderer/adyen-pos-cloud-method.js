@@ -116,6 +116,7 @@ define(
                     additional_data: {
                         'terminal_id': this.terminalId(),
                         'number_of_installments': this.installment(),
+                        'chain_calls': true
                     }
                 };
             },

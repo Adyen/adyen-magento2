@@ -90,7 +90,8 @@ class TransactionPosCloudSync implements ClientInterface
     }
 
     /**
-     * Places request to gateway. Returns result as ENV array
+     * Places request to gateway. In case of older implementation (using AdyenInitiateTerminalApi::initiate) parameters
+     * will be obtained from the request. Otherwise we will do the initiate call here, using initiatePosPayment()
      *
      * @param TransferInterface $transferObject
      * @return array
@@ -101,14 +102,22 @@ class TransactionPosCloudSync implements ClientInterface
         $request = $transferObject->getBody();
         //always do status call and return the response of the status call
         $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
+        $newServiceID = date("dHis");
+        $statusDate = date("U");
 
         $terminalId = $request['terminalID'];
-        $quote = $this->initiatePosPayment($terminalId);
-        $quoteInfoInstance = $quote->getPayment()->getMethodInstance()->getInfoInstance();
-        $newServiceID = date("dHis");
+        $chainCalls = $request['chainCalls'];
 
-        $statusDate = date("U");
-        $timeDiff = (int)$statusDate - (int)$quoteInfoInstance->getAdditionalInformation('initiateDate');
+        if ($chainCalls) {
+            $quote = $this->initiatePosPayment($terminalId);
+            $quoteInfoInstance = $quote->getPayment()->getMethodInstance()->getInfoInstance();
+            $timeDiff = (int)$statusDate - (int)$quoteInfoInstance->getAdditionalInformation('initiateDate');
+            $serviceId = $quoteInfoInstance->getAdditionalInformation('serviceID');
+        } else {
+            $timeDiff = (int)$statusDate - (int)$request['initiateDate'];
+            $serviceId = $request['serviceID'];
+        }
+
 
         $totalTimeout = $this->adyenHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
         if ($timeDiff > $totalTimeout) {
@@ -131,7 +140,7 @@ class TransactionPosCloudSync implements ClientInterface
                     'MessageReference' => [
                         'MessageCategory' => 'Payment',
                         'SaleID' => 'Magento2Cloud',
-                        'ServiceID' => $quoteInfoInstance->getAdditionalInformation('serviceID')
+                        'ServiceID' => $serviceId
                     ],
                     'DocumentQualifier' => [
                         "CashierReceipt",
