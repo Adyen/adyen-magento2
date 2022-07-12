@@ -108,7 +108,7 @@ class TransactionPosCloudSync implements ClientInterface
         $terminalId = $request['terminalID'];
 
         if (array_key_exists('chainCalls', $request)) {
-            $quote = $this->initiatePosPayment($terminalId);
+            $quote = $this->initiatePosPayment($terminalId, $request['numberOfInstallments']);
             $quoteInfoInstance = $quote->getPayment()->getMethodInstance()->getInfoInstance();
             $timeDiff = (int)$statusDate - (int)$quoteInfoInstance->getAdditionalInformation('initiateDate');
             $serviceId = $quoteInfoInstance->getAdditionalInformation('serviceID');
@@ -180,13 +180,13 @@ class TransactionPosCloudSync implements ClientInterface
      * Initiate a POS payment by sending a /sync call to Adyen
      *
      * @param string $terminalId
+     * @param string|null $numberOfInstallments
      * @return CartInterface
      * @throws AdyenException
      * @throws LocalizedException
      * @throws NoSuchEntityException
-     * @throws \Exception
      */
-    public function initiatePosPayment(string $terminalId): CartInterface
+    public function initiatePosPayment(string $terminalId, ?string $numberOfInstallments): CartInterface
     {
 
         // Validate JSON that has just been parsed if it was in a valid format
@@ -248,7 +248,7 @@ class TransactionPosCloudSync implements ClientInterface
                 ]
         ];
 
-        if (!empty($payload['number_of_installments'])) {
+        if (isset($numberOfInstallments)) {
             $request['SaleToPOIRequest']['PaymentRequest']['PaymentData'] = [
                 "PaymentType" => "Instalment",
                 "Instalment" => [
@@ -256,7 +256,7 @@ class TransactionPosCloudSync implements ClientInterface
                     "SequenceNumber" => 1,
                     "Period" => 1,
                     "PeriodUnit" => "Monthly",
-                    "TotalNbOfPayments" => (int)$payload['number_of_installments']
+                    "TotalNbOfPayments" => intval($numberOfInstallments)
                 ]
             ];
 
