@@ -9,6 +9,7 @@
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  */
+
 namespace Adyen\Payment\Helper\PaymentMethods;
 
 interface PaymentMethodInterface
@@ -26,4 +27,6 @@ interface PaymentMethodInterface
     public function supportsAutoCapture(): bool;
 
     public function isWalletPaymentMethod(): bool;
+
+    public function supportsUnscheduledCardOnFile(): bool;
 }
