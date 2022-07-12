@@ -62,38 +62,55 @@ class ManagementHelper
     }
 
     /**
-     * @param string $xapikey
-     * @param bool|null $demoMode
+     * @param string $apiKey
+     * @param bool $demoMode
      * @return array
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
-    public function getMerchantAccountAndClientKey(string $xapikey, ?bool $demoMode = null): array
+    public function getMerchantAccounts(string $apiKey, bool $demoMode)
     {
-        $storeId = $this->storeManager->getStore()->getId();
-        $client = $this->adyenHelper->initializeAdyenClient($storeId, $xapikey, $demoMode);
-        $management = new Management($client);
-        $responseMe = $management->me->retrieve();
-        $associatedMerchantAccounts = [];
+        $management = $this->getManagementApiService($apiKey, $demoMode ? 'test' : 'live');
+        $merchantAccounts = [];
         $page = 1;
         $pageSize = 100;
-        //get the associated merchant accounts using get /merchants.
-        $responseMerchants = $management->merchantAccount->list(["pageSize" => $pageSize]);
-        while (count($associatedMerchantAccounts) < $responseMerchants['itemsTotal']) {
-            $associatedMerchantAccounts = array_merge(
-                $associatedMerchantAccounts,
-                array_column($responseMerchants['data'], 'id')
-            );
+        //get the merchant accounts using get /merchants.
+        $response = $management->merchantAccount->list(["pageSize" => $pageSize]);
+        while (count($merchantAccounts) < $response['itemsTotal']) {
+            foreach ($response['data'] as $merchantAccount) {
+                $defaultDC = array_filter($merchantAccount['dataCenters'], function ($dc) {
+                    return $dc['name'] = 'default';
+                });
+                $merchantAccounts[] = [
+                    'name' => $merchantAccount['name'],
+                    'liveEndpointPrefix' => !empty($defaultDC) ? $defaultDC[0]['livePrefix'] : ''
+                ];
+            }
             ++$page;
-            if (isset($responseMerchants['_links']['next'])) {
-                $responseMerchants = $management->merchantAccount->list(
+            if (isset($response['_links']['next'])) {
+                $response = $management->merchantAccount->list(
                     ["pageSize" => $pageSize, "pageNumber" => $page]
                 );
             }
         }
+
+        return $merchantAccounts;
+    }
+
+    /**
+     * @param string $apiKey
+     * @param bool $demoMode
+     * @return array
+     * @throws AdyenException
+     * @throws NoSuchEntityException
+     */
+    public function getClientKey(string $apiKey, bool $demoMode): array
+    {
+        $management = $this->getManagementApiService($apiKey, $demoMode ? 'test' : 'live');
+        $response = $management->me->retrieve();
+
         return [
-            'clientKey' => $responseMe['clientKey'],
-            'associatedMerchantAccounts' => $associatedMerchantAccounts
+            'clientKey' => $response['clientKey'],
         ];
     }
 
@@ -147,9 +164,9 @@ class ManagementHelper
     /**
      * @throws AdyenException|NoSuchEntityException
      */
-    public function getAllowedOrigins($apiKey, $mode)
+    public function getAllowedOrigins($apiKey, $environment)
     {
-        $management = $this->getManagementApiService($apiKey, $mode);
+        $management = $this->getManagementApiService($apiKey, $environment);
 
         $response = $management->allowedOrigins->list();
 
@@ -159,9 +176,9 @@ class ManagementHelper
     /**
      * @throws AdyenException|NoSuchEntityException
      */
-    public function saveAllowedOrigin($apiKey, $mode, $domain)
+    public function saveAllowedOrigin($apiKey, $environment, $domain)
     {
-        $management = $this->getManagementApiService($apiKey, $mode);
+        $management = $this->getManagementApiService($apiKey, $environment);
 
         $management->allowedOrigins->create(['domain' => $domain]);
     }
@@ -169,14 +186,14 @@ class ManagementHelper
     /**
      * @throws AdyenException|NoSuchEntityException
      */
-    private function getManagementApiService($apiKey, $mode): Management
+    private function getManagementApiService($apiKey, $environment): Management
     {
         $storeId = $this->storeManager->getStore()->getId();
         if (preg_match('/^\*+$/', $apiKey)) {
             // API key contains '******', set to the previously saved config value
-            $apiKey = $this->configHelper->getApiKey($mode);
+            $apiKey = $this->configHelper->getApiKey($environment);
         }
-        $client = $this->adyenHelper->initializeAdyenClient($storeId, $apiKey, $mode === 'test');
+        $client = $this->adyenHelper->initializeAdyenClient($storeId, $apiKey, $environment === 'test');
 
         return new Management($client);
     }

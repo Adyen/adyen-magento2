@@ -1,10 +1,13 @@
-<?php /** @var \Adyen\Payment\Model\Config\Adminhtml\ConfigurationMode $block */ ?>
+<?php /** @var \Adyen\Payment\Model\Config\Adminhtml\ConfigurationWizard $block */ ?>
 <script>
     require(['jquery'], function ($) {
-        let configMode = $("select[name*='configuration_mode']");
+        const configMode = $("select[name*='configuration_mode']");
+        const demoMode = $("div.adyen_required_config_settings select[name*='demo_mode']");
+        const actionButton = $("#adyen_configuration_action");
+        const progressSpan = $('#progress');
 
-        function checkConfigMode() {
-            const autoConfigured = <?=$block->configured()?'true;':'false;';?>
+        /*function checkConfigMode() {
+            const autoConfigured = <?=$block->configured()?'true':'false';?>;
 
             if ('auto' === configMode.val()) {
                 if (!autoConfigured) {
@@ -13,28 +16,36 @@
                     // show auto-configured fields
                 }
             }
-        }
+        }*/
 
-        configMode.change(checkConfigMode);
+        let merchantAccounts = [];
+        actionButton.on('click', loadMerchantAccounts);
 
-        function fetchMerchants() {
-            let progressSpan = $('#progress');
-            progressSpan.show();
-            progressSpan.find('.configured').hide();
-            progressSpan.find('#adyen_payments_configuration_errors').hide();
-            progressSpan.find('.processing').show();
-            $('#adyen_payments_configured_message').text('');
+        $("select[name*='merchant_account']").on('change', function () {
+            if (demoMode.val()) {
+                return;
+            }
+            let livePrefix = $("div.adyen_required_config_settings input[name*='live_endpoint_url_prefix']");
+            let merchantAccount = merchantAccounts.find(function (account) { return account.name === this.value }.bind(this));
+
+            if (merchantAccount !== undefined) {
+                livePrefix.val(merchantAccount.liveEndpointPrefix);
+            }
+            showConfigField(livePrefix);
+            progressUpdate('success');
+        });
+
+        function loadMerchantAccounts() {
+            progressUpdate('start');
             let demoMode = $("div.adyen_required_config_settings select[name*='demo_mode']").val();
-            let xapikey = demoMode
+            let apiKey = demoMode
                 ? $("div.adyen_required_config_settings input[name*='api_key_test']").val()
                 : $("div.adyen_required_config_settings input[name*='api_key_live']").val();
-            const storeId = '<?=$block->getStoreId()?>';
-            return $.ajax('<?php echo $block->getMerchantAccountsUrl() ?>', {
-                data: {xapikey, demoMode, storeId},
+            $.ajax('<?php echo $block->getMerchantAccountsUrl() ?>', {
+                data: {apiKey, demoMode},
                 method: "POST"
             }).done(function (response) {
                 //add html response
-                progressSpan.find('.processing').hide();
                 let merchantAccountSelect = document.querySelector(
                     "div.adyen_required_config_settings select[name*='merchant_account']");
                 //remove previous accounts
@@ -42,33 +53,67 @@
                     merchantAccountSelect.remove(i);
                 }
                 //add the merchant accounts to the html element
-                let accounts = response.messages.associatedMerchantAccounts;
-                for (i = 0; i < accounts.length; i++) {
-                    merchantAccountSelect.add(new Option(accounts[i], accounts[i]));
+                merchantAccounts = response.data;
+                for (i = 0; i < merchantAccounts.length; i++) {
+                    merchantAccountSelect.add(new Option(merchantAccounts[i].name, merchantAccounts[i].name));
                 }
                 merchantAccountSelect.value = response.currentMerchantAccount;
-                //add the clientkey
-                let clientkey = response.messages.clientKey;
-                if (response.mode == 'test') {
-                    let clientKeyIdTest = $("div.adyen_required_config_settings input[name*='client_key_test']");
-                    clientKeyIdTest.value = clientkey;
-                } else if (response.mode == 'production') {
-                    let clientKeyIdLive = $("div.adyen_required_config_settings input[name*='client_key_live']");
-                    clientKeyIdLive.value = clientkey;
-                }
-                const allowedOriginInput = $("div.adyen_required_config_settings input[name*='allowed_origin']");
-                allowedOriginInput.value = response.originUrl;
-                progressSpan.find('.configured').show();
-
-                $('#adyen_payments_configured_message').text('Completed');
-
                 showConfigField($("select[name*='merchant_account']"));
-                showConfigField($("input[name*='client_key_test']"));
-                showConfigField($("input[name*='allowed_origin']"));
+
+                progressUpdate('success');
+                actionButton.on('click', fetchClientKey);
             }).fail(function(response) {
-                progressSpan.find('.processing').hide();
-                $('#adyen_payments_configured_message').text("Failed").show();
+                progressUpdate('error', 'Unable to load merchant accounts: ' + response.error);
             });
+        }
+
+        function fetchClientKey() {
+            progressUpdate('start');
+            let demoMode = $("div.adyen_required_config_settings select[name*='demo_mode']").val();
+            let apiKey = demoMode
+                ? $("div.adyen_required_config_settings input[name*='api_key_test']").val()
+                : $("div.adyen_required_config_settings input[name*='api_key_live']").val();
+            $.ajax('<?php echo $block->getClientKeyUrl() ?>', {
+                data: {apiKey, demoMode},
+                method: "POST"
+            }).done(function (response) {
+                let clientKey = response.clientKey;
+                if (demoMode) {
+                    let clientKeyIdTest = $("div.adyen_required_config_settings input[name*='client_key_test']");
+                    clientKeyIdTest.value = clientKey;
+                    showConfigField($("input[name*='client_key_test']"));
+                } else {
+                    let clientKeyIdLive = $("div.adyen_required_config_settings input[name*='client_key_live']");
+                    clientKeyIdLive.value = clientKey;
+                    showConfigField($("input[name*='client_key_live']"));
+                }
+                progressUpdate('success');
+            }).fail(function(response) {
+                progressUpdate('error', 'Unable to load client key: ' + response.error);
+            });
+        }
+
+        function progressUpdate(action, message='') {
+            const notification = $('#adyen_payments_configured_message');
+            switch (action) {
+                case 'start':
+                    progressSpan.show();
+                    progressSpan.find('.configured').hide();
+                    progressSpan.find('#adyen_payments_configuration_errors').hide();
+                    notification.text('');
+                    progressSpan.find('.processing').show();
+                    break;
+                case 'success':
+                    progressSpan.find('.processing').hide();
+                    progressSpan.find('.configured').show();
+                    notification.text(message);
+                    break;
+                case 'error':
+                    progressSpan.find('.processing').hide();
+                    progressSpan.find('#adyen_payments_configuration_errors').show();
+                    progressSpan.find('#adyen_payments_configuration_errors').find('.message').text(message);
+                    break;
+            }
         }
 
         function showConfigField(field) {
@@ -77,6 +122,7 @@
         }
     });
 </script>
+<?php echo $block->getButtonHtml() ?>
 <span class="adyen-required-settings-config-admin" id="progress" style="display: none">
     <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
     <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>

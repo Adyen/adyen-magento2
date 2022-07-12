@@ -43,13 +43,13 @@ class AllowedOriginValue extends Value
 
     public function beforeSave()
     {
-        $mode = (int) $this->getFieldsetDataValue('demo_mode') ? 'test' : 'live';
-        $apiKey = $this->getFieldsetDataValue('api_key_' . $mode);
+        $environment = (int) $this->getFieldsetDataValue('demo_mode') ? 'test' : 'live';
+        $apiKey = $this->getFieldsetDataValue('api_key_' . $environment);
 
-        $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($apiKey, $mode);
+        $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($apiKey, $environment);
         $value = $this->getValue();
         if (!in_array($value, $configuredOrigins)) {
-            $this->managementApiHelper->saveAllowedOrigin($apiKey, $mode, $value);
+            $this->managementApiHelper->saveAllowedOrigin($apiKey, $environment, $value);
         }
         return parent::beforeSave();
     }
