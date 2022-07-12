@@ -106,9 +106,8 @@ class TransactionPosCloudSync implements ClientInterface
         $statusDate = date("U");
 
         $terminalId = $request['terminalID'];
-        $chainCalls = $request['chainCalls'];
 
-        if ($chainCalls) {
+        if (array_key_exists('chainCalls', $request)) {
             $quote = $this->initiatePosPayment($terminalId);
             $quoteInfoInstance = $quote->getPayment()->getMethodInstance()->getInfoInstance();
             $timeDiff = (int)$statusDate - (int)$quoteInfoInstance->getAdditionalInformation('initiateDate');
