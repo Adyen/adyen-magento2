@@ -51,8 +51,6 @@ class Requests extends AbstractHelper
      */
     private $vaultHelper;
 
-    private $shopperReference;
-
     /**
      * Requests constructor.
      *
@@ -146,7 +144,7 @@ class Requests extends AbstractHelper
                 $request['countryCode'] = $countryId;
             }
 
-            $request['shopperLocale'] = $this->adyenHelper->getCurrentLocaleCode($storeId);
+            $request['shopperLocale'] = $this->adyenHelper->getStoreLocale($storeId);
         }
 
         return $request;
@@ -442,16 +440,14 @@ class Requests extends AbstractHelper
      */
     public function getShopperReference($customerId, $orderIncrementId): string
     {
-        if (!$this->shopperReference) {
-            if ($customerId) {
-                $this->shopperReference = str_pad($customerId, 3, '0', STR_PAD_LEFT);
-            } else {
-                $uuid = Uuid::generateV4();
-                $guestCustomerId = $orderIncrementId . $uuid;
-                $this->shopperReference = $guestCustomerId;
-            }
+        if ($customerId) {
+            $shopperReference = str_pad($customerId, 3, '0', STR_PAD_LEFT);
+        } else {
+            $uuid = Uuid::generateV4();
+            $guestCustomerId = $orderIncrementId . $uuid;
+            $shopperReference = $guestCustomerId;
         }
 
-        return $this->shopperReference;
+        return $shopperReference;
     }
 }
