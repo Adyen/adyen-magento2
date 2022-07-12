@@ -84,11 +84,6 @@ class Json extends Action
     private $notificationReceiver;
 
     /**
-     * Number of allowed notification requests
-     */
-    const NUMBER_OF_ATTEMPTS = 6;
-
-    /**
      * Json constructor.
      *
      * @param Context $context
@@ -226,7 +221,7 @@ class Json extends Action
         );
 
         // if the number of wrongful attempts is not less than 6, save it in cache
-        if($this->rateLimiterHelper->getNumberOfAttempts() >= self::NUMBER_OF_ATTEMPTS) {
+        if($this->rateLimiterHelper->getNumberOfAttempts() >= $this->rateLimiterHelper::NUMBER_OF_ATTEMPTS) {
             $this->rateLimiterHelper->saveSessionIdIpAddressToCache();
             return false;
         }
