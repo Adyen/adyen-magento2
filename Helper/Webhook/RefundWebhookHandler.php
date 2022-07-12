@@ -125,7 +125,6 @@ class RefundWebhookHandler implements WebhookHandlerInterface
                 $order->getPayment()->registerRefundNotification($amount);
 
                 $this->adyenLogger->addAdyenDebug(sprintf('Created credit memo for order %s', $order->getIncrementId()));
-                $order->addStatusHistoryComment(__('Adyen Refund Successfully completed'), $order->getStatus());
             } else {
                 $this->adyenLogger->addAdyenDebug(sprintf(
                     'Could not create a credit memo for order %s while processing notification %s',
@@ -135,9 +134,11 @@ class RefundWebhookHandler implements WebhookHandlerInterface
             }
         } else {
             $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
-                'Did not create a credit memo for order %s because refund was done through Magento', $order->getIncrementId()
+                'Did not create a credit memo for order %s because refund was done through Magento back office', $order->getIncrementId()
             ));
         }
+
+        $order->addStatusHistoryComment(__('Adyen Refund Successfully completed'), $order->getStatus());
 
         return $order;
     }

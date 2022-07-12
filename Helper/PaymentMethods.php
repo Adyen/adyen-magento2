@@ -25,8 +25,10 @@ use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
 use Magento\Framework\View\Design\Theme\ThemeProviderInterface;
 use Magento\Framework\View\DesignInterface;
+use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
+
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -63,7 +65,7 @@ class PaymentMethods extends AbstractHelper
     protected $adyenHelper;
 
     /**
-     * @var \Magento\Payment\Helper\Data
+     * @var MagentoDataHelper
      */
     private $dataHelper;
 
@@ -131,6 +133,7 @@ class PaymentMethods extends AbstractHelper
      * @param ThemeProviderInterface $themeProvider
      * @param ChargedCurrency $chargedCurrency
      * @param Config $configHelper
+     * @param MagentoDataHelper $dataHelper
      */
     public function __construct(
         Context $context,
@@ -146,7 +149,7 @@ class PaymentMethods extends AbstractHelper
         ThemeProviderInterface $themeProvider,
         ChargedCurrency $chargedCurrency,
         Config $configHelper,
-        Data $dataHelper
+        MagentoDataHelper $dataHelper
     ) {
         parent::__construct($context);
         $this->quoteRepository = $quoteRepository;
