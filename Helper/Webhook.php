@@ -74,7 +74,7 @@ class Webhook
      * Indicative matrix for possible states to enter after given event
      */
     const STATE_TRANSITION_MATRIX = [
-        'payment_pre_authorized' => [Order::STATE_NEW, Order::STATE_PROCESSING],
+        'payment_pre_authorized' => [Order::STATE_NEW, Order::STATE_PENDING_PAYMENT],
         'payment_authorized' => [Order::STATE_PROCESSING]
     ];
 
@@ -449,6 +449,8 @@ class Webhook
         $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
         $this->order = $webhookHandler->handleWebhook($this->order, $notification, $currentState);
         switch ($notification->getEventCode()) {
+            case Notification::REFUND:
+                $this->refundPayment($notification);
             case Notification::PENDING:
                 $sendEmailSepaOnPending = $this->configHelper->getConfigData(
                     'send_email_bank_sepa_on_pending',
@@ -938,7 +940,7 @@ class Webhook
             $notification->getAdditionalData()
         ) : "";
 
-        if ($additionalData && is_array($additionalData)) {
+        if (is_array($additionalData)) {
             // boleto data
             if ($order->getPayment()->getMethod() == "adyen_boleto") {
                 $boletobancario = $additionalData['boletobancario'] ?? null;
@@ -1086,24 +1088,46 @@ class Webhook
      */
     private function updateOrderPaymentWithAdyenAttributes(Notification $notification, $additionalData)
     {
-        if ($additionalData && is_array($additionalData)) {
-            $avsResult = (isset($additionalData['avsResult'])) ? $additionalData['avsResult'] : "";
-            $cvcResult = (isset($additionalData['cvcResult'])) ? $additionalData['cvcResult'] : "";
-            $totalFraudScore = (isset($additionalData['totalFraudScore'])) ? $additionalData['totalFraudScore'] : "";
-            $ccLast4 = (isset($additionalData['cardSummary'])) ? $additionalData['cardSummary'] : "";
-            $refusalReasonRaw = (isset($additionalData['refusalReasonRaw'])) ? $additionalData['refusalReasonRaw'] : "";
-            $acquirerReference = (isset($additionalData['acquirerReference'])) ?
-                $additionalData['acquirerReference'] : "";
-            $authCode = (isset($additionalData['authCode'])) ? $additionalData['authCode'] : "";
-            $cardBin = (isset($additionalData['cardBin'])) ? $additionalData['cardBin'] : "";
-            $expiryDate = (isset($additionalData['expiryDate'])) ? $additionalData['expiryDate'] : "";
+        if (!is_array($additionalData)) {
+            return;
         }
-
+        if (isset($additionalData['avsResult'])) {
+            $this->order->getPayment()->setAdditionalInformation('adyen_avs_result', $additionalData['avsResult']);
+        }
+        if ((isset($additionalData['cvcResult']))) {
+            $this->order->getPayment()->setAdditionalInformation('adyen_cvc_result', $additionalData['cvcResult']);
+        }
+        if (isset($additionalData['totalFraudScore'])) {
+            $this->order->getPayment()
+                ->setAdditionalInformation('adyen_total_fraud_score', $additionalData['totalFraudScore']);
+        }
         // if there is no server communication setup try to get last4 digits from reason field
-        if (!isset($ccLast4) || $ccLast4 == "") {
-            $ccLast4 = $this->retrieveLast4DigitsFromReason($notification->getReason());
+        if (isset($additionalData['cardSummary'])) {
+            $this->order->getPayment()->setccLast4($additionalData['cardSummary']);
+        } else {
+            $this->order->getPayment()->setccLast4($this->retrieveLast4DigitsFromReason($notification->getReason()));
         }
-
+        if (isset($additionalData['refusalReasonRaw'])) {
+            $this->order->getPayment()
+                ->setAdditionalInformation('adyen_refusal_reason_raw', $additionalData['refusalReasonRaw']);
+        }
+        if (isset($additionalData['acquirerReference'])) {
+            $this->order->getPayment()
+                ->setAdditionalInformation('adyen_acquirer_reference', $additionalData['acquirerReference']);
+        }
+        if (isset($additionalData['authCode'])) {
+            $this->order->getPayment()->setAdditionalInformation('adyen_auth_code', $additionalData['authCode']);
+        }
+        if (isset($additionalData['cardBin'])) {
+            $this->order->getPayment()->setAdditionalInformation('adyen_card_bin', $additionalData['cardBin']);
+        }
+        if (isset($additionalData['expiryDate'])) {
+            $this->order->getPayment()->setAdditionalInformation('adyen_expiry_date', $additionalData['expiryDate']);
+        }
+        if (isset($additionalData['issuerCountry'])) {
+            $this->order->getPayment()
+                ->setAdditionalInformation('adyen_issuer_country', $additionalData['issuerCountry']);
+        }
         $this->order->getPayment()->setAdyenPspReference($notification->getPspreference());
         $this->order->getPayment()->setAdditionalInformation('pspReference', $notification->getPspreference());
 
@@ -1113,36 +1137,8 @@ class Webhook
                 $this->klarnaReservationNumber
             );
         }
-        if (isset($ccLast4) && $ccLast4 != "") {
-            // this field is column in db by core
-            $this->order->getPayment()->setccLast4($ccLast4);
-        }
-        if (isset($avsResult) && $avsResult != "") {
-            $this->order->getPayment()->setAdditionalInformation('adyen_avs_result', $avsResult);
-        }
-        if (isset($cvcResult) && $cvcResult != "") {
-            $this->order->getPayment()->setAdditionalInformation('adyen_cvc_result', $cvcResult);
-        }
         if ($this->boletoPaidAmount != "") {
             $this->order->getPayment()->setAdditionalInformation('adyen_boleto_paid_amount', $this->boletoPaidAmount);
-        }
-        if (isset($totalFraudScore) && $totalFraudScore != "") {
-            $this->order->getPayment()->setAdditionalInformation('adyen_total_fraud_score', $totalFraudScore);
-        }
-        if (isset($refusalReasonRaw) && $refusalReasonRaw != "") {
-            $this->order->getPayment()->setAdditionalInformation('adyen_refusal_reason_raw', $refusalReasonRaw);
-        }
-        if (isset($acquirerReference) && $acquirerReference != "") {
-            $this->order->getPayment()->setAdditionalInformation('adyen_acquirer_reference', $acquirerReference);
-        }
-        if (isset($authCode) && $authCode != "") {
-            $this->order->getPayment()->setAdditionalInformation('adyen_auth_code', $authCode);
-        }
-        if (!empty($cardBin)) {
-            $this->order->getPayment()->setAdditionalInformation('adyen_card_bin', $cardBin);
-        }
-        if (!empty($expiryDate)) {
-            $this->order->getPayment()->setAdditionalInformation('adyen_expiry_date', $expiryDate);
         }
         if ($this->ratepayDescriptor !== "") {
             $this->order->getPayment()->setAdditionalInformation(
@@ -1357,7 +1353,7 @@ class Webhook
 
             // if auto capture mode for openinvoice is turned on then use auto capture
             if ($captureModeOpenInvoice &&
-                $this->adyenHelper->isPaymentMethodOpenInvoiceMethodValidForAutoCapture($notificationPaymentMethod)
+                $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)
             ) {
                 $this->logger->addAdyenNotificationCronjob(
                     'This payment method is configured to be working as auto capture '

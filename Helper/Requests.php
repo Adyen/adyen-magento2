@@ -51,8 +51,6 @@ class Requests extends AbstractHelper
      */
     private $vaultHelper;
 
-    private $shopperReference;
-
     /**
      * Requests constructor.
      *
@@ -146,7 +144,7 @@ class Requests extends AbstractHelper
                 $request['countryCode'] = $countryId;
             }
 
-            $request['shopperLocale'] = $this->adyenHelper->getCurrentLocaleCode($storeId);
+            $request['shopperLocale'] = $this->adyenHelper->getStoreLocale($storeId);
         }
 
         return $request;
@@ -341,20 +339,23 @@ class Requests extends AbstractHelper
     public function buildCardRecurringData(int $storeId, $payment): array
     {
         $request = [];
+        $storePaymentMethod = false;
 
-        $storedPaymentMethodsEnabled = $this->adyenHelper->getAdyenOneclickConfigData('active', $storeId);
         // Initialize the request body with the current state data
         // Multishipping checkout uses the cc_number field for state data
         $stateData = $this->stateData->getStateData($payment->getOrder()->getQuoteId()) ?:
             (json_decode($payment->getCcNumber(), true) ?: []);
 
+        // If PayByLink
+        // Else, if option to store token exists, get the value from the checkbox
         if ($payment->getMethod() === AdyenPayByLinkConfigProvider::CODE) {
             $request['storePaymentMethodMode'] = 'askForConsent';
-        } else {
-            $request['storePaymentMethod'] = (bool)($stateData['storePaymentMethod'] ?? $storedPaymentMethodsEnabled);
+        } elseif (array_key_exists('storePaymentMethod', $stateData)) {
+            $storePaymentMethod = $stateData['storePaymentMethod'];
+            $request['storePaymentMethod'] = $storePaymentMethod;
         }
 
-        if ($storedPaymentMethodsEnabled) {
+        if ($storePaymentMethod) {
             if ($this->vaultHelper->isCardVaultEnabled()) {
                 $request['recurringProcessingModel'] = 'Subscription';
             } else {
@@ -439,16 +440,14 @@ class Requests extends AbstractHelper
      */
     public function getShopperReference($customerId, $orderIncrementId): string
     {
-        if (!$this->shopperReference) {
-            if ($customerId) {
-                $this->shopperReference = str_pad($customerId, 3, '0', STR_PAD_LEFT);
-            } else {
-                $uuid = Uuid::generateV4();
-                $guestCustomerId = $orderIncrementId . $uuid;
-                $this->shopperReference = $guestCustomerId;
-            }
+        if ($customerId) {
+            $shopperReference = str_pad($customerId, 3, '0', STR_PAD_LEFT);
+        } else {
+            $uuid = Uuid::generateV4();
+            $guestCustomerId = $orderIncrementId . $uuid;
+            $shopperReference = $guestCustomerId;
         }
 
-        return $this->shopperReference;
+        return $shopperReference;
     }
 }

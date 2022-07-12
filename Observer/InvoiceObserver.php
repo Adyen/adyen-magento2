@@ -24,6 +24,7 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\StatusResolver;
+use Adyen\Payment\Helper\PaymentMethods;
 
 class InvoiceObserver implements ObserverInterface
 {
@@ -44,6 +45,9 @@ class InvoiceObserver implements ObserverInterface
 
     /** @var Config $configHelper */
     private $configHelper;
+
+    /** @var PaymentMethods $paymentMethodsHelper */
+    private $paymentMethodsHelper;
 
     /**
      * @var AdyenLogger
@@ -67,7 +71,9 @@ class InvoiceObserver implements ObserverInterface
         StatusResolver $statusResolver,
         AdyenOrderPayment $adyenOrderPaymentHelper,
         Config $configHelper,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        PaymentMethods $paymentMethodsHelper
+
     ) {
         $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
@@ -76,6 +82,7 @@ class InvoiceObserver implements ObserverInterface
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->configHelper = $configHelper;
         $this->logger = $adyenLogger;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -93,11 +100,13 @@ class InvoiceObserver implements ObserverInterface
         $invoice = $observer->getData('invoice');
         $order = $invoice->getOrder();
         $payment = $order->getPayment();
+        $method = $payment->getMethod();
 
-        // If invoice has already been paid or full amount is finalized, exit observer
-        if ($invoice->wasPayCalled() || $this->adyenOrderPaymentHelper->isFullAmountFinalized($order)) {
+        // If payment is not originating from Adyen or invoice has already been paid or full amount is finalized, exit observer
+        if (!$this->paymentMethodsHelper->isAdyenPayment($method) || $invoice->wasPayCalled() || $this->adyenOrderPaymentHelper->isFullAmountFinalized($order)) {
             return;
         }
+
 
         $this->logger->addAdyenDebug(
             sprintf('Event sales_order_invoice_save_after for invoice %s will be handled', $invoice->getEntityId()),
@@ -122,11 +131,11 @@ class InvoiceObserver implements ObserverInterface
         );
 
         if (empty($status)) {
-            $status = $this->statusResolver->getOrderStatusByState($order, Order::STATE_PROCESSING);
+            $status = $this->statusResolver->getOrderStatusByState($order, Order::STATE_PENDING_PAYMENT);
         }
 
         // Set order to PROCESSING to allow further invoices to be generated
-        $order->setState(Order::STATE_PROCESSING);
+        $order->setState(Order::STATE_PENDING_PAYMENT);
         $order->setStatus($status);
 
         $this->logger->addAdyenDebug(

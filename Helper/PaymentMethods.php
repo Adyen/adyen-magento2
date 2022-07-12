@@ -37,6 +37,8 @@ class PaymentMethods extends AbstractHelper
     const ADYEN_CC = 'adyen_cc';
     const ADYEN_ONE_CLICK = 'adyen_oneclick';
 
+    const ADYEN_PREFIX = 'adyen_';
+
     const METHODS_WITH_BRAND_LOGO = [
         "giftcard"
     ];
@@ -59,6 +61,11 @@ class PaymentMethods extends AbstractHelper
      * @var Data
      */
     protected $adyenHelper;
+
+    /**
+     * @var \Magento\Payment\Helper\Data
+     */
+    private $dataHelper;
 
     /**
      * @var ResolverInterface
@@ -138,7 +145,8 @@ class PaymentMethods extends AbstractHelper
         DesignInterface $design,
         ThemeProviderInterface $themeProvider,
         ChargedCurrency $chargedCurrency,
-        Config $configHelper
+        Config $configHelper,
+        Data $dataHelper
     ) {
         parent::__construct($context);
         $this->quoteRepository = $quoteRepository;
@@ -153,6 +161,7 @@ class PaymentMethods extends AbstractHelper
         $this->themeProvider = $themeProvider;
         $this->chargedCurrency = $chargedCurrency;
         $this->configHelper = $configHelper;
+        $this->dataHelper = $dataHelper;
     }
 
     /**
@@ -175,6 +184,35 @@ class PaymentMethods extends AbstractHelper
         $this->setQuote($quote);
 
         return $this->fetchPaymentMethods($country);
+    }
+
+    /**
+     * @param string $methodCode
+     * @return bool
+     */
+    public function isAdyenPayment(string $methodCode): bool
+    {
+        return in_array($methodCode, $this->getAdyenPaymentMethods(), true);
+    }
+
+    /**
+     * Returns an array of Adyen payment method codes
+     *
+     * @return string[]
+     */
+    public function getAdyenPaymentMethods() : array
+    {
+        $paymentMethods = $this->dataHelper->getPaymentMethodList();
+
+        $filtered = array_filter(
+            $paymentMethods,
+            function ($key) {
+                return strpos($key, self::ADYEN_PREFIX) === 0;
+            },
+            ARRAY_FILTER_USE_KEY
+        );
+
+        return array_keys($filtered);
     }
 
     /**
