@@ -417,7 +417,7 @@ class Webhook
         $previousAdyenEventCode = $this->order->getData('adyen_notification_event_code');
         $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
         $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
-        switch ($transitionState) {
+        /*switch ($transitionState) {
             case PaymentStates::STATE_PAID:
                 if (Notification::CAPTURE == $notification->getEventCode()) {
                     $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
@@ -441,16 +441,16 @@ class Webhook
                 break;
             default:
                 break;
-        }
+        }*/
     }
 
     private function handleUnchangedStates(Order $order, Notification $notification, string $currentState): void
     {
         $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
         $this->order = $webhookHandler->handleWebhook($this->order, $notification, $currentState);
-        switch ($notification->getEventCode()) {
+        /*switch ($notification->getEventCode()) {
             case Notification::REFUND:
-                $this->refundPayment($notification);
+                //$this->refundPayment($notification);
             case Notification::PENDING:
                 $sendEmailSepaOnPending = $this->configHelper->getConfigData(
                     'send_email_bank_sepa_on_pending',
@@ -660,7 +660,7 @@ class Webhook
                 break;
             default:
                 break;
-        }
+        }*/
     }
 
     /**

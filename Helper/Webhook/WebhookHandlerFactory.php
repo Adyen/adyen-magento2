@@ -146,6 +146,17 @@ class WebhookHandlerFactory
                 return new RefundFailedWebhookHandler(
                     self::$orderHelper
                 );
+            case Notification::MANUAL_REVIEW_ACCEPT:
+                return new ManualReviewAcceptWebhookHandler(
+                    self::$caseManagementHelper,
+                    self::$paymentMethodsHelper,
+                    self::$orderHelper
+                );
+            case Notification::MANUAL_REVIEW_REJECT:
+                return new ManualReviewRejectWebhookHandler(
+                    self::$caseManagementHelper,
+                    self::$paymentMethodsHelper
+                );
         }
     }
 }
