@@ -58,7 +58,33 @@
             <config_path>payment/adyen_abstract/api_key_live</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding"/>
         </field>
-        <field id="merchant_account" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+        <field id="client_key_test" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
+               showInStore="0">
+            <depends>
+                <field id="demo_mode">1</field>
+                <field id="configuration_mode">manual</field>
+            </depends>
+            <label>Client key for Test environment</label>
+            <tooltip>If you don't know your Client Key, you can find it in your Test Customer Area. Navigate to
+                Developers => API Credentials and click on your webservice user. Find your Client Key in the
+                "Authentication" section.
+            </tooltip>
+            <config_path>payment/adyen_abstract/client_key_test</config_path>
+        </field>
+        <field id="client_key_live" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
+               showInStore="0">
+            <depends>
+                <field id="demo_mode">0</field>
+                <field id="configuration_mode">manual</field>
+            </depends>
+            <label>Client key for Live environment</label>
+            <tooltip>If you don't know your Client Key, you can find it in your Live Customer Area. Navigate to
+                Developers => API Credentials and click on your webservice user. Find your Client Key in the
+                "Authentication" section.
+            </tooltip>
+            <config_path>payment/adyen_abstract/client_key_live</config_path>
+        </field>
+        <field id="merchant_account" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Merchant Account</label>
             <depends>
@@ -73,7 +99,7 @@
                 <![CDATA[<a target="_blank" href="https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#step3configuretheplugininmagento">Click here for explanation.</a>]]>
             </comment>
         </field>
-        <field id="live_endpoint_url_prefix" translate="label" type="text" sortOrder="40" showInDefault="1"
+        <field id="live_endpoint_url_prefix" translate="label" type="text" sortOrder="50" showInDefault="1"
                showInWebsite="1" showInStore="0">
             <label>Live endpoint prefix</label>
             <depends>
@@ -88,33 +114,6 @@
             </comment>
             <config_path>payment/adyen_abstract/live_endpoint_url_prefix</config_path>
         </field>
-        <field id="client_key_test" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1"
-               showInStore="0">
-            <depends>
-                <field id="demo_mode">1</field>
-                <field id="configuration_mode">manual</field>
-            </depends>
-            <label>Client key for Test environment</label>
-            <tooltip>If you don't know your Client Key, you can find it in your Test Customer Area. Navigate to
-                Developers => API Credentials and click on your webservice user. Find your Client Key in the
-                "Authentication" section.
-            </tooltip>
-            <config_path>payment/adyen_abstract/client_key_test</config_path>
-        </field>
-        <field id="client_key_live" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1"
-               showInStore="0">
-            <depends>
-                <field id="demo_mode">0</field>
-                <field id="configuration_mode">manual</field>
-            </depends>
-            <label>Client key for Live environment</label>
-            <tooltip>If you don't know your Client Key, you can find it in your Live Customer Area. Navigate to
-                Developers => API Credentials and click on your webservice user. Find your Client Key in the
-                "Authentication" section.
-            </tooltip>
-            <config_path>payment/adyen_abstract/client_key_live</config_path>
-        </field>
-        <!-- @todo set allowed origin value automatically on submit -->
         <field id="notification_username" translate="label" type="text" sortOrder="60" showInDefault="1"
                showInWebsite="1" showInStore="1">
             <label>Notification Username</label>

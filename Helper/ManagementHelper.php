@@ -68,16 +68,16 @@ class ManagementHelper
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
-    public function getMerchantAccounts(string $apiKey, bool $demoMode)
+    public function getMerchantAccountsAndClientKey(string $apiKey, bool $demoMode)
     {
         $management = $this->getManagementApiService($apiKey, $demoMode ? 'test' : 'live');
         $merchantAccounts = [];
         $page = 1;
         $pageSize = 100;
         //get the merchant accounts using get /merchants.
-        $response = $management->merchantAccount->list(["pageSize" => $pageSize]);
-        while (count($merchantAccounts) < $response['itemsTotal']) {
-            foreach ($response['data'] as $merchantAccount) {
+        $responseMerchants = $management->merchantAccount->list(["pageSize" => $pageSize]);
+        while (count($merchantAccounts) < $responseMerchants['itemsTotal']) {
+            foreach ($responseMerchants['data'] as $merchantAccount) {
                 $defaultDC = array_filter($merchantAccount['dataCenters'], function ($dc) {
                     return $dc['name'] = 'default';
                 });
@@ -87,30 +87,17 @@ class ManagementHelper
                 ];
             }
             ++$page;
-            if (isset($response['_links']['next'])) {
-                $response = $management->merchantAccount->list(
+            if (isset($responseMerchants['_links']['next'])) {
+                $responseMerchants = $management->merchantAccount->list(
                     ["pageSize" => $pageSize, "pageNumber" => $page]
                 );
             }
         }
-
-        return $merchantAccounts;
-    }
-
-    /**
-     * @param string $apiKey
-     * @param bool $demoMode
-     * @return array
-     * @throws AdyenException
-     * @throws NoSuchEntityException
-     */
-    public function getClientKey(string $apiKey, bool $demoMode): array
-    {
-        $management = $this->getManagementApiService($apiKey, $demoMode ? 'test' : 'live');
-        $response = $management->me->retrieve();
+        $responseMe = $management->me->retrieve();
 
         return [
-            'clientKey' => $response['clientKey'],
+            'merchantAccounts' => $merchantAccounts,
+            'clientKey' => $responseMe['clientKey'],
         ];
     }
 

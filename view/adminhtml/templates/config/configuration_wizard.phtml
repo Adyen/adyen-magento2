@@ -25,12 +25,19 @@
             }
         }*/
 
-        let merchantAccounts = [];
-        actionButton.on('click', loadMerchantAccounts);
 
+        if (autoconfigurationsaved) {
+            display all fields disabled
+        } else {
+            start configuration
+        }
+
+        let merchantAccounts = [];
         $(merchantAccountSelector).on('change', prefillLivePrefix);
 
-        function loadMerchantAccounts() {
+        actionButton.on('click', loadMerchantAccountsAndClientKey);
+
+        function loadMerchantAccountsAndClientKey() {
             progressUpdate('start');
             let demoMode = $(demoModeSelector).val();
             let apiKey = demoMode
@@ -40,13 +47,23 @@
                 data: {apiKey, demoMode},
                 method: "POST"
             }).done(function (response) {
+                let clientKey = response.clientKey;
+                if (demoMode) {
+                    let clientKeyTest = $(testClientKeySelector);
+                    clientKeyTest.value = clientKey;
+                    showConfigField(clientKeyTest, false);
+                } else {
+                    let clientKeyLive = $(liveClientKeySelector);
+                    clientKeyLive.value = clientKey;
+                    showConfigField(clientKeyLive, false);
+                }
                 let merchantAccountSelect = document.querySelector(merchantAccountSelector);
                 // remove previous merchant accounts from dropdown
                 for (let i = merchantAccountSelect.options.length - 1; i >= 0; i--) {
                     merchantAccountSelect.remove(i);
                 }
                 // save merchant accounts mapping with liveprefix urls to global constant
-                merchantAccounts = response.data;
+                merchantAccounts = response.merchantAccounts;
                 // add merchant accounts to dropdown
                 for (i = 0; i < merchantAccounts.length; i++) {
                     merchantAccountSelect.add(new Option(merchantAccounts[i].name, merchantAccounts[i].name));
@@ -58,8 +75,8 @@
 
                 // update action button listener to perform next action
                 actionButton.off();
-                actionButton.on('click', fetchClientKey);
-                progressUpdate('success', 'Click Next to fetch your Client Key.');
+                actionButton.on('click', generateWebhookCredentials);
+                progressUpdate('success', 'Click Next to generate notification username and password.');
             }).fail(function(response) {
                 progressUpdate('error', 'Unable to load merchant accounts: ' + response.error);
             });
@@ -78,35 +95,6 @@
                 livePrefixUrl.val(merchantAccount.liveEndpointPrefix);
             }
             showConfigField(livePrefixUrl);
-        }
-
-        function fetchClientKey() {
-            progressUpdate('start');
-            let demoMode = $(demoModeSelector).val();
-            let apiKey = demoMode
-                ? $(testApiKeySelector).val()
-                : $(liveApiKeySelector).val();
-            $.ajax('<?php echo $block->getClientKeyUrl() ?>', {
-                data: {apiKey, demoMode},
-                method: "POST"
-            }).done(function (response) {
-                let clientKey = response.clientKey;
-                if (demoMode) {
-                    let clientKeyTest = $(testClientKeySelector);
-                    clientKeyTest.value = clientKey;
-                    showConfigField(clientKeyTest);
-                } else {
-                    let clientKeyLive = $(liveClientKeySelector);
-                    clientKeyLive.value = clientKey;
-                    showConfigField(clientKeyLive);
-                }
-                // update action button listener to perform next action
-                actionButton.off();
-                actionButton.on('click', generateWebhookCredentials);
-                progressUpdate('success', 'Click Next to generate notification username and password.');
-            }).fail(function(response) {
-                progressUpdate('error', 'Unable to load client key: ' + response.error);
-            });
         }
 
         function generateWebhookCredentials() {
@@ -152,9 +140,12 @@
             }
         }
 
-        function showConfigField(field) {
+        function showConfigField(field, enable=true) {
             field.parents('tr').show();
-            field.show().prop('disabled', false);
+            field.show();
+            if (enable) {
+                field.prop('disabled', false);
+            }
         }
 
         function generateRandomPassword() {
@@ -162,7 +153,7 @@
             var str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
                 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
 
-            for (let i = 1; i <= 8; i++) {
+            for (let i = 1; i <= 10; i++) {
                 var char = Math.floor(Math.random()
                     * str.length + 1);
 

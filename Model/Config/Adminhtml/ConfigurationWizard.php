@@ -40,11 +40,6 @@ class ConfigurationWizard extends Field
         return $this->getUrl('adyen/configuration/merchantaccounts');
     }
 
-    public function getClientKeyUrl()
-    {
-        return $this->getUrl('adyen/configuration/me');
-    }
-
     public function getStoreId()
     {
         return $this->_storeManager->getStore()->getId();

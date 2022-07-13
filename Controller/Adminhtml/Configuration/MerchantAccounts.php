@@ -80,15 +80,10 @@ class MerchantAccounts extends Action
                 $apiKey = '';
             }
 
-            $response = $this->managementHelper->getMerchantAccounts($apiKey, (bool) $demoMode);
-            $currentMerchantAccount = $this->adyenHelper->getAdyenMerchantAccount('adyen_cc');
+            $response = $this->managementHelper->getMerchantAccountsAndClientKey($apiKey, (bool) $demoMode);
+            $response['currentMerchantAccount'] = $this->adyenHelper->getAdyenMerchantAccount('adyen_cc');
 
-            $resultJson->setData(
-                [
-                    'data' => $response,
-                    'currentMerchantAccount' => $currentMerchantAccount,
-                ]
-            );
+            $resultJson->setData($response);
             return $resultJson;
         } catch (AdyenException $e) {
             $resultJson->setHttpResponseCode(400);
