@@ -57,6 +57,7 @@
                 prefillLivePrefix.bind($(merchantAccountSelector)[0])();
 
                 // update action button listener to perform next action
+                actionButton.off();
                 actionButton.on('click', fetchClientKey);
                 progressUpdate('success', 'Click Next to fetch your Client Key.');
             }).fail(function(response) {
@@ -100,6 +101,7 @@
                     showConfigField(clientKeyLive);
                 }
                 // update action button listener to perform next action
+                actionButton.off();
                 actionButton.on('click', generateWebhookCredentials);
                 progressUpdate('success', 'Click Next to generate notification username and password.');
             }).fail(function(response) {
@@ -119,32 +121,33 @@
 
             showConfigField(usernameField);
             showConfigField(passwordField);
-            progressUpdate('success', 'Save Auto Configuration');
+            convertActionButtonToSaveConfig();
+            progressUpdate('success', 'Proceed to save configuration.');
         }
 
         function progressUpdate(action, message='') {
-            const progressSpan = $('#progress');
+            const progress = $('#progress');
             const notification = $('#adyen_payments_configured_message');
             notification.html('');
             switch (action) {
                 case 'start':
-                    progressSpan.show();
-                    progressSpan.find('.processing').show();
-                    progressSpan.find('.configured').hide();
-                    progressSpan.find('#adyen_payments_configuration_errors').hide();
+                    progress.show();
+                    progress.find('.processing').show();
+                    progress.find('.configured').hide();
+                    progress.find('#adyen_payments_configuration_errors').hide();
                     notification.text('').show();
                     break;
                 case 'success':
-                    progressSpan.find('.processing').hide();
-                    progressSpan.find('.configured').show();
-                    progressSpan.find('#adyen_payments_configuration_errors').hide();
+                    progress.find('.processing').hide();
+                    progress.find('.configured').show();
+                    progress.find('#adyen_payments_configuration_errors').hide();
                     notification.text(message).show();
                     break;
                 case 'error':
-                    progressSpan.find('.processing').hide();
-                    progressSpan.find('.configured').hide();
-                    progressSpan.find('#adyen_payments_configuration_errors').show();
-                    progressSpan.find('#adyen_payments_configuration_errors').find('.message').text(message);
+                    progress.find('.processing').hide();
+                    progress.find('.configured').hide();
+                    progress.find('#adyen_payments_configuration_errors').show();
+                    progress.find('#adyen_payments_configuration_errors').find('.message').text(message);
                     break;
             }
         }
@@ -167,6 +170,16 @@
             }
 
             return pass;
+        }
+
+        function convertActionButtonToSaveConfig() {
+            actionButton.off();
+            actionButton.html('<span>Save Config</span>');
+            actionButton.addClass('save primary ui-button');
+            // temporarily replace the save button
+            $('button#save').attr('id', '');
+            actionButton.attr('id', 'save');
+            actionButton.attr('title', 'Save Config');
         }
     });
 </script>
