@@ -513,13 +513,13 @@ class Order extends AbstractHelper
 
             if ($orderPayment->getEntityId() > 0) {
                 $this->adyenOrderPaymentHelper->refundAdyenOrderPayment($orderPayment, $notification);
-                $this->adyenLogger->addAdyenDebug(sprintf(
+                $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
                     'Refunding %s from AdyenOrderPayment %s',
                     $notification->getAmountCurrency() . $notification->getAmountValue(),
                     $orderPayment->getEntityId()
                 ));
             } else {
-                $this->adyenLogger->addAdyenDebug(sprintf(
+                $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
                     'AdyenOrderPayment with pspReference %s was not found. This should be linked to order %s',
                     $notification->getOriginalReference(),
                     $order->getRemoteIp()
@@ -541,9 +541,9 @@ class Order extends AbstractHelper
                 $amount = $this->dataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
                 $order->getPayment()->registerRefundNotification($amount);
 
-                $this->adyenLogger->addAdyenDebug(sprintf('Created credit memo for order %s', $order->getIncrementId()));
+                $this->adyenLogger->addAdyenNotificationCronjob(sprintf('Created credit memo for order %s', $order->getIncrementId()));
             } else {
-                $this->adyenLogger->addAdyenDebug(sprintf(
+                $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
                     'Could not create a credit memo for order %s while processing notification %s',
                     $order->getIncrementId(),
                     $notification->getId()
