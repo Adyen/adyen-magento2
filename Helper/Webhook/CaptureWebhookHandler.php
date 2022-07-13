@@ -12,7 +12,6 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
-
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\Invoice;
