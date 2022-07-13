@@ -170,6 +170,31 @@
                 <can_cancel>1</can_cancel>
                 <group>adyen</group>
             </adyen_boleto>
+            <adyen_moto>
+                <active>0</active>
+                <model>AdyenPaymentMotoFacade</model>
+                <title>MOTO</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>9</sort_order>
+                <useccv>0</useccv>
+                <has_holder_name>1</has_holder_name>
+                <holder_name_required>0</holder_name_required>
+                <payment_action>authorize</payment_action>
+                <is_gateway>1</is_gateway>
+                <can_use_checkout>0</can_use_checkout>
+                <can_authorize>1</can_authorize>
+                <can_authorize_3d>1</can_authorize_3d>
+                <can_capture>1</can_capture>
+                <can_capture_partial>1</can_capture_partial>
+                <can_use_internal>1</can_use_internal>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_refund>1</can_refund>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <can_authorize_vault>1</can_authorize_vault>
+                <can_capture_vault>1</can_capture_vault>
+                <group>adyen</group>
+            </adyen_moto>
         </payment>
     </default>
 </config>

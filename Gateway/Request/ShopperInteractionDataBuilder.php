@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenMotoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Magento\Framework\Exception\LocalizedException;
@@ -57,7 +58,7 @@ class ShopperInteractionDataBuilder implements BuilderInterface
         // Ecommerce is the default shopperInteraction
         $shopperInteraction = 'Ecommerce';
 
-        if ($paymentMethod == AdyenCcConfigProvider::CODE &&
+        if ($paymentMethod == AdyenMotoConfigProvider::CODE &&
             $this->appState->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML) {
             // Backend CC orders are MOTO
             $shopperInteraction = "Moto";

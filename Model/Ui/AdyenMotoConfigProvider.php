@@ -1,0 +1,283 @@
+<?php
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2022 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+namespace Adyen\Payment\Model\Ui;
+
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Recurring;
+use Magento\Checkout\Model\ConfigProviderInterface;
+
+class AdyenMotoConfigProvider implements ConfigProviderInterface
+{
+    const CODE = 'adyen_moto';
+    const CC_VAULT_CODE = 'adyen_cc_vault';
+
+    /**
+     * @var PaymentHelper
+     */
+    protected $_paymentHelper;
+
+    /**
+     * @var \Adyen\Payment\Helper\Data
+     */
+    protected $_adyenHelper;
+
+    /**
+     * @var Source
+     */
+    protected $_assetSource;
+
+    /**
+     * Request object
+     *
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    protected $_request;
+
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
+    protected $_urlBuilder;
+
+    /**
+     * @var \Magento\Payment\Model\CcConfig
+     */
+    private $ccConfig;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
+     * @var \Magento\Framework\Serialize\SerializerInterface
+     */
+    private $serializer;
+
+    /** @var Config $configHelper */
+    private $configHelper;
+
+    /**
+     * adyenMotoConfigProvider constructor.
+     *
+     * @param \Magento\Payment\Helper\Data $paymentHelper
+     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param \Magento\Framework\View\Asset\Source $assetSource
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Payment\Model\CcConfig $ccConfig
+     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     */
+    public function __construct(
+        \Magento\Payment\Helper\Data $paymentHelper,
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Magento\Framework\App\RequestInterface $request,
+        \Magento\Framework\UrlInterface $urlBuilder,
+        \Magento\Framework\View\Asset\Source $assetSource,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Payment\Model\CcConfig $ccConfig,
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
+        Config $configHelper
+    ) {
+        $this->_paymentHelper = $paymentHelper;
+        $this->_adyenHelper = $adyenHelper;
+        $this->_request = $request;
+        $this->_urlBuilder = $urlBuilder;
+        $this->_assetSource = $assetSource;
+        $this->ccConfig = $ccConfig;
+        $this->storeManager = $storeManager;
+        $this->serializer = $serializer;
+        $this->configHelper = $configHelper;
+    }
+
+    /**
+     * @return array
+     */
+    public function getConfig()
+    {
+        // set to active
+        $config = [
+            'payment' => [
+                self::CODE => [
+                    'isActive' => true,
+                    'successPage' => $this->_urlBuilder->getUrl(
+                        'checkout/onepage/success',
+                        ['_secure' => $this->_getRequest()->isSecure()]
+                    )
+                ]
+            ]
+        ];
+
+        $methodCode = self::CODE;
+
+        $config = array_merge_recursive(
+            $config,
+            [
+                'payment' => [
+                    'ccform' => [
+                        'availableTypes' => [$methodCode => $this->getCcAvailableTypes()],
+                        'availableTypesByAlt' => [$methodCode => $this->getCcAvailableTypesByAlt()],
+                        'months' => [$methodCode => $this->getCcMonths()],
+                        'years' => [$methodCode => $this->getCcYears()],
+                        'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
+                        'cvvImageUrl' => [$methodCode => $this->getCvvImageUrl()]
+                    ]
+                ]
+            ]
+        );
+
+        $storeId = $this->storeManager->getStore()->getId();
+        $recurringEnabled = $this->configHelper->getConfigData('active', Config::XML_ADYEN_ONECLICK, $storeId, true);
+
+        $config['payment']['adyenMoto']['methodCode'] = self::CODE;
+        $config['payment']['adyenMoto']['locale'] = $this->_adyenHelper->getStoreLocale($storeId);
+        $config['payment']['adyenMoto']['isOneClickEnabled'] = $recurringEnabled;
+        $config['payment']['adyenMoto']['icons'] = $this->getIcons();
+
+
+        // has installments by default false
+        $config['payment']['adyenMoto']['hasInstallments'] = false;
+
+        // get Installments
+        $installmentsEnabled = $this->_adyenHelper->getadyenCcConfigData('enable_installments');
+        $installments = $this->_adyenHelper->getadyenCcConfigData('installments');
+
+        if ($installmentsEnabled && $installments) {
+            $config['payment']['adyenMoto']['installments'] = $this->serializer->unserialize($installments);
+            $config['payment']['adyenMoto']['hasInstallments'] = true;
+        } else {
+            $config['payment']['adyenMoto']['installments'] = [];
+        }
+
+        return $config;
+    }
+
+    /**
+     * Retrieve available credit card types
+     *
+     * @return array
+     */
+    protected function getCcAvailableTypes()
+    {
+        $types = [];
+        $ccTypes = $this->_adyenHelper->getadyenCcTypes();
+        $availableTypes = $this->_adyenHelper->getadyenCcConfigData('cctypes');
+        if ($availableTypes) {
+            $availableTypes = explode(',', $availableTypes);
+            foreach (array_keys($ccTypes) as $code) {
+                if (in_array($code, $availableTypes)) {
+                    $types[$code] = $ccTypes[$code]['name'];
+                }
+            }
+        }
+
+        return $types;
+    }
+
+    /**
+     * Retrieve available credit card type codes by alt code
+     *
+     * @return array
+     */
+    protected function getCcAvailableTypesByAlt()
+    {
+        $types = [];
+        $ccTypes = $this->_adyenHelper->getadyenCcTypes();
+        $availableTypes = $this->_adyenHelper->getadyenCcConfigData('cctypes');
+        if ($availableTypes) {
+            $availableTypes = explode(',', $availableTypes);
+            foreach (array_keys($ccTypes) as $code) {
+                if (in_array($code, $availableTypes)) {
+                    $types[$ccTypes[$code]['code_alt']] = $code;
+                }
+            }
+        }
+
+        return $types;
+    }
+
+    /**
+     * Get icons for available payment methods
+     *
+     * @return array
+     */
+    protected function getIcons()
+    {
+        $icons = [];
+        $types = $this->_adyenHelper->getadyenCcTypes();
+        foreach (array_keys($types) as $code) {
+            if (!array_key_exists($code, $icons)) {
+                $asset = $this->ccConfig->createAsset('Magento_Payment::images/cc/' . strtolower($code) . '.png');
+                $placeholder = $this->_assetSource->findSource($asset);
+                if ($placeholder) {
+                    list($width, $height) = getimagesize($asset->getSourceFile());
+                    $icons[$code] = [
+                        'url' => $asset->getUrl(),
+                        'width' => $width,
+                        'height' => $height
+                    ];
+                }
+            }
+        }
+        return $icons;
+    }
+
+    /**
+     * Retrieve credit card expire months
+     *
+     * @return array
+     */
+    protected function getCcMonths()
+    {
+        return $this->ccConfig->getCcMonths();
+    }
+
+    /**
+     * Retrieve credit card expire years
+     *
+     * @return array
+     */
+    protected function getCcYears()
+    {
+        return $this->ccConfig->getCcYears();
+    }
+
+    /**
+     * Has verification is always true
+     *
+     * @return bool
+     */
+    protected function hasVerification()
+    {
+        return $this->_adyenHelper->getadyenCcConfigData('useccv');
+    }
+
+    /**
+     * Retrieve CVV tooltip image url
+     *
+     * @return string
+     */
+    protected function getCvvImageUrl()
+    {
+        return $this->ccConfig->getCvvImageUrl();
+    }
+
+    /**
+     * Retrieve request object
+     *
+     * @return \Magento\Framework\App\RequestInterface
+     */
+    protected function _getRequest()
+    {
+        return $this->_request;
+    }
+}
