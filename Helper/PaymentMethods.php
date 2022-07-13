@@ -29,7 +29,6 @@ use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
 
-
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
  */

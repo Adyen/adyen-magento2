@@ -191,9 +191,6 @@ class WebhookHandlerFactory
                     self::$orderHelper,
                     self::$configHelper,
                     self::$adyenLogger,
-                    self::$adyenOrderPaymentCollectionFactory,
-                    self::$adyenDataHelper,
-                    self::$adyenOrderPayment
                 );
             case Notification::REFUND_FAILED:
                 return new RefundFailedWebhookHandler(
@@ -232,6 +229,12 @@ class WebhookHandlerFactory
                 );
             case Notification::CANCELLATION:
                 return new CancellationWebhookHandler(
+                    self::$orderHelper
+                );
+            case Notification::CANCEL_OR_REFUND:
+                return new CancelOrRefundWebhookHandler(
+                    self::$adyenLogger,
+                    self::$serializer,
                     self::$orderHelper
                 );
         }
