@@ -64,31 +64,6 @@ define(
                     self.installments(0);
                 }
             },
-            initiate: function () {
-                var self = this,
-                    serviceUrl,
-                    paymentData = quote.paymentMethod();
-
-                // use core code to assign the agreement
-                agreementsAssigner(paymentData);
-                serviceUrl = urlBuilder.createUrl('/adyen/initiate', {});
-                fullScreenLoader.startLoader();
-
-                var payload = {
-                    "payload": JSON.stringify({
-                        terminal_id: self.terminalId(),
-                        number_of_installments: self.installment()
-                    })
-                }
-
-                return storage.post(
-                    serviceUrl,
-                    JSON.stringify(payload)
-                ).always(function () {
-                    self.placeOrderPos()});
-                return false;
-            },
-
             posComplete: function () {
                 this.afterPlaceOrder();
                 if (this.redirectAfterPlaceOrder) {
@@ -141,6 +116,7 @@ define(
                     additional_data: {
                         'terminal_id': this.terminalId(),
                         'number_of_installments': this.installment(),
+                        'chain_calls': true
                     }
                 };
             },
