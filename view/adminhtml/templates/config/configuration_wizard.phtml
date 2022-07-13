@@ -2,9 +2,16 @@
 <script>
     require(['jquery'], function ($) {
         const configMode = $("select[name*='configuration_mode']");
-        const demoMode = $("div.adyen_required_config_settings select[name*='demo_mode']");
+        const demoModeSelector = "div.adyen_required_config_settings select[name*='demo_mode']";
+        const testApiKeySelector = "div.adyen_required_config_settings input[name*='api_key_test']";
+        const liveApiKeySelector = "div.adyen_required_config_settings input[name*='api_key_live']";
+        const merchantAccountSelector = "div.adyen_required_config_settings select[name*='merchant_account']";
+        const livePrefixUrlSelector = "div.adyen_required_config_settings input[name*='live_endpoint_url_prefix']";
+        const testClientKeySelector = "div.adyen_required_config_settings input[name*='client_key_test']";
+        const liveClientKeySelector = "div.adyen_required_config_settings input[name*='client_key_live']";
+        const webhookUsernameSelector = "div.adyen_required_config_settings input[name*='notification_username']";
+        const webhookPasswordSelector = "div.adyen_required_config_settings input[name*='notification_password']";
         const actionButton = $("#adyen_configuration_action");
-        const progressSpan = $('#progress');
 
         /*function checkConfigMode() {
             const autoConfigured = <?=$block->configured()?'true':'false';?>;
@@ -21,95 +28,121 @@
         let merchantAccounts = [];
         actionButton.on('click', loadMerchantAccounts);
 
-        $("select[name*='merchant_account']").on('change', function () {
-            if (demoMode.val()) {
-                return;
-            }
-            let livePrefix = $("div.adyen_required_config_settings input[name*='live_endpoint_url_prefix']");
-            let merchantAccount = merchantAccounts.find(function (account) { return account.name === this.value }.bind(this));
-
-            if (merchantAccount !== undefined) {
-                livePrefix.val(merchantAccount.liveEndpointPrefix);
-            }
-            showConfigField(livePrefix);
-            progressUpdate('success');
-        });
+        $(merchantAccountSelector).on('change', prefillLivePrefix);
 
         function loadMerchantAccounts() {
             progressUpdate('start');
-            let demoMode = $("div.adyen_required_config_settings select[name*='demo_mode']").val();
+            let demoMode = $(demoModeSelector).val();
             let apiKey = demoMode
-                ? $("div.adyen_required_config_settings input[name*='api_key_test']").val()
-                : $("div.adyen_required_config_settings input[name*='api_key_live']").val();
+                ? $(testApiKeySelector).val()
+                : $(liveApiKeySelector).val();
             $.ajax('<?php echo $block->getMerchantAccountsUrl() ?>', {
                 data: {apiKey, demoMode},
                 method: "POST"
             }).done(function (response) {
-                //add html response
-                let merchantAccountSelect = document.querySelector(
-                    "div.adyen_required_config_settings select[name*='merchant_account']");
-                //remove previous accounts
+                let merchantAccountSelect = document.querySelector(merchantAccountSelector);
+                // remove previous merchant accounts from dropdown
                 for (let i = merchantAccountSelect.options.length - 1; i >= 0; i--) {
                     merchantAccountSelect.remove(i);
                 }
-                //add the merchant accounts to the html element
+                // save merchant accounts mapping with liveprefix urls to global constant
                 merchantAccounts = response.data;
+                // add merchant accounts to dropdown
                 for (i = 0; i < merchantAccounts.length; i++) {
                     merchantAccountSelect.add(new Option(merchantAccounts[i].name, merchantAccounts[i].name));
                 }
                 merchantAccountSelect.value = response.currentMerchantAccount;
-                showConfigField($("select[name*='merchant_account']"));
+                showConfigField($(merchantAccountSelector));
 
-                progressUpdate('success');
+                prefillLivePrefix.bind($(merchantAccountSelector)[0])();
+
+                // update action button listener to perform next action
                 actionButton.on('click', fetchClientKey);
+                progressUpdate('success', 'Click Next to fetch your Client Key.');
             }).fail(function(response) {
                 progressUpdate('error', 'Unable to load merchant accounts: ' + response.error);
             });
         }
 
+        /**
+         * Prefill livePrefixUrl based on mapping in merchantAccounts variable
+         */
+        function prefillLivePrefix() {
+            if ($(demoModeSelector).val()) {
+                return;
+            }
+            let livePrefixUrl = $(livePrefixUrlSelector);
+            let merchantAccount = merchantAccounts.find(function (account) { return account.name === this.value }.bind(this));
+            if (merchantAccount !== undefined) {
+                livePrefixUrl.val(merchantAccount.liveEndpointPrefix);
+            }
+            showConfigField(livePrefixUrl);
+        }
+
         function fetchClientKey() {
             progressUpdate('start');
-            let demoMode = $("div.adyen_required_config_settings select[name*='demo_mode']").val();
+            let demoMode = $(demoModeSelector).val();
             let apiKey = demoMode
-                ? $("div.adyen_required_config_settings input[name*='api_key_test']").val()
-                : $("div.adyen_required_config_settings input[name*='api_key_live']").val();
+                ? $(testApiKeySelector).val()
+                : $(liveApiKeySelector).val();
             $.ajax('<?php echo $block->getClientKeyUrl() ?>', {
                 data: {apiKey, demoMode},
                 method: "POST"
             }).done(function (response) {
                 let clientKey = response.clientKey;
                 if (demoMode) {
-                    let clientKeyIdTest = $("div.adyen_required_config_settings input[name*='client_key_test']");
-                    clientKeyIdTest.value = clientKey;
-                    showConfigField($("input[name*='client_key_test']"));
+                    let clientKeyTest = $(testClientKeySelector);
+                    clientKeyTest.value = clientKey;
+                    showConfigField(clientKeyTest);
                 } else {
-                    let clientKeyIdLive = $("div.adyen_required_config_settings input[name*='client_key_live']");
-                    clientKeyIdLive.value = clientKey;
-                    showConfigField($("input[name*='client_key_live']"));
+                    let clientKeyLive = $(liveClientKeySelector);
+                    clientKeyLive.value = clientKey;
+                    showConfigField(clientKeyLive);
                 }
-                progressUpdate('success');
+                // update action button listener to perform next action
+                actionButton.on('click', generateWebhookCredentials);
+                progressUpdate('success', 'Click Next to generate notification username and password.');
             }).fail(function(response) {
                 progressUpdate('error', 'Unable to load client key: ' + response.error);
             });
         }
 
+        function generateWebhookCredentials() {
+            progressUpdate('start');
+            let username = 'webuser';
+            let password = generateRandomPassword();
+
+            let usernameField = $(webhookUsernameSelector);
+            let passwordField = $(webhookPasswordSelector);
+            usernameField.val(username);
+            passwordField.val(password);
+
+            showConfigField(usernameField);
+            showConfigField(passwordField);
+            progressUpdate('success', 'Save Auto Configuration');
+        }
+
         function progressUpdate(action, message='') {
+            const progressSpan = $('#progress');
             const notification = $('#adyen_payments_configured_message');
+            notification.html('');
             switch (action) {
                 case 'start':
                     progressSpan.show();
+                    progressSpan.find('.processing').show();
                     progressSpan.find('.configured').hide();
                     progressSpan.find('#adyen_payments_configuration_errors').hide();
-                    notification.text('');
-                    progressSpan.find('.processing').show();
+                    notification.text('').show();
                     break;
                 case 'success':
                     progressSpan.find('.processing').hide();
                     progressSpan.find('.configured').show();
-                    notification.text(message);
+                    progressSpan.find('#adyen_payments_configuration_errors').hide();
+                    notification.text(message).show();
                     break;
                 case 'error':
                     progressSpan.find('.processing').hide();
+                    progressSpan.find('.configured').hide();
                     progressSpan.find('#adyen_payments_configuration_errors').show();
                     progressSpan.find('#adyen_payments_configuration_errors').find('.message').text(message);
                     break;
@@ -119,6 +152,21 @@
         function showConfigField(field) {
             field.parents('tr').show();
             field.show().prop('disabled', false);
+        }
+
+        function generateRandomPassword() {
+            var pass = '';
+            var str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+                'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+
+            for (let i = 1; i <= 8; i++) {
+                var char = Math.floor(Math.random()
+                    * str.length + 1);
+
+                pass += str.charAt(char)
+            }
+
+            return pass;
         }
     });
 </script>
