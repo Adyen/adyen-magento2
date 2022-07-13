@@ -47,9 +47,15 @@ class Toggle extends \Magento\Config\Block\System\Config\Form\Field
         $this->groupName = $element->getName();
         $this->myStatus = $element->getData()['value'];
 
+        if($element->getTooltip()) {
+            $html = '<td class="label">' . $element->getLabel() . '</td>';
+            $html .= '<td class="value-with-tooltip toggle-cell">'. $this->_toHtml() . '<div class="tooltip tooltip-toggle">' . '<span class="help"><span></span></span>';
+            $html .= '<div class="tooltip-content">' . $element->getTooltip() . '</div></div>' . '</td>';
+        } else {
+            $html =  '<td class="label">' . $element->getLabel() .'</td><td>'. $this->toHtml() . '</td>';
+        }
 
-
-        return $this->_decorateRowHtml($element, "<td class='label'>" . $element->getLabel() .'</td><td>'. $this->toHtml() . '</td>');
+        return $this->_decorateRowHtml($element, $html);
     }
 
     public function getGroupName() {

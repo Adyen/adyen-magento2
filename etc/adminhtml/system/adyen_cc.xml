@@ -20,19 +20,26 @@
                     </p>
             ]]>
         </comment>
+<!--        <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1"-->
+<!--               showInWebsite="1" showInStore="1">-->
+<!--            <label>Enable</label>-->
+<!--            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
+<!--            <tooltip>Enable installments for each credit card type.</tooltip>-->
+<!--            <config_path>payment/adyen_cc/active</config_path>-->
+<!--        </field>-->
+
         <field id="active" translate="label" type="checkbox" sortOrder="10" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Enabled</label>
             <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\Toggle</frontend_model>
-
-<!--            <backend_model>Adyen\Payment\Model\Config\Backend\Toggle</backend_model>-->
-<!--            using the backend model doesn't work as expected, check the comments in the model-->
-
             <config_path>payment/adyen_cc/active</config_path>
         </field>
         <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Title</label>
+            <depends>
+                <field id="active">1</field>
+            </depends>
             <config_path>payment/adyen_cc/title</config_path>
         </field>
         <field id="sort_order" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"

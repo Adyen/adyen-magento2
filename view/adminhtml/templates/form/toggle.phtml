@@ -81,14 +81,14 @@
     }
 
     input:checked + .slider:before {
-        -webkit-transform: translateX(20px);
-        -ms-transform: translateX(20px);
-        transform: translateX(20px);
+        -webkit-transform: translateX(18px);
+        -ms-transform: translateX(18px);
+        transform: translateX(18px);
     }
     input:checked + .sliderOne:before {
-        -webkit-transform: translateX(20px);
-        -ms-transform: translateX(20px);
-        transform: translateX(20px);
+        -webkit-transform: translateX(18px);
+        -ms-transform: translateX(18px);
+        transform: translateX(18px);
     }
 
     /* Rounded sliders */
@@ -113,6 +113,16 @@
         display: inline-block;
         border: 1px solid #ccc;
     }
+
+    .tooltip-toggle {
+        position: relative;
+        right: -2rem;
+    }
+
+    .toggle-cell {
+        display: flex;
+        justify-content: space-between
+    }
 </style>
 
 <?php $randomId = rand(); ?>
@@ -124,21 +134,17 @@
     function toggleFunction(randomId) {
         if(document.getElementById(randomId).checked) {
             document.getElementById(randomId).nextElementSibling.setAttribute("class","sliderOne round");
-            document.getElementById(randomId).value = '1'
+            // document.getElementById(randomId).value = '1'
         }else{
             document.getElementById(randomId).nextElementSibling.setAttribute("class","slider round");
-            document.getElementById(randomId).value = '0'
+            // document.getElementById(randomId).value = '0'
         }
     }
 </script>
 
 <label class="switch" >
-    <input value="0" type="hidden" name="<?php echo $groupName; ?>" >
-
-<!--    workaround for tricking magento for sending the value of 0 to the DB. As the input with the type of checkbox only -->
-<!--    sends the value to the DB if it is checked, this is how we are tricking magento to send the value even if the input's value is 0-->
-
-    <input value="1" type="checkbox" id="<?php echo 'input-' . $randomId; ?>" name="<?php echo $groupName; ?>" onclick="toggleFunction('<?php echo "input-" . $randomId ?>')" <?= $realData ? 'checked' : '' ?>>
+<!--    <input value="0" type="hidden" name="--><?php //echo $groupName; ?><!--" >-->
+    <input value="0" type="checkbox" id="<?php echo 'input-' . $randomId; ?>" name="<?php echo $groupName; ?>" onclick="toggleFunction('<?php echo "input-" . $randomId ?>')" <?= $realData ? 'checked' : '' ?>>
     <span class="<?= $realData ? 'sliderOne' : 'slider' ?> round" id="<?php echo 'span-' . $randomId; ?>" ></span>
 </label>
 
