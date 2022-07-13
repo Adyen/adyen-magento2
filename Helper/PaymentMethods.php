@@ -787,4 +787,20 @@ class PaymentMethods extends AbstractHelper
 
         return false;
     }
+
+    /**
+     * This function should be removed once we add classes for payment methods
+     *
+     * @param string $paymentMethod
+     * @return bool
+     */
+    public function isBankTransfer(string $paymentMethod): bool
+    {
+        if (strlen($paymentMethod) >= 12 && substr($paymentMethod, 0, 12) == "bankTransfer") {
+            $isBankTransfer = true;
+        } else {
+            $isBankTransfer = false;
+        }
+        return $isBankTransfer;
+    }
 }

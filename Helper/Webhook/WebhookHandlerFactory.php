@@ -224,6 +224,12 @@ class WebhookHandlerFactory
                     self::$encryptor,
                     self::$paymentTokenRepository
                 );
+            case Notification::PENDING:
+                return new PendingWebhookHandler(
+                    self::$configHelper,
+                    self::$orderHelper,
+                    self::$paymentMethodsHelper
+                );
         }
     }
 }
