@@ -20,12 +20,21 @@ use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Invoice;
 use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Api\PaymentRequest;
+use Adyen\Payment\Model\Billing\AgreementFactory;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
+use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as AgreementCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Model\Order\PaymentFactory;
+use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
+use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
+use Magento\Vault\Api\PaymentTokenManagementInterface;
+use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 
 class WebhookHandlerFactory
 {
@@ -69,6 +78,33 @@ class WebhookHandlerFactory
     /** @var Data */
     private static $adyenDataHelper;
 
+    /** @var Vault */
+    private static $vaultHelper;
+
+    /** @var PaymentRequest */
+    private static $paymentRequest;
+
+    /** @var AgreementCollectionFactory */
+    private static $agreementCollectionFactory;
+
+    /** @var AgreementFactory */
+    private static $agreementFactory;
+
+    /** @var Agreement */
+    private static $billingAgreementResourceModel;
+
+    /** @var PaymentTokenManagementInterface */
+    private static $tokenManagement;
+
+    /** @var PaymentTokenFactoryInterface */
+    private static $paymentTokenFactory;
+
+    /** @var EncryptorInterface */
+    private static $encryptor;
+
+    /** @var PaymentTokenRepositoryInterface */
+    private static $paymentTokenRepository;
+
     public function __construct(
         AdyenOrderPayment $adyenOrderPayment,
         Order $orderHelper,
@@ -82,9 +118,17 @@ class WebhookHandlerFactory
         MagentoInvoiceFactory $magentoInvoiceFactory,
         PaymentMethods $paymentMethodsHelper,
         OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
-        Data $adyenDataHelper
-    )
-    {
+        Data $adyenDataHelper,
+        Vault $vaultHelper,
+        PaymentRequest $paymentRequest,
+        AgreementCollectionFactory $agreementCollectionFactory,
+        AgreementFactory $agreementFactory,
+        Agreement $billingAgreementResourceModel,
+        PaymentTokenManagementInterface $paymentTokenManagement,
+        PaymentTokenFactoryInterface $paymentTokenFactory,
+        EncryptorInterface $encryptor,
+        PaymentTokenRepositoryInterface $paymentTokenRepository
+    ) {
         self::$adyenOrderPayment = $adyenOrderPayment;
         self::$orderHelper = $orderHelper;
         self::$caseManagementHelper = $caseManagementHelper;
@@ -98,6 +142,15 @@ class WebhookHandlerFactory
         self::$paymentMethodsHelper = $paymentMethodsHelper;
         self::$adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
         self::$adyenDataHelper = $adyenDataHelper;
+        self::$vaultHelper = $vaultHelper;
+        self::$paymentRequest = $paymentRequest;
+        self::$agreementCollectionFactory = $agreementCollectionFactory;
+        self::$agreementFactory = $agreementFactory;
+        self::$billingAgreementResourceModel = $billingAgreementResourceModel;
+        self::$tokenManagement = $paymentTokenManagement;
+        self::$paymentTokenFactory = $paymentTokenFactory;
+        self::$encryptor = $encryptor;
+        self::$paymentTokenRepository = $paymentTokenRepository;
     }
 
     public static function create(string $eventCode): WebhookHandlerInterface
@@ -156,6 +209,20 @@ class WebhookHandlerFactory
                 return new ManualReviewRejectWebhookHandler(
                     self::$caseManagementHelper,
                     self::$paymentMethodsHelper
+                );
+            case Notification::RECURRING_CONTRACT:
+                return new RecurringContractWebhookHandler(
+                    self::$vaultHelper,
+                    self::$adyenLogger,
+                    self::$paymentRequest,
+                    self::$agreementCollectionFactory,
+                    self::$agreementFactory,
+                    self::$billingAgreementResourceModel,
+                    self::$configHelper,
+                    self::$tokenManagement,
+                    self::$paymentTokenFactory,
+                    self::$encryptor,
+                    self::$paymentTokenRepository
                 );
         }
     }
