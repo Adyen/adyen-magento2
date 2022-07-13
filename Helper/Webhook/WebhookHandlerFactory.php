@@ -230,6 +230,10 @@ class WebhookHandlerFactory
                     self::$orderHelper,
                     self::$paymentMethodsHelper
                 );
+            case Notification::CANCELLATION:
+                return new CancellationWebhookHandler(
+                    self::$orderHelper
+                );
         }
     }
 }
