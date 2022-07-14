@@ -289,4 +289,9 @@ class Moto extends \Magento\Payment\Block\Form\Cc
 
         return $this->chargedCurrency->getQuoteAmountCurrency($quote);
     }
+
+    public function getMotoMerchantAccounts()
+    {
+        return $this->configHelper->getMotoMerchantAccounts();
+    }
 }
