@@ -35,7 +35,7 @@ class ConfigurationWizard extends Field
         return $this->_toHtml();
     }
 
-    public function getButtonHtml()
+    public function getNextButtonHtml()
     {
         $button = $this->getLayout()->createBlock(
             'Magento\Backend\Block\Widget\Button'
@@ -43,6 +43,21 @@ class ConfigurationWizard extends Field
             [
                 'id' => 'adyen_configuration_action',
                 'label' => __('Next'),
+                'class' => 'primary'
+            ]
+        );
+
+        return $button->toHtml();
+    }
+
+    public function getResetButtonHtml()
+    {
+        $button = $this->getLayout()->createBlock(
+            'Magento\Backend\Block\Widget\Button'
+        )->setData(
+            [
+                'id' => 'adyen_configuration_action_reset',
+                'label' => __('Reconfigure'),
             ]
         );
 

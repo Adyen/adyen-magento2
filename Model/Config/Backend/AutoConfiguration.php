@@ -43,7 +43,9 @@ class AutoConfiguration extends Value
 
     public function afterSave()
     {
-        $this->managementApiHelper->setAutoConfigurationStatus(true);
+        if ('auto' === $this->getValue()) {
+            $this->managementApiHelper->setAutoConfigurationStatus(true);
+        }
         return parent::afterSave();
     }
 }

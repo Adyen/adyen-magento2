@@ -13,8 +13,16 @@
             const webhookUsernameSelector = "div.adyen_required_config_settings input[name*='notification_username']";
             const webhookPasswordSelector = "div.adyen_required_config_settings input[name*='notification_password']";
             const actionButton = $("#adyen_configuration_action");
+            const resetButton = $("#adyen_configuration_action_reset");
+            resetButton.hide();
 
-            const autoConfigured = <?=$block->autoConfigured()?'true':'false';?>;
+            let autoConfigured = <?=$block->autoConfigured()?'true':'false';?>;
+            resetButton.on('click', function () {
+                if (window.confirm("Are you sure you want to reset Required Settings configuration?")) {
+                    resetAutoConfiguration();
+                    renderAutoConfiguration();
+                }
+            });
 
             function renderAutoConfiguration() {
                 if (configMode[0].value === 'manual') {
@@ -32,9 +40,27 @@
                     showConfigField($(webhookUsernameSelector), false);
                     showConfigField($(webhookPasswordSelector), false);
                     actionButton.hide();
+                    resetButton.show();
                 } else {
                     actionButton.on('click', loadMerchantAccountsAndClientKey);
                 }
+            }
+
+            function resetAutoConfiguration() {
+                let demoMode = $(demoModeSelector).val();
+                if (demoMode) {
+                    hideConfigField($(testClientKeySelector));
+                } else {
+                    hideConfigField($(liveClientKeySelector));
+                    hideConfigField($(livePrefixUrlSelector));
+                }
+                hideConfigField($(merchantAccountSelector));
+                hideConfigField($(webhookUsernameSelector));
+                hideConfigField($(webhookPasswordSelector));
+                autoConfigured = false;
+
+                actionButton.show();
+                resetButton.hide();
             }
 
             renderAutoConfiguration();
@@ -116,8 +142,8 @@
 
                 showConfigField(usernameField);
                 showConfigField(passwordField);
-                convertActionButtonToSaveConfig();
-                progressUpdate('success', 'Proceed to save configuration.');
+                convertActionButtonToFinished();
+                progressUpdate('success', 'Required settings configuration complete. Click Save Config to save.');
             }
 
             function progressUpdate(action, message='') {
@@ -155,6 +181,12 @@
                 }
             }
 
+            function hideConfigField(field) {
+                field.parents('tr')[0].hide();
+                field.hide();
+                field.prop('disabled', true);
+            }
+
             function generateRandomPassword() {
                 var pass = '';
                 var str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
@@ -170,19 +202,18 @@
                 return pass;
             }
 
-            function convertActionButtonToSaveConfig() {
+            function convertActionButtonToFinished() {
                 actionButton.off();
-                actionButton.html('<span>Save Config</span>');
-                actionButton.addClass('save primary ui-button');
-                // temporarily replace the save button
-                $('button#save').attr('id', '');
-                actionButton.attr('id', 'save');
-                actionButton.attr('title', 'Save Config');
+                actionButton.html('<span>Complete</span>');
+                actionButton.removeClass('primary');
+                actionButton.addClass('disabled ui-button');
+                actionButton.attr('disabled', 'disabled');
+                actionButton.hide();
             }
         });
     });
 </script>
-<?php echo $block->getButtonHtml() ?>
+<?php echo $block->getNextButtonHtml() ?>
 <span class="adyen-required-settings-config-admin" id="progress" style="display: none">
     <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
     <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
@@ -191,3 +222,4 @@
         <div class="message message-warning"></div>
     </div>
 </span>
+<?php echo $block->getResetButtonHtml() ?>
