@@ -19,7 +19,7 @@ use Magento\Payment\Model\Config;
  */
 class CcType extends \Magento\Payment\Model\Source\Cctype
 {
-    const ALLOWED_TYPES = ['VI', 'MC', 'AE', 'DI', 'JCB', 'UN', 'MI', 'DN', 'BCMC', 'HIPERCARD', 'ELO', 'TROY', 'DANKORT', 'CB'];
+    const ALLOWED_TYPES = ['VI', 'MC', 'AE', 'DI', 'JCB', 'UN', 'MI', 'DN', 'BCMC', 'HIPERCARD', 'ELO', 'TROY', 'DANKORT', 'CB', 'KCP'];
 
     /**
      * @var Data
