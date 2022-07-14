@@ -2,12 +2,26 @@
 
 namespace Adyen\Payment\Model\Config\Adminhtml;
 
+use Adyen\Payment\Helper\Config;
+use Magento\Backend\Block\Template\Context;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
+use Magento\Framework\View\Helper\SecureHtmlRenderer;
 
 class ConfigurationWizard extends Field
 {
     protected $_template = 'Adyen_Payment::config/configuration_wizard.phtml';
+    private $configHelper;
+
+    public function __construct(
+        Context $context,
+        array $data = [],
+        Config $configHelper,
+        ?SecureHtmlRenderer $secureRenderer = null
+    ) {
+        parent::__construct($context, $data, $secureRenderer);
+        $this->configHelper = $configHelper;
+    }
 
     public function render(AbstractElement $element)
     {
@@ -45,7 +59,8 @@ class ConfigurationWizard extends Field
         return $this->_storeManager->getStore()->getId();
     }
 
-    public function configured() {
-        return false;
+    public function autoConfigured() {
+        return (bool) $this->configHelper
+            ->getConfigData('auto_configuration', Config::XML_ADYEN_ABSTRACT_PREFIX, $this->getStoreId());
     }
 }

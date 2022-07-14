@@ -22,6 +22,8 @@
                showInStore="1">
             <label>Select Configuration Mode</label>
             <source_model>Adyen\Payment\Model\Config\Source\ConfigurationModes</source_model>
+            <config_path>payment/adyen_abstract/configuration_mode</config_path>
+            <backend_model>Adyen\Payment\Model\Config\Backend\AutoConfiguration</backend_model>
         </field>
         <field id="demo_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
                showInStore="1">

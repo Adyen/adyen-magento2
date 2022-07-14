@@ -20,7 +20,7 @@ use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
 
-class AllowedOriginValue extends Value
+class AutoConfiguration extends Value
 {
     /**
      * @var ManagementHelper
@@ -41,16 +41,9 @@ class AllowedOriginValue extends Value
         $this->managementApiHelper = $managementApiHelper;
     }
 
-    public function beforeSave()
+    public function afterSave()
     {
-        $environment = (int) $this->getFieldsetDataValue('demo_mode') ? 'test' : 'live';
-        $apiKey = $this->getFieldsetDataValue('api_key_' . $environment);
-
-        $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($apiKey, $environment);
-        $value = $this->getValue();
-        if (!in_array($value, $configuredOrigins)) {
-            $this->managementApiHelper->saveAllowedOrigin($apiKey, $environment, $value);
-        }
-        return parent::beforeSave();
+        $this->managementApiHelper->setAutoConfigurationStatus(true);
+        return parent::afterSave();
     }
 }
