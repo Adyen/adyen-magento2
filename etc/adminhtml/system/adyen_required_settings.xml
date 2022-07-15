@@ -86,7 +86,21 @@
             </tooltip>
             <config_path>payment/adyen_abstract/client_key_live</config_path>
         </field>
-        <field id="merchant_account" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1"
+        <field id="merchant_account_manual" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>Merchant Account</label>
+            <depends>
+                <field id="configuration_mode">manual</field>
+            </depends>
+            <config_path>payment/adyen_abstract/merchant_account</config_path>
+            <tooltip>
+                <![CDATA[The merchant account identifier you want to process the (transaction) request with. Find this at the top of the screen in the Adyen Customer Area, where you will see [YourCompanyAccount] > [YourMerchantAccount] . Please note that the merchant account is different from the company account; a company account can have one or more merchant accounts.]]>
+            </tooltip>
+            <comment>
+                <![CDATA[<a target="_blank" href="https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#step3configuretheplugininmagento">Click here for explanation.</a>]]>
+            </comment>
+        </field>
+        <field id="merchant_account_auto" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Merchant Account</label>
             <depends>

@@ -95,9 +95,12 @@ class ManagementHelper
         }
         $responseMe = $management->me->retrieve();
 
+        $currentMerchantAccount = $this->configHelper->getMerchantAccount($this->storeManager->getStore()->getId());
+
         return [
             'merchantAccounts' => $merchantAccounts,
             'clientKey' => $responseMe['clientKey'],
+            'currentMerchantAccount' => $currentMerchantAccount
         ];
     }
 

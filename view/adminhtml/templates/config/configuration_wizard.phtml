@@ -1,4 +1,8 @@
 <?php /** @var \Adyen\Payment\Model\Config\Adminhtml\ConfigurationWizard $block */ ?>
+<?php echo $block->getNextButtonHtml() ?>
+<span class="adyen-required-settings-config-admin" id="progress" style="display: none">
+    <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
+    <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
 <script>
     require(['jquery'], function ($) {
         $(window).on('load', function () {
@@ -6,7 +10,7 @@
             const demoModeSelector = "div.adyen_required_config_settings select[name*='demo_mode']";
             const testApiKeySelector = "div.adyen_required_config_settings input[name*='api_key_test']";
             const liveApiKeySelector = "div.adyen_required_config_settings input[name*='api_key_live']";
-            const merchantAccountSelector = "div.adyen_required_config_settings select[name*='merchant_account']";
+            const merchantAccountSelector = "div.adyen_required_config_settings select[name*='merchant_account_auto']";
             const livePrefixUrlSelector = "div.adyen_required_config_settings input[name*='live_endpoint_url_prefix']";
             const testClientKeySelector = "div.adyen_required_config_settings input[name*='client_key_test']";
             const liveClientKeySelector = "div.adyen_required_config_settings input[name*='client_key_live']";
@@ -16,9 +20,14 @@
             const resetButton = $("#adyen_configuration_action_reset");
             resetButton.hide();
 
-            let autoConfigured = <?=$block->autoConfigured()?'true':'false';?>;
+            let configured;
+            if ($(demoModeSelector).val()) {
+                configured = <?=$block->testConfigured() ? 'true' : 'false';?>;
+            } else {
+                configured = <?=$block->liveConfigured() ? 'true' : 'false';?>;
+            }
             resetButton.on('click', function () {
-                if (window.confirm("Are you sure you want to reset Required Settings configuration?")) {
+                if (window.confirm("Are you sure you want to reconfigure Required Settings?")) {
                     resetAutoConfiguration();
                     renderAutoConfiguration();
                 }
@@ -28,7 +37,7 @@
                 if (configMode[0].value === 'manual') {
                     return;
                 }
-                if (autoConfigured) {
+                if (configured) {
                     let demoMode = $(demoModeSelector).val();
                     if (demoMode) {
                         showConfigField($(testClientKeySelector), false);
@@ -57,7 +66,7 @@
                 hideConfigField($(merchantAccountSelector));
                 hideConfigField($(webhookUsernameSelector));
                 hideConfigField($(webhookPasswordSelector));
-                autoConfigured = false;
+                configured = false;
 
                 actionButton.show();
                 resetButton.hide();
@@ -101,7 +110,9 @@
                     for (i = 0; i < merchantAccounts.length; i++) {
                         merchantAccountSelect.add(new Option(merchantAccounts[i].name, merchantAccounts[i].name));
                     }
-                    merchantAccountSelect.value = response.currentMerchantAccount;
+                    if (response.currentMerchantAccount) {
+                        merchantAccountSelect.value = response.currentMerchantAccount;
+                    }
                     showConfigField($(merchantAccountSelector));
 
                     prefillLivePrefix.bind($(merchantAccountSelector)[0])();
@@ -111,7 +122,7 @@
                     actionButton.on('click', generateWebhookCredentials);
                     progressUpdate('success', 'Click Next to generate notification username and password.');
                 }).fail(function(response) {
-                    progressUpdate('error', 'Unable to load merchant accounts: ' + response.error);
+                    progressUpdate('error', 'Unable to load merchant accounts: ' + response.responseJSON.error);
                 });
             }
 
@@ -189,8 +200,7 @@
 
             function generateRandomPassword() {
                 var pass = '';
-                var str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
-                    'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+                var str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
 
                 for (let i = 1; i <= 10; i++) {
                     var char = Math.floor(Math.random()
@@ -213,10 +223,6 @@
         });
     });
 </script>
-<?php echo $block->getNextButtonHtml() ?>
-<span class="adyen-required-settings-config-admin" id="progress" style="display: none">
-    <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
-    <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
     <span id="adyen_payments_configured_message"></span>
     <div id="adyen_payments_configuration_errors" class="message-system-inner">
         <div class="message message-warning"></div>
