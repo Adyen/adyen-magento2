@@ -11,12 +11,16 @@ use Magento\Framework\View\Helper\SecureHtmlRenderer;
 class ConfigurationWizard extends Field
 {
     protected $_template = 'Adyen_Payment::config/configuration_wizard.phtml';
+
+    /**
+     * @var Config 
+     */
     private $configHelper;
 
     public function __construct(
         Context $context,
-        array $data = [],
         Config $configHelper,
+        array $data = [],
         ?SecureHtmlRenderer $secureRenderer = null
     ) {
         parent::__construct($context, $data, $secureRenderer);
