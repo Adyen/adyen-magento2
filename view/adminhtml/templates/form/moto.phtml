@@ -24,101 +24,117 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
 <fieldset class="admin__fieldset payment-method"
           id="payment_form_<?= /* @noEscape */ $code; ?>"
           style="display:none">
-    <span id="noClientKey"
-          class="message message-error error"
-          style="display: none"><?= $block->escapeHtml(
-            __(
-                'Please configure a Client key and a live endpoint prefix (if in Production Mode) in your Adyen ' .
-                'Required Settings'
-            )
-        ); ?>
-    </span>
-    <input name="payment[stateData]" id="adyen-moto-statedata" type="hidden">
 
-    <label for="adyen_pbl_expires_at" class="admin__field-label">
-               <span>
-               <?= $escaper->escapeHtml(__('Select Merchant Account')) ?>
-               </span>
+    <input name="payment[stateData]" id="adyen-moto-statedata" type="hidden">
+    <input name="payment[merchantAccount]" id="adyen-moto-merchant-account" type="hidden">
+    <input name="payment[motoConfigId]" id="adyen-moto-moto-config-id" type="hidden">
+
+    <label for="adyen_moto_merchant_accounts" class="admin__field-label">
+       <span>
+           <?= $escaper->escapeHtml(__('Select Merchant Account')) ?>
+       </span>
     </label>
     <div class="admin__field-control">
-        <select id="adyen_moto_merchant_accounts" class="required-entry admin__control-select" onchange="">
-            <option><?= $escaper->escapeHtml(__('Please select...')) ?></option>
+        <select id="adyen_moto_merchant_accounts" class="required-entry admin__control-select">
+            <option value=""><?= $escaper->escapeHtml(__('Please select...')) ?></option>
             <?php
                 foreach ($motoMerchantAccounts as $key => $value) {
-                    printf("<option data-adyen-client-key='%s' data-adyen-config-id='%d'>%s</option>", $value['clientkey'], 100, $key);
+                    printf("<option value='%s' data-adyen-client-key='%s' data-adyen-config-id='%d'>%s</option>", $key, $value['clientkey'], 100, $key);
                 }
             ?>
         </select>
     </div>
 
-    <div id="cardContainer-<?= /* @noEscape */ $code; ?>" style="display: none"></div>
+    <div id="cardContainer-<?= /* @noEscape */ $code; ?>" style=""></div>
 
     <script>
-        require(
+        define(
+            'renderCheckoutComponent',
             [
                 'jquery',
                 'Magento_Sales/order/create/scripts',
                 'Magento_Sales/order/create/form',
                 'Adyen_Payment/js/adyen'
             ],
-            function ($, scripts, form, AdyenCheckout) {
-                (async function () { // RequireJS does not support async callback
+            function($, scripts, form, AdyenCheckout) {
+                var card = null;
+                return {
+                    status: function () {
+                        return card;
+                    },
+                    init: function (clientKey) {
+                        (async function () { // RequireJS does not support async callback
+                            var ccTypes = <?= /* @noEscape */ json_encode($block->getCcAvailableTypesByAlt()); ?>;
 
-                    $("#cardContainer-<?= /* @noEscape */ $code; ?>").on("change", function () {
-                        alert('can');
-                        $("#cardContainer-<?= /* @noEscape */ $code; ?>").show();
-                    });
-
-                    var ccTypes = <?= /* @noEscape */ json_encode($block->getCcAvailableTypesByAlt()); ?>;
-
-                    // Get cc type by adyen cc type
-                    var getCcCodeByAltCode = function (altCode) {
-
-                        if (ccTypes.hasOwnProperty(altCode)) {
-                            return ccTypes[altCode];
-                        }
-
-                        return "";
-                    }
-
-                    if (!"<?= $block->getClientKey(); ?>") {
-                        document.getElementById('noClientKey').style = "visibility: visible; display:inline-block";
-                        return;
-                    }
-                    var cardNode = document.getElementById("cardContainer-<?= /* @noEscape */ $code; ?>");
-
-                    var checkout = await AdyenCheckout({
-                        clientKey: "<?= /* @noEscape */ $block->getClientKey(); ?>",
-                        environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
-                        locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
-                        risk: {
-                            enabled: false
-                        },
-
-                    });
-                    var hideCVC = "<?= !$block->hasVerification(); ?>";
-
-                    try {
-                        var card = checkout.create('card', {
-                            brands: Object.keys(ccTypes),
-                            hideCVC: hideCVC,
-                            enableStoreDetails: false, // MOTO can't use CVC which is required for OneClick tokens
-                            hasHolderName: true,
-                            installmentOptions: <?= /* @noEscape */ $block->getFormattedInstallments();?>,
-                            showInstallmentAmounts: true,
-                            amount :<?= /* @noEscape */ $block->getAmount();?>,
-                            onChange: function (state) {
-                                if (state.isValid) {
-                                    alert('can');
-                                    $('#adyen-moto-statedata').val(JSON.stringify(state.data));
+                            // Get cc type by adyen cc type
+                            var getCcCodeByAltCode = function (altCode) {
+                                if (ccTypes.hasOwnProperty(altCode)) {
+                                    return ccTypes[altCode];
                                 }
+
+                                return "";
                             }
-                        });
-                        card.mount(cardNode);
-                    } catch (e) {
-                        console.log(e);
+
+                            var cardNode = document.getElementById("cardContainer-<?= /* @noEscape */ $code; ?>");
+
+                            var checkout = await AdyenCheckout({
+                                clientKey: clientKey,
+                                environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
+                                locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
+                                risk: {
+                                    enabled: false
+                                },
+                            });
+
+                            var hideCVC = "<?= !$block->hasVerification(); ?>";
+
+                            try {
+                                card = checkout.create('card', {
+                                    brands: Object.keys(ccTypes),
+                                    hideCVC: hideCVC,
+                                    enableStoreDetails: false, // MOTO can't use CVC which is required for OneClick tokens
+                                    hasHolderName: true,
+                                    installmentOptions: <?= /* @noEscape */ $block->getFormattedInstallments();?>,
+                                    showInstallmentAmounts: true,
+                                    amount :<?= /* @noEscape */ $block->getAmount();?>,
+                                    onChange: function (state) {
+                                        if (state.isValid) {
+                                            $('#adyen-moto-statedata').val(JSON.stringify(state.data));
+                                        }
+                                    }
+                                });
+                                card.mount(cardNode);
+                            } catch (e) {
+                                console.log(e);
+                            }
+                        })();
+                    },
+
+                    unmount: function () {
+                        card.unmount();
                     }
-                })();
-            });
+                }
+            }
+        );
+
+        require(
+            [
+                'jquery',
+                'renderCheckoutComponent',
+            ],
+            function ($, renderCheckoutComponent) {
+                $("#adyen_moto_merchant_accounts").on("change", function () {
+                    if (renderCheckoutComponent.status() !== null) {
+                        renderCheckoutComponent.unmount();
+                    }
+
+                    var clientKey = $(this).find("option:selected").attr('data-adyen-client-key');
+                    var merchantAccount = $(this).find("option:selected").val();
+
+                    $("#adyen-moto-merchant-account").val(merchantAccount);
+                    renderCheckoutComponent.init(clientKey);
+                });
+            }
+        );
     </script>
 </fieldset>
