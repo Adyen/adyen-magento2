@@ -104,7 +104,9 @@
                showInStore="1">
             <label>Merchant Account</label>
             <depends>
-                <field id="configuration_mode">manual</field>
+                <!-- To keep this field hidden by default for both auto and manual configuration modes, -->
+                <!-- we set a non-existent configuration mode here. -->
+                <field id="configuration_mode">xxx</field>
             </depends>
             <config_path>payment/adyen_abstract/merchant_account</config_path>
             <source_model>Adyen\Payment\Model\Config\Source\MerchantAccounts</source_model>
