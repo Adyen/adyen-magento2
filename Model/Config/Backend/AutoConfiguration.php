@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Model\Config\Backend;
 
+use Adyen\Payment\Helper\BaseUrlHelper;
 use Adyen\Payment\Helper\ManagementHelper;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -31,6 +32,10 @@ class AutoConfiguration extends Value
      * @var UrlInterface
      */
     private $url;
+    /**
+     * @var BaseUrlHelper
+     */
+    private $baseUrlHelper;
 
     public function __construct(
         Context $context,
@@ -39,6 +44,7 @@ class AutoConfiguration extends Value
         TypeListInterface $cacheTypeList,
         ManagementHelper $managementApiHelper,
         UrlInterface $url,
+        BaseUrlHelper $baseUrlHelper,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
@@ -46,6 +52,7 @@ class AutoConfiguration extends Value
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
         $this->managementApiHelper = $managementApiHelper;
         $this->url = $url;
+        $this->baseUrlHelper = $baseUrlHelper;
     }
 
     public function beforeSave()
@@ -54,7 +61,7 @@ class AutoConfiguration extends Value
             $environment = (int)$this->getFieldsetDataValue('demo_mode') ? 'test' : 'live';
             $apiKey = $this->getFieldsetDataValue('api_key_' . $environment);
             $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($apiKey, $environment);
-            $domain = $this->url->getBaseUrl();
+            $domain = $this->baseUrlHelper->getDomainFromUrl($this->url->getBaseUrl());
             if (!in_array($domain, $configuredOrigins)) {
                 $this->managementApiHelper->saveAllowedOrigin($apiKey, $environment, $domain);
             }
