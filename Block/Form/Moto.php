@@ -94,7 +94,6 @@ class Moto extends \Magento\Payment\Block\Form\Cc
      * @param Config $configHelper
      * @param Session $customerSession
      * @param Vault $vaultHelper
-     * @param array $data
      */
     public function __construct(
         Context $context,
@@ -107,8 +106,7 @@ class Moto extends \Magento\Payment\Block\Form\Cc
         AdyenLogger $adyenLogger,
         Config $configHelper,
         Session $customerSession,
-        Vault $vaultHelper,
-        array $data = []
+        Vault $vaultHelper
     ) {
         parent::__construct($context, $paymentConfig);
         $this->adyenHelper = $adyenHelper;

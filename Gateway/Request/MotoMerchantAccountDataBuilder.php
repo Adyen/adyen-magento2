@@ -39,7 +39,6 @@ class MotoMerchantAccountDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
 
         $motoMerchantAccount = $payment->getAdditionalInformation('motoMerchantAccount');

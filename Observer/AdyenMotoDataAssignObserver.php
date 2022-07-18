@@ -99,15 +99,15 @@ class AdyenMotoDataAssignObserver extends AbstractDataAssignObserver
 
         // JSON decode state data from the frontend or fetch it from the DB entity with the quote ID
         if (!empty($additionalData[self::STATE_DATA])) {
-            $stateData = json_decode($additionalData[self::STATE_DATA], true);
+            $orderStateData = json_decode($additionalData[self::STATE_DATA], true);
         } else {
-            $stateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
+            $orderStateData = $this->stateDataCollection->getStateDataArrayWithQuoteId($paymentInfo->getData('quote_id'));
         }
         // Get validated state data array
-        if (!empty($stateData)) {
-            $stateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($stateData);
+        if (!empty($orderStateData)) {
+            $orderStateData = $this->checkoutStateDataValidator->getValidatedAdditionalData($orderStateData);
             // Set stateData in a service and remove from payment's additionalData
-            $this->stateData->setStateData($stateData, $paymentInfo->getData('quote_id'));
+            $this->stateData->setStateData($orderStateData, $paymentInfo->getData('quote_id'));
         }
 
         unset($additionalData[self::STATE_DATA]);
