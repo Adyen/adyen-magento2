@@ -95,6 +95,18 @@ class Requests extends AbstractHelper
     }
 
     /**
+     * @param $motoMerchantAccount
+     * @return array
+     */
+    public function buildMotoMerchantAccountData($motoMerchantAccount)
+    {
+        // Assign merchant account to request object
+        $request[self::MERCHANT_ACCOUNT] = $motoMerchantAccount;
+
+        return $request;
+    }
+
+    /**
      * @param int $customerId
      * @param $billingAddress
      * @param $storeId

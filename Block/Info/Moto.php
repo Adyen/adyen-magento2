@@ -42,4 +42,15 @@ class Moto extends AbstractInfo
             return __('Unknown');
         }
     }
+
+    /**
+     *
+     * Return related MOTO merchant account of the order
+     *
+     * @return string
+     */
+    public function getMotoMerchantAccount()
+    {
+        return $this->getInfo()->getAdditionalInformation('motoMerchantAccount');
+    }
 }

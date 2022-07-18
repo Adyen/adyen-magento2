@@ -25,6 +25,13 @@
 $_info = $block->getInfo();
 $_isDemoMode = $block->isDemoMode();
 ?>
+
+<?php if ($block->getMotoMerchantAccount() != ""): ?>
+    <div>
+        <?= $block->escapeHtml(__('Merchant Account: %1', $block->getMotoMerchantAccount())); ?><br/>
+    </div>
+<?php endif; ?>
+
 <?php if ($_pspReference = $_info->getAdditionalInformation('pspReference')): ?>
     <div>
         <?php if ($_isDemoMode): ?>

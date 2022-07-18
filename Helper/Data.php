@@ -163,6 +163,11 @@ class Data extends AbstractHelper
     private $orderStatusHistoryFactory;
 
     /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    private $adyenConfigHelper;
+
+    /**
      * Data constructor.
      *
      * @param Context $context
@@ -209,7 +214,8 @@ class Data extends AbstractHelper
         ComponentRegistrarInterface $componentRegistrar,
         Locale $localeHelper,
         \Magento\Sales\Api\OrderManagementInterface $orderManagement,
-        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory
+        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory,
+        \Adyen\Payment\Helper\Config $adyenConfigHelper
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -233,6 +239,7 @@ class Data extends AbstractHelper
         $this->localeHelper = $localeHelper;
         $this->orderManagement = $orderManagement;
         $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
+        $this->adyenConfigHelper = $adyenConfigHelper;
     }
 
     /**
@@ -1505,6 +1512,47 @@ class Data extends AbstractHelper
 
         return $client;
     }
+
+    /**
+     * Initializes and returns Adyen Client and sets the required parameters of it
+     *
+     * @param null|int|string $storeId
+     * @param string|null $apiKey
+     * @return \Adyen\Client
+     * @throws \Adyen\AdyenException
+     */
+    public function initializeAdyenMotoClient($motoMerchantAccount, $storeId = null)
+    {
+        // TODO-MOTO:: Add exception handling for non existing moto merchant accounts
+
+        if ($storeId === null) {
+            $storeId = $this->storeManager->getStore()->getId();
+        }
+
+        $motoMerchantAccounts = $this->adyenConfigHelper->getMotoMerchantAccounts($storeId);
+
+        $motoMerchantAccountProperties = $motoMerchantAccounts[$motoMerchantAccount];
+        $apiKey = $this->_encryptor->decrypt($motoMerchantAccountProperties['apikey']);
+
+        $client = $this->createAdyenClient();
+        $client->setApplicationName("Magento 2 plugin");
+        $client->setXApiKey($apiKey);
+        $moduleVersion = $this->getModuleVersion();
+
+        $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
+        $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
+
+        if ($motoMerchantAccountProperties['demo_mode'] === '1') {
+            $client->setEnvironment(\Adyen\Environment::TEST);
+        } else {
+            $client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
+        }
+
+        $client->setLogger($this->adyenLogger);
+
+        return $client;
+    }
+
 
     /**
      * @param \Adyen\Client $client

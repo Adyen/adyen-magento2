@@ -28,7 +28,7 @@ class AdyenMotoDataAssignObserver extends AbstractDataAssignObserver
     const COMBO_CARD_TYPE = 'combo_card_type';
     const STATE_DATA = 'stateData';
     const STORE_PAYMENT_METHOD = 'storePaymentMethod';
-    const MERCHANT_ACCOUNT = 'merchantAccount';
+    const MOTO_MERCHANT_ACCOUNT = 'motoMerchantAccount';
 
     /**
      * Approved root level keys from additional data array
@@ -41,7 +41,7 @@ class AdyenMotoDataAssignObserver extends AbstractDataAssignObserver
         self::COMBO_CARD_TYPE,
         self::NUMBER_OF_INSTALLMENTS,
         self::CC_TYPE,
-        self::MERCHANT_ACCOUNT
+        self::MOTO_MERCHANT_ACCOUNT
     ];
 
     /**
@@ -128,8 +128,8 @@ class AdyenMotoDataAssignObserver extends AbstractDataAssignObserver
         }
 
         // set MOTO merchant account
-        if (!empty($stateData[self::MERCHANT_ACCOUNT])) {
-            $paymentInfo->setAdditionalInformation(self::MERCHANT_ACCOUNT, $stateData[self::MERCHANT_ACCOUNT]);
+        if (!empty($stateData[self::MOTO_MERCHANT_ACCOUNT])) {
+            $paymentInfo->setAdditionalInformation(self::MOTO_MERCHANT_ACCOUNT, $stateData[self::MOTO_MERCHANT_ACCOUNT]);
         }
     }
 }
