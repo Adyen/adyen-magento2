@@ -25,21 +25,20 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
           id="payment_form_<?= /* @noEscape */ $code; ?>"
           style="display:none">
 
-    <input name="payment[stateData]" id="adyen-moto-statedata" type="hidden">
-    <input name="payment[motoMerchantAccount]" id="adyen-moto-merchant-account" type="hidden">
-    <input name="payment[motoConfigId]" id="adyen-moto-moto-config-id" type="hidden">
+    <input name="payment[stateData]" id="<?= /* @noEscape */ $code; ?>-statedata" type="hidden">
+    <input name="payment[motoMerchantAccount]" id="<?= /* @noEscape */ $code; ?>-merchant-account" type="hidden">
 
-    <label for="adyen_moto_merchant_accounts" class="admin__field-label">
+    <label for="<?= /* @noEscape */ $code; ?>_merchant_accounts" class="admin__field-label">
        <span>
-           <?= $escaper->escapeHtml(__('Select Merchant Account')) ?>
+           <?= $escaper->escapeHtml(__('MOTO Merchant Account')) ?>
        </span>
     </label>
     <div class="admin__field-control">
-        <select id="adyen_moto_merchant_accounts" class="required-entry admin__control-select">
+        <select id="<?= /* @noEscape */ $code; ?>_merchant_accounts" class="required-entry admin__control-select">
             <option value=""><?= $escaper->escapeHtml(__('Please select...')) ?></option>
             <?php
                 foreach ($motoMerchantAccounts as $key => $value) {
-                    printf("<option value='%s' data-adyen-client-key='%s' data-adyen-config-id='%d'>%s</option>", $key, $value['clientkey'], 100, $key);
+                    printf("<option value='%s' data-adyen-client-key='%s'>%s</option>", $key, $value['clientkey'], $key);
                 }
             ?>
         </select>
@@ -99,7 +98,7 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
                                     amount :<?= /* @noEscape */ $block->getAmount();?>,
                                     onChange: function (state) {
                                         if (state.isValid) {
-                                            $('#adyen-moto-statedata').val(JSON.stringify(state.data));
+                                            $('#<?= /* @noEscape */ $code; ?>-statedata').val(JSON.stringify(state.data));
                                         }
                                     }
                                 });
@@ -123,7 +122,7 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
                 'renderCheckoutComponent',
             ],
             function ($, renderCheckoutComponent) {
-                $("#adyen_moto_merchant_accounts").on("change", function () {
+                $("#<?= /* @noEscape */ $code; ?>_merchant_accounts").on("change", function () {
                     if (renderCheckoutComponent.status() !== null) {
                         renderCheckoutComponent.unmount();
                     }
@@ -131,7 +130,7 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
                     var clientKey = $(this).find("option:selected").attr('data-adyen-client-key');
                     var merchantAccount = $(this).find("option:selected").val();
 
-                    $("#adyen-moto-merchant-account").val(merchantAccount);
+                    $("#<?= /* @noEscape */ $code; ?>-merchant-account").val(merchantAccount);
                     renderCheckoutComponent.init(clientKey);
                 });
             }
