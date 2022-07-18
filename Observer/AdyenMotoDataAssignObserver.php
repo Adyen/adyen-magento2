@@ -123,13 +123,13 @@ class AdyenMotoDataAssignObserver extends AbstractDataAssignObserver
         }
 
         // set storeCc
-        if (!empty($stateData[self::STORE_PAYMENT_METHOD])) {
-            $paymentInfo->setAdditionalInformation(self::STORE_CC, $stateData[self::STORE_PAYMENT_METHOD]);
+        if (!empty($orderStateData[self::STORE_PAYMENT_METHOD])) {
+            $paymentInfo->setAdditionalInformation(self::STORE_CC, $orderStateData[self::STORE_PAYMENT_METHOD]);
         }
 
         // set MOTO merchant account
-        if (!empty($stateData[self::MOTO_MERCHANT_ACCOUNT])) {
-            $paymentInfo->setAdditionalInformation(self::MOTO_MERCHANT_ACCOUNT, $stateData[self::MOTO_MERCHANT_ACCOUNT]);
+        if (!empty($orderStateData[self::MOTO_MERCHANT_ACCOUNT])) {
+            $paymentInfo->setAdditionalInformation(self::MOTO_MERCHANT_ACCOUNT, $orderStateData[self::MOTO_MERCHANT_ACCOUNT]);
         }
     }
 }
