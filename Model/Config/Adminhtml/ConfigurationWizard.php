@@ -13,7 +13,7 @@ class ConfigurationWizard extends Field
     protected $_template = 'Adyen_Payment::config/configuration_wizard.phtml';
 
     /**
-     * @var Config 
+     * @var Config
      */
     private $configHelper;
 
