@@ -81,7 +81,7 @@ class WebhookCredentials extends Value
                 // API key contains '******', set to the previously saved config value
                 $apiKey = $this->configHelper->getApiKey($mode);
             }
-            $merchantAccount = $this->getFieldsetDataValue('merchant_account');
+            $merchantAccount = $this->getFieldsetDataValue('merchant_account_auto');
 
             $this->managementApiHelper
                 ->setupWebhookCredentials($apiKey, $merchantAccount, $username, $password, $webhookUrl, 'test' === $mode);
