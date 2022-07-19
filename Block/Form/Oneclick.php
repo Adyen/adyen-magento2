@@ -13,6 +13,7 @@ namespace Adyen\Payment\Block\Form;
 
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Recurring;
 use Magento\Backend\Model\Session\Quote;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Payment\Block\Form;
@@ -37,6 +38,7 @@ class Oneclick extends Form
      * @var Data
      */
     private $adyenHelper;
+
 
     public function __construct(
         Context $context,
@@ -63,6 +65,6 @@ class Oneclick extends Form
         $storeId = $this->_sessionQuote->getStoreId();
         $grandTotal = $this->chargedCurrency->getQuoteAmountCurrency($this->_sessionQuote->getQuote())->getAmount();
 
-        return $this->adyenHelper->getOneClickPaymentMethods($customerId, $storeId, $grandTotal);
+        return $this->adyenHelper->getOneClickPaymentMethods($customerId, $storeId, $grandTotal, Recurring::SUBSCRIPTION);
     }
 }

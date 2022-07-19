@@ -892,7 +892,7 @@ class Data extends AbstractHelper
      * @param $recurringType
      * @return array
      */
-    public function getOneClickPaymentMethods($customerId, $storeId, $grandTotal)
+    public function getOneClickPaymentMethods($customerId, $storeId, $grandTotal, $subsType)
     {
         $billingAgreements = [];
 
@@ -914,8 +914,12 @@ class Data extends AbstractHelper
 
             // check if contractType is supporting the selected contractType for OneClick payments
             $allowedContractTypes = $agreementData['contractTypes'];
+
+                // [Recurring::CARD_ON_FILE, Recurring::SUBSCRIPTION];
             // RecurringType::ONECLICK is kept in the if block to still display tokens that were created before changes
-            if (in_array(RecurringType::ONECLICK, $allowedContractTypes) || in_array(Recurring::CARD_ON_FILE, $allowedContractTypes)) {
+
+            // I think we can keep the first check in the if sentence as we are doing before dynamically populating the value of $subsType, it shouldn't fetch any more information
+            if (in_array(RecurringType::ONECLICK, $allowedContractTypes) || in_array($subsType, $allowedContractTypes)) {
                 // check if AgreementLabel is set and if contract has an recurringType
                 if ($billingAgreement->getAgreementLabel()) {
                     // for Ideal use sepadirectdebit because it is
