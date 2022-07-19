@@ -26,8 +26,6 @@ class Config
     const XML_NOTIFICATIONS_PASSWORD = "notification_password";
     const XML_WEBHOOK_URL = "webhook_url";
     const XML_NOTIFICATIONS_CAN_CANCEL_FIELD = "notifications_can_cancel";
-    const XML_NOTIFICATIONS_HMAC_CHECK = "notifications_hmac_check";
-    const XML_NOTIFICATIONS_IP_CHECK = "notifications_ip_check";
     const XML_NOTIFICATIONS_HMAC_KEY_LIVE = "notification_hmac_key_live";
     const XML_NOTIFICATIONS_HMAC_KEY_TEST = "notification_hmac_key_test";
     const XML_CHARGED_CURRENCY = "charged_currency";
@@ -169,38 +167,6 @@ class Config
     {
         return (bool)$this->getConfigData(
             self::XML_NOTIFICATIONS_CAN_CANCEL_FIELD,
-            self::XML_ADYEN_ABSTRACT_PREFIX,
-            $storeId,
-            true
-        );
-    }
-
-    /**
-     * Retrieve flag for notifications_hmac_check
-     *
-     * @param int $storeId
-     * @return bool
-     */
-    public function getNotificationsHmacCheck($storeId = null)
-    {
-        return (bool)$this->getConfigData(
-            self::XML_NOTIFICATIONS_HMAC_CHECK,
-            self::XML_ADYEN_ABSTRACT_PREFIX,
-            $storeId,
-            true
-        );
-    }
-
-    /**
-     * Retrieve flag for notifications_ip_check
-     *
-     * @param int $storeId
-     * @return bool
-     */
-    public function getNotificationsIpCheck($storeId = null)
-    {
-        return (bool)$this->getConfigData(
-            self::XML_NOTIFICATIONS_IP_CHECK,
             self::XML_ADYEN_ABSTRACT_PREFIX,
             $storeId,
             true
