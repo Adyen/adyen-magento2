@@ -213,9 +213,4 @@ class ManagementHelper
             return $exception->getMessage();
         }
     }
-
-    public function setAutoConfigurationStatus(bool $status)
-    {
-        $this->configHelper->setConfigData($status, 'auto_configuration', Config::XML_ADYEN_ABSTRACT_PREFIX);
-    }
 }
