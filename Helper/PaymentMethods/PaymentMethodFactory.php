@@ -32,6 +32,8 @@ class PaymentMethodFactory
         switch ($txVariant) {
             case ApplePayPaymentMethod::TX_VARIANT:
                 return new ApplePayPaymentMethod();
+            case AmazonPayPaymentMethod::TX_VARIANT:
+                return new AmazonPayPaymentMethod();
             case GooglePayPaymentMethod::TX_VARIANT:
                 return new GooglePayPaymentMethod();
             case PayPalPaymentMethod::TX_VARIANT:
