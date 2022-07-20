@@ -19,8 +19,7 @@
     </virtualType>
 
 
-<!--    this is not being accessed when creating an order with the stored payment details in admin panel -->
-<!--    how do I know which builder I can use and which not? probably I am using a bunch of builders I shouldn't-->
+
     <virtualType name="AdyenPaymentOneclickAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
@@ -35,7 +34,8 @@
                 <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
                 <item name="shopperinteraction" xsi:type="string">Adyen\Payment\Gateway\Request\ShopperInteractionDataBuilder</item>
                 <item name="oneclick" xsi:type="string">Adyen\Payment\Gateway\Request\OneclickAuthorizationDataBuilder</item>
-                <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\AdminOrderOneclickCheckoutDataBuilder</item>
+                <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CheckoutDataBuilder</item>
+<!--                <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\AdminOrderOneclickCheckoutDataBuilder</item>-->
                 <item name="returnurl" xsi:type="string">Adyen\Payment\Gateway\Request\ReturnUrlDataBuilder</item>
                 <item name="channel" xsi:type="string">Adyen\Payment\Gateway\Request\ChannelDataBuilder</item>
                 <item name="origin" xsi:type="string">Adyen\Payment\Gateway\Request\OriginDataBuilder</item>
