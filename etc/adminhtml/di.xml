@@ -18,8 +18,6 @@
         </arguments>
     </virtualType>
 
-
-
     <virtualType name="AdyenPaymentOneclickAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
