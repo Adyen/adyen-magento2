@@ -22,6 +22,8 @@ class AdminOrderOneclickCheckoutDataBuilder implements BuilderInterface
     private $request;
 
     /**
+     * AdminOrderOneclickCheckoutDataBuilder constructor.
+     *
      * @param RequestInterface $request
      */
     public function __construct(

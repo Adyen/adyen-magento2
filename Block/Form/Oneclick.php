@@ -38,7 +38,6 @@ class Oneclick extends Form
      */
     private $adyenHelper;
 
-
     public function __construct(
         Context $context,
         Quote $sessionQuote,

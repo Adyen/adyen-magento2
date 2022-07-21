@@ -915,10 +915,7 @@ class Data extends AbstractHelper
             // check if contractType is supporting the selected contractType for OneClick payments
             $allowedContractTypes = $agreementData['contractTypes'];
 
-                // [Recurring::CARD_ON_FILE, Recurring::SUBSCRIPTION];
             // RecurringType::ONECLICK is kept in the if block to still display tokens that were created before changes
-
-            // I think we can keep the first check in the if sentence as we are doing before dynamically populating the value of $subsType, it shouldn't fetch any more information
             if (is_null($subType) || in_array(RecurringType::ONECLICK, $allowedContractTypes) || in_array($subType, $allowedContractTypes)) {
                 // check if AgreementLabel is set and if contract has an recurringType
                 if ($billingAgreement->getAgreementLabel()) {
