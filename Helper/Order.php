@@ -23,6 +23,7 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Notification\NotifierPool;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
@@ -76,6 +77,9 @@ class Order extends AbstractHelper
     /** @var OrderPaymentCollectionFactory */
     private $adyenOrderPaymentCollectionFactory;
 
+    /** @var SerializerInterface */
+    private $serializer;
+
     public function __construct(
         Context $context,
         Builder $transactionBuilder,
@@ -90,7 +94,8 @@ class Order extends AbstractHelper
         SearchCriteriaBuilder $searchCriteriaBuilder,
         OrderRepository $orderRepository,
         NotifierPool $notifierPool,
-        OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory
+        OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
+        SerializerInterface $serializer
     ) {
         parent::__construct($context);
         $this->transactionBuilder = $transactionBuilder;
@@ -106,6 +111,7 @@ class Order extends AbstractHelper
         $this->orderRepository = $orderRepository;
         $this->notifierPool = $notifierPool;
         $this->adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -234,50 +240,51 @@ class Order extends AbstractHelper
             $status = $order->getStatus();
         }
 
-        /*
-         * @TODO check for virtual orders
-        // virtual order can have different status
+        // virtual order can have different statuses
         if ($order->getIsVirtual()) {
-            $status = $this->getVirtualStatus($status);
+            $status = $this->getVirtualStatus($order, $status);
         }
-        */
 
-        /*
-         * @TODO Check for boleto specific stuff
         // check for boleto if payment is totally paid
         if ($order->getPayment()->getMethod() == "adyen_boleto") {
-            // check if paid amount is the same as orginal amount
-            $originalAmount = $this->boletoOriginalAmount;
-            $paidAmount = $this->boletoPaidAmount;
+            $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
+                $notification->getAdditionalData()
+            ) : "";
+            $boletobancario = $additionalData['boletobancario'] ?? null;
+            if ($boletobancario && is_array($boletobancario)) {
+                // check if paid amount is the same as orginal amount
+                $originalAmount = isset($boletobancario['originalAmount']) ? trim($boletobancario['originalAmount']) : "";
+                $paidAmount = isset($boletobancario['paidAmount']) ? trim($boletobancario['paidAmount']) : "";
 
-            if ($originalAmount != $paidAmount) {
-                // not the full amount is paid. Check if it is underpaid or overpaid
-                // strip the  BRL of the string
-                $originalAmount = str_replace("BRL", "", $originalAmount);
-                $originalAmount = floatval(trim($originalAmount));
+                if ($originalAmount != $paidAmount) {
+                    // not the full amount is paid. Check if it is underpaid or overpaid
+                    // strip the  BRL of the string
+                    $originalAmount = str_replace("BRL", "", $originalAmount);
+                    $originalAmount = floatval(trim($originalAmount));
 
-                $paidAmount = str_replace("BRL", "", $paidAmount);
-                $paidAmount = floatval(trim($paidAmount));
+                    $paidAmount = str_replace("BRL", "", $paidAmount);
+                    $paidAmount = floatval(trim($paidAmount));
 
-                if ($paidAmount > $originalAmount) {
-                    $overpaidStatus = $this->configHelper->getConfigData(
-                        'order_overpaid_status',
-                        'adyen_boleto',
-                        $order->getStoreId()
-                    );
-                    // check if there is selected a status if not fall back to the default
-                    $status = (!empty($overpaidStatus)) ? $overpaidStatus : $status;
-                } else {
-                    $underpaidStatus = $this->configHelper->getConfigData(
-                        'order_underpaid_status',
-                        'adyen_boleto',
-                        $order->getStoreId()
-                    );
-                    // check if there is selected a status if not fall back to the default
-                    $status = (!empty($underpaidStatus)) ? $underpaidStatus : $status;
+                    if ($paidAmount > $originalAmount) {
+                        $overpaidStatus = $this->configHelper->getConfigData(
+                            'order_overpaid_status',
+                            'adyen_boleto',
+                            $order->getStoreId()
+                        );
+                        // check if there is selected a status if not fall back to the default
+                        $status = (!empty($overpaidStatus)) ? $overpaidStatus : $status;
+                    } else {
+                        $underpaidStatus = $this->configHelper->getConfigData(
+                            'order_underpaid_status',
+                            'adyen_boleto',
+                            $order->getStoreId()
+                        );
+                        // check if there is selected a status if not fall back to the default
+                        $status = (!empty($underpaidStatus)) ? $underpaidStatus : $status;
+                    }
                 }
             }
-        }*/
+        }
 
         $order = $this->addProcessedStatusHistoryComment($order, $notification);
         if ($fullAmountFinalized) {
@@ -558,5 +565,27 @@ class Order extends AbstractHelper
         $order->addStatusHistoryComment(__('Refund Webhook successfully handled'), $order->getStatus());
 
         return $order;
+    }
+
+    /**
+     * If the payment_authorized_virtual config is set, return the virtual status
+     *
+     * @param MagentoOrder $order
+     * @param $status
+     * @return mixed
+     */
+    private function getVirtualStatus(MagentoOrder $order, $status)
+    {
+        $this->adyenLogger->addAdyenNotificationCronjob('Product is a virtual product');
+        $virtualStatus = $this->configHelper->getConfigData(
+            'payment_authorized_virtual',
+            'adyen_abstract',
+            $order->getStoreId()
+        );
+        if ($virtualStatus != "") {
+            $status = $virtualStatus;
+        }
+
+        return $status;
     }
 }

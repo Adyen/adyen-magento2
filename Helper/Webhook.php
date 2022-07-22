@@ -259,16 +259,6 @@ class Webhook
         ) : "";
 
         if (is_array($additionalData)) {
-            // boleto data
-            if ($order->getPayment()->getMethod() == "adyen_boleto") {
-                $boletobancario = $additionalData['boletobancario'] ?? null;
-                if ($boletobancario && is_array($boletobancario)) {
-                    $this->boletoOriginalAmount =
-                        isset($boletobancario['originalAmount']) ? trim($boletobancario['originalAmount']) : "";
-                    $this->boletoPaidAmount =
-                        isset($boletobancario['paidAmount']) ? trim($boletobancario['paidAmount']) : "";
-                }
-            }
             $additionalData2 = $additionalData['additionalData'] ?? null;
             if ($additionalData2 && is_array($additionalData2)) {
                 $this->klarnaReservationNumber = isset($additionalData2['acquirerReference']) ? trim(
