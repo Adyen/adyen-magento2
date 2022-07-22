@@ -29,7 +29,7 @@ class RefundFailedWebhookHandler implements WebhookHandlerInterface
 
     public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
-        $this->orderHelper->addRefundFailedNotice($notification);
+        $this->orderHelper->addRefundFailedNotice($order, $notification);
 
         return $order;
     }

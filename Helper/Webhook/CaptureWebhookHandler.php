@@ -80,7 +80,7 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
 
         if ($isAutoCapture || $transitionState !== PaymentStates::STATE_PAID) {
             $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
-                'Capture webhook for order %s was not handled due to AutoCapture %s, OR TransitionState %s',
+                'Capture webhook for order %s was not handled due to AutoCapture: %b, OR TransitionState: %s',
                 $order->getIncrementId(),
                 $isAutoCapture,
                 $transitionState
@@ -108,10 +108,12 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
                 sprintf('Notification %s updated invoice %s.', $notification->getEntityId(), $magentoInvoice->getEntityid()),
                 $this->invoiceHelper->getLogInvoiceContext($magentoInvoice)
             );
+
+            $order = $this->orderHelper->finalizeOrder($order, $notification);
         } catch (Exception $e) {
             $this->adyenLogger->addAdyenNotificationCronjob($e->getMessage());
         }
 
-        return $this->orderHelper->finalizeOrder($order, $notification);
+        return $order;
     }
 }

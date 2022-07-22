@@ -37,7 +37,7 @@ class Webhook
         Order::STATE_PROCESSING => PaymentStates::STATE_IN_PROGRESS,
         Order::STATE_COMPLETE => PaymentStates::STATE_PAID,
         Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED,
-        Order::STATE_CLOSED => PaymentStates::STATE_CANCELLED
+        Order::STATE_CLOSED => PaymentStates::STATE_REFUNDED
     ];
 
     /**

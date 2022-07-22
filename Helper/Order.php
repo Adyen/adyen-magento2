@@ -419,24 +419,24 @@ class Order extends AbstractHelper
         return $order;
     }
 
-    /**
-     * Trigger admin notice for REFUND_FAILED notifications
-     *
-     * @param Notification $notification
-     * @return Notification
-     */
-    public function addRefundFailedNotice(Notification $notification): Notification
+    public function addRefundFailedNotice(MagentoOrder $order, Notification $notification): Notification
     {
+        $description = __(
+            "Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area
+                and trigger this refund manually or contact our support.",
+            $notification->getReason(),
+            $notification->getPspreference()
+        );
+
         $this->notifierPool->addNotice(
             __("Adyen: Refund for order #%1 has failed", $notification->getMerchantReference()),
-            __(
-                "Reason: %1 | PSPReference: %2 | You can go to Adyen Customer Area
-                and trigger this refund manually or contact our support.",
-                $notification->getReason(),
-                $notification->getPspreference()
-            ),
+            $description,
             $this->dataHelper->getPspReferenceSearchUrl($notification->getPspreference(), $notification->getLive())
         );
+
+        $order->addStatusHistoryComment(__(
+            sprintf('Refund has failed. Unable to change back status of the order.<br /> %s', $description)
+        ), $order->getStatus());
 
         return $notification;
     }
@@ -555,7 +555,7 @@ class Order extends AbstractHelper
             ));
         }
 
-        $order->addStatusHistoryComment(__('Adyen Refund Successfully completed'), $order->getStatus());
+        $order->addStatusHistoryComment(__('Refund Webhook successfully handled'), $order->getStatus());
 
         return $order;
     }

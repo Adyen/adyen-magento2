@@ -46,7 +46,7 @@ class RefundWebhookHandler implements WebhookHandlerInterface
     public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
         if ($transitionState === PaymentStates::STATE_PAID) {
-            $this->orderHelper->addRefundFailedNotice($notification);
+            $this->orderHelper->addRefundFailedNotice($order, $notification);
 
             return $order;
         }

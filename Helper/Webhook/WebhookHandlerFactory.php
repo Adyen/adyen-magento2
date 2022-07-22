@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper\Webhook;
 
+use Adyen\Payment\Exception\AdyenWebhookException;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
@@ -38,7 +39,6 @@ use Magento\Vault\Api\PaymentTokenRepositoryInterface;
 
 class WebhookHandlerFactory
 {
-
     /** @var AdyenOrderPayment */
     private static $adyenOrderPayment;
 
@@ -153,6 +153,9 @@ class WebhookHandlerFactory
         self::$paymentTokenRepository = $paymentTokenRepository;
     }
 
+    /**
+     * @throws AdyenWebhookException
+     */
     public static function create(string $eventCode): WebhookHandlerInterface
     {
         switch ($eventCode) {
@@ -238,5 +241,12 @@ class WebhookHandlerFactory
                     self::$orderHelper
                 );
         }
+
+        $exceptionMessage = sprintf(
+            'Unknown webhook type: %s. This type is not yet handled by the Adyen Magento plugin', $eventCode
+        );
+
+        self::$adyenLogger->addAdyenWarning($exceptionMessage);
+        throw new AdyenWebhookException(__($exceptionMessage));
     }
 }
