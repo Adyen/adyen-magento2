@@ -286,10 +286,10 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="authorize" xsi:type="string">AdyenPaymentMotoAuthorizeCommand</item>
-                <item name="capture" xsi:type="string">AdyenPaymentCaptureCommand</item>
-                <item name="void" xsi:type="string">AdyenPaymentCancelCommand</item>
-                <item name="refund" xsi:type="string">AdyenPaymentRefundCommand</item>
-                <item name="cancel" xsi:type="string">AdyenPaymentCancelCommand</item>
+                <item name="capture" xsi:type="string">AdyenPaymentMotoCaptureCommand</item>
+                <item name="void" xsi:type="string">AdyenPaymentMotoCancelCommand</item>
+                <item name="refund" xsi:type="string">AdyenPaymentMotoRefundCommand</item>
+                <item name="cancel" xsi:type="string">AdyenPaymentMotoCancelCommand</item>
                 <item name="vault_authorize" xsi:type="string">AdyenPaymentCcVaultAuthorizeCommand</item>
             </argument>
         </arguments>
@@ -469,6 +469,15 @@
             <argument name="handler" xsi:type="object">AdyenPaymentCaptureResponseHandlerComposite</argument>
         </arguments>
     </virtualType>
+    <virtualType name="AdyenPaymentMotoCaptureCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AdyenPaymentMotoCaptureRequest</argument>
+            <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionMotoCapture</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CaptureResponseValidator</argument>
+            <argument name="handler" xsi:type="object">AdyenPaymentCaptureResponseHandlerComposite</argument>
+        </arguments>
+    </virtualType>
     <!--Refund command-->
     <virtualType name="AdyenPaymentRefundCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
@@ -480,11 +489,31 @@
         </arguments>
     </virtualType>
 
+    <virtualType name="AdyenPaymentMotoRefundCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AdyenPaymentMotoRefundRequest</argument>
+            <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionMotoRefund</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\RefundResponseValidator</argument>
+            <argument name="handler" xsi:type="object">AdyenPaymentRefundResponseHandlerComposite</argument>
+        </arguments>
+    </virtualType>
+
     <virtualType name="AdyenPaymentCancelCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
             <argument name="requestBuilder" xsi:type="object">AdyenPaymentCancelRequest</argument>
             <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionCancel</argument>
+            <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CancelResponseValidator</argument>
+            <argument name="handler" xsi:type="object">AdyenPaymentCancelResponseHandlerComposite</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AdyenPaymentMotoCancelCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AdyenPaymentMotoCancelRequest</argument>
+            <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionMotoCancel</argument>
             <argument name="validator" xsi:type="object">Adyen\Payment\Gateway\Validator\CancelResponseValidator</argument>
             <argument name="handler" xsi:type="object">AdyenPaymentCancelResponseHandlerComposite</argument>
         </arguments>
@@ -678,12 +707,26 @@
             </argument>
         </arguments>
     </virtualType>
+    <virtualType name="AdyenPaymentMotoCaptureRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MotoMerchantAccountDataBuilder</item>
+                <item name="capture" xsi:type="string">Adyen\Payment\Gateway\Request\CaptureDataBuilder</item>
+            </argument>
+        </arguments>
+    </virtualType>
     <!-- Refund Request -->
     <virtualType name="AdyenPaymentRefundRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
-                <!--<item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantAccountDataBuilder</item>-->
                 <item name="refund" xsi:type="string">Adyen\Payment\Gateway\Request\RefundDataBuilder</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AdyenPaymentMotoRefundRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="refund" xsi:type="string">Adyen\Payment\Gateway\Request\MotoRefundDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -692,6 +735,15 @@
         <arguments>
             <argument name="builders" xsi:type="array">
                 <item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantAccountDataBuilder</item>
+                <item name="cancel" xsi:type="string">Adyen\Payment\Gateway\Request\CancelDataBuilder</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AdyenPaymentMotoCancelRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MotoMerchantAccountDataBuilder</item>
                 <item name="cancel" xsi:type="string">Adyen\Payment\Gateway\Request\CancelDataBuilder</item>
             </argument>
         </arguments>
