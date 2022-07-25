@@ -68,7 +68,7 @@ class ManagementHelper
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
-    public function getMerchantAccountsAndClientKey(string $apiKey, bool $demoMode)
+    public function getMerchantAccountsAndClientKey(string $apiKey, bool $demoMode): array
     {
         $management = $this->getManagementApiService($apiKey, $demoMode ? 'test' : 'live');
         $merchantAccounts = [];

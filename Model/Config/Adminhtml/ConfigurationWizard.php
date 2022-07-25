@@ -79,21 +79,23 @@ class ConfigurationWizard extends Field
     }
 
     public function testConfigured() {
-        $merchantAccount = (bool) $this->configHelper->getMerchantAccount();
-        $clientKeyTest = (bool) $this->configHelper->getClientKey('test', $this->getStoreId());
-        $notificationUsername = (bool) $this->configHelper->getNotificationsUsername($this->getStoreId());
-        $notificationPassword = (bool) $this->configHelper->getNotificationsPassword($this->getStoreId());
+        $merchantAccount = boolval($this->configHelper->getMerchantAccount());
+        $clientKeyTest = boolval($this->configHelper->getClientKey('test', $this->getStoreId()));
+        $notificationUsername = boolval($this->configHelper->getNotificationsUsername($this->getStoreId()));
+        $notificationPassword = boolval($this->configHelper->getNotificationsPassword($this->getStoreId()));
 
         return $merchantAccount || $clientKeyTest || $notificationUsername || $notificationPassword;
     }
 
     public function liveConfigured() {
-        $merchantAccount = (bool) $this->configHelper->getMerchantAccount();
-        $livePrefixUrl = (bool) $this->configHelper
-            ->getConfigData('live_endpoint_url_prefix', Config::XML_ADYEN_ABSTRACT_PREFIX, $this->getStoreId());
-        $clientKeyLive = (bool) $this->configHelper->getClientKey('live', $this->getStoreId());
-        $notificationUsername = (bool) $this->configHelper->getNotificationsUsername($this->getStoreId());
-        $notificationPassword = (bool) $this->configHelper->getNotificationsPassword($this->getStoreId());
+        $merchantAccount = boolval($this->configHelper->getMerchantAccount());
+        $livePrefixUrl = boolval(
+            $this->configHelper
+                ->getConfigData('live_endpoint_url_prefix', Config::XML_ADYEN_ABSTRACT_PREFIX, $this->getStoreId())
+        );
+        $clientKeyLive = boolval($this->configHelper->getClientKey('live', $this->getStoreId()));
+        $notificationUsername = boolval($this->configHelper->getNotificationsUsername($this->getStoreId()));
+        $notificationPassword = boolval($this->configHelper->getNotificationsPassword($this->getStoreId()));
 
         return $merchantAccount || $livePrefixUrl || $clientKeyLive || $notificationUsername || $notificationPassword;
     }
