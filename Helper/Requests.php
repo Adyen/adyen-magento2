@@ -432,7 +432,7 @@ class Requests extends AbstractHelper
      */
     public function getPaymentMethodVariant(int $quoteId): string
     {
-        $stateData = $this->stateData->getStateData($quoteId);
-        return $stateData['paymentMethod']['type'];
+        $stateDataByQuoteId = $this->stateData->getStateData($quoteId);
+        return $stateDataByQuoteId['paymentMethod']['type'];
     }
 }
