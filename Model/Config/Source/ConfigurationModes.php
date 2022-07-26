@@ -1,18 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
- *
  * Adyen Payment module (https://www.adyen.com/)
  *
  * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
@@ -23,7 +10,9 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
-class ConfigurationModes implements \Magento\Framework\Option\ArrayInterface
+use Magento\Framework\Option\ArrayInterface;
+
+class ConfigurationModes implements ArrayInterface
 {
     /**
      * @return array

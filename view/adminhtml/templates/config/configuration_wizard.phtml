@@ -1,87 +1,231 @@
-<?php /** @var \Adyen\Payment\Model\Config\Adminhtml\ConfigurationMode $block */ ?>
-<script>
-    require(['jquery'], function ($) {
-        let configMode = $("select[name*='configuration_mode']");
-
-        function checkConfigMode() {
-            const autoConfigured = <?=$block->configured()?'true;':'false;';?>
-
-            if ('auto' === configMode.val()) {
-                if (!autoConfigured) {
-                    fetchMerchants()
-                } else {
-                    // show auto-configured fields
-                }
-            }
-        }
-
-        configMode.change(checkConfigMode);
-
-        function fetchMerchants() {
-            let progressSpan = $('#progress');
-            progressSpan.show();
-            progressSpan.find('.configured').hide();
-            progressSpan.find('#adyen_payments_configuration_errors').hide();
-            progressSpan.find('.processing').show();
-            $('#adyen_payments_configured_message').text('');
-            let demoMode = $("div.adyen_required_config_settings select[name*='demo_mode']").val();
-            let xapikey = demoMode
-                ? $("div.adyen_required_config_settings input[name*='api_key_test']").val()
-                : $("div.adyen_required_config_settings input[name*='api_key_live']").val();
-            const storeId = '<?=$block->getStoreId()?>';
-            return $.ajax('<?php echo $block->getMerchantAccountsUrl() ?>', {
-                data: {xapikey, demoMode, storeId},
-                method: "POST"
-            }).done(function (response) {
-                //add html response
-                progressSpan.find('.processing').hide();
-                let merchantAccountSelect = document.querySelector(
-                    "div.adyen_required_config_settings select[name*='merchant_account']");
-                //remove previous accounts
-                for (let i = merchantAccountSelect.options.length - 1; i >= 0; i--) {
-                    merchantAccountSelect.remove(i);
-                }
-                //add the merchant accounts to the html element
-                let accounts = response.messages.associatedMerchantAccounts;
-                for (i = 0; i < accounts.length; i++) {
-                    merchantAccountSelect.add(new Option(accounts[i], accounts[i]));
-                }
-                merchantAccountSelect.value = response.currentMerchantAccount;
-                //add the clientkey
-                let clientkey = response.messages.clientKey;
-                if (response.mode == 'test') {
-                    let clientKeyIdTest = $("div.adyen_required_config_settings input[name*='client_key_test']");
-                    clientKeyIdTest.value = clientkey;
-                } else if (response.mode == 'production') {
-                    let clientKeyIdLive = $("div.adyen_required_config_settings input[name*='client_key_live']");
-                    clientKeyIdLive.value = clientkey;
-                }
-                const allowedOriginInput = $("div.adyen_required_config_settings input[name*='allowed_origin']");
-                allowedOriginInput.value = response.originUrl;
-                progressSpan.find('.configured').show();
-
-                $('#adyen_payments_configured_message').text('Completed');
-
-                showConfigField($("select[name*='merchant_account']"));
-                showConfigField($("input[name*='client_key_test']"));
-                showConfigField($("input[name*='allowed_origin']"));
-            }).fail(function(response) {
-                progressSpan.find('.processing').hide();
-                $('#adyen_payments_configured_message').text("Failed").show();
-            });
-        }
-
-        function showConfigField(field) {
-            field.parents('tr').show();
-            field.show().prop('disabled', false);
-        }
-    });
-</script>
+<?php /** @var \Adyen\Payment\Model\Config\Adminhtml\ConfigurationWizard $block */ ?>
+<?php echo $block->getNextButtonHtml() ?>
 <span class="adyen-required-settings-config-admin" id="progress" style="display: none">
     <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
     <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
+<script>
+    require(['jquery'], function ($) {
+        $(window).on('load', function () {
+            const configMode = $("select[name*='configuration_mode']");
+            const demoModeSelector = "div.adyen_required_config_settings select[name*='demo_mode']";
+            const testApiKeySelector = "div.adyen_required_config_settings input[name*='api_key_test']";
+            const liveApiKeySelector = "div.adyen_required_config_settings input[name*='api_key_live']";
+            const merchantAccountSelector = "div.adyen_required_config_settings select[name*='merchant_account_auto']";
+            const livePrefixUrlSelector = "div.adyen_required_config_settings input[name*='live_endpoint_url_prefix']";
+            const testClientKeySelector = "div.adyen_required_config_settings input[name*='client_key_test']";
+            const liveClientKeySelector = "div.adyen_required_config_settings input[name*='client_key_live']";
+            const webhookUsernameSelector = "div.adyen_required_config_settings input[name*='notification_username']";
+            const webhookPasswordSelector = "div.adyen_required_config_settings input[name*='notification_password']";
+            const actionButton = $("#adyen_configuration_action");
+            const resetButton = $("#adyen_configuration_action_reset");
+            resetButton.hide();
+
+            let configured;
+            if ($(demoModeSelector).val()) {
+                configured = <?=$block->testConfigured() ? 'true' : 'false';?>;
+            } else {
+                configured = <?=$block->liveConfigured() ? 'true' : 'false';?>;
+            }
+            resetButton.on('click', function () {
+                if (window.confirm("Are you sure you want to reconfigure Required Settings?")) {
+                    resetAutoConfiguration();
+                    renderAutoConfiguration();
+                }
+            });
+
+            function renderAutoConfiguration() {
+                if (configMode[0].value === 'manual') {
+                    return;
+                }
+                if (configured) {
+                    let demoMode = $(demoModeSelector).val();
+                    if (demoMode) {
+                        showConfigField($(testClientKeySelector), false);
+                    } else {
+                        showConfigField($(liveClientKeySelector), false);
+                        showConfigField($(livePrefixUrlSelector), false);
+                    }
+                    showConfigField($(merchantAccountSelector), false);
+                    showConfigField($(webhookUsernameSelector), false);
+                    showConfigField($(webhookPasswordSelector), false);
+                    actionButton.hide();
+                    resetButton.show();
+                } else {
+                    actionButton.on('click', loadMerchantAccountsAndClientKey);
+                }
+            }
+
+            function resetAutoConfiguration() {
+                let demoMode = $(demoModeSelector).val();
+                if (demoMode) {
+                    hideConfigField($(testClientKeySelector));
+                } else {
+                    hideConfigField($(liveClientKeySelector));
+                    hideConfigField($(livePrefixUrlSelector));
+                }
+                hideConfigField($(merchantAccountSelector));
+                hideConfigField($(webhookUsernameSelector));
+                hideConfigField($(webhookPasswordSelector));
+                configured = false;
+
+                actionButton.show();
+                resetButton.hide();
+            }
+
+            renderAutoConfiguration();
+
+            configMode.on('change', renderAutoConfiguration.bind(configMode));
+
+            let merchantAccounts = [];
+            $(merchantAccountSelector).on('change', prefillLivePrefix);
+
+            function loadMerchantAccountsAndClientKey() {
+                progressUpdate('start');
+                let demoMode = $(demoModeSelector).val();
+                let apiKey = demoMode
+                    ? $(testApiKeySelector).val()
+                    : $(liveApiKeySelector).val();
+                $.ajax('<?php echo $block->getMerchantAccountsUrl() ?>', {
+                    data: {apiKey, demoMode},
+                    method: "POST"
+                }).done(function (response) {
+                    let clientKey = response.clientKey;
+                    if (demoMode) {
+                        let clientKeyTest = $(testClientKeySelector);
+                        clientKeyTest.value = clientKey;
+                        showConfigField(clientKeyTest, false);
+                    } else {
+                        let clientKeyLive = $(liveClientKeySelector);
+                        clientKeyLive.value = clientKey;
+                        showConfigField(clientKeyLive, false);
+                    }
+                    let merchantAccountSelect = document.querySelector(merchantAccountSelector);
+                    // remove previous merchant accounts from dropdown
+                    for (let i = merchantAccountSelect.options.length - 1; i >= 0; i--) {
+                        merchantAccountSelect.remove(i);
+                    }
+                    // save merchant accounts mapping with liveprefix urls to global constant
+                    merchantAccounts = response.merchantAccounts;
+                    // add merchant accounts to dropdown
+                    for (i = 0; i < merchantAccounts.length; i++) {
+                        merchantAccountSelect.add(new Option(merchantAccounts[i].name, merchantAccounts[i].name));
+                    }
+                    if (response.currentMerchantAccount) {
+                        merchantAccountSelect.value = response.currentMerchantAccount;
+                    }
+                    showConfigField($(merchantAccountSelector));
+
+                    prefillLivePrefix.bind($(merchantAccountSelector)[0])();
+
+                    // update action button listener to perform next action
+                    actionButton.off();
+                    actionButton.on('click', generateWebhookCredentials);
+                    progressUpdate('success', 'Click Next to generate notification username and password.');
+                }).fail(function(response) {
+                    progressUpdate('error', 'Unable to load merchant accounts: ' + response.responseJSON.error);
+                });
+            }
+
+            /**
+             * Prefill livePrefixUrl based on mapping in merchantAccounts variable
+             */
+            function prefillLivePrefix() {
+                if ($(demoModeSelector).val()) {
+                    return;
+                }
+                let livePrefixUrl = $(livePrefixUrlSelector);
+                let merchantAccount = merchantAccounts.find(function (account) { return account.name === this.value }.bind(this));
+                if (merchantAccount !== undefined) {
+                    livePrefixUrl.val(merchantAccount.liveEndpointPrefix);
+                }
+                showConfigField(livePrefixUrl);
+            }
+
+            function generateWebhookCredentials() {
+                progressUpdate('start');
+                let username = 'webuser';
+                let password = generateRandomPassword();
+
+                let usernameField = $(webhookUsernameSelector);
+                let passwordField = $(webhookPasswordSelector);
+                usernameField.val(username);
+                passwordField.val(password);
+
+                showConfigField(usernameField);
+                showConfigField(passwordField);
+                convertActionButtonToFinished();
+                progressUpdate('success', 'Required settings configuration complete. Click Save Config to save.');
+            }
+
+            function progressUpdate(action, message='') {
+                const progress = $('#progress');
+                const notification = $('#adyen_payments_configured_message');
+                notification.html('');
+                switch (action) {
+                    case 'start':
+                        progress.show();
+                        progress.find('.processing').show();
+                        progress.find('.configured').hide();
+                        progress.find('#adyen_payments_configuration_errors').hide();
+                        notification.text('').show();
+                        break;
+                    case 'success':
+                        progress.find('.processing').hide();
+                        progress.find('.configured').show();
+                        progress.find('#adyen_payments_configuration_errors').hide();
+                        notification.text(message).show();
+                        break;
+                    case 'error':
+                        progress.find('.processing').hide();
+                        progress.find('.configured').hide();
+                        progress.find('#adyen_payments_configuration_errors').show();
+                        progress.find('#adyen_payments_configuration_errors').find('.message').text(message);
+                        break;
+                }
+            }
+
+            function showConfigField(field, enable=true) {
+                field.parents('tr').show();
+                field.show();
+                if (enable) {
+                    field.prop('disabled', false);
+                }
+            }
+
+            function hideConfigField(field) {
+                field.parents('tr')[0].hide();
+                field.hide();
+                field.prop('disabled', true);
+            }
+
+            function generateRandomPassword() {
+                var pass = '';
+                var str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+
+                for (let i = 1; i <= 10; i++) {
+                    var char = Math.floor(Math.random()
+                        * str.length + 1);
+
+                    pass += str.charAt(char)
+                }
+
+                return pass;
+            }
+
+            function convertActionButtonToFinished() {
+                actionButton.off();
+                actionButton.html('<span>Complete</span>');
+                actionButton.removeClass('primary');
+                actionButton.addClass('disabled ui-button');
+                actionButton.attr('disabled', 'disabled');
+                actionButton.hide();
+            }
+        });
+    });
+</script>
     <span id="adyen_payments_configured_message"></span>
     <div id="adyen_payments_configuration_errors" class="message-system-inner">
         <div class="message message-warning"></div>
     </div>
 </span>
+<?php echo $block->getResetButtonHtml() ?>

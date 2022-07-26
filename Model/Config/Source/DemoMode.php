@@ -11,31 +11,19 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
-class DemoMode implements \Magento\Framework\Option\ArrayInterface
+use Magento\Framework\Data\OptionSourceInterface;
+
+class DemoMode implements OptionSourceInterface
 {
     /**
      * @return array
      */
     public function toOptionArray()
     {
-        $modes = $this->getModes();
-
-        foreach ($modes as $code => $label) {
-            $options[] = ['value' => $code, 'label' => $label];
-        }
-        return $options;
-    }
-
-    /**
-     * return modes for configuration setting
-     *
-     * @return array
-     */
-    private function getModes()
-    {
         return [
-            '1' => 'Test',
-            '0' => 'Live'
+            ['value' => '1', 'label' => 'Test'],
+            ['value' => '0', 'label' => 'Live']
         ];
     }
+
 }

@@ -86,6 +86,16 @@ class Config
     }
 
     /**
+     * @param $mode
+     * @param $storeId
+     * @return bool|mixed
+     */
+    public function getClientKey($mode, $storeId = null)
+    {
+        return $this->getConfigData('client_key_' . $mode, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    /**
      * @param int|null $storeId
      * @return string
      */

@@ -25,18 +25,13 @@
 namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Helper\BaseUrlHelper;
 use Adyen\Payment\Helper\ManagementHelper;
 use Magento\Backend\App\Action;
-use Magento\Framework\App\Request\Http;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Backend\App\Action\Context;
 
 class MerchantAccounts extends Action
 {
-
-    const TEST_MODE = 'test';
-    const LIVE_MODE = 'production';
     /**
      * @var ManagementHelper
      */
@@ -47,33 +42,14 @@ class MerchantAccounts extends Action
      */
     protected $resultJsonFactory;
 
-    /** @var Http */
-    protected $request;
-
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $adyenHelper;
-
-    /**
-     * @var BaseUrlHelper
-     */
-    private $baseUrlHelper;
-
     public function __construct(
         Context $context,
         ManagementHelper $managementHelper,
-        JsonFactory $resultJsonFactory,
-        Http $request,
-        BaseUrlHelper $baseUrlHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        JsonFactory $resultJsonFactory
     ) {
         parent::__construct($context);
         $this->resultJsonFactory = $resultJsonFactory;
         $this->managementHelper = $managementHelper;
-        $this->request = $request;
-        $this->adyenHelper = $adyenHelper;
-        $this->baseUrlHelper = $baseUrlHelper;
     }
 
     /**
@@ -83,29 +59,15 @@ class MerchantAccounts extends Action
     {
         $resultJson = $this->resultJsonFactory->create();
         try {
-            $xapikey = $this->getRequest()->getParam('xapikey', '');
-            $demoMode = $this->getRequest()->getParam('demoMode', '');
+            $apiKey = $this->getRequest()->getParam('apiKey', '');
+            $demoMode = (int) $this->getRequest()->getParam('demoMode');
             //Use the stored xapi key if the return value is encrypted chars only or it is empty,
-            if (!empty($xapikey) && preg_match('/^\*+$/', $xapikey)) {
-                $xapikey = '';
+            if (!empty($apiKey) && preg_match('/^\*+$/', $apiKey)) {
+                $apiKey = '';
             }
+            $response = $this->managementHelper->getMerchantAccountsAndClientKey($apiKey, (bool) $demoMode);
 
-            $response = $this->managementHelper->getMerchantAccountAndClientKey($xapikey);
-            $currentMerchantAccount = $this->adyenHelper->getAdyenMerchantAccount('adyen_cc');
-
-            $storeId = $this->getRequest()->getParam('storeId');
-            $origin = $this->baseUrlHelper->getStoreBaseUrl($storeId, true);
-            $origin = $this->baseUrlHelper->getDomainFromUrl($origin);
-
-            $resultJson = $this->resultJsonFactory->create();
-            $resultJson->setData(
-                [
-                    'messages' => $response,
-                    'mode' => $this->getDemoMode($demoMode),
-                    'currentMerchantAccount' => $currentMerchantAccount,
-                    'originUrl' => $origin
-                ]
-            );
+            $resultJson->setData($response);
             return $resultJson;
         } catch (AdyenException $e) {
             $resultJson->setHttpResponseCode(400);
@@ -116,14 +78,6 @@ class MerchantAccounts extends Action
             );
         }
         return $resultJson;
-    }
-
-    private function getDemoMode($mode): string
-    {
-        if ($mode == 0) {
-            return self::LIVE_MODE;
-        }
-        return self::TEST_MODE;
     }
 }
 

@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Model\Config\Backend;
 
+use Adyen\Payment\Helper\BaseUrlHelper;
 use Adyen\Payment\Helper\ManagementHelper;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -19,13 +20,22 @@ use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
+use Magento\Framework\UrlInterface;
 
-class AllowedOriginValue extends Value
+class AutoConfiguration extends Value
 {
     /**
      * @var ManagementHelper
      */
     private $managementApiHelper;
+    /**
+     * @var UrlInterface
+     */
+    private $url;
+    /**
+     * @var BaseUrlHelper
+     */
+    private $baseUrlHelper;
 
     public function __construct(
         Context $context,
@@ -33,23 +43,28 @@ class AllowedOriginValue extends Value
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
         ManagementHelper $managementApiHelper,
+        UrlInterface $url,
+        BaseUrlHelper $baseUrlHelper,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
         $this->managementApiHelper = $managementApiHelper;
+        $this->url = $url;
+        $this->baseUrlHelper = $baseUrlHelper;
     }
 
     public function beforeSave()
     {
-        $mode = (int) $this->getFieldsetDataValue('demo_mode') ? 'test' : 'live';
-        $apiKey = $this->getFieldsetDataValue('api_key_' . $mode);
-
-        $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($apiKey, $mode);
-        $value = $this->getValue();
-        if (!in_array($value, $configuredOrigins)) {
-            $this->managementApiHelper->saveAllowedOrigin($apiKey, $mode, $value);
+        if ('auto' === $this->getValue()) {
+            $environment = (int)$this->getFieldsetDataValue('demo_mode') ? 'test' : 'live';
+            $apiKey = $this->getFieldsetDataValue('api_key_' . $environment);
+            $configuredOrigins = $this->managementApiHelper->getAllowedOrigins($apiKey, $environment);
+            $domain = $this->baseUrlHelper->getDomainFromUrl($this->url->getBaseUrl());
+            if (!in_array($domain, $configuredOrigins)) {
+                $this->managementApiHelper->saveAllowedOrigin($apiKey, $environment, $domain);
+            }
         }
         return parent::beforeSave();
     }
