@@ -45,27 +45,23 @@ class RefundWebhookHandler implements WebhookHandlerInterface
      */
     public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
-        if ($transitionState === PaymentStates::STATE_PAID) {
-            $this->orderHelper->addRefundFailedNotice($order, $notification);
-
-            return $order;
-        }
-
         $ignoreRefundNotification = $this->configHelper->getConfigData(
             'ignore_refund_notification',
             'adyen_abstract',
             $order->getStoreId()
         );
 
-        if ($ignoreRefundNotification) {
+        if ($transitionState === PaymentStates::STATE_PAID) {
+            $this->orderHelper->addRefundFailedNotice($order, $notification);
+        } elseif ($ignoreRefundNotification) {
             $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
                 'Config to ignore refund notification is enabled. Notification %s will be ignored',
                 $notification->getId()
             ));
-
-            return $order;
+        } else {
+            $order = $this->orderHelper->refundOrder($order, $notification);
         }
 
-        return $this->orderHelper->refundOrder($order, $notification);
+        return $order;
     }
 }

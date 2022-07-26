@@ -172,10 +172,9 @@ class Webhook
 
             $transitionState = $this->getTransitionState($notification, $currentState);
 
-            $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
-            $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
-
             try {
+                $webhookHandler = self::$webhookHandlerFactory::create($notification->getEventCode());
+                $this->order = $webhookHandler->handleWebhook($this->order, $notification, $transitionState);
                 // set done to true
                 $this->order->save();
             } catch (Exception $e) {
