@@ -28,7 +28,7 @@ class AdyenCcDataAssignObserver extends AbstractDataAssignObserver
     const COMBO_CARD_TYPE = 'combo_card_type';
     const STATE_DATA = 'stateData';
     const STORE_PAYMENT_METHOD = 'storePaymentMethod';
-    const RETURN_URL = 'return_url';
+    const RETURN_URL = 'returnUrl';
 
     /**
      * Approved root level keys from additional data array

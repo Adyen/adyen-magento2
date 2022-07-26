@@ -58,11 +58,11 @@ class ReturnUrlDataBuilder implements BuilderInterface
         /** @var Order $order */
         $order = $payment->getOrder();
         $merchantReference = $order->getIncrementId();
-        $customReturnUrl = $payment->getAdditionalInformation('return_url');
+        $customReturnUrl = $payment->getAdditionalInformation('returnUrl');
 
         if (!empty($customReturnUrl)) {
             $returnUrl = strtr($customReturnUrl, [
-                '%merchantReference%' => $merchantReference
+                ':merchantReference' => $merchantReference
             ]);
         } else {
             $returnUrl = $this->returnUrlHelper->getStoreReturnUrl($this->storeManager->getStore()->getId())

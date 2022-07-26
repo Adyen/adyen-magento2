@@ -95,7 +95,7 @@ QUERY;
         adyen_additional_data_hpp: {
             brand_code: "ideal",
             stateData: "' . $stateData . '",
-            return_url: "http://localhost/checkout/?id=%merchantReference%&done=1"
+            returnUrl: "http://localhost/checkout/?id=:merchantReference&done=1"
         }';
         $query = $this->getPlaceOrderQuery($maskedQuoteId, $methodCode, $adyenAdditionalData);
 
@@ -236,7 +236,7 @@ JSON;
         adyen_additional_data_cc: {
             cc_type: "VI",
             stateData: ' . json_encode($stateData) . ',
-            return_url: "my-app://your.package.name"
+            returnUrl: "my-app://your.package.name"
         }';
         $query = $this->getPlaceOrderQuery($maskedQuoteId, "adyen_cc", $adyenAdditionalData);
 

@@ -29,7 +29,7 @@ class AdyenOneclickDataAssignObserver extends AbstractDataAssignObserver
     const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
     const STATE_DATA = 'stateData';
     const PAYMENT_METHOD = 'paymentMethod';
-    const RETURN_URL = 'return_url';
+    const RETURN_URL = 'returnUrl';
 
     /**
      * Approved root level keys from additional data array
