@@ -18,6 +18,10 @@ class TokenizedPaymentMethods implements OptionSourceInterface
                 'label' => PaymentMethods\ApplePayPaymentMethod::NAME
             ],
             [
+                'value' => PaymentMethods\AmazonPayPaymentMethod::TX_VARIANT,
+                'label' => PaymentMethods\AmazonPayPaymentMethod::NAME
+            ],
+            [
                 'value' => PaymentMethods\GooglePayPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\GooglePayPaymentMethod::NAME
             ],

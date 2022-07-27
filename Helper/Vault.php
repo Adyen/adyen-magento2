@@ -197,15 +197,12 @@ class Vault
      * @param $payment
      * @return array
      */
-    public function buildPaymentMethodRecurringData(int $storeId, $payment): array
+    public function buildPaymentMethodRecurringData(int $storeId, $brand): array
     {
         $request = [];
-        $brand = $payment->getCcType();
-
         if (!$this->config->isStoreAlternativePaymentMethodEnabled()) {
             return $request;
         }
-
         try {
             $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
             $allowRecurring = $this->allowRecurringOnPaymentMethod($adyenPaymentMethod, $storeId);
@@ -226,7 +223,6 @@ class Vault
             $request['storePaymentMethod'] = true;
             $request['recurringProcessingModel'] = $recurringModel;
         }
-
         return $request;
     }
 
