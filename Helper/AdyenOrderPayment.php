@@ -236,6 +236,25 @@ class AdyenOrderPayment extends AbstractHelper
     }
 
     /**
+     * Refund the adyenOrderPayment with the amount passed in the notification
+     *
+     * @param OrderPaymentInterface $adyenOrderPayment
+     * @param Notification $notification
+     * @return OrderPaymentInterface
+     * @throws \Exception
+     */
+    public function refundAdyenOrderPayment(OrderPaymentInterface $adyenOrderPayment, Notification $notification): OrderPaymentInterface
+    {
+        $amountRefunded = $adyenOrderPayment->getTotalRefunded() +
+            $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
+        $adyenOrderPayment->setUpdatedAt(new \DateTime());
+        $adyenOrderPayment->setTotalRefunded($amountRefunded);
+        $adyenOrderPayment->save();
+
+        return $adyenOrderPayment;
+    }
+
+    /**
      * Compare the total of the passed adyen order payments to the grand total of the order
      *
      * @param Order $order
