@@ -22,14 +22,19 @@ use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Invoice\Collection;
 use Adyen\Payment\Model\ResourceModel\Invoice\Invoice as AdyenInvoiceResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
+use Exception;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Phrase;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Email\Container\InvoiceIdentity;
+use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 use Magento\Sales\Model\Order\Invoice as InvoiceModel;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
+use Magento\Store\Model\ScopeInterface;
 
 /**
  * Helper class for anything related to the invoice entity
@@ -89,6 +94,16 @@ class Invoice extends AbstractHelper
     protected $magentoInvoiceFactory;
 
     /**
+     * @var Config
+     */
+    protected $configHelper;
+
+    /**
+     * @var InvoiceSender
+     */
+    protected $invoiceSender;
+
+    /**
      * Invoice constructor.
      *
      * @param Context $context
@@ -114,7 +129,9 @@ class Invoice extends AbstractHelper
         PaymentFactory $paymentFactory,
         Collection $adyenInvoiceCollection,
         MagentoInvoiceFactory $magentoInvoiceFactory,
-        \Magento\Sales\Model\ResourceModel\Order $magentoOrderResourceModel
+        \Magento\Sales\Model\ResourceModel\Order $magentoOrderResourceModel,
+        Config $configHelper,
+        InvoiceSender $invoiceSender
     ) {
         parent::__construct($context);
         $this->adyenLogger = $adyenLogger;
@@ -127,6 +144,83 @@ class Invoice extends AbstractHelper
         $this->adyenInvoiceCollection = $adyenInvoiceCollection;
         $this->magentoInvoiceFactory = $magentoInvoiceFactory;
         $this->magentoOrderResourceModel = $magentoOrderResourceModel;
+        $this->configHelper = $configHelper;
+        $this->invoiceSender = $invoiceSender;
+    }
+
+    /**
+     * @param Order $order
+     * @param Notification $notification
+     * @param bool $isAutoCapture
+     * @throws LocalizedException
+     */
+    public function createInvoice(Order $order, Notification $notification, bool $isAutoCapture)
+    {
+        $this->adyenLogger->addAdyenNotificationCronjob('Creating invoice for order');
+
+        if ($order->canInvoice()) {
+            /* We do not use this inside a transaction because order->save()
+             * is always done on the end of the notification
+             * and it could result in a deadlock see https://github.com/Adyen/magento/issues/334
+             */
+            try {
+                $invoice = $order->prepareInvoice();
+                $invoice->getOrder()->setIsInProcess(true);
+
+                // set transaction id so you can do a online refund from credit memo
+                $invoice->setTransactionId($notification->getPspreference());
+
+                $createPendingInvoice = (bool)$this->configHelper->getConfigData(
+                    'create_pending_invoice',
+                    'adyen_abstract',
+                    $order->getStoreId()
+                );
+
+                if ((!$isAutoCapture) && ($createPendingInvoice)) {
+                    // if amount is zero create a offline invoice
+                    $value = (int)$notification->getAmountValue();
+                    if ($value == 0) {
+                        $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE);
+                    } else {
+                        $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::NOT_CAPTURE);
+                    }
+
+                    $invoice->register();
+                } else {
+                    $invoice->register()->pay();
+                }
+
+                $this->invoiceRepository->save($invoice);
+                $this->adyenLogger->addAdyenNotificationCronjob(
+                    sprintf('Notification %s created an invoice.', $notification->getEntityId()),
+                    $this->getLogInvoiceContext($invoice)
+                );
+            } catch (Exception $e) {
+                $this->adyenLogger->addAdyenNotificationCronjob('Error saving invoice: ' . $e->getMessage());
+                throw $e;
+            }
+
+            $invoiceAutoMail = (bool)$this->scopeConfig->isSetFlag(
+                InvoiceIdentity::XML_PATH_EMAIL_ENABLED,
+                ScopeInterface::SCOPE_STORE,
+                $order->getStoreId()
+            );
+
+            if ($invoiceAutoMail) {
+                $this->invoiceSender->send($invoice);
+            }
+        } else {
+            $this->adyenLogger->addAdyenNotificationCronjob(
+                sprintf('Unable to create invoice when handling Notification %s', $notification->getEntityId()),
+                //TODO move logcontext function to OrderHelper, instead of AdyenPaymentOrder Helper
+                /*array_merge($this->adyenOrderPayment->getLogOrderContext($order), [
+                    'canUnhold' => $order->canUnhold(),
+                    'isPaymentReview' => $order->isPaymentReview(),
+                    'isCancelled' => $order->isCanceled(),
+                    'invoiceActionFlag' => $order->getActionFlag(Order::ACTION_FLAG_INVOICE)
+                ])*/
+            );
+        }
     }
 
     /**
