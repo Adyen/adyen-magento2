@@ -15,6 +15,7 @@ use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\Model\Context;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -53,12 +54,18 @@ class RecurringDataBuilder implements BuilderInterface
     private $vaultHelper;
 
     /**
+     * @var StateData
+     */
+    private $stateData;
+
+    /**
      * RecurringDataBuilder constructor.
      *
      * @param Context $context
      * @param Requests $adyenRequestsHelper
      * @param PaymentMethods $paymentMethodsHelper
      * @param AdyenLogger $adyenLogger
+     * @param StateData $stateData
      */
     public function __construct(
         Context $context,
@@ -66,7 +73,8 @@ class RecurringDataBuilder implements BuilderInterface
         PaymentMethods $paymentMethodsHelper,
         AdyenLogger $adyenLogger,
         AdyenOrderPayment $adyenOrderPayment,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        StateData $stateData
     ) {
         $this->appState = $context->getAppState();
         $this->adyenRequestsHelper = $adyenRequestsHelper;
@@ -74,6 +82,7 @@ class RecurringDataBuilder implements BuilderInterface
         $this->adyenLogger = $adyenLogger;
         $this->adyenOrderPayment = $adyenOrderPayment;
         $this->vaultHelper = $vaultHelper;
+        $this->stateData = $stateData;
     }
 
     /**
@@ -89,7 +98,7 @@ class RecurringDataBuilder implements BuilderInterface
         $order = $payment->getOrder();
         $storeId = $order->getStoreId();
         $method = $payment->getMethod();
-        $brand = $this->adyenRequestsHelper->getPaymentMethodVariant($order->getQuoteId());
+        $brand = $this->stateData->getPaymentMethodVariant($order->getQuoteId());
         if ($method === PaymentMethods::ADYEN_CC) {
             $body = $this->adyenRequestsHelper->buildCardRecurringData($storeId, $payment);
         } elseif ($method === PaymentMethods::ADYEN_HPP) {

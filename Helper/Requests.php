@@ -424,15 +424,4 @@ class Requests extends AbstractHelper
 
         return $shopperReference;
     }
-
-    /**
-     * Returns the payment method type from state data
-     * @param int $quoteId
-     * @return string
-     */
-    public function getPaymentMethodVariant(int $quoteId): string
-    {
-        $stateDataByQuoteId = $this->stateData->getStateData($quoteId);
-        return $stateDataByQuoteId['paymentMethod']['type'];
-    }
 }
