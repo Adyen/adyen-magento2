@@ -71,7 +71,7 @@ class TransactionMotoPayment implements ClientInterface
             return $request;
         }
 
-        $client = $this->adyenHelper->initializeAdyenMotoClient($request['merchantAccount']);
+        $client = $this->adyenHelper->initializeAdyenClient(null, null, $request['merchantAccount']);
         $service = $this->adyenHelper->createAdyenCheckoutService($client);
 
         $requestOptions = [];

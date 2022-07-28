@@ -45,7 +45,7 @@ class TransactionMotoRefund implements ClientInterface
         foreach ($requests as $request) {
             // call lib
 
-            $client = $this->adyenHelper->initializeAdyenMotoClient($request['merchantAccount']);
+            $client = $this->adyenHelper->initializeAdyenClient(null, null, $request['merchantAccount']);
             $service = new \Adyen\Service\Modification($client);
             try {
                 $responses[] = $service->refund($request);

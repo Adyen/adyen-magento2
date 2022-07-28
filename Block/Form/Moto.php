@@ -15,7 +15,6 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Installments;
-use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Backend\Model\Session\Quote;
@@ -119,15 +118,6 @@ class Moto extends \Magento\Payment\Block\Form\Cc
         $this->configHelper = $configHelper;
         $this->customerSession = $customerSession;
         $this->vaultHelper = $vaultHelper;
-    }
-
-    /**
-     * @return string
-     * @throws \Adyen\AdyenException
-     */
-    public function getClientKey()
-    {
-        return $this->adyenHelper->getClientKey();
     }
 
     /**
@@ -288,7 +278,10 @@ class Moto extends \Magento\Payment\Block\Form\Cc
         return $this->chargedCurrency->getQuoteAmountCurrency($quote);
     }
 
-    public function getMotoMerchantAccounts()
+    /**
+     * @return array
+     */
+    public function getMotoMerchantAccounts() : array
     {
         return $this->configHelper->getMotoMerchantAccounts();
     }

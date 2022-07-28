@@ -42,6 +42,7 @@ use Magento\Tax\Model\Config;
 class Data extends AbstractHelper
 {
     const MODULE_NAME = 'adyen-magento2';
+    const APPLICATION_NAME = 'Magento 2 plugin';
     const TEST = 'test';
     const LIVE = 'live';
     const LIVE_AU = 'live-au';
@@ -635,6 +636,11 @@ class Data extends AbstractHelper
     public function isDemoMode($storeId = null)
     {
         return $this->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
+    }
+
+    public function isMotoDemoMode(array $motoMerchantAccountPropoerties): bool
+    {
+        return $motoMerchantAccountPropoerties['demo_mode'] === '1';
     }
 
     /**
@@ -1481,28 +1487,44 @@ class Data extends AbstractHelper
      *
      * @param null|int|string $storeId
      * @param string|null $apiKey
+     * @param string|null $motoMerchantAccount
      * @return \Adyen\Client
      * @throws \Adyen\AdyenException
      */
-    public function initializeAdyenClient($storeId = null, $apiKey = null)
+    public function initializeAdyenClient($storeId = null, $apiKey = null, $motoMerchantAccount = null)
     {
-        // initialize client
         if ($storeId === null) {
             $storeId = $this->storeManager->getStore()->getId();
+        }
+
+        $isDemoMode = $this->isDemoMode($storeId);
+
+        $motoMerchantAccountProperties = [];
+        if (!is_null($motoMerchantAccount)) {
+            $motoMerchantAccounts = $this->adyenConfigHelper->getMotoMerchantAccounts($storeId);
+            // Get the related MOTO merchant account properties from the associated array
+            $motoMerchantAccountProperties = $motoMerchantAccounts[$motoMerchantAccount];
         }
 
         if (empty($apiKey)) {
             $apiKey = $this->getAPIKey($storeId);
         }
 
+        if (!empty($motoMerchantAccountProperties)) {
+            // Override the x-api-key and demo mode setting if MOTO merchant account is set.
+            $apiKey = $this->_encryptor->decrypt($motoMerchantAccountProperties['apikey']);
+            $isDemoMode = $this->isMotoDemoMode($motoMerchantAccountProperties);
+        }
+
         $client = $this->createAdyenClient();
-        $client->setApplicationName("Magento 2 plugin");
+        $client->setApplicationName(self::APPLICATION_NAME);
         $client->setXApiKey($apiKey);
         $moduleVersion = $this->getModuleVersion();
 
         $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
-        if ($this->isDemoMode($storeId)) {
+
+        if ($isDemoMode) {
             $client->setEnvironment(\Adyen\Environment::TEST);
         } else {
             $client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
@@ -1512,47 +1534,6 @@ class Data extends AbstractHelper
 
         return $client;
     }
-
-    /**
-     * Initializes and returns Adyen Client and sets the required parameters of it
-     *
-     * @param null|int|string $storeId
-     * @param string|null $apiKey
-     * @return \Adyen\Client
-     * @throws \Adyen\AdyenException
-     */
-    public function initializeAdyenMotoClient($motoMerchantAccount, $storeId = null)
-    {
-        // TODO-MOTO:: Add exception handling for non existing moto merchant accounts
-
-        if ($storeId === null) {
-            $storeId = $this->storeManager->getStore()->getId();
-        }
-
-        $motoMerchantAccounts = $this->adyenConfigHelper->getMotoMerchantAccounts($storeId);
-
-        $motoMerchantAccountProperties = $motoMerchantAccounts[$motoMerchantAccount];
-        $apiKey = $this->_encryptor->decrypt($motoMerchantAccountProperties['apikey']);
-
-        $client = $this->createAdyenClient();
-        $client->setApplicationName("Magento 2 plugin");
-        $client->setXApiKey($apiKey);
-        $moduleVersion = $this->getModuleVersion();
-
-        $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
-        $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
-
-        if ($motoMerchantAccountProperties['demo_mode'] === '1') {
-            $client->setEnvironment(\Adyen\Environment::TEST);
-        } else {
-            $client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
-        }
-
-        $client->setLogger($this->adyenLogger);
-
-        return $client;
-    }
-
 
     /**
      * @param \Adyen\Client $client
