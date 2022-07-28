@@ -78,8 +78,6 @@ class MotoRefundDataBuilder implements BuilderInterface
         $pspReference = $payment->getCcTransId();
         $currency = $creditMemoAmountCurrency->getCurrencyCode();
         $amount = $creditMemoAmountCurrency->getAmount();
-        $storeId = $order->getStoreId();
-        $method = $payment->getMethod();
         $merchantAccount = $payment->getAdditionalInformation('motoMerchantAccount');
 
         // check if it contains a partial payment
