@@ -5,11 +5,11 @@ jobs:
   build:
     strategy:
       matrix:
-        php-version: ['7.4']
-        magento-version: ['2.3.7', '2.4.2']
+        php-version: ["7.4"]
+        magento-version: ["2.3.7", "2.4.2"]
         include:
-          - php-version: '8.1'
-            magento-version: '2.4.4'
+          - php-version: "8.1"
+            magento-version: "2.4.4"
     runs-on: ubuntu-latest
     env:
       PHP_VERSION: ${{ matrix.php-version }}
@@ -48,15 +48,15 @@ jobs:
         run: docker exec magento2-container make graphql
 
       - name: Switch to production mode
-        if: github.event.pull_request.base.ref == 'main'
+        # if: github.event.pull_request.base.ref == 'main'
         run: docker exec -u www-data magento2-container make production
 
       - name: Setup permissions
-        if: github.event.pull_request.base.ref == 'main'
+        # if: github.event.pull_request.base.ref == 'main'
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
-        if: github.event.pull_request.base.ref == 'main'
+        # if: github.event.pull_request.base.ref == 'main'
         continue-on-error: true
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
         env:
@@ -68,7 +68,7 @@ jobs:
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
 
       - name: Archive test result artifacts
-        if: github.event.pull_request.base.ref == 'main'
+        # if: github.event.pull_request.base.ref == 'main'
         uses: actions/upload-artifact@v3
         with:
           name: html-report
