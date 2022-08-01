@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
+use Adyen\Payment\Observer\AdyenPayByLinkDataAssignObserver;
 use Magento\Framework\App\RequestInterface;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
@@ -41,10 +42,10 @@ class ExpiryDateDataBuilder implements BuilderInterface
     {
         $paymentFormFields = $this->request->getParam('payment');
         $expiryDate = null;
-        $payment = $buildSubject['payment']->getPayment()->getAdditionalInformation()['adyen_pbl_expires_at'];
+        $payment = $buildSubject['payment']->getPayment()->getAdditionalInformation()[AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE];
 
-        if (!is_null($paymentFormFields) && isset($paymentFormFields["adyen_pbl_expires_at"])) {
-            $expiryDate = $paymentFormFields["adyen_pbl_expires_at"];
+        if (!is_null($paymentFormFields) && isset($paymentFormFields[AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE])) {
+            $expiryDate = $paymentFormFields[AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE];
         }
         elseif (isset($payment)) {
             $expiryDate = $payment;
