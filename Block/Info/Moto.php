@@ -11,12 +11,30 @@
 
 namespace Adyen\Payment\Block\Info;
 
+use Magento\Framework\View\Element\Template;
+
 class Moto extends AbstractInfo
 {
     /**
      * @var string
      */
     protected $_template = 'Adyen_Payment::info/adyen_moto.phtml';
+
+    /**
+     * @var \Adyen\Payment\Helper\Config
+     */
+    private $adyenConfigHelper;
+
+    public function __construct(
+        \Adyen\Payment\Helper\Data $adyenHelper,
+        \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
+        Template\Context $context,
+        \Adyen\Payment\Helper\Config $adyenConfigHelper,
+        array $data = [],
+    ) {
+        parent::__construct($adyenHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
+        $this->adyenConfigHelper = $adyenConfigHelper;
+    }
 
     /**
      * Return credit card type
@@ -52,5 +70,23 @@ class Moto extends AbstractInfo
     public function getMotoMerchantAccount()
     {
         return $this->getInfo()->getAdditionalInformation('motoMerchantAccount');
+    }
+
+    public function getAdyenCustomerAreaLink()
+    {
+        $storeId = $this->getInfo()->getOrder()->getStoreId();
+        $motoMerchantAccounts = $this->adyenConfigHelper->getMotoMerchantAccounts($storeId);
+        $motoMerchantAccount = $this->getMotoMerchantAccount();
+
+        if ($this->_adyenHelper->isMotoDemoMode($motoMerchantAccounts[$motoMerchantAccount])) {
+            $url = 'https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=';
+        }
+        else {
+            $url = 'https://ca-live.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=';
+        }
+
+        $url .= $this->getAdyenPspReference() . '&txType=Payment';
+
+        return $url;
     }
 }

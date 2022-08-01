@@ -22,8 +22,9 @@
     <?= $block->escapeHtml($block->getMethod()->getTitle()); ?>
 </div>
 <?php
-$_info = $block->getInfo();
-$_isDemoMode = $block->isDemoMode();
+    $_info = $block->getInfo();
+    $_isDemoMode = $block->isDemoMode();
+    $_customerAreaLink = $block->getAdyenCustomerAreaLink();
 ?>
 
 <?php if ($block->getMotoMerchantAccount() != ""): ?>
@@ -34,17 +35,8 @@ $_isDemoMode = $block->isDemoMode();
 
 <?php if ($_pspReference = $_info->getAdditionalInformation('pspReference')): ?>
     <div>
-        <?php if ($_isDemoMode): ?>
-            <?= $block->escapeHtml(__('Adyen PSP Reference: ')); ?>
-            <a href="https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=<?= $block->escapeHtml(
-                $_pspReference
-            ); ?>&txType=Payment" target="_blank"><?= $block->escapeHtml($_pspReference); ?></a>
-        <?php else: ?>
-            <?= $block->escapeHtml(__('Adyen PSP Reference: ')); ?>
-            <a href="https://ca-live.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=<?= $block->escapeHtml(
-                $_pspReference
-            ); ?>&txType=Payment" target="_blank"><?= $block->escapeHtml($_pspReference); ?></a>
-        <?php endif; ?>
+        <?= $block->escapeHtml(__('Adyen PSP Reference: ')); ?>
+        <a href="<?= $block->escapeHtml($_customerAreaLink); ?>" target="_blank"><?= $block->escapeHtml($_pspReference); ?></a>
     </div>
 <?php endif; ?>
 
