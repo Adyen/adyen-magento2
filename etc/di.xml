@@ -34,7 +34,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentMotoFacade" type="Adyen\Payment\Model\Method\Adapter">
         <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenMotoConfigProvider::CODE</argument>
+            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider::CODE</argument>
             <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Moto</argument>
             <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Moto</argument>
             <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentMotoValueHandlerPool</argument>
@@ -233,7 +233,7 @@
     </virtualType>
     <virtualType name="AdyenPaymentMotoConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
-            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenMotoConfigProvider::CODE</argument>
+            <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider::CODE</argument>
         </arguments>
     </virtualType>
     <virtualType name="AdyenPaymentCcVaultConfig" type="Magento\Payment\Gateway\Config\Config">
