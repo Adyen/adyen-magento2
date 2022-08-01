@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Block\Info;
 
+use Adyen\AdyenException;
 use Magento\Framework\View\Element\Template;
 
 class Moto extends AbstractInfo
@@ -75,17 +76,24 @@ class Moto extends AbstractInfo
     public function getAdyenCustomerAreaLink()
     {
         $storeId = $this->getInfo()->getOrder()->getStoreId();
-        $motoMerchantAccounts = $this->adyenConfigHelper->getMotoMerchantAccounts($storeId);
         $motoMerchantAccount = $this->getMotoMerchantAccount();
 
-        if ($this->_adyenHelper->isMotoDemoMode($motoMerchantAccounts[$motoMerchantAccount])) {
-            $url = 'https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=';
-        }
-        else {
-            $url = 'https://ca-live.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=';
-        }
 
-        $url .= $this->getAdyenPspReference() . '&txType=Payment';
+        try {
+            $motoMerchantAccountProperties = $this->adyenConfigHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
+
+            if ($this->_adyenHelper->isMotoDemoMode($motoMerchantAccountProperties)) {
+                $url = 'https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=';
+            }
+            else {
+                $url = 'https://ca-live.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=';
+            }
+
+            $url .= $this->getAdyenPspReference() . '&txType=Payment';
+        }
+        catch (AdyenException $e) {
+            $url = '#';
+        }
 
         return $url;
     }

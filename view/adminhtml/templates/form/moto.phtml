@@ -33,6 +33,7 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
            <?= $escaper->escapeHtml(__('MOTO Merchant Account')) ?>
        </span>
     </label>
+    <?php if ($motoMerchantAccounts): ?>
     <div class="admin__field-control">
         <select id="<?= /* @noEscape */ $code; ?>_merchant_accounts" class="required-entry admin__control-select">
             <option value=""><?= $escaper->escapeHtml(__('Please select...')) ?></option>
@@ -43,7 +44,11 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
             ?>
         </select>
     </div>
-
+    <?php else: ?>
+        <p class="admin__field-error">
+            <?= $escaper->escapeHtml(__('No Adyen MOTO merchant account found.')) ?>
+        </p>
+    <?php endif ?>
     <div id="cardContainer-<?= /* @noEscape */ $code; ?>" style=""></div>
 
     <script>
@@ -129,6 +134,10 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
 
                     var clientKey = $(this).find("option:selected").attr('data-adyen-client-key');
                     var merchantAccount = $(this).find("option:selected").val();
+
+                    if (merchantAccount === "") {
+                        return;
+                    }
 
                     $("#<?= /* @noEscape */ $code; ?>-merchant-account").val(merchantAccount);
                     renderCheckoutComponent.init(clientKey);

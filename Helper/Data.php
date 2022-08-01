@@ -1499,18 +1499,12 @@ class Data extends AbstractHelper
 
         $isDemoMode = $this->isDemoMode($storeId);
 
-        $motoMerchantAccountProperties = [];
-        if (!is_null($motoMerchantAccount)) {
-            $motoMerchantAccounts = $this->adyenConfigHelper->getMotoMerchantAccounts($storeId);
-            // Get the related MOTO merchant account properties from the associated array
-            $motoMerchantAccountProperties = $motoMerchantAccounts[$motoMerchantAccount];
-        }
-
         if (empty($apiKey)) {
             $apiKey = $this->getAPIKey($storeId);
         }
 
-        if (!empty($motoMerchantAccountProperties)) {
+        if (!is_null($motoMerchantAccount)) {
+            $motoMerchantAccountProperties = $this->adyenConfigHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
             // Override the x-api-key and demo mode setting if MOTO merchant account is set.
             $apiKey = $this->_encryptor->decrypt($motoMerchantAccountProperties['apikey']);
             $isDemoMode = $this->isMotoDemoMode($motoMerchantAccountProperties);
