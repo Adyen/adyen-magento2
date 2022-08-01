@@ -28,7 +28,7 @@ $_isDemoMode = $block->isDemoMode();
 
 <?php if ($block->getMotoMerchantAccount() != ""): ?>
     <div>
-        <?= $block->escapeHtml(__('Merchant Account: %1', $block->getMotoMerchantAccount())); ?><br/>
+        <?= $block->escapeHtml(__('Adyen Merchant Account: %1', $block->getMotoMerchantAccount())); ?><br/>
     </div>
 <?php endif; ?>
 
