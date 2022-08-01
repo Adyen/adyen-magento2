@@ -13,13 +13,12 @@
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_moto_advanced_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="600">
         <label>MOTO</label>
+        <comment>Using Adyen's Mail Order/Telephone Order (MOTO) your shopper can make a call to a call center or send a mail so that your employee can place an order from the admin panel using their card information.</comment>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1"
                showInWebsite="1" showInStore="1">
             <label>Enabled</label>
-            <tooltip>
-                Using Adyen's Mail Order/Telephone Order (MOTO) your shopper can make a call to a call center or send a mail so that your employee can place an order from the admin panel using their card information.
-            </tooltip>
+            <tooltip><![CDATA[Set to Yes to enable MOTO and use this payment method while creating orders in the admin panel.]]></tooltip>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_moto/active</config_path>
         </field>

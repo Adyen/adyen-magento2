@@ -30,7 +30,7 @@ class Moto extends AbstractInfo
         \Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory $adyenOrderPaymentCollectionFactory,
         Template\Context $context,
         \Adyen\Payment\Helper\Config $adyenConfigHelper,
-        array $data = [],
+        array $data = []
     ) {
         parent::__construct($adyenHelper, $adyenOrderPaymentCollectionFactory, $context, $data);
         $this->adyenConfigHelper = $adyenConfigHelper;

@@ -173,7 +173,7 @@
             <adyen_moto>
                 <active>0</active>
                 <model>AdyenPaymentMotoFacade</model>
-                <title>MOTO</title>
+                <title>Adyen MOTO</title>
                 <allowspecific>0</allowspecific>
                 <sort_order>9</sort_order>
                 <useccv>0</useccv>
