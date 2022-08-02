@@ -46,7 +46,7 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
     </div>
     <?php else: ?>
         <p class="admin__field-error">
-            <?= $escaper->escapeHtml(__('No Adyen MOTO merchant account found.')) ?>
+            <?= $escaper->escapeHtml(__('No Adyen MOTO merchant account found. Please configure MOTO merchant accounts in the plugin configuration page.')) ?>
         </p>
     <?php endif ?>
     <div id="cardContainer-<?= /* @noEscape */ $code; ?>" style=""></div>
@@ -90,13 +90,11 @@ $motoMerchantAccounts = $block->getMotoMerchantAccounts();
                                 },
                             });
 
-                            var hideCVC = "<?= !$block->hasVerification(); ?>";
-
                             try {
                                 card = checkout.create('card', {
                                     brands: Object.keys(ccTypes),
-                                    hideCVC: hideCVC,
-                                    enableStoreDetails: false, // MOTO can't use CVC which is required for OneClick tokens
+                                    hideCVC: true,
+                                    enableStoreDetails: false,
                                     hasHolderName: true,
                                     installmentOptions: <?= /* @noEscape */ $block->getFormattedInstallments();?>,
                                     showInstallmentAmounts: true,

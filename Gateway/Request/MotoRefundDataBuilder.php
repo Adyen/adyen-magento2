@@ -15,7 +15,7 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 /**
- * Class CustomerDataBuilder
+ * Class MotoRefundDataBuilder
  */
 class MotoRefundDataBuilder implements BuilderInterface
 {

@@ -27,16 +27,16 @@
     $_customerAreaLink = $block->getAdyenCustomerAreaLink();
 ?>
 
-<?php if ($block->getMotoMerchantAccount() != ""): ?>
+<?php if ($_motoMerchantAccount = $_info->getAdditionalInformation('motoMerchantAccount')): ?>
     <div>
-        <?= $block->escapeHtml(__('Adyen Merchant Account: %1', $block->getMotoMerchantAccount())); ?><br/>
+        <?= $block->escapeHtml(__('Adyen Merchant Account: %1', $_motoMerchantAccount)); ?><br/>
     </div>
 <?php endif; ?>
 
-<?php if ($_pspReference = $_info->getAdditionalInformation('pspReference')): ?>
+<?php if ($_pspReferenceBlock = $block->getPspReferenceBlock()): ?>
     <div>
         <?= $block->escapeHtml(__('Adyen PSP Reference: ')); ?>
-        <a href="<?= $block->escapeHtml($_customerAreaLink); ?>" target="_blank"><?= $block->escapeHtml($_pspReference); ?></a>
+        <?= $_pspReferenceBlock ?>
     </div>
 <?php endif; ?>
 

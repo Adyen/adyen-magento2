@@ -51,50 +51,39 @@ class Moto extends AbstractInfo
         if (isset($types[$ccType])) {
             return $types[$ccType]['name'];
         }
-        // TODO::Refactor this block after tokenization of the alternative payment methods.
-        // This elseif block should be removed after the tokenization of the alternative payment methods (In progress: PW-6764). More general approach is required.
-        // Also remove `sepadirectdebit` from translation files.
-        elseif ($ccType == 'sepadirectdebit') {
-            return __('sepadirectdebit');
-        }
         else {
             return __('Unknown');
         }
     }
 
-    /**
-     *
-     * Return related MOTO merchant account of the order
-     *
-     * @return string
-     */
-    public function getMotoMerchantAccount()
-    {
-        return $this->getInfo()->getAdditionalInformation('motoMerchantAccount');
-    }
-
-    public function getAdyenCustomerAreaLink()
+    public function getPspReferenceBlock()
     {
         $storeId = $this->getInfo()->getOrder()->getStoreId();
-        $motoMerchantAccount = $this->getMotoMerchantAccount();
+        $motoMerchantAccount = $this->getInfo()->getAdditionalInformation('motoMerchantAccount');
+        $pspReference = $this->getAdyenPspReference();
 
+        if (!empty($pspReference) && !empty($motoMerchantAccount)) {
+            try {
+                $motoMerchantAccountProperties = $this->adyenConfigHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
 
-        try {
-            $motoMerchantAccountProperties = $this->adyenConfigHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
+                if ($this->_adyenHelper->isMotoDemoMode($motoMerchantAccountProperties)) {
+                    $url = 'https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=';
+                }
+                else {
+                    $url = 'https://ca-live.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=';
+                }
 
-            if ($this->_adyenHelper->isMotoDemoMode($motoMerchantAccountProperties)) {
-                $url = 'https://ca-test.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=';
+                $url .= $pspReference . '&txType=Payment';
+                $html = "<a href='$url' target='_blank'>$pspReference</a>";
             }
-            else {
-                $url = 'https://ca-live.adyen.com/ca/ca/accounts/showTx.shtml?pspReference=';
+            catch (AdyenException $e) {
+                $html = "<span>$pspReference</span>";
             }
-
-            $url .= $this->getAdyenPspReference() . '&txType=Payment';
         }
-        catch (AdyenException $e) {
-            $url = '#';
+        else {
+            $html = null;
         }
 
-        return $url;
+        return $html;
     }
 }
