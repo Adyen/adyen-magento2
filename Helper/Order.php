@@ -301,7 +301,7 @@ class Order extends AbstractHelper
                 $order->addStatusHistoryComment(__($comment), $status);
                 $this->adyenLogger->addAdyenNotificationCronjob(
                     'Maintaining current status: ' . $status,
-                    $this->adyenOrderPaymentHelper->getLogOrderContext($order)
+                    $this->getLogOrderContext($order)
                 );
             } else if (!empty($status)) {
                 $order->addStatusHistoryComment(__($comment), $status);
@@ -309,7 +309,7 @@ class Order extends AbstractHelper
                 $this->setState($order, $status, $possibleStates);
                 $this->adyenLogger->addAdyenNotificationCronjob(
                     'Order status was changed to authorised status: ' . $status,
-                    $this->adyenOrderPaymentHelper->getLogOrderContext($order)
+                    $this->getLogOrderContext($order)
                 );
             } else {
                 $order->addStatusHistoryComment(__($comment));
@@ -565,6 +565,20 @@ class Order extends AbstractHelper
         $order->addStatusHistoryComment(__('Refund Webhook successfully handled'), $order->getStatus());
 
         return $order;
+    }
+
+    /**
+     * Get the context variables of an order to be passed to a log message
+     *
+     */
+    public function getLogOrderContext(MagentoOrder $order): array
+    {
+        return isset($order) ? [
+            'orderId' => $order->getId(),
+            'orderIncrementId' => $order->getIncrementId(),
+            'orderState' => $order->getState(),
+            'orderStatus' => $order->getStatus()
+        ] : [];
     }
 
     /**

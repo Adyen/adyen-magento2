@@ -11,7 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
-use Adyen\Payment\Helper\AdyenOrderPayment;
+use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Requests;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -42,9 +42,9 @@ class RecurringDataBuilder implements BuilderInterface
     private $adyenLogger;
 
     /**
-     * @var AdyenOrderPayment
+     * @var Order
      */
-    private $adyenOrderPayment;
+    private $orderHelper;
 
     /**
      * RecurringDataBuilder constructor.
@@ -59,13 +59,13 @@ class RecurringDataBuilder implements BuilderInterface
         Requests $adyenRequestsHelper,
         PaymentMethods $paymentMethodsHelper,
         AdyenLogger $adyenLogger,
-        AdyenOrderPayment $adyenOrderPayment
+        Order $orderHelper
     ) {
         $this->appState = $context->getAppState();
         $this->adyenRequestsHelper = $adyenRequestsHelper;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->adyenLogger = $adyenLogger;
-        $this->adyenOrderPayment = $adyenOrderPayment;
+        $this->orderHelper = $orderHelper;
     }
 
     /**
@@ -91,7 +91,7 @@ class RecurringDataBuilder implements BuilderInterface
         } else {
             $this->adyenLogger->addAdyenWarning(
                 sprintf('Unknown payment method: %s', $payment->getMethod()),
-                $this->adyenOrderPayment->getLogOrderContext($order)
+                $this->orderHelper->getLogOrderContext($order)
             );
         }
 
