@@ -55,20 +55,6 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
     {
         //TODO: Refactor code that is common between here and AUTH w/success = false
         $previousAdyenEventCode = $order->getData('adyen_notification_event_code');
-        $ignoreHasInvoice = true;
-
-        // if payment is API, check if API result pspreference is the same as reference
-        if ($notification->getEventCode() == Notification::AUTHORISATION) {
-            if ('api' === $order->getPayment()->getPaymentMethodType()) {
-                // don't cancel the order because order was successful through api
-                $this->adyenLogger->addAdyenNotificationCronjob(
-                    'order is not cancelled because api result was successful'
-                );
-
-                return $order;
-            }
-            $ignoreHasInvoice = false;
-        }
 
         /*
          * Don't cancel the order if part of the payment has been captured.
@@ -106,7 +92,7 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
             $order->setState(MagentoOrder::STATE_NEW);
         }
 
-        $this->orderHelper->holdCancelOrder($order, $ignoreHasInvoice);
+        $this->orderHelper->holdCancelOrder($order, true);
 
         return $order;
     }

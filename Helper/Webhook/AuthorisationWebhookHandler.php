@@ -160,20 +160,6 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
     private function handleFailedAuthorisation(Order $order, Notification $notification): Order
     {
         $previousAdyenEventCode = $order->getData('adyen_notification_event_code');
-        $ignoreHasInvoice = true;
-
-        // if payment is API, check if API result pspreference is the same as reference
-        if ($notification->getEventCode() == Notification::AUTHORISATION) {
-            if ('api' === $order->getPayment()->getPaymentMethodType()) {
-                // don't cancel the order because order was successful through api
-                $this->adyenLogger->addAdyenNotificationCronjob(
-                    'order is not cancelled because api result was successful'
-                );
-
-                return $order;
-            }
-            $ignoreHasInvoice = false;
-        }
 
         /*
          * Don't cancel the order if part of the payment has been captured.
@@ -206,7 +192,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             $order->setState(Order::STATE_NEW);
         }
 
-        return $this->orderHelper->holdCancelOrder($order, $ignoreHasInvoice);
+        return $this->orderHelper->holdCancelOrder($order, true);
     }
 
     /**
