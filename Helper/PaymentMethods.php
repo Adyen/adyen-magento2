@@ -21,6 +21,7 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\ResolverInterface;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
 use Magento\Framework\View\Design\Theme\ThemeProviderInterface;
@@ -116,24 +117,9 @@ class PaymentMethods extends AbstractHelper
     /** @var Config */
     private $configHelper;
 
-    /**
-     * PaymentMethods constructor.
-     *
-     * @param Context $context
-     * @param CartRepositoryInterface $quoteRepository
-     * @param ScopeConfigInterface $config
-     * @param Data $adyenHelper
-     * @param ResolverInterface $localeResolver
-     * @param AdyenLogger $adyenLogger
-     * @param Repository $assetRepo
-     * @param RequestInterface $request
-     * @param Source $assetSource
-     * @param DesignInterface $design
-     * @param ThemeProviderInterface $themeProvider
-     * @param ChargedCurrency $chargedCurrency
-     * @param Config $configHelper
-     * @param MagentoDataHelper $dataHelper
-     */
+    /** @var SerializerInterface */
+    private $serializer;
+
     public function __construct(
         Context $context,
         CartRepositoryInterface $quoteRepository,
@@ -148,7 +134,8 @@ class PaymentMethods extends AbstractHelper
         ThemeProviderInterface $themeProvider,
         ChargedCurrency $chargedCurrency,
         Config $configHelper,
-        MagentoDataHelper $dataHelper
+        MagentoDataHelper $dataHelper,
+        SerializerInterface $serializer
     ) {
         parent::__construct($context);
         $this->quoteRepository = $quoteRepository;
@@ -164,6 +151,7 @@ class PaymentMethods extends AbstractHelper
         $this->chargedCurrency = $chargedCurrency;
         $this->configHelper = $configHelper;
         $this->dataHelper = $dataHelper;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -801,5 +789,55 @@ class PaymentMethods extends AbstractHelper
             $isBankTransfer = false;
         }
         return $isBankTransfer;
+    }
+
+    /**
+     * @param Order $order
+     * @param Notification $notification
+     * @param $status
+     * @return bool|mixed
+     */
+    public function getBoletoStatus(Order $order, Notification $notification, $status)
+    {
+        $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
+            $notification->getAdditionalData()
+        ) : "";
+
+        $boletobancario = $additionalData['boletobancario'] ?? null;
+        if ($boletobancario && is_array($boletobancario)) {
+            // check if paid amount is the same as orginal amount
+            $originalAmount = isset($boletobancario['originalAmount']) ? trim($boletobancario['originalAmount']) : "";
+            $paidAmount = isset($boletobancario['paidAmount']) ? trim($boletobancario['paidAmount']) : "";
+
+            if ($originalAmount != $paidAmount) {
+                // not the full amount is paid. Check if it is underpaid or overpaid
+                // strip the  BRL of the string
+                $originalAmount = str_replace("BRL", "", $originalAmount);
+                $originalAmount = floatval(trim($originalAmount));
+
+                $paidAmount = str_replace("BRL", "", $paidAmount);
+                $paidAmount = floatval(trim($paidAmount));
+
+                if ($paidAmount > $originalAmount) {
+                    $overpaidStatus = $this->configHelper->getConfigData(
+                        'order_overpaid_status',
+                        'adyen_boleto',
+                        $order->getStoreId()
+                    );
+                    // check if there is selected a status if not fall back to the default
+                    $status = (!empty($overpaidStatus)) ? $overpaidStatus : $status;
+                } else {
+                    $underpaidStatus = $this->configHelper->getConfigData(
+                        'order_underpaid_status',
+                        'adyen_boleto',
+                        $order->getStoreId()
+                    );
+                    // check if there is selected a status if not fall back to the default
+                    $status = (!empty($underpaidStatus)) ? $underpaidStatus : $status;
+                }
+            }
+        }
+
+        return $status;
     }
 }

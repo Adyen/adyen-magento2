@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Observer;
 
+use Adyen\Payment\Helper\Order as AdyenOrderHelper;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\Config;
@@ -49,21 +50,12 @@ class InvoiceObserver implements ObserverInterface
     /** @var PaymentMethods $paymentMethodsHelper */
     private $paymentMethodsHelper;
 
-    /**
-     * @var AdyenLogger
-     */
+    /** @var AdyenLogger  */
     private $logger;
 
-    /**
-     * InvoiceObserver constructor.
-     * @param Payment $adyenPaymentResourceModel
-     * @param PaymentFactory $adyenOrderPaymentFactory
-     * @param InvoiceHelper $invoiceHelper
-     * @param StatusResolver $statusResolver
-     * @param AdyenOrderPayment $adyenOrderPaymentHelper
-     * @param Config $configHelper
-     * @param AdyenLogger $adyenLogger
-     */
+    /** @var AdyenOrderHelper */
+    private $orderHelper;
+
     public function __construct(
         Payment $adyenPaymentResourceModel,
         PaymentFactory $adyenOrderPaymentFactory,
@@ -72,8 +64,8 @@ class InvoiceObserver implements ObserverInterface
         AdyenOrderPayment $adyenOrderPaymentHelper,
         Config $configHelper,
         AdyenLogger $adyenLogger,
-        PaymentMethods $paymentMethodsHelper
-
+        PaymentMethods $paymentMethodsHelper,
+        AdyenOrderHelper $orderHelper
     ) {
         $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
@@ -83,6 +75,7 @@ class InvoiceObserver implements ObserverInterface
         $this->configHelper = $configHelper;
         $this->logger = $adyenLogger;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->orderHelper = $orderHelper;
     }
 
     /**
@@ -110,7 +103,7 @@ class InvoiceObserver implements ObserverInterface
 
         $this->logger->addAdyenDebug(
             sprintf('Event sales_order_invoice_save_after for invoice %s will be handled', $invoice->getEntityId()),
-            array_merge($this->invoiceHelper->getLogInvoiceContext($invoice), $this->adyenOrderPaymentHelper->getLogOrderContext($order))
+            array_merge($this->invoiceHelper->getLogInvoiceContext($invoice), $this->orderHelper->getLogOrderContext($order))
         );
 
         $adyenOrderPayments = $this->adyenPaymentResourceModel->getLinkedAdyenOrderPayments(
@@ -140,7 +133,7 @@ class InvoiceObserver implements ObserverInterface
 
         $this->logger->addAdyenDebug(
             sprintf('Event sales_order_invoice_save_after for invoice %s was handled', $invoice->getEntityId()),
-            array_merge($this->invoiceHelper->getLogInvoiceContext($invoice), $this->adyenOrderPaymentHelper->getLogOrderContext($order))
+            array_merge($this->invoiceHelper->getLogInvoiceContext($invoice), $this->orderHelper->getLogOrderContext($order))
         );
     }
 }

@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Helper\Order as AdyenOrderHelper;
 use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -84,10 +85,9 @@ class Webhook
      * @var ChargedCurrency
      */
     private $chargedCurrency;
-    /**
-     * @var AdyenOrderPayment
-     */
-    private $adyenOrderPaymentHelper;
+
+    /** @var AdyenOrderHelper */
+    private $orderHelper;
 
     private $boletoPaidAmount;
 
@@ -106,9 +106,9 @@ class Webhook
         TimezoneInterface $timezone,
         ConfigHelper $configHelper,
         ChargedCurrency $chargedCurrency,
-        AdyenOrderPayment $adyenOrderPaymentHelper,
         AdyenLogger $logger,
-        WebhookHandlerFactory $webhookHandlerFactory
+        WebhookHandlerFactory $webhookHandlerFactory,
+        AdyenOrderHelper $orderHelper
     ) {
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->orderRepository = $orderRepository;
@@ -117,8 +117,8 @@ class Webhook
         $this->timezone = $timezone;
         $this->configHelper = $configHelper;
         $this->chargedCurrency = $chargedCurrency;
-        $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->logger = $logger;
+        $this->orderHelper = $orderHelper;
         self::$webhookHandlerFactory = $webhookHandlerFactory;
     }
 
@@ -147,7 +147,7 @@ class Webhook
 
             $this->logger->addAdyenNotificationCronjob(
                 sprintf("Notification %s will be processed", $notification->getEntityId()),
-                $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
+                $this->orderHelper->getLogOrderContext($this->order)
             );
 
             // declare all variables that are needed
@@ -184,7 +184,7 @@ class Webhook
             $this->updateNotification($notification, false, true);
             $this->logger->addAdyenNotificationCronjob(
                 sprintf("Notification %s was processed", $notification->getEntityId()),
-                $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
+                $this->orderHelper->getLogOrderContext($this->order)
             );
 
             return true;
@@ -198,7 +198,7 @@ class Webhook
                     $e->getMessage(),
                     $e->getTraceAsString()
                 ),
-                $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
+                $this->orderHelper->getLogOrderContext($this->order)
             );
 
             return false;
