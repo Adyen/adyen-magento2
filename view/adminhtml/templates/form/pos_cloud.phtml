@@ -1,0 +1,22 @@
+<?php
+/** @var \Adyen\Payment\Block\Form\PosCloud $block */
+
+var_dump($block->debug());
+$code = $block->escapeHtml($block->getMethodCode());
+?>
+<fieldset class="admin__fieldset payment-method"
+          id="payment_form_<?= /* @noEscape */ $code; ?>"
+          style="display:none">>
+
+</fieldset>
+<script>
+    require([
+        'jquery',
+        'Magento_Sales/order/create/scripts',
+        'Magento_Sales/order/create/form',
+        'Adyen_Payment/js/adyen'
+    ], function($, scripts, form, AdyenCheckout) {
+
+    });
+</script>
+
