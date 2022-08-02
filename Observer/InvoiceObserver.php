@@ -15,7 +15,6 @@ use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Invoice as InvoiceHelper;
-use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
@@ -50,9 +49,6 @@ class InvoiceObserver implements ObserverInterface
     /** @var PaymentMethods $paymentMethodsHelper */
     private $paymentMethodsHelper;
 
-    /** @var OrderHelper */
-    private $orderHelper;
-
     /**
      * @var AdyenLogger
      */
@@ -66,8 +62,7 @@ class InvoiceObserver implements ObserverInterface
         AdyenOrderPayment $adyenOrderPaymentHelper,
         Config $configHelper,
         AdyenLogger $adyenLogger,
-        PaymentMethods $paymentMethodsHelper,
-        OrderHelper $orderHelper
+        PaymentMethods $paymentMethodsHelper
     ) {
         $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
@@ -77,7 +72,6 @@ class InvoiceObserver implements ObserverInterface
         $this->configHelper = $configHelper;
         $this->logger = $adyenLogger;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
-        $this->orderHelper = $orderHelper;
     }
 
     /**
