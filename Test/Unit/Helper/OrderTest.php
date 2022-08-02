@@ -8,7 +8,7 @@
  *
  * Author: Adyen <magento@adyen.com>
  */
-namespace Adyen\Payment\Tests\Helper;
+namespace Adyen\Payment\Tests\Unit\Helper;
 
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
@@ -28,7 +28,6 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Notification\NotifierPool;
-use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
@@ -377,7 +376,7 @@ class OrderTest extends AbstractAdyenTestCase
             $orderRepository,
             $notifierPool,
             $orderPaymentCollectionFactory,
-            $this->getSimpleMock(SerializerInterface::class)
+            $paymentMethodsHelper
         );
     }
 }

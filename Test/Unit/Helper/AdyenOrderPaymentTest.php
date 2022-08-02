@@ -9,7 +9,7 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Helper;
+namespace Adyen\Payment\Tests\Unit\Helper;
 
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
@@ -20,11 +20,11 @@ use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\Order\Payment as AdyenPaymentModel;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
+use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
 use Magento\Sales\Model\Order;
-use PHPUnit\Framework\TestCase;
 
-class AdyenOrderPaymentTest extends TestCase
+class AdyenOrderPaymentTest extends AbstractAdyenTestCase
 {
     /**
      * @var AdyenOrderPayment
@@ -50,31 +50,15 @@ class AdyenOrderPaymentTest extends TestCase
 
     public function setUp(): void
     {
-        $mockContext = $this->getMockBuilder(Context::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $mockLogger = $this->getMockBuilder(AdyenLogger::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->mockAdyenDataHelper = $this->getMockBuilder(Data::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $mockChargedCurrency = $this->getMockBuilder(ChargedCurrency::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->mockOrderPaymentResourceModel = $this->getMockBuilder(Payment::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $mockAdyenOrderPaymentCollection = $this->getMockBuilder(Payment\CollectionFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->mockAdyenOrderPaymentFactory = $this->getMockBuilder(PaymentFactory::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['create'])
-            ->getMock();
-        $this->mockInvoiceHelper = $this->getMockBuilder(Invoice::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $mockContext = $this->getSimpleMock(Context::class);
+        $mockLogger = $this->getSimpleMock(AdyenLogger::class);
+        $this->mockAdyenDataHelper = $this->getSimpleMock(Data::class);
+        $mockChargedCurrency = $this->getSimpleMock(ChargedCurrency::class);
+        $this->mockOrderPaymentResourceModel = $this->getSimpleMock(Payment::class);
+        $mockAdyenOrderPaymentCollection = $this->createGeneratedMock(Payment\CollectionFactory::class);
+        $this->mockAdyenOrderPaymentFactory = $this->createGeneratedMock(PaymentFactory::class, ['create']);
+        $this->mockInvoiceHelper = $this->getSimpleMock(Invoice::class);
+
         $this->adyenOrderPaymentHelper = new AdyenOrderPayment(
             $mockContext,
             $mockLogger,
