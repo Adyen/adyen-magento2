@@ -660,7 +660,7 @@ class PaymentMethods extends AbstractHelper
                 $this->adyenHelper->isPaymentMethodOpenInvoiceMethodValidForAutoCapture($notificationPaymentMethod)
             ) {
                 $this->adyenLogger->addAdyenNotificationCronjob(
-                    'This payment method is configured to be working as auto capture '
+                    'This payment method %s is configured to be working as auto capture ', $notificationPaymentMethod
                 );
                 return true;
             }
@@ -692,7 +692,7 @@ class PaymentMethods extends AbstractHelper
              */
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)) {
                 $this->adyenLogger->addAdyenNotificationCronjob(
-                    'Capture mode for klarna is by default set to manual'
+                    'Capture mode for %s is by default set to manual', $notificationPaymentMethod
                 );
                 return false;
             }
