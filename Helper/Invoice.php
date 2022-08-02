@@ -217,13 +217,7 @@ class Invoice extends AbstractHelper
             }
         } else {
             $this->adyenLogger->addAdyenNotificationCronjob(
-                sprintf('Unable to create invoice when handling Notification %s', $notification->getEntityId()),
-                [
-                    'canUnhold' => $order->canUnhold(),
-                    'isPaymentReview' => $order->isPaymentReview(),
-                    'isCancelled' => $order->isCanceled(),
-                    'invoiceActionFlag' => $order->getActionFlag(Order::ACTION_FLAG_INVOICE)
-                ]
+                sprintf('Unable to create invoice when handling Notification %s', $notification->getEntityId())
             );
         }
     }
