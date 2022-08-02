@@ -13,6 +13,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Api\Data\InvoiceInterface;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
+use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Invoice as AdyenInvoice;
 use Adyen\Payment\Model\InvoiceFactory;
@@ -103,6 +104,9 @@ class Invoice extends AbstractHelper
      */
     protected $invoiceSender;
 
+    /** @var OrderHelper */
+    protected $orderHelper;
+
     /**
      * Invoice constructor.
      *
@@ -131,7 +135,8 @@ class Invoice extends AbstractHelper
         MagentoInvoiceFactory $magentoInvoiceFactory,
         \Magento\Sales\Model\ResourceModel\Order $magentoOrderResourceModel,
         Config $configHelper,
-        InvoiceSender $invoiceSender
+        InvoiceSender $invoiceSender,
+        OrderHelper $orderHelper
     ) {
         parent::__construct($context);
         $this->adyenLogger = $adyenLogger;
@@ -146,6 +151,7 @@ class Invoice extends AbstractHelper
         $this->magentoOrderResourceModel = $magentoOrderResourceModel;
         $this->configHelper = $configHelper;
         $this->invoiceSender = $invoiceSender;
+        $this->orderHelper = $orderHelper;
     }
 
     /**
@@ -213,12 +219,12 @@ class Invoice extends AbstractHelper
             $this->adyenLogger->addAdyenNotificationCronjob(
                 sprintf('Unable to create invoice when handling Notification %s', $notification->getEntityId()),
                 //TODO move logcontext function to OrderHelper, instead of AdyenPaymentOrder Helper
-                /*array_merge($this->adyenOrderPayment->getLogOrderContext($order), [
+                array_merge($this->orderHelper->getLogOrderContext($order), [
                     'canUnhold' => $order->canUnhold(),
                     'isPaymentReview' => $order->isPaymentReview(),
                     'isCancelled' => $order->isCanceled(),
                     'invoiceActionFlag' => $order->getActionFlag(Order::ACTION_FLAG_INVOICE)
-                ])*/
+                ])
             );
         }
     }
