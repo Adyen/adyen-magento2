@@ -13,7 +13,6 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Helper\Config as ConfigHelper;
-use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\Webhook\WebhookHandlerFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
@@ -86,9 +85,6 @@ class Webhook
      */
     private $chargedCurrency;
 
-    /** @var OrderHelper */
-    private $orderHelper;
-
     private $boletoPaidAmount;
 
     private $klarnaReservationNumber;
@@ -107,8 +103,7 @@ class Webhook
         ConfigHelper $configHelper,
         ChargedCurrency $chargedCurrency,
         AdyenLogger $logger,
-        WebhookHandlerFactory $webhookHandlerFactory,
-        OrderHelper $orderHelper
+        WebhookHandlerFactory $webhookHandlerFactory
     ) {
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->orderRepository = $orderRepository;
@@ -118,7 +113,6 @@ class Webhook
         $this->configHelper = $configHelper;
         $this->chargedCurrency = $chargedCurrency;
         $this->logger = $logger;
-        $this->orderHelper = $orderHelper;
         self::$webhookHandlerFactory = $webhookHandlerFactory;
     }
 
@@ -147,7 +141,7 @@ class Webhook
 
             $this->logger->addAdyenNotificationCronjob(
                 sprintf("Notification %s will be processed", $notification->getEntityId()),
-                $this->orderHelper->getLogOrderContext($this->order)
+                $this->logger->getOrderContext($this->order)
             );
 
             // declare all variables that are needed
@@ -184,7 +178,7 @@ class Webhook
             $this->updateNotification($notification, false, true);
             $this->logger->addAdyenNotificationCronjob(
                 sprintf("Notification %s was processed", $notification->getEntityId()),
-                $this->orderHelper->getLogOrderContext($this->order)
+                $this->logger->getOrderContext($this->order)
             );
 
             return true;
@@ -198,7 +192,7 @@ class Webhook
                     $e->getMessage(),
                     $e->getTraceAsString()
                 ),
-                $this->orderHelper->getLogOrderContext($this->order)
+                $this->logger->getOrderContext($this->order)
             );
 
             return false;

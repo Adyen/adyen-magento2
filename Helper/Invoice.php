@@ -104,24 +104,6 @@ class Invoice extends AbstractHelper
      */
     protected $invoiceSender;
 
-    /** @var OrderHelper */
-    protected $orderHelper;
-
-    /**
-     * Invoice constructor.
-     *
-     * @param Context $context
-     * @param AdyenLogger $adyenLogger
-     * @param Data $adyenDataHelper
-     * @param InvoiceRepositoryInterface $invoiceRepository
-     * @param InvoiceFactory $adyenInvoiceFactory
-     * @param AdyenInvoiceResourceModel $adyenInvoiceResourceModel
-     * @param OrderPaymentResourceModel $orderPaymentResourceModel
-     * @param PaymentFactory $paymentFactory
-     * @param Collection $adyenInvoiceCollection
-     * @param MagentoInvoiceFactory $magentoInvoiceFactory
-     * @param \Magento\Sales\Model\ResourceModel\Order $magentoOrderResourceModel
-     */
     public function __construct(
         Context $context,
         AdyenLogger $adyenLogger,
@@ -135,8 +117,7 @@ class Invoice extends AbstractHelper
         MagentoInvoiceFactory $magentoInvoiceFactory,
         \Magento\Sales\Model\ResourceModel\Order $magentoOrderResourceModel,
         Config $configHelper,
-        InvoiceSender $invoiceSender,
-        OrderHelper $orderHelper
+        InvoiceSender $invoiceSender
     ) {
         parent::__construct($context);
         $this->adyenLogger = $adyenLogger;
@@ -151,7 +132,6 @@ class Invoice extends AbstractHelper
         $this->magentoOrderResourceModel = $magentoOrderResourceModel;
         $this->configHelper = $configHelper;
         $this->invoiceSender = $invoiceSender;
-        $this->orderHelper = $orderHelper;
     }
 
     /**
@@ -199,7 +179,7 @@ class Invoice extends AbstractHelper
                 $this->invoiceRepository->save($invoice);
                 $this->adyenLogger->addAdyenNotificationCronjob(
                     sprintf('Notification %s created an invoice.', $notification->getEntityId()),
-                    $this->getLogInvoiceContext($invoice)
+                    $this->adyenLogger->getInvoiceContext($invoice)
                 );
             } catch (Exception $e) {
                 $this->adyenLogger->addAdyenNotificationCronjob('Error saving invoice: ' . $e->getMessage());
@@ -218,7 +198,7 @@ class Invoice extends AbstractHelper
         } else {
             $this->adyenLogger->addAdyenNotificationCronjob(
                 sprintf('Unable to create invoice when handling Notification %s', $notification->getEntityId()),
-                array_merge($this->orderHelper->getLogOrderContext($order), [
+                array_merge($this->adyenLogger->getOrderContext($order), [
                     'canUnhold' => $order->canUnhold(),
                     'isPaymentReview' => $order->isPaymentReview(),
                     'isCancelled' => $order->isCanceled(),
@@ -357,28 +337,5 @@ class Invoice extends AbstractHelper
         );
 
         return $invoiceAmountCents === $invoiceCapturedAmountCents;
-    }
-
-    /**
-     * Get the context variables of an invoice to be passed to a log message
-     *
-     * @param Order\Invoice $invoice
-     * @return array
-     */
-    public function getLogInvoiceContext(Order\Invoice $invoice): array
-    {
-        $stateName = $invoice->getStateName();
-
-        return [
-            'invoiceId' => $invoice->getEntityId(),
-            'invoiceIncrementId' => $invoice->getIncrementId(),
-            'invoiceState' => $invoice->getState(),
-            'invoiceStateName' => $stateName instanceof Phrase ? $stateName->getText() : $stateName,
-            'invoiceWasPayCalled' => $invoice->wasPayCalled(),
-            'invoiceCanCapture' => $invoice->canCapture(),
-            'invoiceCanCancel' => $invoice->canCancel(),
-            'invoiceCanVoid' => $invoice->canVoid(),
-            'invoiceCanRefund' => $invoice->canRefund()
-        ];
     }
 }
