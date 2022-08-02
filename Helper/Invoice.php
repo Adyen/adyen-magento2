@@ -131,7 +131,7 @@ class Invoice extends AbstractHelper
         MagentoInvoiceFactory $magentoInvoiceFactory,
         \Magento\Sales\Model\ResourceModel\Order $magentoOrderResourceModel,
         Config $configHelper,
-        InvoiceSender $invoiceSender,
+        InvoiceSender $invoiceSender
     ) {
         parent::__construct($context);
         $this->adyenLogger = $adyenLogger;
