@@ -31,11 +31,6 @@ use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
 
-/**
- * Helper class for anything related to the invoice entity
- *
- * @package Adyen\Payment\Helper
- */
 class Order extends AbstractHelper
 {
     /** @var Builder */

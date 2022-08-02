@@ -58,16 +58,6 @@ class InvoiceObserver implements ObserverInterface
      */
     private $logger;
 
-    /**
-     * InvoiceObserver constructor.
-     * @param Payment $adyenPaymentResourceModel
-     * @param PaymentFactory $adyenOrderPaymentFactory
-     * @param InvoiceHelper $invoiceHelper
-     * @param StatusResolver $statusResolver
-     * @param AdyenOrderPayment $adyenOrderPaymentHelper
-     * @param Config $configHelper
-     * @param AdyenLogger $adyenLogger
-     */
     public function __construct(
         Payment $adyenPaymentResourceModel,
         PaymentFactory $adyenOrderPaymentFactory,
@@ -114,8 +104,7 @@ class InvoiceObserver implements ObserverInterface
 
 
         $this->logger->addAdyenDebug(
-            sprintf('Event sales_order_invoice_save_after for invoice %s will be handled', $invoice->getEntityId()),
-            array_merge($this->invoiceHelper->getLogInvoiceContext($invoice), $this->orderHelper->getLogOrderContext($order))
+            sprintf('Event sales_order_invoice_save_after for invoice %s will be handled', $invoice->getEntityId())
         );
 
         $adyenOrderPayments = $this->adyenPaymentResourceModel->getLinkedAdyenOrderPayments(
@@ -144,8 +133,7 @@ class InvoiceObserver implements ObserverInterface
         $order->setStatus($status);
 
         $this->logger->addAdyenDebug(
-            sprintf('Event sales_order_invoice_save_after for invoice %s was handled', $invoice->getEntityId()),
-            array_merge($this->invoiceHelper->getLogInvoiceContext($invoice), $this->orderHelper->getLogOrderContext($order))
+            sprintf('Event sales_order_invoice_save_after for invoice %s was handled', $invoice->getEntityId())
         );
     }
 }
