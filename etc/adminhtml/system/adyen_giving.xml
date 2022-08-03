@@ -54,7 +54,7 @@
             <label>Suggested donation amounts</label>
             <backend_model>Adyen\Payment\Model\Config\Backend\DonationAmounts</backend_model>
             <config_path>payment/adyen_giving/donation_amounts</config_path>
-            <tooltip><![CDATA[Suggested amounts that the shopper can choose to donate using the order currency, separated by commas. The minimum amount is 1 EUR.]]></tooltip>
+            <tooltip><![CDATA[Suggested amounts that the shopper can choose to donate using the order currency, separated by commas.]]></tooltip>
         </field>
         <field id="background_image" translate="label" type="image" sortOrder="80" showInDefault="1" showInWebsite="1" >
             <label>Background image</label>
