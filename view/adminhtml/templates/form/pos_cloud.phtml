@@ -7,7 +7,7 @@ $code = $block->escapeHtml($block->getMethodCode());
 <fieldset class="admin__fieldset payment-method"
           id="payment_form_<?= /* @noEscape */ $code; ?>"
           style="display:none">>
-
+    <div id="<?= /* @noEscape */ $code; ?>_connected_terminals_div"></div>
 </fieldset>
 <script>
     require([
@@ -16,7 +16,17 @@ $code = $block->escapeHtml($block->getMethodCode());
         'Magento_Sales/order/create/form',
         'Adyen_Payment/js/adyen'
     ], function($, scripts, form, AdyenCheckout) {
+        (async function() {
+            var checkout = await AdyenCheckout({
+                clientKey: "<?= /* @noEscape */ $block->getClientKey(); ?>",
+                environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
+                locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
+                risk: {
+                    enabled: false
+                },
 
+            });
+        })();
     });
 </script>
 
