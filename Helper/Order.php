@@ -263,7 +263,6 @@ class Order extends AbstractHelper
                 );
             } else if (!empty($status)) {
                 $order->addStatusHistoryComment(__($comment), $status);
-
                 $this->setState($order, $status, $possibleStates);
                 $this->adyenLogger->addAdyenNotificationCronjob(
                     'Order status was changed to authorised status: ' . $status,

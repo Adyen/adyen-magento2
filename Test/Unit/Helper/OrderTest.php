@@ -10,7 +10,6 @@
  */
 namespace Adyen\Payment\Tests\Unit\Helper;
 
-use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
@@ -19,8 +18,6 @@ use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Config\Source\Status\AdyenState;
-use Adyen\Payment\Model\Notification;
-use Adyen\Payment\Model\ResourceModel\Order\Payment\Collection;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
@@ -32,24 +29,18 @@ use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
-use Magento\Sales\Model\ResourceModel\Order\Status\Collection as OrderStatusCollection;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
 
 class OrderTest extends AbstractAdyenTestCase
 {
     public function testFinalizeOrderFinalized()
     {
-        $dataHelper = $this->getSimpleMock(Data::class);
-        $dataHelper->method('formatAmount')->willReturn('EUR123');
-
-        $chargedCurrency = $this->getSimpleMock(ChargedCurrency::class);
-        $chargedCurrency->method('getOrderAmountCurrency')->willReturn(new AdyenAmountCurrency(1000, 'EUR'));
-
-        $adyenPaymentOrderHelper = $this->getSimpleMock(AdyenOrderPayment::class);
-        $adyenPaymentOrderHelper->method('isFullAmountFinalized')->willReturn(true);
-
-        $configHelper = $this->getSimpleMock(Config::class);
-        $configHelper->method('getConfigData')->willReturn('payment_authorized');
+        $dataHelper = $this->createConfiguredMock(Data::class, ['formatAmount' => 'EUR123']);
+        $adyenPaymentOrderHelper = $this->createConfiguredMock(AdyenOrderPayment::class, ['isFullAmountFinalized' => true]);
+        $configHelper = $this->createConfiguredMock(Config::class, ['getConfigData' => 'payment_authorized']);
+        $chargedCurrency = $this->createConfiguredMock(ChargedCurrency::class, [
+            'getOrderAmountCurrency' => new AdyenAmountCurrency(1000, 'EUR')
+        ]);
 
         $orderHelper = $this->createOrderHelper(
             $this->createOrderStatusCollection(MagentoOrder::STATE_PROCESSING),
@@ -68,17 +59,16 @@ class OrderTest extends AbstractAdyenTestCase
 
     public function testFinalizeOrderPartialPayment()
     {
-        $dataHelper = $this->getSimpleMock(Data::class);
-        $dataHelper->method('formatAmount')->willReturn('EUR123');
-
-        $chargedCurrency = $this->getSimpleMock(ChargedCurrency::class);
-        $chargedCurrency->method('getOrderAmountCurrency')->willReturn(new AdyenAmountCurrency(1000, 'EUR'));
-
-        $adyenPaymentOrderHelper = $this->getSimpleMock(AdyenOrderPayment::class);
-        $adyenPaymentOrderHelper->method('isFullAmountFinalized')->willReturn(false);
-
-        $configHelper = $this->getSimpleMock(Config::class);
-        $configHelper->method('getConfigData')->willReturn('payment_authorized');
+        $dataHelper = $this->createConfiguredMock(Data::class, ['formatAmount' => 'EUR123']);
+        $chargedCurrency = $this->createConfiguredMock(ChargedCurrency::class, [
+            'getOrderAmountCurrency' => new AdyenAmountCurrency(1000, 'EUR')
+        ]);
+        $adyenPaymentOrderHelper = $this->createConfiguredMock(AdyenOrderPayment::class, [
+            'isFullAmountFinalized' => false
+        ]);
+        $configHelper = $this->createConfiguredMock(Config::class, [
+            'getConfigData' => 'payment_authorized'
+        ]);
 
         $orderHelper = $this->createOrderHelper(
             $this->createOrderStatusCollection(MagentoOrder::STATE_PROCESSING),
@@ -97,17 +87,16 @@ class OrderTest extends AbstractAdyenTestCase
 
     public function testFinalizeOrderMaintainState()
     {
-        $dataHelper = $this->getSimpleMock(Data::class);
-        $dataHelper->method('formatAmount')->willReturn('EUR123');
-
-        $chargedCurrency = $this->getSimpleMock(ChargedCurrency::class);
-        $chargedCurrency->method('getOrderAmountCurrency')->willReturn(new AdyenAmountCurrency(1000, 'EUR'));
-
-        $adyenPaymentOrderHelper = $this->getSimpleMock(AdyenOrderPayment::class);
-        $adyenPaymentOrderHelper->method('isFullAmountFinalized')->willReturn(false);
-
-        $configHelper = $this->getSimpleMock(Config::class);
-        $configHelper->method('getConfigData')->willReturn(AdyenState::STATE_MAINTAIN);
+        $dataHelper = $this->createConfiguredMock(Data::class, ['formatAmount' => 'EUR123']);
+        $chargedCurrency = $this->createConfiguredMock(ChargedCurrency::class, [
+            'getOrderAmountCurrency' => new AdyenAmountCurrency(1000, 'EUR')
+        ]);
+        $adyenPaymentOrderHelper = $this->createConfiguredMock(AdyenOrderPayment::class, [
+            'isFullAmountFinalized' => false
+        ]);
+        $configHelper = $this->createConfiguredMock(Config::class, [
+            'getConfigData' => AdyenState::STATE_MAINTAIN
+        ]);
 
         $orderHelper = $this->createOrderHelper(
             $this->createOrderStatusCollection(MagentoOrder::STATE_PROCESSING),
@@ -126,9 +115,10 @@ class OrderTest extends AbstractAdyenTestCase
 
     public function testHoldCancelOrderCancel()
     {
-        $configHelper = $this->getSimpleMock(Config::class);
-        $configHelper->method('getConfigData')->willReturn('payment_cancelled');
-        $configHelper->method('getNotificationsCanCancel')->willReturn(true);
+        $configHelper = $this->createConfiguredMock(Config::class, [
+            'getConfigData' => 'payment_cancelled',
+            'getNotificationsCanCancel' => true
+        ]);
 
         $orderHelper = $this->createOrderHelper(
             $this->createOrderStatusCollection(MagentoOrder::STATE_PROCESSING),
@@ -145,9 +135,10 @@ class OrderTest extends AbstractAdyenTestCase
 
     public function testHoldCancelOrderHold()
     {
-        $configHelper = $this->getSimpleMock(Config::class);
-        $configHelper->method('getConfigData')->willReturn(MagentoOrder::STATE_HOLDED);
-        $configHelper->method('getNotificationsCanCancel')->willReturn(true);
+        $configHelper = $this->createConfiguredMock(Config::class, [
+            'getConfigData' => MagentoOrder::STATE_HOLDED,
+            'getNotificationsCanCancel' => true
+        ]);
 
         $orderHelper = $this->createOrderHelper(
             $this->createOrderStatusCollection(MagentoOrder::STATE_PROCESSING),
@@ -164,9 +155,10 @@ class OrderTest extends AbstractAdyenTestCase
 
     public function testHoldCancelOrderNotCancellable()
     {
-        $configHelper = $this->getSimpleMock(Config::class);
-        $configHelper->method('getConfigData')->willReturn('payment_cancelled');
-        $configHelper->method('getNotificationsCanCancel')->willReturn(true);
+        $configHelper = $this->createConfiguredMock(Config::class, [
+            'getConfigData' => 'payment_cancelled',
+            'getNotificationsCanCancel' => true
+        ]);
 
         $orderHelper = $this->createOrderHelper(
             $this->createOrderStatusCollection(MagentoOrder::STATE_PROCESSING),
@@ -183,10 +175,11 @@ class OrderTest extends AbstractAdyenTestCase
 
     public function testRefundOrderSuccessful()
     {
-        $dataHelper = $this->getSimpleMock(Data::class);
-        $dataHelper->method('parseTransactionId')->willReturn(['pspReference' => '123-refund']);
+        $dataHelper = $this->createConfiguredMock(Data::class, [
+            'parseTransactionId' => ['pspReference' => '123-refund']
+        ]);
 
-        $adyenOrderPaymentHelper = $this->getSimpleMock(AdyenOrderPayment::class);
+        $adyenOrderPaymentHelper = $this->createMock(AdyenOrderPayment::class);
         $adyenOrderPaymentHelper->expects($this->once())->method('refundAdyenOrderPayment');
 
         $orderHelper = $this->createOrderHelper(
@@ -208,10 +201,11 @@ class OrderTest extends AbstractAdyenTestCase
 
     public function testRefundOrderAdyenOrderPaymentNotFound()
     {
-        $dataHelper = $this->getSimpleMock(Data::class);
-        $dataHelper->method('parseTransactionId')->willReturn(['pspReference' => '123-refund']);
+        $dataHelper = $this->createConfiguredMock(Data::class, [
+            'parseTransactionId' => ['pspReference' => '123-refund']
+        ]);
 
-        $adyenOrderPaymentHelper = $this->getSimpleMock(AdyenOrderPayment::class);
+        $adyenOrderPaymentHelper = $this->createMock(AdyenOrderPayment::class);
         $adyenOrderPaymentHelper->expects($this->never())->method('refundAdyenOrderPayment');
 
         $orderHelper = $this->createOrderHelper(
@@ -232,61 +226,6 @@ class OrderTest extends AbstractAdyenTestCase
         $orderHelper->refundOrder($order, $notification);
     }
 
-    protected function createOrder(?string $status = null)
-    {
-        $orderPaymentMock = $this->getMockBuilder(MagentoOrder\Payment::class)->disableOriginalConstructor()->getMock();
-        $orderPaymentMock->method('getMethod')->willReturn('adyen_cc');
-
-        $orderMock = $this->getMockBuilder(MagentoOrder::class)->disableOriginalConstructor()->getMock();
-        $orderMock->method('getStatus')->willReturn($status);
-        $orderMock->method('getPayment')->willReturn($orderPaymentMock);
-
-        return $orderMock;
-    }
-
-    protected function createWebhook(?string $originalReference = null)
-    {
-        $notificationMock = $this->getMockBuilder(Notification::class)->disableOriginalConstructor()->getMock();
-        $notificationMock->method('getAmountValue')->willReturn(1000);
-        $notificationMock->method('getEventCode')->willReturn('AUTHORISATION');
-        $notificationMock->method('getAmountCurrency')->willReturn('EUR');
-        $notificationMock->method('getOriginalReference')->willReturn($originalReference);
-
-        return $notificationMock;
-    }
-
-    protected function createOrderStatusCollection($state)
-    {
-        $orderStatus = $this->getSimpleMock(MagentoOrder\Status::class, ['getState']);
-        $orderStatus->method('getState')->willReturn($state);
-
-        $orderStatusCollection = $this->getSimpleMock(OrderStatusCollection::class);
-        $orderStatusCollection->method('addFieldToFilter')->willReturn($orderStatusCollection);
-        $orderStatusCollection->method('joinStates')->willReturn($orderStatusCollection);
-        $orderStatusCollection->method('addStateFilter')->willReturn($orderStatusCollection);
-        $orderStatusCollection->method('getFirstItem')->willReturn($orderStatus);
-
-        $orderStatusCollectionFactory = $this->createGeneratedMock(OrderStatusCollectionFactory::class, ['create']);
-        $orderStatusCollectionFactory->method('create')->willReturn($orderStatusCollection);
-
-        return $orderStatusCollectionFactory;
-    }
-
-    protected function createAdyenOrderPaymentCollection(?int $entityId = null)
-    {
-        $adyenOrderPayment = $this->getSimpleMock(OrderPaymentInterface::class);
-        $adyenOrderPayment->method('getEntityId')->willReturn($entityId);
-
-        $adyenOrderPaymentCollection = $this->getSimpleMock(Collection::class);
-        $adyenOrderPaymentCollection->method('addFieldToFilter')->willReturn($adyenOrderPaymentCollection);
-        $adyenOrderPaymentCollection->method('getFirstItem')->willReturn($adyenOrderPayment);
-
-        $adyenOrderPaymentCollectionFactory = $this->createGeneratedMock(OrderPaymentCollectionFactory::class, ['create']);
-        $adyenOrderPaymentCollectionFactory->method('create')->willReturn($adyenOrderPaymentCollection);
-
-        return $adyenOrderPaymentCollectionFactory;
-    }
-
     protected function createOrderHelper(
         $orderStatusCollectionFactory = null,
         $configHelper = null,
@@ -303,22 +242,22 @@ class OrderTest extends AbstractAdyenTestCase
         $notifierPool = null,
         $paymentMethodsHelper = null
     ): Order {
-        $context = $this->getSimpleMock(Context::class);
+        $context = $this->createMock(Context::class);
 
         if (is_null($builder)) {
-            $builder = $this->getSimpleMock(Builder::class);
+            $builder = $this->createMock(Builder::class);
         }
 
         if (is_null($dataHelper)) {
-            $dataHelper = $this->getSimpleMock(Data::class);
+            $dataHelper = $this->createMock(Data::class);
         }
 
         if (is_null($adyenLogger)) {
-            $adyenLogger = $this->getSimpleMock(AdyenLogger::class);
+            $adyenLogger = $this->createMock(AdyenLogger::class);
         }
 
         if (is_null($orderSender)) {
-            $orderSender = $this->getSimpleMock(OrderSender::class);
+            $orderSender = $this->createMock(OrderSender::class);
         }
 
         if (is_null($transactionFactory)) {
@@ -326,15 +265,15 @@ class OrderTest extends AbstractAdyenTestCase
         }
 
         if (is_null($chargedCurrency)) {
-            $chargedCurrency = $this->getSimpleMock(ChargedCurrency::class);
+            $chargedCurrency = $this->createMock(ChargedCurrency::class);
         }
 
         if (is_null($adyenPaymentOrderHelper)) {
-            $adyenPaymentOrderHelper = $this->getSimpleMock(AdyenOrderPayment::class);
+            $adyenPaymentOrderHelper = $this->createMock(AdyenOrderPayment::class);
         }
 
         if (is_null($configHelper)) {
-            $configHelper = $this->getSimpleMock(Config::class);
+            $configHelper = $this->createMock(Config::class);
         }
 
         if (is_null($orderStatusCollectionFactory)) {
@@ -342,15 +281,15 @@ class OrderTest extends AbstractAdyenTestCase
         }
 
         if (is_null($searchCriteriaBuilder)) {
-            $searchCriteriaBuilder = $this->getSimpleMock(SearchCriteriaBuilder::class);
+            $searchCriteriaBuilder = $this->createMock(SearchCriteriaBuilder::class);
         }
 
         if (is_null($orderRepository)) {
-            $orderRepository = $this->getSimpleMock(OrderRepository::class);
+            $orderRepository = $this->createMock(OrderRepository::class);
         }
 
         if (is_null($notifierPool)) {
-            $notifierPool = $this->getSimpleMock(NotifierPool::class);
+            $notifierPool = $this->createMock(NotifierPool::class);
         }
 
         if (is_null($orderPaymentCollectionFactory)) {
@@ -358,7 +297,7 @@ class OrderTest extends AbstractAdyenTestCase
         }
 
         if (is_null($paymentMethodsHelper)) {
-            $paymentMethodsHelper = $this->getSimpleMock(PaymentMethods::class);
+            $paymentMethodsHelper = $this->createMock(PaymentMethods::class);
         }
 
         return new Order(

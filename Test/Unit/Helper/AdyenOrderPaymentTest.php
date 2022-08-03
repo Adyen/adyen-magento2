@@ -50,14 +50,14 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
 
     public function setUp(): void
     {
-        $mockContext = $this->getSimpleMock(Context::class);
-        $mockLogger = $this->getSimpleMock(AdyenLogger::class);
-        $this->mockAdyenDataHelper = $this->getSimpleMock(Data::class);
-        $mockChargedCurrency = $this->getSimpleMock(ChargedCurrency::class);
-        $this->mockOrderPaymentResourceModel = $this->getSimpleMock(Payment::class);
+        $mockContext = $this->createMock(Context::class);
+        $mockLogger = $this->createMock(AdyenLogger::class);
+        $this->mockAdyenDataHelper = $this->createMock(Data::class);
+        $mockChargedCurrency = $this->createMock(ChargedCurrency::class);
+        $this->mockOrderPaymentResourceModel = $this->createMock(Payment::class);
         $mockAdyenOrderPaymentCollection = $this->createGeneratedMock(Payment\CollectionFactory::class);
         $this->mockAdyenOrderPaymentFactory = $this->createGeneratedMock(PaymentFactory::class, ['create']);
-        $this->mockInvoiceHelper = $this->getSimpleMock(Invoice::class);
+        $this->mockInvoiceHelper = $this->createMock(Invoice::class);
 
         $this->adyenOrderPaymentHelper = new AdyenOrderPayment(
             $mockContext,
@@ -77,27 +77,26 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         $merchantReference = 'TestMerchant';
         $pspReference = 'ABCD1234GHJK5678';
         $amount = 10;
-        $order = $this->getMockBuilder(Order::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $payment = $this->getMockBuilder(Order\Payment::class)
-            ->disableOriginalConstructor()->getMock();
-        $adyenOrderPayment = $this->getMockBuilder(AdyenPaymentModel::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $notification = $this->getMockBuilder(Notification::class)
-            ->disableOriginalConstructor()->getMock();
-        $payment->method('getId')->willReturn($paymentId);
-        $order->method('getPayment')->willReturn($payment);
-        $notification->method('getPspreference')->willReturn($pspReference);
-        $notification->method('getMerchantReference')->willReturn($merchantReference);
+        $payment = $this->createConfiguredMock(Order\Payment::class, [
+            'getId' => $paymentId
+        ]);
+        $order = $this->createConfiguredMock(Order::class, [
+            'getPayment' => $payment
+        ]);
+        $adyenOrderPayment = $this->createConfiguredMock(AdyenPaymentModel::class, [
+            'setPspreference' => $pspReference,
+            'setMerchantReference' => $merchantReference,
+            'setPaymentId' => $paymentId,
+            'setCaptureStatus' => AdyenPaymentModel::CAPTURE_STATUS_AUTO_CAPTURE,
+            'setAmount' => $amount
+        ]);
+        $notification = $this->createConfiguredMock(Notification::class, [
+            'getPspreference' => $pspReference,
+            'getMerchantReference' => $merchantReference
+        ]);
+
         $this->mockAdyenDataHelper->method('originalAmount')->willReturn($amount);
         $this->mockAdyenOrderPaymentFactory->method('create')->willReturn($adyenOrderPayment);
-        $adyenOrderPayment->expects($this->once())->method('setPspreference')->with($pspReference);
-        $adyenOrderPayment->expects($this->once())->method('setMerchantReference')->with($merchantReference);
-        $adyenOrderPayment->expects($this->once())->method('setPaymentId')->with($paymentId);
-        $adyenOrderPayment->expects($this->once())->method('setCaptureStatus')->with(AdyenPaymentModel::CAPTURE_STATUS_AUTO_CAPTURE);
-        $adyenOrderPayment->expects($this->once())->method('setAmount')->with($amount);
         $result = $this->adyenOrderPaymentHelper->createAdyenOrderPayment($order, $notification, true);
         $this->assertInstanceOf(AdyenPaymentModel::class, $result);
     }
