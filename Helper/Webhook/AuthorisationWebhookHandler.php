@@ -91,7 +91,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         if ($transitionState === PaymentStates::STATE_PAID) {
             $order = $this->handleSuccessfulAuthorisation($order, $notification);
         } elseif ($transitionState === PaymentStates::STATE_FAILED) {
-            $order = $this->handleFailedAuthorisation($order, $notification);
+            $order = $this->handleFailedAuthorisation($order);
         }
 
         return $order;
@@ -152,12 +152,9 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
     }
 
     /**
-     * @param Order $order
-     * @param Notification $notification
-     * @return Order
      * @throws LocalizedException
      */
-    private function handleFailedAuthorisation(Order $order, Notification $notification): Order
+    private function handleFailedAuthorisation(Order $order): Order
     {
         $previousAdyenEventCode = $order->getData('adyen_notification_event_code');
 
