@@ -137,8 +137,6 @@ class ManagementHelper
                     'includeEventCodes' => [
                         'AUTHORISATION',
                         'PENDING',
-                        'AUTHORISED',
-                        'CANCELLED',
                         'REFUND',
                         'REFUND_FAILED',
                         'CANCEL_OR_REFUND',
