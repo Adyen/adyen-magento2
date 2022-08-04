@@ -257,6 +257,9 @@ class Order extends AbstractHelper
             // Else add comment
             if (!empty($status) && $maintainingState) {
                 $order->addStatusHistoryComment(__($comment), $status);
+                if (strcmp($order->getState(), MagentoOrder::STATE_NEW) == 0 || strcmp($order->getState(), MagentoOrder::STATE_PENDING_PAYMENT) == 0) {
+                    $order->setState(MagentoOrder::STATE_PROCESSING);
+                }
                 $this->adyenLogger->addAdyenNotificationCronjob(
                     'Maintaining current status: ' . $status,
                     $this->adyenLogger->getOrderContext($order)
