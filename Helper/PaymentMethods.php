@@ -692,17 +692,17 @@ class PaymentMethods extends AbstractHelper
              */
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)) {
                 $this->adyenLogger->addAdyenNotificationCronjob(
-                    'Capture mode for %s is by default set to manual', $notificationPaymentMethod
+                    'Capture mode for %s is by default set to manual', [$notificationPaymentMethod]
                 );
                 return false;
             }
 
-            $this->adyenLogger->addAdyenNotificationCronjob('Capture mode is set to auto capture');
+            $this->adyenLogger->addAdyenNotificationCronjob('Capture mode is set to auto capture',[$notificationPaymentMethod]);
             return true;
         } else {
             // does not allow manual capture so is always immediate capture
             $this->adyenLogger->addAdyenNotificationCronjob(
-                sprintf('Payment method %s, does not allow manual capture', $notificationPaymentMethod)
+                sprintf('Payment method %s, does not allow manual capture', [$notificationPaymentMethod])
             );
 
             return true;
