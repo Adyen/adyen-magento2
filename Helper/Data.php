@@ -1763,7 +1763,7 @@ class Data extends AbstractHelper
      * @param string $liveEnvironment
      * @return string
      */
-    public function getPspReferenceSearchUrl($pspReference, $liveEnvironment)
+    public function getPspReferenceSearchUrl($pspReference, $liveEnvironment): string
     {
         if ($liveEnvironment === "true") {
             $checkoutEnvironment = "live";

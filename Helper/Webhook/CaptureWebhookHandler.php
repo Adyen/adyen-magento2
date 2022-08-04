@@ -106,7 +106,7 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
             $magentoInvoice = $this->magentoInvoiceFactory->create()->load($adyenInvoice->getInvoiceId(), MagentoInvoice::ENTITY_ID);
             $this->adyenLogger->addAdyenNotificationCronjob(
                 sprintf('Notification %s updated invoice %s.', $notification->getEntityId(), $magentoInvoice->getEntityid()),
-                $this->invoiceHelper->getLogInvoiceContext($magentoInvoice)
+                $this->adyenLogger->getInvoiceContext($magentoInvoice)
             );
 
             $order = $this->orderHelper->finalizeOrder($order, $notification);

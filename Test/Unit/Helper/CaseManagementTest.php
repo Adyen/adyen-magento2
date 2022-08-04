@@ -9,15 +9,16 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Helper;
+namespace Adyen\Payment\Tests\Unit\Helper;
 
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
 use PHPUnit\Framework\TestCase;
 
-class CaseManagementTest extends TestCase
+class CaseManagementTest extends AbstractAdyenTestCase
 {
     /**
      * @var CaseManagement

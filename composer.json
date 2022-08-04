@@ -34,7 +34,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Adyen\\Payment\\Tests\\": "tests/"
+      "Adyen\\Payment\\Tests\\": "Test"
     }
   },
   "scripts": {
