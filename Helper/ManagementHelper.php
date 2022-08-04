@@ -132,6 +132,26 @@ class ManagementHelper
             'password' => $password,
             'communicationFormat' => 'json',
             'active' => true,
+            'additionalSettings' =>
+                [
+                    'includeEventCodes' => [
+                        'AUTHORISATION',
+                        'PENDING',
+                        'REFUND',
+                        'REFUND_FAILED',
+                        'CANCEL_OR_REFUND',
+                        'CAPTURE',
+                        'CAPTURE_FAILED',
+                        'CANCELLATION',
+                        'HANDLED_EXTERNALLY',
+                        'MANUAL_REVIEW_ACCEPT',
+                        'MANUAL_REVIEW_REJECT',
+                        "RECURRING_CONTRACT",
+                        "REPORT_AVAILABLE",
+                        "ORDER_CLOSED",
+                        "OFFER_CLOSED"
+                    ]
+                ]
         ];
         $webhookId = $this->configHelper->getWebhookId($storeId);
         if (!empty($webhookId)) {
