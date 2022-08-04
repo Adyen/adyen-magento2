@@ -119,7 +119,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             $order = $this->orderHelper->setPrePaymentAuthorized($order);
             $this->orderHelper->updatePaymentDetails($order, $notification);
 
-            $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : "";
+            $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : [];
             $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
 
             if ($isAutoCapture) {
