@@ -312,6 +312,7 @@ define(
 
                 var self = this;
 
+                $(this.modalLabel + ' .action-close').hide();
                 var request = result.data;
                 request.orderId = self.orderId;
 
