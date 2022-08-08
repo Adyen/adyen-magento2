@@ -165,9 +165,9 @@ class Order extends AbstractHelper
     {
         try {
             $this->orderSender->send($order);
-            $this->adyenLogger->addAdyenNotificationCronjob('Send order confirmation email to shopper');
+            $this->adyenLogger->addAdyenNotification('Send order confirmation email to shopper');
         } catch (Exception $exception) {
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 "Exception in Send Mail in Magento. This is an issue in the the core of Magento" .
                 $exception->getMessage()
             );
@@ -198,7 +198,7 @@ class Order extends AbstractHelper
                     ->save();
             }
         } else {
-            $this->adyenLogger->addAdyenNotificationCronjob('Order can\'t be shipped');
+            $this->adyenLogger->addAdyenNotification('Order can\'t be shipped');
         }
 
         return $order;
@@ -246,7 +246,7 @@ class Order extends AbstractHelper
 
         $order = $this->addProcessedStatusHistoryComment($order, $notification);
         if ($fullAmountFinalized) {
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            $this->adyenLogger->addAdyenNotification(sprintf(
                 'Notification w/amount %s has completed the capturing of order %s w/amount %s',
                 $amount,
                 $order->getIncrementId(),
@@ -257,20 +257,20 @@ class Order extends AbstractHelper
             // Else add comment
             if (!empty($status) && $maintainingState) {
                 $order->addStatusHistoryComment(__($comment), $status);
-                $this->adyenLogger->addAdyenNotificationCronjob(
+                $this->adyenLogger->addAdyenNotification(
                     'Maintaining current status: ' . $status,
                     $this->adyenLogger->getOrderContext($order)
                 );
             } else if (!empty($status)) {
                 $order->addStatusHistoryComment(__($comment), $status);
                 $this->setState($order, $status, $possibleStates);
-                $this->adyenLogger->addAdyenNotificationCronjob(
+                $this->adyenLogger->addAdyenNotification(
                     'Order status was changed to authorised status: ' . $status,
                     $this->adyenLogger->getOrderContext($order)
                 );
             } else {
                 $order->addStatusHistoryComment(__($comment));
-                $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+                $this->adyenLogger->addAdyenNotification(sprintf(
                     'Order %s was finalized. Authorised status not set',
                     $order->getIncrementId()
                 ));
@@ -319,11 +319,11 @@ class Order extends AbstractHelper
             $order->setStatus($status);
             $order = $this->setState($order, $status, $possibleStates);
 
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 'Order status is changed to Pre-authorised status, status is ' . $status
             );
         } else {
-            $this->adyenLogger->addAdyenNotificationCronjob('No pre-authorised status is used so ignore');
+            $this->adyenLogger->addAdyenNotification('No pre-authorised status is used so ignore');
         }
 
         return $order;
@@ -338,7 +338,7 @@ class Order extends AbstractHelper
     public function holdCancelOrder(MagentoOrder $order, $ignoreHasInvoice): MagentoOrder
     {
         if (!$this->configHelper->getNotificationsCanCancel($order->getStoreId())) {
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 'Order cannot be canceled based on the plugin configuration'
             );
             return $order;
@@ -360,10 +360,10 @@ class Order extends AbstractHelper
                     $order->hold();
                     $order->addCommentToStatusHistory('Order held', $orderStatus);
                 } else {
-                    $this->adyenLogger->addAdyenNotificationCronjob('Order can not hold or is already on Hold');
+                    $this->adyenLogger->addAdyenNotification('Order can not hold or is already on Hold');
                 }
             } else {
-                $this->adyenLogger->addAdyenNotificationCronjob('Test cancelled stat: ' . $orderStatus);
+                $this->adyenLogger->addAdyenNotification('Test cancelled stat: ' . $orderStatus);
                 // Allow magento to cancel order
                 $order->setActionFlag(MagentoOrder::ACTION_FLAG_CANCEL, true);
 
@@ -371,11 +371,11 @@ class Order extends AbstractHelper
                     $order->cancel();
                     $order->addCommentToStatusHistory('Order cancelled', $orderStatus ?? false);
                 } else {
-                    $this->adyenLogger->addAdyenNotificationCronjob('Order can not be canceled');
+                    $this->adyenLogger->addAdyenNotification('Order can not be canceled');
                 }
             }
         } else {
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            $this->adyenLogger->addAdyenNotification(sprintf(
                     'Order %s already has an invoice linked so it cannot be canceled', $order->getIncrementId()
             ));
         }
@@ -426,13 +426,13 @@ class Order extends AbstractHelper
             if ($statusObject->getState() == $state) {
                 // Exit function if fitting state is found
                 $order->setState($statusObject->getState());
-                $this->adyenLogger->addAdyenNotificationCronjob('State is changed to  ' . $statusObject->getState());
+                $this->adyenLogger->addAdyenNotification('State is changed to  ' . $statusObject->getState());
 
                 return $order;
             }
         }
 
-        $this->adyenLogger->addAdyenNotificationCronjob('No new state assigned, status should be connected to one of the following states: ' . json_encode($possibleStates));
+        $this->adyenLogger->addAdyenNotification('No new state assigned, status should be connected to one of the following states: ' . json_encode($possibleStates));
 
         return $order;
     }
@@ -477,13 +477,13 @@ class Order extends AbstractHelper
 
             if ($orderPayment->getEntityId() > 0) {
                 $this->adyenOrderPaymentHelper->refundAdyenOrderPayment($orderPayment, $notification);
-                $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+                $this->adyenLogger->addAdyenNotification(sprintf(
                     'Refunding %s from AdyenOrderPayment %s',
                     $notification->getAmountCurrency() . $notification->getAmountValue(),
                     $orderPayment->getEntityId()
                 ));
             } else {
-                $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+                $this->adyenLogger->addAdyenNotification(sprintf(
                     'AdyenOrderPayment with pspReference %s was not found. This should be linked to order %s',
                     $notification->getOriginalReference(),
                     $order->getRemoteIp()
@@ -505,16 +505,16 @@ class Order extends AbstractHelper
                 $amount = $this->dataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
                 $order->getPayment()->registerRefundNotification($amount);
 
-                $this->adyenLogger->addAdyenNotificationCronjob(sprintf('Created credit memo for order %s', $order->getIncrementId()));
+                $this->adyenLogger->addAdyenNotification(sprintf('Created credit memo for order %s', $order->getIncrementId()));
             } else {
-                $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+                $this->adyenLogger->addAdyenNotification(sprintf(
                     'Could not create a credit memo for order %s while processing notification %s',
                     $order->getIncrementId(),
                     $notification->getId()
                 ));
             }
         } else {
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            $this->adyenLogger->addAdyenNotification(sprintf(
                 'Did not create a credit memo for order %s because refund was done through Magento back office', $order->getIncrementId()
             ));
         }
@@ -533,7 +533,7 @@ class Order extends AbstractHelper
      */
     private function getVirtualStatus(MagentoOrder $order, $status)
     {
-        $this->adyenLogger->addAdyenNotificationCronjob('Product is a virtual product');
+        $this->adyenLogger->addAdyenNotification('Product is a virtual product');
         $virtualStatus = $this->configHelper->getConfigData(
             'payment_authorized_virtual',
             'adyen_abstract',

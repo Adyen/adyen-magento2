@@ -102,14 +102,14 @@ class CaseManagement
                 $order->setState(Order::STATE_NEW);
             }
             $order->addStatusHistoryComment(__($manualReviewComment), $reviewRequiredStatus);
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            $this->adyenLogger->addAdyenNotification(sprintf(
                 'Order %s is pending manual review. The following status will be set: %s',
                 $order->getIncrementId(),
                 $reviewRequiredStatus
             ));
         } else {
             $order->addStatusHistoryComment(__($manualReviewComment));
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            $this->adyenLogger->addAdyenNotification(sprintf(
                 'Order %s is pending manual review. No status update was configured',
                 $order->getIncrementId()
             ));
@@ -136,14 +136,14 @@ class CaseManagement
         // Empty used to cater for empty string and null cases
         if (!empty($reviewAcceptStatus)) {
             $order->addStatusHistoryComment(__($comment), $reviewAcceptStatus);
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            $this->adyenLogger->addAdyenNotification(sprintf(
                 'Created comment history for this notification linked to order %s with status update to: %s',
                 $order->getIncrementId(),
                 $reviewAcceptStatus
             ));
         } else {
             $order->addStatusHistoryComment(__($comment));
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            $this->adyenLogger->addAdyenNotification(sprintf(
                 'Created comment history for this notification linked to order %s without any status update',
                 $order->getIncrementId()
             ));

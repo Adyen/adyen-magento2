@@ -126,11 +126,11 @@ class Webhook
         // set notification processing to true
         $this->updateNotification($notification, true, false);
         $this->logger
-            ->addAdyenNotificationCronjob(sprintf("Processing notification %s", $notification->getEntityId()));
+            ->addAdyenNotification(sprintf("Processing notification %s", $notification->getEntityId()));
 
         try {
             // log the executed notification
-            $this->logger->addAdyenNotificationCronjob(json_encode($notification->debug()));
+            $this->logger->addAdyenNotification(json_encode($notification->debug()));
             $this->setOrderByIncrementId($notification);
             if (!$this->order) {
                 // order does not exists remove from queue
@@ -139,7 +139,7 @@ class Webhook
                 return false;
             }
 
-            $this->logger->addAdyenNotificationCronjob(
+            $this->logger->addAdyenNotification(
                 sprintf("Notification %s will be processed", $notification->getEntityId()),
                 $this->logger->getOrderContext($this->order)
             );
@@ -158,7 +158,7 @@ class Webhook
             // Get transition state
             $currentState = $this->getCurrentState($this->order->getState());
             if (!$currentState) {
-                $this->logger->addAdyenNotificationCronjob(
+                $this->logger->addAdyenNotification(
                     sprintf("ERROR: Unhandled order state '%s'.", $this->order->getState())
                 );
                 return false;
@@ -172,12 +172,16 @@ class Webhook
                 // set done to true
                 $this->order->save();
             } catch (Exception $e) {
-                $this->logger->addAdyenNotificationCronjob($e->getMessage());
+                $this->logger->addAdyenNotification($e->getMessage());
             }
 
             $this->updateNotification($notification, false, true);
-            $this->logger->addAdyenNotificationCronjob(
+            $this->logger->addAdyenNotification(
                 sprintf("Notification %s was processed", $notification->getEntityId()),
+                $this->logger->getOrderContext($this->order)
+            );
+            $this->logger->addAdyenResult(
+                sprintf("Processing of the notification %s is done", $notification->getEntityId()),
                 $this->logger->getOrderContext($this->order)
             );
 
@@ -185,7 +189,7 @@ class Webhook
         } catch (Exception $e) {
             $this->updateNotification($notification, false, false);
             $this->handleNotificationError($notification, $e->getMessage());
-            $this->logger->addAdyenNotificationCronjob(
+            $this->logger->addAdyenNotification(
                 sprintf(
                     "Notification %s had an error: %s \n %s",
                     $notification->getEntityId(),
@@ -282,7 +286,7 @@ class Webhook
             $formattedOrderAmount = $this->adyenHelper
                 ->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
 
-            $this->logger->addAdyenNotificationCronjob(
+            $this->logger->addAdyenNotification(
                 'amount notification:' . $amount . ' amount order:' . $formattedOrderAmount
             );
 
@@ -342,7 +346,7 @@ class Webhook
             );
             if ($pendingStatus != "") {
                 $order->addStatusHistoryComment($comment, $pendingStatus);
-                $this->logger->addAdyenNotificationCronjob(
+                $this->logger->addAdyenNotification(
                     'Created comment history for this notification with status change to: ' . $pendingStatus
                 );
                 return;
@@ -350,7 +354,7 @@ class Webhook
         }
 
         $order->addStatusHistoryComment($comment, $order->getStatus());
-        $this->logger->addAdyenNotificationCronjob('Created comment history for this notification');
+        $this->logger->addAdyenNotification('Created comment history for this notification');
     }
 
     /**
@@ -358,7 +362,7 @@ class Webhook
      */
     private function updateAdyenAttributes(Notification $notification)
     {
-        $this->logger->addAdyenNotificationCronjob('Updating the Adyen attributes of the order');
+        $this->logger->addAdyenNotification('Updating the Adyen attributes of the order');
 
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()
