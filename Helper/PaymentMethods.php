@@ -24,6 +24,7 @@
 namespace Adyen\Payment\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Payment\Helper\Data as MagentoDataHelper;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -33,6 +34,8 @@ class PaymentMethods extends AbstractHelper
     const ADYEN_HPP = 'adyen_hpp';
     const ADYEN_CC = 'adyen_cc';
     const ADYEN_ONE_CLICK = 'adyen_oneclick';
+
+    const ADYEN_PREFIX = 'adyen_';
 
     const METHODS_WITH_BRAND_LOGO = [
         "giftcard"
@@ -52,6 +55,11 @@ class PaymentMethods extends AbstractHelper
      * @var \Adyen\Payment\Helper\Data
      */
     protected $adyenHelper;
+
+    /**
+     * @var MagentoDataHelper
+     */
+    protected $magentoDataHelper;
 
     /**
      * @var \Magento\Framework\Locale\ResolverInterface
@@ -123,7 +131,8 @@ class PaymentMethods extends AbstractHelper
         \Magento\Framework\View\Asset\Source $assetSource,
         \Magento\Framework\View\DesignInterface $design,
         \Magento\Framework\View\Design\Theme\ThemeProviderInterface $themeProvider,
-        ChargedCurrency $chargedCurrency
+        ChargedCurrency $chargedCurrency,
+        MagentoDataHelper $magentoDataHelper
     ) {
         $this->quoteRepository = $quoteRepository;
         $this->config = $config;
@@ -136,6 +145,7 @@ class PaymentMethods extends AbstractHelper
         $this->design = $design;
         $this->themeProvider = $themeProvider;
         $this->chargedCurrency = $chargedCurrency;
+        $this->magentoDataHelper = $magentoDataHelper;
     }
 
     /**
@@ -512,5 +522,29 @@ class PaymentMethods extends AbstractHelper
         ];
 
         return in_array($paymentMethod, $paymentMethodRecurring);
+    }
+
+    public function isAdyenPayment(string $methodCode): bool
+    {
+        return in_array($methodCode, $this->getAdyenPaymentMethods(), true);
+    }
+
+    /**
+     * Returns an array of Adyen payment method codes
+     *
+     */
+    public function getAdyenPaymentMethods(): array
+    {
+        $paymentMethods = $this->magentoDataHelper->getPaymentMethodList();
+
+        $filtered = array_filter(
+            $paymentMethods,
+            function ($key) {
+                return strpos($key, self::ADYEN_PREFIX) === 0;
+            },
+            ARRAY_FILTER_USE_KEY
+        );
+
+        return array_keys($filtered);
     }
 }
