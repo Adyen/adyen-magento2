@@ -30,9 +30,7 @@
     require(['Magento_Customer/js/customer-data'], function (customerData) {
         'use strict';
 
-        customerData.getInitCustomerData().done(function () {
-            customerData.reload(['cart'], true);
-        });
+        customerData.reload(['cart'], true);
     });
 </script>
 <?php if ($block->renderAction()): ?>
@@ -56,4 +54,3 @@
     </script>
     <div id="ActionContainer"></div>
 <?php endif; ?>
-
