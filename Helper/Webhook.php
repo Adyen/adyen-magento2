@@ -126,11 +126,10 @@ class Webhook
         // set notification processing to true
         $this->updateNotification($notification, true, false);
         $this->logger
-            ->addAdyenNotification(sprintf("Processing notification %s", $notification->getEntityId()));
+            ->addAdyenNotification(sprintf("Processing notification %s, merchant reference: %s, PSP reference: %s", $notification->getEntityId(), $notification->getMerchantReference(), $notification->getPspreference()));
 
         try {
             // log the executed notification
-            $this->logger->addAdyenNotification(json_encode($notification->debug()));
             $this->setOrderByIncrementId($notification);
             if (!$this->order) {
                 // order does not exists remove from queue
@@ -139,10 +138,12 @@ class Webhook
                 return false;
             }
 
-            $this->logger->addAdyenNotification(
-                sprintf("Notification %s will be processed", $notification->getEntityId()),
-                $this->logger->getOrderContext($this->order)
-            );
+//            $this->logger->addAdyenNotification(
+//                sprintf("Notification %s will be processed", $notification->getEntityId()),
+//                $this->logger->getOrderContext($this->order)
+//            );
+
+            // clarify if we really need this one
 
             // declare all variables that are needed
             $this->declareVariables($this->order, $notification);
@@ -177,12 +178,10 @@ class Webhook
 
             $this->updateNotification($notification, false, true);
             $this->logger->addAdyenNotification(
-                sprintf("Notification %s was processed", $notification->getEntityId()),
-                $this->logger->getOrderContext($this->order)
+                sprintf("Notification %s was processed", $notification->getEntityId())
             );
             $this->logger->addAdyenResult(
-                sprintf("Processing of the notification %s is done", $notification->getEntityId()),
-                $this->logger->getOrderContext($this->order)
+                sprintf("Processing of the notification %s is done", $notification->getEntityId())
             );
 
             return true;
