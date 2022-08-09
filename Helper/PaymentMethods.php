@@ -657,21 +657,19 @@ class PaymentMethods extends AbstractHelper
             if (strcmp($notificationPaymentMethod, 'paypal') === 0) {
                 if ($manualCapturePayPal) {
                     $this->adyenLogger->addAdyenNotificationCronjob(
-                        'This payment method is paypal and configured to work as manual capture' ,
-                        [$notificationPaymentMethod]
+                        'This payment method is paypal and configured to work as manual capture'
                     );
                     return false;
                 } else {
                     $this->adyenLogger->addAdyenNotificationCronjob(
-                        'This payment method is paypal and configured to work as auto capture',
-                        [$notificationPaymentMethod]
+                        'This payment method is paypal and configured to work as auto capture'
                     );
                     return true;
                 }
             }
             if (strcmp($captureMode, 'manual') === 0) {
                 $this->adyenLogger->addAdyenNotificationCronjob(
-                    'Capture mode for this payment is set to manual', [$notificationPaymentMethod]
+                    'Capture mode for this payment is set to manual', ['paymentMethod' => $notificationPaymentMethod]
                 );
                 return false;
             }
