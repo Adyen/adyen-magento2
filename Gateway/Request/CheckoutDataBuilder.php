@@ -281,7 +281,6 @@ class CheckoutDataBuilder implements BuilderInterface
                 'taxAmount' => $formattedTaxAmount,
                 'description' => $item->getName(),
                 'quantity' => $numberOfItems,
-                'taxCategory' => $item->getProduct()->getAttributeText('tax_class_id'),
                 'taxPercentage' => $formattedTaxPercentage,
                 'productUrl' => $item->getProduct()->getUrlModel()->getUrl($item->getProduct()),
                 'imageUrl' => $this->getImageUrl($item)
@@ -306,7 +305,6 @@ class CheckoutDataBuilder implements BuilderInterface
                 'taxAmount' => $itemVatAmount,
                 'description' => $description,
                 'quantity' => $numberOfItems,
-                'taxCategory' => 'None',
                 'taxPercentage' => $itemVatPercentage
             ];
         }
