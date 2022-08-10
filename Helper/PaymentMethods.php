@@ -669,7 +669,7 @@ class PaymentMethods extends AbstractHelper
             }
             if (strcmp($captureMode, 'manual') === 0) {
                 $this->adyenLogger->addAdyenNotificationCronjob(
-                    'Capture mode for this payment is set to manual'
+                    'Capture mode for this payment is set to manual', ['paymentMethod' => $notificationPaymentMethod]
                 );
                 return false;
             }
