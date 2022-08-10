@@ -426,7 +426,7 @@ class Order extends AbstractHelper
             if ($statusObject->getState() == $state) {
                 // Exit function if fitting state is found
                 $order->setState($statusObject->getState());
-                $this->adyenLogger->addAdyenNotification('State is changed to  ' . $statusObject->getState());
+                $this->adyenLogger->addAdyenNotification('State is changed to ' . $statusObject->getState());
 
                 return $order;
             }
