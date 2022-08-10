@@ -99,7 +99,7 @@ class ManagementHelper
 
         return [
             'merchantAccounts' => $merchantAccounts,
-            'clientKey' => $responseMe['clientKey'],
+            'clientKey' => $responseMe['clientKey'] ?? '',
             'currentMerchantAccount' => $currentMerchantAccount
         ];
     }
@@ -180,7 +180,7 @@ class ManagementHelper
 
         $response = $management->allowedOrigins->list();
 
-        return array_column($response['data'], 'domain');
+        return !empty($response) ? array_column($response['data'], 'domain') : [];
     }
 
     /**

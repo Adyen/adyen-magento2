@@ -39,7 +39,7 @@
                 }
                 if (configured) {
                     let demoMode = $(demoModeSelector).val();
-                    if (demoMode) {
+                    if (parseInt(demoMode)) {
                         showConfigField($(testClientKeySelector), false);
                     } else {
                         showConfigField($(liveClientKeySelector), false);
@@ -57,7 +57,7 @@
 
             function resetAutoConfiguration() {
                 let demoMode = $(demoModeSelector).val();
-                if (demoMode) {
+                if (parseInt(demoMode)) {
                     hideConfigField($(testClientKeySelector));
                 } else {
                     hideConfigField($(liveClientKeySelector));
@@ -90,13 +90,13 @@
                     method: "POST"
                 }).done(function (response) {
                     let clientKey = response.clientKey;
-                    if (demoMode) {
+                    if (parseInt(demoMode)) {
                         let clientKeyTest = $(testClientKeySelector);
-                        clientKeyTest.value = clientKey;
+                        clientKeyTest.val(clientKey);
                         showConfigField(clientKeyTest, false);
                     } else {
                         let clientKeyLive = $(liveClientKeySelector);
-                        clientKeyLive.value = clientKey;
+                        clientKeyLive.val(clientKey);
                         showConfigField(clientKeyLive, false);
                     }
                     let merchantAccountSelect = document.querySelector(merchantAccountSelector);
