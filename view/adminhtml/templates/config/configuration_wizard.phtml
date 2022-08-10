@@ -82,7 +82,7 @@
             function loadMerchantAccountsAndClientKey() {
                 progressUpdate('start');
                 let demoMode = $(demoModeSelector).val();
-                let apiKey = demoMode
+                let apiKey = parseInt(demoMode)
                     ? $(testApiKeySelector).val()
                     : $(liveApiKeySelector).val();
                 $.ajax('<?php echo $block->getMerchantAccountsUrl() ?>', {
