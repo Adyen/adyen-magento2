@@ -126,12 +126,15 @@ class Webhook
         // set notification processing to true
         $this->updateNotification($notification, true, false);
         $this->logger
-            ->addAdyenNotification(sprintf(
-                "Processing %s notification %s ",
-                $notification->getEventCode(),
-                $notification->getEntityId(),
-                ),
-                ['merchant_reference' => $notification->getMerchantReference(), 'pspreference' => $notification->getPspreference()]
+            ->addAdyenNotification(
+                sprintf(
+                    "Processing %s notification %s",
+                    $notification->getEventCode(),
+                    $notification->getEntityId(),
+                ), [
+                    'merchantReference' => $notification->getMerchantReference(),
+                    'pspReference' => $notification->getPspreference()
+                ],
             );
 
         try {
@@ -177,7 +180,8 @@ class Webhook
 
             $this->updateNotification($notification, false, true);
             $this->logger->addAdyenNotification(
-                sprintf("Notification %s was processed", $notification->getEntityId())
+                sprintf("Notification %s was processed", $notification->getEntityId()),
+                $this->logger->getOrderContext($this->order)
             );
             $this->logger->addAdyenResult(
                 sprintf("Processing of the notification %s is done", $notification->getEntityId())
