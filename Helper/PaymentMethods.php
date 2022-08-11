@@ -645,7 +645,7 @@ class PaymentMethods extends AbstractHelper
 
             // if auto capture mode for openinvoice is turned on then use auto capture
             if ($captureModeOpenInvoice &&
-                $this->adyenHelper->isPaymentMethodOpenInvoiceMethodValidForAutoCapture($notificationPaymentMethod)
+                $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)
             ) {
                 $this->adyenLogger->addAdyenNotification(
                     'This payment method is configured to be working as auto capture '
