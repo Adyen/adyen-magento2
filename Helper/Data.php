@@ -1001,6 +1001,7 @@ class Data extends AbstractHelper
             return false;
         }
 
+        // Those open invoice methods support auto capture.
         if (strpos($paymentMethod, self::AFTERPAY) !== false ||
             strpos($paymentMethod, self::KLARNA) !== false ||
             strpos($paymentMethod, self::RATEPAY) !== false ||
