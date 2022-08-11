@@ -130,7 +130,7 @@
              * Prefill livePrefixUrl based on mapping in merchantAccounts variable
              */
             function prefillLivePrefix() {
-                if ($(demoModeSelector).val()) {
+                if (parseInt($(demoModeSelector).val())) {
                     return;
                 }
                 let livePrefixUrl = $(livePrefixUrlSelector);
