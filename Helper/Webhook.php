@@ -182,6 +182,24 @@ class Webhook
             );
 
             return true;
+        } catch (InvalidDataException $e) {
+            /*
+             * Webhook Module throws InvalidDataException if the eventCode is not supported.
+             * Prevent re-process attempts and change the state of the notification to `done`.
+             */
+            $this->updateNotification($notification, false, true);
+            $this->handleNotificationError($notification, sprintf("Unsupported webhook notification: %s", $notification->getEventCode()));
+            $this->logger->addAdyenNotificationCronjob(
+                sprintf(
+                    "Notification %s had an error. Unsupported webhook notification: %s. %s",
+                    $notification->getEntityId(),
+                    $notification->getEventCode(),
+                    $e->getMessage()
+                ),
+                $this->logger->getOrderContext($this->order)
+            );
+
+            return false;
         } catch (Exception $e) {
             $this->updateNotification($notification, false, false);
             $this->handleNotificationError($notification, $e->getMessage());
