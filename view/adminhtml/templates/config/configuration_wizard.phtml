@@ -21,7 +21,7 @@
             resetButton.hide();
 
             let configured;
-            if ($(demoModeSelector).val()) {
+            if (parseInt($(demoModeSelector).val())) {
                 configured = <?=$block->testConfigured() ? 'true' : 'false';?>;
             } else {
                 configured = <?=$block->liveConfigured() ? 'true' : 'false';?>;
@@ -77,7 +77,6 @@
             configMode.on('change', renderAutoConfiguration.bind(configMode));
 
             let merchantAccounts = [];
-            $(merchantAccountSelector).on('change', prefillLivePrefix);
 
             function loadMerchantAccountsAndClientKey() {
                 progressUpdate('start');
@@ -93,11 +92,11 @@
                     if (parseInt(demoMode)) {
                         let clientKeyTest = $(testClientKeySelector);
                         clientKeyTest.val(clientKey);
-                        showConfigField(clientKeyTest, false);
+                        showConfigField(clientKeyTest);
                     } else {
                         let clientKeyLive = $(liveClientKeySelector);
                         clientKeyLive.val(clientKey);
-                        showConfigField(clientKeyLive, false);
+                        showConfigField(clientKeyLive);
                     }
                     let merchantAccountSelect = document.querySelector(merchantAccountSelector);
                     // remove previous merchant accounts from dropdown
@@ -114,8 +113,9 @@
                         merchantAccountSelect.value = response.currentMerchantAccount;
                     }
                     showConfigField($(merchantAccountSelector));
+                    $(merchantAccountSelector).change({merchantAccounts}, prefillLivePrefix);
 
-                    prefillLivePrefix.bind($(merchantAccountSelector)[0])();
+                    prefillLivePrefix({data: {merchantAccounts, value: merchantAccountSelect.value}});
 
                     // update action button listener to perform next action
                     actionButton.off();
@@ -129,16 +129,30 @@
             /**
              * Prefill livePrefixUrl based on mapping in merchantAccounts variable
              */
-            function prefillLivePrefix() {
+            function prefillLivePrefix(event) {
+                let merchantAccounts = event.data.merchantAccounts;
+                let value = event.data.value;
+                if (value === undefined) {
+                    value = this.value;
+                }
                 if (parseInt($(demoModeSelector).val())) {
                     return;
                 }
-                let livePrefixUrl = $(livePrefixUrlSelector);
-                let merchantAccount = merchantAccounts.find(function (account) { return account.id === this.value }.bind(this));
-                if (merchantAccount !== undefined) {
-                    livePrefixUrl.val(merchantAccount.liveEndpointPrefix);
+
+                let livePrefixUrlField = $(livePrefixUrlSelector);
+                let livePrefixUrl;
+
+                for (let i = 0; i < merchantAccounts.length; i++) {
+                    if (merchantAccounts[i].id === value) {
+                        livePrefixUrl = merchantAccounts[i].liveEndpointPrefix
+                    }
                 }
-                showConfigField(livePrefixUrl);
+
+                if (livePrefixUrl !== undefined) {
+                    livePrefixUrlField.val(livePrefixUrl);
+                }
+
+                showConfigField(livePrefixUrlField);
             }
 
             function generateWebhookCredentials() {
