@@ -27,6 +27,7 @@ use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Invoice as InvoiceHelper;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
@@ -60,15 +61,9 @@ class InvoiceObserver implements ObserverInterface
     /** @var AdyenLogger */
     private $logger;
 
-    /**
-     * InvoiceObserver constructor.
-     * @param Payment $adyenPaymentResourceModel
-     * @param PaymentFactory $adyenOrderPaymentFactory
-     * @param InvoiceHelper $invoiceHelper
-     * @param StatusResolver $statusResolver
-     * @param AdyenOrderPayment $adyenOrderPaymentHelper
-     * @param Config $configHelper
-     */
+    /** @var PaymentMethods */
+    private $paymentMethodsHelper;
+
     public function __construct(
         Payment $adyenPaymentResourceModel,
         PaymentFactory $adyenOrderPaymentFactory,
@@ -76,7 +71,8 @@ class InvoiceObserver implements ObserverInterface
         StatusResolver $statusResolver,
         AdyenOrderPayment $adyenOrderPaymentHelper,
         Config $configHelper,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        PaymentMethods $paymentMethodsHelper
     ) {
         $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
@@ -85,6 +81,7 @@ class InvoiceObserver implements ObserverInterface
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->configHelper = $configHelper;
         $this->logger = $adyenLogger;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -102,9 +99,10 @@ class InvoiceObserver implements ObserverInterface
         $invoice = $observer->getData('invoice');
         $order = $invoice->getOrder();
         $payment = $order->getPayment();
+        $method = $payment->getMethod();
 
         // If invoice has already been paid or full amount is finalized, exit observer
-        if ($invoice->wasPayCalled() || $this->adyenOrderPaymentHelper->isFullAmountFinalized($order)) {
+        if (!$this->paymentMethodsHelper->isAdyenPayment($method) || $invoice->wasPayCalled() || $this->adyenOrderPaymentHelper->isFullAmountFinalized($order)) {
             return;
         }
 
@@ -131,11 +129,11 @@ class InvoiceObserver implements ObserverInterface
         );
 
         if (empty($status)) {
-            $status = $this->statusResolver->getOrderStatusByState($order, Order::STATE_PROCESSING);
+            $status = $this->statusResolver->getOrderStatusByState($order, Order::STATE_PENDING_PAYMENT);
         }
 
-        // Set order to PROCESSING to allow further invoices to be generated
-        $order->setState(Order::STATE_PROCESSING);
+        // Set order to PENDING_PAYMENT to allow further invoices to be generated
+        $order->setState(Order::STATE_PENDING_PAYMENT);
         $order->setStatus($status);
 
         $this->logger->addAdyenDebug(
