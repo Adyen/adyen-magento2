@@ -82,6 +82,7 @@ class ManagementHelper
                     return $dc['name'] = 'default';
                 });
                 $merchantAccounts[] = [
+                    'id' => $merchantAccount['id'],
                     'name' => $merchantAccount['name'],
                     'liveEndpointPrefix' => !empty($defaultDC) ? $defaultDC[0]['livePrefix'] : ''
                 ];

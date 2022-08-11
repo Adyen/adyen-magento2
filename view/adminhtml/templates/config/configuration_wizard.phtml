@@ -108,7 +108,7 @@
                     merchantAccounts = response.merchantAccounts;
                     // add merchant accounts to dropdown
                     for (i = 0; i < merchantAccounts.length; i++) {
-                        merchantAccountSelect.add(new Option(merchantAccounts[i].name, merchantAccounts[i].name));
+                        merchantAccountSelect.add(new Option(merchantAccounts[i].name, merchantAccounts[i].id));
                     }
                     if (response.currentMerchantAccount) {
                         merchantAccountSelect.value = response.currentMerchantAccount;
@@ -134,7 +134,7 @@
                     return;
                 }
                 let livePrefixUrl = $(livePrefixUrlSelector);
-                let merchantAccount = merchantAccounts.find(function (account) { return account.name === this.value }.bind(this));
+                let merchantAccount = merchantAccounts.find(function (account) { return account.id === this.value }.bind(this));
                 if (merchantAccount !== undefined) {
                     livePrefixUrl.val(merchantAccount.liveEndpointPrefix);
                 }
