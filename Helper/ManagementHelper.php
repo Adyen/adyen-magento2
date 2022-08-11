@@ -155,7 +155,9 @@ class ManagementHelper
                 ]
         ];
         $webhookId = $this->configHelper->getWebhookId($storeId);
-        if (!empty($webhookId)) {
+        $savedMerchantAccount = $this->configHelper->getMerchantAccount($storeId);
+        // reuse saved webhookId if merchant account is the same.
+        if (!empty($webhookId) && $merchantId === $savedMerchantAccount) {
             $management->merchantWebhooks->update($merchantId, $webhookId, $params);
         } else {
             $params['type'] = 'standard';
