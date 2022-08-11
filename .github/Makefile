@@ -86,10 +86,6 @@ graphql:
 	@cd ${MAGENTO_ROOT}/dev/tests/api-functional && \
 		${MAGENTO_ROOT}/vendor/bin/phpunit --prepend ${GRAPHQL_PHP} --configuration ${GRAPHQL_XML} ${GRAPHQL_SUITE}
 
-# Unit tests
-unit:
-	vendor/bin/phpunit vendor/adyen/module-payment/Test/Unit
-
 # Destroy services
 clean:
 	docker-compose -f workflows/templates/docker-compose.yml down --volumes --rmi local

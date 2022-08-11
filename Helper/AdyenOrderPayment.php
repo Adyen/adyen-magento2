@@ -275,20 +275,4 @@ class AdyenOrderPayment extends AbstractHelper
 
         return $adyenOrderPaymentsTotalCents === $orderAmountCents;
     }
-
-    /**
-     * Get the context variables of an order to be passed to a log message
-     *
-     * @param Order $order
-     * @return array
-     */
-    public function getLogOrderContext(Order $order): array
-    {
-        return isset($order) ? [
-            'orderId' => $order->getId(),
-            'orderIncrementId' => $order->getIncrementId(),
-            'orderState' => $order->getState(),
-            'orderStatus' => $order->getStatus()
-        ] : [];
-    }
 }

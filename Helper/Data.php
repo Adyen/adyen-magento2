@@ -892,7 +892,7 @@ class Data extends AbstractHelper
      * @param $recurringType
      * @return array
      */
-    public function getOneClickPaymentMethods($customerId, $storeId, $grandTotal)
+    public function getOneClickPaymentMethods($customerId, $storeId, $grandTotal, $subType=null)
     {
         $billingAgreements = [];
 
@@ -914,8 +914,10 @@ class Data extends AbstractHelper
 
             // check if contractType is supporting the selected contractType for OneClick payments
             $allowedContractTypes = $agreementData['contractTypes'];
-            // RecurringType::ONECLICK is kept in the if block to still display tokens that were created before changes
-            if (in_array(RecurringType::ONECLICK, $allowedContractTypes) || in_array(Recurring::CARD_ON_FILE, $allowedContractTypes)) {
+
+            // RecurringType::ONECLICK is kept in the if block to still display tokens that were created before changes in contract types
+            // even when $subType is not passed in /Block/Form/Oneclick.php, show all tokens with all contract types for admin orders
+            if (is_null($subType) || in_array(RecurringType::ONECLICK, $allowedContractTypes) || in_array($subType, $allowedContractTypes)) {
                 // check if AgreementLabel is set and if contract has an recurringType
                 if ($billingAgreement->getAgreementLabel()) {
                     // for Ideal use sepadirectdebit because it is
@@ -1761,7 +1763,7 @@ class Data extends AbstractHelper
      * @param string $liveEnvironment
      * @return string
      */
-    public function getPspReferenceSearchUrl($pspReference, $liveEnvironment)
+    public function getPspReferenceSearchUrl($pspReference, $liveEnvironment): string
     {
         if ($liveEnvironment === "true") {
             $checkoutEnvironment = "live";

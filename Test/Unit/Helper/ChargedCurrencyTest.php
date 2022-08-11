@@ -9,11 +9,12 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Helper;
+namespace Adyen\Payment\Tests\Helper\Unit;
 
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Model\AdyenAmountCurrency;
+use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\CreditmemoInterface;
 use Magento\Sales\Api\Data\CreditmemoItemInterface;
@@ -22,7 +23,7 @@ use Magento\Sales\Model\Order\Creditmemo\Item;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-class ChargedCurrencyTest extends TestCase
+class ChargedCurrencyTest extends AbstractAdyenTestCase
 {
 
     const AMOUNT_CURRENCY = [
@@ -93,10 +94,9 @@ class ChargedCurrencyTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->order = $this->getMockBuilder(Order::class)
-            ->disableOriginalConstructor()
-            ->setMethods([
-                'getAdyenChargedCurrency',
+        $this->order = $this->createMockWithMethods(
+            Order::class,
+            [
                 'getBaseGrandTotal',
                 'getGlobalCurrencyCode',
                 'getBaseDiscountAmount',
@@ -106,10 +106,14 @@ class ChargedCurrencyTest extends TestCase
                 'getOrderCurrencyCode',
                 'getDiscountAmount',
                 'getTaxAmount',
-                'getTotalDue',
+                'getTotalDue'
+            ],
+            [
+                'getAdyenChargedCurrency',
                 'getChargedCurrency'
-            ])
-            ->getMock();
+            ]
+        );
+
         $this->mockMethods($this->order,
             [
                 'getBaseGrandTotal' => self::AMOUNT_CURRENCY['base']['amount'],
@@ -125,19 +129,21 @@ class ChargedCurrencyTest extends TestCase
             ]
         );
 
-        $shippingAddress = $this->getMockBuilder(Quote\Address::class)
-            ->disableOriginalConstructor()
-            ->setMethods([
+        $shippingAddress = $this->createMockWithMethods(
+            Quote\Address::class,
+            [],
+            [
                 'getBaseShippingAmount',
                 'getBaseShippingDiscountAmount',
                 'getBaseShippingTaxAmount',
+                'getBaseShippingInclTax',
                 'getShippingAmount',
                 'getShippingDiscountAmount',
                 'getShippingTaxAmount',
-                'getBaseShippingInclTax',
                 'getShippingInclTax'
-            ])
-            ->getMock();
+            ]
+        );
+
         $this->mockMethods($shippingAddress,
             [
                 'getBaseShippingAmount' => self::AMOUNT_CURRENCY['base']['amount'],
@@ -151,17 +157,19 @@ class ChargedCurrencyTest extends TestCase
             ]
         );
 
-        $this->quote = $this->getMockBuilder(Quote::class)
-            ->disableOriginalConstructor()
-            ->setMethods([
+        $this->quote = $this->createMockWithMethods(
+            Quote::class,
+            [
+                'getStoreId',
+                'getShippingAddress'
+            ],
+            [
                 'getBaseGrandTotal',
                 'getBaseCurrencyCode',
                 'getGrandTotal',
                 'getQuoteCurrencyCode',
-                'getStoreId',
-                'getShippingAddress'
-            ])
-            ->getMock();
+            ]
+        );
         $this->mockMethods($this->quote,
             [
                 'getBaseGrandTotal' => self::AMOUNT_CURRENCY['base']['amount'],
@@ -173,23 +181,26 @@ class ChargedCurrencyTest extends TestCase
             ]
         );
 
-        $this->quoteItem = $this->getMockBuilder(Quote\Item::class)
-            ->disableOriginalConstructor()
-            ->setMethods([
-                'getBasePrice',
+        $this->quoteItem = $this->createMockWithMethods(
+            Quote\Item::class,
+            [
                 'getPrice',
+                'getQuote',
+                'getQty',
+            ],
+            [
+                'getBasePrice',
                 'getBaseDiscountAmount',
                 'getBaseTaxAmount',
-                'getQuote',
                 'getRowTotal',
-                'getQty',
                 'getDiscountAmount',
                 'getTaxAmount',
                 'getBasePriceInclTax',
                 'getPriceInclTax',
                 'getRowTotalInclTax'
-            ])
-            ->getMock();
+            ]
+        );
+
         $this->mockMethods($this->quoteItem,
             [
                 'getBasePrice' => self::AMOUNT_CURRENCY['base']['amount'],
@@ -207,9 +218,9 @@ class ChargedCurrencyTest extends TestCase
             ]
         );
 
-        $this->invoice = $this->getMockBuilder(Order\Invoice::class)
-            ->disableOriginalConstructor()
-            ->setMethods([
+        $this->invoice = $this->createMockWithMethods(
+            Order\Invoice::class,
+            [
                 'getShippingAmount',
                 'getShippingTaxAmount',
                 'getBaseShippingAmount',
@@ -219,8 +230,10 @@ class ChargedCurrencyTest extends TestCase
                 'getOrder',
                 'getGrandTotal',
                 'getBaseGrandTotal'
-            ])
-            ->getMock();
+            ],
+            []
+        );
+
         $this->mockMethods($this->invoice,
             [
                 'getOrder' => $this->order,
@@ -235,17 +248,18 @@ class ChargedCurrencyTest extends TestCase
             ]
         );
 
-        $this->invoiceItem = $this->getMockBuilder(Order\Invoice\Item::class)
-            ->disableOriginalConstructor()
-            ->setMethods([
+        $this->invoiceItem = $this->createMockWithMethods(
+            Order\Invoice\Item::class,
+            [
                 'getBasePrice',
                 'getInvoice',
                 'getBaseTaxAmount',
                 'getPrice',
                 'getTaxAmount',
                 'getQty'
-            ])
-            ->getMock();
+            ],
+            []
+        );
         $this->mockMethods($this->invoiceItem,
             [
                 'getBasePrice' => self::AMOUNT_CURRENCY['base']['amount'],
@@ -257,9 +271,9 @@ class ChargedCurrencyTest extends TestCase
             ]
         );
 
-        $this->creditMemo = $this->getMockBuilder(Order\Creditmemo::class)
-            ->disableOriginalConstructor()
-            ->setMethods([
+        $this->creditMemo = $this->createMockWithMethods(
+            Order\Creditmemo::class,
+            [
                 'getBaseGrandTotal',
                 'getBaseCurrencyCode',
                 'getBaseTaxAmount',
@@ -274,8 +288,10 @@ class ChargedCurrencyTest extends TestCase
                 'getShippingTaxAmount',
                 'getInvoice',
                 'getOrder'
-            ])
-            ->getMock();
+            ],
+            []
+        );
+
         $this->mockMethods($this->creditMemo,
             [
                 'getBaseGrandTotal' => self::AMOUNT_CURRENCY['base']['amount'],
@@ -295,18 +311,20 @@ class ChargedCurrencyTest extends TestCase
             ]
         );
 
-        $this->creditMemoItem = $this->getMockBuilder(Item::class)
-            ->disableOriginalConstructor()
-            ->setMethods([
+        $this->creditMemoItem = $this->createMockWithMethods(
+            Item::class,
+            [
                 'getBasePrice',
                 'getPrice',
                 'getCreditMemo',
-                'getOrder',
                 'getBaseTaxAmount',
                 'getTaxAmount',
                 'getQty'
-            ])
-            ->getMock();
+            ],
+            [
+                'getOrder'
+            ]
+        );
         $this->mockMethods($this->creditMemoItem,
             [
                 'getBasePrice' => self::AMOUNT_CURRENCY['base']['amount'],
@@ -319,9 +337,7 @@ class ChargedCurrencyTest extends TestCase
             ]
         );
 
-        $this->configHelper = $this->getMockBuilder(Config::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->configHelper = $this->createMock(Config::class);
     }
 
     /**

@@ -23,7 +23,6 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Notification\NotifierPool;
-use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
@@ -31,11 +30,6 @@ use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
 
-/**
- * Helper class for anything related to the invoice entity
- *
- * @package Adyen\Payment\Helper
- */
 class Order extends AbstractHelper
 {
     /** @var Builder */
@@ -77,8 +71,8 @@ class Order extends AbstractHelper
     /** @var OrderPaymentCollectionFactory */
     private $adyenOrderPaymentCollectionFactory;
 
-    /** @var SerializerInterface */
-    private $serializer;
+    /** @var PaymentMethods */
+    private $paymentMethodsHelper;
 
     public function __construct(
         Context $context,
@@ -95,7 +89,7 @@ class Order extends AbstractHelper
         OrderRepository $orderRepository,
         NotifierPool $notifierPool,
         OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
-        SerializerInterface $serializer
+        PaymentMethods $paymentMethodsHelper
     ) {
         parent::__construct($context);
         $this->transactionBuilder = $transactionBuilder;
@@ -111,7 +105,7 @@ class Order extends AbstractHelper
         $this->orderRepository = $orderRepository;
         $this->notifierPool = $notifierPool;
         $this->adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
-        $this->serializer = $serializer;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -247,43 +241,7 @@ class Order extends AbstractHelper
 
         // check for boleto if payment is totally paid
         if ($order->getPayment()->getMethod() == "adyen_boleto") {
-            $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
-                $notification->getAdditionalData()
-            ) : "";
-            $boletobancario = $additionalData['boletobancario'] ?? null;
-            if ($boletobancario && is_array($boletobancario)) {
-                // check if paid amount is the same as orginal amount
-                $originalAmount = isset($boletobancario['originalAmount']) ? trim($boletobancario['originalAmount']) : "";
-                $paidAmount = isset($boletobancario['paidAmount']) ? trim($boletobancario['paidAmount']) : "";
-
-                if ($originalAmount != $paidAmount) {
-                    // not the full amount is paid. Check if it is underpaid or overpaid
-                    // strip the  BRL of the string
-                    $originalAmount = str_replace("BRL", "", $originalAmount);
-                    $originalAmount = floatval(trim($originalAmount));
-
-                    $paidAmount = str_replace("BRL", "", $paidAmount);
-                    $paidAmount = floatval(trim($paidAmount));
-
-                    if ($paidAmount > $originalAmount) {
-                        $overpaidStatus = $this->configHelper->getConfigData(
-                            'order_overpaid_status',
-                            'adyen_boleto',
-                            $order->getStoreId()
-                        );
-                        // check if there is selected a status if not fall back to the default
-                        $status = (!empty($overpaidStatus)) ? $overpaidStatus : $status;
-                    } else {
-                        $underpaidStatus = $this->configHelper->getConfigData(
-                            'order_underpaid_status',
-                            'adyen_boleto',
-                            $order->getStoreId()
-                        );
-                        // check if there is selected a status if not fall back to the default
-                        $status = (!empty($underpaidStatus)) ? $underpaidStatus : $status;
-                    }
-                }
-            }
+            $status = $this->paymentMethodsHelper->getBoletoStatus($order, $notification, $status);
         }
 
         $order = $this->addProcessedStatusHistoryComment($order, $notification);
@@ -301,15 +259,14 @@ class Order extends AbstractHelper
                 $order->addStatusHistoryComment(__($comment), $status);
                 $this->adyenLogger->addAdyenNotificationCronjob(
                     'Maintaining current status: ' . $status,
-                    $this->adyenOrderPaymentHelper->getLogOrderContext($order)
+                    $this->adyenLogger->getOrderContext($order)
                 );
             } else if (!empty($status)) {
                 $order->addStatusHistoryComment(__($comment), $status);
-
                 $this->setState($order, $status, $possibleStates);
                 $this->adyenLogger->addAdyenNotificationCronjob(
                     'Order status was changed to authorised status: ' . $status,
-                    $this->adyenOrderPaymentHelper->getLogOrderContext($order)
+                    $this->adyenLogger->getOrderContext($order)
                 );
             } else {
                 $order->addStatusHistoryComment(__($comment));

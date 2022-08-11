@@ -12,6 +12,6 @@
     width: auto;
 }
 
-.payment-method:nth-of-type(3) {
+.payment-method+#hpp_actionModalWrapper {
     border-bottom: 1px solid #ccc;
 }

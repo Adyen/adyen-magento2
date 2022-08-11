@@ -91,7 +91,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         if ($transitionState === PaymentStates::STATE_PAID) {
             $order = $this->handleSuccessfulAuthorisation($order, $notification);
         } elseif ($transitionState === PaymentStates::STATE_FAILED) {
-            $order = $this->handleFailedAuthorisation($order, $notification);
+            $order = $this->handleFailedAuthorisation($order);
         }
 
         return $order;
@@ -119,7 +119,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             $order = $this->orderHelper->setPrePaymentAuthorized($order);
             $this->orderHelper->updatePaymentDetails($order, $notification);
 
-            $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : "";
+            $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : [];
             $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
 
             if ($isAutoCapture) {
@@ -152,28 +152,11 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
     }
 
     /**
-     * @param Order $order
-     * @param Notification $notification
-     * @return Order
      * @throws LocalizedException
      */
-    private function handleFailedAuthorisation(Order $order, Notification $notification): Order
+    private function handleFailedAuthorisation(Order $order): Order
     {
         $previousAdyenEventCode = $order->getData('adyen_notification_event_code');
-        $ignoreHasInvoice = true;
-
-        // if payment is API, check if API result pspreference is the same as reference
-        if ($notification->getEventCode() == Notification::AUTHORISATION) {
-            if ('api' === $order->getPayment()->getPaymentMethodType()) {
-                // don't cancel the order because order was successful through api
-                $this->adyenLogger->addAdyenNotificationCronjob(
-                    'order is not cancelled because api result was successful'
-                );
-
-                return $order;
-            }
-            $ignoreHasInvoice = false;
-        }
 
         /*
          * Don't cancel the order if part of the payment has been captured.
@@ -206,7 +189,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             $order->setState(Order::STATE_NEW);
         }
 
-        return $this->orderHelper->holdCancelOrder($order, $ignoreHasInvoice);
+        return $this->orderHelper->holdCancelOrder($order, true);
     }
 
     /**
