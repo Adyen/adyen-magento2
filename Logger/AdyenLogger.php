@@ -11,8 +11,10 @@
 
 namespace Adyen\Payment\Logger;
 
+use Adyen\Payment\Helper\Config;
 use Magento\Framework\Phrase;
 use Magento\Sales\Model\Order as MagentoOrder;
+use Magento\Store\Model\StoreManagerInterface;
 use Monolog\Logger;
 
 class AdyenLogger extends Logger
@@ -47,6 +49,23 @@ class AdyenLogger extends Logger
     ];
 
     /**
+     * @var Config
+     */
+    private $config;
+
+    /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
+    public function __construct(Config $config, StoreManagerInterface $storeManager, $name, array $handlers = array(), array $processors = array())
+    {
+        parent::__construct($name, $handlers, $processors);
+        $this->config = $config;
+        $this->storeManager = $storeManager;
+    }
+
+    /**
      * Adds a log record at the INFO level.
      *
      * This method allows for compatibility with common interfaces.
@@ -62,7 +81,10 @@ class AdyenLogger extends Logger
 
     public function addAdyenDebug($message, array $context = [])
     {
-        return $this->addRecord(static::ADYEN_DEBUG, $message, $context);
+        $storeId = $this->storeManager->getStore()->getId();
+        if ($this->config->debugLogsEnabled($storeId)) {
+            return $this->addRecord(static::ADYEN_DEBUG, $message, $context);
+        }
     }
 
     public function addAdyenWarning($message, array $context = []): bool

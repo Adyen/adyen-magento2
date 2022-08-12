@@ -226,7 +226,7 @@ class CaptureDataBuilder implements BuilderInterface
      */
     public function buildPartialOrMultipleCaptureData($payment, $currency, $adyenOrderPayments, $captureAmount): array
     {
-        $this->adyenLogger->debug(sprintf(
+        $this->adyenLogger->addAdyenDebug(sprintf(
             'Building PARTIAL capture request for multiple authorisations, on payment %s', $payment->getId()
         ));
 
