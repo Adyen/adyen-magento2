@@ -18,4 +18,10 @@
             <directory>.</directory>
         </testsuite>
     </testsuites>
+    <coverage>
+        <include>
+            <directory suffix=".php">../.</directory>
+        </include>
+    </coverage>
+
 </phpunit>
