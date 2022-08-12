@@ -611,13 +611,13 @@ class PaymentMethods extends AbstractHelper
              */
             if ($notificationPaymentMethod == "sepadirectdebit") {
                 if ($sepaFlow == "authcap") {
-                    $this->adyenLogger->addAdyenNotificationCronjob(
+                    $this->adyenLogger->addAdyenNotification(
                         'Manual Capture is applied for sepa because it is in authcap flow'
                     );
                     return false;
                 } else {
                     // payment method ideal, cash adyen_boleto has direct capture
-                    $this->adyenLogger->addAdyenNotificationCronjob(
+                    $this->adyenLogger->addAdyenNotification(
                         'This payment method does not allow manual capture.(2) paymentCode:' .
                         $paymentCode . ' paymentMethod:' . $notificationPaymentMethod . ' sepaFLow:' . $sepaFlow
                     );
@@ -631,12 +631,12 @@ class PaymentMethods extends AbstractHelper
                     $order->getStoreId()
                 );
                 if (strcmp($captureModePos, 'auto') === 0) {
-                    $this->adyenLogger->addAdyenNotificationCronjob(
+                    $this->adyenLogger->addAdyenNotification(
                         'This payment method is POS Cloud and configured to be working as auto capture '
                     );
                     return true;
                 } elseif (strcmp($captureModePos, 'manual') === 0) {
-                    $this->adyenLogger->addAdyenNotificationCronjob(
+                    $this->adyenLogger->addAdyenNotification(
                         'This payment method is POS Cloud and configured to be working as manual capture '
                     );
                     return false;
@@ -647,7 +647,7 @@ class PaymentMethods extends AbstractHelper
             if ($captureModeOpenInvoice &&
                 $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)
             ) {
-                $this->adyenLogger->addAdyenNotificationCronjob(
+                $this->adyenLogger->addAdyenNotification(
                     'This payment method is configured to be working as auto capture '
                 );
                 return true;
@@ -656,19 +656,19 @@ class PaymentMethods extends AbstractHelper
             // if PayPal capture modues is different from the default use this one
             if (strcmp($notificationPaymentMethod, 'paypal') === 0) {
                 if ($manualCapturePayPal) {
-                    $this->adyenLogger->addAdyenNotificationCronjob(
+                    $this->adyenLogger->addAdyenNotification(
                         'This payment method is paypal and configured to work as manual capture'
                     );
                     return false;
                 } else {
-                    $this->adyenLogger->addAdyenNotificationCronjob(
+                    $this->adyenLogger->addAdyenNotification(
                         'This payment method is paypal and configured to work as auto capture'
                     );
                     return true;
                 }
             }
             if (strcmp($captureMode, 'manual') === 0) {
-                $this->adyenLogger->addAdyenNotificationCronjob(
+                $this->adyenLogger->addAdyenNotification(
                     'Capture mode for this payment is set to manual', ['paymentMethod' => $notificationPaymentMethod]
                 );
                 return false;
@@ -679,17 +679,17 @@ class PaymentMethods extends AbstractHelper
              * (if the option auto capture mode for openinvoice is not set)
              */
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)) {
-                $this->adyenLogger->addAdyenNotificationCronjob(
+                $this->adyenLogger->addAdyenNotification(
                     'Capture mode for klarna is by default set to manual'
                 );
                 return false;
             }
 
-            $this->adyenLogger->addAdyenNotificationCronjob('Capture mode is set to auto capture');
+            $this->adyenLogger->addAdyenNotification('Capture mode is set to auto capture');
             return true;
         } else {
             // does not allow manual capture so is always immediate capture
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 sprintf('Payment method %s, does not allow manual capture', $notificationPaymentMethod)
             );
 

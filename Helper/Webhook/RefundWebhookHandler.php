@@ -54,7 +54,7 @@ class RefundWebhookHandler implements WebhookHandlerInterface
         if ($transitionState === PaymentStates::STATE_PAID) {
             $this->orderHelper->addRefundFailedNotice($order, $notification);
         } elseif ($ignoreRefundNotification) {
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            $this->adyenLogger->addAdyenNotification(sprintf(
                 'Config to ignore refund notification is enabled. Notification %s will be ignored',
                 $notification->getId()
             ));
