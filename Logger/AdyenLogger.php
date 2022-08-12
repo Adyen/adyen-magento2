@@ -11,6 +11,8 @@
 
 namespace Adyen\Payment\Logger;
 
+use Magento\Framework\Phrase;
+use Magento\Sales\Model\Order as MagentoOrder;
 use Monolog\Logger;
 
 class AdyenLogger extends Logger
@@ -90,5 +92,32 @@ class AdyenLogger extends Logger
     public function addNotificationLog($message, array $context = [])
     {
         return $this->addRecord(static::INFO, $message, $context);
+    }
+
+    public function getOrderContext(MagentoOrder $order): array
+    {
+        return [
+            'orderId' => $order->getId(),
+            'orderIncrementId' => $order->getIncrementId(),
+            'orderState' => $order->getState(),
+            'orderStatus' => $order->getStatus()
+        ];
+    }
+
+    public function getInvoiceContext(MagentoOrder\Invoice $invoice): array
+    {
+        $stateName = $invoice->getStateName();
+
+        return [
+            'invoiceId' => $invoice->getEntityId(),
+            'invoiceIncrementId' => $invoice->getIncrementId(),
+            'invoiceState' => $invoice->getState(),
+            'invoiceStateName' => $stateName instanceof Phrase ? $stateName->getText() : $stateName,
+            'invoiceWasPayCalled' => $invoice->wasPayCalled(),
+            'invoiceCanCapture' => $invoice->canCapture(),
+            'invoiceCanCancel' => $invoice->canCancel(),
+            'invoiceCanVoid' => $invoice->canVoid(),
+            'invoiceCanRefund' => $invoice->canRefund()
+        ];
     }
 }

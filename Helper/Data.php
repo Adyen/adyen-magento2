@@ -1001,6 +1001,7 @@ class Data extends AbstractHelper
             return false;
         }
 
+        // Those open invoice methods support auto capture.
         if (strpos($paymentMethod, self::AFTERPAY) !== false ||
             strpos($paymentMethod, self::KLARNA) !== false ||
             strpos($paymentMethod, self::RATEPAY) !== false ||
@@ -1763,7 +1764,7 @@ class Data extends AbstractHelper
      * @param string $liveEnvironment
      * @return string
      */
-    public function getPspReferenceSearchUrl($pspReference, $liveEnvironment)
+    public function getPspReferenceSearchUrl($pspReference, $liveEnvironment): string
     {
         if ($liveEnvironment === "true") {
             $checkoutEnvironment = "live";

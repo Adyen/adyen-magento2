@@ -9,17 +9,16 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Helper;
+namespace Adyen\Payment\Tests\Unit\Helper;
 
 use Adyen\Payment\Gateway\Data\Order\AddressAdapter;
 use Adyen\Payment\Helper\Address;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
 use Magento\Payment\Gateway\Data\AddressAdapterInterface;
-use PHPUnit\Framework\TestCase;
 
-class AddressTest extends TestCase
+class AddressTest extends AbstractAdyenTestCase
 {
-
     const HOUSE_NUMBER = '123';
     const HOUSE_NUMBER_LETTER = '456B';
     const HOUSE_NUMBER_SPACE_LETTER = '789 C';
@@ -40,16 +39,9 @@ class AddressTest extends TestCase
 
     protected function setUp(): void
     {
-
-        // TODO: Create superclass for this function
-        $mockLogger = $this->getMockBuilder(AdyenLogger::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
+        $mockLogger = $this->createMock(AdyenLogger::class);
         $this->addressHelper = new Address($mockLogger);
-        $this->addressAdapter = $this->getMockBuilder(AddressAdapter::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->addressAdapter = $this->createMock(AddressAdapter::class);
     }
 
     /**

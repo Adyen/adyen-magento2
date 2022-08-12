@@ -84,10 +84,6 @@ class Webhook
      * @var ChargedCurrency
      */
     private $chargedCurrency;
-    /**
-     * @var AdyenOrderPayment
-     */
-    private $adyenOrderPaymentHelper;
 
     private $boletoPaidAmount;
 
@@ -106,7 +102,6 @@ class Webhook
         TimezoneInterface $timezone,
         ConfigHelper $configHelper,
         ChargedCurrency $chargedCurrency,
-        AdyenOrderPayment $adyenOrderPaymentHelper,
         AdyenLogger $logger,
         WebhookHandlerFactory $webhookHandlerFactory
     ) {
@@ -117,7 +112,6 @@ class Webhook
         $this->timezone = $timezone;
         $this->configHelper = $configHelper;
         $this->chargedCurrency = $chargedCurrency;
-        $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->logger = $logger;
         self::$webhookHandlerFactory = $webhookHandlerFactory;
     }
@@ -147,7 +141,7 @@ class Webhook
 
             $this->logger->addAdyenNotificationCronjob(
                 sprintf("Notification %s will be processed", $notification->getEntityId()),
-                $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
+                $this->logger->getOrderContext($this->order)
             );
 
             // declare all variables that are needed
@@ -184,10 +178,28 @@ class Webhook
             $this->updateNotification($notification, false, true);
             $this->logger->addAdyenNotificationCronjob(
                 sprintf("Notification %s was processed", $notification->getEntityId()),
-                $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
+                $this->logger->getOrderContext($this->order)
             );
 
             return true;
+        } catch (InvalidDataException $e) {
+            /*
+             * Webhook Module throws InvalidDataException if the eventCode is not supported.
+             * Prevent re-process attempts and change the state of the notification to `done`.
+             */
+            $this->updateNotification($notification, false, true);
+            $this->handleNotificationError($notification, sprintf("Unsupported webhook notification: %s", $notification->getEventCode()));
+            $this->logger->addAdyenNotificationCronjob(
+                sprintf(
+                    "Notification %s had an error. Unsupported webhook notification: %s. %s",
+                    $notification->getEntityId(),
+                    $notification->getEventCode(),
+                    $e->getMessage()
+                ),
+                $this->logger->getOrderContext($this->order)
+            );
+
+            return false;
         } catch (Exception $e) {
             $this->updateNotification($notification, false, false);
             $this->handleNotificationError($notification, $e->getMessage());
@@ -198,7 +210,7 @@ class Webhook
                     $e->getMessage(),
                     $e->getTraceAsString()
                 ),
-                $this->adyenOrderPaymentHelper->getLogOrderContext($this->order)
+                $this->logger->getOrderContext($this->order)
             );
 
             return false;
