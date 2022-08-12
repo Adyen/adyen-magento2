@@ -188,7 +188,6 @@ class Json extends Action
                 }
             }
 
-            $this->adyenLogger->addAdyenNotification("The result is accepted");
 
             $this->getResponse()
                 ->clearHeader('Content-Type')
@@ -273,10 +272,6 @@ class Json extends Action
             return false;
         }
 
-        $this->adyenLogger->addAdyenNotification(
-            "The content of the notification item is: " . json_encode($response)
-        );
-
         // Handling duplicates
         if ($this->isDuplicate($response)) {
             return true;
@@ -286,6 +281,8 @@ class Json extends Action
         $this->loadNotificationFromRequest($notification, $response);
         $notification->setLive($notificationMode);
         $notification->save();
+
+        $this->adyenLogger->addAdyenResult(sprintf("Notification %s is accepted", $notification->getId()));
 
         return true;
     }
