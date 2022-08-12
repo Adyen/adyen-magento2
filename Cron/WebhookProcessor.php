@@ -65,7 +65,7 @@ class WebhookProcessor
         try {
             $this->doProcessWebhook();
         } catch (Exception $e) {
-            $this->adyenLogger->addAdyenNotificationCronjob($e->getMessage() . "\n" . $e->getTraceAsString());
+            $this->adyenLogger->addAdyenNotification($e->getMessage() . "\n" . $e->getTraceAsString());
             throw $e;
         }
     }
@@ -85,7 +85,7 @@ class WebhookProcessor
         foreach ($notifications as $notification) {
             // ignore duplicate notification
             if ($notification->isDuplicate(true)) {
-                $this->adyenLogger->addAdyenNotificationCronjob(
+                $this->adyenLogger->addAdyenNotification(
                     "This is a duplicate notification and will be ignored",
                     $notification->toArray(['entity_id', 'pspreference', 'event_code', 'success', 'original_reference'])
                 );
@@ -94,7 +94,7 @@ class WebhookProcessor
 
             // Skip notifications that should be delayed
             if ($notification->shouldSkipProcessing()) {
-                $this->adyenLogger->addAdyenNotificationCronjob(
+                $this->adyenLogger->addAdyenNotification(
                     sprintf(
                         '%s notification (entity_id: %s) for merchant_reference: %s is skipped! Wait 10 minute before processing.',
                         $notification->getEventCode(),
@@ -111,7 +111,7 @@ class WebhookProcessor
         }
 
         if ($count > 0) {
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf("Cronjob updated %s notification(s)", $count));
+            $this->adyenLogger->addAdyenNotification(sprintf("Cronjob updated %s notification(s)", $count));
         }
     }
 

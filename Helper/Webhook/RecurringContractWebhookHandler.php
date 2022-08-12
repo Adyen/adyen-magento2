@@ -103,7 +103,7 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
         } elseif ($paymentMethodCode === PaymentMethods::ADYEN_HPP && $this->configHelper->isStoreAlternativePaymentMethodEnabled()) {
             $order = $this->handlePaymentMethodContract($order, $notification);
         } else {
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 'Ignore recurring_contract notification because Vault feature is enabled'
             );
         }
@@ -125,7 +125,7 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
 
         $storeId = $order->getStoreId();
         $customerReference = $order->getCustomerId();
-        $this->adyenLogger->addAdyenNotificationCronjob(
+        $this->adyenLogger->addAdyenNotification(
             __(
                 'CustomerReference is: %1 and storeId is %2 and RecurringDetailsReference is %3',
                 $customerReference,
@@ -156,7 +156,7 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
             }
 
             if ($contractDetail == null) {
-                $this->adyenLogger->addAdyenNotificationCronjob(json_encode($listRecurringContracts));
+                $this->adyenLogger->addAdyenNotification(json_encode($listRecurringContracts));
                 $message = __(
                     'Failed to create billing agreement for this order ' .
                     '(listRecurringCall did not contain contract)'
@@ -189,7 +189,7 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
             if (!($billingAgreement && $billingAgreement->getAgreementId() > 0
                 && $billingAgreement->isValid())) {
                 // create new
-                $this->adyenLogger->addAdyenNotificationCronjob("Creating new Billing Agreement");
+                $this->adyenLogger->addAdyenNotification("Creating new Billing Agreement");
                 $order->getPayment()->setBillingAgreementData(
                     [
                         'billing_agreement_id' => $recurringDetailReference,
@@ -202,7 +202,7 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
                 $billingAgreement->importOrderPaymentWithRecurringDetailReference($order->getPayment(), $recurringDetailReference);
                 $message = __('Created billing agreement #%1.', $recurringDetailReference);
             } else {
-                $this->adyenLogger->addAdyenNotificationCronjob(
+                $this->adyenLogger->addAdyenNotification(
                     "Using existing Billing Agreement"
                 );
                 $billingAgreement->setIsObjectChanged(true);
@@ -230,7 +230,7 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
             $message = $exception->getMessage();
         }
 
-        $this->adyenLogger->addAdyenNotificationCronjob($message);
+        $this->adyenLogger->addAdyenNotification($message);
         $comment = $order->addStatusHistoryComment($message, $order->getStatus());
         $order->addRelatedObject($comment);
 
@@ -251,7 +251,7 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
             $payment = $order->getPayment();
             $customerId = $order->getCustomerId();
 
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 '$paymentMethodCode ' . $notification->getPaymentMethod()
             );
             if (!empty($notification->getPspreference())) {
@@ -265,7 +265,7 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
 
                 // In case the payment token for this payment method does not exist, create it based on the additionalData
                 if ($paymentTokenAlternativePaymentMethod === null) {
-                    $this->adyenLogger->addAdyenNotificationCronjob('Creating new gateway token');
+                    $this->adyenLogger->addAdyenNotification('Creating new gateway token');
                     $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
                         PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT
                     );
@@ -282,7 +282,7 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
                         ->setPublicHash($this->encryptor->getHash($customerId . $notification->getPspreference()))
                         ->setTokenDetails(json_encode($details));
                 } else {
-                    $this->adyenLogger->addAdyenNotificationCronjob('Gateway token already exists');
+                    $this->adyenLogger->addAdyenNotification('Gateway token already exists');
                 }
 
                 //SEPA tokens don't expire. The expiration date is set 10 years from now
@@ -291,11 +291,11 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
                 $paymentTokenAlternativePaymentMethod->setExpiresAt($expDate->format('Y-m-d H:i:s'));
 
                 $this->paymentTokenRepository->save($paymentTokenAlternativePaymentMethod);
-                $this->adyenLogger->addAdyenNotificationCronjob('New gateway token saved');
+                $this->adyenLogger->addAdyenNotification('New gateway token saved');
             }
         } catch (Exception $exception) {
             $message = $exception->getMessage();
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 "An error occurred while saving the payment method " . $message
             );
         }

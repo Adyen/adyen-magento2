@@ -142,7 +142,7 @@ class Invoice extends AbstractHelper
      */
     public function createInvoice(Order $order, Notification $notification, bool $isAutoCapture)
     {
-        $this->adyenLogger->addAdyenNotificationCronjob('Creating invoice for order');
+        $this->adyenLogger->addAdyenNotification('Creating invoice for order');
 
         if ($order->canInvoice()) {
             /* We do not use this inside a transaction because order->save()
@@ -177,12 +177,12 @@ class Invoice extends AbstractHelper
                 }
 
                 $this->invoiceRepository->save($invoice);
-                $this->adyenLogger->addAdyenNotificationCronjob(
+                $this->adyenLogger->addAdyenNotification(
                     sprintf('Notification %s created an invoice.', $notification->getEntityId()),
                     $this->adyenLogger->getInvoiceContext($invoice)
                 );
             } catch (Exception $e) {
-                $this->adyenLogger->addAdyenNotificationCronjob('Error saving invoice: ' . $e->getMessage());
+                $this->adyenLogger->addAdyenNotification('Error saving invoice: ' . $e->getMessage());
                 throw $e;
             }
 
@@ -196,7 +196,7 @@ class Invoice extends AbstractHelper
                 $this->invoiceSender->send($invoice);
             }
         } else {
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 sprintf('Unable to create invoice when handling Notification %s', $notification->getEntityId()),
                 array_merge($this->adyenLogger->getOrderContext($order), [
                     'canUnhold' => $order->canUnhold(),
