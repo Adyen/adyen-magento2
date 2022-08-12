@@ -18,6 +18,7 @@ jobs:
         php-version: ${{ matrix.php-version }}
         tools: composer:v1
         coverage: xdebug
+
     - name: Test plugin installation
       run: |
         echo "{\"http-basic\":{\"repo.magento.com\":{\"username\":\"${MAGENTO_USERNAME}\",\"password\":\"${MAGENTO_PASSWORD}\"}}}" > auth.json
@@ -31,10 +32,10 @@ jobs:
       run: vendor/bin/phpcs --extensions=php,phtml --error-severity=10 --ignore-annotations
 
     - name: Run PHPUnit
-      run: vendor/bin/phpunit --coverage-clover=clover.xml Test/Unit
+      run: vendor/bin/phpunit --coverage-clover ./clover.xml Test/Unit
 
     - name: Fix code coverage paths
-      run: sed -i "s;`pwd`/;;g" clover.xml
+      run: sed -i "s;`pwd`/;;g" ./clover.xml
 
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
