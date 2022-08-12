@@ -63,7 +63,7 @@ class AdyenLogger extends Logger
     }
 
     /**
-     * Adds a log record at the INFO level.
+     * Adds a webhook notification log record.
      *
      * This method allows for compatibility with common interfaces.
      *
@@ -103,7 +103,7 @@ class AdyenLogger extends Logger
      * @param array $context The log context
      * @return Boolean Whether the record has been processed
      */
-    public function addNotificationLog($message, array $context = [])
+    public function addAdyenInfoLog($message, array $context = [])
     {
         return $this->addRecord(static::INFO, $message, $context);
     }
