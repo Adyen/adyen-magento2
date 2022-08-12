@@ -61,15 +61,15 @@ class CancelOrRefundWebhookHandler implements WebhookHandlerInterface
             }
         } else {
             if ($order->isCanceled() || $order->getState() === MagentoOrder::STATE_HOLDED) {
-                $this->adyenLogger->addAdyenNotificationCronjob(
+                $this->adyenLogger->addAdyenNotification(
                     sprintf('Order %s is already cancelled or held, so do nothing', $order->getIncrementId())
                 );
             } else {
                 if ($order->canCancel() || $order->canHold()) {
-                    $this->adyenLogger->addAdyenNotificationCronjob(sprintf('Attempting to cancel order %s', $orderId));
+                    $this->adyenLogger->addAdyenNotification(sprintf('Attempting to cancel order %s', $orderId));
                     $this->orderHelper->holdCancelOrder($order, $notification);
                 } else {
-                    $this->adyenLogger->addAdyenNotificationCronjob(sprintf('Attempting to refund order %s', $orderId));
+                    $this->adyenLogger->addAdyenNotification(sprintf('Attempting to refund order %s', $orderId));
                     $this->orderHelper->refundOrder($order, $notification);
                 }
             }

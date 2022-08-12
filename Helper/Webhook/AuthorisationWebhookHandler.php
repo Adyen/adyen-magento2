@@ -167,7 +167,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         $paymentPreviouslyCaptured = $order->getData('adyen_notification_payment_captured');
 
         if ($previousAdyenEventCode == "AUTHORISATION : TRUE" || !empty($paymentPreviouslyCaptured)) {
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 'Order is not cancelled because previous notification
                                     was an authorisation that succeeded and payment was captured'
             );
@@ -177,7 +177,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
 
         // Order is already Cancelled
         if ($order->isCanceled() || $order->getState() === Order::STATE_HOLDED) {
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 "Order is already cancelled or holded, do nothing"
             );
 
@@ -224,7 +224,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         } else {
             $order = $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
             $order->addStatusHistoryComment(__('Capture Mode set to Manual'), $order->getStatus());
-            $this->adyenLogger->addAdyenNotificationCronjob('Capture mode is set to Manual');
+            $this->adyenLogger->addAdyenNotification('Capture mode is set to Manual');
         }
 
         return $order;
