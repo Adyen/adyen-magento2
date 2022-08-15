@@ -32,12 +32,10 @@
 
     <coverage processUncoveredFiles="false">
         <include>
-            <directory suffix=".php">../Block</directory>
-            <directory suffix=".php">../Comment</directory>
-            <directory suffix=".php">../Gateway</directory>
-            <directory suffix=".php">../Helper</directory>
-            <directory suffix=".php">../Model</directory>
-            <directory suffix=".php">../Ui</directory>
+            <directory suffix=".php">../.</directory>
         </include>
+        <exclude>
+            <directory>../vendor</directory>
+        </exclude>
     </coverage>
 </phpunit>
