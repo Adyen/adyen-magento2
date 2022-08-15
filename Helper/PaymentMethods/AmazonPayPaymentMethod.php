@@ -13,7 +13,7 @@
 namespace Adyen\Payment\Helper\PaymentMethods;
 
 
-class AmazonPayPaymentMethod implements PaymentMethodInterface
+class AmazonPayPaymentMethod extends AbstractWalletPaymentMethod
 {
     const TX_VARIANT = 'amazonpay';
     const NAME = 'Amazon Pay';
@@ -44,11 +44,6 @@ class AmazonPayPaymentMethod implements PaymentMethodInterface
     }
 
     public function supportsSubscription(): bool
-    {
-        return true;
-    }
-
-    public function isWalletPaymentMethod(): bool
     {
         return true;
     }

@@ -11,7 +11,7 @@
  */
 namespace Adyen\Payment\Helper\PaymentMethods;
 
-class ApplePayPaymentMethod implements PaymentMethodInterface
+class ApplePayPaymentMethod extends AbstractWalletPaymentMethod
 {
     const TX_VARIANT = 'applepay';
     const NAME = 'Apple Pay';
@@ -42,11 +42,6 @@ class ApplePayPaymentMethod implements PaymentMethodInterface
     }
 
     public function supportsSubscription(): bool
-    {
-        return true;
-    }
-
-    public function isWalletPaymentMethod(): bool
     {
         return true;
     }
