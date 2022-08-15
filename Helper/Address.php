@@ -89,11 +89,6 @@ class Address
         }
     }
 
-    public function getHouseNameSonarTest(array $addressArray)
-    {
-        return implode(',', $addressArray);
-    }
-
     /**
      * @param string[] $addressArray
      * @return array
