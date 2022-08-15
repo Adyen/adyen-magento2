@@ -882,11 +882,6 @@
             <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Logger\Handler\AdyenCronjob">
-        <arguments>
-            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
-        </arguments>
-    </type>
     <type name="Adyen\Payment\Logger\Handler\AdyenInfo">
         <arguments>
             <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
@@ -909,7 +904,6 @@
                 <item name="adyenDebug" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenDebug</item>
                 <item name="adyenNotification" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenNotification</item>
                 <item name="adyenResult" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenResult</item>
-                <item name="adyenCronjob" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenCronjob</item>
                 <item name="adyenInfo" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenInfo</item>
                 <item name="adyenError" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenError</item>
                 <item name="adyenWarning" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenWarning</item>
@@ -969,6 +963,16 @@
         </arguments>
     </type>
     <type name="Adyen\Payment\Helper\Webhook">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Helper\Webhook\WebhookHandlerFactory">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
+    <type name="Adyen\Payment\Helper\PaymentMethods">
         <arguments>
             <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
         </arguments>

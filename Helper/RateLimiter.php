@@ -15,7 +15,7 @@ use Adyen\Payment\Model\Cache\Type\AdyenCache;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Framework\Session\SessionManagerInterface;
+use Adyen\Payment\Logger\AdyenLogger;
 
 /**
  * Class RateLimiter
@@ -38,9 +38,9 @@ class RateLimiter
     private $remoteAddress;
 
     /**
-     * @var SessionManagerInterface
+     * @var AdyenLogger
      */
-    private $sessionManager;
+    private $adyenLogger;
 
     /**
      * Initial cache lifetime
@@ -52,6 +52,11 @@ class RateLimiter
      */
     const POWER = 2;
 
+    /**
+     * Number of allowed notification requests
+     */
+    const NUMBER_OF_ATTEMPTS = 6;
+
 
     /**
      * RateLimiter constructor.
@@ -59,30 +64,36 @@ class RateLimiter
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
      * @param RemoteAddress $remoteAddress
-     * @param SessionManagerInterface $sessionManager
+     * @param AdyenLogger $adyenLogger
      */
 
     public function __construct(
         CacheInterface $cache,
         SerializerInterface $serializer,
         RemoteAddress $remoteAddress,
-        SessionManagerInterface $sessionManager
+        AdyenLogger $adyenLogger
     ) {
         $this->cache = $cache;
         $this->serializer = $serializer;
         $this->remoteAddress = $remoteAddress;
-        $this->sessionManager = $sessionManager;
+        $this->adyenLogger = $adyenLogger;
     }
 
 
     private function getCacheId()
     {
-        return "adyen-logins-" . $this->sessionManager->getSessionId() . "-" . $this->remoteAddress->getRemoteAddress();
+        return "adyen-logins-" . $this->remoteAddress->getRemoteAddress();
     }
 
     public function saveSessionIdIpAddressToCache()
     {
         $cacheValue = $this->getNumberOfAttempts();
+
+        if($cacheValue === self::NUMBER_OF_ATTEMPTS) {
+            $this->adyenLogger->addAdyenDebug(
+                sprintf("Webhook from IP Address %s has been rejected because the allowed number of authentication attempts has been exceeded.", $this->remoteAddress->getRemoteAddress())
+            );
+        }
 
         $this->cache->save(
             $this->serializer->serialize($cacheValue + 1),

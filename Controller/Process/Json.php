@@ -84,11 +84,6 @@ class Json extends Action
     private $notificationReceiver;
 
     /**
-     * Number of allowed notification requests
-     */
-    const NUMBER_OF_ATTEMPTS = 6;
-
-    /**
      * Json constructor.
      *
      * @param Context $context
@@ -193,7 +188,6 @@ class Json extends Action
                 }
             }
 
-            $this->adyenLogger->addAdyenNotification("The result is accepted");
 
             $this->getResponse()
                 ->clearHeader('Content-Type')
@@ -226,7 +220,7 @@ class Json extends Action
         );
 
         // if the number of wrongful attempts is not less than 6, save it in cache
-        if($this->rateLimiterHelper->getNumberOfAttempts() >= self::NUMBER_OF_ATTEMPTS) {
+        if($this->rateLimiterHelper->getNumberOfAttempts() >= $this->rateLimiterHelper::NUMBER_OF_ATTEMPTS) {
             $this->rateLimiterHelper->saveSessionIdIpAddressToCache();
             return false;
         }
@@ -278,10 +272,6 @@ class Json extends Action
             return false;
         }
 
-        $this->adyenLogger->addAdyenNotification(
-            "The content of the notification item is: " . json_encode($response)
-        );
-
         // Handling duplicates
         if ($this->isDuplicate($response)) {
             return true;
@@ -291,6 +281,8 @@ class Json extends Action
         $this->loadNotificationFromRequest($notification, $response);
         $notification->setLive($notificationMode);
         $notification->save();
+
+        $this->adyenLogger->addAdyenResult(sprintf("Notification %s is accepted", $notification->getId()));
 
         return true;
     }

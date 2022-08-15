@@ -54,6 +54,7 @@
             <label>Order status: order creation</label>
             <tooltip>Status given to newly created orders before payment result confirmation via server webhooks from Adyen.</tooltip>
             <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
+            <backend_model>Adyen\Payment\Model\Config\Backend\OrderStatus</backend_model>
             <config_path>payment/adyen_abstract/order_status</config_path>
         </field>
         <field id="payment_pre_authorized" translate="label" type="select" sortOrder="61" showInDefault="1" showInWebsite="1" showInStore="0">

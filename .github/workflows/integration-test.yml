@@ -41,9 +41,6 @@ jobs:
 
       - run: docker exec magento2-container /etc/init.d/cron stop
 
-      - name: Run unit tests
-        run: docker exec -u www-data magento2-container make unit
-
       - name: Run GraphQL tests
         run: docker exec magento2-container make graphql
 

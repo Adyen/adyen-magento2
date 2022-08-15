@@ -317,7 +317,16 @@ class Result extends \Magento\Framework\App\Action\Action
 
         $this->_adyenLogger->addAdyenResult('Updating the order');
 
-        $paymentMethod = isset($response['paymentMethod']) ? trim($response['paymentMethod']) : '';
+        if (isset($response['paymentMethod']['brand'])) {
+            $paymentMethod = $response['paymentMethod']['brand'];
+        }
+        elseif (isset($response['paymentMethod']['type'])) {
+            $paymentMethod = $response['paymentMethod']['type'];
+        }
+        else {
+            $paymentMethod = '';
+        }
+
         $pspReference = isset($response['pspReference']) ? trim($response['pspReference']) : '';
 
         $type = 'Adyen Result URL response:';

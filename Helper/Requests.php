@@ -146,7 +146,7 @@ class Requests extends AbstractHelper
                 $request['countryCode'] = $countryId;
             }
 
-            $request['shopperLocale'] = $this->adyenHelper->getCurrentLocaleCode($storeId);
+            $request['shopperLocale'] = $this->adyenHelper->getStoreLocale($storeId);
         }
 
         return $request;

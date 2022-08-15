@@ -50,19 +50,29 @@ class ReturnUrlDataBuilder implements BuilderInterface
      * @return array
      * @throws NoSuchEntityException
      */
-    public function build(array $buildSubject)
+    public function build(array $buildSubject): array
     {
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = SubjectReader::readPayment($buildSubject);
         $payment = $paymentDataObject->getPayment();
         /** @var Order $order */
         $order = $payment->getOrder();
+        $merchantReference = $order->getIncrementId();
+        $customReturnUrl = $payment->getAdditionalInformation('returnUrl');
 
-        $returnUrl = $this->returnUrlHelper->getStoreReturnUrl($this->storeManager->getStore()->getId())
-            . '?merchantReference=' . $order->getIncrementId();
+        if (!empty($customReturnUrl)) {
+            $returnUrl = strtr($customReturnUrl, [
+                ':merchantReference' => $merchantReference
+            ]);
+        } else {
+            $returnUrl = $this->returnUrlHelper->getStoreReturnUrl($this->storeManager->getStore()->getId())
+                . '?merchantReference=' . $merchantReference;
+        }
 
-        $requestBody['body']['returnUrl'] = $returnUrl;
-
-        return $requestBody;
+        return [
+            'body' => [
+                'returnUrl' => $returnUrl
+            ]
+        ];
     }
 }
