@@ -37,14 +37,12 @@
         </testsuite>
     </testsuites>
 
-    <coverage processUncoveredFiles="false">
-        <include>
-            <directory suffix=".php">../Block</directory>
-            <directory suffix=".php">../Comment</directory>
-            <directory suffix=".php">../Gateway</directory>
-            <directory suffix=".php">../Helper</directory>
-            <directory suffix=".php">../Model</directory>
-            <directory suffix=".php">../Ui</directory>
-        </include>
-    </coverage>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">..</directory>
+            <exclude>
+                <directory>vendor</directory>
+            </exclude>
+        </whitelist>
+    </filter>
 </phpunit>
