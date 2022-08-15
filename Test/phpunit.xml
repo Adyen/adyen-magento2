@@ -12,16 +12,39 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/6.3/phpunit.xsd"
         bootstrap="./bootstrap.php"
+        forceCoversAnnotation="false"
+        beStrictAboutCoversAnnotation="false"
+        beStrictAboutOutputDuringTests="true"
+        beStrictAboutTodoAnnotatedTests="true"
+        convertDeprecationsToExceptions="true"
+        failOnRisky="false"
+        failOnWarning="false"
+        verbose="true"
 >
+    <php>
+        <ini name="display_errors" value="On"/>
+        <ini name="memory_limit" value="-1"/>
+        <ini name="max_execution_time" value="0"/>
+        <ini name="display_startup_errors" value="On"/>
+        <ini name="error_reporting" value="E_ALL"/>
+        <ini name="date.timezone" value="UTC"/>
+        <server name="SHELL_VERBOSITY" value="-1"/>
+    </php>
+
     <testsuites>
         <testsuite name="default">
             <directory>.</directory>
         </testsuite>
     </testsuites>
-    <coverage>
+
+    <coverage processUncoveredFiles="false">
         <include>
-            <directory suffix=".php">../.</directory>
+            <directory suffix=".php">../Block</directory>
+            <directory suffix=".php">../Comment</directory>
+            <directory suffix=".php">../Gateway</directory>
+            <directory suffix=".php">../Helper</directory>
+            <directory suffix=".php">../Model</directory>
+            <directory suffix=".php">../Ui</directory>
         </include>
     </coverage>
-
 </phpunit>
