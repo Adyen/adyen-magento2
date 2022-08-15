@@ -23,8 +23,6 @@ class AdyenLogger extends Logger
     const ADYEN_DEBUG = 101;
     const ADYEN_NOTIFICATION = 201;
     const ADYEN_RESULT = 202;
-    const ADYEN_NOTIFICATION_CRONJOB = 203;
-
     /**
      * Logging levels from syslog protocol defined in RFC 5424
      * Overrule the default to add Adyen specific loggers to log into seperate files
@@ -37,7 +35,6 @@ class AdyenLogger extends Logger
         200 => 'INFO',
         201 => 'ADYEN_NOTIFICATION',
         202 => 'ADYEN_RESULT',
-        203 => 'ADYEN_NOTIFICATION_CRONJOB',
         250 => 'NOTICE',
         300 => 'WARNING',
         400 => 'ERROR',
@@ -73,11 +70,6 @@ class AdyenLogger extends Logger
     public function addAdyenResult($message, array $context = [])
     {
         return $this->addRecord(static::ADYEN_RESULT, $message, $context);
-    }
-
-    public function addAdyenNotificationCronjob($message, array $context = [])
-    {
-        return $this->addRecord(static::ADYEN_NOTIFICATION_CRONJOB, $message, $context);
     }
 
     /**
