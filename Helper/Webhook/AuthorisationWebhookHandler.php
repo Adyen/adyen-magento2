@@ -244,7 +244,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      * @return bool
      * @throws \Exception
      */
-    private function checkPaybylinkCancellation(Order $order, Notification $notification)
+    private function canCancelPayByLinkOrder(Order $order, Notification $notification): bool
     {
         $payByLinkFailureCount = $order->getPayment()->getAdditionalInformation('payByLinkFailureCount');
         $payByLinkFailureCount = isset($payByLinkFailureCount) ? ++$payByLinkFailureCount : 1;
