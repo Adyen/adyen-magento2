@@ -53,7 +53,7 @@ class PaymentMethodFactory
     {
         $card = $txVariant->getCard();
 
-        switch ($txVariant) {
+        switch ($txVariant->getPaymentMethod()) {
             case ApplePayPaymentMethod::TX_VARIANT:
                 return new ApplePayPaymentMethod($card);
             case AmazonPayPaymentMethod::TX_VARIANT:

@@ -14,6 +14,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Exception\InvalidAdditionalDataException;
 use Adyen\Payment\Exception\PaymentMethodException;
+use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -133,7 +134,7 @@ class Vault
      * @param $payment
      * @param array $additionalData
      */
-    public function saveRecurringCardDetails($payment, array $additionalData)
+    public function saveRecurringCardDetails($payment, array $additionalData, PaymentMethodInterface $paymentMethod = null)
     {
         if (!$this->isCardVaultEnabled($payment->getOrder()->getStoreId()) &&
             !$this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())) {
@@ -145,7 +146,7 @@ class Vault
         }
 
         try {
-            $paymentToken = $this->getVaultPaymentToken($payment, $additionalData);
+            $paymentToken = $this->getVaultPaymentToken($payment, $additionalData, $paymentMethod);
         } catch (Exception $exception) {
             $this->adyenLogger->error(json_encode($exception));
             return;
@@ -315,7 +316,7 @@ class Vault
      * @return PaymentTokenInterface|null
      * @throws Exception
      */
-    private function getVaultPaymentToken($payment, array $additionalData): PaymentTokenInterface
+    private function getVaultPaymentToken($payment, array $additionalData, PaymentMethodInterface $paymentMethod = null): PaymentTokenInterface
     {
         // Check if paymentToken exists already
         $paymentToken = $this->paymentTokenManagement->getByGatewayToken(
@@ -338,7 +339,15 @@ class Vault
 
         $paymentToken->setExpiresAt($this->getExpirationDate($additionalData[self::EXPIRY_DATE]));
 
-        $details = ['type' => $additionalData[self::PAYMENT_METHOD]];
+        if (isset($paymentMethod)) {
+            $details = [
+                //TODO: Change abstract vs interface here
+                'type' => $paymentMethod->getCardScheme(),
+                'walletType' => $paymentMethod->getTxVariant()
+            ];
+        } else {
+            $details = ['type' => $additionalData[self::PAYMENT_METHOD]];
+        }
 
         if (!empty($additionalData[self::CARD_SUMMARY])) {
             $details['maskedCC'] =  $additionalData[self::CARD_SUMMARY];

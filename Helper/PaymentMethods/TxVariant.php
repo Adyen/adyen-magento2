@@ -2,8 +2,6 @@
 
 namespace Adyen\Payment\Helper\PaymentMethods;
 
-use Magento\Tests\NamingConvention\true\string;
-
 class TxVariant
 {
     /** @var string */
