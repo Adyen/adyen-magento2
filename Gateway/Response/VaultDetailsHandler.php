@@ -25,6 +25,7 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Vault\Model\Ui\VaultConfigProvider;
 
 class VaultDetailsHandler implements HandlerInterface
 {
@@ -80,6 +81,7 @@ class VaultDetailsHandler implements HandlerInterface
             if ($storePaymentMethods && $paymentInstanceCode === AdyenHppConfigProvider::CODE) {
                 $paymentMethod = $response['additionalData']['paymentMethod'];
                 try {
+                    $payment->setAdditionalInformation(VaultConfigProvider::IS_ACTIVE_CODE, true);
                     $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($paymentMethod);
                     if ($adyenPaymentMethod instanceof AbstractWalletPaymentMethod) {
                         $this->vaultHelper->saveRecurringCardDetails($payment, $response['additionalData'], $adyenPaymentMethod);

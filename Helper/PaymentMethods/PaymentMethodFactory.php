@@ -44,7 +44,7 @@ class PaymentMethodFactory
                 return new GooglePayPaymentMethod($txVariantObject->getCard());
             default:
                 $message = sprintf('Unknown txVariant: %s', $txVariant);
-                self::$adyenLogger->error($message);
+                self::$adyenLogger->debug($message);
                 throw new PaymentMethodException(__($message));
         }
     }

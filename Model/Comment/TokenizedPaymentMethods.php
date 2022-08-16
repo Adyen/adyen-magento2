@@ -22,6 +22,6 @@ class TokenizedPaymentMethods implements CommentInterface
      */
     public function getCommentText($elementValue): string
     {
-        return "Selected payment methods will automatically be tokenized";
+        return 'Selected payment methods will automatically be tokenized on every transaction.';
     }
 }

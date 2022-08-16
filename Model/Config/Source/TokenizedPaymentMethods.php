@@ -13,10 +13,10 @@ class TokenizedPaymentMethods implements OptionSourceInterface
     public function toOptionArray()
     {
         return [
-            [
+            /*[
                 'value' => PaymentMethods\ApplePayPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\ApplePayPaymentMethod::NAME
-            ],
+            ],*/
             [
                 'value' => PaymentMethods\AmazonPayPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\AmazonPayPaymentMethod::NAME
