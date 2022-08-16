@@ -13,6 +13,7 @@ namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\Payment\Exception\PaymentMethodException;
 use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
@@ -77,17 +78,16 @@ class VaultDetailsHandler implements HandlerInterface
             $storePaymentMethods = $this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId);
 
             if ($storePaymentMethods && $paymentInstanceCode === AdyenHppConfigProvider::CODE) {
-                $brand = $response['additionalData']['paymentMethod'];
+                $paymentMethod = $response['additionalData']['paymentMethod'];
                 try {
-                    //TODO: Change abstract vs interface here
-                    $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
-                    if ($adyenPaymentMethod->isWalletPaymentMethod()) {
+                    $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($paymentMethod);
+                    if ($adyenPaymentMethod instanceof AbstractWalletPaymentMethod) {
                         $this->vaultHelper->saveRecurringCardDetails($payment, $response['additionalData'], $adyenPaymentMethod);
                     } else {
                         $this->vaultHelper->saveRecurringPaymentMethodDetails($payment, $response['additionalData']);
                     }
                 } catch (PaymentMethodException $e) {
-                    $this->adyenLogger->error(sprintf('Unable to create payment method with tx variant %s in details handler', $brand));
+                    $this->adyenLogger->error(sprintf('Unable to create payment method with tx variant %s in details handler', $paymentMethod));
                 }
             } else {
                 $order = $payment->getOrder();

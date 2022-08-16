@@ -149,18 +149,18 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
 
         // Set ccType. If payment method is tokenizable, update additional information
         if (!empty($additionalData[self::BRAND_CODE])) {
-            $brand = $additionalData[self::BRAND_CODE];
-            $paymentInfo->setCcType($brand);
+            $paymentMethod = $additionalData[self::BRAND_CODE];
+            $paymentInfo->setCcType($paymentMethod);
 
             try {
-                $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
+                $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($paymentMethod);
                 if ($this->vaultHelper->allowRecurringOnPaymentMethod($adyenPaymentMethod, $storeId)) {
                     $paymentInfo->setAdditionalInformation(VaultConfigProvider::IS_ACTIVE_CODE, true);
                 }
             } catch (PaymentMethodException $exception) {
-                $this->adyenLogger->error(sprintf('Unable to create payment method with tx variant %s in observer', $brand));
+                $this->adyenLogger->error(sprintf('Unable to create payment method with tx variant %s in observer', $paymentMethod));
             } catch (NoSuchEntityException $exception) {
-                $this->adyenLogger->error(sprintf('Unable to find payment method with tx variant %s in observer', $brand));
+                $this->adyenLogger->error(sprintf('Unable to find payment method with tx variant %s in observer', $paymentMethod));
             }
         }
     }

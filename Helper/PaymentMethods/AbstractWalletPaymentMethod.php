@@ -26,11 +26,6 @@ abstract class AbstractWalletPaymentMethod implements PaymentMethodInterface
         $this->cardScheme = $cardScheme;
     }
 
-    public function isWalletPaymentMethod(): bool
-    {
-        return true;
-    }
-
     public function getCardScheme(): string
     {
         return $this->cardScheme;

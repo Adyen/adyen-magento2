@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Exception\PaymentMethodException;
+use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
@@ -226,7 +227,7 @@ class PaymentResponseHandler
                         $brand = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
                         try {
                             $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
-                            if ($adyenPaymentMethod->isWalletPaymentMethod()) {
+                            if ($adyenPaymentMethod instanceof AbstractWalletPaymentMethod) {
                                 $this->vaultHelper->saveRecurringCardDetails($payment, $paymentsResponse['additionalData']);
                             } else {
                                 $this->vaultHelper->saveRecurringPaymentMethodDetails($payment, $paymentsResponse['additionalData']);

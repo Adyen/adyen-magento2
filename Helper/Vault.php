@@ -134,7 +134,7 @@ class Vault
      * @param $payment
      * @param array $additionalData
      */
-    public function saveRecurringCardDetails($payment, array $additionalData, PaymentMethodInterface $paymentMethod = null)
+    public function saveRecurringCardDetails($payment, array $additionalData, AbstractWalletPaymentMethod $paymentMethod = null)
     {
         if (!$this->isCardVaultEnabled($payment->getOrder()->getStoreId()) &&
             !$this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())) {
@@ -316,7 +316,7 @@ class Vault
      * @return PaymentTokenInterface|null
      * @throws Exception
      */
-    private function getVaultPaymentToken($payment, array $additionalData, PaymentMethodInterface $paymentMethod = null): PaymentTokenInterface
+    private function getVaultPaymentToken($payment, array $additionalData, AbstractWalletPaymentMethod $paymentMethod = null): PaymentTokenInterface
     {
         // Check if paymentToken exists already
         $paymentToken = $this->paymentTokenManagement->getByGatewayToken(
@@ -341,7 +341,6 @@ class Vault
 
         if (isset($paymentMethod)) {
             $details = [
-                //TODO: Change abstract vs interface here
                 'type' => $paymentMethod->getCardScheme(),
                 'walletType' => $paymentMethod->getTxVariant()
             ];

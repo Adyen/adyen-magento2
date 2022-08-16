@@ -26,7 +26,5 @@ interface PaymentMethodInterface
 
     public function supportsAutoCapture(): bool;
 
-    public function isWalletPaymentMethod(): bool;
-
     public function supportsUnscheduledCardOnFile(): bool;
 }
