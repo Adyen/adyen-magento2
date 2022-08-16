@@ -30,38 +30,20 @@ class PaymentMethodFactory
     public static function createAdyenPaymentMethod(string $txVariant): PaymentMethodInterface
     {
         $txVariantObject = new TxVariant($txVariant);
-        if ($txVariantObject->isWalletVariant()) {
-            return self::createWalletAdyenPaymentMethod($txVariantObject);
-        }
 
-        switch ($txVariant) {
+        switch ($txVariantObject->getPaymentMethod()) {
             case PayPalPaymentMethod::TX_VARIANT:
                 return new PayPalPaymentMethod();
             case SepaPaymentMethod::TX_VARIANT:
                 return new SepaPaymentMethod();
+            case ApplePayPaymentMethod::TX_VARIANT:
+                return new ApplePayPaymentMethod($txVariantObject->getCard());
+            case AmazonPayPaymentMethod::TX_VARIANT:
+                return new AmazonPayPaymentMethod($txVariantObject->getCard());
+            case GooglePayPaymentMethod::TX_VARIANT:
+                return new GooglePayPaymentMethod($txVariantObject->getCard());
             default:
                 $message = sprintf('Unknown txVariant: %s', $txVariant);
-                self::$adyenLogger->error($message);
-                throw new PaymentMethodException(__($message));
-        }
-    }
-
-    /**
-     * @throws PaymentMethodException
-     */
-    public static function createWalletAdyenPaymentMethod(TxVariant $txVariant): PaymentMethodInterface
-    {
-        $card = $txVariant->getCard();
-
-        switch ($txVariant->getPaymentMethod()) {
-            case ApplePayPaymentMethod::TX_VARIANT:
-                return new ApplePayPaymentMethod($card);
-            case AmazonPayPaymentMethod::TX_VARIANT:
-                return new AmazonPayPaymentMethod($card);
-            case GooglePayPaymentMethod::TX_VARIANT:
-                return new GooglePayPaymentMethod($card);
-            default:
-                $message = sprintf('Unknown txVariant: %s', $txVariant->getPaymentMethod());
                 self::$adyenLogger->error($message);
                 throw new PaymentMethodException(__($message));
         }

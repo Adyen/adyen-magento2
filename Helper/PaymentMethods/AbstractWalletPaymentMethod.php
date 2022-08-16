@@ -21,7 +21,7 @@ abstract class AbstractWalletPaymentMethod implements PaymentMethodInterface
 
     public abstract function supportsUnscheduledCardOnFile(): bool;
 
-    public function __construct(string $cardScheme)
+    public function __construct(?string $cardScheme)
     {
         $this->cardScheme = $cardScheme;
     }
