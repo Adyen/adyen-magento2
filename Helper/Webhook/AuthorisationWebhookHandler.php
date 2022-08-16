@@ -187,7 +187,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
 
         // If the payment method is PBL, use failure counter before cancelling the order
         if ($order->getPayment()->getMethod() == AdyenPayByLinkConfigProvider::CODE) {
-            if ($this->checkPaybylinkCancellation($order, $notification) === false) {
+            if (!$this->canCancelPayByLinkOrder($order, $notification)) {
                 return $order;
             }
         }
