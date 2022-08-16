@@ -22,6 +22,7 @@ use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -91,7 +92,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         if ($transitionState === PaymentStates::STATE_PAID) {
             $order = $this->handleSuccessfulAuthorisation($order, $notification);
         } elseif ($transitionState === PaymentStates::STATE_FAILED) {
-            $order = $this->handleFailedAuthorisation($order);
+            $order = $this->handleFailedAuthorisation($order, $notification);
         }
 
         return $order;
@@ -154,7 +155,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
     /**
      * @throws LocalizedException
      */
-    private function handleFailedAuthorisation(Order $order): Order
+    private function handleFailedAuthorisation(Order $order, Notification $notification): Order
     {
         $previousAdyenEventCode = $order->getData('adyen_notification_event_code');
 
@@ -182,6 +183,13 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             );
 
             return $order;
+        }
+
+        // If the payment method is PBL, use failure counter before cancelling the order
+        if ($order->getPayment()->getMethod() == AdyenPayByLinkConfigProvider::CODE) {
+            if ($this->checkPaybylinkCancellation($order, $notification) === false) {
+                return $order;
+            }
         }
 
         // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
@@ -228,5 +236,46 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         }
 
         return $order;
+    }
+
+    /**
+     * @param Order $order
+     * @param Notification $notification
+     * @return bool
+     * @throws \Exception
+     */
+    private function checkPaybylinkCancellation(Order $order, Notification $notification)
+    {
+        $payByLinkFailureCount = $order->getPayment()->getAdditionalInformation('payByLinkFailureCount');
+        $payByLinkFailureCount = isset($payByLinkFailureCount) ? ++$payByLinkFailureCount : 1;
+
+        $order->getPayment()->setAdditionalInformation('payByLinkFailureCount', $payByLinkFailureCount);
+
+        if ($payByLinkFailureCount < AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT) {
+            $notification->setDone(true);
+            $notification->setProcessing(false);
+            $notification->save();
+
+            $order->addStatusHistoryComment(__(sprintf(
+                "Order wasn't cancelled by this webhook notification. Pay by Link failure count: %s/%s",
+                $payByLinkFailureCount,
+                AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT
+            )), false);
+
+            $this->adyenLogger->addAdyenNotification(
+                __(sprintf(
+                    "Order wasn't cancelled by this webhook notification. Pay by Link failure count: %s/%s",
+                    $payByLinkFailureCount,
+                    AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT
+                )),
+                $this->adyenLogger->getOrderContext($order)
+            );
+
+            return false;
+        }
+        else {
+            // Order can be cancelled.
+            return true;
+        }
     }
 }
