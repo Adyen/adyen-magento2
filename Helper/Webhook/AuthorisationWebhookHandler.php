@@ -251,31 +251,30 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
 
         $order->getPayment()->setAdditionalInformation('payByLinkFailureCount', $payByLinkFailureCount);
 
-        if ($payByLinkFailureCount < AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT) {
-            $notification->setDone(true);
-            $notification->setProcessing(false);
-            $notification->save();
-
-            $order->addStatusHistoryComment(__(sprintf(
-                "Order wasn't cancelled by this webhook notification. Pay by Link failure count: %s/%s",
-                $payByLinkFailureCount,
-                AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT
-            )), false);
-
-            $this->adyenLogger->addAdyenNotification(
-                __(sprintf(
-                    "Order wasn't cancelled by this webhook notification. Pay by Link failure count: %s/%s",
-                    $payByLinkFailureCount,
-                    AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT
-                )),
-                $this->adyenLogger->getOrderContext($order)
-            );
-
-            return false;
-        }
-        else {
+        if ($payByLinkFailureCount >= AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT) {
             // Order can be cancelled.
             return true;
         }
+
+        $notification->setDone(true);
+        $notification->setProcessing(false);
+        $notification->save();
+
+        $order->addStatusHistoryComment(__(sprintf(
+            "Order wasn't cancelled by this webhook notification. Pay by Link failure count: %s/%s",
+            $payByLinkFailureCount,
+            AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT
+        )), false);
+
+        $this->adyenLogger->addAdyenNotification(
+            __(sprintf(
+                "Order wasn't cancelled by this webhook notification. Pay by Link failure count: %s/%s",
+                $payByLinkFailureCount,
+                AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT
+            )),
+            $this->adyenLogger->getOrderContext($order)
+        );
+
+        return false;
     }
 }
