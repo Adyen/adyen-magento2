@@ -77,7 +77,7 @@ class PointOfSale
      * This getter makes it possible to overwrite the customer id from other plugins
      * Use this function to get the customer id so we can keep using this plugin in the UCD
      */
-    public function getCustomerId(Quote $quote): string
+    public function getCustomerId(Quote $quote): ?string
     {
         return $quote->getCustomerId();
     }

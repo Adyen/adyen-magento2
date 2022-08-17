@@ -1,0 +1,54 @@
+<?php
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2022 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+// @codingStandardsIgnoreFile
+
+/**
+ * @var \Adyen\Payment\Block\Form\PosCloud $block
+ */
+
+$code = $block->escapeHtml($block->getMethodCode());
+$terminals = $block->getTerminals();
+
+?>
+
+
+<fieldset
+    class="admin__fieldset payment-method"
+    id="payment_form_<?= $escaper->escapeHtml($block->getMethodCode()) ?>"
+    style="display: none"
+>
+
+    <?php if ($terminals): ?>
+        <div class="admin__field-control">
+            <select
+                id="<?= /* @noEscape */ $code; ?>_connected_terminals"
+                class="required-entry admin__control-select"
+                name="payment[terminal_id]"
+            >
+                <option value=""><?= $escaper->escapeHtml(__('Please select a terminal...')) ?></option>
+                <?php
+                    foreach ($terminals as $terminal) {
+                        printf("<option value='%s'>%s</option>", $terminal, $terminal);
+                    }
+                ?>
+            </select>
+
+            <input type="text" name="payment[number_of_installments]" value="1">
+            <input type="text" name="payment[chain_calls]" value="1">
+        </div>
+    <?php else: ?>
+        <p class="admin__field-error">
+            <?= $escaper->escapeHtml(__('Connect at least one terminal!')) ?>
+        </p>
+    <?php endif ?>
+
+</fieldset>

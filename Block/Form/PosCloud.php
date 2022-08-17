@@ -18,4 +18,16 @@ class PosCloud extends \Magento\Payment\Block\Form
      * @var string
      */
     protected $_template = 'Adyen_Payment::form/pos_cloud.phtml';
+
+    /**
+     * Fetches the list of the available terminals
+     *
+     * @return string[]
+     */
+    public function getTerminals()
+    {
+        $terminals = ['V400m-346489310', 'otherthing'];
+
+        return $terminals;
+    }
 }
