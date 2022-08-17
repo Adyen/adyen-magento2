@@ -9,18 +9,21 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Helper;
+namespace Adyen\Payment\Tests\Unit\Helper;
 
-class LocaleTest extends \PHPUnit\Framework\TestCase
+use Adyen\Payment\Helper\Locale;
+use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
+
+class LocaleTest extends AbstractAdyenTestCase
 {
     /**
-     * @var \Adyen\Payment\Helper\Locale
+     * @var Locale
      */
     private $localeHelper;
 
     public function setUp(): void
     {
-        $this->localeHelper =  new \Adyen\Payment\Helper\Locale();
+        $this->localeHelper =  new Locale();
     }
 
     public function testMapLocaleCode()
