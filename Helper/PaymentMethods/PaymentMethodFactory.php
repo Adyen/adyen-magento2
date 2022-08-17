@@ -29,20 +29,22 @@ class PaymentMethodFactory
      */
     public static function createAdyenPaymentMethod(string $txVariant): PaymentMethodInterface
     {
-        switch ($txVariant) {
-            case ApplePayPaymentMethod::TX_VARIANT:
-                return new ApplePayPaymentMethod();
-            case AmazonPayPaymentMethod::TX_VARIANT:
-                return new AmazonPayPaymentMethod();
-            case GooglePayPaymentMethod::TX_VARIANT:
-                return new GooglePayPaymentMethod();
+        $txVariantObject = new TxVariant($txVariant);
+
+        switch ($txVariantObject->getPaymentMethod()) {
             case PayPalPaymentMethod::TX_VARIANT:
                 return new PayPalPaymentMethod();
             case SepaPaymentMethod::TX_VARIANT:
                 return new SepaPaymentMethod();
+            case ApplePayPaymentMethod::TX_VARIANT:
+                return new ApplePayPaymentMethod($txVariantObject->getCard());
+            case AmazonPayPaymentMethod::TX_VARIANT:
+                return new AmazonPayPaymentMethod($txVariantObject->getCard());
+            case GooglePayPaymentMethod::TX_VARIANT:
+                return new GooglePayPaymentMethod($txVariantObject->getCard());
             default:
                 $message = sprintf('Unknown txVariant: %s', $txVariant);
-                self::$adyenLogger->error($message);
+                self::$adyenLogger->debug($message);
                 throw new PaymentMethodException(__($message));
         }
     }

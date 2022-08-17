@@ -51,11 +51,6 @@ class SepaPaymentMethod implements PaymentMethodInterface
         return true;
     }
 
-    public function isWalletPaymentMethod(): bool
-    {
-        return false;
-    }
-
     public function supportsUnscheduledCardOnFile(): bool
     {
         return true;

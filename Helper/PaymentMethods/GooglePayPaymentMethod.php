@@ -11,7 +11,7 @@
  */
 namespace Adyen\Payment\Helper\PaymentMethods;
 
-class GooglePayPaymentMethod implements PaymentMethodInterface
+class GooglePayPaymentMethod extends AbstractWalletPaymentMethod
 {
     const TX_VARIANT = 'googlepay';
     const NAME = 'Google Pay';
@@ -42,11 +42,6 @@ class GooglePayPaymentMethod implements PaymentMethodInterface
     }
 
     public function supportsSubscription(): bool
-    {
-        return true;
-    }
-
-    public function isWalletPaymentMethod(): bool
     {
         return true;
     }
