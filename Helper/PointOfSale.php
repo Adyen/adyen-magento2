@@ -14,15 +14,17 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\ApplicationInfo;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Payment\Gateway\Data\OrderAdapterInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Sales\Model\Order;
 
 class PointOfSale
 {
     /** @var Data */
-    private $dataHelper;
+    private Data $dataHelper;
 
     /** @var ProductMetadataInterface */
-    private $productMetadata;
+    private ProductMetadataInterface $productMetadata;
 
     public function __construct(
         Data $dataHelper,
@@ -37,19 +39,28 @@ class PointOfSale
      * When upgrading to new version of library we can use the client methods
      *
      * @param $request
-     * @param Quote $quote
-     * @return mixed
+     * @param Quote|null $quote
+     * @param Order|null $order
+     * @return array
      */
-    public function addSaleToAcquirerData($request, Quote $quote)
+    public function addSaleToAcquirerData($request, Quote $quote = null, Order $order = null) : array
     {
-        $customerId = $this->getCustomerId($quote);
-        $storeId = $quote->getStoreId();
+        // If order is created from admin backend, use Order instead of Quote
+        if (isset($order) && is_null($quote)) {
+            $customerId = $order->getCustomerId();
+            $storeId = $order->getStoreId();
+            $shopperEmail = $order->getCustomerEmail();
+        }
+        else {
+            $customerId = $this->getCustomerId($quote);
+            $storeId = $quote->getStoreId();
+            $shopperEmail = $quote->getCustomerEmail();
+        }
 
         $saleToAcquirerData = [];
 
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
-            $shopperEmail = $quote->getCustomerEmail();
             $recurringContract = $this->dataHelper->getAdyenPosCloudConfigData('recurring_type', $storeId);
 
             if (!empty($recurringContract) && !empty($shopperEmail)) {

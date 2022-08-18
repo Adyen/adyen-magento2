@@ -16,10 +16,9 @@
  */
 
 $code = $block->escapeHtml($block->getMethodCode());
-$terminals = $block->getTerminals();
+$terminals = $block->getConnectedTerminals();
 
 ?>
-
 
 <fieldset
     class="admin__fieldset payment-method"
@@ -29,8 +28,7 @@ $terminals = $block->getTerminals();
 
     <?php if ($terminals): ?>
         <div class="admin__field-control">
-            <select
-                id="<?= /* @noEscape */ $code; ?>_connected_terminals"
+            <select id="<?= /* @noEscape */ $code; ?>_connected_terminals"
                 class="required-entry admin__control-select"
                 name="payment[terminal_id]"
             >
@@ -42,8 +40,11 @@ $terminals = $block->getTerminals();
                 ?>
             </select>
 
-            <input type="text" name="payment[number_of_installments]" value="1">
+            <!--
+            <input type="text" name="payment[__number_of_installments]" value="1">
             <input type="text" name="payment[chain_calls]" value="1">
+            -->
+
         </div>
     <?php else: ?>
         <p class="admin__field-error">
