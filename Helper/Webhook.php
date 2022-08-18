@@ -162,7 +162,8 @@ class Webhook
             $currentState = $this->getCurrentState($this->order->getState());
             if (!$currentState) {
                 $this->logger->addAdyenNotification(
-                    sprintf("ERROR: Unhandled order state '%s'.", $this->order->getState())
+                    sprintf("ERROR: Unhandled order state '%s'.", $this->order->getState()),
+                    $this->logger->getOrderContext($this->order)
                 );
                 return false;
             }
@@ -175,16 +176,13 @@ class Webhook
                 // set done to true
                 $this->order->save();
             } catch (Exception $e) {
-                $this->logger->addAdyenNotification($e->getMessage());
+                $this->logger->addAdyenWarning($e->getMessage());
             }
 
             $this->updateNotification($notification, false, true);
             $this->logger->addAdyenNotification(
                 sprintf("Notification %s was processed", $notification->getEntityId()),
                 $this->logger->getOrderContext($this->order)
-            );
-            $this->logger->addAdyenResult(
-                sprintf("Processing of the notification %s is done", $notification->getEntityId())
             );
 
             return true;
@@ -195,7 +193,7 @@ class Webhook
              */
             $this->updateNotification($notification, false, true);
             $this->handleNotificationError($notification, sprintf("Unsupported webhook notification: %s", $notification->getEventCode()));
-            $this->logger->addAdyenNotificationCronjob(
+            $this->logger->addAdyenNotification(
                 sprintf(
                     "Notification %s had an error. Unsupported webhook notification: %s. %s",
                     $notification->getEntityId(),
@@ -306,10 +304,6 @@ class Webhook
             $formattedOrderAmount = $this->adyenHelper
                 ->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
 
-            $this->logger->addAdyenNotification(
-                'amount notification:' . $amount . ' amount order:' . $formattedOrderAmount
-            );
-
             if ($amount == $formattedOrderAmount) {
                 $order->setData(
                     'adyen_notification_event_code',
@@ -367,7 +361,8 @@ class Webhook
             if ($pendingStatus != "") {
                 $order->addStatusHistoryComment($comment, $pendingStatus);
                 $this->logger->addAdyenNotification(
-                    'Created comment history for this notification with status change to: ' . $pendingStatus
+                    'Created comment history for this notification with status change to: ' . $pendingStatus,
+                    $this->logger->getOrderContext($order)
                 );
                 return;
             }
