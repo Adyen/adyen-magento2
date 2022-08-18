@@ -44,7 +44,7 @@ class ServerIpAddress
     {
         //Check if there are already verified IP addresses in cache and refresh when empty
         if (empty($this->ipAddressHelper->getIpAddressesFromCache())) {
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenDebug(
                 'There are no verified Adyen IP addresses in cache. Updating IP records.'
             );
             $this->ipAddressHelper->updateCachedIpAddresses();

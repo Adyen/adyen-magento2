@@ -65,7 +65,7 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
         $paymentPreviouslyCaptured = $order->getData('adyen_notification_payment_captured');
 
         if ($previousAdyenEventCode == "AUTHORISATION : TRUE" || !empty($paymentPreviouslyCaptured)) {
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 'Order is not cancelled because previous notification
                                     was an authorisation that succeeded and payment was captured'
             );
@@ -76,7 +76,7 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
         $identicalPaymentMethods = $this->paymentMethodsHelper->compareOrderAndWebhookPaymentMethods($order, $notification);
 
         if (!$identicalPaymentMethods) {
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            $this->adyenLogger->addAdyenNotification(sprintf(
                 'Payment method of notification %s (%s) does not match the payment method (%s) of order %s',
                 $notification->getId(),
                 $notification->getPaymentMethod(),
