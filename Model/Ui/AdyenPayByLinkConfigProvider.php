@@ -17,6 +17,7 @@ use Magento\Framework\App\RequestInterface;
 class AdyenPayByLinkConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'adyen_pay_by_link';
+    const MAX_FAILURE_COUNT = 5;
     const MIN_EXPIRY_DAYS = 1;
     const MAX_EXPIRY_DAYS = 70;
     const DAYS_TO_EXPIRE_CONFIG_PATH = 'payment/adyen_pay_by_link/days_to_expire';
