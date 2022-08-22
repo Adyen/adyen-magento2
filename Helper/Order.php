@@ -167,7 +167,7 @@ class Order extends AbstractHelper
             $this->orderSender->send($order);
             $this->adyenLogger->addAdyenNotification('Send order confirmation email to shopper');
         } catch (Exception $exception) {
-            $this->adyenLogger->addAdyenNotification(
+            $this->adyenLogger->addAdyenWarning(
                 "Exception in Send Mail in Magento. This is an issue in the the core of Magento" .
                 $exception->getMessage()
             );
@@ -339,7 +339,7 @@ class Order extends AbstractHelper
     {
         if (!$this->configHelper->getNotificationsCanCancel($order->getStoreId())) {
             $this->adyenLogger->addAdyenNotification(
-                'Order cannot be canceled based on the plugin configuration'
+                'Order cannot be cancelled based on the plugin configuration'
             );
             return $order;
         }
@@ -363,7 +363,6 @@ class Order extends AbstractHelper
                     $this->adyenLogger->addAdyenNotification('Order can not hold or is already on Hold');
                 }
             } else {
-                $this->adyenLogger->addAdyenNotification('Test cancelled stat: ' . $orderStatus);
                 // Allow magento to cancel order
                 $order->setActionFlag(MagentoOrder::ACTION_FLAG_CANCEL, true);
 
@@ -371,12 +370,12 @@ class Order extends AbstractHelper
                     $order->cancel();
                     $order->addCommentToStatusHistory('Order cancelled', $orderStatus ?? false);
                 } else {
-                    $this->adyenLogger->addAdyenNotification('Order can not be canceled');
+                    $this->adyenLogger->addAdyenNotification('Order can not be cancelled');
                 }
             }
         } else {
             $this->adyenLogger->addAdyenNotification(sprintf(
-                    'Order %s already has an invoice linked so it cannot be canceled', $order->getIncrementId()
+                    'Order %s already has an invoice linked so it cannot be cancelled', $order->getIncrementId()
             ));
         }
 
@@ -481,13 +480,13 @@ class Order extends AbstractHelper
                     'Refunding %s from AdyenOrderPayment %s',
                     $notification->getAmountCurrency() . $notification->getAmountValue(),
                     $orderPayment->getEntityId()
-                ));
+                ), $this->adyenLogger->getOrderContext($order));
             } else {
                 $this->adyenLogger->addAdyenNotification(sprintf(
                     'AdyenOrderPayment with pspReference %s was not found. This should be linked to order %s',
                     $notification->getOriginalReference(),
                     $order->getRemoteIp()
-                ));
+                ), $this->adyenLogger->getOrderContext($order));
             }
         }
 

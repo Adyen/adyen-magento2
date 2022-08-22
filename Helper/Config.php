@@ -406,6 +406,11 @@ class Config
         return $this->getConfigData('card_type', self::XML_ADYEN_ONECLICK, $storeId);
     }
 
+    public function debugLogsEnabled($storeId): bool
+    {
+        return $this->getConfigData('debug', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
+    }
+
     /**
      * Retrieve information from payment configuration
      *
