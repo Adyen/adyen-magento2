@@ -309,6 +309,7 @@ define(
                 }
             },
             handleOnAdditionalDetails: function(result) {
+                $('.action-close').hide();
 
                 var self = this;
 

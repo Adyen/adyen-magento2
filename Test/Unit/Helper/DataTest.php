@@ -8,13 +8,14 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Helper;
+namespace Adyen\Payment\Tests\Unit\Helper;
 
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingAgreementCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
+use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -35,19 +36,12 @@ use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
 use PHPUnit\Framework\TestCase;
 
-class DataTest extends TestCase
+class DataTest extends AbstractAdyenTestCase
 {
     /**
      * @var Data
      */
     private $dataHelper;
-
-    private function getSimpleMock($originalClassName)
-    {
-        return $this->getMockBuilder($originalClassName)
-            ->disableOriginalConstructor()
-            ->getMock();
-    }
 
     public function setUp(): void
     {
@@ -127,7 +121,7 @@ class DataTest extends TestCase
      * @dataProvider checkoutEnvironmentsProvider
      *
      */
-    public function testGetPspReferenceSearchUrl($expectedResult, $pspReference, $checkoutEnvironment)
+    public function testGetPspReferenceSearchUrl(string $expectedResult, string $pspReference, string $checkoutEnvironment)
     {
         $pspSearchUrl = $this->dataHelper->getPspReferenceSearchUrl($pspReference, $checkoutEnvironment);
         $this->assertEquals($expectedResult, $pspSearchUrl);
@@ -153,7 +147,7 @@ class DataTest extends TestCase
         );
     }
 
-    public static function checkoutEnvironmentsProvider()
+    public static function checkoutEnvironmentsProvider(): array
     {
         return [
             [

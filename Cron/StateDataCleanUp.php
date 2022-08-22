@@ -12,7 +12,7 @@
 namespace Adyen\Payment\Cron;
 
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Logger\Handler\AdyenCronjob;
+use Adyen\Payment\Logger\Handler\AdyenNotification;
 use Adyen\Payment\Model\ResourceModel\StateData;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 
@@ -29,7 +29,7 @@ class StateDataCleanUp
     private $stateDataResourceModel;
 
     /**
-     * @var AdyenCronjob
+     * @var AdyenNotification
      */
     private $adyenLogger;
 
