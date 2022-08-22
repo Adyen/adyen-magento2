@@ -10,32 +10,12 @@
   -->
 <phpunit
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
+        xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/6.3/phpunit.xsd"
         bootstrap="./bootstrap.php"
-        colors="true"
 >
-    <php>
-        <ini name="display_errors" value="On"/>
-        <ini name="memory_limit" value="-1"/>
-        <ini name="max_execution_time" value="0"/>
-        <ini name="display_startup_errors" value="On"/>
-        <ini name="error_reporting" value="E_ALL"/>
-        <ini name="date.timezone" value="UTC"/>
-        <server name="SHELL_VERBOSITY" value="-1"/>
-    </php>
-
     <testsuites>
         <testsuite name="default">
             <directory>.</directory>
         </testsuite>
     </testsuites>
-
-    <coverage processUncoveredFiles="false">
-        <include>
-            <directory suffix=".php">../.</directory>
-        </include>
-        <exclude>
-            <directory>../vendor</directory>
-        </exclude>
-    </coverage>
 </phpunit>
