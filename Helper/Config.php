@@ -390,7 +390,6 @@ class Config
         return $this->getConfigData('card_type', self::XML_ADYEN_ONECLICK, $storeId);
     }
 
-
     public function getTokenizedPaymentMethods($storeId)
     {
         return $this->getConfigData('tokenized_payment_methods', self::XML_ADYEN_HPP, $storeId);
