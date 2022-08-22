@@ -73,6 +73,7 @@ class DataTest extends TestCase
         $localeHelper = $this->getSimpleMock(Locale::class);
         $orderManagement = $this->getSimpleMock(OrderManagementInterface::class);
         $orderStatusHistoryFactory = $this->getSimpleMock(HistoryFactory::class);
+        $adyenConfigHelper = $this->getSimpleMock(\Adyen\Payment\Helper\Config::class);
 
         $this->dataHelper = new Data(
             $context,
@@ -96,7 +97,8 @@ class DataTest extends TestCase
             $componentRegistrar,
             $localeHelper,
             $orderManagement,
-            $orderStatusHistoryFactory
+            $orderStatusHistoryFactory,
+            $adyenConfigHelper
         );
     }
 

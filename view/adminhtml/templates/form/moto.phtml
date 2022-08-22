@@ -1,0 +1,146 @@
+<?php
+/**
+ *
+ * Adyen Payment module (https://www.adyen.com/)
+ *
+ * Copyright (c) 2022 Adyen N.V. (https://www.adyen.com/)
+ * See LICENSE.txt for license details.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
+
+// @codingStandardsIgnoreFile
+/**
+ * @var \Adyen\Payment\Block\Form\Moto $block
+ */
+$code = $block->escapeHtml($block->getMethodCode());
+$ccType = $block->getInfoData('cc_type');
+$ccExpMonth = $block->getInfoData('cc_exp_month');
+$ccExpYear = $block->getInfoData('cc_exp_year');
+$motoMerchantAccounts = $block->getMotoMerchantAccounts();
+
+?>
+
+<fieldset class="admin__fieldset payment-method"
+          id="payment_form_<?= /* @noEscape */ $code; ?>"
+          style="display:none">
+
+    <input name="payment[stateData]" id="<?= /* @noEscape */ $code; ?>-statedata" type="hidden">
+    <input name="payment[motoMerchantAccount]" id="<?= /* @noEscape */ $code; ?>-merchant-account" type="hidden">
+
+    <label for="<?= /* @noEscape */ $code; ?>_merchant_accounts" class="admin__field-label">
+       <span>
+           <?= $escaper->escapeHtml(__('MOTO Merchant Account')) ?>
+       </span>
+    </label>
+    <?php if ($motoMerchantAccounts): ?>
+    <div class="admin__field-control">
+        <select id="<?= /* @noEscape */ $code; ?>_merchant_accounts" class="required-entry admin__control-select">
+            <option value=""><?= $escaper->escapeHtml(__('Please select...')) ?></option>
+            <?php
+                foreach ($motoMerchantAccounts as $key => $value) {
+                    printf("<option value='%s' data-adyen-client-key='%s'>%s</option>", $key, $value['clientkey'], $key);
+                }
+            ?>
+        </select>
+    </div>
+    <?php else: ?>
+        <p class="admin__field-error">
+            <?= $escaper->escapeHtml(__('No Adyen MOTO merchant account found. Please configure MOTO merchant accounts in the plugin configuration page.')) ?>
+        </p>
+    <?php endif ?>
+    <div id="cardContainer-<?= /* @noEscape */ $code; ?>" style=""></div>
+
+    <script>
+        define(
+            'renderCheckoutComponent',
+            [
+                'jquery',
+                'Magento_Sales/order/create/scripts',
+                'Magento_Sales/order/create/form',
+                'Adyen_Payment/js/adyen'
+            ],
+            function($, scripts, form, AdyenCheckout) {
+                var card = null;
+                return {
+                    status: function () {
+                        return card;
+                    },
+                    init: function (clientKey) {
+                        (async function () { // RequireJS does not support async callback
+                            var ccTypes = <?= /* @noEscape */ json_encode($block->getCcAvailableTypesByAlt()); ?>;
+
+                            // Get cc type by adyen cc type
+                            var getCcCodeByAltCode = function (altCode) {
+                                if (ccTypes.hasOwnProperty(altCode)) {
+                                    return ccTypes[altCode];
+                                }
+
+                                return "";
+                            }
+
+                            var cardNode = document.getElementById("cardContainer-<?= /* @noEscape */ $code; ?>");
+
+                            var checkout = await AdyenCheckout({
+                                clientKey: clientKey,
+                                environment: "<?= /* @noEscape */ $block->getCheckoutEnvironment(); ?>",
+                                locale: "<?= /* @noEscape */ $block->getLocale(); ?>",
+                                risk: {
+                                    enabled: false
+                                },
+                            });
+
+                            try {
+                                card = checkout.create('card', {
+                                    brands: Object.keys(ccTypes),
+                                    hideCVC: true,
+                                    enableStoreDetails: false,
+                                    hasHolderName: true,
+                                    installmentOptions: <?= /* @noEscape */ $block->getFormattedInstallments();?>,
+                                    showInstallmentAmounts: true,
+                                    amount :<?= /* @noEscape */ $block->getAmount();?>,
+                                    onChange: function (state) {
+                                        if (state.isValid) {
+                                            $('#<?= /* @noEscape */ $code; ?>-statedata').val(JSON.stringify(state.data));
+                                        }
+                                    }
+                                });
+                                card.mount(cardNode);
+                            } catch (e) {
+                                console.log(e);
+                            }
+                        })();
+                    },
+
+                    unmount: function () {
+                        card.unmount();
+                    }
+                }
+            }
+        );
+
+        require(
+            [
+                'jquery',
+                'renderCheckoutComponent',
+            ],
+            function ($, renderCheckoutComponent) {
+                $("#<?= /* @noEscape */ $code; ?>_merchant_accounts").on("change", function () {
+                    if (renderCheckoutComponent.status() !== null) {
+                        renderCheckoutComponent.unmount();
+                    }
+
+                    var clientKey = $(this).find("option:selected").attr('data-adyen-client-key');
+                    var merchantAccount = $(this).find("option:selected").val();
+
+                    if (merchantAccount === "") {
+                        return;
+                    }
+
+                    $("#<?= /* @noEscape */ $code; ?>-merchant-account").val(merchantAccount);
+                    renderCheckoutComponent.init(clientKey);
+                });
+            }
+        );
+    </script>
+</fieldset>

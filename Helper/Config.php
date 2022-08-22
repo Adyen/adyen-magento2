@@ -11,8 +11,11 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
+use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Serialize\SerializerInterface;
 
 class Config
 {
@@ -35,10 +38,12 @@ class Config
     const XML_ADYEN_HPP = 'adyen_hpp';
     const XML_ADYEN_HPP_VAULT = 'adyen_hpp_vault';
     const XML_ADYEN_CC_VAULT = 'adyen_cc_vault';
+    const XML_ADYEN_MOTO = 'adyen_moto';
     const XML_PAYMENT_ORIGIN_URL = 'payment_origin_url';
     const XML_PAYMENT_RETURN_URL = 'payment_return_url';
     const XML_STATUS_FRAUD_MANUAL_REVIEW = 'fraud_manual_review_status';
     const XML_STATUS_FRAUD_MANUAL_REVIEW_ACCEPT = 'fraud_manual_review_accept_status';
+    const XML_MOTO_MERCHANT_ACCOUNTS = 'moto_merchant_accounts';
 
     /**
      * @var ScopeConfigInterface
@@ -50,6 +55,17 @@ class Config
      */
     private $encryptor;
 
+
+    /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
+     * @var AdyenLogger
+     */
+    protected $adyenLogger;
+
     /**
      * Config constructor.
      *
@@ -58,10 +74,15 @@ class Config
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        EncryptorInterface $encryptor
-    ) {
+        EncryptorInterface $encryptor,
+        SerializerInterface $serializer,
+        AdyenLogger $adyenLogger
+    )
+    {
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
+        $this->serializer = $serializer;
+        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -75,6 +96,42 @@ class Config
             self::XML_ADYEN_ABSTRACT_PREFIX,
             $storeId
         );
+    }
+
+    /**
+     * @param $storeId
+     * @return bool|mixed
+     */
+    public function getMotoMerchantAccounts($storeId = null)
+    {
+        $serializedData = $this->getConfigData(
+            self::XML_MOTO_MERCHANT_ACCOUNTS,
+            self::XML_ADYEN_MOTO,
+            $storeId
+        );
+
+        return $this->serializer->unserialize($serializedData);
+    }
+
+    /**
+     * Returns the properties of a MOTO merchant account in an array (API Key, Client Key, Demo Mode)
+     *
+     * @param string $motoMerchantAccount
+     * @param $storeId
+     * @return array
+     * @throws AdyenException
+     */
+    public function getMotoMerchantAccountProperties(string $motoMerchantAccount, $storeId = null) : array
+    {
+        $motoMerchantAccounts = $this->getMotoMerchantAccounts($storeId);
+
+        if (!isset($motoMerchantAccounts[$motoMerchantAccount])) {
+            $e = new AdyenException("Related MOTO merchant account couldn't be found.");
+            $this->adyenLogger->error($e->getMessage());
+            throw $e;
+        }
+
+        return $motoMerchantAccounts[$motoMerchantAccount];
     }
 
     /**
