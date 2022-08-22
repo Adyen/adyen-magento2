@@ -13,6 +13,7 @@ namespace Adyen\Payment\Helper;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Store\Model\ScopeInterface;
 
 class Config
 {
@@ -389,9 +390,15 @@ class Config
         return $this->getConfigData('card_type', self::XML_ADYEN_ONECLICK, $storeId);
     }
 
+
     public function getTokenizedPaymentMethods($storeId)
     {
         return $this->getConfigData('tokenized_payment_methods', self::XML_ADYEN_HPP, $storeId);
+    }
+
+    public function debugLogsEnabled($storeId): bool
+    {
+        return $this->getConfigData('debug', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
     /**
@@ -408,9 +415,9 @@ class Config
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
 
         if (!$flag) {
-            return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+            return $this->scopeConfig->getValue($path, ScopeInterface::SCOPE_STORE, $storeId);
         } else {
-            return $this->scopeConfig->isSetFlag($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+            return $this->scopeConfig->isSetFlag($path, ScopeInterface::SCOPE_STORE, $storeId);
         }
     }
 }

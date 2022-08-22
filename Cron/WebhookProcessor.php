@@ -65,7 +65,7 @@ class WebhookProcessor
         try {
             $this->doProcessWebhook();
         } catch (Exception $e) {
-            $this->adyenLogger->addAdyenNotification($e->getMessage() . "\n" . $e->getTraceAsString());
+            $this->adyenLogger->addAdyenWarning($e->getMessage() . "\n" . $e->getTraceAsString());
             throw $e;
         }
     }

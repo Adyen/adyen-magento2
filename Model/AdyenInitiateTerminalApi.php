@@ -205,7 +205,7 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
             $response = $service->runTenderSync($request);
         } catch (\Adyen\AdyenException $e) {
             //Not able to perform a payment
-            $this->adyenLogger->addAdyenDebug("adyenexception");
+            $this->adyenLogger->addAdyenDebug($e->getMessage());
             $response['error'] = $e->getMessage();
         } catch (\Exception $e) {
             //Probably timeout

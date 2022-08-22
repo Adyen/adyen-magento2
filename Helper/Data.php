@@ -762,16 +762,23 @@ class Data extends AbstractHelper
                             $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
                         } catch (\Exception $e) {
                             $this->adyenLogger->addAdyenDebug(
-                                __('Order cancel history comment error: %1', $e->getMessage())
+                                __('Order cancel history comment error: %1', $e->getMessage()),
+                                $this->adyenLogger->getOrderContext($order)
                             );
                         }
                     } else { //previous canceling process
-                        $this->adyenLogger->addAdyenDebug('Unsuccessful order canceling attempt by orderManagement service, use legacy process');
+                        $this->adyenLogger->addAdyenDebug(
+                            'Unsuccessful order canceling attempt by orderManagement service, use legacy process',
+                            $this->adyenLogger->getOrderContext($order)
+                        );
                         $order->cancel();
                         $order->save();
                     }
                 } else {
-                    $this->adyenLogger->addAdyenDebug('Order can not be canceled');
+                    $this->adyenLogger->addAdyenDebug(
+                        'Order can not be canceled',
+                        $this->adyenLogger->getOrderContext($order)
+                    );
                 }
                 break;
         }
