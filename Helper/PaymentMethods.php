@@ -14,6 +14,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Util\ManualCapture;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -117,6 +118,9 @@ class PaymentMethods extends AbstractHelper
     /** @var Config */
     private $configHelper;
 
+    /** @var ManualCapture  */
+    private $manualCapture;
+
     /** @var SerializerInterface */
     private $serializer;
 
@@ -135,6 +139,7 @@ class PaymentMethods extends AbstractHelper
         ChargedCurrency $chargedCurrency,
         Config $configHelper,
         MagentoDataHelper $dataHelper,
+        ManualCapture $manualCapture,
         SerializerInterface $serializer
     ) {
         parent::__construct($context);
@@ -151,6 +156,7 @@ class PaymentMethods extends AbstractHelper
         $this->chargedCurrency = $chargedCurrency;
         $this->configHelper = $configHelper;
         $this->dataHelper = $dataHelper;
+        $this->manualCapture = $manualCapture;
         $this->serializer = $serializer;
     }
 
@@ -580,7 +586,7 @@ class PaymentMethods extends AbstractHelper
     public function isAutoCapture(Order $order, string $notificationPaymentMethod): bool
     {
         // validate if payment methods allows manual capture
-        if ($this->manualCaptureAllowed($notificationPaymentMethod)) {
+        if ($this->manualCapture->isManualCaptureSupported($notificationPaymentMethod)) {
             $captureMode = trim(
                 $this->configHelper->getConfigData(
                     'capture_mode',
@@ -715,59 +721,6 @@ class PaymentMethods extends AbstractHelper
 
             return true;
         }
-    }
-
-    /**
-     * Validate if this payment methods allows manual capture
-     * This is a default can be forced differently to overrule on acquirer level
-     *
-     * @param string $notificationPaymentMethod
-     * @return bool
-     */
-    private function manualCaptureAllowed(string $notificationPaymentMethod): bool
-    {
-        $manualCaptureAllowed = false;
-        // For all openinvoice methods manual capture is the default
-        if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)) {
-            return true;
-        }
-
-        switch ($notificationPaymentMethod) {
-            case 'cup':
-            case 'cartebancaire':
-            case 'visa':
-            case 'visadankort':
-            case 'mc':
-            case 'uatp':
-            case 'amex':
-            case 'maestro':
-            case 'maestrouk':
-            case 'diners':
-            case 'discover':
-            case 'jcb':
-            case 'laser':
-            case 'paypal':
-            case 'sepadirectdebit':
-            case 'dankort':
-            case 'elo':
-            case 'hipercard':
-            case 'mc_applepay':
-            case 'visa_applepay':
-            case 'amex_applepay':
-            case 'discover_applepay':
-            case 'maestro_applepay':
-            case 'paywithgoogle':
-            case 'svs':
-            case 'givex':
-            case 'valuelink':
-            case 'twint':
-                $manualCaptureAllowed = true;
-                break;
-            default:
-                break;
-        }
-
-        return $manualCaptureAllowed;
     }
 
     /**
