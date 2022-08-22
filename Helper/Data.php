@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
@@ -1514,7 +1515,14 @@ class Data extends AbstractHelper
         }
 
         if (!is_null($motoMerchantAccount)) {
-            $motoMerchantAccountProperties = $this->adyenConfigHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
+            try {
+                $motoMerchantAccountProperties = $this->adyenConfigHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
+            }
+            catch (AdyenException $e) {
+                $this->adyenLogger->addAdyenDebug($e->getMessage());
+                throw $e;
+            }
+
             // Override the x-api-key and demo mode setting if MOTO merchant account is set.
             $apiKey = $this->_encryptor->decrypt($motoMerchantAccountProperties['apikey']);
             $isDemoMode = $this->isMotoDemoMode($motoMerchantAccountProperties);

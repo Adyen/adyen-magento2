@@ -12,7 +12,6 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
-use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Store\Model\ScopeInterface;
@@ -63,11 +62,6 @@ class Config
     private $serializer;
 
     /**
-     * @var AdyenLogger
-     */
-    protected $adyenLogger;
-
-    /**
      * Config constructor.
      *
      * @param ScopeConfigInterface $scopeConfig
@@ -76,14 +70,12 @@ class Config
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         EncryptorInterface $encryptor,
-        SerializerInterface $serializer,
-        AdyenLogger $adyenLogger
+        SerializerInterface $serializer
     )
     {
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
         $this->serializer = $serializer;
-        $this->adyenLogger = $adyenLogger;
     }
 
     /**
@@ -127,9 +119,7 @@ class Config
         $motoMerchantAccounts = $this->getMotoMerchantAccounts($storeId);
 
         if (!isset($motoMerchantAccounts[$motoMerchantAccount])) {
-            $e = new AdyenException("Related MOTO merchant account couldn't be found.");
-            $this->adyenLogger->error($e->getMessage());
-            throw $e;
+            throw new AdyenException("Related MOTO merchant account couldn't be found.");
         }
 
         return $motoMerchantAccounts[$motoMerchantAccount];
