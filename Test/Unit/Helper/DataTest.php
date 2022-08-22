@@ -45,29 +45,29 @@ class DataTest extends AbstractAdyenTestCase
 
     public function setUp(): void
     {
-        $context = $this->getSimpleMock(Context::class);
-        $encryptor = $this->getSimpleMock(EncryptorInterface::class);
-        $dataStorage = $this->getSimpleMock(DataInterface::class);
-        $country = $this->getSimpleMock(Country::class);
-        $moduleList = $this->getSimpleMock(ModuleListInterface::class);
-        $billingAgreementCollectionFactory = $this->getSimpleMock(BillingAgreementCollectionFactory::class);
-        $assetRepo = $this->getSimpleMock(Repository::class);
-        $assetSource = $this->getSimpleMock(Source::class);
-        $notificationFactory = $this->getSimpleMock(NotificationCollectionFactory::class);
-        $taxConfig = $this->getSimpleMock(Config::class);
-        $taxCalculation = $this->getSimpleMock(Calculation::class);
-        $productMetadata = $this->getSimpleMock(ProductMetadata::class);
-        $adyenLogger = $this->getSimpleMock(AdyenLogger::class);
-        $storeManager = $this->getSimpleMock(StoreManager::class);
-        $cache = $this->getSimpleMock(CacheInterface::class);
-        $localeResolver = $this->getSimpleMock(ResolverInterface::class);
-        $config = $this->getSimpleMock(ScopeConfigInterface::class);
-        $serializer = $this->getSimpleMock(SerializerInterface::class);
-        $componentRegistrar = $this->getSimpleMock(ComponentRegistrarInterface::class);
-        $localeHelper = $this->getSimpleMock(Locale::class);
-        $orderManagement = $this->getSimpleMock(OrderManagementInterface::class);
-        $orderStatusHistoryFactory = $this->getSimpleMock(HistoryFactory::class);
-        $adyenConfigHelper = $this->getSimpleMock(\Adyen\Payment\Helper\Config::class);
+        $context = $this->createMock(Context::class);
+        $encryptor = $this->createMock(EncryptorInterface::class);
+        $dataStorage = $this->createMock(DataInterface::class);
+        $country = $this->createMock(Country::class);
+        $moduleList = $this->createMock(ModuleListInterface::class);
+        $billingAgreementCollectionFactory = $this->createGeneratedMock(BillingAgreementCollectionFactory::class);
+        $assetRepo = $this->createMock(Repository::class);
+        $assetSource = $this->createMock(Source::class);
+        $notificationFactory = $this->createGeneratedMock(NotificationCollectionFactory::class);
+        $taxConfig = $this->createMock(Config::class);
+        $taxCalculation = $this->createMock(Calculation::class);
+        $productMetadata = $this->createMock(ProductMetadata::class);
+        $adyenLogger = $this->createMock(AdyenLogger::class);
+        $storeManager = $this->createMock(StoreManager::class);
+        $cache = $this->createMock(CacheInterface::class);
+        $localeResolver = $this->createMock(ResolverInterface::class);
+        $config = $this->createMock(ScopeConfigInterface::class);
+        $serializer = $this->createMock(SerializerInterface::class);
+        $componentRegistrar = $this->createMock(ComponentRegistrarInterface::class);
+        $localeHelper = $this->createMock(Locale::class);
+        $orderManagement = $this->createMock(OrderManagementInterface::class);
+        $orderStatusHistoryFactory = $this->createGeneratedMock(HistoryFactory::class);
+        $adyenConfigHelper = $this->createGeneratedMock(\Adyen\Payment\Helper\Config::class);
 
         $this->dataHelper = new Data(
             $context,
