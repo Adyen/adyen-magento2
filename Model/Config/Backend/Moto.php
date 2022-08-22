@@ -11,7 +11,7 @@
 
 namespace Adyen\Payment\Model\Config\Backend;
 
-use Magento\Framework\Encryption\EncryptorInterface;
+use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
 
 /**
  * Class Moto
@@ -83,12 +83,21 @@ class Moto extends \Magento\Framework\App\Config\Value
             }
             $merchantAccount = $data['merchant_account'];
             $clientKey = $data['client_key'];
-            $apiKey = $data['api_key'];
-            $apiKeyEncrypted = $this->encryptor->encrypt(trim($apiKey));
             $enviroment = $data['demo_mode'];
+
+            if ($data['api_key'] != AdyenMotoConfigProvider::API_KEY_PLACEHOLDER) {
+                $apiKey = $data['api_key'];
+                $apiKey = $this->encryptor->encrypt(trim($apiKey));
+            }
+            else {
+                $oldRowValue = $this->getOldValue();
+                $oldRowValue = $this->serializer->unserialize($oldRowValue);
+                $apiKey = $oldRowValue[$merchantAccount]['apikey'];
+            }
+
             $result[$merchantAccount] = array(
                 "clientkey" => $clientKey,
-                "apikey" => $apiKeyEncrypted,
+                "apikey" => $apiKey,
                 "demo_mode" => $enviroment
             );
         }
@@ -118,7 +127,8 @@ class Moto extends \Magento\Framework\App\Config\Value
             $result[$resultId] = [
                 'merchant_account' => $merchantAccount,
                 'client_key' => $items['clientkey'],
-                'api_key' => substr($this->encryptor->decrypt(trim($items['apikey'])), -4),
+                // Set default value for API key in the frontend to prevent re-encryption in backend model
+                'api_key' => AdyenMotoConfigProvider::API_KEY_PLACEHOLDER,
                 'demo_mode' => $items['demo_mode']
             ];
         }
