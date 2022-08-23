@@ -1,18 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
- *
  * Adyen Payment Module
  *
  * Copyright (c) 2022 Adyen N.V.
@@ -24,18 +11,20 @@
 
 namespace Adyen\Payment\Model\Config\Adminhtml;
 
+use Magento\Framework\Data\Form\Element\AbstractElement;
+
 class WebhookTest extends \Magento\Config\Block\System\Config\Form\Field
 {
     protected $_template = 'Adyen_Payment::config/webhook_test.phtml';
 
-    public function render(\Magento\Framework\Data\Form\Element\AbstractElement $element)
+    public function render(AbstractElement $element)
     {
         // Remove scope label
         $element->unsScope()->unsCanUseWebsiteValue()->unsCanUseDefaultValue();
         return parent::render($element);
     }
 
-    protected function _getElementHtml(\Magento\Framework\Data\Form\Element\AbstractElement $element)
+    protected function _getElementHtml(AbstractElement $element)
     {
         return $this->_toHtml();
     }

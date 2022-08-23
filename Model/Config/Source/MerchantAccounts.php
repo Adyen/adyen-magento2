@@ -1,19 +1,5 @@
 <?php
-
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
- *
  * Adyen Payment module (https://www.adyen.com/)
  *
  * Copyright (c) 2022 Adyen NV (https://www.adyen.com/)
@@ -24,22 +10,25 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
-class MerchantAccounts implements \Magento\Framework\Data\OptionSourceInterface
+use Adyen\Payment\Helper\Data;
+use Magento\Framework\Data\OptionSourceInterface;
+
+class MerchantAccounts implements OptionSourceInterface
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
-    protected $_adyenHelper;
+    protected $dataHelper;
 
     /**
      * MerchantAccounts constructor.
      *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param Data $dataHelper
      */
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        Data $dataHelper
     ) {
-        $this->_adyenHelper = $adyenHelper;
+        $this->dataHelper = $dataHelper;
     }
 
     /**
@@ -47,7 +36,7 @@ class MerchantAccounts implements \Magento\Framework\Data\OptionSourceInterface
      */
     public function toOptionArray()
     {
-        $merchantAccount = $this->_adyenHelper->getAdyenMerchantAccount('adyen_cc');
+        $merchantAccount = $this->dataHelper->getAdyenMerchantAccount('adyen_cc');
         return $merchantAccount ? array(
             ['value' => $merchantAccount, 'label' => $merchantAccount]
         ) : [];

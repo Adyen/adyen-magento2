@@ -11,6 +11,8 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
+use Adyen\Client;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingCollectionFactory;
@@ -26,6 +28,7 @@ use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\Component\ComponentRegistrarInterface;
 use Magento\Framework\Config\DataInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -1486,11 +1489,11 @@ class Data extends AbstractHelper
      * @param null|int|string $storeId
      * @param string|null $apiKey
      * @param bool|null $demoMode
-     * @return \Adyen\Client
-     * @throws \Adyen\AdyenException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return Client
+     * @throws AdyenException
+     * @throws NoSuchEntityException
      */
-    public function initializeAdyenClient($storeId = null, $apiKey = null, ?bool $demoMode = null)
+    public function initializeAdyenClient($storeId = null, $apiKey = null, ?bool $demoMode = null): Client
     {
         // initialize client
         if ($storeId === null) {
@@ -1522,9 +1525,9 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param \Adyen\Client $client
+     * @param Client $client
      * @return \Adyen\Service\PosPayment
-     * @throws \Adyen\AdyenException
+     * @throws AdyenException
      */
     public function createAdyenPosPaymentService($client)
     {
@@ -1532,12 +1535,12 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @return \Adyen\Client
-     * @throws \Adyen\AdyenException
+     * @return Client
+     * @throws AdyenException
      */
     private function createAdyenClient()
     {
-        return new \Adyen\Client();
+        return new Client();
     }
 
     /**
@@ -1567,7 +1570,7 @@ class Data extends AbstractHelper
      * Retrieve origin keys for platform's base url
      *
      * @return string
-     * @throws \Adyen\AdyenException
+     * @throws AdyenException
      * @deprecared please use getClientKey instead
      */
     public function getOriginKeyForBaseUrl()
@@ -1591,7 +1594,7 @@ class Data extends AbstractHelper
      * @param $origin
      * @param null|int|string $storeId
      * @return string
-     * @throws \Adyen\AdyenException
+     * @throws AdyenException
      */
     private function getOriginKeyForOrigin($origin, $storeId = null)
     {
@@ -1640,9 +1643,9 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param \Adyen\Client $client
+     * @param Client $client
      * @return \Adyen\Service\CheckoutUtility
-     * @throws \Adyen\AdyenException
+     * @throws AdyenException
      */
     private function createAdyenCheckoutUtilityService($client)
     {
@@ -1701,7 +1704,7 @@ class Data extends AbstractHelper
     /**
      * @param $client
      * @return \Adyen\Service\Recurring
-     * @throws \Adyen\AdyenException
+     * @throws AdyenException
      */
     public function createAdyenRecurringService($client)
     {

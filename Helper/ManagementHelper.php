@@ -26,7 +26,7 @@ class ManagementHelper
     /**
      * @var Data
      */
-    private $adyenHelper;
+    private $dataHelper;
     /**
      * @var StoreManager
      */
@@ -46,16 +46,16 @@ class ManagementHelper
     /**
      * ManagementHelper constructor.
      * @param StoreManager $storeManager
-     * @param Data $adyenHelper
+     * @param Data $dataHelper
      * @param Config $configHelper
      */
     public function __construct(
         StoreManager $storeManager,
-        Data $adyenHelper,
+        Data $dataHelper,
         Config $configHelper,
         AdyenLogger $adyenLogger
     ) {
-        $this->adyenHelper = $adyenHelper;
+        $this->dataHelper = $dataHelper;
         $this->storeManager = $storeManager;
         $this->configHelper = $configHelper;
         $this->adyenLogger = $adyenLogger;
@@ -122,9 +122,9 @@ class ManagementHelper
         string $password,
         string $url,
         bool $demoMode
-    ) {
+    ): void {
         $storeId = $this->storeManager->getStore()->getId();
-        $client = $this->adyenHelper->initializeAdyenClient($storeId, $apiKey, $demoMode);
+        $client = $this->dataHelper->initializeAdyenClient($storeId, $apiKey, $demoMode);
 
         $management = new Management($client);
         $params = [
@@ -177,7 +177,7 @@ class ManagementHelper
     /**
      * @throws AdyenException|NoSuchEntityException
      */
-    public function getAllowedOrigins($apiKey, $environment)
+    public function getAllowedOrigins($apiKey, $environment): array
     {
         $management = $this->getManagementApiService($apiKey, $environment);
 
@@ -189,7 +189,7 @@ class ManagementHelper
     /**
      * @throws AdyenException|NoSuchEntityException
      */
-    public function saveAllowedOrigin($apiKey, $environment, $domain)
+    public function saveAllowedOrigin($apiKey, $environment, $domain): void
     {
         $management = $this->getManagementApiService($apiKey, $environment);
 
@@ -206,7 +206,7 @@ class ManagementHelper
             // API key contains '******', set to the previously saved config value
             $apiKey = $this->configHelper->getApiKey($environment);
         }
-        $client = $this->adyenHelper->initializeAdyenClient($storeId, $apiKey, $environment === 'test');
+        $client = $this->dataHelper->initializeAdyenClient($storeId, $apiKey, $environment === 'test');
 
         return new Management($client);
     }
@@ -223,7 +223,7 @@ class ManagementHelper
         $storeId = $this->storeManager->getStore()->getId();
         $webhookId = $this->configHelper->getWebhookId($storeId);
         try {
-            $client = $this->adyenHelper->initializeAdyenClient();
+            $client = $this->dataHelper->initializeAdyenClient();
             $management = new Management($client);
             $response = $management->merchantWebhooks->test($merchantId, $webhookId, $params);
             $this->adyenLogger->addInfo(

@@ -75,10 +75,10 @@ class Config
 
     /**
      * @param $mode
-     * @param null $storeId
+     * @param mixed $storeId
      * @return string
      */
-    public function getApiKey($mode, $storeId = null)
+    public function getApiKey($mode, $storeId = null): string
     {
         $apiKey = $this->getConfigData('api_key_' . $mode, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
 
@@ -88,18 +88,18 @@ class Config
     /**
      * @param $mode
      * @param $storeId
-     * @return bool|mixed
+     * @return string|null
      */
-    public function getClientKey($mode, $storeId = null)
+    public function getClientKey($mode, $storeId = null): ?string
     {
         return $this->getConfigData('client_key_' . $mode, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
 
     /**
      * @param int|null $storeId
-     * @return string
+     * @return string|null
      */
-    public function getMerchantAccount($storeId = null)
+    public function getMerchantAccount($storeId = null): ?string
     {
         return $this->getConfigData(
             self::XML_MERCHANT_ACCOUNT,
@@ -110,9 +110,9 @@ class Config
 
     /**
      * @param int|null $storeId
-     * @return string
+     * @return string|null
      */
-    public function getNotificationsUsername($storeId = null)
+    public function getNotificationsUsername($storeId = null): ?string
     {
         return $this->getConfigData(
             self::XML_NOTIFICATIONS_USERNAME,
@@ -123,9 +123,9 @@ class Config
 
     /**
      * @param int|null $storeId
-     * @return string
+     * @return string|null
      */
-    public function getNotificationsPassword($storeId = null)
+    public function getNotificationsPassword($storeId = null): ?string
     {
         $key = $this->getConfigData(
             self::XML_NOTIFICATIONS_PASSWORD,
@@ -140,10 +140,10 @@ class Config
     }
 
     /**
-     * @param int|null $storeId
-     * @return string
+     * @param mixed $storeId
+     * @return string|null
      */
-    public function getWebhookUrl($storeId = null)
+    public function getWebhookUrl($storeId = null): ?string
     {
         return $this->getConfigData(
             self::XML_WEBHOOK_URL,
@@ -152,7 +152,7 @@ class Config
         );
     }
 
-    public function getWebhookId($storeId = null)
+    public function getWebhookId($storeId = null): ?string
     {
         return $this->getConfigData('webhook_id', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
     }
@@ -160,10 +160,10 @@ class Config
     /**
      * Retrieve flag for notifications_can_cancel
      *
-     * @param int $storeId
+     * @param mixed $storeId
      * @return bool
      */
-    public function getNotificationsCanCancel($storeId = null)
+    public function getNotificationsCanCancel($storeId = null): bool
     {
         return (bool)$this->getConfigData(
             self::XML_NOTIFICATIONS_CAN_CANCEL_FIELD,
@@ -176,10 +176,10 @@ class Config
     /**
      * Retrieve key for notifications_hmac_key
      *
-     * @param int $storeId
-     * @return string
+     * @param mixed $storeId
+     * @return string|null
      */
-    public function getNotificationsHmacKey($storeId = null)
+    public function getNotificationsHmacKey($storeId = null): ?string
     {
         if ($this->isDemoMode($storeId)) {
             $key = $this->getConfigData(
@@ -204,7 +204,7 @@ class Config
         return $this->encryptor->decrypt(trim($key));
     }
 
-    public function isDemoMode($storeId = null)
+    public function isDemoMode($storeId = null): bool
     {
         return $this->getConfigData('demo_mode', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }

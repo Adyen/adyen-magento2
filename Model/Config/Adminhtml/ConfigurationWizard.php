@@ -1,4 +1,13 @@
 <?php
+/**
+ * Adyen Payment Module
+ *
+ * Copyright (c) 2022 Adyen N.V.
+ * This file is open source and available under the MIT license.
+ * See the LICENSE file for more info.
+ *
+ * Author: Adyen <magento@adyen.com>
+ */
 
 namespace Adyen\Payment\Model\Config\Adminhtml;
 
@@ -68,7 +77,7 @@ class ConfigurationWizard extends Field
         return $button->toHtml();
     }
 
-    public function getMerchantAccountsUrl()
+    public function getMerchantAccountsUrl(): string
     {
         return $this->getUrl('adyen/configuration/merchantaccounts');
     }
@@ -78,7 +87,7 @@ class ConfigurationWizard extends Field
         return $this->_storeManager->getStore()->getId();
     }
 
-    public function testConfigured() {
+    public function testConfigured(): bool {
         $merchantAccount = boolval($this->configHelper->getMerchantAccount());
         $clientKeyTest = boolval($this->configHelper->getClientKey('test', $this->getStoreId()));
         $notificationUsername = boolval($this->configHelper->getNotificationsUsername($this->getStoreId()));
@@ -87,7 +96,7 @@ class ConfigurationWizard extends Field
         return $merchantAccount || $clientKeyTest || $notificationUsername || $notificationPassword;
     }
 
-    public function liveConfigured() {
+    public function liveConfigured(): bool {
         $merchantAccount = boolval($this->configHelper->getMerchantAccount());
         $livePrefixUrl = boolval(
             $this->configHelper

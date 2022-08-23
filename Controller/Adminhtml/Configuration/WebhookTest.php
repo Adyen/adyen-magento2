@@ -1,18 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
- *
  * Adyen Payment Module
  *
  * Copyright (c) 2022 Adyen N.V.
@@ -24,10 +11,13 @@
 
 namespace Adyen\Payment\Controller\Adminhtml\Configuration;
 
+use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\ManagementHelper;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class WebhookTest extends Action
 {
@@ -37,9 +27,9 @@ class WebhookTest extends Action
     private $managementApiHelper;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
-    protected $adyenHelper;
+    protected $dataHelper;
 
     /**
      * @var JsonFactory
@@ -49,22 +39,22 @@ class WebhookTest extends Action
     public function __construct(
         Context $context,
         ManagementHelper $managementApiHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper,
+        Data $dataHelper,
         JsonFactory $resultJsonFactory
     ) {
         parent::__construct($context);
         $this->managementApiHelper = $managementApiHelper;
-        $this->adyenHelper =$adyenHelper;
+        $this->dataHelper = $dataHelper;
         $this->resultJsonFactory = $resultJsonFactory;
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|mixed|string
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return ResultInterface
+     * @throws NoSuchEntityException
      */
     public function execute()
     {
-        $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount('adyen_cc');
+        $merchantAccount = $this->dataHelper->getAdyenMerchantAccount('adyen_cc');
         $response = $this->managementApiHelper->webhookTest($merchantAccount);
         $success = isset($response['data']) && 
             in_array('success', array_column($response['data'], 'status'), true);
