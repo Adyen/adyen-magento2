@@ -15,6 +15,8 @@ use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Installments;
 use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Backend\Model\Session\Quote;
+use Magento\Checkout\Model\Session;
 use Magento\Framework\View\Element\Template\Context;
 
 class Moto extends \Magento\Payment\Block\Form\Cc
@@ -55,6 +57,11 @@ class Moto extends \Magento\Payment\Block\Form\Cc
     private $configHelper;
 
     /**
+     * @var Quote
+     */
+    private $backendSession;
+
+    /**
      * @param Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
      * @param Data $adyenHelper
@@ -67,10 +74,11 @@ class Moto extends \Magento\Payment\Block\Form\Cc
         Context $context,
         \Magento\Payment\Model\Config $paymentConfig,
         Data $adyenHelper,
-        \Magento\Checkout\Model\Session $checkoutSession,
+        Session $checkoutSession,
         Installments $installmentsHelper,
         AdyenLogger $adyenLogger,
-        Config $configHelper
+        Config $configHelper,
+        Quote $backendSession
     ) {
         parent::__construct($context, $paymentConfig);
         $this->adyenHelper = $adyenHelper;
@@ -79,6 +87,7 @@ class Moto extends \Magento\Payment\Block\Form\Cc
         $this->installmentsHelper = $installmentsHelper;
         $this->adyenLogger = $adyenLogger;
         $this->configHelper = $configHelper;
+        $this->backendSession = $backendSession;
     }
 
     /**
@@ -126,13 +135,15 @@ class Moto extends \Magento\Payment\Block\Form\Cc
     public function getFormattedInstallments()
     {
         try {
-            $quoteAmountCurrency = $this->getQuoteAmountCurrency();
+            $quoteData = $this->backendSession->getQuote()->getData();
+            $amount = $quoteData['grand_total'];
+
             return $this->installmentsHelper->formatInstallmentsConfig(
                 $this->adyenHelper->getAdyenCcConfigData('installments',
                     $this->_storeManager->getStore()->getId()
                 ),
                 $this->adyenHelper->getAdyenCcTypes(),
-                $quoteAmountCurrency->getAmount()
+                $amount
             );
         } catch (\Throwable $e) {
             $this->adyenLogger->error(
@@ -148,17 +159,20 @@ class Moto extends \Magento\Payment\Block\Form\Cc
     public function getAmount()
     {
         try {
-            $quoteAmountCurrency = $this->getQuoteAmountCurrency();
-            $value = $quoteAmountCurrency->getAmount();
-            $currency = $quoteAmountCurrency->getCurrencyCode();
-            $amount = array("value" => $value, "currency" => $currency);
+            $quoteData = $this->backendSession->getQuote()->getData();
+            $grandTotal = $quoteData['grand_total'];
+            $currenyCode = $this->backendSession->getQuote()->getCurrency()->getQuoteCurrencyCode();
+            $value = $this->adyenHelper->formatAmount($grandTotal, $currenyCode);
+
+            $amount = array("value" => $value, "currency" => $currenyCode);
 
             return json_encode($amount);
 
         } catch (\Throwable $e) {
             $this->adyenLogger->error(
-                'There was an error fetching the amount for installments config: ' . $e->getMessage()
+                'There was an error fetching the amount for checkout component config: ' . $e->getMessage()
             );
+
             return '{}';
         }
     }

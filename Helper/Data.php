@@ -639,9 +639,9 @@ class Data extends AbstractHelper
         return $this->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
     }
 
-    public function isMotoDemoMode(array $motoMerchantAccountPropoerties): bool
+    public function isMotoDemoMode(array $motoMerchantAccountProperties): bool
     {
-        return $motoMerchantAccountPropoerties['demo_mode'] === '1';
+        return $motoMerchantAccountProperties['demo_mode'] === '1';
     }
 
     /**

@@ -72,15 +72,10 @@ class Moto extends \Magento\Framework\App\Config\Value
         }
         $result = [];
         foreach ($value as $data) {
-            if (!$data) {
+            if (!$data || !is_array($data) || count($data) < 2) {
                 continue;
             }
-            if (!is_array($data)) {
-                continue;
-            }
-            if (count($data) < 2) {
-                continue;
-            }
+
             $merchantAccount = $data['merchant_account'];
             $clientKey = $data['client_key'];
             $enviroment = $data['demo_mode'];

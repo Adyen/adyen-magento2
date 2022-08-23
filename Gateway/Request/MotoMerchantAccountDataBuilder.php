@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\AdyenException;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class MotoMerchantAccountDataBuilder implements BuilderInterface
@@ -34,6 +35,7 @@ class MotoMerchantAccountDataBuilder implements BuilderInterface
     /**
      * @param array $buildSubject
      * @return array
+     * @throws AdyenException
      */
     public function build(array $buildSubject)
     {
@@ -42,6 +44,11 @@ class MotoMerchantAccountDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
 
         $motoMerchantAccount = $payment->getAdditionalInformation('motoMerchantAccount');
+
+        if (is_null($motoMerchantAccount)) {
+            throw new AdyenException('MOTO merchant account was not set in payment information!');
+        }
+
         $request['body'] = $this->adyenRequestsHelper->buildMotoMerchantAccountData($motoMerchantAccount);
 
         return $request;
