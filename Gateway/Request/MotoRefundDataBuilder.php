@@ -19,6 +19,10 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
  */
 class MotoRefundDataBuilder implements BuilderInterface
 {
+    const REFUND_STRATEGY_ASCENDING_ORDER = '1';
+    const REFUND_STRATEGY_DESCENDING_ORDER = '2';
+    const REFUND_STRATEGY_BASED_ON_RATIO = '3';
+
     /**
      * @var \Adyen\Payment\Helper\Data
      */
@@ -93,13 +97,13 @@ class MotoRefundDataBuilder implements BuilderInterface
             );
             $ratio = null;
 
-            if ($refundStrategy == "1") {
+            if ($refundStrategy == self::REFUND_STRATEGY_ASCENDING_ORDER) {
                 // Refund in ascending order
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
-            } elseif ($refundStrategy == "2") {
+            } elseif ($refundStrategy == self::REFUND_STRATEGY_DESCENDING_ORDER) {
                 // Refund in descending order
                 $orderPaymentCollection->addPaymentFilterDescending($payment->getId());
-            } elseif ($refundStrategy == "3") {
+            } elseif ($refundStrategy == self::REFUND_STRATEGY_BASED_ON_RATIO) {
                 // refund based on ratio
                 $ratio = $amount / $orderAmountCurrency->getAmount();
                 $orderPaymentCollection->addPaymentFilterAscending($payment->getId());
