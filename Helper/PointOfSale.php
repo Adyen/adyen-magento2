@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen B.V.
+ * Copyright (c) 2022 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -13,19 +13,27 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\ApplicationInfo;
+use Adyen\Payment\Helper\Data;
 use Magento\Framework\App\ProductMetadataInterface;
-use Magento\Payment\Gateway\Data\OrderAdapterInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 
 class PointOfSale
 {
-    /** @var Data */
+    /**
+     * @var Data
+     */
     private Data $dataHelper;
 
-    /** @var ProductMetadataInterface */
+    /**
+     * @var ProductMetadataInterface
+     */
     private ProductMetadataInterface $productMetadata;
 
+    /**
+     * @param \Adyen\Payment\Helper\Data $dataHelper
+     * @param ProductMetadataInterface $productMetadata
+     */
     public function __construct(
         Data $dataHelper,
         ProductMetadataInterface $productMetadata

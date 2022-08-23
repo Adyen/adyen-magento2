@@ -19,7 +19,6 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class PosCloudBackendBuilder implements BuilderInterface
 {
-
     /**
      * @var PointOfSale
      */
@@ -35,9 +34,6 @@ class PosCloudBackendBuilder implements BuilderInterface
     }
 
     /**
-     * In case of older implementation (using AdyenInitiateTerminalApi::initiate) initiate call was already done so we pass its result.
-     * Otherwise, we will do the initiate call here, using initiatePosPayment() so we pass parameters required for the initiate call
-     *
      * @param array $buildSubject
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -50,7 +46,6 @@ class PosCloudBackendBuilder implements BuilderInterface
         $orderInstance = $payment->getMethodInstance()->getInfoInstance()->getOrder();
 
         $terminalId = $payment->getAdditionalInformation('terminal_id');
-        $numberOfInstallments = $payment->getAdditionalInformation('number_of_installments');
 
         $currency = $paymentDataObject->getOrder()->getCurrencyCode();
         $amount = $paymentDataObject->getOrder()->getGrandTotalAmount();
@@ -86,30 +81,12 @@ class PosCloudBackendBuilder implements BuilderInterface
                             'RequestedAmount' => $amount
                         ]
                     ]
+                ],
+                'PaymentData' => [
+                    'PaymentType' => $transactionType
                 ]
             ]
         ];
-
-        if (isset($numberOfInstallments)) {
-            $paymentServiceRequest['SaleToPOIRequest']['PaymentRequest']['PaymentData'] = [
-                "PaymentType" => "Instalment",
-                "Instalment" => [
-                    "InstalmentType" => "EqualInstalments",
-                    "SequenceNumber" => 1,
-                    "Period" => 1,
-                    "PeriodUnit" => "Monthly",
-                    "TotalNbOfPayments" => intval($numberOfInstallments)
-                ]
-            ];
-
-            $paymentServiceRequest['SaleToPOIRequest']['PaymentRequest']['PaymentTransaction']['TransactionConditions'] = [
-                "DebitPreferredFlag" => false
-            ];
-        } else {
-            $paymentServiceRequest['SaleToPOIRequest']['PaymentData'] = [
-                'PaymentType' => $transactionType,
-            ];
-        }
 
         $paymentServiceRequest = $this->pointOfSale->addSaleToAcquirerData($paymentServiceRequest, null, $orderInstance);
 
@@ -133,7 +110,6 @@ class PosCloudBackendBuilder implements BuilderInterface
                         "CashierReceipt",
                         "CustomerReceipt"
                     ],
-
                     'ReceiptReprintFlag' => true
                 ]
             ]

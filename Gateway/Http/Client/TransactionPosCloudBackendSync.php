@@ -64,9 +64,6 @@ class TransactionPosCloudBackendSync implements ClientInterface
     }
 
     /**
-     * Places request to gateway. In case of older implementation (using AdyenInitiateTerminalApi::initiate) parameters
-     * will be obtained from the request. Otherwise, we will do the initiate call here, using initiatePosPayment()
-     *
      * @param TransferInterface $transferObject
      * @return array
      * @throws LocalizedException|AdyenException

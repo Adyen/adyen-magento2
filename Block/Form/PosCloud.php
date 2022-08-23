@@ -14,7 +14,7 @@ namespace Adyen\Payment\Block\Form;
 
 use Adyen\Payment\Helper\ConnectedTerminals;
 use Magento\Framework\View\Element\Template;
-use \Magento\Payment\Block\Form;
+use Magento\Payment\Block\Form;
 
 class PosCloud extends Form
 {
