@@ -67,6 +67,7 @@ class DataTest extends AbstractAdyenTestCase
         $localeHelper = $this->createMock(Locale::class);
         $orderManagement = $this->createMock(OrderManagementInterface::class);
         $orderStatusHistoryFactory = $this->createGeneratedMock(HistoryFactory::class);
+        $adyenConfigHelper = $this->createGeneratedMock(\Adyen\Payment\Helper\Config::class);
 
         $this->dataHelper = new Data(
             $context,
@@ -90,7 +91,8 @@ class DataTest extends AbstractAdyenTestCase
             $componentRegistrar,
             $localeHelper,
             $orderManagement,
-            $orderStatusHistoryFactory
+            $orderStatusHistoryFactory,
+            $adyenConfigHelper
         );
     }
 
