@@ -115,14 +115,11 @@ class Moto extends \Magento\Payment\Block\Form\Cc
     {
         $types = [];
         $ccTypes = $this->adyenHelper->getAdyenCcTypes();
+        $availableTypes = explode(',', $this->adyenHelper->getAdyenCcConfigData('cctypes'));
 
-        $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
-        if ($availableTypes) {
-            $availableTypes = explode(',', $availableTypes);
-            foreach (array_keys($ccTypes) as $code) {
-                if (in_array($code, $availableTypes)) {
-                    $types[$ccTypes[$code]['code_alt']] = $code;
-                }
+        foreach ($ccTypes as $code => $ccType) {
+            if (in_array($code, $availableTypes)) {
+                $types[$ccType['code_alt']] = $code;
             }
         }
 
