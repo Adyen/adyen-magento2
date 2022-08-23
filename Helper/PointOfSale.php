@@ -13,7 +13,6 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Model\ApplicationInfo;
-use Adyen\Payment\Helper\Data;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
@@ -23,12 +22,12 @@ class PointOfSale
     /**
      * @var Data
      */
-    private Data $dataHelper;
+    private $dataHelper;
 
     /**
      * @var ProductMetadataInterface
      */
-    private ProductMetadataInterface $productMetadata;
+    private $productMetadata;
 
     /**
      * @param \Adyen\Payment\Helper\Data $dataHelper
