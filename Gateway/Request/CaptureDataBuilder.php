@@ -226,10 +226,6 @@ class CaptureDataBuilder implements BuilderInterface
      */
     public function buildPartialOrMultipleCaptureData($payment, $currency, $adyenOrderPayments, $captureAmount): array
     {
-        $this->adyenLogger->addAdyenInfoLog(sprintf(
-            'Building PARTIAL capture request for multiple authorisations, on payment %s', $payment->getId()
-        ), $this->adyenLogger->getOrderContext($payment->getOrder()));
-
         $captureAmountCents = $this->adyenHelper->formatAmount($captureAmount, $currency);
         $captureData = [];
         $counterAmount = 0;
@@ -240,6 +236,13 @@ class CaptureDataBuilder implements BuilderInterface
             $paymentAmount = $adyenOrderPayment[OrderPaymentInterface::AMOUNT];
             $totalCaptured = $adyenOrderPayment[OrderPaymentInterface::TOTAL_CAPTURED];
             $availableAmountToCaptureCents = $this->adyenHelper->formatAmount($paymentAmount - $totalCaptured, $currency);
+            $this->adyenLogger->addAdyenInfoLog(
+                'Building PARTIAL capture request for multiple authorisations',
+                [
+                    'pspreference' => $adyenOrderPayment[OrderPaymentInterface::PSPREFRENCE],
+                    'orderIncrementId' => $payment->getOrder()->getIncrementId()
+                ]
+            );
             // If there is still some amount available to capture
             if ($availableAmountToCaptureCents > 0) {
                 // IF the counter amount + available amount to capture from this payment are LESS (or eq) than the capture amount, use the available amount

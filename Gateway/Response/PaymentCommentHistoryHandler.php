@@ -74,13 +74,15 @@ class PaymentCommentHistoryHandler implements HandlerInterface
      */
     private function handlePartialOrMultipleCaptureRequests($payment, array $responseContainer)
     {
-        $this->adyenLogger->info(sprintf(
-            'Handling partial OR multiple capture response in comment history handler for order %s',
-            $payment->getOrder()->getIncrementId()
-        ));
-
         $resultEventCodes = [];
         foreach ($responseContainer[TransactionCapture::MULTIPLE_AUTHORIZATIONS] as $response) {
+            $this->adyenLogger->info(
+                'Handling partial OR multiple capture response in comment history handler',
+                [
+                    'pspreference' => $response['pspReference'],
+                    'orderIncrementId' => $payment->getOrder()->getIncrementId()
+                ]
+            );
             $responseCode = $this->getResponseCode($response);
             $pspReference = $this->getPspReference($response);
             $amount = $response[TransactionCapture::FORMATTED_CAPTURE_AMOUNT];

@@ -77,14 +77,18 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
     public function handlePartialOrMultipleCaptureRequests(Order\Payment $payment, $responseContainer)
     {
         $lastTransId = null;
-        $this->adyenLogger->info(sprintf(
-            'Handling partial OR multiple capture response in details handler for order %s',
-            $payment->getOrder()->getIncrementId()
-        ));
+
 
         $captureNotReceived = [];
 
         foreach ($responseContainer[TransactionCapture::MULTIPLE_AUTHORIZATIONS] as $response) {
+            $this->adyenLogger->info(
+                'Handling partial OR multiple capture response in details handler',
+                [
+                    'pspreference' => $response['pspReference'],
+                    'orderIncrementId' => $payment->getOrder()->getIncrementId()
+                ]
+            );
             if ($response["response"] !== TransactionCapture::CAPTURE_RECEIVED) {
                 $captureNotReceived[] = $response['pspReference'];
             } else {
