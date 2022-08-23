@@ -23,14 +23,12 @@ class AdyenMotoConfigProvider implements ConfigProviderInterface
      */
     public function getConfig()
     {
-        $config = [
+        return [
             'payment' => [
                 self::CODE => [
                     'isActive' => true
                 ]
             ]
         ];
-
-        return $config;
     }
 }
