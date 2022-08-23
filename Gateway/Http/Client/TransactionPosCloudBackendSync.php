@@ -27,22 +27,22 @@ class TransactionPosCloudBackendSync implements ClientInterface
     /**
      * @var int
      */
-    protected int $storeId;
+    protected $storeId;
 
     /**
      * @var Client
      */
-    protected Client $client;
+    protected $client;
 
     /**
      * @var Data
      */
-    protected Data $adyenHelper;
+    protected $adyenHelper;
 
     /**
      * @var AdyenLogger
      */
-    protected AdyenLogger $adyenLogger;
+    protected $adyenLogger;
 
     public function __construct(
         Data $adyenHelper,

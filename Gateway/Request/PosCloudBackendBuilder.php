@@ -22,7 +22,7 @@ class PosCloudBackendBuilder implements BuilderInterface
     /**
      * @var PointOfSale
      */
-    private PointOfSale $pointOfSale;
+    private $pointOfSale;
 
     /**
      * @param PointOfSale $pointOfSale
