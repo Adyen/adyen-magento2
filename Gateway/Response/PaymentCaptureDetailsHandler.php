@@ -82,7 +82,7 @@ class PaymentCaptureDetailsHandler implements HandlerInterface
         $captureNotReceived = [];
 
         foreach ($responseContainer[TransactionCapture::MULTIPLE_AUTHORIZATIONS] as $response) {
-            $this->adyenLogger->info(
+            $this->adyenLogger->addAdyenInfoLog(
                 'Handling partial OR multiple capture response in details handler',
                 [
                     'pspreference' => $response['pspReference'],

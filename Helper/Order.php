@@ -339,7 +339,8 @@ class Order extends AbstractHelper
     {
         if (!$this->configHelper->getNotificationsCanCancel($order->getStoreId())) {
             $this->adyenLogger->addAdyenNotification(
-                'Order cannot be cancelled based on the plugin configuration'
+                'Order cannot be cancelled based on the plugin configuration',
+                $this->adyenLogger->getOrderContext($order)
             );
             return $order;
         }
@@ -360,7 +361,10 @@ class Order extends AbstractHelper
                     $order->hold();
                     $order->addCommentToStatusHistory('Order held', $orderStatus);
                 } else {
-                    $this->adyenLogger->addAdyenNotification('Order can not hold or is already on Hold');
+                    $this->adyenLogger->addAdyenNotification(
+                        'Order can not hold or is already on Hold',
+                        $this->adyenLogger->getOrderContext($order)
+                    );
                 }
             } else {
                 // Allow magento to cancel order
@@ -370,13 +374,17 @@ class Order extends AbstractHelper
                     $order->cancel();
                     $order->addCommentToStatusHistory('Order cancelled', $orderStatus ?? false);
                 } else {
-                    $this->adyenLogger->addAdyenNotification('Order can not be cancelled');
+                    $this->adyenLogger->addAdyenNotification(
+                        'Order can not be cancelled',
+                        $this->adyenLogger->getOrderContext($order)
+                    );
                 }
             }
         } else {
-            $this->adyenLogger->addAdyenNotification(sprintf(
-                    'Order %s already has an invoice linked so it cannot be cancelled', $order->getIncrementId()
-            ));
+            $this->adyenLogger->addAdyenNotification(
+                sprintf('Order %s already has an invoice linked so it cannot be cancelled', $order->getIncrementId()),
+                $this->adyenLogger->getOrderContext($order)
+            );
         }
 
         return $order;
@@ -425,13 +433,19 @@ class Order extends AbstractHelper
             if ($statusObject->getState() == $state) {
                 // Exit function if fitting state is found
                 $order->setState($statusObject->getState());
-                $this->adyenLogger->addAdyenNotification('State is changed to ' . $statusObject->getState());
+                $this->adyenLogger->addAdyenNotification(
+                    'State is changed to ' . $statusObject->getState(),
+                    $this->adyenLogger->getOrderContext($order)
+                );
 
                 return $order;
             }
         }
 
-        $this->adyenLogger->addAdyenNotification('No new state assigned, status should be connected to one of the following states: ' . json_encode($possibleStates));
+        $this->adyenLogger->addAdyenNotification(
+            'No new state assigned, status should be connected to one of the following states: ' . json_encode($possibleStates),
+            $this->adyenLogger->getOrderContext($order)
+        );
 
         return $order;
     }
@@ -513,9 +527,11 @@ class Order extends AbstractHelper
                 ));
             }
         } else {
-            $this->adyenLogger->addAdyenNotification(sprintf(
-                'Did not create a credit memo for order %s because refund was done through Magento back office', $order->getIncrementId()
-            ));
+            $this->adyenLogger->addAdyenNotification(
+                sprintf(
+                    'Did not create a credit memo for order %s because refund was done through Magento back office', $order->getIncrementId()
+                ), $this->adyenLogger->getOrderContext($order)
+            );
         }
 
         $order->addStatusHistoryComment(__('Refund Webhook successfully handled'), $order->getStatus());
@@ -532,7 +548,7 @@ class Order extends AbstractHelper
      */
     private function getVirtualStatus(MagentoOrder $order, $status)
     {
-        $this->adyenLogger->addAdyenNotification('Product is a virtual product');
+        $this->adyenLogger->addAdyenNotification('Product is a virtual product', $this->adyenLogger->getOrderContext($order));
         $virtualStatus = $this->configHelper->getConfigData(
             'payment_authorized_virtual',
             'adyen_abstract',

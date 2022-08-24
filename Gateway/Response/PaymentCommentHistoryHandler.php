@@ -76,7 +76,7 @@ class PaymentCommentHistoryHandler implements HandlerInterface
     {
         $resultEventCodes = [];
         foreach ($responseContainer[TransactionCapture::MULTIPLE_AUTHORIZATIONS] as $response) {
-            $this->adyenLogger->info(
+            $this->adyenLogger->addAdyenInfoLog(
                 'Handling partial OR multiple capture response in comment history handler',
                 [
                     'pspreference' => $response['pspReference'],
