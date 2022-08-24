@@ -18,6 +18,8 @@ use Adyen\Payment\Model\RecurringType;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Helper\Config as ConfigHelper;
+use Adyen\Service\PosPayment;
+use Magento\Backend\Helper\Data as BackendHelper;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -48,6 +50,7 @@ use Magento\Tax\Model\Config;
 class Data extends AbstractHelper
 {
     const MODULE_NAME = 'adyen-magento2';
+    const APPLICATION_NAME = 'Magento 2 plugin';
     const TEST = 'test';
     const LIVE = 'live';
     const LIVE_AU = 'live-au';
@@ -175,6 +178,11 @@ class Data extends AbstractHelper
     private $configHelper;
 
     /**
+     * @var BackendHelper
+     */
+    private $backendHelper;
+
+    /**
      * Data constructor.
      *
      * @param Context $context
@@ -213,6 +221,7 @@ class Data extends AbstractHelper
         NotificationCollectionFactory $notificationFactory,
         Config $taxConfig,
         Calculation $taxCalculation,
+        BackendHelper $backendHelper,
         ProductMetadataInterface $productMetadata,
         AdyenLogger $adyenLogger,
         StoreManagerInterface $storeManager,
@@ -237,6 +246,7 @@ class Data extends AbstractHelper
         $this->_notificationFactory = $notificationFactory;
         $this->_taxConfig = $taxConfig;
         $this->_taxCalculation = $taxCalculation;
+        $this->backendHelper = $backendHelper;
         $this->productMetadata = $productMetadata;
         $this->adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
@@ -631,6 +641,11 @@ class Data extends AbstractHelper
     public function isDemoMode($storeId = null)
     {
         return $this->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
+    }
+
+    public function isMotoDemoMode(array $motoMerchantAccountProperties): bool
+    {
+        return $motoMerchantAccountProperties['demo_mode'] === '1';
     }
 
     /**
@@ -1488,14 +1503,14 @@ class Data extends AbstractHelper
      *
      * @param null|int|string $storeId
      * @param string|null $apiKey
+     * @param string|null $motoMerchantAccount
      * @param bool|null $demoMode
      * @return Client
      * @throws AdyenException
      * @throws NoSuchEntityException
      */
-    public function initializeAdyenClient($storeId = null, $apiKey = null, ?bool $demoMode = null): Client
+    public function initializeAdyenClient($storeId = null, $apiKey = null, $motoMerchantAccount = null, ?bool $demoMode = null): Client
     {
-        // initialize client
         if ($storeId === null) {
             $storeId = $this->storeManager->getStore()->getId();
         }
@@ -1506,8 +1521,22 @@ class Data extends AbstractHelper
             $apiKey = $this->configHelper->getAPIKey($mode, $storeId);
         }
 
+        if (!is_null($motoMerchantAccount)) {
+            try {
+                $motoMerchantAccountProperties = $this->configHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
+            }
+            catch (AdyenException $e) {
+                $this->adyenLogger->addAdyenDebug($e->getMessage());
+                throw $e;
+            }
+
+            // Override the x-api-key and demo mode setting if MOTO merchant account is set.
+            $apiKey = $this->_encryptor->decrypt($motoMerchantAccountProperties['apikey']);
+            $isDemo = $this->isMotoDemoMode($motoMerchantAccountProperties);
+        }
+
         $client = $this->createAdyenClient();
-        $client->setApplicationName("Magento 2 plugin");
+        $client->setApplicationName(self::APPLICATION_NAME);
         $client->setXApiKey($apiKey);
         $moduleVersion = $this->getModuleVersion();
 
@@ -1526,12 +1555,12 @@ class Data extends AbstractHelper
 
     /**
      * @param Client $client
-     * @return \Adyen\Service\PosPayment
+     * @return PosPayment
      * @throws AdyenException
      */
     public function createAdyenPosPaymentService($client)
     {
-        return new \Adyen\Service\PosPayment($client);
+        return new PosPayment($client);
     }
 
     /**
@@ -1544,6 +1573,7 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @deprecated
      * @param null|int|string $storeId
      * @return string
      */
@@ -1556,7 +1586,7 @@ class Data extends AbstractHelper
         $state = $objectManager->get(\Magento\Framework\App\State::class);
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
         if ('adminhtml' === $state->getAreaCode()) {
-            $baseUrl = $this->helperBackend->getHomePageUrl();
+            $baseUrl = $this->backendHelper->getHomePageUrl();
         }
         $parsed = parse_url($baseUrl);
         $origin = $parsed['scheme'] . "://" . $parsed['host'];
