@@ -4,7 +4,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -14,43 +14,32 @@
          xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_required_settings" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1"
            showInStore="1">
+        <fieldset_css>adyen_required_config_settings</fieldset_css>
+
         <label><![CDATA[Required Settings]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-        <field id="merchant_account" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1"
+        <field id="configuration_mode" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1"
                showInStore="1">
-            <label>Merchant Account</label>
-            <config_path>payment/adyen_abstract/merchant_account</config_path>
-            <tooltip>
-                <![CDATA[The merchant account identifier you want to process the (transaction) request with. Find this at the top of the screen in the Adyen Customer Area, where you will see [YourCompanyAccount] > [YourMerchantAccount] . Please note that the merchant account is different from the company account; a company account can have one or more merchant accounts.]]></tooltip>
-            <comment>
-                <![CDATA[<a target="_blank" href="https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#step3configuretheplugininmagento">More information</a>]]></comment>
+            <label>Select Configuration Mode</label>
+            <source_model>Adyen\Payment\Model\Config\Source\ConfigurationModes</source_model>
+            <config_path>payment/adyen_abstract/configuration_mode</config_path>
+            <backend_model>Adyen\Payment\Model\Config\Backend\AutoConfiguration</backend_model>
         </field>
-        <field id="demo_mode" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
+        <field id="demo_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
                showInStore="1">
-            <label>Test/Production Mode</label>
+            <label>Select Environment</label>
             <source_model>Adyen\Payment\Model\Config\Source\DemoMode</source_model>
             <config_path>payment/adyen_abstract/demo_mode</config_path>
             <tooltip>
-                <![CDATA[ In the test mode you must use test cards. See section Documentation & Support for the link to the test cards]]></tooltip>
-        </field>
-        <field id="notification_username" translate="label" type="text" sortOrder="30" showInDefault="1"
-               showInWebsite="1" showInStore="1">
-            <label>Webhook Username</label>
-            <config_path>payment/adyen_abstract/notification_username</config_path>
-            <tooltip>Set a user name of your choice here and copy it over to Adyen Customer Area => Developers => Webhooks => Standard Webhook => User Name.
+                <![CDATA[In the test mode you must use test cards. See section Documentation & Support for the link to the test cards]]>
             </tooltip>
         </field>
-        <field id="notification_password" translate="label" type="obscure" sortOrder="40" showInDefault="1"
-               showInWebsite="1" showInStore="1">
-            <label>Webhook Password</label>
-            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-            <config_path>payment/adyen_abstract/notification_password</config_path>
-            <tooltip>Set a password of your choice and copy it over to Adyen Customer Area => Developers => Webhooks => Standard Webhook => Password.
-            </tooltip>
-        </field>
-        <field id="api_key_test" translate="label" type="obscure" sortOrder="50" showInDefault="1" showInWebsite="1"
+        <field id="api_key_test" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1"
                showInStore="0">
-            <label>API key for Test</label>
+            <depends>
+                <field id="demo_mode">1</field>
+            </depends>
+            <label>API key for Test environment</label>
             <tooltip>If you don't know your Api-Key, log in to your Test Customer Area. Navigate to Developers => API
                 Credentials and click on your webservice user. Find your API Key in the "Authentication" section.
             </tooltip>
@@ -58,9 +47,12 @@
             <config_path>payment/adyen_abstract/api_key_test</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding"/>
         </field>
-        <field id="api_key_live" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1"
+        <field id="api_key_live" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1"
                showInStore="0">
-            <label>API key for Live</label>
+            <depends>
+                <field id="demo_mode">0</field>
+            </depends>
+            <label>API key for Live environment</label>
             <tooltip>If you don't know your Api-Key, you can find it in your Live Customer Area. Navigate to Developers
                 => API Credentials and click on your webservice user. Find your API Key in the "Authentication" section.
             </tooltip>
@@ -68,54 +60,134 @@
             <config_path>payment/adyen_abstract/api_key_live</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding"/>
         </field>
-        <field id="client_key_test" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1"
+        <field id="client_key_test" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="0">
-            <label>Client key for Test</label>
+            <depends>
+                <field id="demo_mode">1</field>
+                <field id="configuration_mode">manual</field>
+            </depends>
+            <label>Client key for Test environment</label>
             <tooltip>If you don't know your Client Key, you can find it in your Test Customer Area. Navigate to
                 Developers => API Credentials and click on your webservice user. Find your Client Key in the
                 "Authentication" section.
             </tooltip>
             <config_path>payment/adyen_abstract/client_key_test</config_path>
         </field>
-        <field id="client_key_live" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="1"
+        <field id="client_key_live" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="0">
-            <label>Client key for Live</label>
+            <depends>
+                <field id="demo_mode">0</field>
+                <field id="configuration_mode">manual</field>
+            </depends>
+            <label>Client key for Live environment</label>
             <tooltip>If you don't know your Client Key, you can find it in your Live Customer Area. Navigate to
                 Developers => API Credentials and click on your webservice user. Find your Client Key in the
                 "Authentication" section.
             </tooltip>
             <config_path>payment/adyen_abstract/client_key_live</config_path>
         </field>
-        <field id="live_endpoint_url_prefix" translate="label" type="text" sortOrder="90" showInDefault="1"
+        <field id="merchant_account_manual" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>Merchant Account</label>
+            <depends>
+                <field id="configuration_mode">manual</field>
+            </depends>
+            <config_path>payment/adyen_abstract/merchant_account</config_path>
+            <tooltip>
+                <![CDATA[The merchant account identifier you want to process the (transaction) request with. Find this at the top of the screen in the Adyen Customer Area, where you will see [YourCompanyAccount] > [YourMerchantAccount] . Please note that the merchant account is different from the company account; a company account can have one or more merchant accounts.]]>
+            </tooltip>
+            <comment>
+                <![CDATA[<a target="_blank" href="https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#step3configuretheplugininmagento">Click here for explanation.</a>]]>
+            </comment>
+        </field>
+        <field id="merchant_account_auto" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>Merchant Account</label>
+            <depends>
+                <!-- To keep this field hidden by default for both auto and manual configuration modes, -->
+                <!-- we set a non-existent configuration mode here. -->
+                <field id="configuration_mode">xxx</field>
+            </depends>
+            <config_path>payment/adyen_abstract/merchant_account</config_path>
+            <source_model>Adyen\Payment\Model\Config\Source\MerchantAccounts</source_model>
+            <tooltip>
+                <![CDATA[The merchant account identifier you want to process the (transaction) request with. Find this at the top of the screen in the Adyen Customer Area, where you will see [YourCompanyAccount] > [YourMerchantAccount] . Please note that the merchant account is different from the company account; a company account can have one or more merchant accounts.]]>
+            </tooltip>
+            <comment>
+                <![CDATA[<a target="_blank" href="https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#step3configuretheplugininmagento">Click here for explanation.</a>]]>
+            </comment>
+        </field>
+        <field id="live_endpoint_url_prefix" translate="label" type="text" sortOrder="50" showInDefault="1"
                showInWebsite="1" showInStore="0">
             <label>Live endpoint prefix</label>
+            <depends>
+                <field id="demo_mode">0</field>
+                <field id="configuration_mode">manual</field>
+            </depends>
             <tooltip>
-                <![CDATA[e.g. if your live endpoint is: <br/> <i>https://1234a567bcd89ef0-MagentoCompany-checkout-live.adyenpayments.com</i> <br/> please type:  <strong>1234a567bcd89ef0-MagentoCompany</strong> in this field.]]></tooltip>
+                <![CDATA[e.g. if your live endpoint is: <br/> <i>https://1234a567bcd89ef0-MagentoCompany-checkout-live.adyenpayments.com</i> <br/> please type:  <strong>1234a567bcd89ef0-MagentoCompany</strong> in this field.]]>
+            </tooltip>
             <comment>
-                <![CDATA[Provide the unique live url prefix: <strong>[random]-[company name]</strong> from the Developers => API URLs menu in the Adyen Customer Area. For more information, please check <a href="https://docs.adyen.com/developers/development-resources/live-endpoints#checkoutendpoints">  our documentation</a>.]]></comment>
+                <![CDATA[Provide the unique live url prefix: <strong>[random]-[company name]</strong> from the Developers => API URLs menu in the Adyen Customer Area. For more information, please check <a href="https://docs.adyen.com/developers/development-resources/live-endpoints#checkoutendpoints">  our documentation</a>.]]>
+            </comment>
             <config_path>payment/adyen_abstract/live_endpoint_url_prefix</config_path>
         </field>
-        <field id="checkout_frontend_region" translate="label" type="select" sortOrder="95" showInDefault="1"
+        <field id="notification_username" translate="label" type="text" sortOrder="60" showInDefault="1"
+               showInWebsite="1" showInStore="1">
+            <label>Notification Username</label>
+            <depends>
+                <field id="configuration_mode">manual</field>
+            </depends>
+            <config_path>payment/adyen_abstract/notification_username</config_path>
+            <backend_model>Adyen\Payment\Model\Config\Backend\WebhookCredentials</backend_model>
+            <tooltip>Set a username of your choice. </tooltip>
+        </field>
+        <field id="notification_password" translate="label" type="obscure" sortOrder="70" showInDefault="1"
+               showInWebsite="1" showInStore="1">
+            <label>Notification Password</label>
+            <depends>
+                <field id="configuration_mode">manual</field>
+            </depends>
+            <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <config_path>payment/adyen_abstract/notification_password</config_path>
+            <tooltip>Set a password of your choice. </tooltip>
+        </field>
+        <field id="checkout_frontend_region" translate="label" type="select" sortOrder="80" showInDefault="1"
                showInWebsite="1" showInStore="0">
             <label>Checkout frontend region</label>
+            <depends>
+                <field id="configuration_mode">manual</field>
+            </depends>
             <source_model>Adyen\Payment\Model\Config\Source\CheckoutFrontendRegion</source_model>
             <config_path>payment/adyen_abstract/checkout_frontend_region</config_path>
             <tooltip>
                 <![CDATA[The region to load your frontend resources (e.g. secured field iframes) from. Should be set to the region closest to where your shopper is located.]]></tooltip>
         </field>
-        <field id="charged_currency" translate="label" type="hidden" sortOrder="100" showInDefault="1" showInWebsite="1"
+        <field id="charged_currency" translate="label" type="hidden" sortOrder="90" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Charged currency</label>
+            <depends>
+                <field id="configuration_mode">manual</field>
+            </depends>
             <comment>
                 <![CDATA[Currency used for Adyen payment processing. This setting is hidden to ensure processing of payments in the expected currency (Display by default), see <a target="_blank" href="https://docs.adyen.com/developers/plugins/magento-2/set-up-the-plugin-in-magento#selecting-charged-currency">Adyen docs</a> for more information.]]></comment>
             <source_model>Adyen\Payment\Model\Config\Source\ChargedCurrency</source_model>
             <config_path>payment/adyen_abstract/charged_currency</config_path>
         </field>
-        <field id="debug" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1"
+        <field id="debug" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1"
                showInStore="0">
             <label>Enable debug logging</label>
+            <depends>
+                <field id="configuration_mode">manual</field>
+            </depends>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/adyen_abstract/debug</config_path>
+        </field>
+        <field id="configuration_wizard" translate="label" type="button" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+            <depends>
+                <field id="configuration_mode">auto</field>
+            </depends>
+            <frontend_model>Adyen\Payment\Model\Config\Adminhtml\ConfigurationWizard</frontend_model>
         </field>
     </group>
 </include>

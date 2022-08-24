@@ -13,6 +13,7 @@ namespace Adyen\Payment\Helper;
 
 use Adyen\AdyenException;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -25,9 +26,8 @@ class Config
     const XML_MERCHANT_ACCOUNT = "merchant_account";
     const XML_NOTIFICATIONS_USERNAME = "notification_username";
     const XML_NOTIFICATIONS_PASSWORD = "notification_password";
+    const XML_WEBHOOK_URL = "webhook_url";
     const XML_NOTIFICATIONS_CAN_CANCEL_FIELD = "notifications_can_cancel";
-    const XML_NOTIFICATIONS_HMAC_CHECK = "notifications_hmac_check";
-    const XML_NOTIFICATIONS_IP_CHECK = "notifications_ip_check";
     const XML_NOTIFICATIONS_HMAC_KEY_LIVE = "notification_hmac_key_live";
     const XML_NOTIFICATIONS_HMAC_KEY_TEST = "notification_hmac_key_test";
     const XML_CHARGED_CURRENCY = "charged_currency";
@@ -55,6 +55,10 @@ class Config
      */
     private $encryptor;
 
+    /**
+     * @var WriterInterface
+     */
+    private $configWriter;
 
     /**
      * @var SerializerInterface
@@ -66,23 +70,48 @@ class Config
      *
      * @param ScopeConfigInterface $scopeConfig
      * @param EncryptorInterface $encryptor
+     * @param WriterInterface $configWriter
+     * @param SerializerInterface $serializer
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         EncryptorInterface $encryptor,
+        WriterInterface $configWriter,
         SerializerInterface $serializer
-    )
-    {
+    ) {
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
+        $this->configWriter = $configWriter;
         $this->serializer = $serializer;
     }
 
     /**
-     * @param int|null $storeId
+     * @param $mode
+     * @param mixed $storeId
      * @return string
      */
-    public function getMerchantAccount($storeId = null)
+    public function getApiKey($mode, $storeId = null): string
+    {
+        $apiKey = $this->getConfigData('api_key_' . $mode, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+
+        return $this->encryptor->decrypt($apiKey);
+    }
+
+    /**
+     * @param $mode
+     * @param $storeId
+     * @return string|null
+     */
+    public function getClientKey($mode, $storeId = null): ?string
+    {
+        return $this->getConfigData('client_key_' . $mode, self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return string|null
+     */
+    public function getMerchantAccount($storeId = null): ?string
     {
         return $this->getConfigData(
             self::XML_MERCHANT_ACCOUNT,
@@ -127,9 +156,9 @@ class Config
 
     /**
      * @param int|null $storeId
-     * @return string
+     * @return string|null
      */
-    public function getNotificationsUsername($storeId = null)
+    public function getNotificationsUsername($storeId = null): ?string
     {
         return $this->getConfigData(
             self::XML_NOTIFICATIONS_USERNAME,
@@ -140,9 +169,9 @@ class Config
 
     /**
      * @param int|null $storeId
-     * @return string
+     * @return string|null
      */
-    public function getNotificationsPassword($storeId = null)
+    public function getNotificationsPassword($storeId = null): ?string
     {
         $key = $this->getConfigData(
             self::XML_NOTIFICATIONS_PASSWORD,
@@ -157,12 +186,30 @@ class Config
     }
 
     /**
+     * @param mixed $storeId
+     * @return string|null
+     */
+    public function getWebhookUrl($storeId = null): ?string
+    {
+        return $this->getConfigData(
+            self::XML_WEBHOOK_URL,
+            self::XML_ADYEN_ABSTRACT_PREFIX,
+            $storeId
+        );
+    }
+
+    public function getWebhookId($storeId = null): ?string
+    {
+        return $this->getConfigData('webhook_id', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId);
+    }
+
+    /**
      * Retrieve flag for notifications_can_cancel
      *
-     * @param int $storeId
+     * @param mixed $storeId
      * @return bool
      */
-    public function getNotificationsCanCancel($storeId = null)
+    public function getNotificationsCanCancel($storeId = null): bool
     {
         return (bool)$this->getConfigData(
             self::XML_NOTIFICATIONS_CAN_CANCEL_FIELD,
@@ -173,44 +220,12 @@ class Config
     }
 
     /**
-     * Retrieve flag for notifications_hmac_check
-     *
-     * @param int $storeId
-     * @return bool
-     */
-    public function getNotificationsHmacCheck($storeId = null)
-    {
-        return (bool)$this->getConfigData(
-            self::XML_NOTIFICATIONS_HMAC_CHECK,
-            self::XML_ADYEN_ABSTRACT_PREFIX,
-            $storeId,
-            true
-        );
-    }
-
-    /**
-     * Retrieve flag for notifications_ip_check
-     *
-     * @param int $storeId
-     * @return bool
-     */
-    public function getNotificationsIpCheck($storeId = null)
-    {
-        return (bool)$this->getConfigData(
-            self::XML_NOTIFICATIONS_IP_CHECK,
-            self::XML_ADYEN_ABSTRACT_PREFIX,
-            $storeId,
-            true
-        );
-    }
-
-    /**
      * Retrieve key for notifications_hmac_key
      *
-     * @param int $storeId
-     * @return string
+     * @param mixed $storeId
+     * @return string|null
      */
-    public function getNotificationsHmacKey($storeId = null)
+    public function getNotificationsHmacKey($storeId = null): ?string
     {
         if ($this->isDemoMode($storeId)) {
             $key = $this->getConfigData(
@@ -235,7 +250,7 @@ class Config
         return $this->encryptor->decrypt(trim($key));
     }
 
-    public function isDemoMode($storeId = null)
+    public function isDemoMode($storeId = null): bool
     {
         return $this->getConfigData('demo_mode', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
@@ -460,5 +475,11 @@ class Config
         } else {
             return $this->scopeConfig->isSetFlag($path, ScopeInterface::SCOPE_STORE, $storeId);
         }
+    }
+
+    public function setConfigData($value, $field, $xmlPrefix, $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT)
+    {
+        $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
+        $this->configWriter->save($path, $value, $scope);
     }
 }
