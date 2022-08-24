@@ -104,7 +104,11 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
             $order = $this->handlePaymentMethodContract($order, $notification);
         } else {
             $this->adyenLogger->addAdyenNotification(
-                'Ignore recurring_contract notification because Vault feature is enabled'
+                'Ignore recurring_contract notification because Vault feature is enabled',
+                [
+                    'pspReference' => $notification->getPspreference(),
+                    'orderIncrementId' => $order->getIncrementId()
+                ]
             );
         }
 
@@ -131,7 +135,11 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
                 $customerReference,
                 $storeId,
                 $recurringDetailReference
-            )
+            ),
+            [
+                'pspReference' => $notification->getPspreference(),
+                'orderIncrementId' => $order->getIncrementId()
+            ]
         );
         try {
             $listRecurringContracts = $this->paymentRequest->getRecurringContractsForShopper(
@@ -189,7 +197,13 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
             if (!($billingAgreement && $billingAgreement->getAgreementId() > 0
                 && $billingAgreement->isValid())) {
                 // create new
-                $this->adyenLogger->addAdyenNotification("Creating new Billing Agreement");
+                $this->adyenLogger->addAdyenNotification(
+                    "Creating new Billing Agreement",
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'orderIncrementId' => $order->getIncrementId()
+                    ]
+                );
                 $order->getPayment()->setBillingAgreementData(
                     [
                         'billing_agreement_id' => $recurringDetailReference,
@@ -203,7 +217,11 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
                 $message = __('Created billing agreement #%1.', $recurringDetailReference);
             } else {
                 $this->adyenLogger->addAdyenNotification(
-                    "Using existing Billing Agreement"
+                    "Using existing Billing Agreement",
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'orderIncrementId' => $order->getIncrementId()
+                    ]
                 );
                 $billingAgreement->setIsObjectChanged(true);
                 $message = __('Updated billing agreement #%1.', $recurringDetailReference);
@@ -230,7 +248,10 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
             $message = $exception->getMessage();
         }
 
-        $this->adyenLogger->addAdyenNotification($message);
+        $this->adyenLogger->addAdyenNotification($message, [
+            'pspReference' => $notification->getPspreference(),
+            'orderIncrementId' => $order->getIncrementId()
+        ]);
         $comment = $order->addStatusHistoryComment($message, $order->getStatus());
         $order->addRelatedObject($comment);
 
@@ -252,7 +273,11 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
             $customerId = $order->getCustomerId();
 
             $this->adyenLogger->addAdyenNotification(
-                '$paymentMethodCode ' . $notification->getPaymentMethod()
+                '$paymentMethodCode ' . $notification->getPaymentMethod(),
+                [
+                    'pspReference' => $notification->getPspreference(),
+                    'orderIncrementId' => $order->getIncrementId()
+                ]
             );
             if (!empty($notification->getPspreference())) {
                 // Check if $paymentTokenAlternativePaymentMethod exists already
@@ -265,7 +290,13 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
 
                 // In case the payment token for this payment method does not exist, create it based on the additionalData
                 if ($paymentTokenAlternativePaymentMethod === null) {
-                    $this->adyenLogger->addAdyenNotification('Creating new gateway token');
+                    $this->adyenLogger->addAdyenNotification(
+                        'Creating new gateway token',
+                        [
+                            'pspReference' => $notification->getPspreference(),
+                            'orderIncrementId' => $order->getIncrementId()
+                        ]
+                    );
                     $paymentTokenAlternativePaymentMethod = $this->paymentTokenFactory->create(
                         PaymentTokenFactoryInterface::TOKEN_TYPE_ACCOUNT
                     );
@@ -282,7 +313,13 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
                         ->setPublicHash($this->encryptor->getHash($customerId . $notification->getPspreference()))
                         ->setTokenDetails(json_encode($details));
                 } else {
-                    $this->adyenLogger->addAdyenNotification('Gateway token already exists');
+                    $this->adyenLogger->addAdyenNotification(
+                        'Gateway token already exists',
+                        [
+                            'pspReference' => $notification->getPspreference(),
+                            'orderIncrementId' => $order->getIncrementId()
+                        ]
+                    );
                 }
 
                 //SEPA tokens don't expire. The expiration date is set 10 years from now
@@ -296,7 +333,11 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
         } catch (Exception $exception) {
             $message = $exception->getMessage();
             $this->adyenLogger->addAdyenNotification(
-                "An error occurred while saving the payment method " . $message
+                "An error occurred while saving the payment method " . $message,
+                [
+                    'pspReference' => $notification->getPspreference(),
+                    'orderIncrementId' => $order->getIncrementId()
+                ]
             );
         }
 

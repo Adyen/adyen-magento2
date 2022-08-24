@@ -67,7 +67,11 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
         if ($previousAdyenEventCode == "AUTHORISATION : TRUE" || !empty($paymentPreviouslyCaptured)) {
             $this->adyenLogger->addAdyenNotification(
                 'Order is not cancelled because previous notification
-                                    was an authorisation that succeeded and payment was captured'
+                                    was an authorisation that succeeded and payment was captured',
+                [
+                    'pspReference' => $notification->getPspreference(),
+                    'orderIncrementId' => $order->getIncrementId()
+                ]
             );
 
             return $order;
@@ -77,11 +81,12 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
 
         if (!$identicalPaymentMethods) {
             $this->adyenLogger->addAdyenNotification(sprintf(
-                'Payment method of notification %s (%s) does not match the payment method (%s) of order %s',
+                'Payment method of notification %s (%s) does not match the payment method (%s) of order %s with the PSP reference: %s',
                 $notification->getId(),
                 $notification->getPaymentMethod(),
                 $order->getIncrementId(),
-                $order->getPayment()->getCcType()
+                $order->getPayment()->getCcType(),
+                $notification->getPspreference()
             ));
 
             return $order;

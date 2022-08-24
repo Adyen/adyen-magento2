@@ -369,7 +369,13 @@ class Webhook
         }
 
         $order->addStatusHistoryComment($comment, $order->getStatus());
-        $this->logger->addAdyenNotification('Created comment history for this notification');
+        $this->logger->addAdyenNotification(
+            'Created comment history for this notification',
+            [
+                'pspReference' => $notification->getPspreference(),
+                'orderIncrementId' => $order->getIncrementId()
+            ]
+        );
     }
 
     /**
@@ -377,7 +383,13 @@ class Webhook
      */
     private function updateAdyenAttributes(Notification $notification)
     {
-        $this->logger->addAdyenNotification('Updating the Adyen attributes of the order');
+        $this->logger->addAdyenNotification(
+            'Updating the Adyen attributes of the order',
+            [
+                'pspReference' => $notification->getPspreference(),
+                'orderIncrementId' => $this->order->getIncrementId()
+            ]
+        );
 
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()

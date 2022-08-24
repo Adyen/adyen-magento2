@@ -70,7 +70,7 @@ class CancelOrRefundWebhookHandler implements WebhookHandlerInterface
                         sprintf('Attempting to cancel order %s', $orderId),
                         [
                             'pspReference' => $notification->getPspreference(),
-                            'orderIncrementId' => $this->adyenLogger->getOrderContext($order)
+                            'orderIncrementId' => $order->getIncrementId()
                         ]
                     );
                     $this->orderHelper->holdCancelOrder($order, $notification);
