@@ -41,7 +41,7 @@ class WebhookTest extends \Magento\Config\Block\System\Config\Form\Field
         )->setData(
             [
                 'id' => 'adyen_webhook_test',
-                'label' => __('Test webhook url'),
+                'label' => __('Test Webhook URL'),
             ]
         );
 
