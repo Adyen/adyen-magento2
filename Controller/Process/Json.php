@@ -260,7 +260,8 @@ class Json extends Action
         }
 
         // Validate the Hmac calculation
-        $hasHmacCheck = $this->hmacSignature->isHmacSupportedEventCode($response);
+        $hasHmacCheck = $this->configHelper->getNotificationsHmacKey() && 
+            $this->hmacSignature->isHmacSupportedEventCode($response);
         if ($hasHmacCheck && !$this->notificationReceiver->validateHmac(
             $response,
             $this->configHelper->getNotificationsHmacKey()
