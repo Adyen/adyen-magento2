@@ -17,6 +17,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingAgreementCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
+use Magento\Backend\Helper\Data as BackendHelper;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -58,6 +59,7 @@ class DataTest extends AbstractAdyenTestCase
         $notificationFactory = $this->createGeneratedMock(NotificationCollectionFactory::class);
         $taxConfig = $this->createMock(Config::class);
         $taxCalculation = $this->createMock(Calculation::class);
+        $backendHelper = $this->createMock(BackendHelper::class);
         $productMetadata = $this->createMock(ProductMetadata::class);
         $adyenLogger = $this->createMock(AdyenLogger::class);
         $storeManager = $this->createMock(StoreManager::class);
@@ -83,6 +85,7 @@ class DataTest extends AbstractAdyenTestCase
             $notificationFactory,
             $taxConfig,
             $taxCalculation,
+            $backendHelper,
             $productMetadata,
             $adyenLogger,
             $storeManager,
