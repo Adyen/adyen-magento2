@@ -79,7 +79,7 @@ class ManagementHelper
         while (count($merchantAccounts) < $responseMerchants['itemsTotal']) {
             foreach ($responseMerchants['data'] as $merchantAccount) {
                 $defaultDC = array_filter($merchantAccount['dataCenters'], function ($dc) {
-                    return $dc['name'] = 'default';
+                    return $dc['name'] === 'default';
                 });
                 $merchantAccounts[] = [
                     'id' => $merchantAccount['id'],
