@@ -66,7 +66,13 @@ class CancelOrRefundWebhookHandler implements WebhookHandlerInterface
                 );
             } else {
                 if ($order->canCancel() || $order->canHold()) {
-                    $this->adyenLogger->addAdyenNotification(sprintf('Attempting to cancel order %s', $orderId));
+                    $this->adyenLogger->addAdyenNotification(
+                        sprintf('Attempting to cancel order %s', $orderId),
+                        [
+                            'pspReference' => $notification->getPspreference(),
+                            'orderIncrementId' => $this->adyenLogger->getOrderContext($order)
+                        ]
+                    );
                     $this->orderHelper->holdCancelOrder($order, $notification);
                 } else {
                     $this->adyenLogger->addAdyenNotification(sprintf('Attempting to refund order %s', $orderId));

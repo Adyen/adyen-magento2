@@ -173,7 +173,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
                                     was an authorisation that succeeded and payment was captured',
                 [
                     'pspReference' => $notification->getPspreference(),
-                    'orderIncrementId' => $this->adyenLogger->getOrderContext($order)
+                    'orderIncrementId' => $order->getIncrementId()
                 ]
             );
 
@@ -240,7 +240,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
                 'Capture mode is set to Manual',
                 [
                     'pspReference' => $notification->getPspreference(),
-                    'orderIncrementId' => $this->adyenLogger->getOrderContext($order)
+                    'orderIncrementId' => $order->getIncrementId()
                 ]
             );
         }
@@ -282,7 +282,10 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
                 $payByLinkFailureCount,
                 AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT
             )),
-            $this->adyenLogger->getOrderContext($order)
+            [
+                'pspReference' => $notification->getPspreference(),
+                'orderIncrementId' => $order->getIncrementId()
+            ]
         );
 
         return false;

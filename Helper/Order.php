@@ -165,11 +165,15 @@ class Order extends AbstractHelper
     {
         try {
             $this->orderSender->send($order);
-            $this->adyenLogger->addAdyenNotification('Send order confirmation email to shopper');
+            $this->adyenLogger->addAdyenNotification(
+                'Send order confirmation email to shopper',
+                $this->adyenLogger->getOrderContext($order)
+            );
         } catch (Exception $exception) {
             $this->adyenLogger->addAdyenWarning(
                 "Exception in Send Mail in Magento. This is an issue in the the core of Magento" .
-                $exception->getMessage()
+                $exception->getMessage(),
+                $this->adyenLogger->getOrderContext($order)
             );
         }
     }
@@ -198,7 +202,10 @@ class Order extends AbstractHelper
                     ->save();
             }
         } else {
-            $this->adyenLogger->addAdyenNotification('Order can\'t be shipped');
+            $this->adyenLogger->addAdyenNotification(
+                'Order can\'t be shipped',
+                $this->adyenLogger->getOrderContext($order)
+            );
         }
 
         return $order;
@@ -246,12 +253,18 @@ class Order extends AbstractHelper
 
         $order = $this->addProcessedStatusHistoryComment($order, $notification);
         if ($fullAmountFinalized) {
-            $this->adyenLogger->addAdyenNotification(sprintf(
-                'Notification w/amount %s has completed the capturing of order %s w/amount %s',
-                $amount,
-                $order->getIncrementId(),
-                $formattedOrderAmount
-            ));
+            $this->adyenLogger->addAdyenNotification(
+                sprintf(
+                    'Notification w/amount %s has completed the capturing of order %s w/amount %s',
+                    $amount,
+                    $order->getIncrementId(),
+                    $formattedOrderAmount
+                ),
+                [
+                    'pspReference' => $notification->getPspreference(),
+                    'orderIncrementId' => $order->getIncrementId()
+                ]
+            );
             $comment = "Adyen Payment Successfully completed";
             // If a status is set, add comment, set status and update the state based on the status
             // Else add comment
@@ -259,21 +272,30 @@ class Order extends AbstractHelper
                 $order->addStatusHistoryComment(__($comment), $status);
                 $this->adyenLogger->addAdyenNotification(
                     'Maintaining current status: ' . $status,
-                    $this->adyenLogger->getOrderContext($order)
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'orderIncrementId' => $order->getIncrementId()
+                    ]
                 );
             } else if (!empty($status)) {
                 $order->addStatusHistoryComment(__($comment), $status);
                 $this->setState($order, $status, $possibleStates);
                 $this->adyenLogger->addAdyenNotification(
                     'Order status was changed to authorised status: ' . $status,
-                    $this->adyenLogger->getOrderContext($order)
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'orderIncrementId' => $order->getIncrementId()
+                    ]
                 );
             } else {
                 $order->addStatusHistoryComment(__($comment));
-                $this->adyenLogger->addAdyenNotification(sprintf(
-                    'Order %s was finalized. Authorised status not set',
-                    $order->getIncrementId()
-                ));
+                $this->adyenLogger->addAdyenNotification(
+                    'Order was finalized. Authorised status not set',
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'orderIncrementId' => $order->getIncrementId()
+                    ]
+                );
             }
         }
 
@@ -320,10 +342,14 @@ class Order extends AbstractHelper
             $order = $this->setState($order, $status, $possibleStates);
 
             $this->adyenLogger->addAdyenNotification(
-                'Order status is changed to Pre-authorised status, status is ' . $status
+                'Order status is changed to Pre-authorised status, status is ' . $status,
+                $this->adyenLogger->getOrderContext($order)
             );
         } else {
-            $this->adyenLogger->addAdyenNotification('No pre-authorised status is used so ignore');
+            $this->adyenLogger->addAdyenNotification(
+                'No pre-authorised status is used so ignore',
+                $this->adyenLogger->getOrderContext($order)
+            );
         }
 
         return $order;
@@ -490,11 +516,17 @@ class Order extends AbstractHelper
 
             if ($orderPayment->getEntityId() > 0) {
                 $this->adyenOrderPaymentHelper->refundAdyenOrderPayment($orderPayment, $notification);
-                $this->adyenLogger->addAdyenNotification(sprintf(
-                    'Refunding %s from AdyenOrderPayment %s',
-                    $notification->getAmountCurrency() . $notification->getAmountValue(),
-                    $orderPayment->getEntityId()
-                ), $this->adyenLogger->getOrderContext($order));
+                $this->adyenLogger->addAdyenNotification(
+                    sprintf(
+                        'Refunding %s from AdyenOrderPayment %s',
+                        $notification->getAmountCurrency() . $notification->getAmountValue(),
+                        $orderPayment->getEntityId()
+                    ),
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'orderIncrementId' => $order->getIncrementId()
+                    ]
+                );
             } else {
                 $this->adyenLogger->addAdyenNotification(sprintf(
                     'AdyenOrderPayment with pspReference %s was not found. This should be linked to order %s',
@@ -518,19 +550,32 @@ class Order extends AbstractHelper
                 $amount = $this->dataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
                 $order->getPayment()->registerRefundNotification($amount);
 
-                $this->adyenLogger->addAdyenNotification(sprintf('Created credit memo for order %s', $order->getIncrementId()));
+                $this->adyenLogger->addAdyenNotification(
+                        'Created credit memo for order',
+                        [
+                            'pspReference' => $notification->getPspreference(),
+                            'orderIncrementId' => $order->getIncrementId()
+                        ]
+                );
             } else {
-                $this->adyenLogger->addAdyenNotification(sprintf(
-                    'Could not create a credit memo for order %s while processing notification %s',
-                    $order->getIncrementId(),
-                    $notification->getId()
-                ));
+                $this->adyenLogger->addAdyenNotification(
+                    sprintf(
+                        'Could not create a credit memo for order while processing notification %s',
+                        $notification->getId()
+                    ),
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'orderIncrementId' => $order->getIncrementId()
+                    ]
+                );
             }
         } else {
             $this->adyenLogger->addAdyenNotification(
-                sprintf(
-                    'Did not create a credit memo for order %s because refund was done through Magento back office', $order->getIncrementId()
-                ), $this->adyenLogger->getOrderContext($order)
+                'Did not create a credit memo for order %s because refund was done through Magento back office',
+                [
+                    'pspReference' => $notification->getPspreference(),
+                    'orderIncrementId' => $order->getIncrementId()
+                ]
             );
         }
 
