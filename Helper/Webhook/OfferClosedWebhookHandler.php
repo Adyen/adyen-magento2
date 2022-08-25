@@ -55,20 +55,6 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
     {
         //TODO: Refactor code that is common between here and AUTH w/success = false
         $previousAdyenEventCode = $order->getData('adyen_notification_event_code');
-        $ignoreHasInvoice = true;
-
-        // if payment is API, check if API result pspreference is the same as reference
-        if ($notification->getEventCode() == Notification::AUTHORISATION) {
-            if ('api' === $order->getPayment()->getPaymentMethodType()) {
-                // don't cancel the order because order was successful through api
-                $this->adyenLogger->addAdyenNotificationCronjob(
-                    'order is not cancelled because api result was successful'
-                );
-
-                return $order;
-            }
-            $ignoreHasInvoice = false;
-        }
 
         /*
          * Don't cancel the order if part of the payment has been captured.
@@ -79,7 +65,7 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
         $paymentPreviouslyCaptured = $order->getData('adyen_notification_payment_captured');
 
         if ($previousAdyenEventCode == "AUTHORISATION : TRUE" || !empty($paymentPreviouslyCaptured)) {
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 'Order is not cancelled because previous notification
                                     was an authorisation that succeeded and payment was captured'
             );
@@ -90,7 +76,7 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
         $identicalPaymentMethods = $this->paymentMethodsHelper->compareOrderAndWebhookPaymentMethods($order, $notification);
 
         if (!$identicalPaymentMethods) {
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            $this->adyenLogger->addAdyenNotification(sprintf(
                 'Payment method of notification %s (%s) does not match the payment method (%s) of order %s',
                 $notification->getId(),
                 $notification->getPaymentMethod(),
@@ -106,7 +92,7 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
             $order->setState(MagentoOrder::STATE_NEW);
         }
 
-        $this->orderHelper->holdCancelOrder($order, $ignoreHasInvoice);
+        $this->orderHelper->holdCancelOrder($order, true);
 
         return $order;
     }

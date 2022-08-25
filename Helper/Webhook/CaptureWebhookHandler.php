@@ -79,7 +79,7 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
         $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod());
 
         if ($isAutoCapture || $transitionState !== PaymentStates::STATE_PAID) {
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            $this->adyenLogger->addAdyenNotification(sprintf(
                 'Capture webhook for order %s was not handled due to AutoCapture: %b, OR TransitionState: %s',
                 $order->getIncrementId(),
                 $isAutoCapture,
@@ -96,7 +96,7 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
             $order = $this->orderHelper->fetchOrderByIncrementId($notification);
             $adyenOrderPayment = $this->adyenOrderPaymentFactory->create()->load($adyenInvoice->getAdyenPaymentOrderId(), OrderPaymentInterface::ENTITY_ID);
             $this->adyenOrderPaymentHelper->refreshPaymentCaptureStatus($adyenOrderPayment, $notification->getAmountCurrency());
-            $this->adyenLogger->addAdyenNotificationCronjob(sprintf(
+            $this->adyenLogger->addAdyenNotification(sprintf(
                 'adyen_invoice %s linked to invoice %s and adyen_order_payment %s was updated',
                 $adyenInvoice->getEntityId(),
                 $adyenInvoice->getInvoiceId(),
@@ -104,14 +104,14 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
             ));
 
             $magentoInvoice = $this->magentoInvoiceFactory->create()->load($adyenInvoice->getInvoiceId(), MagentoInvoice::ENTITY_ID);
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 sprintf('Notification %s updated invoice %s.', $notification->getEntityId(), $magentoInvoice->getEntityid()),
-                $this->invoiceHelper->getLogInvoiceContext($magentoInvoice)
+                $this->adyenLogger->getInvoiceContext($magentoInvoice)
             );
 
             $order = $this->orderHelper->finalizeOrder($order, $notification);
         } catch (Exception $e) {
-            $this->adyenLogger->addAdyenNotificationCronjob($e->getMessage());
+            $this->adyenLogger->addAdyenNotification($e->getMessage());
         }
 
         return $order;

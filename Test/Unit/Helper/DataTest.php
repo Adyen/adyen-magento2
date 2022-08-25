@@ -8,13 +8,16 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Helper;
+namespace Adyen\Payment\Tests\Unit\Helper;
 
+use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingAgreementCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
+use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
+use Magento\Backend\Helper\Data as BackendHelper;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -35,44 +38,40 @@ use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
 use PHPUnit\Framework\TestCase;
 
-class DataTest extends TestCase
+class DataTest extends AbstractAdyenTestCase
 {
     /**
      * @var Data
      */
     private $dataHelper;
 
-    private function getSimpleMock($originalClassName)
-    {
-        return $this->getMockBuilder($originalClassName)
-            ->disableOriginalConstructor()
-            ->getMock();
-    }
-
     public function setUp(): void
     {
-        $context = $this->getSimpleMock(Context::class);
-        $encryptor = $this->getSimpleMock(EncryptorInterface::class);
-        $dataStorage = $this->getSimpleMock(DataInterface::class);
-        $country = $this->getSimpleMock(Country::class);
-        $moduleList = $this->getSimpleMock(ModuleListInterface::class);
-        $billingAgreementCollectionFactory = $this->getSimpleMock(BillingAgreementCollectionFactory::class);
-        $assetRepo = $this->getSimpleMock(Repository::class);
-        $assetSource = $this->getSimpleMock(Source::class);
-        $notificationFactory = $this->getSimpleMock(NotificationCollectionFactory::class);
-        $taxConfig = $this->getSimpleMock(Config::class);
-        $taxCalculation = $this->getSimpleMock(Calculation::class);
-        $productMetadata = $this->getSimpleMock(ProductMetadata::class);
-        $adyenLogger = $this->getSimpleMock(AdyenLogger::class);
-        $storeManager = $this->getSimpleMock(StoreManager::class);
-        $cache = $this->getSimpleMock(CacheInterface::class);
-        $localeResolver = $this->getSimpleMock(ResolverInterface::class);
-        $config = $this->getSimpleMock(ScopeConfigInterface::class);
-        $serializer = $this->getSimpleMock(SerializerInterface::class);
-        $componentRegistrar = $this->getSimpleMock(ComponentRegistrarInterface::class);
-        $localeHelper = $this->getSimpleMock(Locale::class);
-        $orderManagement = $this->getSimpleMock(OrderManagementInterface::class);
-        $orderStatusHistoryFactory = $this->getSimpleMock(HistoryFactory::class);
+        $configHelper = $this->createMock(ConfigHelper::class);
+        $context = $this->createMock(Context::class);
+        $encryptor = $this->createMock(EncryptorInterface::class);
+        $dataStorage = $this->createMock(DataInterface::class);
+        $country = $this->createMock(Country::class);
+        $moduleList = $this->createMock(ModuleListInterface::class);
+        $billingAgreementCollectionFactory = $this->createGeneratedMock(BillingAgreementCollectionFactory::class);
+        $assetRepo = $this->createMock(Repository::class);
+        $assetSource = $this->createMock(Source::class);
+        $notificationFactory = $this->createGeneratedMock(NotificationCollectionFactory::class);
+        $taxConfig = $this->createMock(Config::class);
+        $taxCalculation = $this->createMock(Calculation::class);
+        $backendHelper = $this->createMock(BackendHelper::class);
+        $productMetadata = $this->createMock(ProductMetadata::class);
+        $adyenLogger = $this->createMock(AdyenLogger::class);
+        $storeManager = $this->createMock(StoreManager::class);
+        $cache = $this->createMock(CacheInterface::class);
+        $localeResolver = $this->createMock(ResolverInterface::class);
+        $config = $this->createMock(ScopeConfigInterface::class);
+        $serializer = $this->createMock(SerializerInterface::class);
+        $componentRegistrar = $this->createMock(ComponentRegistrarInterface::class);
+        $localeHelper = $this->createMock(Locale::class);
+        $orderManagement = $this->createMock(OrderManagementInterface::class);
+        $orderStatusHistoryFactory = $this->createGeneratedMock(HistoryFactory::class);
+
 
         $this->dataHelper = new Data(
             $context,
@@ -86,6 +85,7 @@ class DataTest extends TestCase
             $notificationFactory,
             $taxConfig,
             $taxCalculation,
+            $backendHelper,
             $productMetadata,
             $adyenLogger,
             $storeManager,
@@ -96,7 +96,8 @@ class DataTest extends TestCase
             $componentRegistrar,
             $localeHelper,
             $orderManagement,
-            $orderStatusHistoryFactory
+            $orderStatusHistoryFactory,
+            $configHelper
         );
     }
 
@@ -125,7 +126,7 @@ class DataTest extends TestCase
      * @dataProvider checkoutEnvironmentsProvider
      *
      */
-    public function testGetPspReferenceSearchUrl($expectedResult, $pspReference, $checkoutEnvironment)
+    public function testGetPspReferenceSearchUrl(string $expectedResult, string $pspReference, string $checkoutEnvironment)
     {
         $pspSearchUrl = $this->dataHelper->getPspReferenceSearchUrl($pspReference, $checkoutEnvironment);
         $this->assertEquals($expectedResult, $pspSearchUrl);
@@ -151,7 +152,7 @@ class DataTest extends TestCase
         );
     }
 
-    public static function checkoutEnvironmentsProvider()
+    public static function checkoutEnvironmentsProvider(): array
     {
         return [
             [

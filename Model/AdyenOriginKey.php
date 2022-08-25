@@ -16,6 +16,9 @@ use Adyen\AdyenException;
 use Adyen\Payment\Helper\Data as AdyenHelper;
 use Magento\Framework\Exception\NoSuchEntityException as MagentoNoSuchEntityException;
 
+/**
+ * @deprecated
+ */
 class AdyenOriginKey implements \Adyen\Payment\Api\AdyenOriginKeyInterface
 {
     /**
