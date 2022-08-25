@@ -18,7 +18,7 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
-class CcBackendAuthorizationDataBuilder implements BuilderInterface
+class MotoAuthorizationDataBuilder implements BuilderInterface
 {
     /**
      * @var StateData

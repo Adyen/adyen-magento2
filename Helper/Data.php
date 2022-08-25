@@ -11,11 +11,15 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\AdyenException;
+use Adyen\Client;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\RecurringType;
-use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
+use Adyen\Payment\Helper\Config as ConfigHelper;
+use Adyen\Service\PosPayment;
+use Magento\Backend\Helper\Data as BackendHelper;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -26,12 +30,16 @@ use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\Component\ComponentRegistrarInterface;
 use Magento\Framework\Config\DataInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
+use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Status\HistoryFactory;
+use Magento\Sales\Model\Service\OrderService;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
@@ -42,6 +50,7 @@ use Magento\Tax\Model\Config;
 class Data extends AbstractHelper
 {
     const MODULE_NAME = 'adyen-magento2';
+    const APPLICATION_NAME = 'Magento 2 plugin';
     const TEST = 'test';
     const LIVE = 'live';
     const LIVE_AU = 'live-au';
@@ -154,13 +163,24 @@ class Data extends AbstractHelper
     private $localeHelper;
 
     /**
-     * @var \Magento\Sales\Model\Service\OrderService
+     * @var OrderService
      */
     private $orderManagement;
+
     /**
-     * @var \Magento\Sales\Model\Order\Status\HistoryFactory
+     * @var HistoryFactory
      */
     private $orderStatusHistoryFactory;
+
+    /**
+     * @var ConfigHelper
+     */
+    private $configHelper;
+
+    /**
+     * @var BackendHelper
+     */
+    private $backendHelper;
 
     /**
      * Data constructor.
@@ -185,7 +205,9 @@ class Data extends AbstractHelper
      * @param SerializerInterface $serializer
      * @param ComponentRegistrarInterface $componentRegistrar
      * @param Locale $localeHelper
-     *
+     * @param OrderManagementInterface $orderManagement
+     * @param HistoryFactory $orderStatusHistoryFactory
+     * @param ConfigHelper $configHelper
      */
     public function __construct(
         Context $context,
@@ -199,6 +221,7 @@ class Data extends AbstractHelper
         NotificationCollectionFactory $notificationFactory,
         Config $taxConfig,
         Calculation $taxCalculation,
+        BackendHelper $backendHelper,
         ProductMetadataInterface $productMetadata,
         AdyenLogger $adyenLogger,
         StoreManagerInterface $storeManager,
@@ -208,8 +231,9 @@ class Data extends AbstractHelper
         SerializerInterface $serializer,
         ComponentRegistrarInterface $componentRegistrar,
         Locale $localeHelper,
-        \Magento\Sales\Api\OrderManagementInterface $orderManagement,
-        \Magento\Sales\Model\Order\Status\HistoryFactory $orderStatusHistoryFactory
+        OrderManagementInterface $orderManagement,
+        HistoryFactory $orderStatusHistoryFactory,
+        ConfigHelper $configHelper
     ) {
         parent::__construct($context);
         $this->_encryptor = $encryptor;
@@ -222,6 +246,7 @@ class Data extends AbstractHelper
         $this->_notificationFactory = $notificationFactory;
         $this->_taxConfig = $taxConfig;
         $this->_taxCalculation = $taxCalculation;
+        $this->backendHelper = $backendHelper;
         $this->productMetadata = $productMetadata;
         $this->adyenLogger = $adyenLogger;
         $this->storeManager = $storeManager;
@@ -233,6 +258,7 @@ class Data extends AbstractHelper
         $this->localeHelper = $localeHelper;
         $this->orderManagement = $orderManagement;
         $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -260,19 +286,6 @@ class Data extends AbstractHelper
             'eu' => 'Default (EU - Europe)',
             'au' => 'AU - Australasia',
             'us' => 'US - United States'
-        ];
-    }
-
-    /**
-     * return modes for configuration setting
-     *
-     * @return array
-     */
-    public function getModes()
-    {
-        return [
-            '1' => 'Test Mode',
-            '0' => 'Production Mode'
         ];
     }
 
@@ -630,8 +643,14 @@ class Data extends AbstractHelper
         return $this->getAdyenAbstractConfigDataFlag('demo_mode', $storeId);
     }
 
+    public function isMotoDemoMode(array $motoMerchantAccountProperties): bool
+    {
+        return $motoMerchantAccountProperties['demo_mode'] === '1';
+    }
+
     /**
      * Retrieve the API key
+     * @deprecated Use Adyen\Payment\Helper\Config::getApiKey instead
      *
      * @param null|int|string $storeId
      * @return string
@@ -760,16 +779,23 @@ class Data extends AbstractHelper
                             $this->orderManagement->addComment($order->getEntityId(), $orderStatusHistory);
                         } catch (\Exception $e) {
                             $this->adyenLogger->addAdyenDebug(
-                                __('Order cancel history comment error: %1', $e->getMessage())
+                                __('Order cancel history comment error: %1', $e->getMessage()),
+                                $this->adyenLogger->getOrderContext($order)
                             );
                         }
                     } else { //previous canceling process
-                        $this->adyenLogger->addAdyenDebug('Unsuccessful order canceling attempt by orderManagement service, use legacy process');
+                        $this->adyenLogger->addAdyenDebug(
+                            'Unsuccessful order canceling attempt by orderManagement service, use legacy process',
+                            $this->adyenLogger->getOrderContext($order)
+                        );
                         $order->cancel();
                         $order->save();
                     }
                 } else {
-                    $this->adyenLogger->addAdyenDebug('Order can not be canceled');
+                    $this->adyenLogger->addAdyenDebug(
+                        'Order can not be canceled',
+                        $this->adyenLogger->getOrderContext($order)
+                    );
                 }
                 break;
         }
@@ -1477,28 +1503,46 @@ class Data extends AbstractHelper
      *
      * @param null|int|string $storeId
      * @param string|null $apiKey
-     * @return \Adyen\Client
-     * @throws \Adyen\AdyenException
+     * @param string|null $motoMerchantAccount
+     * @param bool|null $demoMode
+     * @return Client
+     * @throws AdyenException
+     * @throws NoSuchEntityException
      */
-    public function initializeAdyenClient($storeId = null, $apiKey = null)
+    public function initializeAdyenClient($storeId = null, $apiKey = null, $motoMerchantAccount = null, ?bool $demoMode = null): Client
     {
-        // initialize client
         if ($storeId === null) {
             $storeId = $this->storeManager->getStore()->getId();
         }
 
+        $isDemo = is_null($demoMode) ? $this->configHelper->isDemoMode($storeId) : $demoMode;
+        $mode = $isDemo ? 'test' : 'live';
         if (empty($apiKey)) {
-            $apiKey = $this->getAPIKey($storeId);
+            $apiKey = $this->configHelper->getAPIKey($mode, $storeId);
+        }
+
+        if (!is_null($motoMerchantAccount)) {
+            try {
+                $motoMerchantAccountProperties = $this->configHelper->getMotoMerchantAccountProperties($motoMerchantAccount, $storeId);
+            }
+            catch (AdyenException $e) {
+                $this->adyenLogger->addAdyenDebug($e->getMessage());
+                throw $e;
+            }
+
+            // Override the x-api-key and demo mode setting if MOTO merchant account is set.
+            $apiKey = $this->_encryptor->decrypt($motoMerchantAccountProperties['apikey']);
+            $isDemo = $this->isMotoDemoMode($motoMerchantAccountProperties);
         }
 
         $client = $this->createAdyenClient();
-        $client->setApplicationName("Magento 2 plugin");
+        $client->setApplicationName(self::APPLICATION_NAME);
         $client->setXApiKey($apiKey);
         $moduleVersion = $this->getModuleVersion();
 
         $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
-        if ($this->isDemoMode($storeId)) {
+        if ($isDemo) {
             $client->setEnvironment(\Adyen\Environment::TEST);
         } else {
             $client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
@@ -1510,25 +1554,26 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param \Adyen\Client $client
-     * @return \Adyen\Service\PosPayment
-     * @throws \Adyen\AdyenException
+     * @param Client $client
+     * @return PosPayment
+     * @throws AdyenException
      */
     public function createAdyenPosPaymentService($client)
     {
-        return new \Adyen\Service\PosPayment($client);
+        return new PosPayment($client);
     }
 
     /**
-     * @return \Adyen\Client
-     * @throws \Adyen\AdyenException
+     * @return Client
+     * @throws AdyenException
      */
     private function createAdyenClient()
     {
-        return new \Adyen\Client();
+        return new Client();
     }
 
     /**
+     * @deprecated
      * @param null|int|string $storeId
      * @return string
      */
@@ -1541,7 +1586,7 @@ class Data extends AbstractHelper
         $state = $objectManager->get(\Magento\Framework\App\State::class);
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
         if ('adminhtml' === $state->getAreaCode()) {
-            $baseUrl = $this->helperBackend->getHomePageUrl();
+            $baseUrl = $this->backendHelper->getHomePageUrl();
         }
         $parsed = parse_url($baseUrl);
         $origin = $parsed['scheme'] . "://" . $parsed['host'];
@@ -1555,7 +1600,7 @@ class Data extends AbstractHelper
      * Retrieve origin keys for platform's base url
      *
      * @return string
-     * @throws \Adyen\AdyenException
+     * @throws AdyenException
      * @deprecared please use getClientKey instead
      */
     public function getOriginKeyForBaseUrl()
@@ -1579,7 +1624,7 @@ class Data extends AbstractHelper
      * @param $origin
      * @param null|int|string $storeId
      * @return string
-     * @throws \Adyen\AdyenException
+     * @throws AdyenException
      */
     private function getOriginKeyForOrigin($origin, $storeId = null)
     {
@@ -1628,9 +1673,9 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param \Adyen\Client $client
+     * @param Client $client
      * @return \Adyen\Service\CheckoutUtility
-     * @throws \Adyen\AdyenException
+     * @throws AdyenException
      */
     private function createAdyenCheckoutUtilityService($client)
     {
@@ -1689,7 +1734,7 @@ class Data extends AbstractHelper
     /**
      * @param $client
      * @return \Adyen\Service\Recurring
-     * @throws \Adyen\AdyenException
+     * @throws AdyenException
      */
     public function createAdyenRecurringService($client)
     {
