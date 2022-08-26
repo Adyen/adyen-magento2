@@ -169,7 +169,6 @@ class PaymentMethods extends AbstractHelper
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-
     public function getPaymentMethods($quoteId, $country = null, ?string $shopperLocale = null)
     {
         // get quote from quoteId
