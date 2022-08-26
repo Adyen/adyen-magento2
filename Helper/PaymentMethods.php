@@ -163,12 +163,13 @@ class PaymentMethods extends AbstractHelper
     /**
      * @param $quoteId
      * @param null $country
+     * @param string|null $shopperLocale
      * @return string|array
+     * @throws AdyenException
      * @throws LocalizedException
      * @throws NoSuchEntityException
-     * @throws AdyenException
      */
-    public function getPaymentMethods($quoteId, $country = null)
+    public function getPaymentMethods($quoteId, $country = null, ?string $shopperLocale = null)
     {
         // get quote from quoteId
         $quote = $this->quoteRepository->getActive($quoteId);
@@ -179,7 +180,7 @@ class PaymentMethods extends AbstractHelper
 
         $this->setQuote($quote);
 
-        return $this->fetchPaymentMethods($country);
+        return $this->fetchPaymentMethods($country, $shopperLocale);
     }
 
     /**
@@ -212,13 +213,13 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
-     * @param $country
+     * @param string|null $country
+     * @param string|null $shopperLocale
      * @return string
      * @throws AdyenException
      * @throws LocalizedException
-     * @throws \Exception
      */
-    protected function fetchPaymentMethods($country): string
+    protected function fetchPaymentMethods(?string $country = null, ?string $shopperLocale = null): string
     {
         $quote = $this->getQuote();
         $store = $quote->getStore();
@@ -228,8 +229,8 @@ class PaymentMethods extends AbstractHelper
             return json_encode([]);
         }
 
-        $paymentMethodRequest = $this->getPaymentMethodsRequest($merchantAccount, $store, $country, $quote);
-        $responseData = $this->getPaymentMethodsResponse($paymentMethodRequest, $store);
+        $requestData = $this->getPaymentMethodsRequest($merchantAccount, $store, $quote, $country, $shopperLocale);
+        $responseData = $this->getPaymentMethodsResponse($requestData, $store);
         if (empty($responseData['paymentMethods'])) {
             return json_encode([]);
         }
@@ -284,9 +285,10 @@ class PaymentMethods extends AbstractHelper
 
     /**
      * @param $store
+     * @param $country
      * @return int|mixed|string
      */
-    protected function getCurrentCountryCode($store, $country)
+    protected function getCurrentCountryCode($store, $country = null)
     {
         // if fixed countryCode is setup in config use this
         $countryCode = $this->adyenHelper->getAdyenHppConfigData('country_code', $store->getId());
@@ -376,16 +378,18 @@ class PaymentMethods extends AbstractHelper
     /**
      * @param $merchantAccount
      * @param \Magento\Store\Model\Store $store
-     * @param $country
      * @param \Magento\Quote\Model\Quote $quote
+     * @param string|null $country
+     * @param string|null $shopperLocale
      * @return array
      * @throws \Exception
      */
     protected function getPaymentMethodsRequest(
         $merchantAccount,
         \Magento\Store\Model\Store $store,
-        $country,
-        \Magento\Quote\Model\Quote $quote
+        \Magento\Quote\Model\Quote $quote,
+        ?string $country = null,
+        ?string $shopperLocale = null
     ) {
         $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
 
@@ -393,7 +397,7 @@ class PaymentMethods extends AbstractHelper
             "channel" => "Web",
             "merchantAccount" => $merchantAccount,
             "countryCode" => $this->getCurrentCountryCode($store, $country),
-            "shopperLocale" => $this->adyenHelper->getCurrentLocaleCode($store->getId()),
+            "shopperLocale" => $shopperLocale ?: $this->adyenHelper->getCurrentLocaleCode($store->getId()),
             "amount" => [
                 "currency" => $currencyCode
             ]
