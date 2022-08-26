@@ -26,7 +26,8 @@ interface InternalGuestAdyenPaymentMethodManagementInterface
      * @param string $cartId The ID of the cart/quote.
      * @param string $formKey Frontend form key.
      * @param AddressInterface|null $shippingAddress Shipping address to use for fetching the payment methods from Adyen.
+     * @param string|null $shopperLocale
      * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
      */
-    public function handleInternalRequest($cartId, $formKey, AddressInterface $shippingAddress = null);
+    public function handleInternalRequest($cartId, $formKey, AddressInterface $shippingAddress = null, ?string $shopperLocale = null);
 }
