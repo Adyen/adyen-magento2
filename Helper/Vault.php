@@ -18,6 +18,7 @@ use Adyen\Payment\Helper\PaymentMethods\AbstractWalletPaymentMethod;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodFactory;
 use Adyen\Payment\Helper\PaymentMethods\PaymentMethodInterface;
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenHppConfigProvider;
 use DateInterval;
 use DateTime;
@@ -361,6 +362,10 @@ class Vault
         if ($payment->getMethodInstance()->getCode() === AdyenHppConfigProvider::CODE) {
             $storeId = $payment->getOrder()->getStoreId();
             $recurringModel = $this->config->getAlternativePaymentMethodTokenType($storeId);
+            $details[self::TOKEN_TYPE] = $recurringModel;
+        } elseif ($payment->getMethodInstance()->getCode() === AdyenCcConfigProvider::CODE) {
+            $storeId = $payment->getOrder()->getStoreId();
+            $recurringModel = $this->config->getCardRecurringType($storeId);
             $details[self::TOKEN_TYPE] = $recurringModel;
         }
 

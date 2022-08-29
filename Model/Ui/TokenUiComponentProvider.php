@@ -27,6 +27,10 @@ class TokenUiComponentProvider extends AdyenUiComponentProvider implements Token
      */
     public function getComponentForToken(PaymentTokenInterface $paymentToken): TokenUiComponentInterface
     {
+        $token = $paymentToken->getData()['details'];
+        if(!isset($token) || str_contains($token, 'CardOnFile')) {
+            echo 'hoi';
+        }
         return $this->getCardComponentForToken($paymentToken);
     }
 }
