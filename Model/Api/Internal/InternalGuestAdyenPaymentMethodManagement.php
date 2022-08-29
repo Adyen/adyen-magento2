@@ -56,10 +56,10 @@ class InternalGuestAdyenPaymentMethodManagement extends AbstractInternalApiContr
      * {@inheritDoc}
      * @throws AdyenException
      */
-    public function handleInternalRequest($cartId, $formKey, AddressInterface $shippingAddress = null, ?string $shopperLocale = null)
+    public function handleInternalRequest($cartId, $formKey, AddressInterface $shippingAddress = null)
     {
         $this->validateInternalRequest($formKey);
 
-        return $this->guestAdyenPaymentMethodManagement->getPaymentMethods($cartId, $shippingAddress, $shopperLocale);
+        return $this->guestAdyenPaymentMethodManagement->getPaymentMethods($cartId, $shippingAddress);
     }
 }
