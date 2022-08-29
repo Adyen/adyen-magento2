@@ -957,8 +957,6 @@
                 <item name="adyenInfo" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenInfo</item>
                 <item name="adyenError" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenError</item>
                 <item name="adyenWarning" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenWarning</item>
-                <item name="system" xsi:type="object">Magento\Framework\Logger\Handler\System</item>
-                <item name="debug" xsi:type="object">Magento\Framework\Logger\Handler\Debug</item>
             </argument>
         </arguments>
     </type>
