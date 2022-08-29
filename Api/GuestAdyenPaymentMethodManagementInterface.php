@@ -25,7 +25,8 @@ interface GuestAdyenPaymentMethodManagementInterface
      *
      * @param string $cartId
      * @param null|AddressInterface
+     * @param string|null $shopperLocale
      * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
      */
-    public function getPaymentMethods($cartId, AddressInterface $shippingAddress = null);
+    public function getPaymentMethods($cartId, AddressInterface $shippingAddress = null, ?string $shopperLocale = null);
 }
