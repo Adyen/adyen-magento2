@@ -124,7 +124,7 @@ class ManagementHelper
         bool $demoMode
     ): void {
         $storeId = $this->storeManager->getStore()->getId();
-        $client = $this->dataHelper->initializeAdyenClient($storeId, $apiKey, $demoMode);
+        $client = $this->dataHelper->initializeAdyenClient($storeId, $apiKey, null, $demoMode);
 
         $management = new Management($client);
         $params = [
@@ -206,7 +206,7 @@ class ManagementHelper
             // API key contains '******', set to the previously saved config value
             $apiKey = $this->configHelper->getApiKey($environment);
         }
-        $client = $this->dataHelper->initializeAdyenClient($storeId, $apiKey, $environment === 'test');
+        $client = $this->dataHelper->initializeAdyenClient($storeId, $apiKey,null, $environment === 'test');
 
         return new Management($client);
     }
