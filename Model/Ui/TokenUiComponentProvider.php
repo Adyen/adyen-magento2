@@ -46,6 +46,8 @@ class TokenUiComponentProvider implements TokenUiComponentProviderInterface
         $tokenType = $this->vaultHelper->getAdyenTokenType($paymentToken);
         $details = json_decode($paymentToken->getTokenDetails() ?: '{}', true);
         $details['icon'] = $this->dataHelper->getVariantIcon($details['type']);
+        $createdAt = new \DateTime($paymentToken->getCreatedAt());
+        $details['created'] = $createdAt->format('Y-m-d');
         $details['displayToken'] = $tokenType === Recurring::CARD_ON_FILE || !isset($tokenType);
 
         return $this->componentFactory->create(
@@ -55,7 +57,7 @@ class TokenUiComponentProvider implements TokenUiComponentProviderInterface
                     TokenUiComponentProviderInterface::COMPONENT_DETAILS => $details,
                     TokenUiComponentProviderInterface::COMPONENT_PUBLIC_HASH => $paymentToken->getPublicHash()
                 ],
-                'name' => 'Adyen_Payment/js/view/payment/method-renderer/vault'
+                'name' => 'Adyen_Payment/js/view/payment/method-renderer/adyen-vault-method'
             ]
         );
     }
