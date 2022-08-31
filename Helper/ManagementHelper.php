@@ -124,7 +124,7 @@ class ManagementHelper
         bool $demoMode
     ): void {
         $storeId = $this->storeManager->getStore()->getId();
-        $client = $this->dataHelper->initializeAdyenClient($storeId, $apiKey, null, $demoMode);
+        $client = $this->dataHelper->initializeAdyenClient($storeId, $apiKey,null ,$demoMode);
 
         $management = new Management($client);
         $params = [
