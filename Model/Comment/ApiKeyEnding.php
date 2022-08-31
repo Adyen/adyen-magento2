@@ -35,6 +35,6 @@ class ApiKeyEnding implements CommentInterface
         }
 
         $apiKeyEnding = substr($this->encryptor->decrypt(trim($elementValue)), -4);
-        return nl2br("Your stored key ends with <strong>$apiKeyEnding</strong>");
+        return "Your stored key ends with <strong>$apiKeyEnding</strong>";
     }
 }
