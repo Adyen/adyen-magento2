@@ -113,7 +113,7 @@ class CheckoutDataBuilder implements BuilderInterface
 
         $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
         if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)
-            || $this->adyenHelper->isPaymentMethodOneyMethod($brandCode)
+            || $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::FACILYPAY)
             || $payment->getMethod() == AdyenPayByLinkConfigProvider::CODE
         ) {
             $openInvoiceFields = $this->getOpenInvoiceData($order);
@@ -122,7 +122,7 @@ class CheckoutDataBuilder implements BuilderInterface
 
         // Ratepay specific Fingerprint
         $deviceFingerprint = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::DF_VALUE);
-        if ($deviceFingerprint && $this->adyenHelper->isPaymentMethodRatepayMethod($brandCode)) {
+        if ($deviceFingerprint && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::RATEPAY)) {
             $requestBody['deviceFingerprint'] = $deviceFingerprint;
         }
 
