@@ -15,10 +15,7 @@
            showInStore="1">
         <label><![CDATA[Card Payments]]></label>
         <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
-        <comment> <![CDATA[
-                <p>Process creditcard payments inside your checkout.
-                    </p>
-            ]]>
+        <comment> <![CDATA[<p>Process creditcard payments inside your checkout.</p>]]>
         </comment>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
                showInStore="1">

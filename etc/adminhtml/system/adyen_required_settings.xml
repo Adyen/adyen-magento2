@@ -34,7 +34,7 @@
             <source_model>Adyen\Payment\Model\Config\Source\DemoMode</source_model>
             <config_path>payment/adyen_abstract/demo_mode</config_path>
             <tooltip>
-                <![CDATA[The test option is only for you to test if everything is working well. After the Test, you have to reconfigure to Live mode]]>
+                <![CDATA[The Test option is only for you to check if everything is working well. After the test, you’ll need to reconfigure to Live option.]]>
             </tooltip>
         </field>
         <field id="api_key_test" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1"
@@ -43,7 +43,7 @@
                 <field id="demo_mode">1</field>
             </depends>
             <label>API key for Test environment</label>
-            <tooltip>This is the API key that you generated in the Customer Area
+            <tooltip>This is the API key that you generated in the Customer Area.
             </tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/api_key_test</config_path>
@@ -55,7 +55,7 @@
                 <field id="demo_mode">0</field>
             </depends>
             <label>API key for Live environment</label>
-            <comment>You can find your API key for Live in your test customer area.
+            <comment>You can find your API key for Live in your test Customer Area.
             </comment>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/api_key_live</config_path>
