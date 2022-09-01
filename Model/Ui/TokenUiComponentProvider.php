@@ -48,7 +48,7 @@ class TokenUiComponentProvider implements TokenUiComponentProviderInterface
         $details['icon'] = $this->dataHelper->getVariantIcon($details['type']);
         $createdAt = new \DateTime($paymentToken->getCreatedAt());
         $details['created'] = $createdAt->format('Y-m-d');
-        $details['displayToken'] = $tokenType === Recurring::CARD_ON_FILE || !isset($tokenType);
+        $details['displayToken'] = $tokenType === Recurring::CARD_ON_FILE || is_null($tokenType);
 
         return $this->componentFactory->create(
             [
