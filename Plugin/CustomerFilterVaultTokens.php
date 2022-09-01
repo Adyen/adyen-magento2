@@ -28,7 +28,6 @@ class CustomerFilterVaultTokens
             if (strpos($token->getPaymentMethodCode(), 'adyen_') === 0) {
                 $tokenDetails = json_decode($token->getTokenDetails());
                 if ($tokenDetails->tokenType === Recurring::UNSCHEDULED_CARD_ON_FILE || $tokenDetails->tokenType === Recurring::SUBSCRIPTION) {
-                    // remove the element from the array
                     unset($customerSessionTokens[$key]);
                 }
             }
