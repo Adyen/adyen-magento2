@@ -20,9 +20,9 @@ class CustomerFilterVaultTokens
      * Returns filtered list of payment tokens for current customer session
      * @param CustomerTokenManagement $customerTokenManagement
      * @param array $customerSessionTokens
-     * @return CustomerTokenManagement[]
+     * @return array
      */
-    public function afterGetCustomerSessionTokens(CustomerTokenManagement $customerTokenManagement, array $customerSessionTokens)
+    public function afterGetCustomerSessionTokens(CustomerTokenManagement $customerTokenManagement, array $customerSessionTokens): array
     {
         foreach($customerSessionTokens as $key => $token) {
             if (strpos($token->getPaymentMethodCode(), 'adyen_') === 0) {
