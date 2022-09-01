@@ -38,7 +38,7 @@
         <field id="recurring_card_token_type" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Token Type</label>
             <tooltip>
-                Choose between CardOnFile (one-click CVC-less payments), UnscheduledCardOnFile (non-fixed schedule one-click CVC-less payments) or Subscription (fixed schedule payments)
+                Choose between CardOnFile (one-click), UnscheduledCardOnFile (non-fixed schedule MIT payments) or Subscription (fixed schedule MIT payments)
             </tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\Recurring\RecurringType</source_model>
             <config_path>payment/adyen_oneclick/card_type</config_path>
