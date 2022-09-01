@@ -118,7 +118,7 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
-        if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)
+        if (isset($brandCode) && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)
             || $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::FACILYPAY)
             || $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE
         ) {
