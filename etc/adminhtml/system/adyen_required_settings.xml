@@ -42,7 +42,7 @@
             <depends>
                 <field id="demo_mode">1</field>
             </depends>
-            <label>API key for Test environment</label>
+            <label>Test API key</label>
             <tooltip>This is the API key that you generated in the Customer Area.
             </tooltip>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
@@ -54,12 +54,14 @@
             <depends>
                 <field id="demo_mode">0</field>
             </depends>
-            <label>API key for Live environment</label>
+            <label>Live API key</label>
             <comment>You can find your API key for Live in your test Customer Area.
             </comment>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/api_key_live</config_path>
             <comment model="Adyen\Payment\Model\Comment\ApiKeyEnding"/>
+            <tooltip>This is the API key that you generated in the Customer Area.
+            </tooltip>
         </field>
         <field id="client_key_test" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="0">
@@ -67,7 +69,7 @@
                 <field id="demo_mode">1</field>
                 <field id="configuration_mode">manual</field>
             </depends>
-            <label>Client key for Test environment</label>
+            <label>Test Client key</label>
             <tooltip>This is the Client key that you generated in the Customer Area.</tooltip>
             <config_path>payment/adyen_abstract/client_key_test</config_path>
         </field>
@@ -103,7 +105,7 @@
             <config_path>payment/adyen_abstract/merchant_account</config_path>
             <source_model>Adyen\Payment\Model\Config\Source\MerchantAccounts</source_model>
             <tooltip>
-                <![CDATA[Please note that the merchant account is different from the company account; a company account can have one or more merchant accounts.]]>
+                <![CDATA[Merchant account is a sub-account under the company account, which represents your core business entity  within Adyen.]]>
             </tooltip>
         </field>
         <field id="live_endpoint_url_prefix" translate="label" type="text" sortOrder="50" showInDefault="1"
@@ -123,12 +125,12 @@
         </field>
         <field id="notification_username" translate="label" type="text" sortOrder="60" showInDefault="1"
                showInWebsite="1" showInStore="1">
-            <label>Webhook Username</label>
+            <label>Webhook username</label>
             <depends>
                 <field id="configuration_mode">manual</field>
             </depends>
             <tooltip>
-                <![CDATA[We generated your webhook username, so all you have to do is paste it on the Customer Area]]>
+                <![CDATA[This is the username you created under the Developers section in the Customer Area.]]>
             </tooltip>
             <comment>Note that if you change your username here, you will also need to update it in the Customer Area</comment>
             <config_path>payment/adyen_abstract/notification_username</config_path>
@@ -136,20 +138,20 @@
         </field>
         <field id="notification_password" translate="label" type="obscure" sortOrder="70" showInDefault="1"
                showInWebsite="1" showInStore="1">
-            <label>Webhook Password</label>
+            <label>Webhook password</label>
             <depends>
                 <field id="configuration_mode">manual</field>
             </depends>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/notification_password</config_path>
             <tooltip>
-                <![CDATA[This is the password you created in the developers section in the Customer Area]]>
+                <![CDATA[This is the password you created the Developers section in the Customer Area. ]]>
             </tooltip>
             <comment>Note that if you change your password here, you will also need to update it in the Customer Area</comment>
         </field>
         <field id="checkout_frontend_region" translate="label" type="select" sortOrder="80" showInDefault="1"
                showInWebsite="1" showInStore="0">
-            <label>Checkout frontend region</label>
+            <label>Front end resources region</label>
             <depends>
                 <field id="configuration_mode">manual</field>
             </depends>
