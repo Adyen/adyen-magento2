@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\StateData;
 use Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider;
@@ -53,6 +54,9 @@ class CheckoutDataBuilder implements BuilderInterface
      */
     private $stateData;
 
+    /** @var Config */
+    private $configHelper;
+
     /**
      * CheckoutDataBuilder constructor.
      * @param Data $adyenHelper
@@ -66,13 +70,15 @@ class CheckoutDataBuilder implements BuilderInterface
         StateData $stateData,
         CartRepositoryInterface $cartRepository,
         ChargedCurrency $chargedCurrency,
-        Image $imageHelper
+        Image $imageHelper,
+        Config $configHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->stateData = $stateData;
         $this->cartRepository = $cartRepository;
         $this->chargedCurrency = $chargedCurrency;
         $this->imageHelper = $imageHelper;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -112,17 +118,21 @@ class CheckoutDataBuilder implements BuilderInterface
         }
 
         $brandCode = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE);
-        if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)
-            || $this->adyenHelper->isPaymentMethodOneyMethod($brandCode)
-            || $payment->getMethod() == AdyenPayByLinkConfigProvider::CODE
+        if (isset($brandCode) && ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($brandCode)
+            || $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::FACILYPAY)
+            || $payment->getMethod() === AdyenPayByLinkConfigProvider::CODE)
         ) {
             $openInvoiceFields = $this->getOpenInvoiceData($order);
             $requestBody = array_merge($requestBody, $openInvoiceFields);
+            if ($this->adyenHelper->isPaymentMethodOfType($brandCode, Data::KLARNA) &&
+                $this->configHelper->getAutoCaptureOpenInvoice($storeId)) {
+                $requestBody['captureDelayHours'] = 0;
+            }
         }
 
         // Ratepay specific Fingerprint
         $deviceFingerprint = $payment->getAdditionalInformation(AdyenHppDataAssignObserver::DF_VALUE);
-        if ($deviceFingerprint && $this->adyenHelper->isPaymentMethodRatepayMethod($brandCode)) {
+        if ($deviceFingerprint && $this->adyenHelper->isPaymentMethodOfType($brandCode, Data::RATEPAY)) {
             $requestBody['deviceFingerprint'] = $deviceFingerprint;
         }
 
