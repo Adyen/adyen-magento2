@@ -130,7 +130,7 @@
                 <field id="configuration_mode">manual</field>
             </depends>
             <tooltip>
-                <![CDATA[This is the username you created under the Developers section in the Customer Area.]]>
+                <![CDATA[This is the username you created under the Developers section in the Customer Area. If you’re using Auto configuration, it will be automatically updated.]]>
             </tooltip>
             <comment>Note that if you change your username here, you will also need to update it in the Customer Area</comment>
             <config_path>payment/adyen_abstract/notification_username</config_path>
@@ -145,7 +145,7 @@
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
             <config_path>payment/adyen_abstract/notification_password</config_path>
             <tooltip>
-                <![CDATA[This is the password you created the Developers section in the Customer Area. ]]>
+                <![CDATA[This is the password you created the Developers section in the Customer Area. If you’re using Auto configuration, it will be automatically updated.]]>
             </tooltip>
             <comment>Note that if you change your password here, you will also need to update it in the Customer Area</comment>
         </field>
