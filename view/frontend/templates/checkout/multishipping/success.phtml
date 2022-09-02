@@ -44,7 +44,7 @@ $paymentResponseEntities = $block->getPaymentResponseEntities();
                             </span>
                                 <?php endif; ?>
 
-                                <?php if($block->isAdyenPayment()): ?>
+                                <?php if($block->isAdyenPayment() === true): ?>
                                     <!-- Adyen custom 'Complete Payment' button -->
                                     <span class="adyen-continue-payment">
                                             <button
