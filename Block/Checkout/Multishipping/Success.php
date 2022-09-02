@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Block\Checkout\Multishipping;
 
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PaymentResponseHandler;
 use Adyen\Payment\Model\PaymentResponse;
 use Adyen\Payment\Model\ResourceModel\PaymentResponse\Collection;
@@ -32,6 +33,11 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         PaymentResponseHandler::REFUSED,
         PaymentResponseHandler::PRESENT_TO_SHOPPER
     );
+
+    /**
+     * @var bool
+     */
+    private $isAdyenPayment;
 
     /**
      * @var PaymentResponse[]
@@ -76,6 +82,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     public function __construct(
         Collection $paymentResponseCollection,
         Data $adyenHelper,
+        PaymentMethods $paymentMethodsHelper,
         StoreManagerInterface $storeManager,
         SerializerInterface $serializerInterface,
         AdyenCheckoutSuccessConfigProvider $configProvider,
@@ -86,6 +93,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         array $data = []
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->storeManager = $storeManager;
         $this->serializerInterface = $serializerInterface;
         $this->configProvider = $configProvider;
@@ -94,6 +102,8 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         parent::__construct($context, $multishipping, $data);
 
         $orderIds = $this->getOrderIds();
+
+        $this->isAdyenPayment = false;
 
         $this->paymentResponseEntities = $paymentResponseCollection
             ->getPaymentResponsesWithMerchantReferences(array_values($orderIds));
@@ -152,17 +162,21 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
 
         foreach ($orders as $order) {
             $payment = $order->getPayment();
+            $paymentMethod = $payment->getMethod();
             $additionalInformation = $payment->getAdditionalInformation();
-            $this->ordersInfo[$order->getEntityId()]['resultCode'] = $additionalInformation['resultCode'];
-            switch ($additionalInformation['resultCode']) {
-                case PaymentResponseHandler::AUTHORISED:
-                    $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = $this->getPaymentCompletedLabel();
-                    break;
-                case PaymentResponseHandler::REFUSED:
-                    $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = $this->getPaymentFailedLabel();
-                    break;
-                default:
-                    $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = $this->getCompletePaymentLabel();
+            if ($this->paymentMethodsHelper->isAdyenPayment($paymentMethod)) {
+                $this->setIsAdyenPayment();
+                $this->ordersInfo[$order->getEntityId()]['resultCode'] = $additionalInformation['resultCode'];
+                switch ($additionalInformation['resultCode']) {
+                    case PaymentResponseHandler::AUTHORISED:
+                        $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = $this->getPaymentCompletedLabel();
+                        break;
+                    case PaymentResponseHandler::REFUSED:
+                        $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = $this->getPaymentFailedLabel();
+                        break;
+                    default:
+                        $this->ordersInfo[$order->getEntityId()]['buttonLabel'] = $this->getCompletePaymentLabel();
+                }
             }
         }
     }
@@ -191,5 +205,15 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
     public function getPaymentFailedLabel()
     {
         return __('Payment Failed');
+    }
+
+    public function isAdyenPayment()
+    {
+        return $this->isAdyenPayment;
+    }
+
+    public function setIsAdyenPayment()
+    {
+        $this->isAdyenPayment = true;
     }
 }
