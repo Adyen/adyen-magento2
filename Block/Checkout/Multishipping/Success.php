@@ -165,7 +165,7 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
             $paymentMethod = $payment->getMethod();
             $additionalInformation = $payment->getAdditionalInformation();
             if ($this->paymentMethodsHelper->isAdyenPayment($paymentMethod)) {
-                $this->setIsAdyenPayment();
+                $this->setIsAdyenPayment(true);
                 $this->ordersInfo[$order->getEntityId()]['resultCode'] = $additionalInformation['resultCode'];
                 switch ($additionalInformation['resultCode']) {
                     case PaymentResponseHandler::AUTHORISED:
@@ -207,13 +207,13 @@ class Success extends \Magento\Multishipping\Block\Checkout\Success
         return __('Payment Failed');
     }
 
-    public function isAdyenPayment()
+    public function isAdyenPayment(): bool
     {
         return $this->isAdyenPayment;
     }
 
-    public function setIsAdyenPayment()
+    public function setIsAdyenPayment(bool $isAdyenPayment)
     {
-        $this->isAdyenPayment = true;
+        $this->isAdyenPayment = $isAdyenPayment;
     }
 }
