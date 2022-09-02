@@ -1040,6 +1040,9 @@
     <type name="Magento\QuoteGraphQl\Model\Resolver\PlaceOrder">
         <plugin name="GraphQlPlaceOrderAddCartId" type="Adyen\Payment\Plugin\GraphQlPlaceOrderAddCartId" sortOrder="10"/>
     </type>
+    <type name="Magento\Vault\Model\CustomerTokenManagement">
+        <plugin name="FilterVaultTokens" type="Adyen\Payment\Plugin\CustomerFilterVaultTokens" sortOrder="10"/>
+    </type>
 
     <virtualType name="AdyenCancelOrders" type="Adyen\Payment\Cron\CancelOrders">
         <arguments>

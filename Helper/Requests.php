@@ -359,7 +359,7 @@ class Requests extends AbstractHelper
 
         if ($storePaymentMethod) {
             if ($this->vaultHelper->isCardVaultEnabled()) {
-                $request['recurringProcessingModel'] = 'Subscription';
+                $request['recurringProcessingModel'] = $this->adyenConfig->getCardRecurringType($storeId);
             } else {
                 $recurringType = $this->adyenConfig->getCardRecurringType($storeId);
                 $request['recurringProcessingModel'] = $recurringType;
