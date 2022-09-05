@@ -32,7 +32,6 @@ use Magento\Framework\App\Request\Http as Http;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
-use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 
 /**
  * Class Json extends Action
@@ -85,11 +84,6 @@ class Json extends Action
     private $notificationReceiver;
 
     /**
-     * @var RemoteAddress
-     */
-    private $remoteAddress;
-
-    /**
      * Json constructor.
      *
      * @param Context $context
@@ -101,7 +95,6 @@ class Json extends Action
      * @param RateLimiter $rateLimiterHelper
      * @param HmacSignature $hmacSignature
      * @param NotificationReceiver $notificationReceiver
-     * @param RemoteAddress $remoteAddress
      */
     public function __construct(
         Context $context,
@@ -113,8 +106,7 @@ class Json extends Action
         IpAddress $ipAddressHelper,
         RateLimiter $rateLimiterHelper,
         HmacSignature $hmacSignature,
-        NotificationReceiver $notificationReceiver,
-        RemoteAddress $remoteAddress
+        NotificationReceiver $notificationReceiver
     ) {
         parent::__construct($context);
         $this->notificationFactory = $notificationFactory;
@@ -126,7 +118,6 @@ class Json extends Action
         $this->rateLimiterHelper = $rateLimiterHelper;
         $this->hmacSignature = $hmacSignature;
         $this->notificationReceiver = $notificationReceiver;
-        $this->remoteAddress = $remoteAddress;
 
         // Fix for Magento2.3 adding isAjax to the request params
         if (interface_exists(CsrfAwareActionInterface::class)) {
@@ -348,10 +339,9 @@ class Json extends Action
     private function isIpValid()
     {
         $ipAddress = [];
-        $fetchedIpAddress = $this->remoteAddress->getRemoteAddress();
         //Getting remote and possibly forwarded IP addresses
-        if (!empty($fetchedIpAddress)) {
-            $ipAddress = explode(',', $fetchedIpAddress);
+        if (!empty($_SERVER['REMOTE_ADDR'])) {
+            $ipAddress = explode(',', $_SERVER['REMOTE_ADDR']);
         }
         return $this->ipAddressHelper->isIpAddressValid($ipAddress);
     }
