@@ -77,5 +77,53 @@
             <label>Korean Local Card</label>
             <code_alt>korean_local_card</code_alt>
         </type>
+        <type id="AMEXAPPLEPAY" order="160">
+            <label>Applepay American express</label>
+            <code_alt>amex_applepay</code_alt>
+        </type>
+        <type id="DISCOVERAPPLEPAY" order="170">
+            <label>Applepay Discover</label>
+            <code_alt>discover_applepay</code_alt>
+        </type>
+        <type id="ELECTRONAPPLEPAY" order="180">
+            <label>Applepay Electron</label>
+            <code_alt>electron_applepay</code_alt>
+        </type>
+        <type id="ELOAPPLEPAY" order="190">
+            <label>Applepay Elo</label>
+            <code_alt>elo_applepay</code_alt>
+        </type>
+        <type id="ELODEBITAPPLEPAY" order="200">
+            <label>Applepay Elodebit</label>
+            <code_alt>elodebit_applepay</code_alt>
+        </type>
+        <type id="InteracAPPLEPAY" order="210">
+            <label>Applepay Interac</label>
+            <code_alt>interac_applepay</code_alt>
+        </type>
+        <type id="JCBAPPLEPAY" order="220">
+            <label>Applepay Jcb</label>
+            <code_alt>jcb_applepay</code_alt>
+        </type>
+        <type id="JCBAPPLEPAY" order="230">
+            <label>Applepay Jcb</label>
+            <code_alt>jcb_applepay</code_alt>
+        </type>
+        <type id="MAESTROAPPLEPAY" order="240">
+            <label>Applepay Maestro</label>
+            <code_alt>maestro_applepay</code_alt>
+        </type>
+        <type id="MCAPPLEPAY" order="250">
+            <label>Applepay Mastercard</label>
+            <code_alt>mc_applepay</code_alt>
+        </type>
+        <type id="VIAPPLEPAY" order="260">
+            <label>Applepay Visa</label>
+            <code_alt>visa_applepay</code_alt>
+        </type>
+        <type id="GIROCARDAPPLEPAY" order="270">
+            <label>Applepay Girocard</label>
+            <code_alt>girocard_applepay</code_alt>
+        </type>
     </adyen_credit_cards>
 </payment>

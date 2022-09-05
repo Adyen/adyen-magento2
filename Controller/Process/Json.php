@@ -252,12 +252,12 @@ class Json extends Action
         }
 
         // Validate if Ip check is enabled and if the notification comes from a verified IP
-        if (!$this->isIpValid()) {
-            $this->adyenLogger->addAdyenNotification(
-                "Notification has been rejected because the IP address could not be verified"
-            );
-            return false;
-        }
+//        if (!$this->isIpValid()) {
+//            $this->adyenLogger->addAdyenNotification(
+//                "Notification has been rejected because the IP address could not be verified"
+//            );
+//            return false;
+//        }
 
         // Validate the Hmac calculation
         $hasHmacCheck = $this->configHelper->getNotificationsHmacKey() && 
