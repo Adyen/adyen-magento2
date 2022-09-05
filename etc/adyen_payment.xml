@@ -78,51 +78,47 @@
             <code_alt>korean_local_card</code_alt>
         </type>
         <type id="AMEXAPPLEPAY" order="160">
-            <label>Applepay American express</label>
+            <label>Apple pay American express</label>
             <code_alt>amex_applepay</code_alt>
         </type>
         <type id="DISCOVERAPPLEPAY" order="170">
-            <label>Applepay Discover</label>
+            <label>Apple pay Discover</label>
             <code_alt>discover_applepay</code_alt>
         </type>
         <type id="ELECTRONAPPLEPAY" order="180">
-            <label>Applepay Electron</label>
+            <label>Apple pay Electron</label>
             <code_alt>electron_applepay</code_alt>
         </type>
         <type id="ELOAPPLEPAY" order="190">
-            <label>Applepay Elo</label>
+            <label>Apple pay Elo</label>
             <code_alt>elo_applepay</code_alt>
         </type>
         <type id="ELODEBITAPPLEPAY" order="200">
-            <label>Applepay Elodebit</label>
+            <label>Apple pay Elodebit</label>
             <code_alt>elodebit_applepay</code_alt>
         </type>
         <type id="InteracAPPLEPAY" order="210">
-            <label>Applepay Interac</label>
+            <label>Apple pay Interac</label>
             <code_alt>interac_applepay</code_alt>
         </type>
         <type id="JCBAPPLEPAY" order="220">
-            <label>Applepay Jcb</label>
+            <label>Apple pay Jcb</label>
             <code_alt>jcb_applepay</code_alt>
         </type>
-        <type id="JCBAPPLEPAY" order="230">
-            <label>Applepay Jcb</label>
-            <code_alt>jcb_applepay</code_alt>
-        </type>
-        <type id="MAESTROAPPLEPAY" order="240">
-            <label>Applepay Maestro</label>
+        <type id="MAESTROAPPLEPAY" order="230">
+            <label>Apple pay Maestro</label>
             <code_alt>maestro_applepay</code_alt>
         </type>
-        <type id="MCAPPLEPAY" order="250">
-            <label>Applepay Mastercard</label>
+        <type id="MCAPPLEPAY" order="240">
+            <label>Apple pay Mastercard</label>
             <code_alt>mc_applepay</code_alt>
         </type>
-        <type id="VIAPPLEPAY" order="260">
-            <label>Applepay Visa</label>
+        <type id="VIAPPLEPAY" order="250">
+            <label>Apple pay Visa</label>
             <code_alt>visa_applepay</code_alt>
         </type>
-        <type id="GIROCARDAPPLEPAY" order="270">
-            <label>Applepay Girocard</label>
+        <type id="GIROCARDAPPLEPAY" order="260">
+            <label>Apple pay Girocard</label>
             <code_alt>girocard_applepay</code_alt>
         </type>
     </adyen_credit_cards>
