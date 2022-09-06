@@ -637,7 +637,7 @@ define(
                     } else if (gender == 2) {
                         return 'FEMALE';
                     }
-                    return 'UNKNOWN';
+                    return null;
 
                 }
 

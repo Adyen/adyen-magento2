@@ -61,7 +61,6 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
      * @param CheckoutStateDataValidator $checkoutStateDataValidator
      * @param Collection $stateDataCollection
      * @param StateData $stateData
-     * @param Session $checkoutSession
      */
     public function __construct(
         CheckoutStateDataValidator $checkoutStateDataValidator,

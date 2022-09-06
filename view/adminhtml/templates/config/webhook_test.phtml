@@ -1,0 +1,64 @@
+<script>
+    require([
+            'jquery',
+            'prototype'
+        ],
+        function(jQuery)
+        {
+            jQuery('#adyen_webhook_test_errors').hide();
+            let progressSpan = jQuery('#webhook_progress');
+            jQuery('#adyen_webhook_test').click(function () {
+
+                new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
+                    parameters: {},
+                    type: "POST",
+                    loaderArea:     false,
+                    asynchronous:   true,
+                    onCreate: function() {
+                        progressSpan.find('.configured').hide();
+                        progressSpan.find('.processing').show();
+                        jQuery('#adyen_webhook_test_message').text('');
+                        jQuery("#adyen_webhook_test").prop('disabled', true);
+                    },
+                    onSuccess: function (response) {
+                        //add html response
+                        progressSpan.find('.processing').hide();
+                        let resultText = '';
+                        if (response.responseJSON === null) {
+                            resultText = "No response";
+                        } else {
+                            resultText = response.responseJSON.statusCode;
+                            if(resultText==='Success'){
+                                progressSpan.find('.configured').show();
+                            }
+                        }
+                        jQuery('#adyen_webhook_test_message').text(resultText);
+                    },
+                    onFailure: function(response)
+                    {
+                        progressSpan.find('.processing').hide();
+                        jQuery('#adyen_webhook_test_message').text("Failed").show();
+                    },
+                    onComplete: function()
+                    {
+                        jQuery("#adyen_webhook_test").prop('disabled', false);
+                    }
+                });
+            });
+
+        });
+</script>
+
+<?php echo $block->getButtonHtml() ?>
+<span class="adyen_webhook_test_config" id="webhook_progress">
+    <img class="processing" hidden="hidden" alt="Configuring" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
+    <img class="configured" hidden="hidden" alt="Configured" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
+    <span id="adyen_webhook_test_message"></span>
+    <div id="adyen_webhook_test_errors" class="message-system-inner">
+        <div class="message message-warning"></div>
+    </div>
+</span>
+<!--if we want to add a note under the button-->
+<p class="note">
+    <span><?php echo __('Sends sample notifications to test if the webhook is set up correctly.'); ?></span>
+</p>

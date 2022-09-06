@@ -169,7 +169,7 @@ class TransactionPosCloudSync implements ClientInterface
             }
         } else {
             // probably SaleToPOIRequest, that means terminal unreachable, log the response as error
-            $this->adyenLogger->error(json_encode($response));
+            $this->adyenLogger->addAdyenDebug(json_encode($response));
             throw new LocalizedException(__("The terminal could not be reached."));
         }
 
@@ -286,8 +286,7 @@ class TransactionPosCloudSync implements ClientInterface
             $response = $service->runTenderSync($request);
         } catch (AdyenException $e) {
             //Not able to perform a payment
-            $this->adyenLogger->addAdyenDebug("adyenexception");
-            $response['error'] = $e->getMessage();
+            $this->adyenLogger->addAdyenDebug($response['error'] = $e->getMessage());
         } catch (\Exception $e) {
             //Probably timeout
             $paymentInfoInstance->setAdditionalInformation(

@@ -188,7 +188,8 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             $billingAgreements = $this->_adyenHelper->getOneClickPaymentMethods(
                 $customerId,
                 $storeId,
-                $grandTotal
+                $grandTotal,
+                Recurring::CARD_ON_FILE
             );
         }
         return $billingAgreements;

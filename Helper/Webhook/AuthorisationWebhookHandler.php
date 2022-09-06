@@ -22,6 +22,7 @@ use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Adyen\Webhook\PaymentStates;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -119,7 +120,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             $order = $this->orderHelper->setPrePaymentAuthorized($order);
             $this->orderHelper->updatePaymentDetails($order, $notification);
 
-            $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : "";
+            $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : [];
             $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
 
             if ($isAutoCapture) {
@@ -152,28 +153,11 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
     }
 
     /**
-     * @param Order $order
-     * @param Notification $notification
-     * @return Order
      * @throws LocalizedException
      */
     private function handleFailedAuthorisation(Order $order, Notification $notification): Order
     {
         $previousAdyenEventCode = $order->getData('adyen_notification_event_code');
-        $ignoreHasInvoice = true;
-
-        // if payment is API, check if API result pspreference is the same as reference
-        if ($notification->getEventCode() == Notification::AUTHORISATION) {
-            if ('api' === $order->getPayment()->getPaymentMethodType()) {
-                // don't cancel the order because order was successful through api
-                $this->adyenLogger->addAdyenNotificationCronjob(
-                    'order is not cancelled because api result was successful'
-                );
-
-                return $order;
-            }
-            $ignoreHasInvoice = false;
-        }
 
         /*
          * Don't cancel the order if part of the payment has been captured.
@@ -184,7 +168,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         $paymentPreviouslyCaptured = $order->getData('adyen_notification_payment_captured');
 
         if ($previousAdyenEventCode == "AUTHORISATION : TRUE" || !empty($paymentPreviouslyCaptured)) {
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 'Order is not cancelled because previous notification
                                     was an authorisation that succeeded and payment was captured'
             );
@@ -194,11 +178,18 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
 
         // Order is already Cancelled
         if ($order->isCanceled() || $order->getState() === Order::STATE_HOLDED) {
-            $this->adyenLogger->addAdyenNotificationCronjob(
+            $this->adyenLogger->addAdyenNotification(
                 "Order is already cancelled or holded, do nothing"
             );
 
             return $order;
+        }
+
+        // If the payment method is PBL, use failure counter before cancelling the order
+        if ($order->getPayment()->getMethod() == AdyenPayByLinkConfigProvider::CODE) {
+            if (!$this->canCancelPayByLinkOrder($order, $notification)) {
+                return $order;
+            }
         }
 
         // Move the order from PAYMENT_REVIEW to NEW, so that can be cancelled
@@ -206,7 +197,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
             $order->setState(Order::STATE_NEW);
         }
 
-        return $this->orderHelper->holdCancelOrder($order, $ignoreHasInvoice);
+        return $this->orderHelper->holdCancelOrder($order, true);
     }
 
     /**
@@ -241,9 +232,49 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         } else {
             $order = $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
             $order->addStatusHistoryComment(__('Capture Mode set to Manual'), $order->getStatus());
-            $this->adyenLogger->addAdyenNotificationCronjob('Capture mode is set to Manual');
+            $this->adyenLogger->addAdyenNotification('Capture mode is set to Manual');
         }
 
         return $order;
+    }
+
+    /**
+     * @param Order $order
+     * @param Notification $notification
+     * @return bool
+     * @throws \Exception
+     */
+    private function canCancelPayByLinkOrder(Order $order, Notification $notification): bool
+    {
+        $payByLinkFailureCount = $order->getPayment()->getAdditionalInformation('payByLinkFailureCount');
+        $payByLinkFailureCount = isset($payByLinkFailureCount) ? ++$payByLinkFailureCount : 1;
+
+        $order->getPayment()->setAdditionalInformation('payByLinkFailureCount', $payByLinkFailureCount);
+
+        if ($payByLinkFailureCount >= AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT) {
+            // Order can be cancelled.
+            return true;
+        }
+
+        $notification->setDone(true);
+        $notification->setProcessing(false);
+        $notification->save();
+
+        $order->addStatusHistoryComment(__(sprintf(
+            "Order wasn't cancelled by this webhook notification. Pay by Link failure count: %s/%s",
+            $payByLinkFailureCount,
+            AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT
+        )), false);
+
+        $this->adyenLogger->addAdyenNotification(
+            __(sprintf(
+                "Order wasn't cancelled by this webhook notification. Pay by Link failure count: %s/%s",
+                $payByLinkFailureCount,
+                AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT
+            )),
+            $this->adyenLogger->getOrderContext($order)
+        );
+
+        return false;
     }
 }

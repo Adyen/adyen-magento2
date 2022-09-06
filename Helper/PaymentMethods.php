@@ -14,6 +14,7 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Util\ManualCapture;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -21,6 +22,7 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\ResolverInterface;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Asset\Source;
 use Magento\Framework\View\Design\Theme\ThemeProviderInterface;
@@ -116,24 +118,12 @@ class PaymentMethods extends AbstractHelper
     /** @var Config */
     private $configHelper;
 
-    /**
-     * PaymentMethods constructor.
-     *
-     * @param Context $context
-     * @param CartRepositoryInterface $quoteRepository
-     * @param ScopeConfigInterface $config
-     * @param Data $adyenHelper
-     * @param ResolverInterface $localeResolver
-     * @param AdyenLogger $adyenLogger
-     * @param Repository $assetRepo
-     * @param RequestInterface $request
-     * @param Source $assetSource
-     * @param DesignInterface $design
-     * @param ThemeProviderInterface $themeProvider
-     * @param ChargedCurrency $chargedCurrency
-     * @param Config $configHelper
-     * @param MagentoDataHelper $dataHelper
-     */
+    /** @var ManualCapture  */
+    private $manualCapture;
+
+    /** @var SerializerInterface */
+    private $serializer;
+
     public function __construct(
         Context $context,
         CartRepositoryInterface $quoteRepository,
@@ -148,7 +138,9 @@ class PaymentMethods extends AbstractHelper
         ThemeProviderInterface $themeProvider,
         ChargedCurrency $chargedCurrency,
         Config $configHelper,
-        MagentoDataHelper $dataHelper
+        MagentoDataHelper $dataHelper,
+        ManualCapture $manualCapture,
+        SerializerInterface $serializer
     ) {
         parent::__construct($context);
         $this->quoteRepository = $quoteRepository;
@@ -164,17 +156,20 @@ class PaymentMethods extends AbstractHelper
         $this->chargedCurrency = $chargedCurrency;
         $this->configHelper = $configHelper;
         $this->dataHelper = $dataHelper;
+        $this->manualCapture = $manualCapture;
+        $this->serializer = $serializer;
     }
 
     /**
      * @param $quoteId
      * @param null $country
+     * @param string|null $shopperLocale
      * @return string|array
+     * @throws AdyenException
      * @throws LocalizedException
      * @throws NoSuchEntityException
-     * @throws AdyenException
      */
-    public function getPaymentMethods($quoteId, $country = null)
+    public function getPaymentMethods($quoteId, $country = null, ?string $shopperLocale = null)
     {
         // get quote from quoteId
         $quote = $this->quoteRepository->getActive($quoteId);
@@ -185,7 +180,7 @@ class PaymentMethods extends AbstractHelper
 
         $this->setQuote($quote);
 
-        return $this->fetchPaymentMethods($country);
+        return $this->fetchPaymentMethods($country, $shopperLocale);
     }
 
     /**
@@ -218,13 +213,13 @@ class PaymentMethods extends AbstractHelper
     }
 
     /**
-     * @param $country
+     * @param string|null $country
+     * @param string|null $shopperLocale
      * @return string
      * @throws AdyenException
      * @throws LocalizedException
-     * @throws \Exception
      */
-    protected function fetchPaymentMethods($country): string
+    protected function fetchPaymentMethods(?string $country = null, ?string $shopperLocale = null): string
     {
         $quote = $this->getQuote();
         $store = $quote->getStore();
@@ -234,8 +229,8 @@ class PaymentMethods extends AbstractHelper
             return json_encode([]);
         }
 
-        $paymentMethodRequest = $this->getPaymentMethodsRequest($merchantAccount, $store, $country, $quote);
-        $responseData = $this->getPaymentMethodsResponse($paymentMethodRequest, $store);
+        $requestData = $this->getPaymentMethodsRequest($merchantAccount, $store, $quote, $country, $shopperLocale);
+        $responseData = $this->getPaymentMethodsResponse($requestData, $store);
         if (empty($responseData['paymentMethods'])) {
             return json_encode([]);
         }
@@ -290,9 +285,10 @@ class PaymentMethods extends AbstractHelper
 
     /**
      * @param $store
+     * @param $country
      * @return int|mixed|string
      */
-    protected function getCurrentCountryCode($store, $country)
+    protected function getCurrentCountryCode($store, $country = null)
     {
         // if fixed countryCode is setup in config use this
         $countryCode = $this->adyenHelper->getAdyenHppConfigData('country_code', $store->getId());
@@ -382,16 +378,18 @@ class PaymentMethods extends AbstractHelper
     /**
      * @param $merchantAccount
      * @param \Magento\Store\Model\Store $store
-     * @param $country
      * @param \Magento\Quote\Model\Quote $quote
+     * @param string|null $country
+     * @param string|null $shopperLocale
      * @return array
      * @throws \Exception
      */
     protected function getPaymentMethodsRequest(
         $merchantAccount,
         \Magento\Store\Model\Store $store,
-        $country,
-        \Magento\Quote\Model\Quote $quote
+        \Magento\Quote\Model\Quote $quote,
+        ?string $country = null,
+        ?string $shopperLocale = null
     ) {
         $currencyCode = $this->chargedCurrency->getQuoteAmountCurrency($quote)->getCurrencyCode();
 
@@ -399,7 +397,7 @@ class PaymentMethods extends AbstractHelper
             "channel" => "Web",
             "merchantAccount" => $merchantAccount,
             "countryCode" => $this->getCurrentCountryCode($store, $country),
-            "shopperLocale" => $this->adyenHelper->getCurrentLocaleCode($store->getId()),
+            "shopperLocale" => $shopperLocale ?: $this->adyenHelper->getCurrentLocaleCode($store->getId()),
             "amount" => [
                 "currency" => $currencyCode
             ]
@@ -588,7 +586,7 @@ class PaymentMethods extends AbstractHelper
     public function isAutoCapture(Order $order, string $notificationPaymentMethod): bool
     {
         // validate if payment methods allows manual capture
-        if ($this->manualCaptureAllowed($notificationPaymentMethod)) {
+        if ($this->manualCapture->isManualCaptureSupported($notificationPaymentMethod)) {
             $captureMode = trim(
                 $this->configHelper->getConfigData(
                     'capture_mode',
@@ -604,11 +602,7 @@ class PaymentMethods extends AbstractHelper
                 )
             );
             $paymentCode = $order->getPayment()->getMethod();
-            $captureModeOpenInvoice = $this->configHelper->getConfigData(
-                'auto_capture_openinvoice',
-                'adyen_abstract',
-                $order->getStoreId()
-            );
+            $autoCaptureOpenInvoice = $this->configHelper->getAutoCaptureOpenInvoice($order->getStoreId());
             $manualCapturePayPal = trim(
                 $this->configHelper->getConfigData(
                     'paypal_capture_mode',
@@ -623,15 +617,17 @@ class PaymentMethods extends AbstractHelper
              */
             if ($notificationPaymentMethod == "sepadirectdebit") {
                 if ($sepaFlow == "authcap") {
-                    $this->adyenLogger->addAdyenNotificationCronjob(
-                        'Manual Capture is applied for sepa because it is in authcap flow'
+                    $this->adyenLogger->addAdyenNotification(
+                        'Manual Capture is applied for sepa because it is in authcap flow',
+                        $this->adyenLogger->getOrderContext($order)
                     );
                     return false;
                 } else {
                     // payment method ideal, cash adyen_boleto has direct capture
-                    $this->adyenLogger->addAdyenNotificationCronjob(
+                    $this->adyenLogger->addAdyenNotification(
                         'This payment method does not allow manual capture.(2) paymentCode:' .
-                        $paymentCode . ' paymentMethod:' . $notificationPaymentMethod . ' sepaFLow:' . $sepaFlow
+                        $paymentCode . ' paymentMethod:' . $notificationPaymentMethod . ' sepaFLow:' . $sepaFlow,
+                        $this->adyenLogger->getOrderContext($order)
                     );
                     return true;
                 }
@@ -643,24 +639,25 @@ class PaymentMethods extends AbstractHelper
                     $order->getStoreId()
                 );
                 if (strcmp($captureModePos, 'auto') === 0) {
-                    $this->adyenLogger->addAdyenNotificationCronjob(
-                        'This payment method is POS Cloud and configured to be working as auto capture '
+                    $this->adyenLogger->addAdyenNotification(
+                        'This payment method is POS Cloud and configured to be working as auto capture ',
+                        $this->adyenLogger->getOrderContext($order)
                     );
                     return true;
                 } elseif (strcmp($captureModePos, 'manual') === 0) {
-                    $this->adyenLogger->addAdyenNotificationCronjob(
-                        'This payment method is POS Cloud and configured to be working as manual capture '
+                    $this->adyenLogger->addAdyenNotification(
+                        'This payment method is POS Cloud and configured to be working as manual capture ',
+                        $this->adyenLogger->getOrderContext($order)
                     );
                     return false;
                 }
             }
 
             // if auto capture mode for openinvoice is turned on then use auto capture
-            if ($captureModeOpenInvoice &&
-                $this->adyenHelper->isPaymentMethodOpenInvoiceMethodValidForAutoCapture($notificationPaymentMethod)
-            ) {
-                $this->adyenLogger->addAdyenNotificationCronjob(
-                    'This payment method is configured to be working as auto capture '
+            if ($autoCaptureOpenInvoice && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)) {
+                $this->adyenLogger->addAdyenNotification(
+                    'This payment method is configured to be working as auto capture ',
+                    $this->adyenLogger->getOrderContext($order)
                 );
                 return true;
             }
@@ -668,20 +665,26 @@ class PaymentMethods extends AbstractHelper
             // if PayPal capture modues is different from the default use this one
             if (strcmp($notificationPaymentMethod, 'paypal') === 0) {
                 if ($manualCapturePayPal) {
-                    $this->adyenLogger->addAdyenNotificationCronjob(
-                        'This payment method is paypal and configured to work as manual capture'
+                    $this->adyenLogger->addAdyenNotification(
+                        'This payment method is paypal and configured to work as manual capture',
+                        $this->adyenLogger->getOrderContext($order)
                     );
                     return false;
                 } else {
-                    $this->adyenLogger->addAdyenNotificationCronjob(
-                        'This payment method is paypal and configured to work as auto capture'
+                    $this->adyenLogger->addAdyenNotification(
+                        'This payment method is paypal and configured to work as auto capture',
+                        $this->adyenLogger->getOrderContext($order)
                     );
                     return true;
                 }
             }
             if (strcmp($captureMode, 'manual') === 0) {
-                $this->adyenLogger->addAdyenNotificationCronjob(
-                    'Capture mode for this payment is set to manual'
+                $this->adyenLogger->addAdyenNotification(
+                    'Capture mode for this payment is set to manual',
+                    array_merge(
+                        ['paymentMethod' => $notificationPaymentMethod],
+                        $this->adyenLogger->getOrderContext($order)
+                    )
                 );
                 return false;
             }
@@ -691,75 +694,27 @@ class PaymentMethods extends AbstractHelper
              * (if the option auto capture mode for openinvoice is not set)
              */
             if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)) {
-                $this->adyenLogger->addAdyenNotificationCronjob(
-                    'Capture mode for klarna is by default set to manual'
+                $this->adyenLogger->addAdyenNotification(
+                    'Capture mode for klarna is by default set to manual',
+                    $this->adyenLogger->getOrderContext($order)
                 );
                 return false;
             }
 
-            $this->adyenLogger->addAdyenNotificationCronjob('Capture mode is set to auto capture');
+            $this->adyenLogger->addAdyenNotification(
+                'Capture mode is set to auto capture',
+                $this->adyenLogger->getOrderContext($order)
+            );
             return true;
         } else {
             // does not allow manual capture so is always immediate capture
-            $this->adyenLogger->addAdyenNotificationCronjob(
-                sprintf('Payment method %s, does not allow manual capture', $notificationPaymentMethod)
+            $this->adyenLogger->addAdyenNotification(
+                sprintf('Payment method %s, does not allow manual capture', $notificationPaymentMethod),
+                $this->adyenLogger->getOrderContext($order)
             );
 
             return true;
         }
-    }
-
-    /**
-     * Validate if this payment methods allows manual capture
-     * This is a default can be forced differently to overrule on acquirer level
-     *
-     * @param string $notificationPaymentMethod
-     * @return bool
-     */
-    private function manualCaptureAllowed(string $notificationPaymentMethod): bool
-    {
-        $manualCaptureAllowed = false;
-        // For all openinvoice methods manual capture is the default
-        if ($this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)) {
-            return true;
-        }
-
-        switch ($notificationPaymentMethod) {
-            case 'cup':
-            case 'cartebancaire':
-            case 'visa':
-            case 'visadankort':
-            case 'mc':
-            case 'uatp':
-            case 'amex':
-            case 'maestro':
-            case 'maestrouk':
-            case 'diners':
-            case 'discover':
-            case 'jcb':
-            case 'laser':
-            case 'paypal':
-            case 'sepadirectdebit':
-            case 'dankort':
-            case 'elo':
-            case 'hipercard':
-            case 'mc_applepay':
-            case 'visa_applepay':
-            case 'amex_applepay':
-            case 'discover_applepay':
-            case 'maestro_applepay':
-            case 'paywithgoogle':
-            case 'svs':
-            case 'givex':
-            case 'valuelink':
-            case 'twint':
-                $manualCaptureAllowed = true;
-                break;
-            default:
-                break;
-        }
-
-        return $manualCaptureAllowed;
     }
 
     /**
@@ -801,5 +756,55 @@ class PaymentMethods extends AbstractHelper
             $isBankTransfer = false;
         }
         return $isBankTransfer;
+    }
+
+    /**
+     * @param Order $order
+     * @param Notification $notification
+     * @param $status
+     * @return bool|mixed
+     */
+    public function getBoletoStatus(Order $order, Notification $notification, $status)
+    {
+        $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
+            $notification->getAdditionalData()
+        ) : "";
+
+        $boletobancario = $additionalData['boletobancario'] ?? null;
+        if ($boletobancario && is_array($boletobancario)) {
+            // check if paid amount is the same as orginal amount
+            $originalAmount = isset($boletobancario['originalAmount']) ? trim($boletobancario['originalAmount']) : "";
+            $paidAmount = isset($boletobancario['paidAmount']) ? trim($boletobancario['paidAmount']) : "";
+
+            if ($originalAmount != $paidAmount) {
+                // not the full amount is paid. Check if it is underpaid or overpaid
+                // strip the  BRL of the string
+                $originalAmount = str_replace("BRL", "", $originalAmount);
+                $originalAmount = floatval(trim($originalAmount));
+
+                $paidAmount = str_replace("BRL", "", $paidAmount);
+                $paidAmount = floatval(trim($paidAmount));
+
+                if ($paidAmount > $originalAmount) {
+                    $overpaidStatus = $this->configHelper->getConfigData(
+                        'order_overpaid_status',
+                        'adyen_boleto',
+                        $order->getStoreId()
+                    );
+                    // check if there is selected a status if not fall back to the default
+                    $status = (!empty($overpaidStatus)) ? $overpaidStatus : $status;
+                } else {
+                    $underpaidStatus = $this->configHelper->getConfigData(
+                        'order_underpaid_status',
+                        'adyen_boleto',
+                        $order->getStoreId()
+                    );
+                    // check if there is selected a status if not fall back to the default
+                    $status = (!empty($underpaidStatus)) ? $underpaidStatus : $status;
+                }
+            }
+        }
+
+        return $status;
     }
 }
