@@ -19,13 +19,15 @@ class AdyenPosCloudDataAssignObserver extends AbstractDataAssignObserver
 {
     const TERMINAL_ID = 'terminal_id';
     const NUMBER_OF_INSTALLMENTS = 'number_of_installments';
+    const CHAIN_CALLS = 'chain_calls';
 
     /**
      * @var array
      */
     protected $additionalInformationList = [
         self::TERMINAL_ID,
-        self::NUMBER_OF_INSTALLMENTS
+        self::NUMBER_OF_INSTALLMENTS,
+        self::CHAIN_CALLS
     ];
 
     /**

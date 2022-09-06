@@ -73,5 +73,9 @@
             <label>Cartes Bancaire</label>
             <code_alt>cartebancaire</code_alt>
         </type>
+        <type id="KCP" order="150">
+            <label>Korean Local Card</label>
+            <code_alt>korean_local_card</code_alt>
+        </type>
     </adyen_credit_cards>
 </payment>

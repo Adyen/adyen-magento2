@@ -2,7 +2,7 @@
 Use Adyen's plugin for Magento 2 to offer frictionless payments online, in-app, and in-store.
 
 ## Integration
-The plugin integrates card component (Secured Fields) using Adyen Checkout for all card payments. Local/redirect payment methods are integrated with DirectoryLookup and HPP. For Point Of Sale (POS) payments we use Terminal API using Cloud-based communication. Boleto and SEPA are a direct API integration into Adyen.
+The plugin integrates card component (Secured Fields) using Adyen Checkout for all card payments. For Point Of Sale (POS) payments we use Terminal API using Cloud-based communication. Boleto and SEPA are a direct API integration into Adyen.
 
 ### Support Vault and Instant Purchase ###
 Inside Adyen toggle the following settings on inside the API and Responses section (Settings -> API and Responses):
@@ -20,7 +20,7 @@ This plugin supports Magento2 version
 ## Releases
 
 1. **Major** releases are done ONLY when absolutely required. We try to not to introduce breaking changes and do major releases as rare as possible. Current average is **yearly**.
-2. A minor or a patcn release is scheduled but not limited to **once every 2 weeks.**
+2. A minor or a patch release is scheduled but not limited to **once every 2 weeks.**
 
 **Note: This can be subject to change based on the load and dependancies of the Integration tools team.**
 

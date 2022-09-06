@@ -22,6 +22,8 @@ use Magento\Sales\Model\Order;
 class Result extends \Magento\Framework\App\Action\Action
 {
 
+    const BRAND_CODE_DOTPAY = 'dotpay';
+    const RESULT_CODE_RECEIVED = 'Received';
     const DETAILS_ALLOWED_PARAM_KEYS = [
         'MD',
         'PaReq',
@@ -191,6 +193,16 @@ class Result extends \Magento\Framework\App\Action\Action
         if ($result) {
             $session = $this->_session;
             $session->getQuote()->setIsActive($setQuoteAsActive)->save();
+
+            // Prevent action component to redirect page with the payment method Dotpay Bank transfer / postal
+            if (
+                $this->_order->getPayment()->getAdditionalInformation('brand_code') == self::BRAND_CODE_DOTPAY &&
+                $this->_order->getPayment()->getAdditionalInformation('resultCode') == self::RESULT_CODE_RECEIVED
+            ) {
+                $this->payment->unsAdditionalInformation('action');
+                $this->_order->save();
+            }
+
             // Add OrderIncrementId to redirect parameters for headless support.
             $redirectParams = $this->_adyenHelper->getAdyenAbstractConfigData('custom_success_redirect_path')
                 ? ['_query' => ['utm_nooverride' => '1', 'order_increment_id' => $this->_order->getIncrementId()]]
@@ -298,14 +310,23 @@ class Result extends \Magento\Framework\App\Action\Action
             $authResult = $response['resultCode'];
         } else {
             // In case the result is unknown we log the request and don't update the history
-            $this->_adyenLogger->addError("Unexpected result query parameter. Response: " . json_encode($response));
+            $this->_adyenLogger->error("Unexpected result query parameter. Response: " . json_encode($response));
 
             return $result;
         }
 
         $this->_adyenLogger->addAdyenResult('Updating the order');
 
-        $paymentMethod = isset($response['paymentMethod']) ? trim($response['paymentMethod']) : '';
+        if (isset($response['paymentMethod']['brand'])) {
+            $paymentMethod = $response['paymentMethod']['brand'];
+        }
+        elseif (isset($response['paymentMethod']['type'])) {
+            $paymentMethod = $response['paymentMethod']['type'];
+        }
+        else {
+            $paymentMethod = '';
+        }
+
         $pspReference = isset($response['pspReference']) ? trim($response['pspReference']) : '';
 
         $type = 'Adyen Result URL response:';
@@ -391,7 +412,7 @@ class Result extends \Magento\Framework\App\Action\Action
         try {
             $this->stateDataHelper->CleanQuoteStateData($order->getQuoteId(), $authResult);
         } catch (\Exception $exception) {
-            $this->_adyenLogger->addError(__('Error cleaning the payment state data: %s', $exception->getMessage()));
+            $this->_adyenLogger->error(__('Error cleaning the payment state data: %s', $exception->getMessage()));
         }
 
 
@@ -515,11 +536,11 @@ class Result extends \Magento\Framework\App\Action\Action
                 if ($order->getIncrementId() === $merchantReference) {
                     $this->_order = $order;
                 } else {
-                    $this->_adyenLogger->addError("Wrong merchantReference was set in the query or in the session");
+                    $this->_adyenLogger->error("Wrong merchantReference was set in the query or in the session");
                     $response['error'] = 'merchantReference mismatch';
                 }
             } else {
-                $this->_adyenLogger->addError("No merchantReference in the response");
+                $this->_adyenLogger->error("No merchantReference in the response");
                 $response['error'] = 'merchantReference is missing from the response';
             }
         } catch (\Adyen\AdyenException $e) {

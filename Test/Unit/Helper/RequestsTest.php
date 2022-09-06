@@ -1,12 +1,20 @@
 <?php declare(strict_types=1);
 
-namespace Adyen\Payment\Helper;
+namespace Adyen\Payment\Tests\Unit\Helper;
 
+use Adyen\Payment\Helper\Address;
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Helper\Recurring;
+use Adyen\Payment\Helper\Requests;
+use Adyen\Payment\Helper\StateData;
+use Adyen\Payment\Helper\Vault;
+use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
-use PHPUnit\Framework\TestCase;
 
-class RequestsTest extends TestCase
+class RequestsTest extends AbstractAdyenTestCase
 {
     /** @var Requests $sut */
     private $sut;
@@ -57,15 +65,18 @@ class RequestsTest extends TestCase
 
     private function setMockObjects(array $stateDataArray, bool $vaultEnabled, string $adyenTokenType): void
     {
-        // Model\Order\Payment\Interceptor
-        $stateDataMock = $this->createMock(StateData::class);
-        $stateDataMock->method('getStateData')->willReturn($stateDataArray);
+        $stateDataMock = $this->createConfiguredMock(StateData::class, [
+            'getStateData' => $stateDataArray
+        ]);
 
-        $vaultHelperMock = $this->createMock(Vault::class);
-        $vaultHelperMock->method('isCardVaultEnabled')->willReturn($vaultEnabled);
+        $vaultHelperMock = $this->createConfiguredMock(Vault::class, [
+            'isCardVaultEnabled' => $vaultEnabled
+        ]);
 
-        $configHelperMock = $this->createMock(Config::class);
-        $configHelperMock->method('getCardRecurringType')->willReturn($adyenTokenType);
+
+        $configHelperMock = $this->createConfiguredMock(Config::class, [
+            'getCardRecurringType' => $adyenTokenType
+        ]);
 
         $this->sut = new Requests(
             $this->createMock(Data::class),
@@ -76,9 +87,11 @@ class RequestsTest extends TestCase
             $vaultHelperMock
         );
 
-        $orderMock = $this->createMock(Order::class);
-        $orderMock->method('getQuoteId')->willReturn(1);
-        $this->paymentMock = $this->createMock(Payment::class);
-        $this->paymentMock->method('getOrder')->willReturn($orderMock);
+        $orderMock = $this->createConfiguredMock(Order::class, [
+            'getQuoteId' => 1
+        ]);
+        $this->paymentMock = $this->createConfiguredMock(Payment::class, [
+            'getOrder' => $orderMock
+        ]);
     }
 }

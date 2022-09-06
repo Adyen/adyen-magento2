@@ -12,7 +12,7 @@
 namespace Adyen\Payment\Cron;
 
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Logger\Handler\AdyenCronjob;
+use Adyen\Payment\Logger\Handler\AdyenNotification;
 use Adyen\Payment\Model\ResourceModel\StateData;
 use Adyen\Payment\Model\ResourceModel\StateData\Collection;
 
@@ -29,7 +29,7 @@ class StateDataCleanUp
     private $stateDataResourceModel;
 
     /**
-     * @var AdyenCronjob
+     * @var AdyenNotification
      */
     private $adyenLogger;
 
@@ -56,7 +56,7 @@ class StateDataCleanUp
             try {
                 $this->stateDataResourceModel->delete($expiredStateDataRow);
             } catch (\Exception $exception) {
-                $this->adyenLogger->addError(__("State data was not cleaned-up: %s", $exception->getMessage()));
+                $this->adyenLogger->error(__("State data was not cleaned-up: %s", $exception->getMessage()));
             }
         }
     }

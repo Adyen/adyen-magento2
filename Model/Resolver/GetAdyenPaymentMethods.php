@@ -39,7 +39,7 @@ class GetAdyenPaymentMethods implements ResolverInterface
     /**
      * @var PaymentMethods
      */
-    protected $_paymentMethodsHelper;
+    protected $paymentMethodsHelper;
 
     /**
      * @var Json
@@ -66,7 +66,7 @@ class GetAdyenPaymentMethods implements ResolverInterface
         AdyenLogger $adyenLogger
     ) {
         $this->getCartForUser = $getCartForUser;
-        $this->_paymentMethodsHelper = $paymentMethodsHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->jsonSerializer = $jsonSerializer;
         $this->adyenLogger = $adyenLogger;
     }
@@ -97,6 +97,7 @@ class GetAdyenPaymentMethods implements ResolverInterface
             throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
         }
         $maskedCartId = $args['cart_id'];
+        $shopperLocale = $args['shopper_locale'] ?? null;
 
         $currentUserId = $context->getUserId();
         $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
@@ -109,14 +110,14 @@ class GetAdyenPaymentMethods implements ResolverInterface
             if ($shippingAddress) {
                 $country = $shippingAddress->getCountryId();
             }
-            $adyenPaymentMethodsResponse = $this->_paymentMethodsHelper->getPaymentMethods($cart->getId(), $country);
+            $adyenPaymentMethodsResponse = $this->paymentMethodsHelper->getPaymentMethods($cart->getId(), $country, $shopperLocale);
 
             return $adyenPaymentMethodsResponse ? $this->preparePaymentMethodGraphQlResponse($adyenPaymentMethodsResponse) : [];
         } catch (GraphQlAuthorizationException | GraphQlInputException | GraphQlNoSuchEntityException $exception) {
-            $this->adyenLogger->addError(sprintf('GraphQl payment methods call failed with error message: %s', $exception->getMessage()));
+            $this->adyenLogger->error(sprintf('GraphQl payment methods call failed with error message: %s', $exception->getMessage()));
             throw $exception;
         } catch (Exception $exception) {
-            $this->adyenLogger->addError(sprintf('GraphQl payment methods call failed with error message: %s', $exception->getMessage()));
+            $this->adyenLogger->error(sprintf('GraphQl payment methods call failed with error message: %s', $exception->getMessage()));
             // In the future, use the message and the code passed by the exception. Since currently the message and code are not
             // being passed, use this generic message.
             throw new GraphQlAdyenException(__('An unknown error has occurred'), null, 000);

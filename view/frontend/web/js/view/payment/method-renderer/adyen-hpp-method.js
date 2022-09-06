@@ -313,6 +313,7 @@ define(
                         self.isPlaceOrderActionAllowed(true);
                         fullScreenLoader.stopLoader();
                         self.showErrorMessage(response);
+                        component.handleReject(response);
                     }
                 ).done(
                     function(orderId) {
@@ -636,7 +637,7 @@ define(
                     } else if (gender == 2) {
                         return 'FEMALE';
                     }
-                    return 'UNKNOWN';
+                    return null;
 
                 }
 

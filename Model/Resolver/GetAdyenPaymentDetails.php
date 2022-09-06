@@ -117,7 +117,7 @@ class GetAdyenPaymentDetails implements ResolverInterface
         try {
             return $this->getAdyenPaymentStatusDataProvider->getGetAdyenPaymentDetails($this->jsonSerializer->serialize($payload));
         } catch (Exception $exception) {
-            $this->adyenLogger->addError(sprintf(
+            $this->adyenLogger->error(sprintf(
                 'GraphQl payment details call failed with error message: %s',
                 $exception->getMessage()
             ));

@@ -18,9 +18,7 @@
     require(['Magento_Customer/js/customer-data'], function (customerData) {
         'use strict';
 
-        customerData.getInitCustomerData().done(function () {
-            customerData.reload(['cart'], true);
-        });
+        customerData.reload(['cart'], true);
     });
 </script>
 <?php if ($block->renderAction()): ?>
@@ -49,9 +47,7 @@
 <?php if ($block->showAdyenGiving()):
     $checkoutConfig = /* @noEscape */
     $block->getSerializedCheckoutConfig();
-    $scriptString = <<<script
-    window.checkoutConfig = {$checkoutConfig};
-script;
+    $scriptString = __('window.checkoutConfig = %1;', $checkoutConfig);
 ?>
 <script>
     <?=$scriptString?>
@@ -117,4 +113,3 @@ script;
 </script>
 <div id='donation-container'></div>
 <?php endif; ?>
-

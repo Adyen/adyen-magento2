@@ -15,6 +15,7 @@ use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Invoice as InvoiceHelper;
+use Adyen\Payment\Helper\Order as OrderHelper;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
@@ -24,6 +25,7 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\StatusResolver;
+use Adyen\Payment\Helper\PaymentMethods;
 
 class InvoiceObserver implements ObserverInterface
 {
@@ -45,21 +47,17 @@ class InvoiceObserver implements ObserverInterface
     /** @var Config $configHelper */
     private $configHelper;
 
+    /** @var PaymentMethods $paymentMethodsHelper */
+    private $paymentMethodsHelper;
+
+    /** @var OrderHelper */
+    private $orderHelper;
+
     /**
      * @var AdyenLogger
      */
     private $logger;
 
-    /**
-     * InvoiceObserver constructor.
-     * @param Payment $adyenPaymentResourceModel
-     * @param PaymentFactory $adyenOrderPaymentFactory
-     * @param InvoiceHelper $invoiceHelper
-     * @param StatusResolver $statusResolver
-     * @param AdyenOrderPayment $adyenOrderPaymentHelper
-     * @param Config $configHelper
-     * @param AdyenLogger $adyenLogger
-     */
     public function __construct(
         Payment $adyenPaymentResourceModel,
         PaymentFactory $adyenOrderPaymentFactory,
@@ -67,7 +65,9 @@ class InvoiceObserver implements ObserverInterface
         StatusResolver $statusResolver,
         AdyenOrderPayment $adyenOrderPaymentHelper,
         Config $configHelper,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        PaymentMethods $paymentMethodsHelper,
+        OrderHelper $orderHelper
     ) {
         $this->adyenPaymentResourceModel = $adyenPaymentResourceModel;
         $this->adyenOrderPaymentFactory = $adyenOrderPaymentFactory;
@@ -76,6 +76,8 @@ class InvoiceObserver implements ObserverInterface
         $this->adyenOrderPaymentHelper = $adyenOrderPaymentHelper;
         $this->configHelper = $configHelper;
         $this->logger = $adyenLogger;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->orderHelper = $orderHelper;
     }
 
     /**
@@ -93,15 +95,17 @@ class InvoiceObserver implements ObserverInterface
         $invoice = $observer->getData('invoice');
         $order = $invoice->getOrder();
         $payment = $order->getPayment();
+        $method = $payment->getMethod();
 
-        // If invoice has already been paid or full amount is finalized, exit observer
-        if ($invoice->wasPayCalled() || $this->adyenOrderPaymentHelper->isFullAmountFinalized($order)) {
+        // If payment is not originating from Adyen or invoice has already been paid or full amount is finalized, exit observer
+        if (!$this->paymentMethodsHelper->isAdyenPayment($method) || $invoice->wasPayCalled() || $this->adyenOrderPaymentHelper->isFullAmountFinalized($order)) {
             return;
         }
 
+
         $this->logger->addAdyenDebug(
             sprintf('Event sales_order_invoice_save_after for invoice %s will be handled', $invoice->getEntityId()),
-            array_merge($this->invoiceHelper->getLogInvoiceContext($invoice), $this->adyenOrderPaymentHelper->getLogOrderContext($order))
+            array_merge($this->logger->getInvoiceContext($invoice), $this->logger->getOrderContext($order))
         );
 
         $adyenOrderPayments = $this->adyenPaymentResourceModel->getLinkedAdyenOrderPayments(
@@ -131,7 +135,7 @@ class InvoiceObserver implements ObserverInterface
 
         $this->logger->addAdyenDebug(
             sprintf('Event sales_order_invoice_save_after for invoice %s was handled', $invoice->getEntityId()),
-            array_merge($this->invoiceHelper->getLogInvoiceContext($invoice), $this->adyenOrderPaymentHelper->getLogOrderContext($order))
+            array_merge($this->logger->getInvoiceContext($invoice), $this->logger->getOrderContext($order))
         );
     }
 }

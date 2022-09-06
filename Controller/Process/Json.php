@@ -16,6 +16,7 @@ use Adyen\Exception\MerchantAccountCodeException;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\IpAddress;
+use Adyen\Payment\Helper\RateLimiter;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\NotificationFactory;
@@ -31,6 +32,7 @@ use Magento\Framework\App\Request\Http as Http;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 
 /**
  * Class Json extends Action
@@ -68,6 +70,11 @@ class Json extends Action
     private $ipAddressHelper;
 
     /**
+     * @var RateLimiter
+     */
+    private $rateLimiterHelper;
+
+    /**
      * @var HmacSignature
      */
     private $hmacSignature;
@@ -78,6 +85,11 @@ class Json extends Action
     private $notificationReceiver;
 
     /**
+     * @var RemoteAddress
+     */
+    private $remoteAddress;
+
+    /**
      * Json constructor.
      *
      * @param Context $context
@@ -86,8 +98,10 @@ class Json extends Action
      * @param SerializerInterface $serializer
      * @param Config $configHelper
      * @param IpAddress $ipAddressHelper
+     * @param RateLimiter $rateLimiterHelper
      * @param HmacSignature $hmacSignature
      * @param NotificationReceiver $notificationReceiver
+     * @param RemoteAddress $remoteAddress
      */
     public function __construct(
         Context $context,
@@ -97,8 +111,10 @@ class Json extends Action
         SerializerInterface $serializer,
         Config $configHelper,
         IpAddress $ipAddressHelper,
+        RateLimiter $rateLimiterHelper,
         HmacSignature $hmacSignature,
-        NotificationReceiver $notificationReceiver
+        NotificationReceiver $notificationReceiver,
+        RemoteAddress $remoteAddress
     ) {
         parent::__construct($context);
         $this->notificationFactory = $notificationFactory;
@@ -107,8 +123,10 @@ class Json extends Action
         $this->serializer = $serializer;
         $this->configHelper = $configHelper;
         $this->ipAddressHelper = $ipAddressHelper;
+        $this->rateLimiterHelper = $rateLimiterHelper;
         $this->hmacSignature = $hmacSignature;
         $this->notificationReceiver = $notificationReceiver;
+        $this->remoteAddress = $remoteAddress;
 
         // Fix for Magento2.3 adding isAjax to the request params
         if (interface_exists(CsrfAwareActionInterface::class)) {
@@ -179,7 +197,6 @@ class Json extends Action
                 }
             }
 
-            $this->adyenLogger->addAdyenNotification("The result is accepted");
 
             $this->getResponse()
                 ->clearHeader('Content-Type')
@@ -203,12 +220,27 @@ class Json extends Action
     {
         // Add CGI support
         $this->fixCgiHttpAuthentication();
-        return $this->notificationReceiver->isAuthenticated(
+
+        $authResult = $this->notificationReceiver->isAuthenticated(
             $response,
             $this->configHelper->getMerchantAccount(),
             $this->configHelper->getNotificationsUsername(),
             $this->configHelper->getNotificationsPassword()
         );
+
+        // if the number of wrongful attempts is not less than 6, save it in cache
+        if($this->rateLimiterHelper->getNumberOfAttempts() >= $this->rateLimiterHelper::NUMBER_OF_ATTEMPTS) {
+            $this->rateLimiterHelper->saveSessionIdIpAddressToCache();
+            return false;
+        }
+
+        // if there is no auth result, save it in cache
+        if(!$authResult) {
+            $this->rateLimiterHelper->saveSessionIdIpAddressToCache();
+            return false;
+        }
+
+        return $authResult;
     }
 
     /**
@@ -229,7 +261,7 @@ class Json extends Action
         }
 
         // Validate if Ip check is enabled and if the notification comes from a verified IP
-        if ($this->configHelper->getNotificationsIpCheck() && !$this->isIpValid()) {
+        if (!$this->isIpValid()) {
             $this->adyenLogger->addAdyenNotification(
                 "Notification has been rejected because the IP address could not be verified"
             );
@@ -237,7 +269,7 @@ class Json extends Action
         }
 
         // Validate the Hmac calculation
-        $hasHmacCheck = $this->configHelper->getNotificationsHmacCheck() &&
+        $hasHmacCheck = $this->configHelper->getNotificationsHmacKey() && 
             $this->hmacSignature->isHmacSupportedEventCode($response);
         if ($hasHmacCheck && !$this->notificationReceiver->validateHmac(
             $response,
@@ -249,10 +281,6 @@ class Json extends Action
             return false;
         }
 
-        $this->adyenLogger->addAdyenNotification(
-            "The content of the notification item is: " . json_encode($response)
-        );
-
         // Handling duplicates
         if ($this->isDuplicate($response)) {
             return true;
@@ -262,6 +290,8 @@ class Json extends Action
         $this->loadNotificationFromRequest($notification, $response);
         $notification->setLive($notificationMode);
         $notification->save();
+
+        $this->adyenLogger->addAdyenResult(sprintf("Notification %s is accepted", $notification->getId()));
 
         return true;
     }
@@ -318,9 +348,10 @@ class Json extends Action
     private function isIpValid()
     {
         $ipAddress = [];
+        $fetchedIpAddress = $this->remoteAddress->getRemoteAddress();
         //Getting remote and possibly forwarded IP addresses
-        if (!empty($_SERVER['REMOTE_ADDR'])) {
-            $ipAddress = explode(',', $_SERVER['REMOTE_ADDR']);
+        if (!empty($fetchedIpAddress)) {
+            $ipAddress = explode(',', $fetchedIpAddress);
         }
         return $this->ipAddressHelper->isIpAddressValid($ipAddress);
     }
