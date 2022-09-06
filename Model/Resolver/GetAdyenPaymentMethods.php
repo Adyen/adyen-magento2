@@ -39,7 +39,7 @@ class GetAdyenPaymentMethods implements ResolverInterface
     /**
      * @var PaymentMethods
      */
-    protected $_paymentMethodsHelper;
+    protected $paymentMethodsHelper;
 
     /**
      * @var Json
@@ -66,7 +66,7 @@ class GetAdyenPaymentMethods implements ResolverInterface
         AdyenLogger $adyenLogger
     ) {
         $this->getCartForUser = $getCartForUser;
-        $this->_paymentMethodsHelper = $paymentMethodsHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->jsonSerializer = $jsonSerializer;
         $this->adyenLogger = $adyenLogger;
     }
@@ -97,6 +97,7 @@ class GetAdyenPaymentMethods implements ResolverInterface
             throw new GraphQlInputException(__('Required parameter "cart_id" is missing'));
         }
         $maskedCartId = $args['cart_id'];
+        $shopperLocale = $args['shopper_locale'] ?? null;
 
         $currentUserId = $context->getUserId();
         $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
@@ -109,7 +110,7 @@ class GetAdyenPaymentMethods implements ResolverInterface
             if ($shippingAddress) {
                 $country = $shippingAddress->getCountryId();
             }
-            $adyenPaymentMethodsResponse = $this->_paymentMethodsHelper->getPaymentMethods($cart->getId(), $country);
+            $adyenPaymentMethodsResponse = $this->paymentMethodsHelper->getPaymentMethods($cart->getId(), $country, $shopperLocale);
 
             return $adyenPaymentMethodsResponse ? $this->preparePaymentMethodGraphQlResponse($adyenPaymentMethodsResponse) : [];
         } catch (GraphQlAuthorizationException | GraphQlInputException | GraphQlNoSuchEntityException $exception) {

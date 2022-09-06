@@ -58,3 +58,13 @@
 #adyen_moto_merchant_accounts {
     margin-bottom: 15px;
 }
+
+#payment_form_adyen_pos_cloud {
+    width: 225px;
+    border: none;
+    padding: 0;
+    color: rgb(0, 27, 43);
+    font-size: 16px;
+    font-weight: 400;
+    margin: 15px 25px;
+}
