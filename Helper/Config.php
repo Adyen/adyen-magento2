@@ -457,6 +457,11 @@ class Config
         return $this->getConfigData('debug', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
     }
 
+    public function getAutoCaptureOpenInvoice(int $storeId): bool
+    {
+        return $this->getConfigData('auto_capture_openinvoice', self::XML_ADYEN_ABSTRACT_PREFIX, $storeId, true);
+    }
+
     /**
      * Retrieve information from payment configuration
      *

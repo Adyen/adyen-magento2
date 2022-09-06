@@ -602,11 +602,7 @@ class PaymentMethods extends AbstractHelper
                 )
             );
             $paymentCode = $order->getPayment()->getMethod();
-            $captureModeOpenInvoice = $this->configHelper->getConfigData(
-                'auto_capture_openinvoice',
-                'adyen_abstract',
-                $order->getStoreId()
-            );
+            $autoCaptureOpenInvoice = $this->configHelper->getAutoCaptureOpenInvoice($order->getStoreId());
             $manualCapturePayPal = trim(
                 $this->configHelper->getConfigData(
                     'paypal_capture_mode',
@@ -658,9 +654,7 @@ class PaymentMethods extends AbstractHelper
             }
 
             // if auto capture mode for openinvoice is turned on then use auto capture
-            if ($captureModeOpenInvoice &&
-                $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)
-            ) {
+            if ($autoCaptureOpenInvoice && $this->adyenHelper->isPaymentMethodOpenInvoiceMethod($notificationPaymentMethod)) {
                 $this->adyenLogger->addAdyenNotification(
                     'This payment method is configured to be working as auto capture ',
                     $this->adyenLogger->getOrderContext($order)
