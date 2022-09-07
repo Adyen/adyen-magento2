@@ -1,21 +1,9 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -82,17 +70,40 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     /**
      * Check if the Adyen Notification is already stored in the system
      *
-     * @param $pspReference
-     * @param $eventCode
-     * @param $success
-     * @param $originalReference
      * @param null $done
      * @return bool
      */
-    public function isDuplicate($pspReference, $eventCode, $success, $originalReference, $done = null)
+    public function isDuplicate($done = null): bool
     {
-        $result = $this->getResource()->getNotification($pspReference, $eventCode, $success, $originalReference, $done);
-        return (empty($result)) ? false : true;
+        $result = $this->getResource()->getNotification(
+            $this->getPspreference(),
+            $this->getEventCode(),
+            $this->getSuccess(),
+            $this->getOriginalReference(),
+            $done
+        );
+
+        return !empty($result);
+    }
+
+    /**
+     * Remove OFFER_CLOSED and AUTHORISATION success=false notifications for some time from the processing list
+     * to ensure they won't close any order which has an AUTHORISED notification arrived a bit later than the
+     * OFFER_CLOSED or the AUTHORISATION success=false one.
+     * @return bool
+     */
+    public function shouldSkipProcessing(): bool
+    {
+        if ((
+                self::OFFER_CLOSED === $this->getEventCode() ||
+                (self::AUTHORISATION === $this->getEventCode() && !$this->isSuccessful())
+            ) &&
+            $this->isLessThan10MinutesOld()
+        ) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -211,6 +222,16 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     public function setSuccess($success)
     {
         return $this->setData(self::SUCCESS, $success);
+    }
+
+    /**
+     * Check if notification is successful and return bool
+     *
+     * @return bool
+     */
+    public function isSuccessful(): bool
+    {
+        return strcmp($this->getSuccess(), 'true') === 0 || strcmp($this->getSuccess(), '1') === 0;
     }
 
     /**
@@ -461,5 +482,13 @@ class Notification extends \Magento\Framework\Model\AbstractModel implements Not
     public function setUpdatedAt($timestamp)
     {
         return $this->setData(self::UPDATED_AT, $timestamp);
+    }
+
+    public function isLessThan10MinutesOld(): bool
+    {
+        $createdAt = \DateTime::createFromFormat('Y-m-d H:i:s', $this->getCreatedAt());
+        $tenMinutesAgo = new \DateTime('-10 minutes');
+
+        return $createdAt >= $tenMinutesAgo;
     }
 }

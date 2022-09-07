@@ -1,16 +1,4 @@
 <!--
-  ~                       ######
-  ~                       ######
-  ~ ############    ####( ######  #####. ######  ############   ############
-  ~ #############  #####( ######  #####. ######  #############  #############
-  ~        ######  #####( ######  #####. ######  #####  ######  #####  ######
-  ~ ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
-  ~ ###### ######  #####( ######  #####. ######  #####          #####  ######
-  ~ #############  #############  #############  #############  #####  ######
-  ~  ############   ############  #############   ############  #####  ######
-  ~                                      ######
-  ~                               #############
-  ~                               ############
   ~
   ~ Adyen Payment Module
   ~
@@ -23,18 +11,14 @@
 
 <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
     <div class="payment-method-title field choice">
-        <input type="radio"
+        <label data-bind="attr: {'for': getCode()}" class="label">
+            <input type="radio"
                name="payment[method]"
                class="radio"
                data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
-        <label data-bind="attr: {'for': getCode()}" class="label">
-
             <!-- ko if: showLogo() -->
-
-            <div data-bind="attr: { 'class': 'adyen-sprite ' + getCode() }"></div>
-
+            <span data-bind="attr: { 'class': 'adyen-sprite ' + getCode() }"></span>
             <!--/ko-->
-
             <span data-bind="text: getTitle()"></span>
         </label>
     </div>
@@ -110,7 +94,7 @@
                 <button class="action primary checkout"
                         type="submit"
                         data-bind="
-                            click: initiate,
+                            click: placeOrderPos,
                             attr: {title: $t('Place Order')},
                             enable: isButtonActive()
                             "

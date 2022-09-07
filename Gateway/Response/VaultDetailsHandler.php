@@ -1,21 +1,9 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2019 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -37,6 +25,7 @@ class VaultDetailsHandler implements HandlerInterface
 
     /**
      * VaultDetailsHandler constructor.
+     *
      * @param Vault $vaultHelper
      */
     public function __construct(Vault $vaultHelper)
@@ -54,6 +43,9 @@ class VaultDetailsHandler implements HandlerInterface
         }
         /** @var PaymentDataObject $orderPayment */
         $orderPayment = SubjectReader::readPayment($handlingSubject);
-        $this->vaultHelper->saveRecurringDetails($orderPayment->getPayment(), $response['additionalData']);
+
+        if ($this->vaultHelper->isCardVaultEnabled()) {
+            $this->vaultHelper->saveRecurringDetails($orderPayment->getPayment(), $response['additionalData']);
+        }
     }
 }

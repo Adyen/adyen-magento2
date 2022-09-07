@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment Module
  *
@@ -26,6 +14,8 @@ namespace Adyen\Payment\Gateway\Response;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Recurring;
+use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
@@ -42,12 +32,26 @@ class PaymentPosCloudHandler implements HandlerInterface
      */
     private $adyenLogger;
 
+    /**
+     * @var Recurring
+     */
+    private $recurringHelper;
+
+    /**
+     * @var Vault
+     */
+    private $vaultHelper;
+
     public function __construct(
         AdyenLogger $adyenLogger,
-        Data $adyenHelper
+        Data $adyenHelper,
+        Recurring $recurringHelper,
+        Vault $vaultHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
+        $this->recurringHelper = $recurringHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -98,8 +102,8 @@ class PaymentPosCloudHandler implements HandlerInterface
                 $additionalData['recurring.recurringDetailReference'] = $recurringDetailReference;
                 $additionalData['pos_payment'] = true;
 
-                if (!$this->adyenHelper->isCreditCardVaultEnabled()) {
-                    $this->adyenHelper->createAdyenBillingAgreement($payment->getOrder(), $additionalData);
+                if (!$this->vaultHelper->isCardVaultEnabled()) {
+                    $this->recurringHelper->createAdyenBillingAgreement($payment->getOrder(), $additionalData);
                 }
             }
         }

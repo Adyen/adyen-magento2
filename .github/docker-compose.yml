@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  db:
+    image: mariadb:10.4
+    container_name: mariadb
+    networks:
+      - backend
+    environment:
+      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: magento
+      MARIADB_USER: magento
+      MARIADB_PASSWORD: magento
+  elastic:
+    image: elasticsearch:7.16.2
+    container_name: elasticsearch
+    networks:
+      - backend
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms750m -Xmx750m"
+  web:
+    build:
+      context: .
+      args:
+        - PHP_VERSION=${PHP_VERSION}
+        - MAGENTO_VERSION=${MAGENTO_VERSION}
+    container_name: magento2-container
+    networks:
+      backend:
+        aliases:
+          - magento2.test.com
+    environment:
+      - DB_SERVER=mariadb
+      - ELASTICSEARCH_SERVER=elasticsearch
+      - MAGENTO_HOST=magento2.test.com
+      - VIRTUAL_HOST=magento2.test.com
+      - ADMIN_URLEXT=admin
+      - DONATION_ACCOUNT
+      - ADMIN_USERNAME
+      - ADMIN_PASSWORD
+      - ADYEN_MERCHANT
+      - ADYEN_API_KEY
+      - ADYEN_CLIENT_KEY
+      - PHP_VERSION
+      - MAGENTO_VERSION
+    depends_on:
+      - db
+      - elastic
+    volumes:
+      - ../:/data/extensions/workdir
+      - ./Makefile:/var/www/html/Makefile
+networks:
+  backend:

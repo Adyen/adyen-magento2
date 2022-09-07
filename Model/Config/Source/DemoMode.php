@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -23,34 +11,19 @@
 
 namespace Adyen\Payment\Model\Config\Source;
 
-class DemoMode implements \Magento\Framework\Option\ArrayInterface
+use Magento\Framework\Data\OptionSourceInterface;
+
+class DemoMode implements OptionSourceInterface
 {
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $_adyenHelper;
-
-    /**
-     * DemoMode constructor.
-     *
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     */
-    public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
-    ) {
-        $this->_adyenHelper = $adyenHelper;
-    }
-
     /**
      * @return array
      */
     public function toOptionArray()
     {
-        $recurringTypes = $this->_adyenHelper->getModes();
-
-        foreach ($recurringTypes as $code => $label) {
-            $options[] = ['value' => $code, 'label' => $label];
-        }
-        return $options;
+        return [
+            ['value' => '1', 'label' => 'Test'],
+            ['value' => '0', 'label' => 'Live']
+        ];
     }
+
 }

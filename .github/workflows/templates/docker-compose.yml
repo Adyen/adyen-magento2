@@ -1,0 +1,83 @@
+version: '3'
+
+services:
+  db:
+    image: mariadb:10.4
+    container_name: mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: magento
+      MARIADB_USER: magento
+      MARIADB_PASSWORD: magento
+    networks:
+      - backend
+  elastic:
+    image: elasticsearch:7.16.2
+    container_name: elasticsearch
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - "discovery.type=single-node"
+      - ES_JAVA_OPTS=-Xms750m -Xmx750m
+    networks:
+      - backend
+  web:
+    build: 
+      context: ../../
+      args:
+        - PHP_VERSION=${PHP_VERSION}
+        - MAGENTO_VERSION=${MAGENTO_VERSION}
+    container_name: magento2-container
+    extra_hosts:
+      - "magento2.test.com:127.0.0.1"
+    environment:
+      DB_SERVER: mariadb
+      ELASTICSEARCH_SERVER: elasticsearch
+      MAGENTO_HOST: magento2.test.com
+      VIRTUAL_HOST: magento2.test.com
+      COMPOSER_MEMORY_LIMIT: -1
+      DEPLOY_SAMPLEDATA: 1
+      DONATION_ACCOUNT:
+      ADMIN_USERNAME:
+      ADMIN_PASSWORD:
+      ADYEN_MERCHANT:
+      ADYEN_API_KEY:
+      ADYEN_CLIENT_KEY:
+      PHP_VERSION:
+      MAGENTO_VERSION:
+    depends_on:
+      - db
+      - elastic
+    volumes:
+      - ../../../:/data/extensions/workdir
+      - composer:/usr/local/bin
+      - magento:/var/www/html
+      - ../../Makefile:/var/www/html/Makefile
+    networks:
+      backend:
+        aliases:
+          - magento2.test.com
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.20.0-focal
+    shm_size: 1gb
+    ipc: host
+    cap_add:
+      - SYS_ADMIN
+    networks:
+      - backend
+    environment:
+      - INTEGRATION_TESTS_BRANCH
+      - MAGENTO_BASE_URL
+      - MAGENTO_ADMIN_USERNAME
+      - MAGENTO_ADMIN_PASSWORD
+      - PAYPAL_USERNAME
+      - PAYPAL_PASSWORD
+    volumes:
+      - ../../scripts/e2e.sh:/e2e.sh
+      - ../../../test-report:/tmp/test-report
+networks:
+  backend:
+volumes:
+  magento:
+  composer:

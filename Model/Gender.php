@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -27,8 +15,10 @@ class Gender
 {
     const MALE = '1';
     const FEMALE = '2';
+    const OTHER = '3';
     const MALE_VALUE = 'MALE';
     const FEMALE_VALUE = 'FEMALE';
+    const OTHER_VALUE = 'OTHER';
 
     /**
      * @return array
@@ -37,7 +27,8 @@ class Gender
     {
         return [
             self::MALE_VALUE => __('Male'),
-            self::FEMALE_VALUE => __('Female')
+            self::FEMALE_VALUE => __('Female'),
+            self::OTHER_VALUE => __('Not specified')
         ];
     }
 
@@ -54,6 +45,8 @@ class Gender
             $gender = self::MALE;
         } elseif ($genderValue == self::FEMALE_VALUE) {
             $gender = self::FEMALE;
+        } elseif ($genderValue == self::OTHER_VALUE) {
+            $gender = self::OTHER;
         }
         return $gender;
     }
@@ -69,6 +62,8 @@ class Gender
             $gender = self::MALE_VALUE;
         } elseif ($genderValue == self::FEMALE) {
             $gender = self::FEMALE_VALUE;
+        } elseif ($genderValue == self::OTHER) {
+            $gender = self::OTHER_VALUE;
         }
         return $gender;
     }

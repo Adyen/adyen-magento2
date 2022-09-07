@@ -1,22 +1,10 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment Module
  *
  * @author Adyen BV <support@adyen.com>
- * @copyright (c) 2020 Adyen B.V.
+ * @copyright (c) 2022 Adyen B.V.
  * @license https://opensource.org/licenses/MIT MIT license
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
@@ -78,23 +66,46 @@ class Vault
      */
     private $paymentTokenRepository;
 
+    /**
+     * @var Config
+     */
+    private $config;
+
     public function __construct(
         Data $adyenHelper,
         AdyenLogger $adyenLogger,
         PaymentTokenManagement $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
-        PaymentTokenRepositoryInterface $paymentTokenRepository
+        PaymentTokenRepositoryInterface $paymentTokenRepository,
+        Config $config
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenLogger = $adyenLogger;
         $this->paymentTokenManagement = $paymentTokenManagement;
         $this->paymentTokenFactory = $paymentTokenFactory;
         $this->paymentTokenRepository = $paymentTokenRepository;
+        $this->config = $config;
     }
 
+    /**
+     * Check if one click is enabled AND Magento Vault is set
+     * intval() is required since "" is returned if config doesn't exist
+     *
+     * @param null $storeId
+     * @return bool
+     */
+    public function isCardVaultEnabled($storeId = null): bool
+    {
+        return intval($this->config->getCardRecurringActive($storeId)) && ($this->config->getCardRecurringMode($storeId) === Recurring::MODE_MAGENTO_VAULT);
+    }
+
+    /**
+     * @param $payment
+     * @param array $additionalData
+     */
     public function saveRecurringDetails($payment, array $additionalData)
     {
-        if (!$this->adyenHelper->isCreditCardVaultEnabled($payment->getOrder()->getStoreId()) &&
+        if (!$this->isCardVaultEnabled($payment->getOrder()->getStoreId()) &&
             !$this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())) {
             return;
         }
@@ -106,7 +117,7 @@ class Vault
         try {
             $paymentToken = $this->getVaultPaymentToken($payment, $additionalData);
         } catch (Exception $exception) {
-            $this->adyenLogger->error(print_r($exception, true));
+            $this->adyenLogger->error(json_encode($exception));
             return;
         }
 
@@ -145,14 +156,7 @@ class Vault
             $paymentToken = $this->paymentTokenFactory->create(
                 PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD
             );
-
             $paymentToken->setGatewayToken($additionalData[self::RECURRING_DETAIL_REFERENCE]);
-
-            if (strpos($additionalData[self::PAYMENT_METHOD], "paywithgoogle") !== false
-                && !empty($additionalData['paymentMethodVariant'])) {
-                $additionalData[self::PAYMENT_METHOD] = $additionalData['paymentMethodVariant'];
-                $paymentToken->setIsVisible(false);
-            }
         } else {
             $paymentTokenSaveRequired = true;
         }

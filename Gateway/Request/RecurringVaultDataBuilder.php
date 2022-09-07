@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -43,7 +31,6 @@ class RecurringVaultDataBuilder implements BuilderInterface
         $paymentToken = $extensionAttributes->getVaultPaymentToken();
 
         $requestBody['selectedRecurringDetailReference'] = $paymentToken->getGatewayToken();
-        $requestBody['shopperInteraction'] = 'ContAuth';
 
         $request['body'] = $requestBody;
 

@@ -1,21 +1,9 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
+ * Copyright (c) 2021 Adyen BV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -23,19 +11,22 @@
 
 namespace Adyen\Payment\Api;
 
+use Magento\Quote\Api\Data\AddressInterface;
+
 /**
- * Interface GuestAdyenPaymentMethodManagementInterface
+ * Interface for fetching payment methods from Adyen for guest customers
  *
  * @api
  */
 interface GuestAdyenPaymentMethodManagementInterface
 {
     /**
-     * Get payment information
+     * Fetches Adyen payment methods for guest customers
      *
      * @param string $cartId
-     * @param null|\Magento\Quote\Api\Data\AddressInterface
+     * @param null|AddressInterface
+     * @param string|null $shopperLocale
      * @return \Magento\Checkout\Api\Data\PaymentDetailsInterface
      */
-    public function getPaymentMethods($cartId, \Magento\Quote\Api\Data\AddressInterface $shippingAddress = null);
+    public function getPaymentMethods($cartId, AddressInterface $shippingAddress = null, ?string $shopperLocale = null);
 }

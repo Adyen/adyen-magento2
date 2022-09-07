@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -23,6 +11,7 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class PaymentDataBuilder implements BuilderInterface
@@ -33,13 +22,22 @@ class PaymentDataBuilder implements BuilderInterface
     private $adyenRequestsHelper;
 
     /**
+     * @var ChargedCurrency
+     */
+    private $chargedCurrency;
+
+    /**
      * PaymentDataBuilder constructor.
      *
      * @param \Adyen\Payment\Helper\Requests $adyenRequestsHelper
+     * @param ChargedCurrency $chargedCurrency
      */
-    public function __construct(\Adyen\Payment\Helper\Requests $adyenRequestsHelper)
-    {
+    public function __construct(
+        \Adyen\Payment\Helper\Requests $adyenRequestsHelper,
+        ChargedCurrency $chargedCurrency
+    ) {
         $this->adyenRequestsHelper = $adyenRequestsHelper;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -55,16 +53,15 @@ class PaymentDataBuilder implements BuilderInterface
         $payment = $paymentDataObject->getPayment();
         $fullOrder = $payment->getOrder();
 
-        $currencyCode = $fullOrder->getOrderCurrencyCode();
-        $amount = $fullOrder->getGrandTotal();
+        $amountCurrency = $this->chargedCurrency->getOrderAmountCurrency($fullOrder);
+        $currencyCode = $amountCurrency->getCurrencyCode();
+        $amount = $amountCurrency->getAmount();
         $reference = $order->getOrderIncrementId();
-        $paymentMethod = $payment->getMethod();
 
         $request['body'] = $this->adyenRequestsHelper->buildPaymentData(
             $amount,
             $currencyCode,
             $reference,
-            $paymentMethod,
             []
         );
 

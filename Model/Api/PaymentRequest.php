@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -100,18 +88,27 @@ class PaymentRequest extends DataObject
 
         $md = $payment->getAdditionalInformation('md');
         $paResponse = $payment->getAdditionalInformation('paResponse');
+        $redirectResult = $payment->getAdditionalInformation('redirectResult');
         $paymentData = $payment->getAdditionalInformation('paymentData');
 
+        $payment->unsAdditionalInformation('redirectResult');
         $payment->unsAdditionalInformation('paymentData');
         $payment->unsAdditionalInformation('paRequest');
         $payment->unsAdditionalInformation('md');
 
+        $details = [];
+        if (!empty($md) && !empty($paResponse)) {
+            $details["MD"] = $md;
+            $details["PaRes"] = $paResponse;
+        }
+
+        if (!empty($redirectResult)) {
+            $details["redirectResult"] = $redirectResult;
+        }
+
         $request = [
             "paymentData" => $paymentData,
-            "details" => [
-                "MD" => $md,
-                "PaRes" => $paResponse
-            ]
+            "details" => $details
         ];
 
         try {
@@ -166,7 +163,7 @@ class PaymentRequest extends DataObject
                 }
             } catch (\Exception $exception) {
                 // log exception
-                $this->_adyenLogger->addError($exception);
+                $this->_adyenLogger->error($exception);
                 throw($exception);
             }
         }
@@ -185,7 +182,7 @@ class PaymentRequest extends DataObject
         $contract = ['contract' => $recurringType];
         $request = [
             "merchantAccount" => $this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId),
-            "shopperReference" => $shopperReference,
+            "shopperReference" => $this->getShopperReferencePadding($shopperReference),
             "recurring" => $contract,
         ];
 
@@ -209,7 +206,7 @@ class PaymentRequest extends DataObject
     public function disableRecurringContract($recurringDetailReference, $shopperReference, $storeId)
     {
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
-
+        $shopperReference = $this->getShopperReferencePadding($shopperReference);
         $request = [
             "merchantAccount" => $merchantAccount,
             "shopperReference" => $shopperReference,
@@ -231,5 +228,14 @@ class PaymentRequest extends DataObject
         } else {
             throw new \Magento\Framework\Exception\LocalizedException(__('Failed to disable this contract'));
         }
+    }
+
+    /**
+     * @param $shopperReference
+     * @return string
+     */
+    private function getShopperReferencePadding($shopperReference)
+    {
+        return str_pad($shopperReference, 3, '0', STR_PAD_LEFT);
     }
 }

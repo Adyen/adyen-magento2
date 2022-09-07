@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -23,19 +11,30 @@
 
 namespace Adyen\Payment\Gateway\Response;
 
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Recurring;
+use Adyen\Payment\Helper\Vault;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 
 class CheckoutPaymentsDetailsHandler implements HandlerInterface
 {
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
+    /** @var Data  */
     protected $adyenHelper;
 
+    /** @var Recurring */
+    private $recurringHelper;
+
+    /** @var Vault */
+    private $vaultHelper;
+
     public function __construct(
-        \Adyen\Payment\Helper\Data $adyenHelper
+        Data $adyenHelper,
+        Recurring $recurringHelper,
+        Vault $vaultHelper
     ) {
         $this->adyenHelper = $adyenHelper;
+        $this->recurringHelper = $recurringHelper;
+        $this->vaultHelper = $vaultHelper;
     }
 
     /**
@@ -53,8 +52,11 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
         // set transaction not to processing by default wait for notification
         $payment->setIsTransactionPending(true);
 
-        // no not send order confirmation mail
-        $payment->getOrder()->setCanSendNewEmailFlag(false);
+        // Email sending is set at CheckoutDataBuilder for Boleto
+        // Otherwise, we don't want to send a confirmation email
+        if ($payment->getMethod() != \Adyen\Payment\Model\Ui\AdyenBoletoConfigProvider::CODE) {
+            $payment->getOrder()->setCanSendNewEmailFlag(false);
+        }
 
         if (!empty($response['pspReference'])) {
             // set pspReference as transactionId
@@ -66,11 +68,11 @@ class CheckoutPaymentsDetailsHandler implements HandlerInterface
         }
 
         if (!empty($response['additionalData']['recurring.recurringDetailReference']) &&
-            !$this->adyenHelper->isCreditCardVaultEnabled() &&
+            !$this->vaultHelper->isCardVaultEnabled() &&
             $payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE
         ) {
             $order = $payment->getOrder();
-            $this->adyenHelper->createAdyenBillingAgreement($order, $response['additionalData']);
+            $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $payment->getAdditionalInformation());
         }
 
         // do not close transaction so you can do a cancel() and void

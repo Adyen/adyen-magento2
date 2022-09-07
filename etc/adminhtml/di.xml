@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <!-- Authorization Request -->
-    <virtualType name="AdyenPaymentCcAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+    <virtualType name="AdyenPaymentOneclickAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
                 <item name="merchantaccount" xsi:type="string">Adyen\Payment\Gateway\Request\MerchantAccountDataBuilder</item>
@@ -9,13 +8,37 @@
                 <item name="customerip" xsi:type="string">Adyen\Payment\Gateway\Request\CustomerIpDataBuilder</item>
                 <item name="address" xsi:type="string">Adyen\Payment\Gateway\Request\AddressDataBuilder</item>
                 <item name="payment" xsi:type="string">Adyen\Payment\Gateway\Request\PaymentDataBuilder</item>
+                <item name="risk" xsi:type="string">Adyen\Payment\Gateway\Request\RiskDataBuilder</item>
+                <item name="level23" xsi:type="string">Adyen\Payment\Gateway\Request\AdditionalDataLevel23DataBuilder</item>
                 <item name="browserinfo" xsi:type="string">Adyen\Payment\Gateway\Request\BrowserInfoDataBuilder</item>
-                <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\CcBackendAuthorizationDataBuilder</item>
-                <item name="vault" xsi:type="string">Adyen\Payment\Gateway\Request\VaultDataBuilder</item>
+                <item name="recurring" xsi:type="string">Adyen\Payment\Gateway\Request\RecurringDataBuilder</item>
+                <item name="shopperinteraction" xsi:type="string">Adyen\Payment\Gateway\Request\ShopperInteractionDataBuilder</item>
+                <item name="oneclick" xsi:type="string">Adyen\Payment\Gateway\Request\OneclickAuthorizationDataBuilder</item>
+                <item name="transaction" xsi:type="string">Adyen\Payment\Gateway\Request\AdminOrderOneclickCheckoutDataBuilder</item>
+                <item name="returnurl" xsi:type="string">Adyen\Payment\Gateway\Request\ReturnUrlDataBuilder</item>
+                <item name="channel" xsi:type="string">Adyen\Payment\Gateway\Request\ChannelDataBuilder</item>
+                <item name="origin" xsi:type="string">Adyen\Payment\Gateway\Request\OriginDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
 
+    <virtualType name="AdyenPaymentPosCloudAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">AdyenPaymentPosCloudAuthorizeRequest</argument>
+            <argument name="transferFactory" xsi:type="object">Adyen\Payment\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Adyen\Payment\Gateway\Http\Client\TransactionPosCloudBackendSync</argument>
+            <argument name="validator" xsi:type="object">PosCloudResponseValidator</argument>
+            <argument name="handler" xsi:type="object">AdyenPaymentPosCloudResponseHandlerComposite</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AdyenPaymentPosCloudAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="poscloud" xsi:type="string">Adyen\Payment\Gateway\Request\PosCloudBackendBuilder</item>
+            </argument>
+        </arguments>
+    </virtualType>
 
     <type name="Magento\Framework\Notification\MessageList">
         <arguments>

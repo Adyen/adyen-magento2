@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -21,37 +9,33 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Helper;
+namespace Adyen\Payment\Tests\Unit\Helper;
 
-class IpAddressTest extends \PHPUnit\Framework\TestCase
+use Adyen\Payment\Helper\IpAddress;
+use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
+use Magento\Framework\App\CacheInterface;
+use Magento\Framework\Serialize\SerializerInterface;
+
+class IpAddressTest extends AbstractAdyenTestCase
 {
     /**
-     * @var \Adyen\Payment\Helper\IpAddress
+     * @var IpAddress
      */
     private $ipAddressHelper;
 
-    private function getSimpleMock($originalClassName)
+    protected function setUp(): void
     {
-        return $this->getMockBuilder($originalClassName)
-            ->disableOriginalConstructor()
-            ->getMock();
-    }
+        $cache = $this->createConfiguredMock(CacheInterface::class, [
+            'load' => ['1.2.3.4', '20.20.20.20']
+        ]);
 
-    protected function setUp()
-    {
-        $cache = $this->getSimpleMock(\Magento\Framework\App\CacheInterface::class);
-        $cache->method('load')->willReturn(
-            array(
-                '1.2.3.4',
-                '20.20.20.20'
-            )
-        );
-        $serializer = $this->getSimpleMock(\Magento\Framework\Serialize\SerializerInterface::class);
+        $serializer = $this->createMock(SerializerInterface::class);
         $serializer->method('unserialize')->willReturnArgument(0);
-        $ipAddressUtil = $this->getSimpleMock(\Adyen\Util\IpAddress::class);
-        $adyenLogger = $this->getSimpleMock(\Adyen\Payment\Logger\AdyenLogger::class);
+        $ipAddressUtil = $this->createMock(\Adyen\Util\IpAddress::class);
+        $adyenLogger = $this->createMock(AdyenLogger::class);
 
-        $this->ipAddressHelper = new \Adyen\Payment\Helper\IpAddress(
+        $this->ipAddressHelper = new IpAddress(
             $ipAddressUtil,
             $cache,
             $serializer,

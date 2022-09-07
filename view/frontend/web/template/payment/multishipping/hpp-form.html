@@ -1,0 +1,27 @@
+<!-- ko foreach: adyenPaymentMethods -->
+    <dt class="item-title">
+        <input type="radio"
+               name="payment[method]"
+               title="Adyen Alternative payment methods"
+               data-bind="
+                   attr: {'id': 'adyen_' + paymentMethod.methodIdentifier},
+                   value: 'adyen_hpp',
+                   checked: paymentMethod.methodIdentifier == $parent.getSelectedAlternativePaymentMethodType,
+                   click: $parent.selectPaymentMethodType"
+               class="radio"/>
+        <label data-bind="attr: {'for': 'adyen_' + paymentMethod.methodIdentifier}">
+            <!-- ko if: icon -->
+            <img data-bind="attr: {
+                            'src': icon.url,
+                            'alt': paymentMethod.methodIdentifier + ' logo'
+                            }">
+            <!--/ko-->
+
+            <span data-bind="text: paymentMethod.name"></span>
+        </label>
+    </dt>
+
+    <dd class="item-content no-display" data-bind='attr: {id: "adyen-alternative-payment-container-" + paymentMethod.methodIdentifier}'
+        afterRender="renderCheckoutComponent()">
+    </dd>
+<!--/ko-->

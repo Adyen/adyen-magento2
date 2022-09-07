@@ -1,17 +1,5 @@
 <?xml version="1.0"?>
 <!--
-  ~                       ######
-  ~                       ######
-  ~ ############    ####( ######  #####. ######  ############   ############
-  ~ #############  #####( ######  #####. ######  #############  #############
-  ~        ######  #####( ######  #####. ######  #####  ######  #####  ######
-  ~ ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
-  ~ ###### ######  #####( ######  #####. ######  #####          #####  ######
-  ~ #############  #############  #############  #############  #####  ######
-  ~  ############   ############  #############   ############  #####  ######
-  ~                                      ######
-  ~                               #############
-  ~                               ############
   ~
   ~ Adyen Payment Module
   ~
@@ -24,7 +12,7 @@
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="adyen_pos_cloud" translate="label" type="text" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
         <label><![CDATA[Point of Sale (POS) integration with Cloud API]]></label>
-        <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
         <fieldset_css>adyen-method-adyen-cc</fieldset_css>
         <comment>Process Point of Sales transactions</comment>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -95,7 +83,7 @@
             </depends>
             <tooltip>Configure your installment: Insert the minimum amount required to
                 make the configured installment available in the amount range column.
-                Example: if the amount range is configured to 100 and the number of installments to 4x, the shopper
+                Example: if the minimum amount is configured to 100 and the number of installments to 4x, the shopper
                 will see the 4x option only if the payment total is higher or equal than 100.
             </tooltip>
             <frontend_model>Adyen\Payment\Block\Adminhtml\System\Config\Field\InstallmentsPosCloud</frontend_model>

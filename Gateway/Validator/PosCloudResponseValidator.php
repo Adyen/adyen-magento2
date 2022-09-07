@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment Module
  *
@@ -24,31 +12,37 @@
 
 namespace Adyen\Payment\Gateway\Validator;
 
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Validator\AbstractValidator;
+use Magento\Payment\Gateway\Validator\ResultInterface;
+use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 
 class PosCloudResponseValidator extends AbstractValidator
 {
     /**
-     * @var \Adyen\Payment\Logger\AdyenLogger
+     * @var AdyenLogger
      */
     private $adyenLogger;
 
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $adyenHelper;
 
     /**
      * PosCloudResponseValidator constructor.
      *
-     * @param \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory
-     * @param \Adyen\Payment\Logger\AdyenLogger $adyenLogger
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
+     * @param ResultInterfaceFactory $resultFactory
+     * @param AdyenLogger $adyenLogger
+     * @param Data $adyenHelper
      */
     public function __construct(
-        \Magento\Payment\Gateway\Validator\ResultInterfaceFactory $resultFactory,
-        \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
-        \Adyen\Payment\Helper\Data $adyenHelper
+        ResultInterfaceFactory $resultFactory,
+        AdyenLogger $adyenLogger,
+        Data $adyenHelper
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->adyenHelper = $adyenHelper;
@@ -57,28 +51,25 @@ class PosCloudResponseValidator extends AbstractValidator
 
     /**
      * @param array $validationSubject
-     * @return \Magento\Payment\Gateway\Validator\ResultInterface
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return ResultInterface
+     * @throws LocalizedException
      */
     public function validate(array $validationSubject)
     {
-        $errorMessages = [];
-        $isValid = true;
-        $response = \Magento\Payment\Gateway\Helper\SubjectReader::readResponse($validationSubject);
-        $paymentDataObjectInterface = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($validationSubject);
+        $response = SubjectReader::readResponse($validationSubject);
+        $paymentDataObjectInterface = SubjectReader::readPayment($validationSubject);
         $payment = $paymentDataObjectInterface->getPayment();
 
-        $this->adyenLogger->addAdyenDebug(print_r($response, true));
+        $this->adyenLogger->addAdyenDebug(json_encode($response));
 
         // Check for errors
         if (!empty($response['error'])) {
             if (!empty($response['code']) && $response['code'] == CURLE_OPERATION_TIMEOUTED) {
                 // If the initiate call resulted in a timeout, do a status call(try to place an order)
-                return $this->createResult($isValid, $errorMessages);
+                return $this->createResult(true, []);
             } else {
                 // There is an error which is not a timeout, stop the transaction and show the error
-                $this->adyenLogger->error(json_encode($response));
-                throw new \Magento\Framework\Exception\LocalizedException(__($response['error']));
+                throw new LocalizedException(__($response['error']));
             }
         } else {
             // We have a paymentResponse from the terminal
@@ -88,14 +79,13 @@ class PosCloudResponseValidator extends AbstractValidator
         if (!empty($paymentResponse) && $paymentResponse['Response']['Result'] != 'Success') {
             $errorMsg = __($paymentResponse['Response']['ErrorCondition']);
             $this->adyenLogger->error($errorMsg);
-            $this->adyenLogger->error(json_encode($response));
-            throw new \Magento\Framework\Exception\LocalizedException(__("The transaction could not be completed."));
+            throw new LocalizedException(__("The transaction could not be completed."));
         }
 
         if (!empty($paymentResponse['PaymentReceipt'])) {
             $formattedReceipt = $this->adyenHelper->formatTerminalAPIReceipt($paymentResponse['PaymentReceipt']);
             $payment->setAdditionalInformation('receipt', $formattedReceipt);
         }
-        return $this->createResult($isValid, $errorMessages);
+        return $this->createResult(true, []);
     }
 }

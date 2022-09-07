@@ -1,17 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
@@ -22,7 +10,9 @@
  */
 
 // @codingStandardsIgnoreFile
-
+/**
+ * @var \Adyen\Payment\Block\Info\Hpp $block
+ */
 ?>
 <?php $_info = $block->getInfo(); ?>
 
@@ -102,7 +92,8 @@
     <?php else: ?>
         <?php if ($_methodTitle = $_info->getAdditionalInformation('method_title')): ?>
             <dt class="title"><?= $block->escapeHtml($_methodTitle); ?></dt>
-        <?php elseif ($_brandCode = $_info->getAdditionalInformation('brand_code')): ?>
+        <?php endif; ?>
+        <?php if ($_brandCode = $_info->getAdditionalInformation('brand_code')): ?>
             <dt class="title"><?= $block->escapeHtml($_brandCode); ?></dt>
         <?php endif; ?>
     <?php endif; ?>

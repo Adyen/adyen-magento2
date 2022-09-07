@@ -1,18 +1,5 @@
 <?php
 /**
- *                       ######
- *                       ######
- * ############    ####( ######  #####. ######  ############   ############
- * #############  #####( ######  #####. ######  #############  #############
- *        ######  #####( ######  #####. ######  #####  ######  #####  ######
- * ###### ######  #####( ######  #####. ######  #####  #####   #####  ######
- * ###### ######  #####( ######  #####. ######  #####          #####  ######
- * #############  #############  #############  #############  #####  ######
- *  ############   ############  #############   ############  #####  ######
- *                                      ######
- *                               #############
- *                               ############
- *
  * Adyen Payment module (https://www.adyen.com/)
  *
  * Copyright (c) 2015 Adyen BV (https://www.adyen.com/)
@@ -21,53 +8,72 @@
  * Author: Adyen <magento@adyen.com>
  */
 
-namespace Adyen\Payment\Tests\Helper;
+namespace Adyen\Payment\Tests\Unit\Helper;
 
-class DataTest extends \PHPUnit\Framework\TestCase
+use Adyen\Payment\Helper\Config as ConfigHelper;
+use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\Locale;
+use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingAgreementCollectionFactory;
+use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
+use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
+use Magento\Backend\Helper\Data as BackendHelper;
+use Magento\Directory\Model\Config\Source\Country;
+use Magento\Framework\App\CacheInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ProductMetadata;
+use Magento\Framework\Component\ComponentRegistrarInterface;
+use Magento\Framework\Config\DataInterface;
+use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Locale\ResolverInterface;
+use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\View\Asset\Repository;
+use Magento\Framework\View\Asset\Source;
+use Magento\Sales\Api\OrderManagementInterface;
+use Magento\Sales\Model\Order\Status\HistoryFactory;
+use Magento\Store\Model\StoreManager;
+use Magento\Tax\Model\Calculation;
+use Magento\Tax\Model\Config;
+use PHPUnit\Framework\TestCase;
+
+class DataTest extends AbstractAdyenTestCase
 {
     /**
-     * @var \Adyen\Payment\Helper\Data
+     * @var Data
      */
     private $dataHelper;
 
-    private function getSimpleMock($originalClassName)
+    public function setUp(): void
     {
-        return $this->getMockBuilder($originalClassName)
-            ->disableOriginalConstructor()
-            ->getMock();
-    }
+        $configHelper = $this->createMock(ConfigHelper::class);
+        $context = $this->createMock(Context::class);
+        $encryptor = $this->createMock(EncryptorInterface::class);
+        $dataStorage = $this->createMock(DataInterface::class);
+        $country = $this->createMock(Country::class);
+        $moduleList = $this->createMock(ModuleListInterface::class);
+        $billingAgreementCollectionFactory = $this->createGeneratedMock(BillingAgreementCollectionFactory::class);
+        $assetRepo = $this->createMock(Repository::class);
+        $assetSource = $this->createMock(Source::class);
+        $notificationFactory = $this->createGeneratedMock(NotificationCollectionFactory::class);
+        $taxConfig = $this->createMock(Config::class);
+        $taxCalculation = $this->createMock(Calculation::class);
+        $backendHelper = $this->createMock(BackendHelper::class);
+        $productMetadata = $this->createMock(ProductMetadata::class);
+        $adyenLogger = $this->createMock(AdyenLogger::class);
+        $storeManager = $this->createMock(StoreManager::class);
+        $cache = $this->createMock(CacheInterface::class);
+        $localeResolver = $this->createMock(ResolverInterface::class);
+        $config = $this->createMock(ScopeConfigInterface::class);
+        $serializer = $this->createMock(SerializerInterface::class);
+        $componentRegistrar = $this->createMock(ComponentRegistrarInterface::class);
+        $localeHelper = $this->createMock(Locale::class);
+        $orderManagement = $this->createMock(OrderManagementInterface::class);
+        $orderStatusHistoryFactory = $this->createGeneratedMock(HistoryFactory::class);
 
-    public function setUp()
-    {
-        $context = $this->getSimpleMock(\Magento\Framework\App\Helper\Context::class);
-        $encryptor = $this->getSimpleMock(\Magento\Framework\Encryption\EncryptorInterface::class);
-        $dataStorage = $this->getSimpleMock(\Magento\Framework\Config\DataInterface::class);
-        $country = $this->getSimpleMock(\Magento\Directory\Model\Config\Source\Country::class);
-        $moduleList = $this->getSimpleMock(\Magento\Framework\Module\ModuleListInterface::class);
-        $billingAgreementCollectionFactory = $this->getSimpleMock(\Adyen\Payment\Model\ResourceModel
-                                                                  \Billing\Agreement\CollectionFactory::class);
-        $assetRepo = $this->getSimpleMock(\Magento\Framework\View\Asset\Repository::class);
-        $assetSource = $this->getSimpleMock(\Magento\Framework\View\Asset\Source::class);
-        $notificationFactory = $this->getSimpleMock(\Adyen\Payment\Model\ResourceModel
-                                                    \Notification\CollectionFactory::class);
-        $taxConfig = $this->getSimpleMock(\Magento\Tax\Model\Config::class);
-        $taxCalculation = $this->getSimpleMock(\Magento\Tax\Model\Calculation::class);
-        $productMetadata = $this->getSimpleMock(\Magento\Framework\App\ProductMetadata::class);
-        $adyenLogger = $this->getSimpleMock(\Adyen\Payment\Logger\AdyenLogger::class);
-        $storeManager = $this->getSimpleMock(\Magento\Store\Model\StoreManager::class);
-        $cache = $this->getSimpleMock(\Magento\Framework\App\CacheInterface::class);
-        $billingAgreementFactory = $this->getSimpleMock(\Adyen\Payment
-                                                        \Model\Billing\AgreementFactory::class);
-        $agreementResourceModel = $this->getSimpleMock(\Adyen\Payment
-                                                       \Model\ResourceModel\Billing\Agreement::class);
-        $localeResolver = $this->getSimpleMock(\Magento\Framework\Locale\ResolverInterface::class);
-        $config = $this->getSimpleMock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
-        $helperBackend = $this->getSimpleMock(\Magento\Backend\Helper\Data::class);
-        $serializer = $this->getSimpleMock(\Magento\Framework\Serialize\SerializerInterface::class);
-        $componentRegistrar = $this->getSimpleMock(\Magento\Framework
-                                                   \Component\ComponentRegistrarInterface::class);
 
-        $this->dataHelper = new \Adyen\Payment\Helper\Data(
+        $this->dataHelper = new Data(
             $context,
             $encryptor,
             $dataStorage,
@@ -79,17 +85,19 @@ class DataTest extends \PHPUnit\Framework\TestCase
             $notificationFactory,
             $taxConfig,
             $taxCalculation,
+            $backendHelper,
             $productMetadata,
             $adyenLogger,
             $storeManager,
             $cache,
-            $billingAgreementFactory,
-            $agreementResourceModel,
             $localeResolver,
             $config,
-            $helperBackend,
             $serializer,
-            $componentRegistrar
+            $componentRegistrar,
+            $localeHelper,
+            $orderManagement,
+            $orderStatusHistoryFactory,
+            $configHelper
         );
     }
 
@@ -99,7 +107,7 @@ class DataTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('1200', $this->dataHelper->formatAmount('12.00', 'USD'));
         $this->assertEquals('12', $this->dataHelper->formatAmount('12.00', 'JPY'));
     }
-    
+
     public function testisPaymentMethodOpenInvoiceMethod()
     {
         $this->assertEquals(true, $this->dataHelper->isPaymentMethodOpenInvoiceMethod('klarna'));
@@ -118,13 +126,33 @@ class DataTest extends \PHPUnit\Framework\TestCase
      * @dataProvider checkoutEnvironmentsProvider
      *
      */
-    public function testGetPspReferenceSearchUrl($expectedResult, $pspReference, $checkoutEnvironment)
+    public function testGetPspReferenceSearchUrl(string $expectedResult, string $pspReference, string $checkoutEnvironment)
     {
         $pspSearchUrl = $this->dataHelper->getPspReferenceSearchUrl($pspReference, $checkoutEnvironment);
         $this->assertEquals($expectedResult, $pspSearchUrl);
     }
 
-    public static function checkoutEnvironmentsProvider()
+    public function testGetPspReferenceWithNoAdditions()
+    {
+        $this->assertEquals(
+            ['pspReference' => '852621234567890A', 'suffix' => ''],
+            $this->dataHelper->parseTransactionId('852621234567890A')
+        );
+        $this->assertEquals(
+            ['pspReference' => '852621234567890A', 'suffix' => '-refund'],
+            $this->dataHelper->parseTransactionId('852621234567890A-refund')
+        );
+        $this->assertEquals(
+            ['pspReference' => '852621234567890A', 'suffix' => '-capture'],
+            $this->dataHelper->parseTransactionId('852621234567890A-capture')
+        );
+        $this->assertEquals(
+            ['pspReference' => '852621234567890A', 'suffix' => '-capture-refund'],
+            $this->dataHelper->parseTransactionId('852621234567890A-capture-refund')
+        );
+    }
+
+    public static function checkoutEnvironmentsProvider(): array
     {
         return [
             [
