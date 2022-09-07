@@ -31,11 +31,11 @@ class ApiKeyEndingTest extends TestCase
     public function testCommentReturnsJustTheEnding()
     {
         $this->assertEquals(
-            'Key stored ending in <strong>1234</strong>',
+            'Your stored key ends with <strong>1234</strong>',
             $this->apiKeyEndingComment->getCommentText('4321')
         );
         $this->assertEquals(
-            'Key stored ending in <strong>qwer</strong>',
+            'Your stored key ends with <strong>qwer</strong>',
             $this->apiKeyEndingComment->getCommentText('asdfasdfasdf')
         );
     }
