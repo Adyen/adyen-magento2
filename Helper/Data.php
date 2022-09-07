@@ -66,6 +66,7 @@ class Data extends AbstractHelper
     const ZIP = 'zip';
     const PAYBRIGHT = 'paybright';
     const SEPA = 'sepadirectdebit';
+    const MOLPAY = 'molpay_';
 
     /**
      * @var EncryptorInterface
@@ -1044,71 +1045,11 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param $paymentMethod
-     * @return bool
+     * This function should be removed once we add specific classes for payment methods
      */
-    public function isPaymentMethodRatepayMethod($paymentMethod)
+    public function isPaymentMethodOfType(string $paymentMethod, string $type): bool
     {
-        if (!is_null($paymentMethod) && strpos($paymentMethod, self::RATEPAY) !== false) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @param $paymentMethod
-     * @return bool
-     */
-    public function isPaymentMethodAfterpayTouchMethod($paymentMethod)
-    {
-        if (!is_null($paymentMethod) && strpos($paymentMethod, self::AFTERPAY_TOUCH) !== false) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @param string $paymentMethod
-     * @return bool
-     */
-    public function isPaymentMethodMolpayMethod($paymentMethod)
-    {
-        if (!is_null($paymentMethod) && strpos($paymentMethod, 'molpay_') !== false) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @param $paymentMethod
-     * @return bool
-     */
-    public function isPaymentMethodOneyMethod($paymentMethod)
-    {
-        if (!is_null($paymentMethod) && strpos($paymentMethod, self::FACILYPAY) !== false) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @param string $paymentMethod
-     * @return bool
-     */
-    public function doesPaymentMethodSkipDetails($paymentMethod)
-    {
-        if ($this->isPaymentMethodOpenInvoiceMethod($paymentMethod) ||
-            $this->isPaymentMethodMolpayMethod($paymentMethod) ||
-            $this->isPaymentMethodOneyMethod($paymentMethod)
-        ) {
-            return true;
-        }
-
-        return false;
+        return strpos($paymentMethod, $type) !== false;
     }
 
     public function getRatePayId()

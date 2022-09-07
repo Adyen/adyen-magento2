@@ -84,7 +84,8 @@ class IpAddress
             $this->adyenLogger->addAdyenDebug(
                 'There are no verified Adyen IP addresses in cache. Updating IP records.'
             );
-            $this->updateCachedIpAddresses();
+           $this->updateCachedIpAddresses();
+           $cachedIpsArray = $this->getIpAddressesFromCache();
         }
 
         foreach ($ipAddresses as $ipAddress) {
