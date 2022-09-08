@@ -97,7 +97,7 @@
             <label>Apple Pay Elodebit</label>
             <code_alt>elodebit_applepay</code_alt>
         </type>
-        <type id="InteracAPPLEPAY" order="210">
+        <type id="INTERACAPPLEPAY" order="210">
             <label>Apple Pay Interac</label>
             <code_alt>interac_applepay</code_alt>
         </type>
