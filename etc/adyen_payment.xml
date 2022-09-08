@@ -94,7 +94,7 @@
             <code_alt>elo_applepay</code_alt>
         </type>
         <type id="ELODEBITAPPLEPAY" order="200">
-            <label>Apple Pay Elodebit</label>
+            <label>Apple Pay Elo Debit</label>
             <code_alt>elodebit_applepay</code_alt>
         </type>
         <type id="INTERACAPPLEPAY" order="210">
