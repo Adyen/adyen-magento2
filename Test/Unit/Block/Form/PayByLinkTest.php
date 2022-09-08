@@ -60,7 +60,7 @@ class PayByLinkTest extends TestCase
 
     public function testGetDefaultExpiryDate()
     {
-        $tomorrow = new \DateTime('tomorrow');
+        $tomorrow = new \DateTime('tomorrow', new \DateTimeZone('UTC'));
         $this->assertEquals(
             $this->payByLink->getDefaultExpiryDate(),
             $tomorrow->format(AdyenPayByLinkConfigProvider::DATE_FORMAT)
