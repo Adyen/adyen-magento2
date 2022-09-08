@@ -102,7 +102,7 @@
             <code_alt>interac_applepay</code_alt>
         </type>
         <type id="JCBAPPLEPAY" order="220">
-            <label>Apple Pay Jcb</label>
+            <label>Apple Pay JCB</label>
             <code_alt>jcb_applepay</code_alt>
         </type>
         <type id="MAESTROAPPLEPAY" order="230">
