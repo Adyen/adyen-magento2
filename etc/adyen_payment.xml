@@ -78,7 +78,7 @@
             <code_alt>korean_local_card</code_alt>
         </type>
         <type id="AMEXAPPLEPAY" order="160">
-            <label>Apple Pay American express</label>
+            <label>Apple Pay American Express</label>
             <code_alt>amex_applepay</code_alt>
         </type>
         <type id="DISCOVERAPPLEPAY" order="170">
