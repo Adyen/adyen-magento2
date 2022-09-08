@@ -31,15 +31,8 @@ class Cc extends AbstractInfo
 
         if (isset($types[$ccType])) {
             return $types[$ccType]['name'];
-        }
-        // TODO::Refactor this block after tokenization of the alternative payment methods.
-        // This elseif block should be removed after the tokenization of the alternative payment methods (In progress: PW-6764). More general approach is required.
-        // Also remove `sepadirectdebit` from translation files.
-        elseif ($ccType == 'sepadirectdebit') {
-            return __('sepadirectdebit');
-        }
-        else {
-            return __('Unknown');
+        } else {
+            return $ccType;
         }
     }
 }
