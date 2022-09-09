@@ -1479,6 +1479,8 @@ class Data extends AbstractHelper
         $client = $this->createAdyenClient();
         $client->setApplicationName(self::APPLICATION_NAME);
         $client->setXApiKey($apiKey);
+        $checkoutFrontendRegion = $this->getCheckoutFrontendRegion($storeId);
+        $client->setRegion($checkoutFrontendRegion);
         $moduleVersion = $this->getModuleVersion();
 
         $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
