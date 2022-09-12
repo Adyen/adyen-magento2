@@ -20,7 +20,7 @@ This plugin supports Magento2 version
 ## Releases
 
 1. **Major** releases are done ONLY when absolutely required. We try to not to introduce breaking changes and do major releases as rare as possible. Current average is **yearly**.
-2. A minor or a patcn release is scheduled but not limited to **once every 2 weeks.**
+2. A minor or a patch release is scheduled but not limited to **once every 2 weeks.**
 
 **Note: This can be subject to change based on the load and dependancies of the Integration tools team.**
 
