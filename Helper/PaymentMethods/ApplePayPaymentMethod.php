@@ -11,6 +11,7 @@
  */
 namespace Adyen\Payment\Helper\PaymentMethods;
 
+/** TODO: This PM can be enabled for recurring purposes once tested */
 class ApplePayPaymentMethod extends AbstractWalletPaymentMethod
 {
     const TX_VARIANT = 'applepay';
@@ -38,16 +39,16 @@ class ApplePayPaymentMethod extends AbstractWalletPaymentMethod
 
     public function supportsCardOnFile(): bool
     {
-        return true;
+        return false;
     }
 
     public function supportsSubscription(): bool
     {
-        return true;
+        return false;
     }
 
     public function supportsUnscheduledCardOnFile(): bool
     {
-        return true;
+        return false;
     }
 }

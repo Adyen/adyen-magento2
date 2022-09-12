@@ -13,14 +13,15 @@ class TokenizedPaymentMethods implements OptionSourceInterface
     public function toOptionArray()
     {
         return [
+            /** TODO: These PMs can be enabled for recurring purposes once tested */
             /*[
                 'value' => PaymentMethods\ApplePayPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\ApplePayPaymentMethod::NAME
-            ],*/
+            ],
             [
                 'value' => PaymentMethods\AmazonPayPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\AmazonPayPaymentMethod::NAME
-            ],
+            ],*/
             [
                 'value' => PaymentMethods\GooglePayPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\GooglePayPaymentMethod::NAME
