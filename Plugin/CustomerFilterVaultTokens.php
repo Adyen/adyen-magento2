@@ -30,7 +30,7 @@ class CustomerFilterVaultTokens
         foreach($customerSessionTokens as $key => $token) {
             if (strpos($token->getPaymentMethodCode(), 'adyen_') === 0) {
                 $tokenDetails = json_decode($token->getTokenDetails());
-                if ($tokenDetails->tokenType === Recurring::UNSCHEDULED_CARD_ON_FILE || $tokenDetails->tokenType === Recurring::SUBSCRIPTION) {
+                if (property_exists($tokenDetails, Vault::TOKEN_TYPE) && in_array($tokenDetails->tokenType, [Recurring::SUBSCRIPTION, Recurring::UNSCHEDULED_CARD_ON_FILE])) {
                     unset($customerSessionTokens[$key]);
                 }
             }
