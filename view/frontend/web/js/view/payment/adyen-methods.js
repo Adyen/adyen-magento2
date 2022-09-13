@@ -75,6 +75,14 @@ define(
                         console.log('Fetching the payment methods failed!');
                     });
                 };
+                quote.shippingAddress.subscribe(function (address) {
+                    // In case the country hasn't changed don't retrieve new payment methods
+                    if (shippingAddressCountry === quote.shippingAddress().countryId) {
+                        return;
+                    }
+                    shippingAddressCountry = quote.shippingAddress().countryId;
+                    retrievePaymentMethods();
+                });
                 //Retrieve payment methods to ensure the amount is updated, when applying the discount code
                 setCouponCodeAction.registerSuccessCallback(function () {
                     retrievePaymentMethods();
