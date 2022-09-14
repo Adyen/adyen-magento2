@@ -24,13 +24,12 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class ShopperInteractionDataBuilder implements BuilderInterface
 {
-    /** @var State  */
     const SHOPPER_INTERACTION_MOTO = 'Moto';
     const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
     const SHOPPER_INTERACTION_ECOMMERCE = 'Ecommerce';
 
     /**
-     * @var \Magento\Framework\App\State
+     * @var State
      */
     private $appState;
 

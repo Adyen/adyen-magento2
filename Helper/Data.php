@@ -1444,7 +1444,7 @@ class Data extends AbstractHelper
      *
      * @param null|int|string $storeId
      * @param string|null $apiKey
-     * @param null $motoMerchantAccount
+     * @param string|null $motoMerchantAccount
      * @param bool|null $demoMode
      * @return Client
      * @throws AdyenException
