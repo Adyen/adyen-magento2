@@ -14,7 +14,7 @@ namespace Adyen\Payment\Api;
 
 /**
  * Interface for fetching the Adyen origin key
- *
+ * @deprecated
  * @api
  */
 interface AdyenOriginKeyInterface

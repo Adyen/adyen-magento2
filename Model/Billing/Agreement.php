@@ -230,11 +230,9 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
 
         $expiryDate = explode('/', $contractDetail['expiryDate']);
 
-        if (!empty($contractDetail['pos_payment'])) {
-            $recurringType = $this->adyenHelper->getAdyenPosCloudConfigData('recurring_type', $storeId);
-        } else {
-            $recurringType = $this->recurringHelper->getRecurringTypeFromSetting($storeId);
-        }
+        $recurringType = !empty($contractDetail['pos_payment'])
+            ? $this->adyenHelper->getAdyenPosCloudConfigData('recurring_type', $storeId)
+            : $this->recurringHelper->getRecurringTypeFromSetting($storeId);
 
         $agreementData = [
             'card' => [
@@ -246,7 +244,7 @@ class Agreement extends \Magento\Paypal\Model\Billing\Agreement
             'variant' => $variant,
             // contractTypes should be changed from an array to a single value in the future. It has not been done yet
             // to ensure past tokens are still operational.
-            'contractTypes' => explode(',', $recurringType)
+            'contractTypes' => $recurringType ? explode(',', $recurringType) : []
         ];
 
         if (!empty($contractDetail['pos_payment'])) {

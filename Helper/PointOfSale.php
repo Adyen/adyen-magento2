@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2022 Adyen B.V.
+ * Copyright (c) 2022 Adyen N.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -15,15 +15,24 @@ namespace Adyen\Payment\Helper;
 use Adyen\Payment\Model\ApplicationInfo;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Sales\Model\Order;
 
 class PointOfSale
 {
-    /** @var Data */
+    /**
+     * @var Data
+     */
     private $dataHelper;
 
-    /** @var ProductMetadataInterface */
+    /**
+     * @var ProductMetadataInterface
+     */
     private $productMetadata;
 
+    /**
+     * @param \Adyen\Payment\Helper\Data $dataHelper
+     * @param ProductMetadataInterface $productMetadata
+     */
     public function __construct(
         Data $dataHelper,
         ProductMetadataInterface $productMetadata
@@ -37,19 +46,28 @@ class PointOfSale
      * When upgrading to new version of library we can use the client methods
      *
      * @param $request
-     * @param Quote $quote
-     * @return mixed
+     * @param Quote|null $quote
+     * @param Order|null $order
+     * @return array
      */
-    public function addSaleToAcquirerData($request, Quote $quote)
+    public function addSaleToAcquirerData($request, Quote $quote = null, Order $order = null) : array
     {
-        $customerId = $this->getCustomerId($quote);
-        $storeId = $quote->getStoreId();
+        // If order is created from admin backend, use Order instead of Quote
+        if (isset($order) && is_null($quote)) {
+            $customerId = $order->getCustomerId();
+            $storeId = $order->getStoreId();
+            $shopperEmail = $order->getCustomerEmail();
+        }
+        else {
+            $customerId = $this->getCustomerId($quote);
+            $storeId = $quote->getStoreId();
+            $shopperEmail = $quote->getCustomerEmail();
+        }
 
         $saleToAcquirerData = [];
 
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
-            $shopperEmail = $quote->getCustomerEmail();
             $recurringContract = $this->dataHelper->getAdyenPosCloudConfigData('recurring_type', $storeId);
 
             if (!empty($recurringContract) && !empty($shopperEmail)) {
@@ -77,7 +95,7 @@ class PointOfSale
      * This getter makes it possible to overwrite the customer id from other plugins
      * Use this function to get the customer id so we can keep using this plugin in the UCD
      */
-    public function getCustomerId(Quote $quote): string
+    public function getCustomerId(Quote $quote): ?string
     {
         return $quote->getCustomerId();
     }

@@ -10,12 +10,14 @@
 
 namespace Adyen\Payment\Tests\Unit\Helper;
 
+use Adyen\Payment\Helper\Config as ConfigHelper;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Locale;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as BillingAgreementCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Notification\CollectionFactory as NotificationCollectionFactory;
 use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
+use Magento\Backend\Helper\Data as BackendHelper;
 use Magento\Directory\Model\Config\Source\Country;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -45,6 +47,7 @@ class DataTest extends AbstractAdyenTestCase
 
     public function setUp(): void
     {
+        $configHelper = $this->createMock(ConfigHelper::class);
         $context = $this->createMock(Context::class);
         $encryptor = $this->createMock(EncryptorInterface::class);
         $dataStorage = $this->createMock(DataInterface::class);
@@ -56,6 +59,7 @@ class DataTest extends AbstractAdyenTestCase
         $notificationFactory = $this->createGeneratedMock(NotificationCollectionFactory::class);
         $taxConfig = $this->createMock(Config::class);
         $taxCalculation = $this->createMock(Calculation::class);
+        $backendHelper = $this->createMock(BackendHelper::class);
         $productMetadata = $this->createMock(ProductMetadata::class);
         $adyenLogger = $this->createMock(AdyenLogger::class);
         $storeManager = $this->createMock(StoreManager::class);
@@ -67,6 +71,7 @@ class DataTest extends AbstractAdyenTestCase
         $localeHelper = $this->createMock(Locale::class);
         $orderManagement = $this->createMock(OrderManagementInterface::class);
         $orderStatusHistoryFactory = $this->createGeneratedMock(HistoryFactory::class);
+
 
         $this->dataHelper = new Data(
             $context,
@@ -80,6 +85,7 @@ class DataTest extends AbstractAdyenTestCase
             $notificationFactory,
             $taxConfig,
             $taxCalculation,
+            $backendHelper,
             $productMetadata,
             $adyenLogger,
             $storeManager,
@@ -90,7 +96,8 @@ class DataTest extends AbstractAdyenTestCase
             $componentRegistrar,
             $localeHelper,
             $orderManagement,
-            $orderStatusHistoryFactory
+            $orderStatusHistoryFactory,
+            $configHelper
         );
     }
 

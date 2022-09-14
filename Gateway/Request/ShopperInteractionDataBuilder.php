@@ -12,7 +12,9 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Helper\PaymentMethods;
+use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
+use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
@@ -22,7 +24,13 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class ShopperInteractionDataBuilder implements BuilderInterface
 {
-    /** @var State  */
+    const SHOPPER_INTERACTION_MOTO = 'Moto';
+    const SHOPPER_INTERACTION_CONTAUTH = 'ContAuth';
+    const SHOPPER_INTERACTION_ECOMMERCE = 'Ecommerce';
+
+    /**
+     * @var State
+     */
     private $appState;
 
     /** @var PaymentMethods */
@@ -60,14 +68,16 @@ class ShopperInteractionDataBuilder implements BuilderInterface
         }
 
         // Ecommerce is the default shopperInteraction
-        $shopperInteraction = 'Ecommerce';
+        $shopperInteraction = self::SHOPPER_INTERACTION_ECOMMERCE;
 
-        if ($paymentMethod == AdyenCcConfigProvider::CODE &&
+        if ($paymentMethod == AdyenMotoConfigProvider::CODE &&
             $this->appState->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML) {
             // Backend CC orders are MOTO
-            $shopperInteraction = "Moto";
-        } elseif ($this->paymentMethodsHelper->isRecurringProvider($paymentMethod)) {
-            $shopperInteraction = 'ContAuth';
+            $shopperInteraction = self::SHOPPER_INTERACTION_MOTO;
+        } elseif ($paymentMethod == AdyenOneclickConfigProvider::CODE
+            || $paymentMethod == AdyenCcConfigProvider::CC_VAULT_CODE) {
+            // OneClick and Vault are ContAuth
+            $shopperInteraction = self::SHOPPER_INTERACTION_CONTAUTH;
         }
 
         $requestBody['body']['shopperInteraction'] = $shopperInteraction;
