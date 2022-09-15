@@ -263,8 +263,7 @@ class Invoice extends AbstractHelper
         $adyenInvoice = $this->adyenInvoiceResourceModel->getAdyenInvoiceByCaptureWebhook($order, $notification);
         $fullAmountCaptured = $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency()) >= $order->getBaseGrandTotal();
 
-        if (is_null($adyenInvoice)) {
-            if ($order->canInvoice()) {
+        if (is_null($adyenInvoice) && $order->canInvoice()) {
                 if($fullAmountCaptured) {
                     $this->createInvoiceFromWebhook($order, $notification);
                 } else {
@@ -274,7 +273,6 @@ class Invoice extends AbstractHelper
                         $notification->getAmountCurrency(),
                         $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency())
                     )), false);
-                }
             }
         }
 
@@ -404,7 +402,7 @@ class Invoice extends AbstractHelper
                 __('Created invoice #%1.', $invoice->getId())
             )
                 ->setIsCustomerNotified(false)
-                ->save();;
+                ->save();
         }
 
         //Create entry in adyen_invoice table
