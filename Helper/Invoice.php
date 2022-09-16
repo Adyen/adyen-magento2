@@ -273,6 +273,12 @@ class Invoice extends AbstractHelper
                         $notification->getAmountCurrency(),
                         $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency())
                     )), false);
+                    throw new \Exception(sprintf(
+                        'Unable to create adyen_invoice from CA partial capture linked to original reference %s, psp reference %s, and order %s.',
+                        $notification->getOriginalReference(),
+                        $notification->getPspreference(),
+                        $order->getIncrementId()
+                    ));
             }
         } elseif (is_null($adyenInvoice) && !$order->canInvoice()) {
             throw new \Exception(sprintf(
