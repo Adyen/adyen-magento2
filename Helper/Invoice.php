@@ -274,6 +274,13 @@ class Invoice extends AbstractHelper
                         $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency())
                     )), false);
             }
+        } elseif (is_null($adyenInvoice) && !$order->canInvoice()) {
+            throw new \Exception(sprintf(
+                'Unable to find adyen_invoice linked to original reference %s, psp reference %s, and order %s. Cannot create invoice.',
+                $notification->getOriginalReference(),
+                $notification->getPspreference(),
+                $order->getIncrementId()
+            ));
         }
 
         /** @var AdyenInvoice $adyenInvoiceObject */
@@ -361,7 +368,6 @@ class Invoice extends AbstractHelper
      *
      * @param Order $order
      * @param Notification $notification
-     * @return AdyenInvoice
      * @throws AlreadyExistsException
      * @throws Exception
      */
