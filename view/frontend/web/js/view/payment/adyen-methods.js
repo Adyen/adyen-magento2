@@ -75,6 +75,9 @@ define(
                         console.log('Fetching the payment methods failed!');
                     });
                 };
+                if (quote.shippingAddress() === null) {
+                    retrievePaymentMethods();
+                }
                 //Retrieve payment methods to ensure the amount is updated, when applying the discount code
                 setCouponCodeAction.registerSuccessCallback(function () {
                     retrievePaymentMethods();
