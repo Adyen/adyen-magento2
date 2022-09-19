@@ -162,7 +162,7 @@ class Webhook
             $currentState = $this->getCurrentState($this->order->getState());
             if (!$currentState) {
                 $this->logger->addAdyenNotification(
-                    sprintf("ERROR: Unhandled order state '%s'.", $this->order->getState()),
+                    "ERROR: Unhandled order state '{orderState}'",
                     $this->logger->getOrderContext($this->order)
                 );
                 return false;

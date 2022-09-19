@@ -958,6 +958,10 @@
                 <item name="adyenError" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenError</item>
                 <item name="adyenWarning" xsi:type="object">Adyen\Payment\Logger\Handler\AdyenWarning</item>
             </argument>
+            <argument name="processors" xsi:type="array">
+                <item name="uid" xsi:type="object">Monolog\Processor\UidProcessor</item>
+                <item name="psr3" xsi:type="object">Monolog\Processor\PsrLogMessageProcessor</item>
+            </argument>
         </arguments>
     </type>
     <type name="Adyen\Payment\Model\Config\Reader">
