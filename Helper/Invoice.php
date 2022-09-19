@@ -22,6 +22,7 @@ use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Invoice\Collection;
 use Adyen\Payment\Model\ResourceModel\Invoice\Invoice as AdyenInvoiceResourceModel;
 use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
+use Adyen\Payment\Exception\AdyenWebhookException;
 use Exception;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -273,20 +274,20 @@ class Invoice extends AbstractHelper
                         $notification->getAmountCurrency(),
                         $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency())
                     )), false);
-                    throw new \Exception(sprintf(
+                    throw new AdyenWebhookException(__(sprintf(
                         'Unable to create adyen_invoice from CA partial capture linked to original reference %s, psp reference %s, and order %s.',
                         $notification->getOriginalReference(),
                         $notification->getPspreference(),
                         $order->getIncrementId()
-                    ));
+                    )));
             }
         } elseif (is_null($adyenInvoice) && !$order->canInvoice()) {
-            throw new \Exception(sprintf(
+            throw new AdyenWebhookException(__(sprintf(
                 'Unable to find adyen_invoice linked to original reference %s, psp reference %s, and order %s. Cannot create invoice.',
                 $notification->getOriginalReference(),
                 $notification->getPspreference(),
                 $order->getIncrementId()
-            ));
+            )));
         }
 
         /** @var AdyenInvoice $adyenInvoiceObject */
