@@ -104,7 +104,7 @@ class InvoiceObserver implements ObserverInterface
 
 
         $this->logger->addAdyenDebug(
-            sprintf('Event sales_order_invoice_save_after for invoice %s will be handled', $invoice->getEntityId()),
+            'Event sales_order_invoice_save_after for invoice {invoiceId} will be handled',
             array_merge($this->logger->getInvoiceContext($invoice), $this->logger->getOrderContext($order))
         );
 
@@ -134,7 +134,7 @@ class InvoiceObserver implements ObserverInterface
         $order->setStatus($status);
 
         $this->logger->addAdyenDebug(
-            sprintf('Event sales_order_invoice_save_after for invoice %s was handled', $invoice->getEntityId()),
+            'Event sales_order_invoice_save_after for invoice {invoiceId} was handled',
             array_merge($this->logger->getInvoiceContext($invoice), $this->logger->getOrderContext($order))
         );
     }
