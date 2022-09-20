@@ -265,7 +265,7 @@ class Invoice extends AbstractHelper
         $isFullAmountCaptured = $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency()) >= $order->getBaseGrandTotal();
 
         if (is_null($adyenInvoice) && $order->canInvoice()) {
-                if($fullAmountCaptured) {
+                if($isFullAmountCaptured) {
                     $this->createInvoiceFromWebhook($order, $notification);
                 } else {
                     $order->addStatusHistoryComment(__(sprintf(
