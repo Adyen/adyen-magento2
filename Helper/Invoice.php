@@ -262,7 +262,7 @@ class Invoice extends AbstractHelper
     {
         $invoiceFactory = $this->adyenInvoiceFactory->create();
         $adyenInvoice = $this->adyenInvoiceResourceModel->getAdyenInvoiceByCaptureWebhook($order, $notification);
-        $fullAmountCaptured = $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency()) >= $order->getBaseGrandTotal();
+        $isFullAmountCaptured = $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency()) >= $order->getBaseGrandTotal();
 
         if (is_null($adyenInvoice) && $order->canInvoice()) {
                 if($fullAmountCaptured) {
