@@ -26,9 +26,9 @@
         </field>
         <field id="recurring_card_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Mode</label>
-            <tooltip>
-                Choose between using Magento Vault (one-click CVC-less payments) or the more secure Adyen Tokenization (one-click CVC required payments) functionality
-            </tooltip>
+            <comment>
+                Magento Vault (one-click CVC-less payments) or secure Adyen Tokenization (one-click CVC required payments)
+            </comment>
             <source_model>Adyen\Payment\Model\Config\Source\Recurring\RecurringMode</source_model>
             <config_path>payment/adyen_oneclick/card_mode</config_path>
             <depends>

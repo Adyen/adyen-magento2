@@ -12,7 +12,7 @@
 
 namespace Adyen\Payment\Helper\PaymentMethods;
 
-
+/** TODO: This PM can be enabled for recurring purposes once tested */
 class AmazonPayPaymentMethod extends AbstractWalletPaymentMethod
 {
     const TX_VARIANT = 'amazonpay';
@@ -40,16 +40,16 @@ class AmazonPayPaymentMethod extends AbstractWalletPaymentMethod
 
     public function supportsCardOnFile(): bool
     {
-        return true;
+        return false;
     }
 
     public function supportsSubscription(): bool
     {
-        return true;
+        return false;
     }
 
     public function supportsUnscheduledCardOnFile(): bool
     {
-        return true;
+        return false;
     }
 }

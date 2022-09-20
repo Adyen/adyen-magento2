@@ -429,7 +429,7 @@ class ChargedCurrencyTest extends AbstractAdyenTestCase
                     $result->getAmount(),
                     $result->getCurrencyCode(),
                     $result->getDiscountAmount(),
-                    $result->getTaxAmount(),
+                    number_format($result->getTaxAmount(), 2, '.', ','),
                     $result->getAmountIncludingTax()
                 ]
             );

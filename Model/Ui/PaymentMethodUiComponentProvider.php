@@ -22,12 +22,11 @@ use Magento\Vault\Model\Ui\TokenUiComponentInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentProviderInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
 
-class PaymentMethodUiComponentProvider implements TokenUiComponentProviderInterface
+class PaymentMethodUiComponentProvider extends AdyenUiComponentProvider implements TokenUiComponentProviderInterface
 {
 
     private $vaultHelper;
     private $paymentMethodFactory;
-    private $dataHelper;
 
     /**
      * @param TokenUiComponentInterfaceFactory $componentFactory
@@ -41,7 +40,7 @@ class PaymentMethodUiComponentProvider implements TokenUiComponentProviderInterf
         Vault $vaultHelper,
         PaymentMethodFactory $paymentMethodFactory
     ) {
-        $this->dataHelper = $dataHelper;
+        parent::__construct($componentFactory, $dataHelper);
         $this->vaultHelper = $vaultHelper;
         $this->paymentMethodFactory = $paymentMethodFactory;
     }
