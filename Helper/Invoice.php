@@ -239,7 +239,7 @@ class Invoice extends AbstractHelper
         $adyenInvoice->setAmount($this->adyenDataHelper->originalAmount($captureAmountCents, $order->getBaseCurrencyCode()));
         $adyenInvoice->setStatus(InvoiceInterface::STATUS_PENDING_WEBHOOK);
 
-        if(isset($invoiceId)) {
+        if (isset($invoiceId)) {
             $adyenInvoice->setInvoiceId($invoiceId);
         }
 
@@ -262,20 +262,27 @@ class Invoice extends AbstractHelper
     {
         $invoiceFactory = $this->adyenInvoiceFactory->create();
         $adyenInvoice = $this->adyenInvoiceResourceModel->getAdyenInvoiceByCaptureWebhook($order, $notification);
-        $isFullAmountCaptured = $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency()) >= $order->getBaseGrandTotal();
+        $isFullAmountCaptured = $this->adyenDataHelper->originalAmount(
+            $notification->getAmountValue(),
+            $notification->getAmountCurrency()
+            ) === $order->getBaseGrandTotal();
 
         if (is_null($adyenInvoice) && $order->canInvoice()) {
-                if($isFullAmountCaptured) {
+                if ($isFullAmountCaptured) {
                    $adyenInvoice = $this->createInvoiceFromWebhook($order, $notification);
                 } else {
                     $order->addStatusHistoryComment(__(sprintf(
-                        'Partial %s webhook notification w/amount %s %s was processed, no invoice created. Please create offline invoice.',
+                        'Partial %s webhook notification w/amount %s %s was processed, no invoice created. 
+                        Please create offline invoice.',
                         $notification->getEventCode(),
                         $notification->getAmountCurrency(),
-                        $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency())
+                        $this->adyenDataHelper->originalAmount(
+                            $notification->getAmountValue(),
+                            $notification->getAmountCurrency())
                     )), false);
                     throw new AdyenWebhookException(__(sprintf(
-                        'Unable to create adyen_invoice from CA partial capture linked to original reference %s, psp reference %s, and order %s.',
+                        'Unable to create adyen_invoice from CA partial capture linked to original reference %s, 
+                        psp reference %s, and order %s.',
                         $notification->getOriginalReference(),
                         $notification->getPspreference(),
                         $order->getIncrementId()
@@ -283,7 +290,8 @@ class Invoice extends AbstractHelper
             }
         } elseif (is_null($adyenInvoice) && !$order->canInvoice()) {
             throw new AdyenWebhookException(__(sprintf(
-                'Unable to find adyen_invoice linked to original reference %s, psp reference %s, and order %s. Cannot create invoice.',
+                'Unable to find adyen_invoice linked to original reference %s, psp reference %s, and order %s. 
+                Cannot create invoice.',
                 $notification->getOriginalReference(),
                 $notification->getPspreference(),
                 $order->getIncrementId()
@@ -383,7 +391,11 @@ class Invoice extends AbstractHelper
     {
         //Create entry in sales_invoice table
         $invoice = $order->prepareInvoice();
-        $invoice->setGrandTotal($this->adyenDataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency()));
+        $invoice->setGrandTotal(
+            $this->adyenDataHelper->originalAmount(
+                $notification->getAmountValue(),
+                $notification->getAmountCurrency()
+            ));
         $invoice->setTransactionId($notification->getPspreference());
         $invoice->register();
         $invoice->pay();
