@@ -266,7 +266,7 @@ class Invoice extends AbstractHelper
 
         if (is_null($adyenInvoice) && $order->canInvoice()) {
                 if($isFullAmountCaptured) {
-                    $this->createInvoiceFromWebhook($order, $notification);
+                    $adyenInvoice = $this->createInvoiceFromWebhook($order, $notification);
                 } else {
                     $order->addStatusHistoryComment(__(sprintf(
                         'Partial %s webhook notification w/amount %s %s was processed, no invoice created. Please create offline invoice.',
