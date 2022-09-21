@@ -142,7 +142,13 @@ class Invoice extends AbstractHelper
      */
     public function createInvoice(Order $order, Notification $notification, bool $isAutoCapture)
     {
-        $this->adyenLogger->addAdyenNotification('Creating invoice for order');
+        $this->adyenLogger->addAdyenNotification(
+            'Creating invoice for order',
+            [
+                'pspReference' => $notification->getPspreference(),
+                'merchantReference' => $notification->getMerchantReference()
+            ]
+        );
 
         if ($order->canInvoice()) {
             /* We do not use this inside a transaction because order->save()
@@ -177,12 +183,23 @@ class Invoice extends AbstractHelper
                 }
 
                 $this->invoiceRepository->save($invoice);
-                $this->adyenLogger->addAdyenNotification(
-                    sprintf('Notification %s created an invoice.', $notification->getEntityId()),
+                $this->adyenLogger->addAdyenNotification(sprintf(
+                    'Notification %s created an invoice for order with pspReference %s and merchantReference %s',
+                    $notification->getEntityId(),
+                    $notification->getPspreference(),
+                    $notification->getMerchantReference()
+                ),
                     $this->adyenLogger->getInvoiceContext($invoice)
                 );
             } catch (Exception $e) {
-                $this->adyenLogger->addAdyenNotification('Error saving invoice: ' . $e->getMessage());
+                $this->adyenLogger->addAdyenNotification(
+                    'Error saving invoice: ' . $e->getMessage(),
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'merchantReference' => $notification->getMerchantReference()
+                    ]
+
+                );
                 throw $e;
             }
 
@@ -199,6 +216,7 @@ class Invoice extends AbstractHelper
             $this->adyenLogger->addAdyenNotification(
                 sprintf('Unable to create invoice when handling Notification %s', $notification->getEntityId()),
                 array_merge($this->adyenLogger->getOrderContext($order), [
+                    'pspReference' => $notification->getPspReference(),
                     'canUnhold' => $order->canUnhold(),
                     'isPaymentReview' => $order->isPaymentReview(),
                     'isCancelled' => $order->isCanceled(),

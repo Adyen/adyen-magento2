@@ -96,11 +96,14 @@ class WebhookProcessor
             if ($notification->shouldSkipProcessing()) {
                 $this->adyenLogger->addAdyenNotification(
                     sprintf(
-                        '%s notification (entity_id: %s) for merchant_reference: %s is skipped! Wait 10 minute before processing.',
+                        '%s notification (entity_id: %s) is skipped! Wait 10 minute before processing.',
                         $notification->getEventCode(),
-                        $notification->getEntityId(),
-                        $notification->getMerchantReference()
-                    )
+                        $notification->getEntityId()
+                    ),
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'merchantReference' => $notification->getMerchantReference()
+                    ]
                 );
                 continue;
             }
@@ -111,7 +114,12 @@ class WebhookProcessor
         }
 
         if ($count > 0) {
-            $this->adyenLogger->addAdyenNotification(sprintf("Cronjob updated %s notification(s)", $count));
+            $this->adyenLogger->addAdyenNotification(sprintf(
+                "Cronjob updated %s notification(s)", $count
+            ), [
+                'pspReference' => $notification->getPspreference(),
+                'merchantReference' => $notification->getMerchantReference()
+            ]);
         }
     }
 
