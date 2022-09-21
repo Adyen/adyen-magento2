@@ -62,14 +62,32 @@ class CancelOrRefundWebhookHandler implements WebhookHandlerInterface
         } else {
             if ($order->isCanceled() || $order->getState() === MagentoOrder::STATE_HOLDED) {
                 $this->adyenLogger->addAdyenNotification(
-                    sprintf('Order %s is already cancelled or held, so do nothing', $order->getIncrementId())
+                    sprintf(
+                        'Order %s is already cancelled or held, so do nothing', $order->getIncrementId()
+                    ),
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'merchantReference' => $notification->getMerchantReference()
+                    ]
                 );
             } else {
                 if ($order->canCancel() || $order->canHold()) {
-                    $this->adyenLogger->addAdyenNotification(sprintf('Attempting to cancel order %s', $orderId));
+                    $this->adyenLogger->addAdyenNotification(
+                        sprintf('Attempting to cancel order %s', $orderId),
+                        [
+                            'pspReference' => $notification->getPspreference(),
+                            'merchantReference' => $notification->getMerchantReference()
+                        ]
+                    );
                     $this->orderHelper->holdCancelOrder($order, $notification);
                 } else {
-                    $this->adyenLogger->addAdyenNotification(sprintf('Attempting to refund order %s', $orderId));
+                    $this->adyenLogger->addAdyenNotification(
+                        sprintf('Attempting to refund order %s', $orderId),
+                        [
+                            'pspReference' => $notification->getPspreference(),
+                            'merchantReference' => $notification->getMerchantReference()
+                        ]
+                    );
                     $this->orderHelper->refundOrder($order, $notification);
                 }
             }
