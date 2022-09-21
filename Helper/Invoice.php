@@ -266,7 +266,7 @@ class Invoice extends AbstractHelper
 
         if (is_null($adyenInvoice) && $order->canInvoice()) {
                 if($isFullAmountCaptured) {
-                    $adyenInvoice = $this->createInvoiceFromWebhook($order, $notification);
+                   $adyenInvoice = $this->createInvoiceFromWebhook($order, $notification);
                 } else {
                     $order->addStatusHistoryComment(__(sprintf(
                         'Partial %s webhook notification w/amount %s %s was processed, no invoice created. Please create offline invoice.',
@@ -376,9 +376,10 @@ class Invoice extends AbstractHelper
      * @param Order $order
      * @param Notification $notification
      * @throws AlreadyExistsException
+     * @return AdyenInvoice
      * @throws Exception
      */
-    public function createInvoiceFromWebhook(Order $order, Notification $notification)
+    public function createInvoiceFromWebhook(Order $order, Notification $notification): AdyenInvoice
     {
         //Create entry in sales_invoice table
         $invoice = $order->prepareInvoice();
@@ -419,7 +420,7 @@ class Invoice extends AbstractHelper
         }
 
         //Create entry in adyen_invoice table
-        $this->createAdyenInvoice(
+        $adyenInvoice = $this->createAdyenInvoice(
             $order->getPayment(),
             $notification->getData()['pspreference'],
             $notification->getData()['original_reference'],
@@ -432,5 +433,7 @@ class Invoice extends AbstractHelper
             $notification->getPspreference(),
             $order->getIncrementId()
         ));
+
+        return $adyenInvoice;
     }
 }
