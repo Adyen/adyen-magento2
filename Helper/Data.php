@@ -1492,6 +1492,7 @@ class Data extends AbstractHelper
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
         if ($isDemo) {
             $client->setEnvironment(\Adyen\Environment::TEST);
+            $client->setLogger($this->adyenLogger);
         } else {
             $client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
         }

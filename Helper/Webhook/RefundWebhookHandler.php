@@ -57,7 +57,12 @@ class RefundWebhookHandler implements WebhookHandlerInterface
             $this->adyenLogger->addAdyenNotification(sprintf(
                 'Config to ignore refund notification is enabled. Notification %s will be ignored',
                 $notification->getId()
-            ));
+            ),
+                [
+                    'pspReference' => $notification->getPspreference(),
+                    'merchantReference' => $notification->getMerchantReference()
+                ]
+            );
         } else {
             $order = $this->orderHelper->refundOrder($order, $notification);
         }
