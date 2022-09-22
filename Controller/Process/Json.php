@@ -262,8 +262,13 @@ class Json extends Action
 
         // Validate if Ip check is enabled and if the notification comes from a verified IP
         if (!$this->isIpValid()) {
-            $this->adyenLogger->addAdyenNotification(
-                "Notification has been rejected because the IP address could not be verified"
+            $this->adyenLogger->addAdyenNotification(sprintf(
+                    "Notification has been rejected because the IP address could not be verified",
+                ),
+                [
+                    'pspReference' => $response['pspReference'],
+                    'merchantReference' => $response['merchantReference']
+                ]
             );
             return false;
         }

@@ -106,13 +106,19 @@ class CaseManagement
                 'Order %s is pending manual review. The following status will be set: %s',
                 $order->getIncrementId(),
                 $reviewRequiredStatus
-            ));
+            ), [
+                'pspReference' => $pspReference,
+                'merchantReference' => $order->getPayment()->getData('entity_id')
+            ]);
         } else {
             $order->addStatusHistoryComment(__($manualReviewComment));
             $this->adyenLogger->addAdyenNotification(sprintf(
                 'Order %s is pending manual review. No status update was configured',
                 $order->getIncrementId()
-            ));
+            ), [
+                'pspReference' => $pspReference,
+                'merchantReference' => $order->getPayment()->getData('entity_id')
+            ]);
         }
 
         return $order;
@@ -140,13 +146,21 @@ class CaseManagement
                 'Created comment history for this notification linked to order %s with status update to: %s',
                 $order->getIncrementId(),
                 $reviewAcceptStatus
-            ));
+            ), [
+                'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                'merchantReference' => $order->getPayment()->getData('entity_id')
+            ]);
         } else {
             $order->addStatusHistoryComment(__($comment));
             $this->adyenLogger->addAdyenNotification(sprintf(
                 'Created comment history for this notification linked to order %s without any status update',
                 $order->getIncrementId()
-            ));
+            ),
+                array_merge(
+                    $this->adyenLogger->getOrderContext($order),
+                    ['pspReference' => $order->getPayment()->getData('adyen_psp_reference')]
+                )
+            );
         }
 
         return $order;
