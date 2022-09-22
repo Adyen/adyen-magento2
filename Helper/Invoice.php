@@ -317,7 +317,8 @@ class Invoice extends AbstractHelper
         }
 
         /** @var AdyenInvoice $adyenInvoiceObject */
-        $adyenInvoiceObject = $adyenInvoiceObject ?? $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
+        $adyenInvoiceObject = $adyenInvoiceObject
+            ?? $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
 
         $additionalData = $notification->getAdditionalData();
         $acquirerReference = $additionalData[Notification::ADDITIONAL_DATA] ?? null;
