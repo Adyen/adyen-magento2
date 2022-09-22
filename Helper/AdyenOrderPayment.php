@@ -267,7 +267,7 @@ class AdyenOrderPayment extends AbstractHelper
         $orderAmountCurrency = $this->adyenChargedCurrencyHelper->getOrderAmountCurrency($order);
 
         foreach ($adyenOrderPayments as $adyenOrderPayment) {
-            $adyenOrderPaymentsTotal += $adyenOrderPayment[OrderPaymentInterface::AMOUNT];
+            $adyenOrderPaymentsTotal += $adyenOrderPayment->getAmount();
         }
 
         $adyenOrderPaymentsTotalCents = $this->adyenDataHelper->formatAmount($adyenOrderPaymentsTotal, $orderAmountCurrency->getCurrencyCode());

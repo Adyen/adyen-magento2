@@ -27,51 +27,6 @@ use Magento\Sales\Model\Order;
 
 class AdyenOrderPaymentTest extends AbstractAdyenTestCase
 {
-    /**
-     * @var AdyenOrderPayment
-     */
-    private $adyenOrderPaymentHelper;
-    /**
-     * @var Payment|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $mockOrderPaymentResourceModel;
-    /**
-     * @var Data|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $mockAdyenDataHelper;
-    /**
-     * @var PaymentFactory|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $mockAdyenOrderPaymentFactory;
-
-    /**
-     * @var Invoice|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private $mockInvoiceHelper;
-
-    public function setUp(): void
-    {
-        $mockContext = $this->createMock(Context::class);
-        $mockLogger = $this->createMock(AdyenLogger::class);
-        $this->mockAdyenDataHelper = $this->createMock(Data::class);
-        $mockChargedCurrency = $this->createMock(ChargedCurrency::class);
-        $this->mockOrderPaymentResourceModel = $this->createMock(Payment::class);
-        $mockAdyenOrderPaymentCollection = $this->createGeneratedMock(Payment\CollectionFactory::class);
-        $this->mockAdyenOrderPaymentFactory = $this->createGeneratedMock(PaymentFactory::class, ['create']);
-        $this->mockInvoiceHelper = $this->createMock(Invoice::class);
-
-        $this->adyenOrderPaymentHelper = new AdyenOrderPayment(
-            $mockContext,
-            $mockLogger,
-            $mockAdyenOrderPaymentCollection,
-            $this->mockAdyenDataHelper,
-            $mockChargedCurrency,
-            $this->mockOrderPaymentResourceModel,
-            $this->mockAdyenOrderPaymentFactory,
-            $this->mockInvoiceHelper
-        );
-    }
-
     public function testCreateAdyenOrderPayment()
     {
         $paymentId = 1;
@@ -96,13 +51,27 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
             'getMerchantReference' => $merchantReference
         ]);
 
-        $this->mockAdyenDataHelper->method('originalAmount')->willReturn($amount);
-        $this->mockAdyenOrderPaymentFactory->method('create')->willReturn($adyenOrderPayment);
-        $result = $this->adyenOrderPaymentHelper->createAdyenOrderPayment($order, $notification, true);
+        $mockAdyenDataHelper = $this->createGeneratedMock(Data::class, ['originalAmount']);
+
+        $mockAdyenOrderPaymentFactory = $this->createGeneratedMock(PaymentFactory::class, ['create']);
+
+        $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
+            null,
+            null,
+            $mockAdyenDataHelper,
+            null,
+            null,
+            $mockAdyenOrderPaymentFactory,
+            null
+        );
+
+        $mockAdyenDataHelper->method('originalAmount')->willReturn($amount);
+        $mockAdyenOrderPaymentFactory->method('create')->willReturn($adyenOrderPayment);
+        $result = $adyenOrderPaymentHelper->createAdyenOrderPayment($order, $notification, true);
         $this->assertInstanceOf(AdyenPaymentModel::class, $result);
     }
 
-    public function testIsFullAmountFinalized()
+    public function testIsFullAmountFinalizedAutoCapture()
     {
         $orderAmountCurrency = new AdyenAmountCurrency(
             10.33,
@@ -116,8 +85,8 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
            'getOrderAmountCurrency' => $orderAmountCurrency
         ]);
 
-        $autoAdyenOrderPayment = $this->createConfiguredMock(AdyenPaymentModel::class, [
-            'setAmount' => 10.33
+        $adyenOrderPayment = $this->createConfiguredMock(AdyenPaymentModel::class, [
+            'getAmount' => 10.33
         ]);
 
         $payment = $this->createConfiguredMock(Order\Payment::class, [
@@ -129,27 +98,114 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         ]);
 
         $mockOrderPaymentResourceModel = $this->createConfiguredMock(Payment::class, [
-            'getLinkedAdyenOrderPayments' => [$autoAdyenOrderPayment]
+            'getLinkedAdyenOrderPayments' => [$adyenOrderPayment]
         ]);
 
-        $mockContext = $this->createMock(Context::class);
-        $mockLogger = $this->createMock(AdyenLogger::class);
-        $this->mockAdyenDataHelper = $this->createMock(Data::class);
-        $mockAdyenOrderPaymentCollection = $this->createGeneratedMock(Payment\CollectionFactory::class);
-        $this->mockAdyenOrderPaymentFactory = $this->createGeneratedMock(PaymentFactory::class, ['create']);
-        $this->mockInvoiceHelper = $this->createMock(Invoice::class);
+        $mockAdyenDataHelper = $this->createPartialMock(Data::class, []);
 
-        $this->adyenOrderPaymentHelper = new AdyenOrderPayment(
+        $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
+            null,
+            null,
+            $mockAdyenDataHelper,
+            $mockChargedCurrency,
+            $mockOrderPaymentResourceModel
+        );
+
+        $this->assertTrue($adyenOrderPaymentHelper->isFullAMountFinalized($order));
+    }
+
+    public function testIsFullAmountFinalizedManualCapture()
+    {
+        $invoice = $this->createMock(Order\Invoice::class);
+
+        $mockInvoiceHelper = $this->createConfiguredMock(Invoice::class, [
+            'isFullInvoiceAmountManuallyCaptured' => true
+        ]);
+
+        $mockAdyenDataHelper = $this->createPartialMock(Data::class, []);
+
+        $payment = $this->createConfiguredMock(Order\Payment::class, [
+            'getEntityId' => 55
+        ]);
+
+        $order = $this->createConfiguredMock(Order::class, [
+            'getInvoiceCollection' => [$invoice],
+            'getPayment' => $payment
+        ]);
+
+        $orderAmountCurrency = new AdyenAmountCurrency(
+            10.33,
+            'EUR',
+            null,
+            null,
+            10.33
+        );
+
+        $mockChargedCurrency = $this->createConfiguredMock(ChargedCurrency::class, [
+            'getOrderAmountCurrency' => $orderAmountCurrency
+        ]);
+
+        $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
+          null,
+          null,
+          $mockAdyenDataHelper,
+          $mockChargedCurrency,
+          null,
+          null,
+          $mockInvoiceHelper,
+        );
+
+        $this->assertTrue($adyenOrderPaymentHelper->isFullAmountFinalized($order));
+    }
+
+    protected function createAdyenOrderPaymentHelper(
+        $mockLogger = null,
+        $mockAdyenOrderPaymentCollection = null,
+        $mockAdyenDataHelper = null,
+        $mockChargedCurrency = null,
+        $mockOrderPaymentResourceModel = null,
+        $mockAdyenOrderPaymentFactory = null,
+        $mockInvoiceHelper = null
+    ): AdyenOrderPayment {
+        $mockContext = $this->createMock(Context::class);
+
+        if (is_null($mockLogger)) {
+            $mockLogger = $this->createMock(AdyenLogger::class);
+        }
+
+        if(is_null($mockAdyenOrderPaymentCollection)) {
+            $mockAdyenOrderPaymentCollection = $this->createGeneratedMock(Payment\CollectionFactory::class);
+        }
+
+        if (is_null($mockAdyenDataHelper)) {
+            $mockAdyenDataHelper = $this->createMock(Data::class);
+        }
+
+        if (is_null($mockChargedCurrency)) {
+            $mockChargedCurrency = $this->createMock(ChargedCurrency::class);
+        }
+
+        if (is_null($mockOrderPaymentResourceModel)) {
+            $mockOrderPaymentResourceModel = $this->createMock(Payment::class);
+        }
+
+        if (is_null($mockAdyenOrderPaymentFactory)) {
+            $mockAdyenOrderPaymentFactory = $this->createGeneratedMock(PaymentFactory::class, ['create']);
+        }
+
+        if (is_null($mockInvoiceHelper)) {
+            $mockInvoiceHelper = $this->createMock(Invoice::class);
+        }
+
+        return new AdyenOrderPayment(
             $mockContext,
             $mockLogger,
             $mockAdyenOrderPaymentCollection,
-            $this->mockAdyenDataHelper,
+            $mockAdyenDataHelper,
             $mockChargedCurrency,
             $mockOrderPaymentResourceModel,
-            $this->mockAdyenOrderPaymentFactory,
-            $this->mockInvoiceHelper
+            $mockAdyenOrderPaymentFactory,
+            $mockInvoiceHelper
         );
-
-        $this->assertTrue($this->adyenOrderPaymentHelper->isFullAMountFinalized($order));
     }
 }

@@ -56,6 +56,22 @@ abstract class AbstractAdyenTestCase extends TestCase
             ->getMock();
     }
 
+//    protected function createGeneratedMockWithArguments(string $originalClassName, array $methods = [], array $arguments = [], string $mockClassName = '', bool $callOriginalConstructor = false, bool $callOriginalClone = true, bool $callAutoload = true, bool $cloneArguments = false )
+//    {
+//        $mock = $this->getMockObjectGenerator()->getMock(
+//            $originalClassName,
+//            $methods,
+//            $arguments,
+//            $mockClassName,
+//            $callOriginalConstructor,
+//            $callOriginalClone,
+//            $callAutoload,
+//            $cloneArguments
+//        );
+//
+//        return get_class($mock);
+//    }
+
     protected function createOrder(?string $status = null)
     {
         $orderPaymentMock = $this->createConfiguredMock(MagentoOrder\Payment::class, ['getMethod' => 'adyen_cc']);
