@@ -58,7 +58,6 @@ define(
             initialize: function () {
                 this._super();
 
-                var shippingAddressCountry = "";
                 var retrievePaymentMethods = function (){
                     fullScreenLoader.startLoader();
                     // Retrieve adyen payment methods
