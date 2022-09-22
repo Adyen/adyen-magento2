@@ -65,6 +65,7 @@ jobs:
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
 
       - name: Archive test result artifacts
+        if: github.event.pull_request.base.ref == 'main'
         uses: actions/upload-artifact@v3
         with:
           name: html-report
