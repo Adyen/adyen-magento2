@@ -287,7 +287,7 @@ class Invoice extends AbstractHelper
 
         if (is_null($adyenInvoice) && $order->canInvoice()) {
                 if ($isFullAmountCaptured) {
-                   $adyenInvoice = $this->createInvoiceFromWebhook($order, $notification);
+                   $adyenInvoiceObject = $this->createInvoiceFromWebhook($order, $notification);
                 } else {
                     $order->addStatusHistoryComment(__(sprintf(
                         'Partial %s webhook notification w/amount %s %s was processed, no invoice created.
@@ -317,7 +317,7 @@ class Invoice extends AbstractHelper
         }
 
         /** @var AdyenInvoice $adyenInvoiceObject */
-        $adyenInvoiceObject = $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
+        $adyenInvoiceObject = $adyenInvoiceObject ?? $invoiceFactory->load($adyenInvoice[InvoiceInterface::ENTITY_ID], InvoiceInterface::ENTITY_ID);
 
         $additionalData = $notification->getAdditionalData();
         $acquirerReference = $additionalData[Notification::ADDITIONAL_DATA] ?? null;
