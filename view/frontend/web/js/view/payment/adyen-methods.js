@@ -75,6 +75,7 @@ define(
                         console.log('Fetching the payment methods failed!');
                     });
                 };
+                retrievePaymentMethods();
                 //Retrieve payment methods to ensure the amount is updated, when applying the discount code
                 setCouponCodeAction.registerSuccessCallback(function () {
                     retrievePaymentMethods();
