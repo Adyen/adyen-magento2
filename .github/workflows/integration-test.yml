@@ -5,11 +5,11 @@ jobs:
   build:
     strategy:
       matrix:
-        php-version: ['7.4']
-        magento-version: ['2.3.7', '2.4.2']
+        php-version: ["7.4"]
+        magento-version: ["2.3.7", "2.4.2"]
         include:
-          - php-version: '8.1'
-            magento-version: '2.4.5'
+          - php-version: "8.1"
+            magento-version: "2.4.5"
     runs-on: ubuntu-latest
     env:
       PHP_VERSION: ${{ matrix.php-version }}
@@ -65,7 +65,6 @@ jobs:
           PAYPAL_PASSWORD: ${{secrets.PLAYWRIGHT_PAYPAL_PASSWORD}}
 
       - name: Archive test result artifacts
-        if: github.event.pull_request.base.ref == 'main'
         uses: actions/upload-artifact@v3
         with:
           name: html-report
