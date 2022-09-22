@@ -84,7 +84,11 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
                 $order->getIncrementId(),
                 $isAutoCapture,
                 $transitionState
-            ));
+            ),
+            [
+                'pspReference' => $notification->getPspreference(),
+                'merchantReference' => $notification->getMerchantReference()
+            ]);
 
             return $order;
         }
@@ -96,22 +100,40 @@ class CaptureWebhookHandler implements WebhookHandlerInterface
             $order = $this->orderHelper->fetchOrderByIncrementId($notification);
             $adyenOrderPayment = $this->adyenOrderPaymentFactory->create()->load($adyenInvoice->getAdyenPaymentOrderId(), OrderPaymentInterface::ENTITY_ID);
             $this->adyenOrderPaymentHelper->refreshPaymentCaptureStatus($adyenOrderPayment, $notification->getAmountCurrency());
-            $this->adyenLogger->addAdyenNotification(sprintf(
-                'adyen_invoice %s linked to invoice %s and adyen_order_payment %s was updated',
-                $adyenInvoice->getEntityId(),
-                $adyenInvoice->getInvoiceId(),
-                $adyenInvoice->getAdyenPaymentOrderId()
-            ));
+            $this->adyenLogger->addAdyenNotification(
+                sprintf(
+                    'adyen_invoice %s linked to invoice %s and adyen_order_payment %s was updated',
+                    $adyenInvoice->getEntityId(),
+                    $adyenInvoice->getInvoiceId(),
+                    $adyenInvoice->getAdyenPaymentOrderId()
+                ),
+                [
+                    'pspReference' => $notification->getPspreference(),
+                    'merchantReference' => $notification->getMerchantReference()
+                ]
+            );
 
             $magentoInvoice = $this->magentoInvoiceFactory->create()->load($adyenInvoice->getInvoiceId(), MagentoInvoice::ENTITY_ID);
             $this->adyenLogger->addAdyenNotification(
-                sprintf('Notification %s updated invoice %s.', $notification->getEntityId(), $magentoInvoice->getEntityid()),
-                $this->adyenLogger->getInvoiceContext($magentoInvoice)
+                sprintf('Notification %s updated invoice {invoiceId}', $notification->getEntityId()),
+                array_merge(
+                    $this->adyenLogger->getInvoiceContext($magentoInvoice),
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'merchantReference' => $notification->getMerchantReference()
+                    ]
+                )
             );
 
             $order = $this->orderHelper->finalizeOrder($order, $notification);
         } catch (Exception $e) {
-            $this->adyenLogger->addAdyenNotification($e->getMessage());
+            $this->adyenLogger->addAdyenNotification(
+                $e->getMessage(),
+                [
+                    'pspReference' => $notification->getPspreference(),
+                    'merchantReference' => $notification->getMerchantReference()
+                ]
+            );
         }
 
         return $order;

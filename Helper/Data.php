@@ -55,6 +55,7 @@ class Data extends AbstractHelper
     const LIVE = 'live';
     const LIVE_AU = 'live-au';
     const LIVE_US = 'live-us';
+    const LIVE_IN = 'live-in';
     const PSP_REFERENCE_REGEX = '/(?P<pspReference>[0-9.A-Z]{16})(?P<suffix>[a-z\-]*)/';
     const AFTERPAY = 'afterpay';
     const AFTERPAY_TOUCH = 'afterpaytouch';
@@ -286,7 +287,8 @@ class Data extends AbstractHelper
         return [
             'eu' => 'Default (EU - Europe)',
             'au' => 'AU - Australasia',
-            'us' => 'US - United States'
+            'us' => 'US - United States',
+            'in' => 'IN - India'
         ];
     }
 
@@ -1479,17 +1481,21 @@ class Data extends AbstractHelper
         $client = $this->createAdyenClient();
         $client->setApplicationName(self::APPLICATION_NAME);
         $client->setXApiKey($apiKey);
-        $moduleVersion = $this->getModuleVersion();
 
+        $checkoutFrontendRegion = $this->getCheckoutFrontendRegion($storeId);
+        if (isset($checkoutFrontendRegion)) {
+            $client->setRegion($checkoutFrontendRegion);
+        }
+
+        $moduleVersion = $this->getModuleVersion();
         $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
         $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
         if ($isDemo) {
             $client->setEnvironment(\Adyen\Environment::TEST);
+            $client->setLogger($this->adyenLogger);
         } else {
             $client->setEnvironment(\Adyen\Environment::LIVE, $this->getLiveEndpointPrefix($storeId));
         }
-
-        $client->setLogger($this->adyenLogger);
 
         return $client;
     }
@@ -1608,6 +1614,8 @@ class Data extends AbstractHelper
                 return self::LIVE_AU;
             case "us":
                 return self::LIVE_US;
+            case "in":
+                return self::LIVE_IN;
             default:
                 return self::LIVE;
         }

@@ -165,7 +165,13 @@ class Order extends AbstractHelper
     {
         try {
             $this->orderSender->send($order);
-            $this->adyenLogger->addAdyenNotification('Send order confirmation email to shopper');
+            $this->adyenLogger->addAdyenNotification(
+                'Send order confirmation email to shopper',
+                [
+                    'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                    'merchantReference' => $order->getPayment()->getData('entity_id')
+                ]
+            );
         } catch (Exception $exception) {
             $this->adyenLogger->addAdyenWarning(
                 "Exception in Send Mail in Magento. This is an issue in the the core of Magento" .
@@ -198,7 +204,13 @@ class Order extends AbstractHelper
                     ->save();
             }
         } else {
-            $this->adyenLogger->addAdyenNotification('Order can\'t be shipped');
+            $this->adyenLogger->addAdyenNotification(
+                'Order can\'t be shipped',
+                [
+                    'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                    'merchantReference' => $order->getPayment()->getData('entity_id')
+                ]
+            );
         }
 
         return $order;
@@ -251,7 +263,11 @@ class Order extends AbstractHelper
                 $amount,
                 $order->getIncrementId(),
                 $formattedOrderAmount
-            ));
+            ),
+            [
+                'pspReference' => $notification->getPspreference(),
+                'merchantReference' => $notification->getMerchantReference()
+            ]);
             $comment = "Adyen Payment Successfully completed";
             // If a status is set, add comment, set status and update the state based on the status
             // Else add comment
@@ -259,21 +275,31 @@ class Order extends AbstractHelper
                 $order->addStatusHistoryComment(__($comment), $status);
                 $this->adyenLogger->addAdyenNotification(
                     'Maintaining current status: ' . $status,
-                    $this->adyenLogger->getOrderContext($order)
+                    array_merge(
+                        $this->adyenLogger->getOrderContext($order),
+                        ['pspReference' => $notification->getPspreference()]
+                    )
                 );
             } else if (!empty($status)) {
                 $order->addStatusHistoryComment(__($comment), $status);
                 $this->setState($order, $status, $possibleStates);
                 $this->adyenLogger->addAdyenNotification(
                     'Order status was changed to authorised status: ' . $status,
-                    $this->adyenLogger->getOrderContext($order)
+                    array_merge(
+                        $this->adyenLogger->getOrderContext($order),
+                        ['pspReference' => $notification->getPspreference()]
+                    )
                 );
             } else {
                 $order->addStatusHistoryComment(__($comment));
                 $this->adyenLogger->addAdyenNotification(sprintf(
                     'Order %s was finalized. Authorised status not set',
                     $order->getIncrementId()
-                ));
+                ),
+                [
+                    'pspReference' => $notification->getPspreference(),
+                    'merchantReference' => $notification->getMerchantReference()
+                ]);
             }
         }
 
@@ -320,10 +346,20 @@ class Order extends AbstractHelper
             $order = $this->setState($order, $status, $possibleStates);
 
             $this->adyenLogger->addAdyenNotification(
-                'Order status is changed to Pre-authorised status, status is ' . $status
+                'Order status is changed to Pre-authorised status, status is ' . $status,
+                [
+                    'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                    'merchantReference' => $order->getPayment()->getData('entity_id')
+                ]
             );
         } else {
-            $this->adyenLogger->addAdyenNotification('No pre-authorised status is used so ignore');
+            $this->adyenLogger->addAdyenNotification(
+                'No pre-authorised status is used so ignore',
+                [
+                    'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                    'merchantReference' => $order->getPayment()->getData('entity_id')
+                ]
+            );
         }
 
         return $order;
@@ -339,7 +375,11 @@ class Order extends AbstractHelper
     {
         if (!$this->configHelper->getNotificationsCanCancel($order->getStoreId())) {
             $this->adyenLogger->addAdyenNotification(
-                'Order cannot be cancelled based on the plugin configuration'
+                'Order cannot be cancelled based on the plugin configuration',
+                [
+                    'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                    'merchantReference' => $order->getPayment()->getData('entity_id')
+                ]
             );
             return $order;
         }
@@ -360,7 +400,13 @@ class Order extends AbstractHelper
                     $order->hold();
                     $order->addCommentToStatusHistory('Order held', $orderStatus);
                 } else {
-                    $this->adyenLogger->addAdyenNotification('Order can not hold or is already on Hold');
+                    $this->adyenLogger->addAdyenNotification(
+                        'Order can not hold or is already on Hold',
+                        [
+                            'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                            'merchantReference' => $order->getPayment()->getData('entity_id')
+                        ]
+                    );
                 }
             } else {
                 // Allow magento to cancel order
@@ -370,13 +416,22 @@ class Order extends AbstractHelper
                     $order->cancel();
                     $order->addCommentToStatusHistory('Order cancelled', $orderStatus ?? false);
                 } else {
-                    $this->adyenLogger->addAdyenNotification('Order can not be cancelled');
+                    $this->adyenLogger->addAdyenNotification(
+                        'Order can not be cancelled',
+                        [
+                            'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                            'merchantReference' => $order->getPayment()->getData('entity_id')
+                        ]
+                    );
                 }
             }
         } else {
             $this->adyenLogger->addAdyenNotification(sprintf(
                     'Order %s already has an invoice linked so it cannot be cancelled', $order->getIncrementId()
-            ));
+            ), [
+                'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                'merchantReference' => $order->getPayment()->getData('entity_id')
+            ]);
         }
 
         return $order;
@@ -425,13 +480,24 @@ class Order extends AbstractHelper
             if ($statusObject->getState() == $state) {
                 // Exit function if fitting state is found
                 $order->setState($statusObject->getState());
-                $this->adyenLogger->addAdyenNotification('State is changed to ' . $statusObject->getState());
+                $this->adyenLogger->addAdyenNotification(
+                    'State is changed to ' . $statusObject->getState(),
+                    [
+                        'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                        'merchantReference' => $order->getPayment()->getData('entity_id')
+                    ]
+                );
 
                 return $order;
             }
         }
 
-        $this->adyenLogger->addAdyenNotification('No new state assigned, status should be connected to one of the following states: ' . json_encode($possibleStates));
+        $this->adyenLogger->addAdyenNotification(
+            'No new state assigned, status should be connected to one of the following states: ' . json_encode($possibleStates),
+            [
+                'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                'merchantReference' => $order->getPayment()->getData('entity_id')
+            ]);
 
         return $order;
     }
@@ -480,11 +546,17 @@ class Order extends AbstractHelper
                     'Refunding %s from AdyenOrderPayment %s',
                     $notification->getAmountCurrency() . $notification->getAmountValue(),
                     $orderPayment->getEntityId()
-                ), $this->adyenLogger->getOrderContext($order));
+                ),
+                    array_merge(
+                        $this->adyenLogger->getOrderContext($order),
+                        ['pspReference' => $notification->getPspreference()]
+                    )
+                );
             } else {
                 $this->adyenLogger->addAdyenNotification(sprintf(
-                    'AdyenOrderPayment with pspReference %s was not found. This should be linked to order %s',
+                    'AdyenOrderPayment with pspReference %s and merchantReference %s was not found. This should be linked to order %s',
                     $notification->getOriginalReference(),
+                    $notification->getMerchantReference(),
                     $order->getRemoteIp()
                 ), $this->adyenLogger->getOrderContext($order));
             }
@@ -504,18 +576,30 @@ class Order extends AbstractHelper
                 $amount = $this->dataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
                 $order->getPayment()->registerRefundNotification($amount);
 
-                $this->adyenLogger->addAdyenNotification(sprintf('Created credit memo for order %s', $order->getIncrementId()));
+                $this->adyenLogger->addAdyenNotification(sprintf(
+                    'Created credit memo for order %s', $order->getIncrementId()),
+                    [
+                        'pspReference' => $notification->getPspreference(),
+                        'merchantReference' => $notification->getMerchantReference()
+                    ]
+                );
             } else {
                 $this->adyenLogger->addAdyenNotification(sprintf(
                     'Could not create a credit memo for order %s while processing notification %s',
                     $order->getIncrementId(),
                     $notification->getId()
-                ));
+                ), [
+                    'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                    'merchantReference' => $order->getPayment()->getData('entity_id')
+                ]);
             }
         } else {
             $this->adyenLogger->addAdyenNotification(sprintf(
                 'Did not create a credit memo for order %s because refund was done through Magento back office', $order->getIncrementId()
-            ));
+            ), [
+                'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                'merchantReference' => $order->getPayment()->getData('entity_id')
+            ]);
         }
 
         $order->addStatusHistoryComment(__('Refund Webhook successfully handled'), $order->getStatus());
@@ -532,7 +616,12 @@ class Order extends AbstractHelper
      */
     private function getVirtualStatus(MagentoOrder $order, $status)
     {
-        $this->adyenLogger->addAdyenNotification('Product is a virtual product');
+        $this->adyenLogger->addAdyenNotification(
+            'Product is a virtual product',
+            [
+                'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                'merchantReference' => $order->getPayment()->getData('entity_id')
+            ]);
         $virtualStatus = $this->configHelper->getConfigData(
             'payment_authorized_virtual',
             'adyen_abstract',
