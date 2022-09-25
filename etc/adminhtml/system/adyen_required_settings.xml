@@ -179,8 +179,8 @@
             </depends>
             <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
             <config_path>payment/adyen_abstract/debug</config_path>
-            <tooltip>
-                <![CDATA[Enable debug mode]]></tooltip>
+            <comment>
+                <![CDATA[<br>Enable debug mode]]></comment>
         </field>
         <field id="configuration_wizard" translate="label" type="button" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
             <depends>
