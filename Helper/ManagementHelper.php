@@ -83,7 +83,7 @@ class ManagementHelper
                 });
                 $merchantAccounts[] = [
                     'id' => $merchantAccount['id'],
-                    'name' => $merchantAccount['name'] ?? $merchantAccount['id'],
+                    'name' => $merchantAccount['id'],
                     'liveEndpointPrefix' => !empty($defaultDC) ? $defaultDC[0]['livePrefix'] : ''
                 ];
             }
