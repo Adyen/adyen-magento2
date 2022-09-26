@@ -172,7 +172,6 @@ class AdyenOrderPayment extends AbstractHelper
         }
 
         $orderAmountCents = $this->adyenDataHelper->formatAmount($orderAmountCurrency->getAmount(), $orderAmountCurrency->getCurrencyCode());
-
         return $invoiceAmountCents === $orderAmountCents;
     }
 
@@ -185,8 +184,10 @@ class AdyenOrderPayment extends AbstractHelper
     public function isFullAmountAuthorized(Order $order): bool
     {
         $payment = $order->getPayment();
-        $authorisedAdyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments($payment->getEntityId());
+        $entityId = $payment->getEntityId();
+        $authorisedAdyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments($entityId);
 
+       //  var_dump($authorisedAdyenOrderPayments); die();
         return $this->compareAdyenOrderPaymentsAmount($order, $authorisedAdyenOrderPayments);
     }
 
