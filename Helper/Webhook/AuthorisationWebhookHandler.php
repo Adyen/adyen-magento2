@@ -170,7 +170,11 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         if ($previousAdyenEventCode == "AUTHORISATION : TRUE" || !empty($paymentPreviouslyCaptured)) {
             $this->adyenLogger->addAdyenNotification(
                 'Order is not cancelled because previous notification
-                                    was an authorisation that succeeded and payment was captured'
+                                    was an authorisation that succeeded and payment was captured',
+                [
+                    'pspReference' => $notification->getPspreference(),
+                    'merchantReference' => $notification->getMerchantReference()
+                ]
             );
 
             return $order;
@@ -179,7 +183,11 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         // Order is already Cancelled
         if ($order->isCanceled() || $order->getState() === Order::STATE_HOLDED) {
             $this->adyenLogger->addAdyenNotification(
-                "Order is already cancelled or holded, do nothing"
+                "Order is already cancelled or holded, do nothing",
+                [
+                    'pspReference' =>$notification->getPspreference(),
+                    'merchantReference' => $notification->getMerchantReference()
+                ]
             );
 
             return $order;
@@ -232,7 +240,13 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         } else {
             $order = $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
             $order->addStatusHistoryComment(__('Capture Mode set to Manual'), $order->getStatus());
-            $this->adyenLogger->addAdyenNotification('Capture mode is set to Manual');
+            $this->adyenLogger->addAdyenNotification(
+                'Capture mode is set to Manual',
+                [
+                    'pspReference' =>$notification->getPspreference(),
+                    'merchantReference' => $notification->getMerchantReference()
+                ]
+            );
         }
 
         return $order;
@@ -272,7 +286,10 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
                 $payByLinkFailureCount,
                 AdyenPayByLinkConfigProvider::MAX_FAILURE_COUNT
             )),
-            $this->adyenLogger->getOrderContext($order)
+            array_merge(
+                $this->adyenLogger->getOrderContext($order),
+                ['pspReference' => $notification->getPspreference()]
+            )
         );
 
         return false;
