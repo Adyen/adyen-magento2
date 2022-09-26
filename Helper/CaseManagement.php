@@ -12,6 +12,8 @@
 namespace Adyen\Payment\Helper;
 
 use Adyen\Payment\Logger\AdyenLogger;
+use Adyen\Payment\Model\Notification;
+use JMS\Serializer\SerializerInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Sales\Model\Order;
@@ -37,6 +39,11 @@ class CaseManagement
     private $configHelper;
 
     /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * CaseManagement constructor.
      *
      * @param AdyenLogger $adyenLogger
@@ -48,16 +55,16 @@ class CaseManagement
     ) {
         $this->adyenLogger = $adyenLogger;
         $this->configHelper = $configHelper;
+        // TODO: Add serializer here and in di.xml
     }
 
     /**
      * Based on the passed array, check if manual review is required
      *
-     * @param array $additionalData
-     * @return bool
      */
-    public function requiresManualReview(array $additionalData): bool
+    public function requiresManualReview(Notification $notification): bool
     {
+        $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : [];
         if (!array_key_exists(self::FRAUD_MANUAL_REVIEW, $additionalData)) {
             return false;
         }
@@ -78,7 +85,7 @@ class CaseManagement
      * @param bool $autoCapture
      * @return Order
      */
-    public function markCaseAsPendingReview(Order $order, string $pspReference, bool $autoCapture = false): Order
+    public function markCaseAsPendingReview(Order $order, string $pspReference): Order
     {
         $manualReviewComment = sprintf(
             'Manual review required for order w/pspReference: %s. Please check the Adyen platform.',
@@ -89,12 +96,6 @@ class CaseManagement
             Config::XML_STATUS_FRAUD_MANUAL_REVIEW,
             $order->getStoreId()
         );
-
-        // Set is in process to false since on Auto Capture, the payment would have already gone trough on the Adyen
-        // platform. The invoice should also be already generated.
-        if ($autoCapture) {
-            $order->setIsInProcess(false);
-        }
 
         if (!empty($reviewRequiredStatus)) {
             // Ensure that when setting the reviewRequiredStatus, the state will be new.
@@ -171,12 +172,11 @@ class CaseManagement
      *
      * @param Order $order
      * @param $originalPspReference
-     * @param $autoCapture
+     * @param string $action
      * @return Order
      */
-    public function markCaseAsRejected(Order $order, $originalPspReference, $autoCapture): Order
+    public function markCaseAsRejected(Order $order, $originalPspReference, string $action): Order
     {
-        $action = $autoCapture ? 'refunded' : 'cancelled';
         $order->addStatusHistoryComment(sprintf(
             'Manual review was rejected for order w/pspReference: %s. The order will be automatically %s.',
             $originalPspReference,

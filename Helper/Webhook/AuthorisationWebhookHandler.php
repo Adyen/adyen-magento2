@@ -13,6 +13,7 @@
 namespace Adyen\Payment\Helper\Webhook;
 
 
+use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\CaseManagement;
 use Adyen\Payment\Helper\ChargedCurrency;
@@ -89,8 +90,11 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      */
     public function handleWebhook(Order $order, Notification $notification, string $transitionState): Order
     {
-        if ($transitionState === PaymentStates::STATE_PAID) {
-            $order = $this->handleSuccessfulAuthorisation($order, $notification);
+        $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod());
+        if ($transitionState === PaymentStates::STATE_PAID && $isAutoCapture) {
+            $order = $this->handleSuccessfulAutoCaptureAuthorisation($order, $notification);
+        } elseif ($transitionState === PaymentStates::STATE_PAID && !$isAutoCapture) {
+            $order = $this->handleSuccessfulManualCaptureAuthorisation($order, $notification);
         } elseif ($transitionState === PaymentStates::STATE_FAILED) {
             $order = $this->handleFailedAuthorisation($order, $notification);
         }
@@ -98,36 +102,55 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         return $order;
     }
 
-    /**
-     * @param Order $order
-     * @param Notification $notification
-     * @return Order
-     * @throws LocalizedException
-     */
-    private function handleSuccessfulAuthorisation(Order $order, Notification $notification): Order
+    private function handleSuccessfulManualCaptureAuthorisation(Order $order, Notification $notification): Order
     {
-        $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod());
-
-        // Set adyen_notification_payment_captured to true so that we ignore a possible OFFER_CLOSED
-        if ($notification->isSuccessful() && $isAutoCapture) {
-            $order->setData('adyen_notification_payment_captured', 1);
-        }
-
-        $this->adyenOrderPaymentHelper->createAdyenOrderPayment($order, $notification, $isAutoCapture);
+        $this->adyenOrderPaymentHelper->createAdyenOrderPayment($order, $notification, OrderPaymentInterface::CAPTURE_STATUS_NO_CAPTURE);
         $isFullAmountAuthorized = $this->adyenOrderPaymentHelper->isFullAmountAuthorized($order);
 
         if ($isFullAmountAuthorized) {
             $order = $this->orderHelper->setPrePaymentAuthorized($order);
             $this->orderHelper->updatePaymentDetails($order, $notification);
+            $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($notification);
+            $order = $this->handleManualCapture($order, $notification, $requireFraudManualReview);
 
-            $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : [];
-            $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($additionalData);
-
-            if ($isAutoCapture) {
-                $order = $this->handleAutoCapture($order, $notification, $requireFraudManualReview);
-            } else {
-                $order = $this->handleManualCapture($order, $notification, $requireFraudManualReview);
+            // For Boleto confirmation mail is sent on order creation
+            // Send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
+            if ($notification->getPaymentMethod() != "adyen_boleto" && !$order->getEmailSent()) {
+                $this->orderHelper->sendOrderMail($order);
             }
+        }  else {
+            $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
+        }
+
+        // Set authorized amount in sales_order_payment
+        $orderAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($order, false);
+        $orderAmount = $orderAmountCurrency->getAmount();
+        $order->getPayment()->setAmountAuthorized($orderAmount);
+
+        if ($notification->getPaymentMethod() == "c_cash" &&
+            $this->configHelper->getConfigData('create_shipment', 'adyen_cash', $order->getStoreId())
+        ) {
+            $this->orderHelper->createShipment($order);
+        }
+
+        return $order;
+    }
+
+    private function handleSuccessfulAutoCaptureAuthorisation(Order $order, Notification $notification): Order
+    {
+        // Set adyen_notification_payment_captured to true so that we ignore a possible OFFER_CLOSED
+        if ($notification->isSuccessful()) {
+            $order->setData('adyen_notification_payment_captured', 1);
+        }
+
+        $this->adyenOrderPaymentHelper->createAdyenOrderPayment($order, $notification, OrderPaymentInterface::CAPTURE_STATUS_AUTO_CAPTURE);
+        $isFullAmountAuthorized = $this->adyenOrderPaymentHelper->isFullAmountAuthorized($order);
+
+        if ($isFullAmountAuthorized) {
+            $order = $this->orderHelper->setPrePaymentAuthorized($order);
+            $this->orderHelper->updatePaymentDetails($order, $notification);
+            $requireFraudManualReview = $this->caseManagementHelper->requiresManualReview($notification);
+            $order = $this->handleAutoCapture($order, $notification, $requireFraudManualReview);
 
             // For Boleto confirmation mail is sent on order creation
             // Send order confirmation mail after invoice creation so merchant can add invoicePDF to this mail
@@ -135,7 +158,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
                 $this->orderHelper->sendOrderMail($order);
             }
         } else {
-            $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
+            // TODO: Throw exception here
         }
 
         // Set authorized amount in sales_order_payment
@@ -217,9 +240,10 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
      */
     private function handleAutoCapture(Order $order, Notification $notification, bool $requireFraudManualReview): Order
     {
-        $this->invoiceHelper->createInvoice($order, $notification, true);
+        $this->invoiceHelper->createPaidInvoice($order, $notification);
         if ($requireFraudManualReview) {
-             $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), true);
+            $order->setIsInProcess(false);
+            $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference());
         } else {
             $order = $this->orderHelper->finalizeOrder($order, $notification);
         }
@@ -236,7 +260,7 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
     private function handleManualCapture(Order $order, Notification $notification, bool $requireFraudManualReview): Order
     {
         if ($requireFraudManualReview) {
-            $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference(), false);
+            $order = $this->caseManagementHelper->markCaseAsPendingReview($order, $notification->getPspreference());
         } else {
             $order = $this->orderHelper->addWebhookStatusHistoryComment($order, $notification);
             $order->addStatusHistoryComment(__('Capture Mode set to Manual'), $order->getStatus());

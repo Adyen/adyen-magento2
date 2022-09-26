@@ -145,10 +145,9 @@ class Invoice extends AbstractHelper
     /**
      * @param Order $order
      * @param Notification $notification
-     * @param bool $isAutoCapture
      * @throws LocalizedException
      */
-    public function createInvoice(Order $order, Notification $notification, bool $isAutoCapture)
+    public function createPaidInvoice(Order $order, Notification $notification)
     {
         $this->adyenLogger->addAdyenNotification(
             'Creating invoice for order',
@@ -169,26 +168,7 @@ class Invoice extends AbstractHelper
 
                 // set transaction id so you can do a online refund from credit memo
                 $invoice->setTransactionId($notification->getPspreference());
-
-                $createPendingInvoice = (bool)$this->configHelper->getConfigData(
-                    'create_pending_invoice',
-                    'adyen_abstract',
-                    $order->getStoreId()
-                );
-
-                if ((!$isAutoCapture) && ($createPendingInvoice)) {
-                    // if amount is zero create a offline invoice
-                    $value = (int)$notification->getAmountValue();
-                    if ($value == 0) {
-                        $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE);
-                    } else {
-                        $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::NOT_CAPTURE);
-                    }
-
-                    $invoice->register();
-                } else {
-                    $invoice->register()->pay();
-                }
+                $invoice->register()->pay();
 
                 $this->invoiceRepository->save($invoice);
                 $this->adyenLogger->addAdyenNotification(sprintf(

@@ -36,7 +36,8 @@ class ManualReviewRejectWebhookHandler implements WebhookHandlerInterface
     public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
         $isAutoCapture = $this->paymentMethodsHelper->isAutoCapture($order, $notification->getPaymentMethod());
+        $action = $isAutoCapture ? 'refunded' : 'cancelled';
 
-        return $this->caseManagementHelper->markCaseAsRejected($order, $notification->getOriginalReference(), $isAutoCapture);
+        return $this->caseManagementHelper->markCaseAsRejected($order, $notification->getOriginalReference(), $action);
     }
 }

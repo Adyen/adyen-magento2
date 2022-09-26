@@ -193,17 +193,12 @@ class AdyenOrderPayment extends AbstractHelper
     /**
      * Create an entry in the adyen_order_payment table based on the passed notification
      *
-     * @param Order $order
-     * @param Notification $notification
-     * @param bool $autoCapture
-     * @return Payment|null
      */
-    public function createAdyenOrderPayment(Order $order, Notification $notification, bool $autoCapture): ?Payment
+    public function createAdyenOrderPayment(Order $order, Notification $notification, string $captureStatus): ?Payment
     {
         $adyenOrderPayment = null;
         $payment = $order->getPayment();
         $amount = $this->adyenDataHelper->originalAmount($notification->getAmountValue(), $order->getBaseCurrencyCode());
-        $captureStatus = $autoCapture ? Payment::CAPTURE_STATUS_AUTO_CAPTURE : Payment::CAPTURE_STATUS_NO_CAPTURE;
         $merchantReference = $notification->getMerchantReference();
         $pspReference = $notification->getPspreference();
 
