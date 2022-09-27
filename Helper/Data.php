@@ -1489,7 +1489,7 @@ class Data extends AbstractHelper
 
         $moduleVersion = $this->getModuleVersion();
         $client->setMerchantApplication($this->getModuleName(), $moduleVersion);
-        $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion());
+        $client->setExternalPlatform($this->productMetadata->getName(), $this->productMetadata->getVersion(), 'Adyen');
         if ($isDemo) {
             $client->setEnvironment(\Adyen\Environment::TEST);
             $client->setLogger($this->adyenLogger);
