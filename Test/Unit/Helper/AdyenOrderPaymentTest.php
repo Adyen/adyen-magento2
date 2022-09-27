@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Tests\Unit\Helper;
 
+use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
@@ -23,6 +24,7 @@ use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
 use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Model\AbstractModel;
 use Magento\Sales\Model\Order;
 
 class AdyenOrderPaymentTest extends AbstractAdyenTestCase
@@ -251,6 +253,42 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         $this->assertTrue($adyenOrderPaymentHelper->isFullAmountAuthorized($order));
     }
 
+    public function testRefundAdyenOrderPayment()
+    {
+        $totalRefundedAmount = 5.33;
+
+        $adyenOrderPayment = $this->createConfiguredMock(\Adyen\Payment\Api\Data\OrderPaymentInterface::class, [
+            'getTotalRefunded' => $totalRefundedAmount,
+            'setUpdatedAt' => new \DateTime(),
+            'setTotalRefunded' => $totalRefundedAmount
+        ]);
+
+        $notification = $this->createConfiguredMock(Notification::class, [
+            'getAmountValue' => 5.33,
+            'getAmountCurrency' => 'EUR'
+        ]);
+
+        $mockAdyenDataHelper = $this->createGeneratedMock(Data::class, ['originalAmount']);
+
+        $mockOrderPaymentInterface = $this->createPartialMock(OrderPaymentInterface::class, ['save']);
+
+
+        $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
+            null,
+            null,
+            $mockAdyenDataHelper,
+            null,
+            null,
+            null,
+            null,
+            $mockOrderPaymentInterface
+        );
+
+        $result = $adyenOrderPaymentHelper->refundAdyenOrderPayment($adyenOrderPayment, $notification);
+        $this->assertInstanceOf(AdyenPaymentModel::class, $result);
+        $mockOrderPaymentInterface->method('save')->willReturn($result);
+    }
+
     protected function createAdyenOrderPaymentHelper(
         $mockLogger = null,
         $mockAdyenOrderPaymentCollection = null,
@@ -258,7 +296,8 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         $mockChargedCurrency = null,
         $mockOrderPaymentResourceModel = null,
         $mockAdyenOrderPaymentFactory = null,
-        $mockInvoiceHelper = null
+        $mockInvoiceHelper = null,
+        $mockOrderPaymentInterface = null
     ): AdyenOrderPayment {
         $mockContext = $this->createMock(Context::class);
 
@@ -290,6 +329,10 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
             $mockInvoiceHelper = $this->createMock(Invoice::class);
         }
 
+        if (is_null($mockOrderPaymentInterface)) {
+            $mockOrderPaymentInterface = $this->createMock(OrderPaymentInterface::class);
+        }
+
         return new AdyenOrderPayment(
             $mockContext,
             $mockLogger,
@@ -298,7 +341,8 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
             $mockChargedCurrency,
             $mockOrderPaymentResourceModel,
             $mockAdyenOrderPaymentFactory,
-            $mockInvoiceHelper
+            $mockInvoiceHelper,
+            $mockOrderPaymentInterface
         );
     }
 }
