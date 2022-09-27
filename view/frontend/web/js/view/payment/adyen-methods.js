@@ -58,7 +58,6 @@ define(
             initialize: function () {
                 this._super();
 
-                var shippingAddressCountry = "";
                 var retrievePaymentMethods = function (){
                     fullScreenLoader.startLoader();
                     // Retrieve adyen payment methods
@@ -75,6 +74,7 @@ define(
                         console.log('Fetching the payment methods failed!');
                     });
                 };
+                retrievePaymentMethods();
                 //Retrieve payment methods to ensure the amount is updated, when applying the discount code
                 setCouponCodeAction.registerSuccessCallback(function () {
                     retrievePaymentMethods();

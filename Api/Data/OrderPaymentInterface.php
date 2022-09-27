@@ -104,7 +104,7 @@ interface OrderPaymentInterface
     /**
      * Gets the Paymentmethod for the payment.
      *
-     * @return int|null PaymentMethod.
+     * @return string|null PaymentMethod.
      */
     public function getPaymentMethod();
 

@@ -163,7 +163,10 @@ class Webhook
             if (!$currentState) {
                 $this->logger->addAdyenNotification(
                     "ERROR: Unhandled order state '{orderState}'",
-                    $this->logger->getOrderContext($this->order)
+                    array_merge(
+                        $this->logger->getOrderContext($this->order),
+                        ['pspReference' => $notification->getPspreference()]
+                    )
                 );
                 return false;
             }
@@ -182,7 +185,10 @@ class Webhook
             $this->updateNotification($notification, false, true);
             $this->logger->addAdyenNotification(
                 sprintf("Notification %s was processed", $notification->getEntityId()),
-                $this->logger->getOrderContext($this->order)
+                array_merge(
+                    $this->logger->getOrderContext($this->order),
+                    ['pspReference' => $this->order->getPayment()->getData('adyen_psp_reference')]
+                )
             );
 
             return true;
@@ -200,7 +206,10 @@ class Webhook
                     $notification->getEventCode(),
                     $e->getMessage()
                 ),
-                $this->logger->getOrderContext($this->order)
+                array_merge(
+                    $this->logger->getOrderContext($this->order),
+                    ['pspReference' => $notification->getPspreference()]
+                )
             );
 
             return false;
@@ -214,7 +223,10 @@ class Webhook
                     $e->getMessage(),
                     $e->getTraceAsString()
                 ),
-                $this->logger->getOrderContext($this->order)
+                array_merge(
+                    $this->logger->getOrderContext($this->order),
+                    ['pspReference' => $notification->getPspReference()]
+                )
             );
 
             return false;
@@ -362,14 +374,23 @@ class Webhook
                 $order->addStatusHistoryComment($comment, $pendingStatus);
                 $this->logger->addAdyenNotification(
                     'Created comment history for this notification with status change to: ' . $pendingStatus,
-                    $this->logger->getOrderContext($order)
+                    array_merge(
+                        $this->logger->getOrderContext($this->order),
+                        ['pspReference' => $notification->getPspreference()]
+                    )
                 );
                 return;
             }
         }
 
         $order->addStatusHistoryComment($comment, $order->getStatus());
-        $this->logger->addAdyenNotification('Created comment history for this notification');
+        $this->logger->addAdyenNotification(
+            'Created comment history for this notification',
+            [
+                'pspReference' => $notification->getPspReference(),
+                'merchantReference' => $notification->getMerchantReference()
+            ]
+        );
     }
 
     /**
@@ -377,7 +398,13 @@ class Webhook
      */
     private function updateAdyenAttributes(Notification $notification)
     {
-        $this->logger->addAdyenNotification('Updating the Adyen attributes of the order');
+        $this->logger->addAdyenNotification(
+            'Updating the Adyen attributes of the order',
+            [
+                'pspReference' => $notification->getPspreference(),
+                'merchantReference' => $notification->getMerchantReference()
+            ]
+        );
 
         $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize(
             $notification->getAdditionalData()
