@@ -511,7 +511,10 @@ define(
                 return true;
             },
             showModal: function() {
-                return adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
+                var actionModal = adyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
+                $("." + this.modalLabel + " .action-close").hide();
+
+                return actionModal;
             },
             closeModal: function(popupModal) {
                 adyenPaymentModal.closeModal(popupModal, this.modalLabel)
