@@ -161,6 +161,53 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         $this->assertTrue($adyenOrderPaymentHelper->isFullAmountFinalized($order));
     }
 
+    public function testIsFullAmountNotFinalizedManualCapture()
+    {
+        $invoice = $this->createConfiguredMock(Order\Invoice::class, [
+            'getGrandTotal' => 10.53,
+            'getOrderCurrencyCode' => 'EUR'
+        ]);
+
+        $mockInvoiceHelper = $this->createConfiguredMock(Invoice::class, [
+            'isFullInvoiceAmountManuallyCaptured' => true
+        ]);
+
+        $mockAdyenDataHelper = $this->createPartialMock(Data::class, []);
+
+        $payment = $this->createConfiguredMock(Order\Payment::class, [
+            'getEntityId' => 55
+        ]);
+
+        $order = $this->createConfiguredMock(Order::class, [
+            'getInvoiceCollection' => [$invoice],
+            'getPayment' => $payment
+        ]);
+
+        $orderAmountCurrency = new AdyenAmountCurrency(
+            10.33,
+            'EUR',
+            null,
+            null,
+            10.33
+        );
+
+        $mockChargedCurrency = $this->createConfiguredMock(ChargedCurrency::class, [
+            'getOrderAmountCurrency' => $orderAmountCurrency
+        ]);
+
+        $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
+            null,
+            null,
+            $mockAdyenDataHelper,
+            $mockChargedCurrency,
+            null,
+            null,
+            $mockInvoiceHelper,
+        );
+
+        $this->assertFalse($adyenOrderPaymentHelper->isFullAmountFinalized($order));
+    }
+
     public function testIsFullAmountAuthorized()
     {
         $orderAmountCurrency = new AdyenAmountCurrency(
@@ -176,8 +223,11 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         ]);
 
         $payment = $this->createConfiguredMock(Order\Payment::class, [
-           'getEntityId' => 55,
-            'getAmountAuthorized' => 10.33
+            'getEntityId' => 55
+        ]);
+
+        $adyenOrderPayment = $this->createConfiguredMock(\Adyen\Payment\Model\Order\Payment::class, [
+            'getAmount' => 10.33
         ]);
 
         $order = $this->createConfiguredMock(Order::class, [
@@ -185,7 +235,7 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         ]);
 
         $mockOrderPaymentResourceModel = $this->createConfiguredMock(Payment::class, [
-            'getLinkedAdyenOrderPayments' => [$payment]
+            'getLinkedAdyenOrderPayments' => [$adyenOrderPayment]
         ]);
 
         $mockAdyenDataHelper = $this->createPartialMock(Data::class, []);
