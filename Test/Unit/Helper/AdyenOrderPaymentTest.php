@@ -150,13 +150,13 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         ]);
 
         $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
-                null,
-                null,
-                $mockAdyenDataHelper,
-                $mockChargedCurrency,
-                null,
-                null,
-                $mockInvoiceHelper,
+            null,
+            null,
+            $mockAdyenDataHelper,
+            $mockChargedCurrency,
+            null,
+            null,
+            $mockInvoiceHelper,
         );
 
         $this->assertTrue($adyenOrderPaymentHelper->isFullAmountFinalized($order));
