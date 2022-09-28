@@ -21,6 +21,10 @@ define(
                 let popupModal = $('#' + modalLabel).modal({
                     // disable user to hide popup
                     clickableOverlay: false,
+                    // disable escape key to hide popup
+                    keyEventHandlers: {
+                        escapeKey: function () { return; }
+                    },
                     responsive: true,
                     innerScroll: false,
                     // empty buttons, we don't need that
