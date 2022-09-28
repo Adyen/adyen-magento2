@@ -11,7 +11,6 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
-use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
@@ -33,21 +32,9 @@ class ShopperInteractionDataBuilder implements BuilderInterface
      */
     private $appState;
 
-    /** @var PaymentMethods */
-    private $paymentMethodsHelper;
-
-    /**
-     * RecurringDataBuilder constructor.
-     *
-     * @param Context $context
-     * @param PaymentMethods $paymentMethodsHelper
-     */
-    public function __construct(
-        Context $context,
-        PaymentMethods $paymentMethodsHelper
-    ) {
+    public function __construct(Context $context)
+    {
         $this->appState = $context->getAppState();
-        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
