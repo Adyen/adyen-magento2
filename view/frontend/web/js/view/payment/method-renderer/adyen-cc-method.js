@@ -211,7 +211,10 @@ define(
                 }
             },
             showModal: function() {
-                return AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed)
+                let actionModal = AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed);
+                $("." + this.modalLabel + " .action-close").hide();
+
+                return actionModal;
             },
             /**
              * This method is a workaround to close the modal in the right way and reconstruct the threeDS2Modal.
@@ -309,8 +312,6 @@ define(
                 }
             },
             handleOnAdditionalDetails: function(result) {
-                $('.action-close').hide();
-
                 var self = this;
 
                 var request = result.data;
