@@ -474,7 +474,6 @@ class Config
     public function getConfigData($field, $xmlPrefix, $storeId, $flag = false)
     {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
-
         if (!$flag) {
             return $this->scopeConfig->getValue($path, ScopeInterface::SCOPE_STORE, $storeId);
         } else {
@@ -486,5 +485,22 @@ class Config
     {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
         $this->configWriter->save($path, $value, $scope);
+    }
+
+  //Example function below which gets specific details which we can then later call, currently assumes form will be per store.
+    public function getSupportFormDetails(int $storeId): array
+    {
+        $checkNotificationUsername = $this->getNotificationsUsername($storeId) ?'Username set':'No Username';
+        $checkNotificationPassword = $this->getNotificationsPassword($storeId) ?'Password set':'No Password';
+        $checkMerchantAccount = $this -> getMerchantAccount($storeId);
+        $checkMode = $this -> isDemoMode($storeId);
+        $storedMethod = $this -> isStoreAlternativePaymentMethodEnabled($storeId);
+        return [
+            'Notif' => $checkNotificationUsername,
+            'Pass' => $checkNotificationPassword,
+            'Merchant' => $checkMerchantAccount,
+            'Mode' => $checkMode,
+            'Stored' => $storedMethod,
+        ];
     }
 }
