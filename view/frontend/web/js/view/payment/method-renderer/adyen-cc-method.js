@@ -211,7 +211,7 @@ define(
                 }
             },
             showModal: function() {
-                var actionModal = AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed);
+                let actionModal = AdyenPaymentModal.showModal(adyenPaymentService, fullScreenLoader, this.messageContainer, this.orderId, this.modalLabel, this.isPlaceOrderActionAllowed);
                 $("." + this.modalLabel + " .action-close").hide();
 
                 return actionModal;
