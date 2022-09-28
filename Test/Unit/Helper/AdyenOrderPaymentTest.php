@@ -11,7 +11,6 @@
 
 namespace Adyen\Payment\Tests\Unit\Helper;
 
-use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
@@ -254,38 +253,23 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
 
     public function testRefundAdyenOrderPayment()
     {
-        $totalRefundedAmount = 5.33;
+        $payment = $this->createMock(\Adyen\Payment\Model\Order\Payment::class);
 
-        $adyenOrderPayment = $this->createConfiguredMock(\Adyen\Payment\Api\Data\OrderPaymentInterface::class, [
-            'getTotalRefunded' => $totalRefundedAmount,
-            'setUpdatedAt' => new \DateTime(),
-            'setTotalRefunded' => $totalRefundedAmount
-        ]);
+        $payment->expects($this->once())->method('save');
 
-        $notification = $this->createConfiguredMock(Notification::class, [
-            'getAmountValue' => 5.33,
-            'getAmountCurrency' => 'EUR'
-        ]);
+        $notification = $this->createMock(Notification::class);
 
         $mockAdyenDataHelper = $this->createGeneratedMock(Data::class, ['originalAmount']);
-
-        $mockOrderPaymentInterface = $this->createPartialMock(OrderPaymentInterface::class, ['save']);
-
 
         $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
             null,
             null,
-            $mockAdyenDataHelper,
-            null,
-            null,
-            null,
-            null,
-            $mockOrderPaymentInterface
+            $mockAdyenDataHelper
         );
 
-        $result = $adyenOrderPaymentHelper->refundAdyenOrderPayment($adyenOrderPayment, $notification);
-        $this->assertInstanceOf(AdyenPaymentModel::class, $result);
-        $mockOrderPaymentInterface->method('save')->willReturn($result);
+        $result = $adyenOrderPaymentHelper->refundAdyenOrderPayment($payment, $notification);
+
+        $this->assertSame($payment, $result);
     }
 
     protected function createAdyenOrderPaymentHelper(
@@ -295,8 +279,7 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         $mockChargedCurrency = null,
         $mockOrderPaymentResourceModel = null,
         $mockAdyenOrderPaymentFactory = null,
-        $mockInvoiceHelper = null,
-        $mockOrderPaymentInterface = null
+        $mockInvoiceHelper = null
     ): AdyenOrderPayment {
         $mockContext = $this->createMock(Context::class);
 
@@ -328,10 +311,6 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
             $mockInvoiceHelper = $this->createMock(Invoice::class);
         }
 
-        if (is_null($mockOrderPaymentInterface)) {
-            $mockOrderPaymentInterface = $this->createMock(OrderPaymentInterface::class);
-        }
-
         return new AdyenOrderPayment(
             $mockContext,
             $mockLogger,
@@ -340,8 +319,7 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
             $mockChargedCurrency,
             $mockOrderPaymentResourceModel,
             $mockAdyenOrderPaymentFactory,
-            $mockInvoiceHelper,
-            $mockOrderPaymentInterface
+            $mockInvoiceHelper
         );
     }
 }
