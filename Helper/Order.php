@@ -607,6 +607,17 @@ class Order extends AbstractHelper
         return $order;
     }
 
+    public function getOrderByIncrementId(string $incrementId): ?MagentoOrder
+    {
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter('increment_id', $incrementId)
+            ->create();
+
+        $orders = $this->orderRepository->getList($searchCriteria)->getItems();
+
+        return reset($orders);
+    }
+
     /**
      * If the payment_authorized_virtual config is set, return the virtual status
      *
