@@ -24,7 +24,6 @@ use Adyen\Payment\Model\Order\PaymentFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment;
 use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
 use Magento\Framework\App\Helper\Context;
-use Magento\Framework\Model\AbstractModel;
 use Magento\Sales\Model\Order;
 
 class AdyenOrderPaymentTest extends AbstractAdyenTestCase
@@ -151,13 +150,13 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
         ]);
 
         $adyenOrderPaymentHelper = $this->createAdyenOrderPaymentHelper(
-          null,
-          null,
-          $mockAdyenDataHelper,
-          $mockChargedCurrency,
-          null,
-          null,
-          $mockInvoiceHelper,
+                null,
+                null,
+                $mockAdyenDataHelper,
+                $mockChargedCurrency,
+                null,
+                null,
+                $mockInvoiceHelper,
         );
 
         $this->assertTrue($adyenOrderPaymentHelper->isFullAmountFinalized($order));
@@ -305,7 +304,7 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
             $mockLogger = $this->createMock(AdyenLogger::class);
         }
 
-        if(is_null($mockAdyenOrderPaymentCollection)) {
+        if (is_null($mockAdyenOrderPaymentCollection)) {
             $mockAdyenOrderPaymentCollection = $this->createGeneratedMock(Payment\CollectionFactory::class);
         }
 

@@ -187,7 +187,6 @@ class AdyenOrderPayment extends AbstractHelper
         $entityId = $payment->getEntityId();
         $authorisedAdyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments($entityId);
 
-       //  var_dump($authorisedAdyenOrderPayments); die();
         return $this->compareAdyenOrderPaymentsAmount($order, $authorisedAdyenOrderPayments);
     }
 
