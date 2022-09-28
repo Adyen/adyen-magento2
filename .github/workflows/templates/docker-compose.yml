@@ -59,7 +59,7 @@ services:
         aliases:
           - magento2.test.com
   playwright:
-    image: mcr.microsoft.com/playwright:v1.20.0-focal
+    image: mcr.microsoft.com/playwright:v1.25.0-focal
     shm_size: 1gb
     ipc: host
     cap_add:
