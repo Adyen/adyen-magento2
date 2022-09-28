@@ -474,6 +474,7 @@ class Config
     public function getConfigData($field, $xmlPrefix, $storeId, $flag = false)
     {
         $path = implode("/", [self::XML_PAYMENT_PREFIX, $xmlPrefix, $field]);
+
         if (!$flag) {
             return $this->scopeConfig->getValue($path, ScopeInterface::SCOPE_STORE, $storeId);
         } else {
