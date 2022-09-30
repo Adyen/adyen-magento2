@@ -2,6 +2,7 @@ name: E2E Tests
 run-name: Headless E2E test run triggered by adyen-integration-tools-tests ${{inputs.testBranch}}
 
 on:
+  pull_request:
   workflow_dispatch:
     inputs:
       testBranch:
