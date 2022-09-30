@@ -1,4 +1,5 @@
 name: E2E Tests
+run-name: Headless E2E test run for adyen-integration-tools-tests repo ${{inputs.testBranch}}
 
 on:
   workflow_dispatch:
