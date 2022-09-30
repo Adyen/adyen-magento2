@@ -283,7 +283,7 @@ class Invoice extends AbstractHelper
         $isFullAmountCaptured = $this->adyenDataHelper->originalAmount(
             $notification->getAmountValue(),
             $notification->getAmountCurrency()
-            ) === $order->getBaseGrandTotal();
+            ) === floatval($order->getBaseGrandTotal());
 
         if (is_null($adyenInvoice) && $order->canInvoice()) {
                 if ($isFullAmountCaptured) {
