@@ -20,6 +20,7 @@ use Adyen\Service\Management;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManager;
 use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Encryption\EncryptorInterface;
 
 class ManagementHelper
 {
@@ -35,6 +36,11 @@ class ManagementHelper
      * @var Config
      */
     private $configHelper;
+    
+    /**
+     * @var EncryptorInterface
+     */
+    private $encryptor;
 
     /**
      * Logging instance
@@ -46,17 +52,20 @@ class ManagementHelper
     /**
      * ManagementHelper constructor.
      * @param StoreManager $storeManager
+     * @param EncryptorInterface $encryptor
      * @param Data $dataHelper
      * @param Config $configHelper
      */
     public function __construct(
         StoreManager $storeManager,
+        EncryptorInterface $encryptor,
         Data $dataHelper,
         Config $configHelper,
         AdyenLogger $adyenLogger
     ) {
         $this->dataHelper = $dataHelper;
         $this->storeManager = $storeManager;
+        $this->encryptor = $encryptor;
         $this->configHelper = $configHelper;
         $this->adyenLogger = $adyenLogger;
     }
@@ -169,7 +178,8 @@ class ManagementHelper
 
         // generate hmac key and save
         $response = $management->merchantWebhooks->generateHmac($merchantId, $webhookId);
-        $hmac = $response['hmacKey'];
+        $hmacKey = $response['hmacKey'];
+        $hmac = $this->encryptor->encrypt($hmacKey);
         $mode = $demoMode ? 'test' : 'live';
         $this->configHelper->setConfigData($hmac, 'notification_hmac_key_' . $mode, Config::XML_ADYEN_ABSTRACT_PREFIX);
     }
