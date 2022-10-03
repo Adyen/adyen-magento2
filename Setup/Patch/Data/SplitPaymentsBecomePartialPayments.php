@@ -27,7 +27,6 @@ class SplitPaymentsBecomePartialPayments implements DataPatchInterface, PatchVer
      */
     public function __construct(ModuleDataSetupInterface $moduleDataSetup)
     {
-        die();
         $this->moduleDataSetup = $moduleDataSetup;
     }
 
@@ -38,7 +37,6 @@ class SplitPaymentsBecomePartialPayments implements DataPatchInterface, PatchVer
      */
     public function apply()
     {
-        var_dump('hello');
         $this->moduleDataSetup->getConnection()->startSetup();
         $this->updateSchemaVersion800($this->moduleDataSetup);
         $this->moduleDataSetup->getConnection()->endSetup();
