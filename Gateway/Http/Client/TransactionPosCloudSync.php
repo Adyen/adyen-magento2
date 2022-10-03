@@ -29,6 +29,9 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class TransactionPosCloudSync implements ClientInterface
 {
+    const FUNDING_SOURCE_DEBIT = 'debit';
+    const FUNDING_SOURCE_CREDIT = 'credit';
+
     /**
      * @var int
      */
@@ -108,7 +111,7 @@ class TransactionPosCloudSync implements ClientInterface
         $terminalId = $request['terminalID'];
 
         if (array_key_exists('chainCalls', $request)) {
-            $quote = $this->initiatePosPayment($terminalId, $request['numberOfInstallments']);
+            $quote = $this->initiatePosPayment($terminalId, $request['fundingSource'], $request['numberOfInstallments']);
             $quoteInfoInstance = $quote->getPayment()->getMethodInstance()->getInfoInstance();
             $timeDiff = (int)$statusDate - (int)$quoteInfoInstance->getAdditionalInformation('initiateDate');
             $serviceId = $quoteInfoInstance->getAdditionalInformation('serviceID');
@@ -180,15 +183,15 @@ class TransactionPosCloudSync implements ClientInterface
      * Initiate a POS payment by sending a /sync call to Adyen
      *
      * @param string $terminalId
+     * @param string $fundingSource
      * @param string|null $numberOfInstallments
      * @return CartInterface
      * @throws AdyenException
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function initiatePosPayment(string $terminalId, ?string $numberOfInstallments): CartInterface
+    public function initiatePosPayment(string $terminalId, string $fundingSource, ?string $numberOfInstallments): CartInterface
     {
-
         // Validate JSON that has just been parsed if it was in a valid format
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new LocalizedException(
@@ -248,22 +251,33 @@ class TransactionPosCloudSync implements ClientInterface
                 ]
         ];
 
-        if (isset($numberOfInstallments)) {
-            $request['SaleToPOIRequest']['PaymentRequest']['PaymentData'] = [
-                "PaymentType" => "Instalment",
-                "Instalment" => [
-                    "InstalmentType" => "EqualInstalments",
-                    "SequenceNumber" => 1,
-                    "Period" => 1,
-                    "PeriodUnit" => "Monthly",
-                    "TotalNbOfPayments" => intval($numberOfInstallments)
-                ]
-            ];
+        if ($fundingSource === self::FUNDING_SOURCE_CREDIT) {
+            if (isset($numberOfInstallments)) {
+                $request['SaleToPOIRequest']['PaymentRequest']['PaymentData'] = [
+                    "PaymentType" => "Instalment",
+                    "Instalment" => [
+                        "InstalmentType" => "EqualInstalments",
+                        "SequenceNumber" => 1,
+                        "Period" => 1,
+                        "PeriodUnit" => "Monthly",
+                        "TotalNbOfPayments" => intval($numberOfInstallments)
+                    ]
+                ];
+            }
+            else {
+                $request['SaleToPOIRequest']['PaymentData'] = [
+                    'PaymentType' => $transactionType,
+                ];
+            }
 
             $request['SaleToPOIRequest']['PaymentRequest']['PaymentTransaction']['TransactionConditions'] = [
                 "DebitPreferredFlag" => false
             ];
-        } else {
+        } elseif ($fundingSource === self::FUNDING_SOURCE_DEBIT) {
+            $request['SaleToPOIRequest']['PaymentRequest']['PaymentTransaction']['TransactionConditions'] = [
+                "DebitPreferredFlag" => true
+            ];
+
             $request['SaleToPOIRequest']['PaymentData'] = [
                 'PaymentType' => $transactionType,
             ];

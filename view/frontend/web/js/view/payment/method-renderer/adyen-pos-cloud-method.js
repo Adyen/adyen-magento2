@@ -36,10 +36,12 @@ define(
             defaults: {
                 template: 'Adyen_Payment/payment/pos-cloud-form'
             },
+            fundingSource: ko.observable('credit'),
             initObservable: function () {
                 this._super()
                     .observe([
                         'terminalId',
+                        'fundingSource',
                         'installments',
                         'installment'
                     ]);
@@ -106,6 +108,34 @@ define(
 
                 return connectedTerminals;
             },
+            isFundingSourceAvailable: function () {
+                if (quote.billingAddress() === null) {
+                    return false;
+                }
+                var countryId = quote.billingAddress().countryId;
+                var currencyCode = quote.totals().quote_currency_code;
+                var allowedCurrenciesByCountry = {
+                    'BR': 'BRL',
+                    'MX': 'MXN',
+                };
+                return allowedCurrenciesByCountry[countryId] &&
+                    currencyCode === allowedCurrenciesByCountry[countryId];
+            },
+            getFundingSourceOptions: function () {
+                var fundingSource = [];
+                const fundingSourceOptions = window.checkoutConfig.payment.adyenPos.fundingSourceOptions;
+
+                for (var i = 0; i < Object.values(fundingSourceOptions).length; i++) {
+                    fundingSource.push(
+                        {
+                            value:  Object.keys(fundingSourceOptions)[i],
+                            key: Object.values(fundingSourceOptions)[i]
+                        }
+                    );
+                }
+
+                return fundingSource;
+            },
             /**
              * Get data for place order
              * @returns {{method: *}}
@@ -116,12 +146,13 @@ define(
                     additional_data: {
                         'terminal_id': this.terminalId(),
                         'number_of_installments': this.installment(),
-                        'chain_calls': true
+                        'chain_calls': true,
+                        'funding_source': this.fundingSource()
                     }
                 };
             },
             hasInstallments: function () {
-                return window.checkoutConfig.payment.adyenPos.hasInstallments;
+                return window.checkoutConfig.payment.adyenPos.hasInstallments && this.fundingSource() === 'credit';
             },
             getAllInstallments: function () {
                 return window.checkoutConfig.payment.adyenPos.installments;
