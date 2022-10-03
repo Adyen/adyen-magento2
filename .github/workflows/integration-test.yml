@@ -51,6 +51,7 @@ jobs:
         run: docker exec magento2-container make fs
 
       - name: Run E2E tests
+        if: PHP_VERSION == "8.1"
         run: docker-compose -f .github/workflows/templates/docker-compose.yml run --rm playwright /e2e.sh
         env:
           INTEGRATION_TESTS_BRANCH: develop
