@@ -38,6 +38,7 @@ class TokenizationSettings implements DataPatchInterface, PatchVersionInterface
         WriterInterface $configWriter,
         ReinitableConfigInterface $reinitableConfig
     ) {
+        die();
         $this->moduleDataSetup = $moduleDataSetup;
         $this->configWriter = $configWriter;
         $this->reinitableConfig = $reinitableConfig;
