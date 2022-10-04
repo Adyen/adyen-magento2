@@ -52,15 +52,6 @@
         </arguments>
     </virtualType>
 
-    <virtualType name="AdyenPaymentHppFacade" type="Adyen\Payment\Model\Method\Adapter">
-        <arguments>
-            <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::CODE</argument>
-            <argument name="formBlockType" xsi:type="string">Adyen\Payment\Block\Form\Cc</argument>
-            <argument name="infoBlockType" xsi:type="string">Adyen\Payment\Block\Info\Cc</argument>
-            <argument name="valueHandlerPool" xsi:type="object">AdyenPaymentGenericValueHandlerPool</argument>
-            <argument name="commandPool" xsi:type="object">AdyenPaymentHppCommandPool</argument>
-        </arguments>
-    </virtualType>
     <virtualType name="AdyenPaymentHppVaultFacade" type="Adyen\Payment\Model\Method\PaymentMethodVault">
         <arguments>
             <argument name="code" xsi:type="const">Adyen\Payment\Model\Ui\AdyenHppConfigProvider::HPP_VAULT_CODE</argument>
