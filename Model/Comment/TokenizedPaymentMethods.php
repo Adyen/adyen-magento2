@@ -22,6 +22,7 @@ class TokenizedPaymentMethods implements CommentInterface
      */
     public function getCommentText($elementValue): string
     {
-        return 'Selected payment methods will automatically be tokenized on every transaction. At the moment, CardOnFile tokens can only be created using Wallet payment methods (Google Pay).';
+        return 'Selected payment methods will automatically be tokenized on every transaction.
+        At the moment, CardOnFile tokens can only be created using Wallet payment methods (Google Pay).';
     }
 }

@@ -25,12 +25,19 @@ class CustomerFilterVaultTokens
      * @param array $customerSessionTokens
      * @return array
      */
-    public function afterGetCustomerSessionTokens(CustomerTokenManagement $customerTokenManagement, array $customerSessionTokens): array
-    {
-        foreach($customerSessionTokens as $key => $token) {
+    public function afterGetCustomerSessionTokens(
+        CustomerTokenManagement $customerTokenManagement,
+        array $customerSessionTokens
+    ): array {
+        foreach ($customerSessionTokens as $key => $token) {
             if (strpos($token->getPaymentMethodCode(), 'adyen_') === 0) {
                 $tokenDetails = json_decode($token->getTokenDetails());
-                if (property_exists($tokenDetails, Vault::TOKEN_TYPE) && in_array($tokenDetails->tokenType, [Recurring::SUBSCRIPTION, Recurring::UNSCHEDULED_CARD_ON_FILE])) {
+                if (property_exists($tokenDetails, Vault::TOKEN_TYPE) &&
+                    in_array($tokenDetails->tokenType, [
+                        Recurring::SUBSCRIPTION,
+                        Recurring::UNSCHEDULED_CARD_ON_FILE]
+                    )
+                ) {
                     unset($customerSessionTokens[$key]);
                 }
             }

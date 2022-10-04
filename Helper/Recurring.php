@@ -86,9 +86,8 @@ class Recurring
     /**
      * @param $order
      * @param $additionalData
-     * @param array $savedPaymentData
      */
-    public function createAdyenBillingAgreement($order, $additionalData, array $savedPaymentData = [])
+    public function createAdyenBillingAgreement($order, $additionalData)
     {
         if (!empty($additionalData['recurring.recurringDetailReference'])) {
             try {

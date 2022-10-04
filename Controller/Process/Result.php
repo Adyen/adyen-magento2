@@ -271,7 +271,7 @@ class Result extends \Magento\Framework\App\Action\Action
                 $this->vaultHelper->saveRecurringCardDetails($this->payment, $response['additionalData']);
             } else {
                 $order = $this->payment->getOrder();
-                $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $this->payment->getAdditionalInformation());
+                $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData']);
             }
             $this->orderResourceModel->save($order);
         }

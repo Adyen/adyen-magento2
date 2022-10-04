@@ -82,8 +82,8 @@ class VaultDeleteTokenObserver implements ObserverInterface
             $this->adyenLogger->error(sprintf(
                     'No such entity while attempting to disable token with id %s: %s',
                     $paymentToken->getEntityId(),
-                    $e->getMessage()
-            ));
+                    $e->getMessage())
+            );
         }
     }
 

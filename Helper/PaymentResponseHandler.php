@@ -218,7 +218,8 @@ class PaymentResponseHandler
                 }
                 $paymentMethodInstance = $payment->getMethodInstance();
 
-                if ($this->vaultHelper->hasRecurringDetailReference($paymentsResponse) && $paymentMethodInstance->getCode() !== AdyenOneclickConfigProvider::CODE) {
+                if ($this->vaultHelper->hasRecurringDetailReference($paymentsResponse) &&
+                    $paymentMethodInstance->getCode() !== AdyenOneclickConfigProvider::CODE) {
                     $storeId = $paymentMethodInstance->getStore();
                     $paymentInstanceCode = $paymentMethodInstance->getCode();
                     $storePaymentMethods = $this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId);
@@ -228,16 +229,29 @@ class PaymentResponseHandler
                         try {
                             $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($brand);
                             if ($adyenPaymentMethod instanceof AbstractWalletPaymentMethod) {
-                                $this->vaultHelper->saveRecurringCardDetails($payment, $paymentsResponse['additionalData']);
+                                $this->vaultHelper->saveRecurringCardDetails(
+                                    $payment,
+                                    $paymentsResponse['additionalData']
+                                );
                             } else {
-                                $this->vaultHelper->saveRecurringPaymentMethodDetails($payment, $paymentsResponse['additionalData']);
+                                $this->vaultHelper->saveRecurringPaymentMethodDetails(
+                                    $payment,
+                                    $paymentsResponse['additionalData']
+                                );
                             }
                         } catch (PaymentMethodException $e) {
-                            $this->adyenLogger->error(sprintf('Unable to create payment method with tx variant %s in details handler', $brand));
+                            $this->adyenLogger->error(sprintf(
+                                'Unable to create payment method with tx variant %s in details handler',
+                                $brand
+                            ));
                         }
                     } else {
                         $order = $payment->getOrder();
-                        $this->recurringHelper->createAdyenBillingAgreement($order, $paymentsResponse['additionalData'], $payment->getAdditionalInformation());
+                        $this->recurringHelper->createAdyenBillingAgreement(
+                            $order,
+                            $paymentsResponse['additionalData'],
+                            $payment->getAdditionalInformation()
+                        );
                     }
                 }
 

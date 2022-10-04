@@ -131,11 +131,15 @@ class AdyenCcConfigProvider implements ConfigProviderInterface
             [
                 'payment' => [
                     'ccform' => [
-                        'availableTypes' => [$methodCode => $this->paymentMethodsHelper->getCcAvailableTypes()],
-                        'availableTypesByAlt' => [$methodCode => $this->paymentMethodsHelper->getCcAvailableTypesByAlt()],
+                        'availableTypes' => [
+                            $methodCode => $this->paymentMethodsHelper->getCcAvailableTypes()
+                        ],
+                        'availableTypesByAlt' => [
+                            $methodCode => $this->paymentMethodsHelper->getCcAvailableTypesByAlt()
+                        ],
                         'months' => [$methodCode => $this->getCcMonths()],
                         'years' => [$methodCode => $this->getCcYears()],
-                        'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
+                        'hasVerification' => [$methodCode => $this->hasVerification()],
                         'cvvImageUrl' => [$methodCode => $this->getCvvImageUrl()]
                     ]
                 ]

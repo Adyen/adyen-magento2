@@ -124,19 +124,19 @@ class Vault
      */
     public function hasRecurringDetailReference(array $response): bool
     {
-        if (array_key_exists('additionalData', $response) && array_key_exists(self::RECURRING_DETAIL_REFERENCE, $response['additionalData'])) {
+        if (array_key_exists('additionalData', $response) &&
+            array_key_exists(self::RECURRING_DETAIL_REFERENCE, $response['additionalData'])) {
             return true;
         }
 
         return false;
     }
 
-    /**
-     * @param $payment
-     * @param array $additionalData
-     */
-    public function saveRecurringCardDetails($payment, array $additionalData, AbstractWalletPaymentMethod $paymentMethod = null)
-    {
+    public function saveRecurringCardDetails(
+        $payment,
+        array $additionalData,
+        AbstractWalletPaymentMethod $paymentMethod = null
+    ) {
         if (!$this->isCardVaultEnabled($payment->getOrder()->getStoreId()) &&
             !$this->adyenHelper->isHppVaultEnabled($payment->getOrder()->getStoreId())) {
             return;
@@ -180,7 +180,10 @@ class Vault
             $extensionAttributes = $this->getExtensionAttributes($payment);
             $extensionAttributes->setVaultPaymentToken($paymentToken);
         } catch (PaymentMethodException $e) {
-            $this->adyenLogger->error(sprintf('Unable to create token for order %s', $payment->getOrder()->getEntityId()));
+            $this->adyenLogger->error(sprintf(
+                'Unable to create token for order %s',
+                $payment->getOrder()->getEntityId()
+            ));
 
             return null;
         } catch (Exception $exception) {
@@ -312,13 +315,13 @@ class Vault
     }
 
     /**
-     * @param $payment
-     * @param array $additionalData
-     * @return PaymentTokenInterface|null
      * @throws Exception
      */
-    private function getVaultPaymentToken($payment, array $additionalData, AbstractWalletPaymentMethod $paymentMethod = null): PaymentTokenInterface
-    {
+    private function getVaultPaymentToken(
+        $payment,
+        array $additionalData,
+        AbstractWalletPaymentMethod $paymentMethod = null
+    ): PaymentTokenInterface {
         // Check if paymentToken exists already
         $paymentToken = $this->paymentTokenManagement->getByGatewayToken(
             $additionalData[self::RECURRING_DETAIL_REFERENCE],
@@ -376,28 +379,6 @@ class Vault
             $this->paymentTokenRepository->save($paymentToken);
         }
         return $paymentToken;
-    }
-
-    /**
-     * @param array $additionalData
-     * @param array $keys
-     * @return bool
-     */
-    private function validatePaymentMethodAdditionalData(array $additionalData, array $keys): bool
-    {
-        // If additionalData is empty, but some keys are required
-        if (empty($additionalData) && !empty($keys)) {
-            return false;
-        }
-
-        foreach ($keys as $key) {
-            if (empty($additionalData[$key])) {
-                $this->adyenLogger->error(sprintf('%s not found in additionalData', $key));
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
