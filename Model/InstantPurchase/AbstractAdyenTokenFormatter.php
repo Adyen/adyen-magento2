@@ -41,7 +41,7 @@ abstract class AbstractAdyenTokenFormatter
         'sepadirectdebit' => 'SEPA Direct Debit'
     ];
 
-    public abstract function formatPaymentToken(PaymentTokenInterface $paymentToken): string;
+    abstract public function formatPaymentToken(PaymentTokenInterface $paymentToken): string;
 
     public function formatCardPaymentToken(PaymentTokenInterface $paymentToken): string
     {

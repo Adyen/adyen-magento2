@@ -74,7 +74,9 @@ class VaultDetailsHandler implements HandlerInterface
         $payment = $orderPayment->getPayment();
         $paymentMethodInstance = $payment->getMethodInstance();
 
-        if ($this->vaultHelper->hasRecurringDetailReference($response) && $paymentMethodInstance->getCode() !== AdyenOneclickConfigProvider::CODE) {
+        if ($this->vaultHelper->hasRecurringDetailReference($response) &&
+            $paymentMethodInstance->getCode() !== AdyenOneclickConfigProvider::CODE
+        ) {
             $storeId = $paymentMethodInstance->getStore();
             $paymentInstanceCode = $paymentMethodInstance->getCode();
             $storePaymentMethods = $this->configHelper->isStoreAlternativePaymentMethodEnabled($storeId);
@@ -90,18 +92,33 @@ class VaultDetailsHandler implements HandlerInterface
                     $payment->setAdditionalInformation(VaultConfigProvider::IS_ACTIVE_CODE, true);
                     $adyenPaymentMethod = $this->paymentMethodFactory::createAdyenPaymentMethod($paymentMethod);
                     if ($adyenPaymentMethod instanceof AbstractWalletPaymentMethod) {
-                        $this->vaultHelper->saveRecurringCardDetails($payment, $response['additionalData'], $adyenPaymentMethod);
+                        $this->vaultHelper->saveRecurringCardDetails(
+                            $payment,
+                            $response['additionalData'],
+                            $adyenPaymentMethod
+                        );
                     } else {
                         $this->vaultHelper->saveRecurringPaymentMethodDetails($payment, $response['additionalData']);
                     }
                 } catch (PaymentMethodException $e) {
-                    $this->adyenLogger->error(sprintf('Unable to create payment method with tx variant %s in details handler', $paymentMethod));
+                    $this->adyenLogger->error(sprintf(
+                        'Unable to create payment method with tx variant %s in details handler',
+                        $paymentMethod
+                    ));
                 }
             } elseif ($cardVaultEnabled && $paymentInstanceCode === AdyenCcConfigProvider::CODE) {
                 $this->vaultHelper->saveRecurringCardDetails($payment, $response['additionalData']);
-            } elseif (!$cardVaultEnabled && $adyenTokensEnabled && $paymentInstanceCode === AdyenCcConfigProvider::CODE) {
+            } elseif (
+                !$cardVaultEnabled &&
+                $adyenTokensEnabled &&
+                $paymentInstanceCode === AdyenCcConfigProvider::CODE
+            ) {
                 $order = $payment->getOrder();
-                $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $payment->getAdditionalInformation());
+                $this->recurringHelper->createAdyenBillingAgreement(
+                    $order,
+                    $response['additionalData'],
+                    $payment->getAdditionalInformation()
+                );
             }
         }
     }

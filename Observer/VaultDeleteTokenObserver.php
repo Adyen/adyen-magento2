@@ -61,7 +61,9 @@ class VaultDeleteTokenObserver implements ObserverInterface
         $paymentToken = $this->getPaymentToken($observer->getData('request'), $customerId);
 
         $request = [
-            Requests::MERCHANT_ACCOUNT => $this->dataHelper->getAdyenMerchantAccount($paymentToken->getPaymentMethodCode()),
+            Requests::MERCHANT_ACCOUNT => $this->dataHelper->getAdyenMerchantAccount(
+                $paymentToken->getPaymentMethodCode()
+            ),
             Requests::SHOPPER_REFERENCE => $this->requestsHelper->getShopperReference($customerId, null),
             Requests::RECURRING_DETAIL_REFERENCE => $paymentToken->getGatewayToken()
         ];
@@ -80,8 +82,8 @@ class VaultDeleteTokenObserver implements ObserverInterface
             $this->adyenLogger->error(sprintf(
                     'No such entity while attempting to disable token with id %s: %s',
                     $paymentToken->getEntityId(),
-                    $e->getMessage())
-            );
+                    $e->getMessage()
+            ));
         }
     }
 

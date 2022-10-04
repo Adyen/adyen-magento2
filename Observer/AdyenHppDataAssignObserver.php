@@ -85,7 +85,6 @@ class AdyenHppDataAssignObserver extends AbstractDataAssignObserver
     public function execute(Observer $observer)
     {
         $additionalDataToSave = [];
-        $storeId = $this->storeManager->getStore()->getStoreId();
         // Get request fields
         $data = $this->readDataArgument($observer);
         $paymentInfo = $this->readPaymentModelArgument($observer);
