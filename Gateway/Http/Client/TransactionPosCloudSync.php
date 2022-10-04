@@ -15,6 +15,7 @@ namespace Adyen\Payment\Gateway\Http\Client;
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PointOfSale;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
@@ -29,9 +30,6 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class TransactionPosCloudSync implements ClientInterface
 {
-    const FUNDING_SOURCE_DEBIT = 'debit';
-    const FUNDING_SOURCE_CREDIT = 'credit';
-
     /**
      * @var int
      */
@@ -251,7 +249,7 @@ class TransactionPosCloudSync implements ClientInterface
                 ]
         ];
 
-        if ($fundingSource === self::FUNDING_SOURCE_CREDIT) {
+        if ($fundingSource === PaymentMethods::FUNDING_SOURCE_CREDIT) {
             if (isset($numberOfInstallments)) {
                 $request['SaleToPOIRequest']['PaymentRequest']['PaymentData'] = [
                     "PaymentType" => "Instalment",
@@ -273,7 +271,7 @@ class TransactionPosCloudSync implements ClientInterface
             $request['SaleToPOIRequest']['PaymentRequest']['PaymentTransaction']['TransactionConditions'] = [
                 "DebitPreferredFlag" => false
             ];
-        } elseif ($fundingSource === self::FUNDING_SOURCE_DEBIT) {
+        } elseif ($fundingSource === PaymentMethods::FUNDING_SOURCE_DEBIT) {
             $request['SaleToPOIRequest']['PaymentRequest']['PaymentTransaction']['TransactionConditions'] = [
                 "DebitPreferredFlag" => true
             ];

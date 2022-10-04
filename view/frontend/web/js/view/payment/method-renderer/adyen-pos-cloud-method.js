@@ -50,15 +50,15 @@ define(
             },
             initialize: function () {
                 this._super();
-                var self = this;
+                let self = this;
 
                 // installments
-                var allInstallments = self.getAllInstallments();
-                var grandTotal = quote.totals().grand_total;
-                var precision = quote.getPriceFormat().precision;
-                var currencyCode = quote.totals().quote_currency_code;
+                let allInstallments = self.getAllInstallments();
+                let grandTotal = quote.totals().grand_total;
+                let precision = quote.getPriceFormat().precision;
+                let currencyCode = quote.totals().quote_currency_code;
 
-                var numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(allInstallments, grandTotal, precision, currencyCode);
+                let numberOfInstallments = installmentsHelper.getInstallmentsWithPrices(allInstallments, grandTotal, precision, currencyCode);
 
                 if (numberOfInstallments) {
                     self.installments(numberOfInstallments);
@@ -73,7 +73,7 @@ define(
                 }
             },
             placeOrderPos: function () {
-                var self = this;
+                let self = this;
                 return $.when(
                     placeOrderAction(self.getData(), new Messages())
                 ).fail(
@@ -94,10 +94,10 @@ define(
                 )
             },
             getConnectedTerminals: function () {
-                var connectedTerminals = [];
+                let connectedTerminals = [];
                 const connectedTerminalsList = window.checkoutConfig.payment.adyenPos.connectedTerminals;
 
-                for (var i = 0; i < connectedTerminalsList.length; i++) {
+                for (let i = 0; i < connectedTerminalsList.length; i++) {
                     connectedTerminals.push(
                         {
                             key: connectedTerminalsList[i],
@@ -112,9 +112,9 @@ define(
                 if (quote.billingAddress() === null) {
                     return false;
                 }
-                var countryId = quote.billingAddress().countryId;
-                var currencyCode = quote.totals().quote_currency_code;
-                var allowedCurrenciesByCountry = {
+                let countryId = quote.billingAddress().countryId;
+                let currencyCode = quote.totals().quote_currency_code;
+                let allowedCurrenciesByCountry = {
                     'BR': 'BRL',
                     'MX': 'MXN',
                 };
@@ -122,10 +122,10 @@ define(
                     currencyCode === allowedCurrenciesByCountry[countryId];
             },
             getFundingSourceOptions: function () {
-                var fundingSource = [];
+                let fundingSource = [];
                 const fundingSourceOptions = window.checkoutConfig.payment.adyenPos.fundingSourceOptions;
 
-                for (var i = 0; i < Object.values(fundingSourceOptions).length; i++) {
+                for (let i = 0; i < Object.values(fundingSourceOptions).length; i++) {
                     fundingSource.push(
                         {
                             value:  Object.keys(fundingSourceOptions)[i],
