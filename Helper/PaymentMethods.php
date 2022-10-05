@@ -53,6 +53,9 @@ class PaymentMethods extends AbstractHelper
         "scheme" => "card"
     ];
 
+    const FUNDING_SOURCE_DEBIT = 'debit';
+    const FUNDING_SOURCE_CREDIT = 'credit';
+
     /**
      * @var CartRepositoryInterface
      */

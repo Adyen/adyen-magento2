@@ -35,14 +35,16 @@ class PosCloudBuilder implements BuilderInterface
             $body = [
                 'terminalID' => $payment->getAdditionalInformation('terminal_id'),
                 'numberOfInstallments' => $payment->getAdditionalInformation('number_of_installments'),
-                'chainCalls' => $payment->getAdditionalInformation('chain_calls')
+                'chainCalls' => $payment->getAdditionalInformation('chain_calls'),
+                'fundingSource' => $payment->getAdditionalInformation('funding_source')
             ];
         } else {
             $body = [
                 "response" => $payment->getAdditionalInformation("terminalResponse"),
                 "serviceID" => $payment->getAdditionalInformation("serviceID"),
                 "initiateDate" => $payment->getAdditionalInformation("initiateDate"),
-                "terminalID" => $payment->getAdditionalInformation("terminal_id")
+                "terminalID" => $payment->getAdditionalInformation("terminal_id"),
+                'fundingSource' => $payment->getAdditionalInformation('funding_source')
             ];
         }
 
