@@ -33,8 +33,8 @@ class Address
     }
 
     // Regex to extract the house number from the street line if needed (e.g. 'Street address 1 A' => '1 A')
-    const STREET_FIRST_REGEX = "/(?<streetName>[[:alnum:].'\-\s]+[\p{L}]+)\s+(?<houseNumber>[\d\s\-\/,.]+\w{1,3})$/u";
-    const NUMBER_FIRST_REGEX = "/^(?<houseNumber>[\d\s\-\/,.]+\w{1,3})\s+(?<streetName>[[:alnum:].'\-\s]+[\p{L}]+)/u";
+    const STREET_FIRST_REGEX = "/(?<streetName>[[:alnum:].'\-\s]+[\p{L},.']+)\s+(?<houseNumber>[\d\s\-\/,.]+\w{1,3})$/u";
+    const NUMBER_FIRST_REGEX = "/^(?<houseNumber>[\d\s\-\/,.]+\w{1,3})\s+(?<streetName>[[:alnum:].'\-\s]+[\p{L},.']+)/u";
 
     /**
      * @param AddressAdapterInterface $address
