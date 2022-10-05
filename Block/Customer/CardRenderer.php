@@ -37,14 +37,16 @@ class CardRenderer extends AbstractCardRenderer
     }
 
     /**
-     * Can render specified token
+     * Returns true if methodCode = adyen_cc OR (methodCode = adyen_hpp AND maskedCC exists in details. For googlepay)
      *
      * @param PaymentTokenInterface $token
      * @return boolean
      */
-    public function canRender(PaymentTokenInterface $token)
+    public function canRender(PaymentTokenInterface $token): bool
     {
-        return $token->getPaymentMethodCode() === AdyenCcConfigProvider::CODE;
+        $details = json_decode($token->getTokenDetails() ?: '{}', true);
+        return $token->getPaymentMethodCode() === AdyenCcConfigProvider::CODE ||
+            ($token->getPaymentMethodCode() === AdyenHppConfigProvider::CODE && array_key_exists('maskedCC', $details));
     }
 
     /**
