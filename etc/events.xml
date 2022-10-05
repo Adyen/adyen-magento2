@@ -26,6 +26,9 @@
     <event name="payment_method_assign_data_adyen_pos_cloud">
         <observer name="adyen_pos_cloud_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPosCloudDataAssignObserver" />
     </event>
+    <event name="payment_method_assign_data_adyen_pay_by_link">
+        <observer name="adyen_pay_by_link_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenPayByLinkDataAssignObserver" />
+    </event>
     <event name="payment_method_assign_data_adyen_boleto">
         <observer name="adyen_boleto_gateway_data_assign" instance="Adyen\Payment\Observer\AdyenBoletoDataAssignObserver" />
     </event>
