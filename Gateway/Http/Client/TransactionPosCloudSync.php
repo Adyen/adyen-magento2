@@ -109,7 +109,11 @@ class TransactionPosCloudSync implements ClientInterface
         $terminalId = $request['terminalID'];
 
         if (array_key_exists('chainCalls', $request)) {
-            $quote = $this->initiatePosPayment($terminalId, $request['fundingSource'], $request['numberOfInstallments']);
+            $quote = $this->initiatePosPayment(
+                $terminalId,
+                $request['fundingSource'],
+                $request['numberOfInstallments']
+            );
             $quoteInfoInstance = $quote->getPayment()->getMethodInstance()->getInfoInstance();
             $timeDiff = (int)$statusDate - (int)$quoteInfoInstance->getAdditionalInformation('initiateDate');
             $serviceId = $quoteInfoInstance->getAdditionalInformation('serviceID');
@@ -117,7 +121,6 @@ class TransactionPosCloudSync implements ClientInterface
             $timeDiff = (int)$statusDate - (int)$request['initiateDate'];
             $serviceId = $request['serviceID'];
         }
-
 
         $totalTimeout = $this->adyenHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
         if ($timeDiff > $totalTimeout) {
@@ -188,8 +191,11 @@ class TransactionPosCloudSync implements ClientInterface
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function initiatePosPayment(string $terminalId, string $fundingSource, ?string $numberOfInstallments): CartInterface
-    {
+    public function initiatePosPayment(
+        string $terminalId,
+        string $fundingSource,
+        ?string $numberOfInstallments
+    ): CartInterface {
         // Validate JSON that has just been parsed if it was in a valid format
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new LocalizedException(
@@ -261,8 +267,7 @@ class TransactionPosCloudSync implements ClientInterface
                         "TotalNbOfPayments" => intval($numberOfInstallments)
                     ]
                 ];
-            }
-            else {
+            } else {
                 $request['SaleToPOIRequest']['PaymentData'] = [
                     'PaymentType' => $transactionType,
                 ];
