@@ -85,14 +85,9 @@ class DownloadApplePayCertificate extends Action
 
         $applepayUrl = $this->configHelper->getApplePayUrlPath();
 
-        if ($this->fileIo->checkAndCreateFolder($wellknownPath,0700)){
+        if ($this->fileIo->checkAndCreateFolder($wellknownPath, 0700 )){
             $this->downloadAndUnzip($applepayUrl, $wellknownPath);
         }
-
-//        if (!is_dir($wellknownPath)) {
-//            $this->fileIo->mkdir(($directoryName,0700, true);// Change to using magento's mkdir function
-//            $this->downloadAndUnzip($applepayUrl, $wellknownPath);
-//        }
 
         else {
             $this->fileIo->chmod($wellknownPath, 0700);
@@ -103,7 +98,6 @@ class DownloadApplePayCertificate extends Action
 
         return $redirect;
     }
-
 
 
 }
