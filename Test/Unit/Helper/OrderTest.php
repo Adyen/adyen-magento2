@@ -18,6 +18,7 @@ use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Model\AdyenAmountCurrency;
 use Adyen\Payment\Model\Config\Source\Status\AdyenState;
+use Adyen\Payment\Model\ResourceModel\Order\Payment;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Tests\Unit\AbstractAdyenTestCase;
@@ -192,6 +193,7 @@ class OrderTest extends AbstractAdyenTestCase
         );
 
         $order = $this->createOrder();
+        $order->method('getData')->willReturn(['entity_id' => '55']);
         $order->method('canCreditmemo')->willReturn(true);
         $order->getPayment()->expects($this->once())->method('registerRefundNotification');
         $notification = $this->createWebhook('123-refund');
@@ -218,6 +220,7 @@ class OrderTest extends AbstractAdyenTestCase
         );
 
         $order = $this->createOrder();
+        $order->method('getData')->willReturn(['entity_id' => '55']);
         $order->method('canCreditmemo')->willReturn(true);
         // registerRefundNotification is still being called when the adyen_order_payment is not found
         $order->getPayment()->expects($this->once())->method('registerRefundNotification');
@@ -240,7 +243,8 @@ class OrderTest extends AbstractAdyenTestCase
         $searchCriteriaBuilder = null,
         $orderRepository = null,
         $notifierPool = null,
-        $paymentMethodsHelper = null
+        $paymentMethodsHelper = null,
+        $adyenOrderPaymentModel = null
     ): Order {
         $context = $this->createMock(Context::class);
 
@@ -300,6 +304,10 @@ class OrderTest extends AbstractAdyenTestCase
             $paymentMethodsHelper = $this->createMock(PaymentMethods::class);
         }
 
+        if (is_null($adyenOrderPaymentModel)) {
+            $adyenOrderPaymentModel = $this->createMock(Payment::class);
+        }
+
         return new Order(
             $context,
             $builder,
@@ -315,7 +323,8 @@ class OrderTest extends AbstractAdyenTestCase
             $orderRepository,
             $notifierPool,
             $orderPaymentCollectionFactory,
-            $paymentMethodsHelper
+            $paymentMethodsHelper,
+            $adyenOrderPaymentModel
         );
     }
 }

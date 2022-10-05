@@ -16,6 +16,7 @@ use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Config\Source\Status\AdyenState;
 use Adyen\Payment\Model\Notification;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
+use Adyen\Payment\Model\ResourceModel\Order\Payment as AdyenOrderPaymentModel;
 use Exception;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -74,6 +75,9 @@ class Order extends AbstractHelper
     /** @var PaymentMethods */
     private $paymentMethodsHelper;
 
+    /** @var AdyenOrderPaymentModel */
+    private $adyenOrderPaymentModel;
+
     public function __construct(
         Context $context,
         Builder $transactionBuilder,
@@ -89,7 +93,8 @@ class Order extends AbstractHelper
         OrderRepository $orderRepository,
         NotifierPool $notifierPool,
         OrderPaymentCollectionFactory $adyenOrderPaymentCollectionFactory,
-        PaymentMethods $paymentMethodsHelper
+        PaymentMethods $paymentMethodsHelper,
+        AdyenOrderPaymentModel $adyenOrderPaymentModel
     ) {
         parent::__construct($context);
         $this->transactionBuilder = $transactionBuilder;
@@ -106,6 +111,7 @@ class Order extends AbstractHelper
         $this->notifierPool = $notifierPool;
         $this->adyenOrderPaymentCollectionFactory = $adyenOrderPaymentCollectionFactory;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
+        $this->adyenOrderPaymentModel = $adyenOrderPaymentModel;
     }
 
     /**
@@ -532,7 +538,7 @@ class Order extends AbstractHelper
     {
         // check if it is a partial payment if so save the refunded data
         // TODO: Refactor this to use adyen_order_payment
-        if ($notification->getOriginalReference() != "") {
+        if (!$this->adyenOrderPaymentHelper->isFullAmountAuthorized($order)) {
 
             /** @var OrderPaymentInterface $orderPayment */
             $orderPayment = $this->adyenOrderPaymentCollectionFactory
@@ -570,9 +576,10 @@ class Order extends AbstractHelper
          */
         $lastTransactionId = $order->getPayment()->getLastTransId();
         $matches = $this->dataHelper->parseTransactionId($lastTransactionId);
+        $adyenOrderPayment = $this->adyenOrderPaymentModel->getLinkedAdyenOrderPayments($order->getData()['entity_id']);
         if (($matches['pspReference'] ?? '') == $notification->getOriginalReference() && empty($matches['suffix'])) {
             // refund is done through adyen backoffice so create a credit memo
-            if ($order->canCreditmemo()) {
+            if ($order->canCreditmemo() && isset($adyenOrderPayment)) {
                 $amount = $this->dataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
                 $order->getPayment()->registerRefundNotification($amount);
 
