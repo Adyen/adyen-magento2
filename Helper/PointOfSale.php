@@ -12,33 +12,46 @@
 
 namespace Adyen\Payment\Helper;
 
+use Adyen\Payment\Exception\PointOfSaleException;
 use Adyen\Payment\Model\ApplicationInfo;
+use Adyen\Payment\Helper\Quote as QuoteHelper;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Api\CartManagementInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\QuoteManagement;
 use Magento\Sales\Model\Order;
 
 class PointOfSale
 {
-    /**
-     * @var Data
-     */
+    /** @var Data  */
     private $dataHelper;
 
-    /**
-     * @var ProductMetadataInterface
-     */
+    /** @var ProductMetadataInterface  */
     private $productMetadata;
 
-    /**
-     * @param \Adyen\Payment\Helper\Data $dataHelper
-     * @param ProductMetadataInterface $productMetadata
-     */
+    /** @var QuoteHelper */
+    private $quoteHelper;
+
+    /** @var ChargedCurrency */
+    private $chargedCurrency;
+
+    /** @var QuoteManagement */
+    private $quoteManagement;
+
     public function __construct(
         Data $dataHelper,
-        ProductMetadataInterface $productMetadata
+        ProductMetadataInterface $productMetadata,
+        QuoteHelper $quoteHelper,
+        ChargedCurrency $chargedCurrency,
+        QuoteManagement $quoteManagement
     ) {
         $this->dataHelper = $dataHelper;
         $this->productMetadata = $productMetadata;
+        $this->quoteHelper = $quoteHelper;
+        $this->chargedCurrency = $chargedCurrency;
+        $this->quoteManagement = $quoteManagement;
+
     }
 
     /**
@@ -98,5 +111,46 @@ class PointOfSale
     public function getCustomerId(Quote $quote): ?string
     {
         return $quote->getCustomerId();
+    }
+
+    /**
+     * @throws NoSuchEntityException
+     * @throws PointOfSaleException
+     * @throws \Magento\Framework\Exception\CouldNotSaveException
+     */
+    public function manuallyPlacePosOrder(string $reservedIncrementId, int $notificationAmount)
+    {
+        $quote = $this->quoteHelper->getQuoteByReservedOrderIncrementId($reservedIncrementId);
+        $quoteAmountCurrency = $this->chargedCurrency->getQuoteAmountCurrency($quote);
+        $quoteAmount = $quoteAmountCurrency->getAmount();
+        $quoteCurrency = $quoteAmountCurrency->getCurrencyCode();
+        $formattedQuoteAmount = $this->dataHelper->formatAmount($quoteAmount, $quoteCurrency);
+        if ($formattedQuoteAmount !== $notificationAmount) {
+            throw new PointOfSaleException(__(
+                sprintf('Quote amount %s does not match notification amount %s', $formattedQuoteAmount, $notificationAmount)
+            ));
+        } elseif (is_null($quote->getCustomerId())) {
+            $quote->setCheckoutMethod(CartManagementInterface::METHOD_GUEST);
+        }
+
+        if (is_null($quote->getCustomerEmail()) && !is_null($quote->getBillingAddress()->getEmail())) {
+            $quote->setCustomerEmail($quote->getBillingAddress()->getEmail());
+        }
+
+        // Disable Cart Locking
+        //$this->cartRepositoryPlugin->setDisabled();
+
+        /* $this->logger->info(
+            'Received Adyen Notification for non-existing Order {increment_id}' .
+            ', the Order has been created based on Quote #{quote_id}',
+            [
+                'increment_id' => $reservedIncrementId,
+                'quote_id' => $quote->getId(),
+            ]
+        );*/
+
+        // Place Order
+        return $this->quoteManagement->placeOrder($quote->getId());
+
     }
 }
