@@ -11,6 +11,7 @@
 
 namespace Adyen\Payment\Tests\Unit\Helper;
 
+use Adyen\Payment\Api\Data\OrderPaymentInterface;
 use Adyen\Payment\Helper\AdyenOrderPayment;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
@@ -85,9 +86,7 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
            'getOrderAmountCurrency' => $orderAmountCurrency
         ]);
 
-        $adyenOrderPayment = $this->createConfiguredMock(AdyenPaymentModel::class, [
-            'getAmount' => 10.33
-        ]);
+        $adyenOrderPayment = [OrderPaymentInterface::AMOUNT => 10.33];
 
         $payment = $this->createConfiguredMock(Order\Payment::class, [
             'getEntityId' => 55
@@ -226,9 +225,7 @@ class AdyenOrderPaymentTest extends AbstractAdyenTestCase
             'getEntityId' => 55
         ]);
 
-        $adyenOrderPayment = $this->createConfiguredMock(\Adyen\Payment\Model\Order\Payment::class, [
-            'getAmount' => 10.33
-        ]);
+        $adyenOrderPayment = [OrderPaymentInterface::AMOUNT => 10.33];
 
         $order = $this->createConfiguredMock(Order::class, [
             'getPayment' => $payment
