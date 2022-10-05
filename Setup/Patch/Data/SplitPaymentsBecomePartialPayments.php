@@ -40,7 +40,6 @@ class SplitPaymentsBecomePartialPayments implements DataPatchInterface, PatchVer
         $this->moduleDataSetup->getConnection()->startSetup();
         $this->updateSchemaVersion800($this->moduleDataSetup);
         $this->moduleDataSetup->getConnection()->endSetup();
-
     }
 
     /**
