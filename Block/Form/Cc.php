@@ -15,6 +15,7 @@ use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\Installments;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
 use Adyen\Payment\Logger\AdyenLogger;
@@ -80,6 +81,9 @@ class Cc extends \Magento\Payment\Block\Form\Cc
      */
     private $vaultHelper;
 
+    /** @var PaymentMethods */
+    private $paymentMethodsHelper;
+
     /**
      * Cc constructor.
      *
@@ -108,6 +112,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         Config $configHelper,
         Session $customerSession,
         Vault $vaultHelper,
+        PaymentMethods $paymentMethodsHelper,
         array $data = []
     ) {
         parent::__construct($context, $paymentConfig);
@@ -121,6 +126,7 @@ class Cc extends \Magento\Payment\Block\Form\Cc
         $this->configHelper = $configHelper;
         $this->customerSession = $customerSession;
         $this->vaultHelper = $vaultHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -163,26 +169,14 @@ class Cc extends \Magento\Payment\Block\Form\Cc
     }
 
     /**
-     * Retrieve available credit card type codes by alt code
+     * Retrieve available credit card type codes by alt code. Function is required so that it can be called
+     * from block form
      *
      * @return array
      */
-    public function getCcAvailableTypesByAlt()
+    public function getCcAvailableTypesByAlt(): array
     {
-        $types = [];
-        $ccTypes = $this->adyenHelper->getAdyenCcTypes();
-
-        $availableTypes = $this->adyenHelper->getAdyenCcConfigData('cctypes');
-        if ($availableTypes) {
-            $availableTypes = explode(',', $availableTypes);
-            foreach (array_keys($ccTypes) as $code) {
-                if (in_array($code, $availableTypes)) {
-                    $types[$ccTypes[$code]['code_alt']] = $code;
-                }
-            }
-        }
-
-        return $types;
+        return $this->paymentMethodsHelper->getCcAvailableTypesByAlt();
     }
 
     /**

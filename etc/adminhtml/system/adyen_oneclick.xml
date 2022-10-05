@@ -26,9 +26,9 @@
         </field>
         <field id="recurring_card_mode" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Mode</label>
-            <tooltip>
-                Choose between using Magento Vault (one-click CVC-less payments) or the more secure Adyen Tokenization (one-click CVC required payments) functionality
-            </tooltip>
+            <comment>
+                Magento Vault (one-click CVC-less payments) or secure Adyen Tokenization (one-click CVC required payments)
+            </comment>
             <source_model>Adyen\Payment\Model\Config\Source\Recurring\RecurringMode</source_model>
             <config_path>payment/adyen_oneclick/card_mode</config_path>
             <depends>
@@ -38,16 +38,12 @@
         <field id="recurring_card_token_type" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Token Type</label>
             <tooltip>
-                Choose between CardOnFile (one-click payments) or Subscription (fixed schedule payments)
+                Choose between CardOnFile (one-click), UnscheduledCardOnFile (non-fixed schedule MIT payments) or Subscription (fixed schedule MIT payments)
             </tooltip>
             <source_model>Adyen\Payment\Model\Config\Source\Recurring\RecurringType</source_model>
             <config_path>payment/adyen_oneclick/card_type</config_path>
             <comment>
                 <![CDATA[<a target="_blank" href="https://www.adyen.help/hc/en-us/articles/360017271659-How-to-choose-Recurring-Processing-Model-">More information</a>]]></comment>
-            <depends>
-                <field id="active">1</field>
-                <field id="recurring_card_mode">Adyen Tokenization</field>
-            </depends>
         </field>
         <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Title</label>

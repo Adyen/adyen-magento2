@@ -13,6 +13,7 @@ namespace Adyen\Payment\Model\Ui;
 
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Data;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\Recurring;
 use Adyen\Payment\Helper\Vault;
 use Magento\Checkout\Model\ConfigProviderInterface;
@@ -77,6 +78,9 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
      */
     private $vaultHelper;
 
+    /** @var PaymentMethods */
+    private $paymentMethodsHelper;
+
     /**
      * AdyenOneclickConfigProvider constructor.
      *
@@ -99,7 +103,8 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         UrlInterface $urlBuilder,
         CcConfig $ccConfig,
         ChargedCurrency $chargedCurrency,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        PaymentMethods $paymentMethodsHelper
     ) {
         $this->_adyenHelper = $adyenHelper;
         $this->_request = $request;
@@ -110,6 +115,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
         $this->ccConfig = $ccConfig;
         $this->chargedCurrency = $chargedCurrency;
         $this->vaultHelper = $vaultHelper;
+        $this->paymentMethodsHelper = $paymentMethodsHelper;
     }
 
     /**
@@ -146,7 +152,7 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
             [
                 'payment' => [
                     'ccform' => [
-                        'availableTypes' => [$methodCode => $this->getCcAvailableTypes()],
+                        'availableTypes' => [$methodCode => $this->paymentMethodsHelper->getCcAvailableTypes()],
                         'months' => [$methodCode => $this->getCcMonths()],
                         'years' => [$methodCode => $this->getCcYears()],
                         'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
@@ -201,28 +207,6 @@ class AdyenOneclickConfigProvider implements ConfigProviderInterface
     protected function _getQuote()
     {
         return $this->_session->getQuote();
-    }
-
-    /**
-     * Retrieve availables credit card types
-     *
-     * @return array
-     */
-    protected function getCcAvailableTypes()
-    {
-        $types = [];
-        $ccTypes = $this->_adyenHelper->getAdyenCcTypes();
-        $availableTypes = $this->_adyenHelper->getAdyenCcConfigData('cctypes');
-        if ($availableTypes) {
-            $availableTypes = explode(',', $availableTypes);
-            foreach (array_keys($ccTypes) as $code) {
-                if (in_array($code, $availableTypes)) {
-                    $types[$code] = $ccTypes[$code]['name'];
-                }
-            }
-        }
-
-        return $types;
     }
 
     /**
