@@ -312,8 +312,6 @@ class RecurringContractWebhookHandler implements WebhookHandlerInterface
 
                     $details = [
                         'type' => $notification->getPaymentMethod(),
-                        'maskedCC' => $payment->getAdditionalInformation()['ibanNumber'],
-                        'expirationDate' => 'N/A'
                     ];
 
                     $paymentTokenAlternativePaymentMethod->setCustomerId($customerId)
