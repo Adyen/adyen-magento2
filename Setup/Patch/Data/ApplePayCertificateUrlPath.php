@@ -5,7 +5,6 @@ namespace Adyen\Payment\Setup\Patch\Data;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
-//use Magento\Framework\Setup\Patch\PatchVersionInterface;
 
 /**
  * Adyen Payment module (https://www.adyen.com/)
@@ -50,9 +49,4 @@ class ApplePayCertificateUrlPath implements DataPatchInterface
     {
         return [];
     }
-
-//    public static function getVersion(): string
-//    {
-//        return '8.8.0';
-//    }
 }
