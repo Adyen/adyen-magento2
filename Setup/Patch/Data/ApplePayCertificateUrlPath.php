@@ -5,7 +5,7 @@ namespace Adyen\Payment\Setup\Patch\Data;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
-use Magento\Framework\Setup\Patch\PatchVersionInterface;
+//use Magento\Framework\Setup\Patch\PatchVersionInterface;
 
 /**
  * Adyen Payment module (https://www.adyen.com/)
@@ -16,7 +16,7 @@ use Magento\Framework\Setup\Patch\PatchVersionInterface;
  * Author: Adyen <magento@adyen.com>
  */
 
-class ApplePayCertificateUrlPath implements DataPatchInterface, PatchVersionInterface
+class ApplePayCertificateUrlPath implements DataPatchInterface
 {
     /**
      * @var WriterInterface
@@ -38,7 +38,8 @@ class ApplePayCertificateUrlPath implements DataPatchInterface, PatchVersionInte
         $this->configWriter->save(
             self::APPLEPAY_CERTIFICATE_CONFIG_PATH,
             self::APPLEPAY_CERTIFICATE_URL,
-        );}
+        );
+    }
 
     public static function getDependencies()
     {
@@ -50,10 +51,8 @@ class ApplePayCertificateUrlPath implements DataPatchInterface, PatchVersionInte
         return [];
     }
 
-    public static function getVersion(): string
-    {
-        // What should this return?
-        return [];
+//    public static function getVersion(): string
+//    {
 //        return '8.8.0';
-    }
+//    }
 }
