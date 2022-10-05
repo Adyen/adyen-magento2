@@ -20,6 +20,7 @@ use Magento\Framework\Filesystem\DirectoryList;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Backend\App\Action;
+use Magento\Framework\Filesystem\Io\File;
 
 class DownloadApplePayCertificate extends Action
 {
@@ -28,19 +29,26 @@ class DownloadApplePayCertificate extends Action
      */
     private $directoryList;
 
+    private $fileIo;
+
     /**
      * @param Context $context
      * @param DirectoryList $directoryList
      */
     public function __construct(
-        Context              $context,
-        DirectoryList        $directoryList,
-        Config               $configHelper
+        Context $context,
+        DirectoryList $directoryList,
+        Config $configHelper,
+        File $fileIo
     ) {
         parent::__construct($context);
         $this->directoryList = $directoryList;
-        $this->configHelper=$configHelper;
+        $this->configHelper = $configHelper;
+        $this->fileIo = $fileIo;
     }
+
+
+
 
     /**
      * @param $applepayUrl
@@ -77,18 +85,24 @@ class DownloadApplePayCertificate extends Action
 
         $applepayUrl = $this->configHelper->getApplePayUrlPath();
 
-        if (!is_dir($wellknownPath)) {
-            mkdir($directoryName, 0760, true);
+        if ($this->fileIo->checkAndCreateFolder($wellknownPath,0700)){
             $this->downloadAndUnzip($applepayUrl, $wellknownPath);
         }
-        else {
-            chmod($wellknownPath,0760);
 
-            if (!file_exists($applepayPath)) {
+//        if (!is_dir($wellknownPath)) {
+//            $this->fileIo->mkdir(($directoryName,0700, true);// Change to using magento's mkdir function
+//            $this->downloadAndUnzip($applepayUrl, $wellknownPath);
+//        }
+        else {
+            $this->fileIo->chmod($wellknownPath,0700);
+            if (!$this->fileIo->fileExists($applepayPath)) {
                 $this->downloadAndUnzip($applepayUrl, $wellknownPath);
             }
         }
 
         return $redirect;
     }
+
+
+
 }

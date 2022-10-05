@@ -35,7 +35,6 @@ class ApplePayCertificateUrlPath implements DataPatchInterface, PatchVersionInte
 
     public function apply()
     {
-//        die('this is the end');
         $this->configWriter->save(
             self::APPLEPAY_CERTIFICATE_CONFIG_PATH,
             self::APPLEPAY_CERTIFICATE_URL,
@@ -53,6 +52,8 @@ class ApplePayCertificateUrlPath implements DataPatchInterface, PatchVersionInte
 
     public static function getVersion(): string
     {
-        return '8.8.0';
+        // What should this return?
+        return [];
+//        return '8.8.0';
     }
 }
