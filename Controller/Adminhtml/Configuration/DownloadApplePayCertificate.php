@@ -93,8 +93,9 @@ class DownloadApplePayCertificate extends Action
 //            $this->fileIo->mkdir(($directoryName,0700, true);// Change to using magento's mkdir function
 //            $this->downloadAndUnzip($applepayUrl, $wellknownPath);
 //        }
+
         else {
-            $this->fileIo->chmod($wellknownPath,0700);
+            $this->fileIo->chmod($wellknownPath, 0700);
             if (!$this->fileIo->fileExists($applepayPath)) {
                 $this->downloadAndUnzip($applepayUrl, $wellknownPath);
             }
