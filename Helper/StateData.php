@@ -87,4 +87,15 @@ class StateData
     {
         return $this->stateData[$quoteId] ?? [];
     }
+
+    /**
+     * Returns the payment method type from state data
+     * @param int $quoteId
+     * @return string
+     */
+    public function getPaymentMethodVariant(int $quoteId): string
+    {
+        $stateDataByQuoteId = $this->stateData[$quoteId];
+        return $stateDataByQuoteId['paymentMethod']['type'];
+    }
 }

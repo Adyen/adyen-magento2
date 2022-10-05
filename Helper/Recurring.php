@@ -23,6 +23,7 @@ class Recurring
 
     const CARD_ON_FILE = 'CardOnFile';
     const SUBSCRIPTION = 'Subscription';
+    const UNSCHEDULED_CARD_ON_FILE = 'UnscheduledCardOnFile';
 
     /** @var AdyenLogger */
     private $adyenLogger;
@@ -66,7 +67,8 @@ class Recurring
     {
         return [
             self::CARD_ON_FILE,
-            self::SUBSCRIPTION
+            self::SUBSCRIPTION,
+            self::UNSCHEDULED_CARD_ON_FILE
         ];
     }
 
@@ -84,9 +86,8 @@ class Recurring
     /**
      * @param $order
      * @param $additionalData
-     * @param array $savedPaymentData
      */
-    public function createAdyenBillingAgreement($order, $additionalData, array $savedPaymentData = [])
+    public function createAdyenBillingAgreement($order, $additionalData)
     {
         if (!empty($additionalData['recurring.recurringDetailReference'])) {
             try {
@@ -123,8 +124,6 @@ class Recurring
 
                 if ($payment->getMethod() === PaymentMethods::ADYEN_CC) {
                     $billingAgreement->setCcBillingAgreement($additionalData, $storeOneClick, $order->getStoreId());
-                } elseif ($payment->getAdditionalInformation(AdyenHppDataAssignObserver::BRAND_CODE) === Data::SEPA) {
-                    $billingAgreement->setSepaBillingAgreement($additionalData, $order->getStoreId(), $savedPaymentData);
                 }
 
                 $billingAgreementErrors = $billingAgreement->getErrors();
