@@ -120,5 +120,4 @@ class Address
     {
         return ['name' => trim($street), 'house_number' => trim($houseNumber)];
     }
-
 }
