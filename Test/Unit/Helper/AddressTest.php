@@ -22,10 +22,23 @@ class AddressTest extends AbstractAdyenTestCase
     const HOUSE_NUMBER = '123';
     const HOUSE_NUMBER_LETTER = '456B';
     const HOUSE_NUMBER_SPACE_LETTER = '789 C';
-    const HOUSE_NUMBERS = [self::HOUSE_NUMBER, self::HOUSE_NUMBER_LETTER, self::HOUSE_NUMBER_SPACE_LETTER];
+    const HOUSE_NUMBER_SEPARATOR_LETTER = '103, 45/47 BG';
+    const HOUSE_NUMBER_RANGE = '45-53';
+    const HOUSE_NUMBERS = [
+        self::HOUSE_NUMBER,
+        self::HOUSE_NUMBER_LETTER,
+        self::HOUSE_NUMBER_SPACE_LETTER,
+        self::HOUSE_NUMBER_SEPARATOR_LETTER,
+        self::HOUSE_NUMBER_RANGE
+    ];
     const STREET_NAME_SPECIAL_CHARS = "Wróblewskiego";
     const STREET_NAME = "John-Paul's Ave.";
-    const STREET_NAMES = [self::STREET_NAME_SPECIAL_CHARS,self::STREET_NAME];
+    const STREET_NAME_WITH_NUMBER = "Simon 2e Carmiggeltstraat";
+    const STREET_NAMES = [
+        self::STREET_NAME_SPECIAL_CHARS,
+        self::STREET_NAME,
+        self::STREET_NAME_WITH_NUMBER
+    ];
 
 
     /**
@@ -182,7 +195,7 @@ class AddressTest extends AbstractAdyenTestCase
                             'name' => $street_name,
                             'house_number' => $house_number
                         ]
-                    ],
+                    ]
                 ]);
             }
         }
