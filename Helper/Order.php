@@ -23,7 +23,6 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Notification\NotifierPool;
-use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
@@ -611,13 +610,10 @@ class Order extends AbstractHelper
     public function getOrderByIncrementId(string $incrementId): ?MagentoOrder
     {
         $searchCriteria = $this->searchCriteriaBuilder
-            ->addFilter(OrderInterface::INCREMENT_ID, $incrementId)
+            ->addFilter('increment_id', $incrementId)
             ->create();
 
         $orders = $this->orderRepository->getList($searchCriteria)->getItems();
-        if (empty($orders)) {
-            return null;
-        }
 
         return reset($orders);
     }

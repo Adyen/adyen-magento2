@@ -80,9 +80,6 @@ class Webhook
      */
     private $chargedCurrency;
 
-    /** @var PointOfSale */
-    private $posHelper;
-
     private $boletoPaidAmount;
 
     private $klarnaReservationNumber;
@@ -101,8 +98,7 @@ class Webhook
         AdyenLogger $logger,
         WebhookHandlerFactory $webhookHandlerFactory,
         OrderHelper $orderHelper,
-        OrderRepository $orderRepository,
-        PointOfSale $posHelper
+        OrderRepository $orderRepository
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->serializer = $serializer;
@@ -112,7 +108,6 @@ class Webhook
         $this->logger = $logger;
         $this->orderHelper = $orderHelper;
         $this->orderRepository = $orderRepository;
-        $this->posHelper = $posHelper;
         self::$webhookHandlerFactory = $webhookHandlerFactory;
     }
 
@@ -138,11 +133,6 @@ class Webhook
         // log the executed notification
         $order = $this->orderHelper->getOrderByIncrementId($notification->getMerchantReference());
         if (!$order) {
-            // Check if notification is linked to webhook hereeeeeee
-
-
-
-            $this->posHelper->manuallyPlacePosOrder($notification->getMerchantReference(), intval($notification->getAmountValue()));
             $this->logger->addAdyenNotification(
                 sprintf('Order w/merchant reference %s not found', $notification->getMerchantReference()),
             );

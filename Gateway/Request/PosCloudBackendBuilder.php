@@ -16,7 +16,6 @@ use Adyen\Payment\Helper\PointOfSale;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Magento\Quote\Api\CartRepositoryInterface;
 
 class PosCloudBackendBuilder implements BuilderInterface
 {
@@ -25,18 +24,13 @@ class PosCloudBackendBuilder implements BuilderInterface
      */
     private $pointOfSale;
 
-    /** @var CartRepositoryInterface */
-    private $quoteRepository;
-
     /**
      * @param PointOfSale $pointOfSale
      */
     public function __construct(
-        PointOfSale $pointOfSale,
-        CartRepositoryInterface $quoteRepository
+        PointOfSale $pointOfSale
     ) {
         $this->pointOfSale = $pointOfSale;
-        $this->quoteRepository = $quoteRepository;
     }
 
     /**
@@ -55,10 +49,7 @@ class PosCloudBackendBuilder implements BuilderInterface
 
         $currency = $paymentDataObject->getOrder()->getCurrencyCode();
         $amount = $paymentDataObject->getOrder()->getGrandTotalAmount();
-        $quote = $this->quoteRepository->get($orderInstance->getQuoteId());
-        $reference = $quote->reserveOrderId()->getReservedOrderId();
-        // save required to ensure that reservedOrderId is written to db
-        $this->quoteRepository->save($quote);
+        $reference = $paymentDataObject->getOrder()->getOrderIncrementId();
 
         $transactionType = \Adyen\TransactionType::NORMAL;
         $serviceId = date("dHis");

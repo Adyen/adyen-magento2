@@ -150,8 +150,6 @@ class Quote
     }
 
     /**
-     * Get a quote that is already linked to an order
-     *
      * @param string $incrementId
      * @return mixed
      * @throws NoSuchEntityException
@@ -179,28 +177,5 @@ class Quote
         $order = reset($orders);
 
         return $this->cartRepository->get($order->getQuoteId());
-    }
-
-    /**
-     * @throws NoSuchEntityException
-     */
-    public function getQuoteByReservedOrderIncrementId(string $reservedIncrementId): QuoteModel
-    {
-        $quoteList = $this->quoteRepository->getList(
-            $this->searchCriteriaBuilder
-                ->addFilter(CartInterface::KEY_RESERVED_ORDER_ID, $reservedIncrementId)
-                ->create()
-        );
-
-        $totalQuotes = $quoteList->getTotalCount();
-        if ($totalQuotes !== 1) {
-            throw new NoSuchEntityException(__(
-                sprintf('%d quotes found linked to reserved order id %s', $totalQuotes, $reservedIncrementId)
-            ));
-        }
-
-        $quotes = $quoteList->getItems();
-
-        return reset($quotes);
     }
 }
