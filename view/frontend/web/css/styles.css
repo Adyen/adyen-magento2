@@ -15,3 +15,9 @@
 .payment-method+#hpp_actionModalWrapper {
     border-bottom: 1px solid #ccc;
 }
+
+#adyen_pos_cloud_connected_terminals_div,
+#adyen_pos_cloud_funding_source_div,
+#adyen_pos_cloud_installments_div {
+    margin-bottom: 15px;
+}
