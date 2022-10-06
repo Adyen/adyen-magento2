@@ -61,7 +61,7 @@
         </field>
         <!--klarna\ratePay\afterpay settings-->
         <group id="adyen_hpp_openinvoice_settings" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="100">
-            <label>Klarna\RatePay\Afterpay Settings</label>
+            <label>RatePay</label>
             <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
             <field id="ratepay_id" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>RatePAY Device Ident SId</label>
