@@ -1,16 +1,17 @@
 <?php declare(strict_types=1);
 
-namespace Adyen\Payment\Block\Adminhtml\Support\Form\Edit\Tab;
+namespace Adyen\Payment\Block\Adminhtml\Support\Edit\Tab;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Block\Widget\Form\Generic;
 use Magento\Backend\Block\Widget\Tab\TabInterface;
 use Magento\Framework\Data\FormFactory;
+use Magento\Framework\Phrase;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Design\Theme\LabelFactory;
 use Magento\Store\Model\System\Store;
 
-class ConfigurationSettings extends Generic implements TabInterface
+class OrderProcessing extends Generic implements TabInterface
 {
     const HEADLESS_YES = 1;
     const HEADLESS_NO = 0;
@@ -34,13 +35,14 @@ class ConfigurationSettings extends Generic implements TabInterface
      * @param array $data
      */
     public function __construct(
-        Context $context,
-        Registry $registry,
-        FormFactory $formFactory,
-        Store $store,
+        Context      $context,
+        Registry     $registry,
+        FormFactory  $formFactory,
+        Store        $store,
         LabelFactory $themeLabelFactory,
-        array $data = []
-    ) {
+        array        $data = []
+    )
+    {
         $this->_store = $store;
         $this->_themeLabelFactory = $themeLabelFactory;
         parent::__construct($context, $registry, $formFactory, $data);
@@ -48,6 +50,8 @@ class ConfigurationSettings extends Generic implements TabInterface
 
     /**
      * Internal constructor
+     *
+     * @return void
      */
     protected function _construct()
     {
@@ -57,22 +61,28 @@ class ConfigurationSettings extends Generic implements TabInterface
 
     /**
      * Prepare label for tab
+     *
+     * @return Phrase
      */
     public function getTabLabel()
     {
-        return __('Configuration settings');
+        return __('Order processing');
     }
 
     /**
      * Prepare title for tab
+     *
+     * @return Phrase
      */
     public function getTabTitle()
     {
-        return __('Configuration settings');
+        return __('Order processing');
     }
 
     /**
      * Returns status flag about this tab can be shown or not
+     *
+     * @return true
      */
     public function canShowTab()
     {
@@ -98,13 +108,12 @@ class ConfigurationSettings extends Generic implements TabInterface
     {
         $form = $this->_formFactory->create([
             'data' => [
-                'id' => 'edit_form',
+                'id' => 'support_form',
                 'action' => $this->getData('action'),
-                'method' => 'post'
+                'method' => 'post',
             ]
         ]);
-
-        $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Configuration settings')]);
+        $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Order processing')]);
         $this->_addElementTypes($fieldset);
         $fieldset->addField(
             'pspReference',
@@ -144,6 +153,17 @@ class ConfigurationSettings extends Generic implements TabInterface
             ]
         );
         $fieldset->addField(
+            'paymentMethod',
+            'text',
+            [
+                'name' => 'paymentMethod',
+                'label' => __('What payment method is causing the problem?'),
+                'title' => __('What payment method is causing the problem?'),
+                'class' => '',
+                'required' => false,
+            ]
+        );
+        $fieldset->addField(
             'terminalId',
             'text',
             [
@@ -166,12 +186,12 @@ class ConfigurationSettings extends Generic implements TabInterface
             ]
         );
         $fieldset->addField(
-            'configValues',
+            'orderHistoryComments',
             'textarea',
             [
-                'name' => 'configValues',
-                'label' => __('Attach config values'),
-                'title' => __('Attach config values'),
+                'name' => 'orderHistoryComments',
+                'label' => __('Order history comments'),
+                'title' => __('Order history comments'),
                 'class' => '',
                 'required' => false,
             ]
