@@ -19,26 +19,23 @@ use Magento\Sales\Model\Order;
 
 class PointOfSale
 {
-    /**
-     * @var Data
-     */
+    /** @var Data  */
     private $dataHelper;
 
-    /**
-     * @var ProductMetadataInterface
-     */
+    /** @var ProductMetadataInterface  */
     private $productMetadata;
 
-    /**
-     * @param \Adyen\Payment\Helper\Data $dataHelper
-     * @param ProductMetadataInterface $productMetadata
-     */
+    /** @var Config */
+    protected $configHelper;
+
     public function __construct(
         Data $dataHelper,
-        ProductMetadataInterface $productMetadata
+        ProductMetadataInterface $productMetadata,
+        Config $configHelper
     ) {
         $this->dataHelper = $dataHelper;
         $this->productMetadata = $productMetadata;
+        $this->configHelper = $configHelper;
     }
 
     /**
@@ -68,7 +65,7 @@ class PointOfSale
 
         // If customer exists add it into the request to store request
         if (!empty($customerId)) {
-            $recurringContract = $this->dataHelper->getAdyenPosCloudConfigData('recurring_type', $storeId);
+            $recurringContract = $this->configHelper->getAdyenPosCloudConfigData('recurring_type', $storeId);
 
             if (!empty($recurringContract) && !empty($shopperEmail)) {
                 $saleToAcquirerData['shopperEmail'] = $shopperEmail;
