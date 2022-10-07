@@ -1,17 +1,16 @@
 <?php declare(strict_types=1);
 
-namespace Adyen\Payment\Block\Adminhtml\Support\Form\Edit\Tab;
+namespace Adyen\Payment\Block\Adminhtml\Support\Edit\Tab;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Block\Widget\Form\Generic;
 use Magento\Backend\Block\Widget\Tab\TabInterface;
 use Magento\Framework\Data\FormFactory;
-use Magento\Framework\Phrase;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Design\Theme\LabelFactory;
 use Magento\Store\Model\System\Store;
 
-class OrderProcessing extends Generic implements TabInterface
+class ConfigurationSettings extends Generic implements TabInterface
 {
     const HEADLESS_YES = 1;
     const HEADLESS_NO = 0;
@@ -35,14 +34,13 @@ class OrderProcessing extends Generic implements TabInterface
      * @param array $data
      */
     public function __construct(
-        Context      $context,
-        Registry     $registry,
-        FormFactory  $formFactory,
-        Store        $store,
+        Context $context,
+        Registry $registry,
+        FormFactory $formFactory,
+        Store $store,
         LabelFactory $themeLabelFactory,
-        array        $data = []
-    )
-    {
+        array $data = []
+    ) {
         $this->_store = $store;
         $this->_themeLabelFactory = $themeLabelFactory;
         parent::__construct($context, $registry, $formFactory, $data);
@@ -50,8 +48,6 @@ class OrderProcessing extends Generic implements TabInterface
 
     /**
      * Internal constructor
-     *
-     * @return void
      */
     protected function _construct()
     {
@@ -61,28 +57,22 @@ class OrderProcessing extends Generic implements TabInterface
 
     /**
      * Prepare label for tab
-     *
-     * @return Phrase
      */
     public function getTabLabel()
     {
-        return __('Order processing');
+        return __('Configuration settings');
     }
 
     /**
      * Prepare title for tab
-     *
-     * @return Phrase
      */
     public function getTabTitle()
     {
-        return __('Order processing');
+        return __('Configuration settings');
     }
 
     /**
      * Returns status flag about this tab can be shown or not
-     *
-     * @return true
      */
     public function canShowTab()
     {
@@ -108,12 +98,13 @@ class OrderProcessing extends Generic implements TabInterface
     {
         $form = $this->_formFactory->create([
             'data' => [
-                'id' => 'edit_form',
+                'id' => 'support_form',
                 'action' => $this->getData('action'),
-                'method' => 'post',
+                'method' => 'post'
             ]
         ]);
-        $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Order processing')]);
+
+        $fieldset = $form->addFieldset('base_fieldset', ['legend' => __('Configuration settings')]);
         $this->_addElementTypes($fieldset);
         $fieldset->addField(
             'pspReference',
@@ -153,17 +144,6 @@ class OrderProcessing extends Generic implements TabInterface
             ]
         );
         $fieldset->addField(
-            'paymentMethod',
-            'text',
-            [
-                'name' => 'paymentMethod',
-                'label' => __('What payment method is causing the problem?'),
-                'title' => __('What payment method is causing the problem?'),
-                'class' => '',
-                'required' => false,
-            ]
-        );
-        $fieldset->addField(
             'terminalId',
             'text',
             [
@@ -186,12 +166,12 @@ class OrderProcessing extends Generic implements TabInterface
             ]
         );
         $fieldset->addField(
-            'orderHistoryComments',
+            'configValues',
             'textarea',
             [
-                'name' => 'orderHistoryComments',
-                'label' => __('Order history comments'),
-                'title' => __('Order history comments'),
+                'name' => 'configValues',
+                'label' => __('Attach config values'),
+                'title' => __('Attach config values'),
                 'class' => '',
                 'required' => false,
             ]

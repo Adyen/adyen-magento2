@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Adyen\Payment\Block\Adminhtml\Support\Form\Edit;
+namespace Adyen\Payment\Block\Adminhtml\Support\Edit;
 
 class Tabs extends \Magento\Backend\Block\Widget\Tabs
 {
@@ -11,7 +11,7 @@ class Tabs extends \Magento\Backend\Block\Widget\Tabs
     {
         parent::_construct();
         $this->setId('support_form_tabs');
-        $this->setDestElementId('edit_form');
+        $this->setDestElementId('support_form');
         $this->setTitle(__('Troubleshoot an issue'));
     }
 }
