@@ -1,0 +1,11 @@
+<?php
+/** @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */
+?>
+<script>
+require(['jquery'], function($) {
+    $('#send').click(() => {
+        // force submit without validation
+        $('#edit_form')[0].submit();
+    });
+});
+</script>
