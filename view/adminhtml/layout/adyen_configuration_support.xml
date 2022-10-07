@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<page layout="admin-2columns-left" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <title>Adyen Support Form</title>
+    </head>
+    <body>
+        <referenceContainer name="content">
+            <block class="Adyen\Payment\Block\Adminhtml\Edit" name="support_form"/>
+        </referenceContainer>
+        <referenceContainer name="left">
+            <block class="Adyen\Payment\Block\Adminhtml\Support\Form\Edit\Tabs" name="support_form_tabs">
+                <block class="Adyen\Payment\Block\Adminhtml\Support\Form\Edit\Tab\OrderProcessing" name="support_form_tab_order"/>
+                <block class="Adyen\Payment\Block\Adminhtml\Support\Form\Edit\Tab\ConfigurationSettings" name="support_form_tab_config"/>
+                <action method="addTab">
+                    <argument name="name" xsi:type="string">order_section</argument>
+                    <argument name="block" xsi:type="string">support_form_tab_order</argument>
+                </action>
+                <action method="addTab">
+                    <argument name="name" xsi:type="string">config_section</argument>
+                    <argument name="block" xsi:type="string">support_form_tab_config</argument>
+                </action>
+            </block>
+        </referenceContainer>
+        <referenceContainer name="js">
+            <block class="Magento\Backend\Block\Template" name="adyen_support_form_js" template="Adyen_Payment::form/support.phtml" />
+        </referenceContainer>
+    </body>
+</page>
