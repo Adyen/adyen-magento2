@@ -16,16 +16,12 @@ use Adyen\AdyenException;
 use Adyen\Payment\Helper\ChargedCurrency;
 use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PointOfSale;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Payment\Gateway\Http\TransferInterface;
-use Magento\Quote\Api\Data\CartInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class TransactionPosCloudSync implements ClientInterface
