@@ -18,8 +18,10 @@ namespace Adyen\Payment\Helper;
 use Adyen\AdyenException;
 use Adyen\Service\Management;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Message\ManagerInterface;
 use Magento\Store\Model\StoreManager;
 use Adyen\Payment\Logger\AdyenLogger;
+use Magento\Framework\Encryption\EncryptorInterface;
 
 class ManagementHelper
 {
@@ -35,6 +37,11 @@ class ManagementHelper
      * @var Config
      */
     private $configHelper;
+    
+    /**
+     * @var EncryptorInterface
+     */
+    private $encryptor;
 
     /**
      * Logging instance
@@ -44,21 +51,33 @@ class ManagementHelper
     private $adyenLogger;
 
     /**
+     * @var ManagerInterface
+     */
+    protected $messageManager;
+
+    /**
      * ManagementHelper constructor.
      * @param StoreManager $storeManager
+     * @param EncryptorInterface $encryptor
      * @param Data $dataHelper
      * @param Config $configHelper
+     * @param AdyenLogger $adyenLogger
+     * @param ManagerInterface $messageManager
      */
     public function __construct(
         StoreManager $storeManager,
+        EncryptorInterface $encryptor,
         Data $dataHelper,
         Config $configHelper,
-        AdyenLogger $adyenLogger
+        AdyenLogger $adyenLogger,
+        ManagerInterface $messageManager
     ) {
         $this->dataHelper = $dataHelper;
         $this->storeManager = $storeManager;
+        $this->encryptor = $encryptor;
         $this->configHelper = $configHelper;
         $this->adyenLogger = $adyenLogger;
+        $this->messageManager = $messageManager;
     }
 
     /**
@@ -83,7 +102,7 @@ class ManagementHelper
                 });
                 $merchantAccounts[] = [
                     'id' => $merchantAccount['id'],
-                    'name' => $merchantAccount['name'],
+                    'name' => $merchantAccount['id'],
                     'liveEndpointPrefix' => !empty($defaultDC) ? $defaultDC[0]['livePrefix'] : ''
                 ];
             }
@@ -156,22 +175,34 @@ class ManagementHelper
         ];
         $webhookId = $this->configHelper->getWebhookId($storeId);
         $savedMerchantAccount = $this->configHelper->getMerchantAccount($storeId);
-        // reuse saved webhookId if merchant account is the same.
-        if (!empty($webhookId) && $merchantId === $savedMerchantAccount) {
-            $management->merchantWebhooks->update($merchantId, $webhookId, $params);
-        } else {
-            $params['type'] = 'standard';
-            $response = $management->merchantWebhooks->create($merchantId, $params);
-            // save webhook_id to configuration
-            $webhookId = $response['id'];
-            $this->configHelper->setConfigData($webhookId, 'webhook_id', Config::XML_ADYEN_ABSTRACT_PREFIX);
-        }
 
-        // generate hmac key and save
-        $response = $management->merchantWebhooks->generateHmac($merchantId, $webhookId);
-        $hmac = $response['hmacKey'];
-        $mode = $demoMode ? 'test' : 'live';
-        $this->configHelper->setConfigData($hmac, 'notification_hmac_key_' . $mode, Config::XML_ADYEN_ABSTRACT_PREFIX);
+        try {
+            // reuse saved webhookId if merchant account is the same.
+            if (!empty($webhookId) && $merchantId === $savedMerchantAccount) {
+                $management->merchantWebhooks->update($merchantId, $webhookId, $params);
+            } else {
+                $params['type'] = 'standard';
+                $response = $management->merchantWebhooks->create($merchantId, $params);
+                // save webhook_id to configuration
+                $webhookId = $response['id'];
+                $this->configHelper->setConfigData($webhookId, 'webhook_id', Config::XML_ADYEN_ABSTRACT_PREFIX);
+            }
+
+            // generate hmac key and save
+            $response = $management->merchantWebhooks->generateHmac($merchantId, $webhookId);
+            $hmacKey = $response['hmacKey'];
+            $hmac = $this->encryptor->encrypt($hmacKey);
+            $mode = $demoMode ? 'test' : 'live';
+            $this->configHelper->setConfigData($hmac, 'notification_hmac_key_' . $mode, Config::XML_ADYEN_ABSTRACT_PREFIX);
+        } catch (\Exception $exception) {
+            $this->adyenLogger->error($exception->getMessage());
+
+            if (!$demoMode) {
+                throw $exception;
+            }
+
+            $this->messageManager->addErrorMessage(__("Credentials saved but webhook and HMAC key couldn't be generated! Please check the error logs."));
+        }
     }
 
     /**
@@ -226,13 +257,13 @@ class ManagementHelper
             $client = $this->dataHelper->initializeAdyenClient();
             $management = new Management($client);
             $response = $management->merchantWebhooks->test($merchantId, $webhookId, $params);
-            $this->adyenLogger->addInfo(
+            $this->adyenLogger->info(
                 sprintf( 'response from webhook test %s',
                 json_encode($response))
             );
             return $response;
         } catch (AdyenException $exception) {
-            $this->adyenLogger->addError($exception->getMessage());
+            $this->adyenLogger->error($exception->getMessage());
             return $exception->getMessage();
         }
     }

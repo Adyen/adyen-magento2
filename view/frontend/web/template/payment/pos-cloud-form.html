@@ -55,6 +55,25 @@
                 </div>
             </div>
 
+            <!-- ko if: (isFundingSourceAvailable())-->
+            <div class="field required" data-bind="attr: {id: getCode() + '_funding_source_div'}, visible: isFundingSourceAvailable()">
+                <label data-bind="attr: {for: getCode() + '_funding_source'}" class="label">
+                    <span><!-- ko text: $t('Credit/Debit Card')--><!-- /ko --></span>
+                </label>
+                <div class="control">
+                    <select class="select"
+                            name="paymentMethod[funding_source]"
+                            data-bind="attr: {id: getCode() + '_funding_source', 'data-container': getCode() + '-funding-source', 'data-validate': JSON.stringify({required:true})},
+                                                options: getFundingSourceOptions(),
+                                                optionsValue: 'value',
+                                                optionsText: 'key',
+                                                value: fundingSource"
+                    >
+                    </select>
+                </div>
+            </div>
+            <!-- /ko -->
+
             <!-- ko if: (hasInstallments())-->
             <div class="field required"
                  data-bind="attr: {id: getCode() + '_installments_div'}, visible: installments().length > 0">

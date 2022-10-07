@@ -268,10 +268,10 @@ class Result extends \Magento\Framework\App\Action\Action
         if (!empty($response['additionalData']['recurring.recurringDetailReference']) &&
             $this->payment->getMethodInstance()->getCode() !== \Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider::CODE) {
             if ($this->vaultHelper->isCardVaultEnabled()) {
-                $this->vaultHelper->saveRecurringDetails($this->payment, $response['additionalData']);
+                $this->vaultHelper->saveRecurringCardDetails($this->payment, $response['additionalData']);
             } else {
                 $order = $this->payment->getOrder();
-                $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData'], $this->payment->getAdditionalInformation());
+                $this->recurringHelper->createAdyenBillingAgreement($order, $response['additionalData']);
             }
             $this->orderResourceModel->save($order);
         }
