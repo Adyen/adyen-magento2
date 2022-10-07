@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -40,15 +40,15 @@ class ExpiryDateDataBuilder implements BuilderInterface
      */
     public function build(array $buildSubject)
     {
-        $paymentFormFields = $this->request->getParam('payment');
         $expiryDate = null;
-        $payment = $buildSubject['payment']->getPayment()->getAdditionalInformation()[AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE];
+        $paymentFormFields = $this->request->getParam('payment');
+        $paymentExpiryDate = $buildSubject['payment']->getPayment()->getAdditionalInformation()[AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE];
 
         if (!is_null($paymentFormFields) && isset($paymentFormFields[AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE])) {
             $expiryDate = $paymentFormFields[AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE];
         }
-        elseif (isset($payment)) {
-            $expiryDate = $payment;
+        elseif (isset($paymentExpiryDate)) {
+            $expiryDate = $paymentExpiryDate;
         }
 
         if ($expiryDate) {
@@ -58,7 +58,6 @@ class ExpiryDateDataBuilder implements BuilderInterface
             );
 
             $request['body']['expiresAt'] = $expiryDateTime->format(DATE_ATOM);
-
             return $request;
         }
     }
