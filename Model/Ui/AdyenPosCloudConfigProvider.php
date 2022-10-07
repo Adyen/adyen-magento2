@@ -90,6 +90,7 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
 
         if ($this->adyenHelper->getAdyenPosCloudConfigDataFlag("active")) {
             $config['payment']['adyenPos']['connectedTerminals'] = $this->getConnectedTerminals();
+            $config['payment']['adyenPos']['fundingSourceOptions'] = $this->getFundingSourceOptions();
         }
 
         // has installments by default false
@@ -132,5 +133,16 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
         }
 
         return [];
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function getFundingSourceOptions(): array
+    {
+        return [
+            'credit' => 'Credit Card',
+            'debit' => 'Debit Card'
+        ];
     }
 }

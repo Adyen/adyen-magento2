@@ -15,6 +15,7 @@ use Adyen\Payment\Model\Ui\Adminhtml\AdyenMotoConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenCcConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenOneclickConfigProvider;
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
+use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\Context;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -27,18 +28,12 @@ class ShopperInteractionDataBuilder implements BuilderInterface
     const SHOPPER_INTERACTION_ECOMMERCE = 'Ecommerce';
 
     /**
-     * @var \Magento\Framework\App\State
+     * @var State
      */
     private $appState;
 
-    /**
-     * RecurringDataBuilder constructor.
-     *
-     * @param Context $context
-     */
-    public function __construct(
-        Context $context
-    ) {
+    public function __construct(Context $context)
+    {
         $this->appState = $context->getAppState();
     }
 
