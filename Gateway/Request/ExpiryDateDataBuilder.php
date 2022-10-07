@@ -28,7 +28,8 @@ class ExpiryDateDataBuilder implements BuilderInterface
      */
     public function __construct(
         RequestInterface $request
-    ) {
+    )
+    {
         $this->request = $request;
     }
 
@@ -42,12 +43,13 @@ class ExpiryDateDataBuilder implements BuilderInterface
     {
         $expiryDate = null;
         $paymentFormFields = $this->request->getParam('payment');
-        $paymentExpiryDate = $buildSubject['payment']->getPayment()->getAdditionalInformation()[AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE];
+        $paymentExpiryDate = $buildSubject['payment']->getPayment()->getAdditionalInformation()
+        [AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE];
 
-        if (!is_null($paymentFormFields) && isset($paymentFormFields[AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE])) {
+        if (!is_null($paymentFormFields) && isset($paymentFormFields
+                [AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE])) {
             $expiryDate = $paymentFormFields[AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE];
-        }
-        elseif (isset($paymentExpiryDate)) {
+        } elseif (isset($paymentExpiryDate)) {
             $expiryDate = $paymentExpiryDate;
         }
 
