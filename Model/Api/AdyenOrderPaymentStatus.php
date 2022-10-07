@@ -79,11 +79,6 @@ class AdyenOrderPaymentStatus implements AdyenOrderPaymentStatusInterface
         $payment = $order->getPayment();
         $additionalInformation = $payment->getAdditionalInformation();
 
-        if(!empty($additionalInformation['payByLinkUrl'])) {
-            $result['paymentLink'] = $additionalInformation['payByLinkUrl'];
-            return json_encode($result);
-        }
-
         if (empty($additionalInformation['resultCode'])) {
             $this->adyenLogger->info('resultCode is empty in the payment\'s additional information');
             return json_encode(

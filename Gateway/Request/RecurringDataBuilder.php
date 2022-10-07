@@ -67,9 +67,7 @@ class RecurringDataBuilder implements BuilderInterface
         } elseif ($method === PaymentMethods::ADYEN_ONE_CLICK) {
             $body = $this->adyenRequestsHelper->buildAdyenTokenizedPaymentRecurringData($storeId, $payment);
         } elseif ($method === PaymentMethods::ADYEN_PAY_BY_LINK) {
-            return [
-                'body' => $body
-            ];
+            return ['body' => $body];
         } else {
             $this->adyenLogger->addAdyenWarning(
                 sprintf('Unknown payment method: %s', $payment->getMethod()),
