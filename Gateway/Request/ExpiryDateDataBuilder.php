@@ -46,7 +46,7 @@ class ExpiryDateDataBuilder implements BuilderInterface
         $paymentExpiryDate = $buildSubject['payment']->getPayment()->getAdditionalInformation()
         [AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE];
 
-        if (!is_null($paymentFormFields) && isset($paymentFormFields
+        if (isset($paymentFormFields) && isset($paymentFormFields
                 [AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE])) {
             $expiryDate = $paymentFormFields[AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE];
         } elseif (isset($paymentExpiryDate)) {
