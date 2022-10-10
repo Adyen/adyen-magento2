@@ -3,7 +3,7 @@
  *
  * Adyen Payment module (https://www.adyen.com/)
  *
- * Copyright (c) 2021 Adyen NV (https://www.adyen.com/)
+ * Copyright (c) 2022 Adyen NV (https://www.adyen.com/)
  * See LICENSE.txt for license details.
  *
  * Author: Adyen <magento@adyen.com>
@@ -12,6 +12,7 @@
 namespace Adyen\Payment\Gateway\Request;
 
 use Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider;
+use Adyen\Payment\Observer\AdyenPayByLinkDataAssignObserver;
 use Magento\Framework\App\RequestInterface;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
@@ -27,7 +28,8 @@ class ExpiryDateDataBuilder implements BuilderInterface
      */
     public function __construct(
         RequestInterface $request
-    ) {
+    )
+    {
         $this->request = $request;
     }
 
@@ -39,14 +41,26 @@ class ExpiryDateDataBuilder implements BuilderInterface
      */
     public function build(array $buildSubject)
     {
+        $expiryDate = null;
         $paymentFormFields = $this->request->getParam('payment');
-        $expiryDate = date_create_from_format(
-            AdyenPayByLinkConfigProvider::DATE_TIME_FORMAT,
-            $paymentFormFields["adyen_pbl_expires_at"] . ' 23:59:59'
-        );
+        $paymentExpiryDate = $buildSubject['payment']->getPayment()->getAdditionalInformation()
+        [AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE];
 
-        $request['body']['expiresAt'] = $expiryDate->format(DATE_ATOM);
+        if (isset($paymentFormFields) && isset($paymentFormFields
+                [AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE])) {
+            $expiryDate = $paymentFormFields[AdyenPayByLinkDataAssignObserver::PBL_EXPIRY_DATE];
+        } elseif (isset($paymentExpiryDate)) {
+            $expiryDate = $paymentExpiryDate;
+        }
 
-        return $request;
+        if ($expiryDate) {
+            $expiryDateTime = date_create_from_format(
+                AdyenPayByLinkConfigProvider::DATE_TIME_FORMAT,
+                $expiryDate . ' 23:59:59'
+            );
+
+            $request['body']['expiresAt'] = $expiryDateTime->format(DATE_ATOM);
+            return $request;
+        }
     }
 }
