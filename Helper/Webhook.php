@@ -191,7 +191,11 @@ class Webhook
              * Prevent re-process attempts and change the state of the notification to `done`.
              */
             $this->updateNotification($notification, false, true);
-            $this->handleNotificationError($order, $notification, sprintf("Unsupported webhook notification: %s", $notification->getEventCode()));
+            $this->handleNotificationError(
+                $order,
+                $notification,
+                sprintf("Unsupported webhook notification: %s", $notification->getEventCode())
+            );
             $this->logger->addAdyenNotification(
                 sprintf(
                     "Notification %s had an error. Unsupported webhook notification: %s. %s",
@@ -427,8 +431,11 @@ class Webhook
     /**
      * TODO: Move this function or refactor or both
      */
-    private function updateOrderPaymentWithAdyenAttributes(Order\Payment $payment, Notification $notification, array $additionalData): void
-    {
+    private function updateOrderPaymentWithAdyenAttributes(
+        Order\Payment $payment,
+        Notification $notification,
+        array $additionalData
+    ): void {
         if (isset($additionalData['avsResult'])) {
             $payment->setAdditionalInformation('adyen_avs_result', $additionalData['avsResult']);
         }
