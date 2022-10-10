@@ -580,7 +580,7 @@ class Order extends AbstractHelper
         if (($matches['pspReference'] ?? '') == $notification->getOriginalReference() && empty($matches['suffix'])) {
             if (empty($matches['suffix']) || $matches['suffix'] === '-capture') {
                 // refund is done through adyen backoffice so create a credit memo
-                if ($order->canCreditmemo()) {
+                if ($order->canCreditmemo() && isset($adyenOrderPayment)) {
                     $amount = $this->dataHelper->originalAmount($notification->getAmountValue(), $notification->getAmountCurrency());
                     $order->getPayment()->registerRefundNotification($amount);
 
