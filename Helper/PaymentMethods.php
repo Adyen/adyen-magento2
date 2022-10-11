@@ -684,7 +684,7 @@ class PaymentMethods extends AbstractHelper
             }
 
             if ($paymentCode == "adyen_pos_cloud") {
-                $captureModePos = $this->adyenHelper->getAdyenPosCloudConfigData(
+                $captureModePos = $this->configHelper->getAdyenPosCloudConfigData(
                     'capture_mode_pos',
                     $order->getStoreId()
                 );

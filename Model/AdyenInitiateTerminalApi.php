@@ -40,6 +40,9 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
      */
     protected $storeId;
 
+    /** @var int */
+    protected $timeout;
+
     /**
      * @var \Magento\Checkout\Model\Session
      */
@@ -88,9 +91,9 @@ class AdyenInitiateTerminalApi implements AdyenInitiateTerminalApiInterface
         $client = $this->adyenHelper->initializeAdyenClient($this->storeId, $apiKey);
 
         //Set configurable option in M2
-        $posTimeout = $this->adyenHelper->getAdyenPosCloudConfigData('pos_timeout', $this->storeId);
-        if (!empty($posTimeout)) {
-            $client->setTimeout($posTimeout);
+        $this->timeout = $this->adyenHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
+        if (!empty($this->timeout)) {
+            $client->setTimeout($this->timeout);
         }
 
         $this->client = $client;
