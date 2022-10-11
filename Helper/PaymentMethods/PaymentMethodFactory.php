@@ -43,7 +43,7 @@ class PaymentMethodFactory
             case GooglePayPaymentMethod::TX_VARIANT:
                 return new GooglePayPaymentMethod($txVariantObject->getCard());
             case TwintPaymentMethod::TX_VARIANT:
-                return new TwintPaymentMethod($txVariantObject->getCard());
+                return new TwintPaymentMethod();
             default:
                 $message = sprintf('Unknown txVariant: %s', $txVariant);
                 self::$adyenLogger->debug($message);
