@@ -54,6 +54,11 @@ class Requests extends AbstractHelper
     private $vaultHelper;
 
     /**
+     * @var Data
+     */
+    private $dataHelper;
+
+    /**
      * Requests constructor.
      *
      * @param Data $adyenHelper
@@ -69,7 +74,8 @@ class Requests extends AbstractHelper
         Address $addressHelper,
         StateData $stateData,
         PaymentMethods $paymentMethodsHelper,
-        Vault $vaultHelper
+        Vault $vaultHelper,
+        Data $dataHelper
     ) {
         $this->adyenHelper = $adyenHelper;
         $this->adyenConfig = $adyenConfig;
@@ -77,6 +83,7 @@ class Requests extends AbstractHelper
         $this->stateData = $stateData;
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->vaultHelper = $vaultHelper;
+        $this->dataHelper = $dataHelper;
     }
 
     /**
@@ -427,7 +434,7 @@ class Requests extends AbstractHelper
     public function getShopperReference($customerId, $orderIncrementId): string
     {
         if ($customerId) {
-            $shopperReference = str_pad($customerId, 3, '0', STR_PAD_LEFT);
+            $shopperReference = $this->dataHelper->padShopperReference($customerId);
         } else {
             $uuid = Uuid::generateV4();
             $guestCustomerId = $orderIncrementId . $uuid;
