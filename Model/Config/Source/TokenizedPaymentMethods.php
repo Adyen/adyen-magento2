@@ -33,11 +33,12 @@ class TokenizedPaymentMethods implements OptionSourceInterface
             [
                 'value' => PaymentMethods\SepaPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\SepaPaymentMethod::NAME
-            ],
-            [
+            ]
+            /** TODO: Enable recurring for Twint once the issue fixed on LPM side */
+            /*[
                 'value' => PaymentMethods\TwintPaymentMethod::TX_VARIANT,
                 'label' => PaymentMethods\TwintPaymentMethod::NAME
-            ]
+            ]*/
         ];
     }
 }
