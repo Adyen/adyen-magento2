@@ -33,7 +33,7 @@ use Magento\Framework\View\DesignInterface;
 use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
-use Adyen\Helper\Data as AdyenDataHelper;
+use Adyen\Payment\Helper\Data as AdyenDataHelper;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
