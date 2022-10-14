@@ -12,6 +12,7 @@
 
 namespace Adyen\Payment\Block\Form;
 
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\ConnectedTerminals;
 use Adyen\Payment\Helper\Data;
 use Adyen\Payment\Helper\PointOfSale;
@@ -38,19 +39,25 @@ class PosCloud extends Form
     protected $adyenHelper;
 
     /**
+     * @var Config
+     */
+    protected $configHelper;
+
+
+    /**
      * @var SerializerInterface
      */
-    private $serializer;
+    protected $serializer;
 
     /**
      * @var Quote
      */
-    private $backendSession;
+    protected $backendSession;
 
     /**
      * @var PointOfSale
      */
-    private $posHelper;
+    protected $posHelper;
 
     /**
      * @param Template\Context $context
@@ -68,6 +75,7 @@ class PosCloud extends Form
         Data $adyenHelper,
         Quote $backendSession,
         PointOfSale $posHelper,
+        Config $configHelper,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -76,6 +84,7 @@ class PosCloud extends Form
         $this->adyenHelper = $adyenHelper;
         $this->backendSession = $backendSession;
         $this->posHelper = $posHelper;
+        $this->configHelper = $configHelper;
     }
 
     public function getConfig()
@@ -102,12 +111,9 @@ class PosCloud extends Form
         return [];
     }
 
-    /**
-     * @return array
-     */
     public function getFormattedInstallments(): array
     {
-        $serialisedInstallments = $this->adyenHelper->getAdyenPosCloudConfigData('installments');
+        $serialisedInstallments = $this->configHelper->getAdyenPosCloudConfigData('installments');
         $formattedInstallments = [];
 
         if (isset($serialisedInstallments)) {
@@ -130,10 +136,10 @@ class PosCloud extends Form
 
     public function hasInstallment()
     {
-        return $this->adyenHelper->getAdyenPosCloudConfigData('enable_installments');
+        return $this->configHelper->getAdyenPosCloudConfigData('enable_installments');
     }
 
-    public function hasFundingSource()
+    public function hasFundingSource(): bool
     {
         if ($this->backendSession->getQuote()->getBillingAddress() === null) {
             return false;
@@ -151,7 +157,7 @@ class PosCloud extends Form
             $currencyCode === $allowedCurrenciesByCountry[$countryId];
     }
 
-    public function getFundingSourceOptions()
+    public function getFundingSourceOptions(): array
     {
         return [
             'credit' => 'Credit Card',
