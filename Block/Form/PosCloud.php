@@ -43,7 +43,6 @@ class PosCloud extends Form
      */
     protected $configHelper;
 
-
     /**
      * @var SerializerInterface
      */
@@ -66,6 +65,7 @@ class PosCloud extends Form
      * @param Data $adyenHelper
      * @param Quote $backendSession
      * @param PointOfSale $posHelper
+     * @param Config $configHelper
      * @param array $data
      */
     public function __construct(
@@ -85,13 +85,6 @@ class PosCloud extends Form
         $this->backendSession = $backendSession;
         $this->posHelper = $posHelper;
         $this->configHelper = $configHelper;
-    }
-
-    public function getConfig()
-    {
-        $config['payment']['adyenPos']['installments'] = true;
-
-        return $config;
     }
 
     /**
