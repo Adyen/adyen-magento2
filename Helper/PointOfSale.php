@@ -99,4 +99,26 @@ class PointOfSale
     {
         return $quote->getCustomerId();
     }
+
+    /**
+     * @param $installments
+     * @param $amount
+     * @param $currencyCode
+     * @param $precision
+     * @return array
+     */
+    public function getFormattedInstallments($installments, $amount, $currencyCode, $precision): array
+    {
+        $formattedInstallments = [];
+
+        foreach ($installments as $minAmount => $installment) {
+            if ($amount >= $minAmount) {
+                $dividedAmount = number_format($amount / $installment, $precision);
+                $formattedInstallments[$installment] =
+                    sprintf("%s x %s %s", $installment, $dividedAmount, $currencyCode);
+            }
+        }
+
+        return $formattedInstallments;
+    }
 }

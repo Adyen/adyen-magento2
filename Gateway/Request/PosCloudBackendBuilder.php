@@ -12,6 +12,8 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
+use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PointOfSale;
 use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Payment\Gateway\Helper\SubjectReader;
@@ -24,13 +26,18 @@ class PosCloudBackendBuilder implements BuilderInterface
      */
     private $pointOfSale;
 
+    /** @var ChargedCurrency */
+    private $chargedCurrency;
+
     /**
      * @param PointOfSale $pointOfSale
      */
     public function __construct(
-        PointOfSale $pointOfSale
+        PointOfSale $pointOfSale,
+        ChargedCurrency $chargedCurrency
     ) {
         $this->pointOfSale = $pointOfSale;
+        $this->chargedCurrency = $chargedCurrency;
     }
 
     /**
@@ -46,9 +53,11 @@ class PosCloudBackendBuilder implements BuilderInterface
         $orderInstance = $payment->getMethodInstance()->getInfoInstance()->getOrder();
 
         $terminalId = $payment->getAdditionalInformation('terminal_id');
+        $numberOfInstallments = $payment->getAdditionalInformation('number_of_installments');
+        $fundingSource = $payment->getAdditionalInformation('funding_source');
 
-        $currency = $paymentDataObject->getOrder()->getCurrencyCode();
-        $amount = $paymentDataObject->getOrder()->getGrandTotalAmount();
+        $adyenAmountCurrency = $this->chargedCurrency->getOrderAmountCurrency($orderInstance);
+
         $reference = $paymentDataObject->getOrder()->getOrderIncrementId();
 
         $transactionType = \Adyen\TransactionType::NORMAL;
@@ -77,16 +86,44 @@ class PosCloudBackendBuilder implements BuilderInterface
                     ],
                     'PaymentTransaction' => [
                         'AmountsReq' => [
-                            'Currency' => $currency,
-                            'RequestedAmount' => $amount
+                            'Currency' => $adyenAmountCurrency->getCurrencyCode(),
+                            'RequestedAmount' => doubleval($adyenAmountCurrency->getAmount())
                         ]
                     ]
-                ],
-                'PaymentData' => [
-                    'PaymentType' => $transactionType
                 ]
             ]
         ];
+
+        if (is_null($fundingSource) || $fundingSource === PaymentMethods::FUNDING_SOURCE_CREDIT) {
+            if (isset($numberOfInstallments)) {
+                $paymentServiceRequest['SaleToPOIRequest']['PaymentRequest']['PaymentData'] = [
+                    "PaymentType" => "Instalment",
+                    "Instalment" => [
+                        "InstalmentType" => "EqualInstalments",
+                        "SequenceNumber" => 1,
+                        "Period" => 1,
+                        "PeriodUnit" => "Monthly",
+                        "TotalNbOfPayments" => intval($numberOfInstallments)
+                    ]
+                ];
+            } else {
+                $paymentServiceRequest['SaleToPOIRequest']['PaymentData'] = [
+                    'PaymentType' => $transactionType,
+                ];
+            }
+
+            $paymentServiceRequest['SaleToPOIRequest']['PaymentRequest']['PaymentTransaction']['TransactionConditions'] = [
+                "DebitPreferredFlag" => false
+            ];
+        } elseif ($fundingSource === PaymentMethods::FUNDING_SOURCE_DEBIT) {
+            $paymentServiceRequest['SaleToPOIRequest']['PaymentRequest']['PaymentTransaction']['TransactionConditions'] = [
+                "DebitPreferredFlag" => true
+            ];
+
+            $paymentServiceRequest['SaleToPOIRequest']['PaymentData'] = [
+                'PaymentType' => $transactionType,
+            ];
+        }
 
         $paymentServiceRequest = $this->pointOfSale->addSaleToAcquirerData($paymentServiceRequest, null, $orderInstance);
 

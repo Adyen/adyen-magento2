@@ -289,6 +289,11 @@
             <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider::CODE</argument>
         </arguments>
     </virtualType>
+    <type name="Adyen\Payment\Block\Form\PosCloud">
+        <arguments>
+            <argument name="serializer" xsi:type="object">Magento\Framework\Serialize\Serializer\Serialize</argument>
+        </arguments>
+    </type>
     <virtualType name="AdyenPaymentPayByLinkConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="const">Adyen\Payment\Model\Ui\AdyenPayByLinkConfigProvider::CODE</argument>
