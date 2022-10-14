@@ -134,7 +134,6 @@
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
-                <pos_timeout>30</pos_timeout>
                 <total_timeout>120</total_timeout>
                 <recurring_type>NONE</recurring_type>
                 <group>adyen</group>

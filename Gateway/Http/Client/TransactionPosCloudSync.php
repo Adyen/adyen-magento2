@@ -3,7 +3,7 @@
  *
  * Adyen Payment Module
  *
- * Copyright (c) 2018 Adyen B.V.
+ * Copyright (c) 2022 Adyen B.V.
  * This file is open source and available under the MIT license.
  * See the LICENSE file for more info.
  *
@@ -14,41 +14,35 @@ namespace Adyen\Payment\Gateway\Http\Client;
 
 use Adyen\AdyenException;
 use Adyen\Payment\Helper\ChargedCurrency;
+use Adyen\Payment\Helper\Config;
 use Adyen\Payment\Helper\Data;
-use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Helper\PointOfSale;
 use Adyen\Payment\Logger\AdyenLogger;
-use Adyen\Payment\Model\Ui\AdyenPosCloudConfigProvider;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Payment\Gateway\Http\TransferInterface;
-use Magento\Quote\Api\Data\CartInterface;
-use Magento\Quote\Model\Quote;
 use Magento\Store\Model\StoreManagerInterface;
 
 class TransactionPosCloudSync implements ClientInterface
 {
-    /**
-     * @var int
-     */
+    /** @var int  */
     protected $storeId;
 
-    /**
-     * @var \Adyen\Client
-     */
+    /** @var int */
+    protected $timeout;
+
+    /** @var \Adyen\Client  */
     protected $client;
 
-    /**
-     * @var Data
-     */
+    /** @var Data  */
     protected $adyenHelper;
 
-    /**
-     * @var AdyenLogger
-     */
+    /** @var AdyenLogger  */
     protected $adyenLogger;
+
+    /** @var Config */
+    protected $configHelper;
 
     /** @var Session */
     private $session;
@@ -66,6 +60,7 @@ class TransactionPosCloudSync implements ClientInterface
         Session $session,
         ChargedCurrency $chargedCurrency,
         PointOfSale $pointOfSale,
+        Config $configHelper,
         array $data = []
     ) {
         $this->adyenHelper = $adyenHelper;
@@ -73,6 +68,7 @@ class TransactionPosCloudSync implements ClientInterface
         $this->session = $session;
         $this->pointOfSale = $pointOfSale;
         $this->chargedCurrency = $chargedCurrency;
+        $this->configHelper = $configHelper;
 
         $this->storeId = $storeManager->getStore()->getId();
 
@@ -82,9 +78,9 @@ class TransactionPosCloudSync implements ClientInterface
         $client = $this->adyenHelper->initializeAdyenClient($this->storeId, $apiKey);
 
         //Set configurable option in M2
-        $posTimeout = $this->adyenHelper->getAdyenPosCloudConfigData('pos_timeout', $this->storeId);
-        if (!empty($posTimeout)) {
-            $client->setTimeout($posTimeout);
+        $this->timeout = $this->configHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
+        if (!empty($this->timeout)) {
+            $client->setTimeout($this->timeout);
         }
 
         $this->client = $client;
@@ -105,7 +101,6 @@ class TransactionPosCloudSync implements ClientInterface
         $service = $this->adyenHelper->createAdyenPosPaymentService($this->client);
         $newServiceID = date("dHis");
         $statusDate = date("U");
-
         $terminalId = $request['terminalID'];
 
         if (array_key_exists('chainCalls', $request)) {
@@ -122,7 +117,7 @@ class TransactionPosCloudSync implements ClientInterface
             $serviceId = $request['serviceID'];
         }
 
-        $totalTimeout = $this->adyenHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
+        $totalTimeout = $this->configHelper->getAdyenPosCloudConfigData('total_timeout', $this->storeId);
         if ($timeDiff > $totalTimeout) {
             throw new LocalizedException(__("POS connection timed out."));
         }

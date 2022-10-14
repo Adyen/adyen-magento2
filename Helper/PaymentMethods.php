@@ -42,6 +42,7 @@ class PaymentMethods extends AbstractHelper
     const ADYEN_HPP = 'adyen_hpp';
     const ADYEN_CC = 'adyen_cc';
     const ADYEN_ONE_CLICK = 'adyen_oneclick';
+    const ADYEN_PAY_BY_LINK = 'adyen_pay_by_link';
 
     const ADYEN_PREFIX = 'adyen_';
 
@@ -683,7 +684,7 @@ class PaymentMethods extends AbstractHelper
             }
 
             if ($paymentCode == "adyen_pos_cloud") {
-                $captureModePos = $this->adyenHelper->getAdyenPosCloudConfigData(
+                $captureModePos = $this->configHelper->getAdyenPosCloudConfigData(
                     'capture_mode_pos',
                     $order->getStoreId()
                 );
