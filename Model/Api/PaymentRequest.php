@@ -190,7 +190,7 @@ class PaymentRequest extends DataObject
         $contract = ['contract' => $recurringType];
         $request = [
             "merchantAccount" => $this->_adyenHelper->getAdyenAbstractConfigData('merchant_account', $storeId),
-            "shopperReference" => $this->dataHelper->padShopperReference($shopperReference),
+            "shopperReference" => $this->_adyenHelper->padShopperReference($shopperReference),
             "recurring" => $contract,
         ];
 
@@ -214,7 +214,7 @@ class PaymentRequest extends DataObject
     public function disableRecurringContract($recurringDetailReference, $shopperReference, $storeId)
     {
         $merchantAccount = $this->_adyenHelper->getAdyenAbstractConfigData("merchant_account", $storeId);
-        $shopperReference = $this->getShopperReferencePadding($shopperReference);
+        $shopperReference = $this->_adyenHelper->padShopperReference($shopperReference);
         $request = [
             "merchantAccount" => $merchantAccount,
             "shopperReference" => $shopperReference,
@@ -237,13 +237,4 @@ class PaymentRequest extends DataObject
             throw new \Magento\Framework\Exception\LocalizedException(__('Failed to disable this contract'));
         }
     }
-
-//    /**
-//     * @param $shopperReference
-//     * @return string
-//     */
-//    private function getShopperReferencePadding($shopperReference)
-//    {
-//        return str_pad($shopperReference, 3, '0', STR_PAD_LEFT);
-//    }
 }
