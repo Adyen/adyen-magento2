@@ -1,0 +1,26 @@
+<?php
+/** @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */
+?>
+<script>
+require([
+    'jquery',
+    'mage/mage'
+], function($) {
+    $('#support_form').mage('form').mage('validation', {
+        highlight: function(element) {
+            var detailsElement = $(element).closest('details');
+            if (detailsElement.length && detailsElement.is('.details')) {
+                var summaryElement = detailsElement.find('summary');
+                if (summaryElement.length && summaryElement.attr('aria-expanded') === "false") {
+                    summaryElement.trigger('click');
+                }
+            }
+            $(element).trigger('highlight.validate');
+        }
+    });
+
+    $('#send').click(() => {
+        $('#support_form').submit();
+    });
+});
+</script>
