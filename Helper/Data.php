@@ -1793,7 +1793,11 @@ class Data extends AbstractHelper
         }, ARRAY_FILTER_USE_KEY);
     }
 
-    public function padShopperReference($shopperReference)
+    /**
+     * @param $shopperReference
+     * @return string
+     */
+    public function padShopperReference($shopperReference): string
     {
         return str_pad($shopperReference, 3, '0', STR_PAD_LEFT);
     }
