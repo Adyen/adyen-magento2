@@ -1797,7 +1797,7 @@ class Data extends AbstractHelper
      * @param $shopperReference
      * @return string
      */
-    public function padShopperReference($shopperReference): string
+    public function padShopperReference(string $shopperReference): string
     {
         return str_pad($shopperReference, 3, '0', STR_PAD_LEFT);
     }
