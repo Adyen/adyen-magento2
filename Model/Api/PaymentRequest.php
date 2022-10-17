@@ -12,7 +12,6 @@
 namespace Adyen\Payment\Model\Api;
 
 use Magento\Framework\DataObject;
-use Adyen\Helper\Data;
 
 class PaymentRequest extends DataObject
 {
@@ -42,11 +41,6 @@ class PaymentRequest extends DataObject
     protected $_appState;
 
     /**
-     * @var Data
-     */
-    protected $dataHelper;
-
-    /**
      * PaymentRequest constructor.
      *
      * @param \Magento\Framework\Model\Context $context
@@ -62,7 +56,6 @@ class PaymentRequest extends DataObject
         \Adyen\Payment\Helper\Data $adyenHelper,
         \Adyen\Payment\Logger\AdyenLogger $adyenLogger,
         \Adyen\Payment\Model\RecurringType $recurringType,
-        Data $dataHelper,
         array $data = []
     ) {
         $this->_encryptor = $encryptor;
@@ -70,7 +63,6 @@ class PaymentRequest extends DataObject
         $this->_adyenLogger = $adyenLogger;
         $this->_recurringType = $recurringType;
         $this->_appState = $context->getAppState();
-        $this->dataHelper = $dataHelper;
     }
 
     /**
