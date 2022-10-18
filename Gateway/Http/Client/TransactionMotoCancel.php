@@ -43,7 +43,11 @@ class TransactionMotoCancel implements ClientInterface
         $request = $transferObject->getBody();
         $clientConfig = $transferObject->getClientConfig();
 
-        $client = $this->adyenHelper->initializeAdyenClient($clientConfig['storeId'], null, $request['merchantAccount']);
+        $client = $this->adyenHelper->initializeAdyenClient(
+            $clientConfig['storeId'],
+            null,
+            $request['merchantAccount']
+        );
         $service = new Modification($client);
 
         try {
