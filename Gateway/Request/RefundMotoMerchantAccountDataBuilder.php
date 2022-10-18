@@ -11,11 +11,10 @@
 
 namespace Adyen\Payment\Gateway\Request;
 
-use Adyen\Payment\Helper\ChargedCurrency;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 /**
- * Class MotoRefundDataBuilder
+ * Class RefundMotoMerchantAccountDataBuilder
  */
 class RefundMotoMerchantAccountDataBuilder implements BuilderInterface
 {
