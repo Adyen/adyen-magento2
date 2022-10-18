@@ -36,6 +36,7 @@ use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\PaymentTokenManagementInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
+use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 
 class WebhookHandlerFactory
 {
@@ -105,6 +106,9 @@ class WebhookHandlerFactory
     /** @var PaymentTokenRepositoryInterface */
     private static $paymentTokenRepository;
 
+    /** @var OrderPaymentResourceModel */
+    protected static $orderPaymentResourceModel;
+
     public function __construct(
         AdyenOrderPayment $adyenOrderPayment,
         Order $orderHelper,
@@ -127,7 +131,8 @@ class WebhookHandlerFactory
         PaymentTokenManagementInterface $paymentTokenManagement,
         PaymentTokenFactoryInterface $paymentTokenFactory,
         EncryptorInterface $encryptor,
-        PaymentTokenRepositoryInterface $paymentTokenRepository
+        PaymentTokenRepositoryInterface $paymentTokenRepository,
+        OrderPaymentResourceModel $orderPaymentResourceModel
     ) {
         self::$adyenOrderPayment = $adyenOrderPayment;
         self::$orderHelper = $orderHelper;
@@ -151,6 +156,7 @@ class WebhookHandlerFactory
         self::$paymentTokenFactory = $paymentTokenFactory;
         self::$encryptor = $encryptor;
         self::$paymentTokenRepository = $paymentTokenRepository;
+        self::$orderPaymentResourceModel = $orderPaymentResourceModel;
     }
 
     /**
@@ -239,6 +245,14 @@ class WebhookHandlerFactory
                     self::$adyenLogger,
                     self::$serializer,
                     self::$orderHelper
+                );
+            case Notification::ORDER_CLOSED:
+                return new OrderClosedWebhookHandler(
+                    self::$adyenOrderPayment,
+                    self::$orderHelper,
+                    self::$configHelper,
+                    self::$adyenOrderPaymentCollectionFactory,
+                    self::$adyenLogger
                 );
         }
 
