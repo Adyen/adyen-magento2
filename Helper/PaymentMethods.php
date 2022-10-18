@@ -33,6 +33,7 @@ use Magento\Framework\View\DesignInterface;
 use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Adyen\Payment\Helper\Data as AdyenDataHelper;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -86,6 +87,11 @@ class PaymentMethods extends AbstractHelper
      * @var AdyenLogger
      */
     protected $adyenLogger;
+
+    /**
+     * @var AdyenDataHelper
+     */
+    protected $adyenDataHelper;
 
     /**
      * @var Repository
@@ -147,7 +153,8 @@ class PaymentMethods extends AbstractHelper
         Config $configHelper,
         MagentoDataHelper $dataHelper,
         ManualCapture $manualCapture,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        AdyenDataHelper $adyenDataHelper
     ) {
         parent::__construct($context);
         $this->quoteRepository = $quoteRepository;
@@ -165,6 +172,7 @@ class PaymentMethods extends AbstractHelper
         $this->dataHelper = $dataHelper;
         $this->manualCapture = $manualCapture;
         $this->serializer = $serializer;
+        $this->adyenDataHelper = $adyenDataHelper;
     }
 
     /**
@@ -411,12 +419,8 @@ class PaymentMethods extends AbstractHelper
         ];
 
         if (!empty($this->getCurrentShopperReference())) {
-            $paymentMethodRequest["shopperReference"] = str_pad(
-                $this->getCurrentShopperReference(),
-                3,
-                '0',
-                STR_PAD_LEFT
-            );
+            $paymentMethodRequest["shopperReference"] =
+                $this->adyenDataHelper->padShopperReference($this->getCurrentShopperReference());
         }
 
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
