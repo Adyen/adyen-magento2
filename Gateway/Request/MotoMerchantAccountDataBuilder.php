@@ -50,6 +50,7 @@ class MotoMerchantAccountDataBuilder implements BuilderInterface
         }
 
         $request['body'] = $this->adyenRequestsHelper->buildMotoMerchantAccountData($motoMerchantAccount);
+        $request['clientConfig']['storeId'] = $payment->getMethodInstance()->getStore();
 
         return $request;
     }
