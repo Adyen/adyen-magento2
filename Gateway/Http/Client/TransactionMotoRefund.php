@@ -40,12 +40,18 @@ class TransactionMotoRefund implements ClientInterface
     public function placeRequest(\Magento\Payment\Gateway\Http\TransferInterface $transferObject)
     {
         $requests = $transferObject->getBody();
+        $clientConfig = $transferObject->getClientConfig();
+
         $responses = [];
 
         foreach ($requests as $request) {
             // call lib
 
-            $client = $this->adyenHelper->initializeAdyenClient(null, null, $request['merchantAccount']);
+            $client = $this->adyenHelper->initializeAdyenClient(
+                $clientConfig['storeId'],
+                null,
+                $request['merchantAccount']
+            );
             $service = new \Adyen\Service\Modification($client);
             try {
                 $responses[] = $service->refund($request);
