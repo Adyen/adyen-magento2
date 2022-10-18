@@ -57,6 +57,9 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
         $adyenHelper->method('getAdyenPosCloudConfigData')
             ->will($this->returnValueMap($map));
 
+        $adyenHelper->method('padShopperReference')
+            ->will($this->returnValue(self::CUSTOMER_ID));
+
         $adyenHelper->method('getModuleName')
             ->will($this->returnValue(self::MODULE_NAME));
 

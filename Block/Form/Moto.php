@@ -179,6 +179,8 @@ class Moto extends \Magento\Payment\Block\Form\Cc
      */
     public function getMotoMerchantAccounts() : array
     {
-        return $this->configHelper->getMotoMerchantAccounts();
+        $storeId = $this->backendSession->getStoreId();
+
+        return $this->configHelper->getMotoMerchantAccounts($storeId);
     }
 }

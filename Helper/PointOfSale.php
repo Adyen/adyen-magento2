@@ -69,7 +69,7 @@ class PointOfSale
 
             if (!empty($recurringContract) && !empty($shopperEmail)) {
                 $saleToAcquirerData['shopperEmail'] = $shopperEmail;
-                $saleToAcquirerData['shopperReference'] = str_pad((string)$customerId, 3, '0', STR_PAD_LEFT);
+                $saleToAcquirerData['shopperReference'] = $this->dataHelper->padShopperReference($customerId);
                 $saleToAcquirerData['recurringContract'] = $recurringContract;
             }
         }
