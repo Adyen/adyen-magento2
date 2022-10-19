@@ -37,7 +37,6 @@ use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\PaymentTokenManagementInterface;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
-use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 
 class WebhookHandlerFactory
 {
