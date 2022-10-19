@@ -17,6 +17,7 @@ use Adyen\Payment\Helper\Order;
 use Adyen\Payment\Helper\PaymentMethods;
 use Adyen\Payment\Logger\AdyenLogger;
 use Adyen\Payment\Model\Notification;
+use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order as MagentoOrder;
 
@@ -35,17 +36,21 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
     /** @var Order */
     private $orderHelper;
 
+    /** @var OrderPaymentResourceModel */
+    protected $orderPaymentResourceModel;
+
     public function __construct(
         PaymentMethods $paymentMethodsHelper,
         AdyenLogger $adyenLogger,
         Config $configHelper,
-        Order $orderHelper
-    )
-    {
+        Order $orderHelper,
+        OrderPaymentResourceModel $orderPaymentResourceModel
+    ) {
         $this->paymentMethodsHelper = $paymentMethodsHelper;
         $this->adyenLogger = $adyenLogger;
         $this->configHelper = $configHelper;
         $this->orderHelper = $orderHelper;
+        $this->orderPaymentResourceModel = $orderPaymentResourceModel;
     }
 
     /**
@@ -53,21 +58,17 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
      */
     public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
     {
-        //TODO: Refactor code that is common between here and AUTH w/success = false
-        $previousAdyenEventCode = $order->getData('adyen_notification_event_code');
+        $capturedAdyenOrderPayments = $this->orderPaymentResourceModel->getLinkedAdyenOrderPayments(
+            $order->getPayment()->getEntityId()
+        );
 
-        /*
-         * Don't cancel the order if part of the payment has been captured.
-         * Partial payments can fail, if the second payment has failed then the first payment is
-         * refund/cancelled as well. So if it is a partial payment that failed cancel the order as well
-         * TODO: Refactor this by using the adyenOrderPayment Table
-         */
-        $paymentPreviouslyCaptured = $order->getData('adyen_notification_payment_captured');
+        if (!empty($capturedAdyenOrderPayments)) {
+            $order->addCommentToStatusHistory(
+                __('Order is not cancelled because this order was fully/partially authorised.')
+            );
 
-        if ($previousAdyenEventCode == "AUTHORISATION : TRUE" || !empty($paymentPreviouslyCaptured)) {
             $this->adyenLogger->addAdyenNotification(
-                'Order is not cancelled because previous notification
-                                    was an authorisation that succeeded and payment was captured',
+                'Order is not cancelled because this order was fully/partially authorised.',
                 [
                     'pspReference' => $notification->getPspreference(),
                     'merchantReference' => $notification->getMerchantReference()
@@ -77,7 +78,10 @@ class OfferClosedWebhookHandler implements WebhookHandlerInterface
             return $order;
         }
 
-        $identicalPaymentMethods = $this->paymentMethodsHelper->compareOrderAndWebhookPaymentMethods($order, $notification);
+        $identicalPaymentMethods = $this->paymentMethodsHelper->compareOrderAndWebhookPaymentMethods(
+            $order,
+            $notification
+        );
 
         if (!$identicalPaymentMethods) {
             $this->adyenLogger->addAdyenNotification(sprintf(
