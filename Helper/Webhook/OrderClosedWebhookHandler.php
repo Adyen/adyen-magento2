@@ -66,8 +66,11 @@ class OrderClosedWebhookHandler implements WebhookHandlerInterface
      * @return MagentoOrder
      * @throws \Exception
      */
-    public function handleWebhook(MagentoOrder $order, Notification $notification, string $transitionState): MagentoOrder
-    {
+    public function handleWebhook(
+        MagentoOrder $order,
+        Notification $notification,
+        string $transitionState
+    ): MagentoOrder {
         if ($notification->isSuccessful()) {
             $order->addCommentToStatusHistory(__('This order has been successfully completed.'));
         } else {
