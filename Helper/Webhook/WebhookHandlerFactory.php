@@ -30,6 +30,7 @@ use Adyen\Payment\Model\ResourceModel\Billing\Agreement;
 use Adyen\Payment\Model\ResourceModel\Billing\Agreement\CollectionFactory as AgreementCollectionFactory;
 use Adyen\Payment\Model\ResourceModel\Order\Payment\CollectionFactory as OrderPaymentCollectionFactory;
 use Adyen\Payment\Model\Order\PaymentFactory;
+use Adyen\Payment\Model\ResourceModel\Order\Payment as OrderPaymentResourceModel;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Sales\Model\Order\InvoiceFactory as MagentoInvoiceFactory;
@@ -107,7 +108,7 @@ class WebhookHandlerFactory
     private static $paymentTokenRepository;
 
     /** @var OrderPaymentResourceModel */
-    protected static $orderPaymentResourceModel;
+    private static $orderPaymentResourceModel;
 
     public function __construct(
         AdyenOrderPayment $adyenOrderPayment,
@@ -193,7 +194,8 @@ class WebhookHandlerFactory
                     self::$paymentMethodsHelper,
                     self::$adyenLogger,
                     self::$configHelper,
-                    self::$orderHelper
+                    self::$orderHelper,
+                    self::$orderPaymentResourceModel,
                 );
             case Notification::REFUND:
                 return new RefundWebhookHandler(
