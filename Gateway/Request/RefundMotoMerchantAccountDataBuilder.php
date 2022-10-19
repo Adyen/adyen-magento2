@@ -27,6 +27,7 @@ class RefundMotoMerchantAccountDataBuilder implements BuilderInterface
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
         $merchantAccount = $paymentDataObject->getPayment()->getAdditionalInformation('motoMerchantAccount');
+
         $requestBody[] = ["merchantAccount" => $merchantAccount];
 
         $request['body'] = $requestBody;

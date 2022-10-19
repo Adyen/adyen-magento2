@@ -82,7 +82,6 @@ class RefundDataBuilder implements BuilderInterface
         $pspReference = $payment->getCcTransId();
         $currency = $creditMemoAmountCurrency->getCurrencyCode();
         $amount = $creditMemoAmountCurrency->getAmount();
-        $merchantAccount = $buildSubject['merchantReference'];
 
         // check if it contains a partial payment
         $orderPaymentCollection = $this->orderPaymentCollectionFactory
@@ -147,7 +146,6 @@ class RefundDataBuilder implements BuilderInterface
                         "modificationAmount" => $modificationAmountObject,
                         "reference" => $payment->getOrder()->getIncrementId(),
                         "originalReference" => $partialPayment->getPspreference(),
-                        "merchantAccount" => $merchantAccount
                     ];
                 }
             }
@@ -161,7 +159,6 @@ class RefundDataBuilder implements BuilderInterface
                     "modificationAmount" => $modificationAmount,
                     "reference" => $payment->getOrder()->getIncrementId(),
                     "originalReference" => $pspReference,
-                    "merchantAccount" => $merchantAccount
                 ]
             ];
 
