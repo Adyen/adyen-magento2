@@ -98,14 +98,18 @@ class PointOfSale
     }
 
     /**
-     * @param $installments
-     * @param $amount
-     * @param $currencyCode
-     * @param $precision
+     * @param array $installments
+     * @param float $amount
+     * @param string $currencyCode
+     * @param int $precision
      * @return array
      */
-    public function getFormattedInstallments($installments, $amount, $currencyCode, $precision): array
-    {
+    public function getFormattedInstallments(
+        array $installments,
+        float $amount,
+        string $currencyCode,
+        int $precision
+    ): array {
         $formattedInstallments = [];
 
         foreach ($installments as $minAmount => $installment) {
