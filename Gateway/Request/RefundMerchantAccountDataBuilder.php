@@ -43,8 +43,9 @@ class RefundMerchantAccountDataBuilder implements BuilderInterface
     {
         /** @var \Magento\Payment\Gateway\Data\PaymentDataObject $paymentDataObject */
         $paymentDataObject = \Magento\Payment\Gateway\Helper\SubjectReader::readPayment($buildSubject);
-        $storeId = $paymentDataObject->getOrder()->getStoreId();
+        $order = $paymentDataObject->getOrder();
         $payment = $paymentDataObject->getPayment();
+        $storeId = $order ->getStoreId();
         $method = $payment->getMethod();
         $merchantAccount = $this->adyenHelper->getAdyenMerchantAccount($method, $storeId);
 
