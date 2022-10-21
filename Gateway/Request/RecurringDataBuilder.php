@@ -21,24 +21,25 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 
 class RecurringDataBuilder implements BuilderInterface
 {
-    /** @var Requests  */
+    /** @var Requests */
     private $adyenRequestsHelper;
 
-    /** @var AdyenLogger  */
+    /** @var AdyenLogger */
     private $adyenLogger;
 
-    /** @var Vault  */
+    /** @var Vault */
     private $vaultHelper;
 
-    /** @var StateData  */
+    /** @var StateData */
     private $stateData;
 
     public function __construct(
-        Requests $adyenRequestsHelper,
+        Requests    $adyenRequestsHelper,
         AdyenLogger $adyenLogger,
-        Vault $vaultHelper,
-        StateData $stateData
-    ) {
+        Vault       $vaultHelper,
+        StateData   $stateData
+    )
+    {
         $this->adyenRequestsHelper = $adyenRequestsHelper;
         $this->adyenLogger = $adyenLogger;
         $this->vaultHelper = $vaultHelper;
@@ -65,7 +66,7 @@ class RecurringDataBuilder implements BuilderInterface
             $body = $this->vaultHelper->buildPaymentMethodRecurringData($storeId, $brand);
         } elseif ($method === PaymentMethods::ADYEN_ONE_CLICK) {
             $body = $this->adyenRequestsHelper->buildAdyenTokenizedPaymentRecurringData($storeId, $payment);
-        } else {
+        } elseif ($method !== PaymentMethods::ADYEN_PAY_BY_LINK) {
             $this->adyenLogger->addAdyenWarning(
                 sprintf('Unknown payment method: %s', $payment->getMethod()),
                 $this->adyenLogger->getOrderContext($order)

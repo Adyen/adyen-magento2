@@ -33,6 +33,7 @@ use Magento\Framework\View\DesignInterface;
 use Magento\Payment\Helper\Data as MagentoDataHelper;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Adyen\Payment\Helper\Data as AdyenDataHelper;
 
 /**
  * @SuppressWarnings(PHPMD.LongVariable)
@@ -42,6 +43,7 @@ class PaymentMethods extends AbstractHelper
     const ADYEN_HPP = 'adyen_hpp';
     const ADYEN_CC = 'adyen_cc';
     const ADYEN_ONE_CLICK = 'adyen_oneclick';
+    const ADYEN_PAY_BY_LINK = 'adyen_pay_by_link';
 
     const ADYEN_PREFIX = 'adyen_';
 
@@ -85,6 +87,11 @@ class PaymentMethods extends AbstractHelper
      * @var AdyenLogger
      */
     protected $adyenLogger;
+
+    /**
+     * @var AdyenDataHelper
+     */
+    protected $adyenDataHelper;
 
     /**
      * @var Repository
@@ -146,7 +153,8 @@ class PaymentMethods extends AbstractHelper
         Config $configHelper,
         MagentoDataHelper $dataHelper,
         ManualCapture $manualCapture,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        AdyenDataHelper $adyenDataHelper
     ) {
         parent::__construct($context);
         $this->quoteRepository = $quoteRepository;
@@ -164,6 +172,7 @@ class PaymentMethods extends AbstractHelper
         $this->dataHelper = $dataHelper;
         $this->manualCapture = $manualCapture;
         $this->serializer = $serializer;
+        $this->adyenDataHelper = $adyenDataHelper;
     }
 
     /**
@@ -410,12 +419,8 @@ class PaymentMethods extends AbstractHelper
         ];
 
         if (!empty($this->getCurrentShopperReference())) {
-            $paymentMethodRequest["shopperReference"] = str_pad(
-                $this->getCurrentShopperReference(),
-                3,
-                '0',
-                STR_PAD_LEFT
-            );
+            $paymentMethodRequest["shopperReference"] =
+                $this->adyenDataHelper->padShopperReference($this->getCurrentShopperReference());
         }
 
         $amountValue = $this->adyenHelper->formatAmount($this->getCurrentPaymentAmount(), $currencyCode);
@@ -683,7 +688,7 @@ class PaymentMethods extends AbstractHelper
             }
 
             if ($paymentCode == "adyen_pos_cloud") {
-                $captureModePos = $this->adyenHelper->getAdyenPosCloudConfigData(
+                $captureModePos = $this->configHelper->getAdyenPosCloudConfigData(
                     'capture_mode_pos',
                     $order->getStoreId()
                 );

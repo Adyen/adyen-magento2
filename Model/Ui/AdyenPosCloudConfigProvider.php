@@ -12,59 +12,45 @@
 
 namespace Adyen\Payment\Model\Ui;
 
+use Adyen\Payment\Helper\Config;
+use Adyen\Payment\Helper\ConnectedTerminals;
 use Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\UrlInterface;
 
 class AdyenPosCloudConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'adyen_pos_cloud';
 
-    /**
-     * Request object
-     *
-     * @var \Magento\Framework\App\RequestInterface
-     */
+    /** @var RequestInterface  */
     protected $request;
 
-    /**
-     * @var \Magento\Framework\UrlInterface
-     */
+    /** @var UrlInterface  */
     protected $urlBuilder;
 
-    /**
-     * @var \Adyen\Payment\Helper\ConnectedTerminals
-     */
+    /** @var ConnectedTerminals  */
     protected $connectedTerminalsHelper;
 
-    /**
-     * @var \Adyen\Payment\Helper\Data
-     */
-    protected $adyenHelper;
+    /** @var Config */
+    protected $configHelper;
 
     /**
-     * @var \Magento\Framework\Serialize\SerializerInterface
+     * @var SerializerInterface
      */
     private $serializer;
 
-    /**
-     * AdyenHppConfigProvider constructor.
-     *
-     * @param \Magento\Framework\App\RequestInterface $request
-     * @param \Magento\Framework\UrlInterface $urlBuilder
-     * @param \Adyen\Payment\Helper\ConnectedTerminals $connectedTerminalsHelper
-     * @param \Adyen\Payment\Helper\Data $adyenHelper
-     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
-     */
     public function __construct(
-        \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\UrlInterface $urlBuilder,
-        \Adyen\Payment\Helper\ConnectedTerminals $connectedTerminalsHelper,
-        \Adyen\Payment\Helper\Data $adyenHelper,
-        \Magento\Framework\Serialize\SerializerInterface $serializer
+        RequestInterface $request,
+        UrlInterface $urlBuilder,
+        ConnectedTerminals $connectedTerminalsHelper,
+        SerializerInterface $serializer,
+        Config $configHelper
     ) {
         $this->request = $request;
         $this->urlBuilder = $urlBuilder;
         $this->connectedTerminalsHelper = $connectedTerminalsHelper;
-        $this->adyenHelper = $adyenHelper;
+        $this->configHelper = $configHelper;
         $this->serializer = $serializer;
     }
 
@@ -88,7 +74,7 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
             ]
         ];
 
-        if ($this->adyenHelper->getAdyenPosCloudConfigDataFlag("active")) {
+        if ($this->configHelper->getAdyenPosCloudConfigData("active", null, true)) {
             $config['payment']['adyenPos']['connectedTerminals'] = $this->getConnectedTerminals();
             $config['payment']['adyenPos']['fundingSourceOptions'] = $this->getFundingSourceOptions();
         }
@@ -97,8 +83,8 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
         $config['payment']['adyenPos']['hasInstallments'] = false;
 
         // get Installments
-        $installmentsEnabled = $this->adyenHelper->getAdyenPosCloudConfigData('enable_installments');
-        $installments = $this->adyenHelper->getAdyenPosCloudConfigData('installments');
+        $installmentsEnabled = $this->configHelper->getAdyenPosCloudConfigData('enable_installments');
+        $installments = $this->configHelper->getAdyenPosCloudConfigData('installments');
 
         if ($installmentsEnabled && $installments) {
             $config['payment']['adyenPos']['installments'] = $this->serializer->unserialize($installments);
@@ -113,7 +99,7 @@ class AdyenPosCloudConfigProvider implements ConfigProviderInterface
     /**
      * Retrieve request object
      *
-     * @return \Magento\Framework\App\RequestInterface
+     * @return RequestInterface
      */
     protected function getRequest()
     {

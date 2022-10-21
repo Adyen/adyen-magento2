@@ -49,13 +49,16 @@ class AdyenInitiateTerminalApiTest extends \PHPUnit\Framework\TestCase
 
         // Create a map of arguments to return values.
         $map = [
-            ['pos_timeout', null, ''],
+            ['total_timeout', null, ''],
             ['recurring_type', null, self::RECURRING_TYPE]
         ];
 
         // Configure the stub.
         $adyenHelper->method('getAdyenPosCloudConfigData')
             ->will($this->returnValueMap($map));
+
+        $adyenHelper->method('padShopperReference')
+            ->will($this->returnValue(self::CUSTOMER_ID));
 
         $adyenHelper->method('getModuleName')
             ->will($this->returnValue(self::MODULE_NAME));
